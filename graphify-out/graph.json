@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-09-02T19:09:25.0277979+03:00",
+  "generatedAt": "2026-09-02T19:14:40.3975236+03:00",
   "version": "1.1.0",
   "statistics": {
-    "totalEdges": 33,
     "totalNodes": 30,
+    "totalEdges": 33,
     "godNodes": [
       {
         "id": "MainWindow",
