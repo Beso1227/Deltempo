@@ -33,54 +33,54 @@
   ],
   "nodes": [
     {
-      "width": 280,
       "x": 100,
       "y": 100,
-      "height": 120,
-      "id": "node_app",
+      "type": "text",
+      "width": 280,
       "text": "### 🚀 App.xaml.cs\nRoot Entry Point & Mutex Router",
-      "type": "text",
-      "color": "1"
+      "color": "1",
+      "id": "node_app",
+      "height": 120
     },
     {
-      "width": 300,
       "x": 460,
       "y": 40,
-      "height": 140,
-      "id": "node_ui",
+      "type": "text",
+      "width": 300,
       "text": "### 🖥️ MainWindow.xaml.cs\nWPF Dashboard & Controller",
-      "type": "text",
-      "color": "4"
+      "color": "4",
+      "id": "node_ui",
+      "height": 140
     },
     {
-      "width": 300,
       "x": 460,
       "y": 220,
-      "height": 140,
-      "id": "node_cli",
-      "text": "### 💻 deltempo_cli.exe\nSynchronous Console CLI",
       "type": "text",
-      "color": "5"
+      "width": 300,
+      "text": "### 💻 deltempo_cli.exe\nSynchronous Console CLI",
+      "color": "5",
+      "id": "node_cli",
+      "height": 140
     },
     {
-      "width": 280,
       "x": 840,
       "y": 40,
-      "height": 140,
-      "id": "node_cleaner",
-      "text": "### 🧹 CleanerService.cs\n21-Scope Purge Engine",
       "type": "text",
-      "color": "2"
+      "width": 280,
+      "text": "### 🧹 CleanerService.cs\n21-Scope Purge Engine",
+      "color": "2",
+      "id": "node_cleaner",
+      "height": 140
     },
     {
-      "width": 280,
       "x": 840,
       "y": 220,
-      "height": 140,
-      "id": "node_optimizer",
-      "text": "### ⚡ Memory & Startup\nRAM Booster & Boot Tools",
       "type": "text",
-      "color": "3"
+      "width": 280,
+      "text": "### ⚡ Memory & Startup\nRAM Booster & Boot Tools",
+      "color": "3",
+      "id": "node_optimizer",
+      "height": 140
     }
   ]
 }
