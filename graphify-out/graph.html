@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Deltempo Knowledge Graph (Graphify)</title>
+  <script src="https://unpkg.com/force-graph"></script>
+  <style>
+    body { margin: 0; background: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #f3f4f6; overflow: hidden; }
+    #header { position: absolute; top: 16px; left: 20px; z-index: 10; background: rgba(17, 24, 39, 0.85); padding: 14px 20px; border-radius: 12px; border: 1px solid #1f2937; backdrop-filter: blur(8px); }
+    #header h1 { margin: 0 0 6px 0; font-size: 1.1rem; color: #38bdf8; letter-spacing: 0.5px; }
+    #header p { margin: 0; font-size: 0.8rem; color: #9ca3af; }
+    #panel { position: absolute; top: 16px; right: 20px; z-index: 10; width: 320px; background: rgba(17, 24, 39, 0.9); padding: 18px; border-radius: 12px; border: 1px solid #1f2937; backdrop-filter: blur(10px); display: none; }
+    #panel h2 { margin: 0 0 8px 0; font-size: 1rem; color: #10b981; }
+    #panel .badge { display: inline-block; padding: 2px 8px; font-size: 0.75rem; border-radius: 6px; background: #1e293b; color: #38bdf8; margin-bottom: 10px; }
+    #panel p { font-size: 0.82rem; line-height: 1.4; color: #d1d5db; margin: 0 0 10px 0; }
+    #panel ul { margin: 0; padding-left: 18px; font-size: 0.78rem; color: #9ca3af; }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <h1>⚡ DELTEMPO AST KNOWLEDGE GRAPH</h1>
+    <p>Nodes: 30 | Relationships: 33 | Generated: 2026-09-02 17:39</p>
+  </div>
+  <div id="panel">
+    <h2 id="p-title">Node</h2>
+    <span class="badge" id="p-cluster">Cluster</span>
+    <p id="p-desc">Description</p>
+    <strong>Methods / Actions:</strong>
+    <ul id="p-methods"></ul>
+  </div>
+  <div id="graph"></div>
+
+  <script>
+    const data = {
+  "generatedAt": "2026-09-02T17:39:32.5219213+03:00",
+  "version": "1.1.0",
+  "statistics": {
+    "totalEdges": 33,
+    "clusters": [
+      {
+        "count": 2,
+        "cluster": "Cleaner"
+      },
+      {
+        "count": 3,
+        "cluster": "CLI"
+      },
+      {
+        "count": 1,
+        "cluster": "Core"
+      },
+      {
+        "count": 1,
+        "cluster": "DevOps"
+      },
+      {
+        "count": 5,
+        "cluster": "Models"
+      },
+      {
+        "count": 4,
+        "cluster": "Optimizer"
+      },
+      {
+        "count": 3,
+        "cluster": "Providers"
+      },
+      {
+        "count": 4,
+        "cluster": "System"
+      },
+      {
+        "count": 3,
+        "cluster": "Tests"
+      },
+      {
+        "count": 4,
+        "cluster": "UI"
+      }
+    ],
+    "godNodes": [
+      {
+        "id": "MainWindow",
+        "label": "MainWindow.xaml / .cs",
+        "degree": 11,
+        "cluster": "UI"
+      },
+      {
+        "id": "CleanerService",
+        "label": "CleanerService.cs",
+        "degree": 8,
+        "cluster": "Cleaner"
+      },
+      {
+        "id": "CliRunner",
+        "label": "CliRunner.cs",
+        "degree": 7,
+        "cluster": "CLI"
+      },
+      {
+        "id": "WindowsSystemProvider",
+        "label": "WindowsSystemProvider.cs",
+        "degree": 4,
+        "cluster": "Providers"
+      },
+      {
+        "id": "App_xaml",
+        "label": "App.xaml / App.xaml.cs",
+        "degree": 3,
+        "cluster": "Core"
+      }
+    ],
+    "totalNodes": 30
+  },
+  "nodes": [
+    {
+      "id": "App_xaml",
+      "label": "App.xaml / App.xaml.cs",
+      "type": "Entrypoint",
+      "cluster": "Core",
+      "filePath": "App.xaml.cs",
+      "description": "Application lifecycle, single-instance mutex initialization, startup argument routing.",
+      "methods": [
+        "OnStartup",
+        "OnExit"
+      ],
+      "properties": [],
+      "degree": 3
+    },
+    {
+      "id": "MainWindow",
+      "label": "MainWindow.xaml / .cs",
+      "type": "UI_View",
+      "cluster": "UI",
+      "filePath": "MainWindow.xaml.cs",
+      "description": "Main WPF GUI Dashboard, tab navigation, disk chart, RAM gauge, log viewer.",
+      "methods": [
+        "Window_Loaded",
+        "BtnClean_Click",
+        "BtnBoostRam_Click",
+        "BtnScanLargeFiles_Click"
+      ],
+      "properties": [],
+      "degree": 11
+    },
+    {
+      "id": "Deltempo_Cli",
+      "label": "Deltempo.Cli / Program.cs",
+      "type": "Entrypoint",
+      "cluster": "CLI",
+      "filePath": "Cli/Program.cs",
+      "description": "Dedicated native Console Subsystem entrypoint for synchronous in-place terminal commands.",
+      "methods": [
+        "Main"
+      ],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "CliRunner",
+      "label": "CliRunner.cs",
+      "type": "CLI_Controller",
+      "cluster": "CLI",
+      "filePath": "Services/CliRunner.cs",
+      "description": "CLI argument parser, interactive table formatter, and command dispatcher.",
+      "methods": [
+        "RunAsync",
+        "HandleScanAsync",
+        "HandleCleanAsync",
+        "HandleBoostAsync",
+        "HandleStatusAsync"
+      ],
+      "properties": [],
+      "degree": 7
+    },
+    {
+      "id": "CleanerService",
+      "label": "CleanerService.cs",
+      "type": "Engine_Hub",
+      "cluster": "Cleaner",
+      "filePath": "Services/CleanerService.cs",
+      "description": "Central purge engine for 21 system & application scopes with 24h Safety Shield.",
+      "methods": [
+        "GetDefaultTargets",
+        "ScanFolderAsync",
+        "CleanFolderAsync",
+        "GenerateAuditReport"
+      ],
+      "properties": [],
+      "degree": 8
+    },
+    {
+      "id": "MemoryOptimizerService",
+      "label": "MemoryOptimizerService.cs",
+      "type": "Service",
+      "cluster": "Optimizer",
+      "filePath": "Services/MemoryOptimizerService.cs",
+      "description": "1-Click RAM Booster using Win32 EmptyWorkingSet API with process whitelist.",
+      "methods": [
+        "GetMemoryInfo",
+        "OptimizeRamAsync"
+      ],
+      "properties": [],
+      "degree": 3
+    },
+    {
+      "id": "StartupManagerService",
+      "label": "StartupManagerService.cs",
+      "type": "Service",
+      "cluster": "Optimizer",
+      "filePath": "Services/StartupManagerService.cs",
+      "description": "100% reversible boot accelerator with Run_Deltempo_Disabled registry safety.",
+      "methods": [
+        "GetStartupAppsAsync",
+        "ToggleStartupAppAsync"
+      ],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "LargeFileHunterService",
+      "label": "LargeFileHunterService.cs",
+      "type": "Service",
+      "cluster": "Optimizer",
+      "filePath": "Services/LargeFileHunterService.cs",
+      "description": "Multi-drive storage hog scanner (>50MB) with Recycle Bin undo.",
+      "methods": [
+        "ScanLargeFilesAsync",
+        "MoveToRecycleBin",
+        "OpenInExplorer"
+      ],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "ProcessOptimizerService",
+      "label": "ProcessOptimizerService.cs",
+      "type": "Service",
+      "cluster": "Optimizer",
+      "filePath": "Services/ProcessOptimizerService.cs",
+      "description": "Background process inspector with 65+ Windows Core Whitelist protection.",
+      "methods": [
+        "GetHeavyProcessesAsync",
+        "TrimProcessMemory",
+        "SafeTerminateProcess"
+      ],
+      "properties": [],
+      "degree": 3
+    },
+    {
+      "id": "OrphanedAppService",
+      "label": "OrphanedAppService.cs",
+      "type": "Service",
+      "cluster": "Cleaner",
+      "filePath": "Services/OrphanedAppService.cs",
+      "description": "Scans leftover uninstalled application directories in AppData & ProgramData.",
+      "methods": [
+        "ScanVerifiedOrphanedFolders"
+      ],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "SingleInstanceManager",
+      "label": "SingleInstanceManager.cs",
+      "type": "Service",
+      "cluster": "System",
+      "filePath": "Services/SingleInstanceManager.cs",
+      "description": "Global Named Mutex & RegisterWindowMessage IPC activation.",
+      "methods": [
+        "TryAcquireSingleInstance",
+        "BroadcastRestoreMessage"
+      ],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "DriveTelemetryService",
+      "label": "DriveTelemetryService.cs",
+      "type": "Service",
+      "cluster": "System",
+      "filePath": "Services/DriveTelemetryService.cs",
+      "description": "OS drive capacity, free space, and low-disk warning triggers.",
+      "methods": [
+        "GetSystemDriveTelemetry"
+      ],
+      "properties": [],
+      "degree": 3
+    },
+    {
+      "id": "CliRegistrationService",
+      "label": "CliRegistrationService.cs",
+      "type": "Service",
+      "cluster": "CLI",
+      "filePath": "Services/CliRegistrationService.cs",
+      "description": "Automated PATH, App Paths, and PowerShell profile function registration.",
+      "methods": [
+        "RegisterCliEnvironmentAsync"
+      ],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "UpdateService",
+      "label": "UpdateService.cs",
+      "type": "Service",
+      "cluster": "System",
+      "filePath": "Services/UpdateService.cs",
+      "description": "G-Helper style in-place auto-updater checking GitHub Releases API.",
+      "methods": [
+        "CheckForUpdatesAsync",
+        "DownloadAndApplyUpdateAsync"
+      ],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "ThemeService",
+      "label": "ThemeService.cs",
+      "type": "Service",
+      "cluster": "UI",
+      "filePath": "Services/ThemeService.cs",
+      "description": "Dynamic theme manager with Deep Dark and Dark Glass palettes.",
+      "methods": [
+        "ApplyTheme",
+        "ToggleTheme"
+      ],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "LocalizationService",
+      "label": "LocalizationService.cs",
+      "type": "Service",
+      "cluster": "UI",
+      "filePath": "Services/LocalizationService.cs",
+      "description": "Multi-language dictionary supporting English, Arabic, and 8+ locales.",
+      "methods": [
+        "GetString",
+        "SetLanguage"
+      ],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "TrayService",
+      "label": "TrayService.cs",
+      "type": "Service",
+      "cluster": "UI",
+      "filePath": "Services/TrayService.cs",
+      "description": "Windows notification area tray icon and background monitor.",
+      "methods": [
+        "InitializeTray",
+        "ShowNotification",
+        "Dispose"
+      ],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "ElevationService",
+      "label": "ElevationService.cs",
+      "type": "Service",
+      "cluster": "System",
+      "filePath": "Services/ElevationService.cs",
+      "description": "UAC elevation detection and runas process relauncher.",
+      "methods": [
+        "IsRunAsAdmin",
+        "RestartAsAdmin"
+      ],
+      "properties": [],
+      "degree": 2
+    },
+    {
+      "id": "ISystemProvider",
+      "label": "ISystemProvider.cs",
+      "type": "Interface",
+      "cluster": "Providers",
+      "filePath": "Services/Providers/ISystemProvider.cs",
+      "description": "Mockable system interface for telemetry and process queries.",
+      "methods": [
+        "GetSystemDriveTelemetry",
+        "GetDriveSpace",
+        "GetMemoryMetrics",
+        "IsProcessProtected"
+      ],
+      "properties": [],
+      "degree": 2
+    },
+    {
+      "id": "WindowsSystemProvider",
+      "label": "WindowsSystemProvider.cs",
+      "type": "Provider",
+      "cluster": "Providers",
+      "filePath": "Services/Providers/WindowsSystemProvider.cs",
+      "description": "Win32 production system provider.",
+      "methods": [
+        "GetSystemDriveTelemetry",
+        "GetMemoryMetrics"
+      ],
+      "properties": [],
+      "degree": 4
+    },
+    {
+      "id": "MockSystemProvider",
+      "label": "MockSystemProvider.cs",
+      "type": "Provider",
+      "cluster": "Providers",
+      "filePath": "Services/Providers/MockSystemProvider.cs",
+      "description": "Headless in-memory simulation provider for unit testing & CI.",
+      "methods": [
+        "GetSystemDriveTelemetry",
+        "GetMemoryMetrics"
+      ],
+      "properties": [],
+      "degree": 2
+    },
+    {
+      "id": "TargetFolderInfo",
+      "label": "TargetFolderInfo.cs",
+      "type": "Model",
+      "cluster": "Models",
+      "filePath": "Models/TargetFolderInfo.cs",
+      "description": "Target cleaning category metadata, size bytes, file count, and safety badge.",
+      "methods": [],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "CleanSummary",
+      "label": "CleanSummary.cs",
+      "type": "Model",
+      "cluster": "Models",
+      "filePath": "Models/CleanSummary.cs",
+      "description": "Aggregated cleaning session metrics and audit calculations.",
+      "methods": [],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "DriveTelemetryInfo",
+      "label": "DriveTelemetryInfo.cs",
+      "type": "Model",
+      "cluster": "Models",
+      "filePath": "Models/DriveTelemetryInfo.cs",
+      "description": "Drive storage metrics, percentages, and low space thresholds.",
+      "methods": [],
+      "properties": [],
+      "degree": 0
+    },
+    {
+      "id": "JunkFileItem",
+      "label": "JunkFileItem.cs",
+      "type": "Model",
+      "cluster": "Models",
+      "filePath": "Models/JunkFileItem.cs",
+      "description": "Detailed file record for top large/stale files.",
+      "methods": [],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "LogEntry",
+      "label": "LogEntry.cs",
+      "type": "Model",
+      "cluster": "Models",
+      "filePath": "Models/LogEntry.cs",
+      "description": "Structured log item with LogLevel and timestamp.",
+      "methods": [],
+      "properties": [],
+      "degree": 0
+    },
+    {
+      "id": "xUnit_CleanerTests",
+      "label": "CleanerServiceTests.cs",
+      "type": "Test",
+      "cluster": "Tests",
+      "filePath": "tests/Deltempo.Tests/CleanerServiceTests.cs",
+      "description": "xUnit suite verifying 21 scopes, 24h shield, and lock handling.",
+      "methods": [],
+      "properties": [],
+      "degree": 2
+    },
+    {
+      "id": "xUnit_WhitelistTests",
+      "label": "SystemCoreWhitelistTests.cs",
+      "type": "Test",
+      "cluster": "Tests",
+      "filePath": "tests/Deltempo.Tests/SystemCoreWhitelistTests.cs",
+      "description": "xUnit suite testing 65+ Windows protected system processes.",
+      "methods": [],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "xUnit_TelemetryTests",
+      "label": "DriveTelemetryAndSimulationTests.cs",
+      "type": "Test",
+      "cluster": "Tests",
+      "filePath": "tests/Deltempo.Tests/DriveTelemetryAndSimulationTests.cs",
+      "description": "xUnit suite testing mock providers and simulation metrics.",
+      "methods": [],
+      "properties": [],
+      "degree": 1
+    },
+    {
+      "id": "GitHub_CI",
+      "label": "ci.yml",
+      "type": "CI_CD",
+      "cluster": "DevOps",
+      "filePath": ".github/workflows/ci.yml",
+      "description": "Automated GitHub Actions CI/CD building, testing, and verifying PRs.",
+      "methods": [],
+      "properties": [],
+      "degree": 1
+    }
+  ],
+  "edges": [
+    {
+      "source": "MainWindow",
+      "target": "CleanerService",
+      "relation": "calls_clean_and_scan",
+      "weight": 1
+    },
+    {
+      "source": "MainWindow",
+      "target": "MemoryOptimizerService",
+      "relation": "executes_ram_boost",
+      "weight": 1
+    },
+    {
+      "source": "MainWindow",
+      "target": "StartupManagerService",
+      "relation": "manages_startup_apps",
+      "weight": 1
+    },
+    {
+      "source": "MainWindow",
+      "target": "LargeFileHunterService",
+      "relation": "scans_large_files",
+      "weight": 1
+    },
+    {
+      "source": "MainWindow",
+      "target": "ProcessOptimizerService",
+      "relation": "manages_heavy_processes",
+      "weight": 1
+    },
+    {
+      "source": "MainWindow",
+      "target": "DriveTelemetryService",
+      "relation": "queries_disk_telemetry",
+      "weight": 1
+    },
+    {
+      "source": "MainWindow",
+      "target": "ThemeService",
+      "relation": "applies_color_palette",
+      "weight": 1
+    },
+    {
+      "source": "MainWindow",
+      "target": "LocalizationService",
+      "relation": "translates_ui_strings",
+      "weight": 1
+    },
+    {
+      "source": "MainWindow",
+      "target": "TrayService",
+      "relation": "minimizes_to_tray",
+      "weight": 1
+    },
+    {
+      "source": "MainWindow",
+      "target": "ElevationService",
+      "relation": "prompts_admin_restart",
+      "weight": 1
+    },
+    {
+      "source": "App_xaml",
+      "target": "SingleInstanceManager",
+      "relation": "enforces_single_instance_mutex",
+      "weight": 1
+    },
+    {
+      "source": "App_xaml",
+      "target": "CliRunner",
+      "relation": "routes_cli_flags",
+      "weight": 1
+    },
+    {
+      "source": "App_xaml",
+      "target": "MainWindow",
+      "relation": "launches_desktop_gui",
+      "weight": 1
+    },
+    {
+      "source": "Deltempo_Cli",
+      "target": "CliRunner",
+      "relation": "delegates_console_execution",
+      "weight": 1
+    },
+    {
+      "source": "CliRunner",
+      "target": "CleanerService",
+      "relation": "invokes_scan_and_clean",
+      "weight": 1
+    },
+    {
+      "source": "CliRunner",
+      "target": "MemoryOptimizerService",
+      "relation": "invokes_boost_ram",
+      "weight": 1
+    },
+    {
+      "source": "CliRunner",
+      "target": "DriveTelemetryService",
+      "relation": "queries_os_drive_status",
+      "weight": 1
+    },
+    {
+      "source": "CliRunner",
+      "target": "CliRegistrationService",
+      "relation": "triggers_profile_registration",
+      "weight": 1
+    },
+    {
+      "source": "CliRunner",
+      "target": "UpdateService",
+      "relation": "checks_github_updates",
+      "weight": 1
+    },
+    {
+      "source": "CleanerService",
+      "target": "TargetFolderInfo",
+      "relation": "generates_and_manages",
+      "weight": 1
+    },
+    {
+      "source": "CleanerService",
+      "target": "CleanSummary",
+      "relation": "produces_audit_summary",
+      "weight": 1
+    },
+    {
+      "source": "CleanerService",
+      "target": "JunkFileItem",
+      "relation": "collects_top_files",
+      "weight": 1
+    },
+    {
+      "source": "CleanerService",
+      "target": "OrphanedAppService",
+      "relation": "integrates_orphans",
+      "weight": 1
+    },
+    {
+      "source": "CleanerService",
+      "target": "ElevationService",
+      "relation": "checks_admin_access",
+      "weight": 1
+    },
+    {
+      "source": "WindowsSystemProvider",
+      "target": "ISystemProvider",
+      "relation": "implements",
+      "weight": 1
+    },
+    {
+      "source": "MockSystemProvider",
+      "target": "ISystemProvider",
+      "relation": "implements",
+      "weight": 1
+    },
+    {
+      "source": "WindowsSystemProvider",
+      "target": "DriveTelemetryService",
+      "relation": "delegates_telemetry",
+      "weight": 1
+    },
+    {
+      "source": "WindowsSystemProvider",
+      "target": "MemoryOptimizerService",
+      "relation": "delegates_ram_metrics",
+      "weight": 1
+    },
+    {
+      "source": "WindowsSystemProvider",
+      "target": "ProcessOptimizerService",
+      "relation": "queries_protected_whitelist",
+      "weight": 1
+    },
+    {
+      "source": "xUnit_CleanerTests",
+      "target": "CleanerService",
+      "relation": "verifies_unit_behavior",
+      "weight": 1
+    },
+    {
+      "source": "xUnit_WhitelistTests",
+      "target": "ProcessOptimizerService",
+      "relation": "verifies_protected_processes",
+      "weight": 1
+    },
+    {
+      "source": "xUnit_TelemetryTests",
+      "target": "MockSystemProvider",
+      "relation": "simulates_storage_thresholds",
+      "weight": 1
+    },
+    {
+      "source": "GitHub_CI",
+      "target": "xUnit_CleanerTests",
+      "relation": "executes_in_cloud_runner",
+      "weight": 1
+    }
+  ]
+};
+    const clusterColors = {
+      'Core': '#6366f1',
+      'UI': '#ec4899',
+      'CLI': '#06b6d4',
+      'Cleaner': '#10b981',
+      'Optimizer': '#f59e0b',
+      'System': '#8b5cf6',
+      'Providers': '#3b82f6',
+      'Models': '#64748b',
+      'Tests': '#14b8a6',
+      'DevOps': '#f43f5e'
+    };
+
+    const Graph = ForceGraph()(document.getElementById('graph'))
+      .graphData(data)
+      .nodeId('id')
+      .nodeLabel('label')
+      .nodeColor(node => clusterColors[node.cluster] || '#94a3b8')
+      .nodeVal(node => Math.max(3, (node.degree || 1) * 2.5))
+      .linkColor(() => '#334155')
+      .linkDirectionalParticles(2)
+      .linkDirectionalParticleSpeed(0.005)
+      .onNodeClick(node => {
+        document.getElementById('panel').style.display = 'block';
+        document.getElementById('p-title').innerText = node.label;
+        document.getElementById('p-cluster').innerText = node.cluster + ' (' + node.type + ')';
+        document.getElementById('p-desc').innerText = node.description || 'No description';
+        const list = document.getElementById('p-methods');
+        list.innerHTML = '';
+        (node.methods || []).forEach(m => {
+          const li = document.createElement('li');
+          li.innerText = m;
+          list.appendChild(li);
+        });
+      });
+  </script>
+</body>
+</html>

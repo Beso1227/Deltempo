@@ -1,0 +1,86 @@
+{
+  "edges": [
+    {
+      "toNode": "node_ui",
+      "id": "edge1",
+      "fromNode": "node_app",
+      "label": "GUI Mode"
+    },
+    {
+      "toNode": "node_cli",
+      "id": "edge2",
+      "fromNode": "node_app",
+      "label": "CLI Mode"
+    },
+    {
+      "toNode": "node_cleaner",
+      "id": "edge3",
+      "fromNode": "node_ui",
+      "label": "Clean/Scan"
+    },
+    {
+      "toNode": "node_optimizer",
+      "id": "edge4",
+      "fromNode": "node_ui",
+      "label": "Optimize"
+    },
+    {
+      "toNode": "node_cleaner",
+      "id": "edge5",
+      "fromNode": "node_cli",
+      "label": "deltempo clean"
+    }
+  ],
+  "nodes": [
+    {
+      "y": 100,
+      "id": "node_app",
+      "color": "1",
+      "text": "### 🚀 App.xaml.cs\nRoot Entry Point & Mutex Router",
+      "height": 120,
+      "x": 100,
+      "width": 280,
+      "type": "text"
+    },
+    {
+      "y": 40,
+      "id": "node_ui",
+      "color": "4",
+      "text": "### 🖥️ MainWindow.xaml.cs\nWPF Dashboard & Controller",
+      "height": 140,
+      "x": 460,
+      "width": 300,
+      "type": "text"
+    },
+    {
+      "y": 220,
+      "id": "node_cli",
+      "color": "5",
+      "text": "### 💻 deltempo_cli.exe\nSynchronous Console CLI",
+      "height": 140,
+      "x": 460,
+      "width": 300,
+      "type": "text"
+    },
+    {
+      "y": 40,
+      "id": "node_cleaner",
+      "color": "2",
+      "text": "### 🧹 CleanerService.cs\n21-Scope Purge Engine",
+      "height": 140,
+      "x": 840,
+      "width": 280,
+      "type": "text"
+    },
+    {
+      "y": 220,
+      "id": "node_optimizer",
+      "color": "3",
+      "text": "### ⚡ Memory & Startup\nRAM Booster & Boot Tools",
+      "height": 140,
+      "x": 840,
+      "width": 280,
+      "type": "text"
+    }
+  ]
+}

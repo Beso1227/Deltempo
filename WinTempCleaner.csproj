@@ -38,4 +38,8 @@
     <None Remove="Cli\**" />
   </ItemGroup>
 
+  <Target Name="AutoUpdateGraphify" AfterTargets="Build">
+    <Exec Command="pwsh -NoProfile -ExecutionPolicy Bypass -File &quot;$(ProjectDir)scripts\generate_graphify.ps1&quot; -RootPath &quot;$(ProjectDir)&quot;" ContinueOnError="true" />
+  </Target>
+
 </Project>
