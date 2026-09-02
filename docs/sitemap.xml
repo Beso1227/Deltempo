@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://beso1227.github.io/Deltempo/</loc>
     <lastmod>2026-09-02</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png</image:loc>
+      <image:title>Deltempo Windows Cleaner App Icon</image:title>
+      <image:caption>Deltempo - Pure Precision Windows Cache &amp; Temp Cleaner</image:caption>
+    </image:image>
   </url>
 </urlset>

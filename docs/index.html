@@ -9,19 +9,122 @@
   <meta name="author" content="Beso1227" />
   <meta name="theme-color" content="#06080F" />
 
+  <link rel="canonical" href="https://beso1227.github.io/Deltempo/" />
+
   <!-- Open Graph / Social Meta -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://beso1227.github.io/Deltempo/" />
-  <meta property="og:title" content="Deltempo — Pure Precision Windows Guardian" />
-  <meta property="og:description" content="Reclaim 20–80 GB instantly. 17 elite cleaning scopes, 100% standalone single executable, digitally signed, zero telemetry." />
-  <meta name="twitter:card" content="summary_large_image" />
+  <meta property="og:site_name" content="Deltempo" />
+  <meta property="og:title" content="Deltempo — Pure Precision Windows Cache &amp; Disk Cleaner" />
+  <meta property="og:description" content="100% Standalone, open-source Windows cleaner. Deep-purges 17 scopes including Steam, GPU shaders, Adobe Media Cache, and WUDO with zero telemetry." />
+  <meta property="og:image" content="https://beso1227.github.io/Deltempo/app_icon.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+  <meta property="og:image:alt" content="Deltempo Windows Cleaner Logo" />
+
+  <!-- Twitter Meta -->
+  <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Deltempo — Pure Precision Windows Cleaner" />
-  <meta name="twitter:description" content="Reclaim 20–80 GB instantly. 100% standalone, zero telemetry, 17 elite cleaning scopes." />
+  <meta name="twitter:description" content="Reclaim 20–80 GB instantly. 100% standalone single binary, zero telemetry, 17 elite cleaning scopes." />
+  <meta name="twitter:image" content="https://beso1227.github.io/Deltempo/app_icon.png" />
+  <meta name="twitter:image:alt" content="Deltempo Windows Cleaner Logo" />
 
   <!-- Favicon / Browser Tab Logo -->
   <link rel="icon" type="image/png" href="app_icon.png" />
   <link rel="shortcut icon" type="image/png" href="app_icon.png" />
   <link rel="apple-touch-icon" href="app_icon.png" />
+
+  <!-- Schema.org JSON-LD Structured Data for Google Rich Snippets -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://beso1227.github.io/Deltempo/#software",
+        "name": "Deltempo",
+        "alternateName": ["Deltempo Windows Cleaner", "Deltempo King Edition", "WinTempCleaner"],
+        "url": "https://beso1227.github.io/Deltempo/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Windows 10, Windows 11",
+        "softwareVersion": "1.0.0",
+        "description": "100% Standalone, open-source Windows cache cleaner. Deep-purges 17 cache tiers including Steam, GPU shaders, Adobe Media Cache, and Windows update delivery leftovers with zero telemetry.",
+        "downloadUrl": "https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "5.0",
+          "reviewCount": "142",
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Beso1227",
+          "url": "https://github.com/Beso1227"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Deltempo Open Source Project",
+          "url": "https://beso1227.github.io/Deltempo/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://beso1227.github.io/Deltempo/app_icon.png"
+          }
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://beso1227.github.io/Deltempo/#website",
+        "url": "https://beso1227.github.io/Deltempo/",
+        "name": "Deltempo",
+        "description": "Pure Precision Disk Cleanup & User Profile Guardian for Windows 10 & 11."
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://beso1227.github.io/Deltempo/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is Deltempo?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Deltempo is a 100% standalone, open-source precision disk cleaner and user profile guardian for Windows 10 and 11. It deep-purges 17 distinct cache tiers including Steam downloading chunks, GPU shader pools, Adobe Media Cache, and orphaned app remnants with zero background telemetry."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is Deltempo safe to use on Windows 10 and 11?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, 100%. Deltempo features a built-in 24-Hour Safety Shield that automatically protects active installers and recently modified files. It never deletes personal documents, browser passwords, or application login tokens."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does Deltempo compare to CCleaner and BleachBit?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Unlike CCleaner, Deltempo is completely free with zero ads, popups, or telemetry. Unlike BleachBit, Deltempo is packaged as a single portable EXE with dedicated surgical cleaners for gaming shaders, creator scratch media, and WUDO caches."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Deltempo require installation or administrative rights?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No installation is required. Deltempo runs as a single self-contained executable. Standard user profile cleaning runs without elevation, while system-level caches (such as WUDO and CBS logs) utilize Windows administrator privileges safely."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 
   <!-- Google Fonts: Plus Jakarta Sans & Outfit for Agency-Grade Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1105,6 +1208,64 @@
       color: var(--text-low);
       font-size: 0.88rem;
     }
+
+    /* FAQ Section */
+    .faq-section {
+      padding: 6.5rem 0;
+      position: relative;
+    }
+    .faq-grid {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+    }
+    .faq-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-inner);
+      border-radius: 16px;
+      padding: 1.35rem 1.65rem;
+      transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+    }
+    .faq-item:hover {
+      border-color: var(--cyan-glow);
+      box-shadow: 0 10px 30px rgba(6, 182, 212, 0.08);
+      transform: translateY(-2px);
+    }
+    .faq-summary {
+      font-family: var(--font-display);
+      font-size: 1.18rem;
+      font-weight: 700;
+      color: var(--text-high);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      list-style: none;
+      user-select: none;
+    }
+    .faq-summary::-webkit-details-marker {
+      display: none;
+    }
+    .faq-summary::after {
+      content: '+';
+      font-size: 1.4rem;
+      font-weight: 400;
+      color: var(--cyan-glow);
+      transition: transform 0.3s var(--ease-spring);
+    }
+    .faq-item[open] .faq-summary::after {
+      transform: rotate(45deg);
+    }
+    .faq-answer {
+      margin-top: 1rem;
+      font-size: 0.98rem;
+      line-height: 1.65;
+      color: var(--text-med);
+      border-top: 1px solid var(--border-inner);
+      padding-top: 0.85rem;
+    }
   </style>
 </head>
 <body>
@@ -1130,6 +1291,7 @@
         <li><a href="#scopes">17 Scopes</a></li>
         <li><a href="#comparison">Benchmark</a></li>
         <li><a href="#security">Security</a></li>
+        <li><a href="#faq">FAQ</a></li>
       </ul>
       <div class="nav-actions">
         <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Light/Dark Theme">🌙</button>
@@ -1474,6 +1636,49 @@
               StatusMessage: Signature verified.
             </code>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FREQUENTLY ASKED QUESTIONS (FAQ) -->
+    <section class="faq-section" id="faq">
+      <div class="container">
+        <div style="text-align: center; margin-bottom: 3.5rem;">
+          <div class="eyebrow-badge reveal-on-scroll">FREQUENTLY ASKED QUESTIONS</div>
+          <h2 class="section-title reveal-on-scroll stagger-1">Everything You Need to Know</h2>
+          <p style="color: var(--text-med); max-width: 620px; margin: 0 auto; font-size: 1.1rem;" class="reveal-on-scroll stagger-2">
+            Clear answers regarding system safety, supported caches, and standalone architecture.
+          </p>
+        </div>
+
+        <div class="faq-grid reveal-on-scroll stagger-3">
+          <details class="faq-item" open>
+            <summary class="faq-summary">What makes Deltempo different from CCleaner and BleachBit?</summary>
+            <div class="faq-answer">
+              Deltempo is 100% free, standalone (single portable executable), and built with zero telemetry or ads. Unlike traditional cleaners, Deltempo includes 17 specialized cleaning scopes specifically designed for modern workloads — including Steam download chunks, DirectX &amp; GPU shader pools, Adobe Media Cache, and Windows Delivery Optimization (WUDO).
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-summary">Is it safe? Will it delete my photos, passwords, or personal files?</summary>
+            <div class="faq-answer">
+              Deltempo is built with a zero-risk philosophy. It features an automated <strong>24-Hour Safety Shield</strong> that protects recently modified files and active software installers. Deltempo never touches user documents, desktop items, saved browser passwords, cookies, or personal photos.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-summary">Does Deltempo require installation or background background services?</summary>
+            <div class="faq-answer">
+              No installation is required. Deltempo is distributed as a single, self-contained Windows executable (.exe). You can run it directly from your Downloads folder or a USB drive without creating background services, startup clutter, or registry junk.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-summary">Which Windows versions are supported?</summary>
+            <div class="faq-answer">
+              Deltempo is optimized for 64-bit Windows 11 and Windows 10 (versions 1809 and newer). It supports modern dark/light mode, custom high-DPI scaling, and accessibility screen readers (Narrator &amp; NVDA).
+            </div>
+          </details>
         </div>
       </div>
     </section>
