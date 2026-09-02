@@ -10,6 +10,7 @@ public class DriveTelemetryInfo
 
     public double FreePercentage => TotalBytes > 0 ? (double)FreeBytes / TotalBytes * 100 : 0;
     public double UsedPercentage => TotalBytes > 0 ? (double)UsedBytes / TotalBytes * 100 : 0;
+    public bool IsLowSpace => FreePercentage < 15.0;
 
     public string FormattedTotal => TargetFolderInfo.FormatBytes(TotalBytes);
     public string FormattedFree => TargetFolderInfo.FormatBytes(FreeBytes);
