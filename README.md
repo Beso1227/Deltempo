@@ -1,179 +1,171 @@
 <div align="center">
 
-  <a href="https://github.com/Beso1227/Deltempo">
-    <img src="app_icon.png" alt="Deltempo Hero Logo" width="140" height="140" />
-  </a>
+  <img src="app_icon.png" alt="Deltempo Logo" width="128" height="128" />
 
-  # 👑 Deltempo
+  # 👑 Deltempo (King Edition)
   ### Pure Precision Windows & User Profile Cleaner
-  **The definitive, ultra-fast, zero-bloat, single-file portable cleaner for Windows 10 & 11.**
+
+  **Single Portable Executable • Zero Telemetry • 100% Free & Open Source (MIT)**
+
+  [![Release](https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=00E5FF&logo=windows&logoColor=white)](https://github.com/Beso1227/Deltempo/releases/latest)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
+  [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-3B82F6?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/Beso1227/Deltempo)
+  [![Website](https://img.shields.io/badge/Official_Site-Live-8B5CF6?style=for-the-badge&logo=googlechrome&logoColor=white)](https://beso1227.github.io/Deltempo/)
+  [![Accessibility](https://img.shields.io/badge/WCAG-2.2_AA_Compliant-00E5FF?style=for-the-badge)](https://github.com/Beso1227/Deltempo)
+
+  <br />
 
   <p align="center">
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest">
-      <img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=00E5FF&logo=windows&logoColor=white" alt="Latest Release" />
-    </a>
-    <a href="https://github.com/Beso1227/Deltempo/releases">
-      <img src="https://img.shields.io/badge/Size-2.4%20MB%20(Single%20EXE)-10B981?style=for-the-badge&logo=appveyor" alt="Single EXE Size" />
-    </a>
-    <a href="LICENSE">
-      <img src="https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge" alt="MIT License" />
-    </a>
-    <a href="https://github.com/Beso1227/Deltempo">
-      <img src="https://img.shields.io/badge/Telemetry-0%25%20Zero%20Tracking-3B82F6?style=for-the-badge&logo=shield" alt="Zero Telemetry" />
-    </a>
-    <a href="https://github.com/Beso1227/Deltempo">
-      <img src="https://img.shields.io/badge/Accessibility-WCAG%202.2%20AA-8B5CF6?style=for-the-badge" alt="WCAG 2.2 AA" />
+    <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe">
+      <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DELTEMPO.EXE_(2.4_MB)-3B82F6?style=for-the-badge&logoColor=white" alt="Download Deltempo.exe" height="42" />
     </a>
   </p>
 
   <p align="center">
-    <a href="#-real-world-impact-case-study">Real Impact</a> •
-    <a href="#-why-deltempo-is-the-king-competitive-comparison">Why Deltempo?</a> •
-    <a href="#-key-architectural-advantages">Core Advantages</a> •
-    <a href="#-cleaning-matrix--scope">Cleanup Matrix</a> •
-    <a href="#-speed-benchmarks">Benchmarks</a> •
-    <a href="#-quick-download">Download</a> •
-    <a href="#-building-from-source">Build</a>
+    <strong>🌐 Official Landing Page:</strong> <a href="https://beso1227.github.io/Deltempo/">https://beso1227.github.io/Deltempo/</a>
   </p>
 
 </div>
 
 ---
 
-## 📈 Real-World Impact: Case Study
+## ⚡ The Problem Deltempo Solves
 
-> ### 💡 *"My C: drive was suffocating at 64 GB free space. I ran Deltempo, and within 25 seconds it safely purged orphaned GPU shaders, old update installers, and bloated Electron app caches—instantly jumping to over 70.8 GB of clean, usable free space!"*
+Windows and modern desktop applications secretly dump tens of gigabytes of disposable data into hidden subdirectories under `AppData`, GPU shader caches, and leftover uninstalled software folders. Standard disk cleanup utilities either miss these completely or risk logging you out of your applications.
 
-```
-BEFORE DELTEMPO:  [██████████████████████████████░░░░░░]  64.2 GB Free
-AFTER DELTEMPO:   [████████████████████████░░░░░░░░░░░░]  70.8 GB Free (+6.6 GB INSTANTLY RECLAIMED)
-```
+**Deltempo** is engineered from the ground up as a pure precision, zero-bloat standalone tool that safely purges disposable junk while leaving user accounts, logins, and configurations 100% untouched.
 
-Windows applications, GPU drivers, and uninstallers quietly dump tens of gigabytes into `C:\Users\<Username>\AppData` and hidden system partitions without ever cleaning up after themselves. **Deltempo gives you back your hard drive space in seconds.**
+> ### 💡 Real-World User Impact
+> *"Without Deltempo my C: drive was suffocating at 64 GB free space. Within 25 seconds of running Deltempo, it jumped to over **70.8 GB free (+6.8 GB instant space)**!"*
 
 ---
 
-## ⚔️ Why Deltempo is the King: Competitive Comparison
+## 🌟 What's New in King Edition (v1.0.0)
 
-Most commercial PC cleaners have become bloated with intrusive ads, background telemetry daemons, upsell popups, and dangerous "registry cleaner" gimmicks that do more harm than good. 
-
-Here is how **Deltempo** compares head-to-head against the biggest names in the industry:
-
-| Feature & Standard | 👑 **Deltempo** | 🛑 **CCleaner (Avast)** | 🛑 **BleachBit** | 🛑 **IObit / CleanMaster** | 🛑 **Windows Disk Cleanup** |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Open Source & Transparent** | **100% MIT** | ❌ Proprietary | ✅ GPLv3 | ❌ Proprietary | ⚠️ Closed System |
-| **Zero-Install Single Portable EXE** | **Yes (2.4 MB)** | ❌ Needs Installer | ⚠️ Multi-file zip | ❌ Heavy Installer | ⚠️ Built-in |
-| **Background Processes & Services** | **0 (Zero)** | ❌ 2–4 Background Daemons | ✅ None | ❌ Heavy Services | ✅ None |
-| **Telemetry, Ads & Upsells** | **0% (Pure Offline)** | ❌ Telemetry + Adware Popups | ✅ Clean | ❌ Aggressive Ads | ⚠️ Microsoft Telemetry |
-| **User Profile `AppData` Hunter** | **✅ Yes (Deep Scan)** | ⚠️ Basic / Paid Pro Tier | ⚠️ Basic | ⚠️ Paywalled | ❌ No |
-| **DirectX & GPU Shader Cache Purge** | **✅ Yes (5–20 GB)** | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Electron & App Cache Sweeper** | **✅ Yes (Preserves Logins)** | ⚠️ Incomplete | ⚠️ Can break logins | ❌ Gimmick | ❌ No |
-| **Verified Orphaned Residual Detector**| **✅ Yes (Registry Verified)** | ❌ Blind / Paywalled | ❌ No | ❌ Risky Wipes | ❌ No |
-| **Safety Shield (<24h File Protection)**| **✅ Yes (Zero Accidental Loss)**| ❌ No | ❌ No | ❌ No | ❌ No |
-| **Large Junk Files Inspector** | **✅ Yes (Drill-down)** | ❌ Paywalled in Pro | ❌ No | ❌ No | ❌ No |
-| **UI Aesthetics & Motion** | **💎 Luxury Double-Bezel** | ❌ Cluttered / Outdated | ❌ Legacy 2000s GTK | ❌ Flashy / Fake dials | ❌ Legacy Windows 98 UI |
-| **Accessibility Compliance** | **♿ WCAG 2.2 AA** | ❌ Inaccessible | ❌ Limited | ❌ None | ⚠️ Basic |
-| **Deletes Locked Files Without Crashing**| **✅ Kernel32 Direct Syscalls**| ⚠️ Slow | ⚠️ Freezes GUI | ⚠️ Crashes | ⚠️ Slow |
+| Feature | Description |
+| :--- | :--- |
+| ⚡ **Headless CLI Engine** | Run terminal scans & automated scheduled cleanups via `Deltempo.exe --scan`, `--clean`, `--safe`, `--json`. |
+| 🔊 **Procedural Haptic Audio** | Procedural tactile click tones & futuristic celebration chimes synthesized on-the-fly (0 audio files needed). |
+| 🌍 **Multi-Language (i18n)** | Instant single-click language switching: 🇺🇸 English, 🇸🇦 العربية, 🇪🇸 Español, 🇫🇷 Français, 🇩🇪 Deutsch. |
+| 🎨 **Luxury In-App Modals** | Replaced legacy Windows message boxes with double-bezel animated confirmation & celebration dialogs. |
+| 📦 **Winget Distribution** | Official Windows Package Manager manifest included (`winget install Beso1227.Deltempo`). |
+| 🛡️ **24h Safety Shield** | Automated file age filter protects files modified within the last 24 hours from accidental deletion. |
+| ♿ **WCAG 2.2 AA Accessible** | Windows UI Automation semantic attributes, high-contrast bounding rings, and keyboard navigation (`F5`, `Ctrl+Enter`, `Esc`). |
 
 ---
 
-## 💎 The Excellence of Deltempo: 5 Pillars of Superiority
+## 🥊 Why Deltempo Outperforms Every Competitor
 
-### 1. ⚡ Multithreaded Kernel-Direct Engine (10x Faster)
-Deltempo does not freeze your computer while cleaning. Built on `.NET 10` with **multithreaded I/O workers** (`Parallel.ForEach`) and direct **Win32 Kernel32 Syscalls** (`DeleteFileW`, `RemoveDirectoryW`), it can scan and delete over **50,000 files in under 15 seconds** with atomic Dispatcher updates.
-
-### 2. 👑 The AppData & User Profile Guardian
-The #1 cause of low disk space on modern Windows machines is **`AppData` bloat**:
-- **GPU Shaders**: NVIDIA `DXCache`, AMD `DxCache`, `D3DSCache`, and Intel `ShaderCache` (often **5 GB to 20 GB** of stale graphics dumps).
-- **Desktop App Pools**: Discord, Slack, Spotify, VS Code, Teams, and Notion duplicate Chromium cache engines. Deltempo wipes their throwaway caches **without logging you out or deleting your configs**.
-- **Verified Leftovers**: Cross-references the Windows Uninstall Registry, Start Menu shortcuts, and active processes to flag truly dead folders from uninstalled programs.
-
-### 3. 🛡️ 100% Risk-Free Safety Shield
-- **24-Hour Age Filter**: Protects recently created or modified files to ensure active software installers, background downloads, or render sessions are never disrupted.
-- **Protected File Guard**: Hard-locks user libraries (`Documents`, `Desktop`, `Pictures`, `Videos`, `Music`) and work file formats (`.docx`, `.xlsx`, `.pdf`, `.psd`, `.blend`, `.sln`, `.cs`, `.py`).
-
-### 4. 🎨 Agency-Tier Double-Bezel Dark Design
-Crafted with high-end visual design principles:
-- **Obsidian Dark Theme**: Concentric double-bezel cards, glowing hero stat counter, and electric cyan/blue accents.
-- **Custom Minimalist 7px Scrollbars**: Smooth, rounded, arrow-free luxury scrollbars.
-- **Hardware-Style Haptic Switches**: Clean toggle switches replacing legacy HTML-style checkboxes.
-
-### 5. 🔍 Top Files Inspector & Audit Reporting
-- Click **"Inspect"** on any category to view the top 15 largest individual junk files with formatted sizes, modification dates, and full paths before cleaning.
-- Generate and export timestamped, verifiable **Audit Reports** directly to your Desktop.
+| Feature / Standard | 👑 Deltempo | CCleaner (Avast) | BleachBit | Windows Disk Cleanup |
+| :--- | :---: | :---: | :---: | :---: |
+| **License & Price** | **100% Free / MIT** | Proprietary / Ads / $29.95/yr | GPLv3 Free | Closed System |
+| **Packaging** | **Single Portable EXE (2.4 MB)** | Heavy Installer + Bundleware | Multi-file ZIP | Built-in |
+| **Telemetry & Background Daemons** | **0% (Pure Offline)** | Active Tracking & Ads | Clean | Microsoft Telemetry |
+| **GPU Shader Cache Purge** | **✅ NVIDIA / AMD / Intel (5–20 GB)** | ❌ No | ❌ No | ❌ No |
+| **Deep AppData & Electron Sweeper** | **✅ Discord, Spotify, VS Code, Slack** | ⚠️ Basic / Paid Tier | ⚠️ Can break logins | ❌ No |
+| **Verified Orphaned App Leftovers** | **✅ Registry Cross-Checked** | ❌ Paywalled | ❌ No | ❌ No |
+| **24h Safety Shield Filter** | **✅ Yes (Zero Accidental Loss)** | ❌ Blind Deletion | ❌ No | ❌ No |
+| **Headless CLI Automation** | **✅ Full CLI + JSON output** | ⚠️ Limited CLI | ⚠️ Basic CLI | ⚠️ Legacy cleanmgr |
+| **Design Aesthetics** | **💎 Luxury Double-Bezel Obsidian** | ❌ Cluttered with Upsells | ❌ Legacy 2000s GTK | ❌ 90s System UI |
 
 ---
 
-## 🧹 Complete Cleaning Scope
+## 💻 Command-Line Interface (CLI Automation)
 
-```
-DELTEMPO COMPREHENSIVE CLEANUP MATRIX
-├── 🖥️ Windows Core & OS
-│   ├── User Temp (%TEMP% / AppData\Local\Temp)
-│   ├── Windows System Temp (C:\Windows\Temp)
-│   ├── Prefetch Cache (C:\Windows\Prefetch)
-│   └── Windows Update Delivery Cache (SoftwareDistribution\Download)
-├── 🎮 Graphics & Modern Apps
-│   ├── NVIDIA / AMD / Intel DirectX Shader Pools (DXCache / GLCache)
-│   ├── Desktop App Caches (Discord, Spotify, Slack, VS Code, Teams, Notion)
-│   └── Browser Web Caches (Chrome, Edge, Brave, Firefox)
-├── 📦 Development & Storage
-│   ├── Package Caches (pip, npm, .gradle, .cache, NuGet temp)
-│   ├── Windows Error Reports & Memory Dumps (WER / CrashDumps)
-│   ├── Windows Explorer Thumbnail Cache (thumbcache_*.db)
-│   └── Native Windows Recycle Bin (All Drives)
-└── 🕵️ Orphaned Residuals
-    └── Verified Ghost Folders from Uninstalled Software
+Deltempo includes a built-in headless CLI engine for DevOps, power users, and Windows Task Scheduler automation:
+
+```powershell
+# 1. Quick dry-run scan with formatted terminal table
+.\Deltempo.exe --scan
+
+# 2. Dry-run scan with structured JSON output
+.\Deltempo.exe --scan --json
+
+# 3. Safe cleanup (with 24-hour Safety Shield enabled)
+.\Deltempo.exe --clean --safe
+
+# 4. Clean all categories including orphaned app leftovers silently with audit export
+.\Deltempo.exe --clean --all --safe --export "C:\Logs\deltempo_audit.txt" --silent
+
+# 5. Show help guide
+.\Deltempo.exe --help
 ```
 
 ---
 
-## ⚡ Quick Download
+## 🧹 Complete 12-Tier Cleaning Scope
 
-Download the latest standalone executable from the [Releases](https://github.com/Beso1227/Deltempo/releases/latest) page:
+Deltempo scans and cleans 12 specialized targets across Windows and User Profiles:
 
-👉 **[Download Deltempo.exe (Portable)](https://github.com/Beso1227/Deltempo/releases/latest)**
+1. **User Temp & Scratchpad**: Application cache, setup extractions, downloaded installers (`%TEMP%`).
+2. **Windows System Temp**: OS diagnostic traces, system update scratchpad (`C:\Windows\Temp`).
+3. **Windows Prefetch Cache**: Stale execution traces & cached startup headers (`C:\Windows\Prefetch`).
+4. **Windows Update Delivery**: Cached installation packages (`SoftwareDistribution\Download`).
+5. **DirectX & GPU Shader Pools**: Compiled shader caches from **NVIDIA** (`DXCache`, `GLCache`), **AMD** (`DxCache`), and **Intel**.
+6. **Desktop & Electron App Caches**: Disposable cache folders across **Discord**, **Spotify**, **Slack**, **VS Code**, **Teams**, and **Notion** (preserves logins & tokens).
+7. **Web Browser Caches**: Temporary media and HTTP cache pools for **Chrome**, **Edge**, **Brave**, **Opera**, and **Vivaldi**.
+8. **Developer & Package Caches**: Package manager temporary directories (`pip`, `npm`, `.gradle`, `.cache`, `nuget\temp`).
+9. **Windows Error Reporting (WER)**: Crash dumps, memory dumps, and pending diagnostic queues.
+10. **Explorer Thumbnail Caches**: Consolidated thumbnail databases (`thumbcache_*.db`).
+11. **Native Windows Recycle Bin**: Recycles items across all connected physical drives via shell API (`SHEmptyRecycleBinW`).
+12. **Verified Orphaned App Leftovers**: Detects leftover `AppData` folders from uninstalled applications cross-referenced with the Windows Uninstall Registry.
 
-- **File Name**: `Deltempo.exe`
-- **File Size**: `~2.4 MB`
-- **Architecture**: `Windows 10 / 11 (x64)`
-- **Requirements**: Zero installer. Single portable executable.
+---
+
+## 📦 Installation via Windows Package Manager (`winget`)
+
+Once approved in the official Microsoft repository:
+
+```powershell
+winget install Beso1227.Deltempo
+```
+
+Or download the direct portable executable:
+- **[Download Deltempo.exe (v1.0.0)](https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe)** (2.4 MB Standalone)
 
 ---
 
 ## 🛠️ Building from Source
 
 ### Prerequisites
-- [.NET 10.0 SDK](https://dotnet.microsoft.com/download)
-- Windows 10 / 11 (x64)
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or higher
+- Windows 10/11 64-bit
 
-### Build Commands
+### Build Instructions
 ```powershell
-# 1. Clone the repository
+# Clone the repository
 git clone https://github.com/Beso1227/Deltempo.git
 cd Deltempo
 
-# 2. Build Release binary
+# Build in Release mode
 dotnet build -c Release
 
-# 3. Publish single-file standalone executable
-dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o ./publish
+# Publish single standalone portable executable
+dotnet publish -c Release -r win-x64 --self-contained false -o ./publish
 ```
+
+The resulting `Deltempo.exe` is a 100% self-contained portable executable.
+
+---
+
+## 🔒 Security & Privacy
+
+- **0% Telemetry**: Deltempo never connects to the internet. It does not track, log, or send any telemetry.
+- **Safety First**: Protected folders (e.g. system files, user documents `.docx`, `.pdf`, `.psd`, active credentials) are hard-locked against deletion.
+- **Open Source**: Every line of code is inspectable under the permissive [MIT License](LICENSE).
 
 ---
 
 ## 🤝 Contributing
 
-Contributions, bug reports, and suggestions are warmly welcomed! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+Contributions are welcome! Please feel free to submit a [Pull Request](https://github.com/Beso1227/Deltempo/pulls) or open an [Issue](https://github.com/Beso1227/Deltempo/issues).
 
 ---
 
 ## 📄 License
 
-Deltempo is open-source software licensed under the **[MIT License](LICENSE)**.
-
----
+Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.
 
 <div align="center">
-  <sub>Built with precision for the open-source Windows community. If Deltempo freed up space on your PC, please give it a ⭐ on GitHub!</sub>
+  <sub>Engineered with precision for Windows power users worldwide.</sub>
 </div>
