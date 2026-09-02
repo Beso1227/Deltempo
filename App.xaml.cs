@@ -7,7 +7,7 @@ using WinTempCleaner.Services;
 
 namespace WinTempCleaner;
 
-public partial class App : Application
+public partial class App : System.Windows.Application
 {
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool AttachConsole(int dwProcessId);
