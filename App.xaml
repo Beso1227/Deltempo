@@ -3,22 +3,34 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <!-- High-End Dynamic Palette Tokens -->
+        <!-- High-End Dynamic Palette Tokens (Initial Dark State) -->
         <SolidColorBrush x:Key="CanvasDarkBrush" Color="#090B10"/>
         <SolidColorBrush x:Key="HeaderDockBrush" Color="#0D1017"/>
         <SolidColorBrush x:Key="SurfaceCardBrush" Color="#111520"/>
         <SolidColorBrush x:Key="SurfaceCardHoverBrush" Color="#171D2C"/>
         <SolidColorBrush x:Key="SurfaceCardSelectedBrush" Color="#141A28"/>
-        <SolidColorBrush x:Key="SurfaceSubCardBrush" Color="#121722"/>
+        <SolidColorBrush x:Key="SurfaceSubCardBrush" Color="#141926"/>
         <SolidColorBrush x:Key="HairlineBorderBrush" Color="#1E2538"/>
 
         <SolidColorBrush x:Key="TextHighBrush" Color="#F8FAFC"/>
         <SolidColorBrush x:Key="TextMediumBrush" Color="#94A3B8"/>
-        <SolidColorBrush x:Key="TextMutedBrush" Color="#526079"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#64748B"/>
 
-        <SolidColorBrush x:Key="PillButtonBgBrush" Color="#151A26"/>
-        <SolidColorBrush x:Key="PillButtonHoverBrush" Color="#1D2436"/>
-        <SolidColorBrush x:Key="TrackBgBrush" Color="#1A2130"/>
+        <SolidColorBrush x:Key="PillButtonBgBrush" Color="#151D2A"/>
+        <SolidColorBrush x:Key="PillButtonHoverBrush" Color="#1E293B"/>
+        <SolidColorBrush x:Key="PillButtonBorderBrush" Color="#26354D"/>
+
+        <SolidColorBrush x:Key="TrackBgBrush" Color="#1A2333"/>
+        <SolidColorBrush x:Key="TrackThumbBrush" Color="#64748B"/>
+        <SolidColorBrush x:Key="ScrollThumbBrush" Color="#2A3448"/>
+
+        <SolidColorBrush x:Key="AdminBadgeBgBrush" Color="#10241B"/>
+        <SolidColorBrush x:Key="AdminBadgeBorderBrush" Color="#10B981"/>
+        <SolidColorBrush x:Key="AdminBadgeTextBrush" Color="#10B981"/>
+
+        <SolidColorBrush x:Key="SafetyBadgeBgBrush" Color="#10241B"/>
+        <SolidColorBrush x:Key="SafetyBadgeBorderBrush" Color="#10B981"/>
+        <SolidColorBrush x:Key="SafetyBadgeTextBrush" Color="#10B981"/>
 
         <SolidColorBrush x:Key="ModalSurfaceBrush" Color="#0F131E"/>
         <SolidColorBrush x:Key="ModalBackdropBrush" Color="#EE05070B"/>
@@ -83,7 +95,7 @@
             <Setter Property="Padding" Value="16"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="16" ShadowDepth="3" Direction="270" Color="#000000" Opacity="0.25"/>
+                    <DropShadowEffect BlurRadius="16" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.15"/>
                 </Setter.Value>
             </Setter>
         </Style>
@@ -150,7 +162,7 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="border"
                                 Background="{TemplateBinding Background}"
-                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderBrush="{DynamicResource PillButtonBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="8"
                                 Padding="{TemplateBinding Padding}">
@@ -162,7 +174,7 @@
                                 <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource AccentBlueBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{DynamicResource SurfaceCardBrush}"/>
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource SurfaceCardHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="border" Property="Opacity" Value="0.35"/>
@@ -195,11 +207,11 @@
                                 <Border x:Name="thumb"
                                         Width="14" Height="14"
                                         CornerRadius="7"
-                                        Background="#64748B"
+                                        Background="{DynamicResource TrackThumbBrush}"
                                         HorizontalAlignment="Left"
                                         Margin="2,0,0,0">
                                     <Border.Effect>
-                                        <DropShadowEffect BlurRadius="4" ShadowDepth="1" Color="#000000" Opacity="0.3"/>
+                                        <DropShadowEffect BlurRadius="4" ShadowDepth="1" Color="#000000" Opacity="0.2"/>
                                     </Border.Effect>
                                 </Border>
                             </Border>
@@ -365,7 +377,7 @@
                                         MinWidth="{TemplateBinding ActualWidth}"
                                         Padding="3">
                                     <Border.Effect>
-                                        <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.3"/>
+                                        <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.2"/>
                                     </Border.Effect>
                                     <ScrollViewer MaxHeight="180" VerticalScrollBarVisibility="Auto">
                                         <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
