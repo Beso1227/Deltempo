@@ -64,7 +64,10 @@ public static class StartupManagerService
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
 
             // 2. Current User Disabled Key (Deltempo backup)
             try
@@ -87,7 +90,10 @@ public static class StartupManagerService
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
 
             // 3. User Startup Folder
             try
@@ -127,7 +133,10 @@ public static class StartupManagerService
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
 
             return list;
         });
@@ -196,7 +205,10 @@ public static class StartupManagerService
                 }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
 
         return false;
     }

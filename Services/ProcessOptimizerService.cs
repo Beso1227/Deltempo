@@ -66,7 +66,10 @@ public static class ProcessOptimizerService
                         });
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                }
                 finally
                 {
                     p.Dispose();
@@ -98,7 +101,10 @@ public static class ProcessOptimizerService
                 }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
         return false;
     }
 
@@ -113,7 +119,10 @@ public static class ProcessOptimizerService
                 return true;
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
         return false;
     }
 }

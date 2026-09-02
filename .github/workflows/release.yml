@@ -29,8 +29,8 @@ jobs:
         run: |
           dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained false -o ./dist/portable
           dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained true -p:EnableCompressionInSingleFile=true -o ./dist/standalone
-          Copy-Item ./dist/portable/WinTempCleaner.exe ./dist/Deltempo-Portable.exe
-          Copy-Item ./dist/standalone/WinTempCleaner.exe ./dist/Deltempo-Standalone.exe
+          Copy-Item ./dist/portable/Deltempo.exe ./dist/Deltempo-Portable.exe
+          Copy-Item ./dist/standalone/Deltempo.exe ./dist/Deltempo-Standalone.exe
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

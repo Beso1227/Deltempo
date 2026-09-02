@@ -64,7 +64,10 @@ public partial class MainWindow : Window
                 {
                     ChangeWindowMessageFilter(_restoreMsgId, MSGFLT_ADD);
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                }
             }
             source.AddHook(WndProcInstanceHook);
         }
@@ -945,7 +948,10 @@ public partial class MainWindow : Window
             HeroRamPercentText.Text = $"{mem.UsedPercent:F0}%";
             HeroRamDetailText.Text = $"{mem.FormattedUsed} / {mem.FormattedTotal} Used";
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
     }
 
     private async void HeroBoostRamBtn_Click(object sender, RoutedEventArgs e)
@@ -1043,7 +1049,10 @@ public partial class MainWindow : Window
                     Process.Start("explorer.exe", $"/select,\"{info.FilePath}\"");
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
         }
     }
 

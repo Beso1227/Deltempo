@@ -92,10 +92,16 @@ public static class LargeFileHunterService
                                 });
                             }
                         }
-                        catch { }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                        }
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                }
             }
 
             return results.OrderByDescending(f => f.SizeBytes).Take(150).ToList();

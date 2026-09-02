@@ -422,7 +422,10 @@ public class CleanerService
                 targets.Add(o);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
 
         return targets;
     }
@@ -578,7 +581,10 @@ public class CleanerService
                             });
                         }
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                    }
                 }
 
                 foreach (var _ in dirInfo.EnumerateDirectories("*", enumOptions))
@@ -906,10 +912,16 @@ public class CleanerService
                             });
                         }
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                    }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
         }
 
         folder.SizeBytes = totalBytes;
@@ -1173,7 +1185,10 @@ public class CleanerService
                     {
                         fileList = dirInfo.EnumerateFiles("*", enumOptions).ToList();
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                    }
 
                     int totalFileCount = fileList.Count;
                     int processedFiles = 0;
@@ -1249,12 +1264,21 @@ public class CleanerService
                                     }
                                 }
                             }
-                            catch { }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                            }
                         }
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                    }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                }
             }
 
             folder.SizeBytes = Math.Max(0, folder.SizeBytes - freedBytes);

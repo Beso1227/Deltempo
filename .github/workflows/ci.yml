@@ -25,7 +25,7 @@ jobs:
         run: |
           dotnet restore WinTempCleaner.csproj
           dotnet restore Cli/Deltempo.Cli.csproj
-          dotnet restore tests/Deltempo.Tests/Deltempo.Tests.csproj
+          dotnet restore Tests/Deltempo.Tests/Deltempo.Tests.csproj
 
       - name: Build Core Engine & CLI
         run: |
@@ -34,7 +34,7 @@ jobs:
 
       - name: Run xUnit Test Suite & Verification Gates
         run: |
-          dotnet test tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --verbosity normal --collect:"XPlat Code Coverage"
+          dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --verbosity normal --collect:"XPlat Code Coverage"
 
       - name: Publish Test Artifacts
         if: always()

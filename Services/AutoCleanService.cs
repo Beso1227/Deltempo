@@ -68,7 +68,10 @@ public static class AutoCleanService
                     $"Silently reclaimed {TargetFolderInfo.FormatBytes(totalFreed)} of background junk across {totalFiles:N0} files.");
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
         finally
         {
             _isCleaning = false;

@@ -26,7 +26,10 @@ public class CleanerServiceTests : IDisposable
                 Directory.Delete(_testSandboxDir, true);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
     }
 
     [Fact]

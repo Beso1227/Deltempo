@@ -13,7 +13,7 @@ Thank you for your interest in contributing to **Deltempo**! We welcome communit
 4. **Run Verification Tests**:
    ```bash
    dotnet build
-   .\bin\Debug\net10.0-windows\WinTempCleaner.exe --test
+   .\bin\Debug\net10.0-windows\Deltempo.exe --test
    ```
 5. **Submit a Pull Request**: Provide a clear explanation of your changes and motivation.
 

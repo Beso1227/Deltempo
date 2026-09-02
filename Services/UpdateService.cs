@@ -202,7 +202,10 @@ start """" %TARGET%
                 if (File.Exists(tempFile))
                     File.Delete(tempFile);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
             throw;
         }
     }
