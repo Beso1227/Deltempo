@@ -1151,9 +1151,25 @@ public partial class MainWindow : Window
 
         // 1. Tag filter
         if (_currentFilterTag == "SAFE" && !target.IsSafeModeEligible) return false;
-        if (_currentFilterTag == "SYSTEM" && !target.Category.Contains("System", StringComparison.OrdinalIgnoreCase) && !target.Category.Contains("Driver", StringComparison.OrdinalIgnoreCase)) return false;
-        if (_currentFilterTag == "GAMING" && !target.Category.Contains("Gaming", StringComparison.OrdinalIgnoreCase) && !target.Category.Contains("Shader", StringComparison.OrdinalIgnoreCase) && !target.Category.Contains("GPU", StringComparison.OrdinalIgnoreCase)) return false;
-        if (_currentFilterTag == "MEDIA" && !target.Category.Contains("Media", StringComparison.OrdinalIgnoreCase) && !target.Category.Contains("App", StringComparison.OrdinalIgnoreCase) && !target.Category.Contains("Browser", StringComparison.OrdinalIgnoreCase)) return false;
+        if (_currentFilterTag == "SYSTEM" && 
+            !target.Category.Contains("System", StringComparison.OrdinalIgnoreCase) && 
+            !target.Category.Contains("Driver", StringComparison.OrdinalIgnoreCase) &&
+            !target.Category.Contains("Diagnostics", StringComparison.OrdinalIgnoreCase) &&
+            !target.Category.Contains("Security", StringComparison.OrdinalIgnoreCase) &&
+            !target.Category.Contains("Storage", StringComparison.OrdinalIgnoreCase) &&
+            !target.Category.Contains("SO", StringComparison.OrdinalIgnoreCase)) return false;
+        if (_currentFilterTag == "GAMING" && 
+            !target.Category.Contains("Gaming", StringComparison.OrdinalIgnoreCase) && 
+            !target.Category.Contains("Shader", StringComparison.OrdinalIgnoreCase) && 
+            !target.Category.Contains("GPU", StringComparison.OrdinalIgnoreCase)) return false;
+        if (_currentFilterTag == "MEDIA" && 
+            !target.Category.Contains("Media", StringComparison.OrdinalIgnoreCase) && 
+            !target.Category.Contains("App", StringComparison.OrdinalIgnoreCase) && 
+            !target.Category.Contains("Browser", StringComparison.OrdinalIgnoreCase) && 
+            !target.Category.Contains("Store", StringComparison.OrdinalIgnoreCase) && 
+            !target.Category.Contains("Dev", StringComparison.OrdinalIgnoreCase) &&
+            !target.Category.Contains("User", StringComparison.OrdinalIgnoreCase) &&
+            !target.Category.Contains("Creator", StringComparison.OrdinalIgnoreCase)) return false;
 
         // 2. Search text filter
         if (string.IsNullOrWhiteSpace(_currentSearchText)) return true;

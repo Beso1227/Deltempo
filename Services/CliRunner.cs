@@ -108,7 +108,7 @@ public static class CliRunner
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("  COMMANDS:");
         Console.ResetColor();
-        PrintCmdRow("scan", "Dry-run scan across all 17 cache, shader & junk scopes");
+        PrintCmdRow("scan", "Dry-run scan across all 25+ deep cache, shader & junk scopes");
         PrintCmdRow("clean", "Clean safe temporary caches, shader pools & render disks");
         PrintCmdRow("boost", "⚡ 1-Click RAM boost & background working set purge");
         PrintCmdRow("startup", "🚀 List Windows startup apps & boot impact ratings");
