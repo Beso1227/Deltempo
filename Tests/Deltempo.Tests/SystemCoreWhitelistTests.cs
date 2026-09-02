@@ -20,6 +20,13 @@ public class SystemCoreWhitelistTests
     [InlineData("winlogon")]
     [InlineData("System")]
     [InlineData("Idle")]
+    [InlineData("Memory Compression")]
+    [InlineData("MsMpEng")]
+    [InlineData("Registry")]
+    [InlineData("vmmem")]
+    [InlineData("SearchIndexer")]
+    [InlineData("RuntimeBroker")]
+    [InlineData("conhost")]
     [InlineData("Deltempo")]
     [InlineData("wintempcleaner")]
     public void IsProtectedProcess_ProtectsVitalWindowsProcesses(string processName)
