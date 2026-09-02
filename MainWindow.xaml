@@ -449,7 +449,7 @@
                                  TextChanged="CategorySearchBox_TextChanged"/>
                         <TextBlock Grid.Column="1"
                                    x:Name="SearchPlaceholderText"
-                                   Text="Filter 21 scopes..."
+                                   Text="Filter 25+ scopes..."
                                    Foreground="{DynamicResource TextMutedBrush}"
                                    FontSize="11"
                                    VerticalAlignment="Center"
@@ -514,7 +514,7 @@
                                         Content="All"
                                         Style="{DynamicResource PillButton}"
                                         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                        ToolTip="Select all 21 scopes"
+                                        ToolTip="Select all 25+ scopes"
                                         Padding="8,3"
                                         FontSize="10.5"
                                         Margin="0,0,2,0"
