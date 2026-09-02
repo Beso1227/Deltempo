@@ -1,86 +1,86 @@
 {
   "edges": [
     {
-      "toNode": "node_ui",
       "id": "edge1",
       "fromNode": "node_app",
-      "label": "GUI Mode"
+      "label": "GUI Mode",
+      "toNode": "node_ui"
     },
     {
-      "toNode": "node_cli",
       "id": "edge2",
       "fromNode": "node_app",
-      "label": "CLI Mode"
+      "label": "CLI Mode",
+      "toNode": "node_cli"
     },
     {
-      "toNode": "node_cleaner",
       "id": "edge3",
       "fromNode": "node_ui",
-      "label": "Clean/Scan"
+      "label": "Clean/Scan",
+      "toNode": "node_cleaner"
     },
     {
-      "toNode": "node_optimizer",
       "id": "edge4",
       "fromNode": "node_ui",
-      "label": "Optimize"
+      "label": "Optimize",
+      "toNode": "node_optimizer"
     },
     {
-      "toNode": "node_cleaner",
       "id": "edge5",
       "fromNode": "node_cli",
-      "label": "deltempo clean"
+      "label": "deltempo clean",
+      "toNode": "node_cleaner"
     }
   ],
   "nodes": [
     {
       "y": 100,
-      "id": "node_app",
       "color": "1",
-      "text": "### 🚀 App.xaml.cs\nRoot Entry Point & Mutex Router",
-      "height": 120,
       "x": 100,
+      "id": "node_app",
       "width": 280,
-      "type": "text"
+      "text": "### 🚀 App.xaml.cs\nRoot Entry Point & Mutex Router",
+      "type": "text",
+      "height": 120
     },
     {
       "y": 40,
-      "id": "node_ui",
       "color": "4",
-      "text": "### 🖥️ MainWindow.xaml.cs\nWPF Dashboard & Controller",
-      "height": 140,
       "x": 460,
+      "id": "node_ui",
       "width": 300,
-      "type": "text"
+      "text": "### 🖥️ MainWindow.xaml.cs\nWPF Dashboard & Controller",
+      "type": "text",
+      "height": 140
     },
     {
       "y": 220,
-      "id": "node_cli",
       "color": "5",
-      "text": "### 💻 deltempo_cli.exe\nSynchronous Console CLI",
-      "height": 140,
       "x": 460,
+      "id": "node_cli",
       "width": 300,
-      "type": "text"
+      "text": "### 💻 deltempo_cli.exe\nSynchronous Console CLI",
+      "type": "text",
+      "height": 140
     },
     {
       "y": 40,
-      "id": "node_cleaner",
       "color": "2",
-      "text": "### 🧹 CleanerService.cs\n21-Scope Purge Engine",
-      "height": 140,
       "x": 840,
+      "id": "node_cleaner",
       "width": 280,
-      "type": "text"
+      "text": "### 🧹 CleanerService.cs\n21-Scope Purge Engine",
+      "type": "text",
+      "height": 140
     },
     {
       "y": 220,
-      "id": "node_optimizer",
       "color": "3",
-      "text": "### ⚡ Memory & Startup\nRAM Booster & Boot Tools",
-      "height": 140,
       "x": 840,
+      "id": "node_optimizer",
       "width": 280,
-      "type": "text"
+      "text": "### ⚡ Memory & Startup\nRAM Booster & Boot Tools",
+      "type": "text",
+      "height": 140
     }
   ]
 }
