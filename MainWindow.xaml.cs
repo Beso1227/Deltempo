@@ -87,7 +87,14 @@ public partial class MainWindow : Window
         TrayService.Initialize(
             this,
             () => Dispatcher.Invoke(async () => await CleanSafeFromTrayAsync()),
-            () => Dispatcher.Invoke(() => OpenSettingsModal()));
+            () => Dispatcher.Invoke(() => OpenSettingsModal()),
+            () => Dispatcher.Invoke(async () =>
+            {
+                var res = await MemoryOptimizerService.OptimizeRamAsync();
+                UpdateMemoryTelemetry();
+                AddLog($"⚡ Tray RAM Boost: Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} tasks in {res.ExecutionTimeMs}ms.", LogLevel.Success);
+                return res;
+            }));
 
         AutoCleanService.Start();
         LoadSettingsIntoUI();
