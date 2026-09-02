@@ -318,25 +318,47 @@
     }
 
     /* ==========================================================================
+       SCROLL READING PROGRESS BAR & PARTICLES CANVAS
+       ========================================================================== */
+    .scroll-progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #00E5FF, #3B82F6, #8B5CF6, #10B981);
+      z-index: 1000;
+      width: 0%;
+      transition: width 0.1s linear;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.7);
+    }
+    .particles-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* ==========================================================================
        FLOATING ISLAND NAVIGATION
        ========================================================================== */
     .nav-wrapper {
       position: fixed;
-      top: 1.5rem;
+      top: 1.25rem;
       left: 0;
       right: 0;
       z-index: 100;
       display: flex;
       justify-content: center;
       pointer-events: none;
+      padding: 0 1rem;
     }
     .nav-island {
       pointer-events: auto;
       display: flex;
       align-items: center;
-      gap: 1.5rem;
-      padding: 0.5rem 0.75rem 0.5rem 1.25rem;
-      background: rgba(11, 15, 25, 0.8);
+      gap: 1.25rem;
+      padding: 0.45rem 0.65rem 0.45rem 1.15rem;
+      background: rgba(11, 15, 25, 0.85);
       backdrop-filter: blur(28px);
       -webkit-backdrop-filter: blur(28px);
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -345,7 +367,7 @@
       transition: all 0.3s var(--ease-fluid);
     }
     html.light .nav-island {
-      background: rgba(255, 255, 255, 0.88);
+      background: rgba(255, 255, 255, 0.9);
       border-color: rgba(0, 0, 0, 0.08);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     }
@@ -370,63 +392,60 @@
     .nav-brand:hover .brand-logo-img {
       transform: rotate(8deg) scale(1.1);
     }
-    .brand-badge {
-      width: 30px;
-      height: 30px;
-      border-radius: 9px;
-      background: linear-gradient(135deg, #06B6D4, #3B82F6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.9rem;
-      font-weight: 900;
-      color: #FFF;
-      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.45);
-      animation: badge-spin 8s linear infinite;
-    }
-    @keyframes badge-spin {
-      0%, 100% { transform: rotate(0deg); }
-      50% { transform: rotate(5deg) scale(1.05); }
-    }
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 1.25rem;
+      gap: 0.85rem;
       list-style: none;
     }
     .nav-links a {
       color: var(--text-med);
       text-decoration: none;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       font-weight: 600;
-      transition: color 0.2s var(--ease-fluid);
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      transition: all 0.2s var(--ease-fluid);
       position: relative;
-    }
-    .nav-links a::after {
-      content: '';
-      position: absolute;
-      bottom: -4px;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background: var(--cyan-glow);
-      transition: width 0.25s var(--ease-fluid);
-      border-radius: 2px;
     }
     .nav-links a:hover {
       color: var(--text-high);
+      background: rgba(255, 255, 255, 0.06);
     }
-    .nav-links a:hover::after {
-      width: 100%;
+    .nav-links a.active {
+      color: var(--cyan-glow);
+      background: rgba(6, 182, 212, 0.15);
+      box-shadow: inset 0 0 0 1px rgba(6, 182, 212, 0.3);
     }
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.45rem;
     }
-    .theme-toggle-btn {
-      width: 40px;
-      height: 40px;
+    .github-stars-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.38rem 0.85rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-inner);
+      border-radius: 9999px;
+      color: var(--text-high);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.25s var(--ease-spring);
+    }
+    .github-stars-pill:hover {
+      background: rgba(255, 215, 0, 0.15);
+      border-color: rgba(255, 215, 0, 0.5);
+      color: #FFD700;
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.25);
+    }
+    .sound-toggle-btn {
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border-inner);
@@ -435,7 +454,28 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 1.1rem;
+      font-size: 0.95rem;
+      transition: all 0.3s var(--ease-spring);
+    }
+    .sound-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: scale(1.1);
+    }
+    .sound-toggle-btn.muted {
+      opacity: 0.5;
+    }
+    .theme-toggle-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-inner);
+      color: var(--text-high);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
       transition: all 0.3s var(--ease-spring);
     }
     .theme-toggle-btn:hover {
@@ -1342,31 +1382,153 @@
       margin: 3px 4px;
     }
 
-    /* ==========================================================================
-       21+ ELITE CLEANING SCOPES SHOWCASE (INTERACTIVE TABS & CARDS)
-       ========================================================================== */
-    .scopes-section {
-      padding: 7rem 0;
+    /* Interactive Scope Filter Bar */
+    .scope-filters-bar {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-bottom: 2.5rem;
     }
-    .section-header {
-      text-align: center;
-      max-width: 800px;
-      margin: 0 auto 3.5rem;
-    }
-    .section-title {
-      font-family: var(--font-display);
-      font-size: clamp(2.2rem, 3.8vw, 3.25rem);
-      font-weight: 900;
-      letter-spacing: -0.025em;
-      margin-bottom: 1rem;
-    }
-    .section-subtitle {
-      font-size: 1.15rem;
+    .scope-filter-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-inner);
       color: var(--text-med);
-      line-height: 1.5;
+      padding: 0.5rem 1.15rem;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.25s var(--ease-fluid);
+    }
+    .scope-filter-btn:hover {
+      color: var(--text-high);
+      border-color: rgba(6, 182, 212, 0.4);
+      transform: translateY(-2px);
+    }
+    .scope-filter-btn.active {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.2));
+      color: var(--cyan-glow);
+      border-color: var(--cyan-glow);
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
+    }
+    .scope-item-card.is-hidden {
+      display: none !important;
     }
 
-    /* 17 Scopes Masonry Bento with 3D Hover */
+    /* Interactive Terminal CLI Playground Section */
+    .terminal-section {
+      padding: 7rem 0;
+      background: radial-gradient(circle at center, rgba(59, 130, 246, 0.06) 0%, transparent 70%);
+    }
+    .terminal-playground {
+      background: #070A12;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-bezel);
+      overflow: hidden;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8);
+    }
+    .term-titlebar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0E1422;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0.5rem 1rem;
+      overflow-x: auto;
+      gap: 1rem;
+    }
+    .term-tabs {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .term-tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-med);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 0.45rem 0.95rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .term-tab-btn:hover {
+      color: var(--text-high);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .term-tab-btn.active {
+      background: #151D2F;
+      color: #38BDF8;
+      border-color: rgba(56, 189, 248, 0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+    .copy-cmd-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-inner);
+      color: var(--text-high);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.4rem 0.85rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-cmd-btn:hover {
+      background: rgba(6, 182, 212, 0.2);
+      border-color: var(--cyan-glow);
+      color: var(--cyan-glow);
+    }
+    .term-body {
+      padding: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.65;
+      color: #F8FAFC;
+      min-height: 280px;
+      overflow-x: auto;
+      user-select: text;
+    }
+    .term-line-dim { color: #64748B; }
+    .term-line-cyan { color: #00E5FF; font-weight: 700; }
+    .term-line-green { color: #10B981; font-weight: 700; }
+    .term-line-amber { color: #F59E0B; }
+    .term-line-rose { color: #F43F5E; }
+    .term-prompt { color: #A855F7; font-weight: 800; margin-right: 0.5rem; }
+
+    /* Toast Notification */
+    .toast-notification {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #0C1017;
+      border: 1px solid var(--cyan-glow);
+      color: #F8FAFC;
+      padding: 0.75rem 1.25rem;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7), 0 0 15px rgba(6, 182, 212, 0.4);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+    .toast-notification.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* 21 Scopes Masonry Bento with 3D Hover */
     .scopes-masonry {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -1638,6 +1800,12 @@
 </head>
 <body>
 
+  <!-- Scroll Reading Progress Bar -->
+  <div id="scrollProgressBar" class="scroll-progress-bar"></div>
+
+  <!-- Dynamic Confetti & Fireworks Particle Canvas -->
+  <canvas id="particlesCanvas" class="particles-canvas" aria-hidden="true"></canvas>
+
   <!-- Dynamic Cursor Light Follower -->
   <div id="cursorGlow" aria-hidden="true"></div>
 
@@ -1655,13 +1823,19 @@
         <span>Deltempo</span>
       </a>
       <ul class="nav-links">
-        <li><a href="#simulator">Live Simulator</a></li>
-        <li><a href="#scopes">17 Scopes</a></li>
-        <li><a href="#comparison">Benchmark</a></li>
-        <li><a href="#security">Security</a></li>
-        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#simulator" class="nav-link active">Simulator</a></li>
+        <li><a href="#scopes" class="nav-link">21 Scopes</a></li>
+        <li><a href="#terminal" class="nav-link">Terminal CLI</a></li>
+        <li><a href="#comparison" class="nav-link">Benchmark</a></li>
+        <li><a href="#security" class="nav-link">Security</a></li>
+        <li><a href="#faq" class="nav-link">FAQ</a></li>
       </ul>
       <div class="nav-actions">
+        <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="github-stars-pill" title="Star Deltempo on GitHub">
+          <span>⭐</span>
+          <span id="githubStarCount">Star</span>
+        </a>
+        <button id="soundToggleBtn" class="sound-toggle-btn" aria-label="Toggle Sound Effects" title="Toggle Sound FX (Web Audio Haptics)">🔊</button>
         <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Light/Dark Theme">🌙</button>
         <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-island download-link-btn">
           <span>Download</span>
@@ -2059,13 +2233,24 @@
     <section class="scopes-section" id="scopes">
       <div class="container">
         <div class="section-header reveal-on-scroll">
+          <div class="eyebrow-badge">21+ SURGICAL CLEANING TIERS</div>
           <h2 class="section-title">21+ Elite Cleaning Scopes</h2>
           <p class="section-subtitle">No other cleaner provides this level of surgical precision, transparency, and safety.</p>
         </div>
 
+        <!-- Interactive Scope Category Filter Pills -->
+        <div class="scope-filters-bar reveal-on-scroll">
+          <button class="scope-filter-btn active" data-filter="all">✨ All Scopes (21)</button>
+          <button class="scope-filter-btn" data-filter="drivers">🚗 Drivers &amp; GPU OTA (3)</button>
+          <button class="scope-filter-btn" data-filter="gaming">🎮 Gaming &amp; Shaders (4)</button>
+          <button class="scope-filter-btn" data-filter="creator">🎬 Creator &amp; Media (3)</button>
+          <button class="scope-filter-btn" data-filter="system">🛡️ Windows Logs &amp; WUDO (6)</button>
+          <button class="scope-filter-btn" data-filter="apps">💬 Desktop &amp; Dev (5)</button>
+        </div>
+
         <div class="scopes-masonry">
           <!-- 1. Driver Packages -->
-          <div class="scope-item-card reveal-on-scroll stagger-1">
+          <div class="scope-item-card reveal-on-scroll stagger-1" data-category="drivers">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">🚗</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
@@ -2076,7 +2261,7 @@
           </div>
 
           <!-- 2. Gaming -->
-          <div class="scope-item-card reveal-on-scroll stagger-2">
+          <div class="scope-item-card reveal-on-scroll stagger-2" data-category="gaming">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(236, 72, 153, 0.15); color: #EC4899;">🎮</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
@@ -2087,7 +2272,7 @@
           </div>
 
           <!-- 3. Creator Media -->
-          <div class="scope-item-card reveal-on-scroll stagger-3">
+          <div class="scope-item-card reveal-on-scroll stagger-3" data-category="creator">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">🎬</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
@@ -2098,7 +2283,7 @@
           </div>
 
           <!-- 4. Windows Delivery Optimization -->
-          <div class="scope-item-card reveal-on-scroll stagger-1">
+          <div class="scope-item-card reveal-on-scroll stagger-1" data-category="system">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">🌐</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
@@ -2109,7 +2294,7 @@
           </div>
 
           <!-- 5. GPU Shaders -->
-          <div class="scope-item-card reveal-on-scroll stagger-2">
+          <div class="scope-item-card reveal-on-scroll stagger-2" data-category="gaming">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">⚡</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
@@ -2120,7 +2305,7 @@
           </div>
 
           <!-- 6. Windows CBS & Diagnostic Logs -->
-          <div class="scope-item-card reveal-on-scroll stagger-3">
+          <div class="scope-item-card reveal-on-scroll stagger-3" data-category="system">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(244, 63, 94, 0.15); color: #F43F5E;">🛡️</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
@@ -2132,6 +2317,42 @@
         </div>
       </div>
     </section>
+
+    <!-- INTERACTIVE TERMINAL CLI PLAYGROUND -->
+    <section class="terminal-section" id="terminal">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <div class="eyebrow-badge">DEVELOPER &amp; POWER USER AUTOMATION</div>
+          <h2 class="section-title">Interactive Terminal CLI Playground</h2>
+          <p class="section-subtitle">Dual-subsystem architecture with zero prompt collision, instant dry-runs, and structured JSON output.</p>
+        </div>
+
+        <div class="double-bezel reveal-on-scroll stagger-1">
+          <div class="terminal-playground">
+            <div class="term-titlebar">
+              <div class="term-tabs">
+                <button class="term-tab-btn active" data-cmd="scan">🔍 deltempo scan</button>
+                <button class="term-tab-btn" data-cmd="boost">⚡ deltempo boost</button>
+                <button class="term-tab-btn" data-cmd="clean">🧹 deltempo clean --safe</button>
+                <button class="term-tab-btn" data-cmd="status">📊 deltempo status</button>
+              </div>
+              <button class="copy-cmd-btn" id="copyCmdBtn" title="Copy Command Line">
+                <span>📋 Copy Command</span>
+              </button>
+            </div>
+            <div class="term-body" id="termOutputBody">
+              <!-- Animated CLI Output Content will be injected by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="toast-notification">
+      <span>📋</span>
+      <span id="toastMessage">Command copied to clipboard!</span>
+    </div>
 
     <!-- HEAD-TO-HEAD BENCHMARK MATRIX -->
     <section class="compare-section" id="comparison">
@@ -2604,6 +2825,25 @@
 
     // 11. Synthesized Web Audio Haptics (Zero Dependencies)
     let audioCtx = null;
+    let isSoundEnabled = true;
+
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    if (soundToggleBtn) {
+      soundToggleBtn.addEventListener('click', () => {
+        isSoundEnabled = !isSoundEnabled;
+        if (isSoundEnabled) {
+          soundToggleBtn.textContent = '🔊';
+          soundToggleBtn.classList.remove('muted');
+          playSynthClick(700);
+          showToast('🔊 UI Sound Haptics: Enabled');
+        } else {
+          soundToggleBtn.textContent = '🔇';
+          soundToggleBtn.classList.add('muted');
+          showToast('🔇 UI Sound Haptics: Muted');
+        }
+      });
+    }
+
     function getAudioContext() {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2612,6 +2852,7 @@
     }
 
     function playSynthClick(freq = 600) {
+      if (!isSoundEnabled) return;
       try {
         const ctx = getAudioContext();
         const osc = ctx.createOscillator();
@@ -2629,6 +2870,7 @@
     }
 
     function playSynthSweep() {
+      if (!isSoundEnabled) return;
       try {
         const ctx = getAudioContext();
         const osc = ctx.createOscillator();
@@ -2646,6 +2888,7 @@
     }
 
     function playSynthChime() {
+      if (!isSoundEnabled) return;
       try {
         const ctx = getAudioContext();
         const notes = [523.25, 659.25, 783.99, 1046.50];
@@ -2662,6 +2905,263 @@
           osc.stop(ctx.currentTime + (i * 0.06) + 0.25);
         });
       } catch { }
+    }
+
+    // 12. Dynamic Scroll Reading Progress Bar & ScrollSpy Navigation
+    const scrollProgressBar = document.getElementById('scrollProgressBar');
+    const navLinks = document.querySelectorAll('.nav-links .nav-link');
+    const sections = document.querySelectorAll('section[id]');
+
+    window.addEventListener('scroll', () => {
+      const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      if (scrollProgressBar) {
+        scrollProgressBar.style.width = scrolled + '%';
+      }
+
+      // ScrollSpy active link detection
+      let currentSectionId = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 150;
+        const sectionHeight = section.offsetHeight;
+        if (winScroll >= sectionTop && winScroll < sectionTop + sectionHeight) {
+          currentSectionId = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href === '#' + currentSectionId) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      });
+    });
+
+    // 13. GitHub Stars Live Counter
+    async function syncGitHubStars() {
+      try {
+        const res = await fetch('https://api.github.com/repos/Beso1227/Deltempo');
+        if (res.ok) {
+          const data = await res.json();
+          const stars = data.stargazers_count;
+          if (stars !== undefined) {
+            document.getElementById('githubStarCount').textContent = `${stars} Stars`;
+          }
+        }
+      } catch { }
+    }
+    syncGitHubStars();
+
+    // 14. Interactive Scope Category Filter Engine
+    const filterButtons = document.querySelectorAll('.scope-filter-btn');
+    const scopeCards = document.querySelectorAll('.scope-item-card');
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        playSynthClick(580);
+
+        const filter = btn.getAttribute('data-filter');
+        scopeCards.forEach(card => {
+          const category = card.getAttribute('data-category');
+          if (filter === 'all' || category === filter) {
+            card.classList.remove('is-hidden');
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+              card.style.opacity = '1';
+              card.style.transform = 'scale(1)';
+            }, 50);
+          } else {
+            card.classList.add('is-hidden');
+          }
+        });
+      });
+    });
+
+    // 15. Interactive CLI Terminal Playground Engine
+    const cliCommands = {
+      scan: {
+        cmd: 'deltempo scan',
+        output: `<div class="term-line-dim">[18:50:12] Initializing Deltempo CLI Subsystem (x64 AVX2)...</div>
+<div class="term-line-cyan">➜ Deltempo Pure Precision Engine v1.1.0</div>
+<div><span class="term-prompt">$</span> deltempo scan</div>
+<br />
+<div class="term-line-amber">⚡ Scanning 21 Deep Cache Tiers...</div>
+<div class="term-line-dim">├─ Device Driver Packages (NVIDIA OTA): 3,742 MB</div>
+<div class="term-line-dim">├─ Steam Download & Shader Chunks:     14,680 MB</div>
+<div class="term-line-dim">├─ Media Cache & Peak Proxies:         18,210 MB</div>
+<div class="term-line-dim">├─ Windows Delivery Optimization (WUDO): 4,500 MB</div>
+<div class="term-line-dim">└─ DirectX DXCache / GLCache:           2,850 MB</div>
+<br />
+<div class="term-line-green">✔ Scan Completed in 142ms: 43.98 GB Reclaimable (100% Safe)</div>`
+      },
+      boost: {
+        cmd: 'deltempo boost',
+        output: `<div class="term-line-dim">[18:50:18] Windows Memory Management Interface (Win32 NT)</div>
+<div><span class="term-prompt">$</span> deltempo boost --flush-working-sets</div>
+<br />
+<div class="term-line-amber">⚡ Trimming process working sets and standby caches...</div>
+<div class="term-line-dim">├─ Process: chrome.exe (24 instances)  -> Reclaimed 1,230 MB</div>
+<div class="term-line-dim">├─ Process: steam.exe                  -> Reclaimed   530 MB</div>
+<div class="term-line-dim">├─ Process: discord.exe                -> Reclaimed   380 MB</div>
+<div class="term-line-dim">└─ Process: spotify.exe                -> Reclaimed   310 MB</div>
+<br />
+<div class="term-line-green">✔ Memory Pressure dropped: 74.2% ➔ 38.5% (+5.6 GB RAM Reclaimed in 28ms)</div>`
+      },
+      clean: {
+        cmd: 'deltempo clean --safe',
+        output: `<div class="term-line-dim">[18:50:24] Deltempo Automated Purge Protocol (Safe Mode)</div>
+<div><span class="term-prompt">$</span> deltempo clean --safe --exclude-recent-24h</div>
+<br />
+<div class="term-line-amber">🛡️ Safety Shield Active: Preserving locked & 24h files...</div>
+<div class="term-line-dim">✔ Purged NVIDIA Driver OTA packages (3.7 GB)</div>
+<div class="term-line-dim">✔ Purged WUDO P2P chunks (4.5 GB)</div>
+<div class="term-line-dim">✔ Purged Steam stuck chunks & DirectX shader pools (17.5 GB)</div>
+<div class="term-line-dim">✔ Purged Adobe Premiere waveform peak caches (18.2 GB)</div>
+<br />
+<div class="term-line-green">🎉 100% SUCCESS: 43.98 GB freed with 0 locked file errors!</div>`
+      },
+      status: {
+        cmd: 'deltempo status',
+        output: `<div class="term-line-dim">[18:50:31] System Telemetry & Protection Status</div>
+<div><span class="term-prompt">$</span> deltempo status --format json</div>
+<br />
+<pre style="color: #38BDF8; font-family: var(--font-mono); margin: 0;">
+{
+  "guardian_status": "ACTIVE",
+  "ram_pressure_pct": 38.5,
+  "last_clean_reclaimed_mb": 45035,
+  "safety_shield": "ENABLED",
+  "boot_acceleration_delta_s": -4.3,
+  "uipi_integrity_level": "High"
+}
+</pre>
+<br />
+<div class="term-line-green">✔ Deltempo Obsidian Guardian running smoothly in system tray.</div>`
+      }
+    };
+
+    const termTabButtons = document.querySelectorAll('.term-tab-btn');
+    const termOutputBody = document.getElementById('termOutputBody');
+    const copyCmdBtn = document.getElementById('copyCmdBtn');
+    let activeCmdKey = 'scan';
+
+    function renderTermOutput(key) {
+      activeCmdKey = key;
+      const data = cliCommands[key];
+      if (!data || !termOutputBody) return;
+      termOutputBody.innerHTML = data.output;
+    }
+
+    termTabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        termTabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        playSynthClick(520);
+        renderTermOutput(btn.getAttribute('data-cmd'));
+      });
+    });
+
+    renderTermOutput('scan');
+
+    // Copy command button
+    if (copyCmdBtn) {
+      copyCmdBtn.addEventListener('click', () => {
+        const cmdText = cliCommands[activeCmdKey].cmd;
+        navigator.clipboard.writeText(cmdText).then(() => {
+          playSynthChime();
+          showToast(`📋 Copied: "${cmdText}"`);
+        });
+      });
+    }
+
+    // 16. Toast Notification Engine
+    const toastNotification = document.getElementById('toastNotification');
+    const toastMessage = document.getElementById('toastMessage');
+    let toastTimeout = null;
+
+    function showToast(msg) {
+      if (!toastNotification || !toastMessage) return;
+      toastMessage.textContent = msg;
+      toastNotification.classList.add('show');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toastNotification.classList.remove('show');
+      }, 2800);
+    }
+
+    // 17. Confetti & Particle Fireworks Canvas Engine
+    const pCanvas = document.getElementById('particlesCanvas');
+    let pCtx = null;
+    let particles = [];
+
+    if (pCanvas) {
+      pCtx = pCanvas.getContext('2d');
+      function resizeCanvas() {
+        pCanvas.width = window.innerWidth;
+        pCanvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      function spawnParticles(x, y, count = 40) {
+        const colors = ['#00E5FF', '#3B82F6', '#8B5CF6', '#10B981', '#FFD700'];
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 8 + 3;
+          particles.push({
+            x: x || window.innerWidth / 2,
+            y: y || window.innerHeight / 2,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            size: Math.random() * 4 + 2,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            alpha: 1,
+            decay: Math.random() * 0.02 + 0.015
+          });
+        }
+      }
+
+      function updateParticles() {
+        if (!pCtx) return;
+        pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.15; // gravity
+          p.alpha -= p.decay;
+          if (p.alpha <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+          pCtx.save();
+          pCtx.globalAlpha = p.alpha;
+          pCtx.fillStyle = p.color;
+          pCtx.shadowBlur = 10;
+          pCtx.shadowColor = p.color;
+          pCtx.beginPath();
+          pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          pCtx.fill();
+          pCtx.restore();
+        }
+        requestAnimationFrame(updateParticles);
+      }
+      requestAnimationFrame(updateParticles);
+
+      // Trigger sparks on download button clicks and clean buttons
+      document.querySelectorAll('.download-link-btn, #simCleanBtn, #simBoostBtn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const rect = btn.getBoundingClientRect();
+          spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 50);
+          playSynthChime();
+        });
+      });
     }
   </script>
 </body>
