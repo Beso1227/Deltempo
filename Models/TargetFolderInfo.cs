@@ -17,12 +17,32 @@ public class TargetFolderInfo : INotifyPropertyChanged
     private List<JunkFileItem> _topFiles = new();
     private string _safetyBadge = "🟢 100% Safe Cache";
     private string _safetyBadgeColor = "#10B981";
+    private string _name = string.Empty;
+    private string _category = "General";
+    private string _description = string.Empty;
 
     public string Id { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string Category { get; set; } = "General";
+
+    public string Name
+    {
+        get => _name;
+        set { _name = value; OnPropertyChanged(); }
+    }
+
+    public string Category
+    {
+        get => _category;
+        set { _category = value; OnPropertyChanged(); }
+    }
+
     public string CategoryColor { get; set; } = "#3B82F6";
-    public string Description { get; set; } = string.Empty;
+
+    public string Description
+    {
+        get => _description;
+        set { _description = value; OnPropertyChanged(); }
+    }
+
     public string FolderPath { get; set; } = string.Empty;
     public string IconGlyph { get; set; } = string.Empty;
     public bool IsSpecialShellTarget { get; set; }
@@ -113,33 +133,37 @@ public class TargetFolderInfo : INotifyPropertyChanged
     public List<JunkFileItem> TopFiles
     {
         get => _topFiles;
-        set { _topFiles = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasTopFiles)); }
+        set
+        {
+            _topFiles = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasTopFiles));
+        }
     }
 
     public bool HasTopFiles => _topFiles.Count > 0;
 
     public string FormattedSize => FormatBytes(SizeBytes);
 
-    public string FormattedStats => IsSpecialShellTarget 
-        ? $"{FileCount:N0} items" 
-        : $"{FileCount:N0} files, {FolderCount:N0} folders";
+    public string FormattedStats => $"{FileCount:N0} files • {FolderCount:N0} folders";
 
     public static string FormatBytes(long bytes)
     {
-        if (bytes <= 0) return "0 B";
+        if (bytes < 0) return "0.0 B";
         string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
         int counter = 0;
         decimal number = bytes;
-        while (Math.Round(number / 1024) >= 1)
+        while (Math.Round(number / 1024m) >= 1)
         {
-            number /= 1024;
+            number /= 1024m;
             counter++;
-            if (counter >= suffixes.Length - 1) break;
+            if (counter == suffixes.Length - 1) break;
         }
         return $"{number:n1} {suffixes[counter]}";
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
