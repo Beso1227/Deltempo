@@ -18,6 +18,11 @@
   <meta name="twitter:title" content="Deltempo — Pure Precision Windows Cleaner" />
   <meta name="twitter:description" content="Reclaim 20–80 GB instantly. 100% standalone, zero telemetry, 17 elite cleaning scopes." />
 
+  <!-- Favicon / Browser Tab Logo -->
+  <link rel="icon" type="image/png" href="app_icon.png" />
+  <link rel="shortcut icon" type="image/png" href="app_icon.png" />
+  <link rel="apple-touch-icon" href="app_icon.png" />
+
   <!-- Google Fonts: Plus Jakarta Sans & Outfit for Agency-Grade Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -251,6 +256,17 @@
       color: var(--text-high);
       text-decoration: none;
     }
+    .brand-logo-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      object-fit: cover;
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.45);
+      transition: transform 0.3s var(--ease-spring);
+    }
+    .nav-brand:hover .brand-logo-img {
+      transform: rotate(8deg) scale(1.1);
+    }
     .brand-badge {
       width: 30px;
       height: 30px;
@@ -377,10 +393,42 @@
        HERO SECTION & IMMERSIVE STAGE
        ========================================================================== */
     .hero-section {
-      padding-top: 9rem;
+      padding-top: 8.5rem;
       padding-bottom: 5rem;
       text-align: center;
       position: relative;
+    }
+    .hero-logo-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+    .hero-logo-glow {
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.45) 0%, rgba(139, 92, 246, 0.25) 50%, transparent 70%);
+      filter: blur(25px);
+      border-radius: 50%;
+      animation: hero-logo-pulse 4s ease-in-out infinite alternate;
+    }
+    @keyframes hero-logo-pulse {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      100% { transform: scale(1.15); opacity: 1; }
+    }
+    .hero-logo-img {
+      position: relative;
+      width: 88px;
+      height: 88px;
+      border-radius: 22px;
+      object-fit: cover;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.2), 0 8px 30px rgba(6, 182, 212, 0.4);
+      transition: transform 0.4s var(--ease-spring);
+    }
+    .hero-logo-img:hover {
+      transform: translateY(-5px) scale(1.08) rotate(3deg);
     }
     .eyebrow-badge {
       display: inline-flex;
@@ -579,6 +627,12 @@
       display: flex;
       align-items: center;
       gap: 0.55rem;
+    }
+    .sim-title-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      object-fit: cover;
     }
     .sim-admin-badge {
       background: rgba(16, 185, 129, 0.15);
@@ -1063,7 +1117,7 @@
   <header class="nav-wrapper">
     <nav class="nav-island" aria-label="Main Navigation">
       <a href="#" class="nav-brand">
-        <div class="brand-badge">Δ</div>
+        <img src="app_icon.png" alt="Deltempo Logo" class="brand-logo-img" />
         <span>Deltempo</span>
       </a>
       <ul class="nav-links">
@@ -1086,7 +1140,13 @@
     <!-- HERO SECTION -->
     <section class="hero-section">
       <div class="container">
-        <div class="eyebrow-badge reveal-on-scroll">
+        <!-- Hero Glowing App Logo -->
+        <div class="hero-logo-wrapper reveal-on-scroll">
+          <div class="hero-logo-glow"></div>
+          <img src="app_icon.png" alt="Deltempo App Logo" class="hero-logo-img" />
+        </div>
+
+        <div class="eyebrow-badge reveal-on-scroll stagger-1">
           <span>✨ KING EDITION <span class="release-version-tag">v1.0.0</span> • 17-TIER ENGINE • 100% STANDALONE</span>
         </div>
         <h1 class="hero-title reveal-on-scroll stagger-1">
@@ -1126,6 +1186,7 @@
                   <div class="sim-dot green" title="Maximize"></div>
                 </div>
                 <div class="sim-title">
+                  <img src="app_icon.png" alt="Deltempo Logo" class="sim-title-icon" />
                   <span>Deltempo — Pure Precision Windows Guardian</span>
                   <span class="sim-admin-badge">ADMIN ACCESS</span>
                 </div>
@@ -1431,6 +1492,10 @@
   <!-- FOOTER -->
   <footer class="footer">
     <div class="container">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
+        <img src="app_icon.png" alt="Deltempo Logo" style="width: 28px; height: 28px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);" />
+        <strong style="font-family: var(--font-display); font-size: 1.15rem; color: var(--text-high);">Deltempo</strong>
+      </div>
       <p>Deltempo Open Source Project • MIT Licensed • Built with C# &amp; .NET 10</p>
       <p style="margin-top: 0.5rem; opacity: 0.7;">Developed with obsessive precision by Beso1227</p>
     </div>
