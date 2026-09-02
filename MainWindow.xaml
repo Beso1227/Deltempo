@@ -29,22 +29,24 @@
             <DropShadowEffect BlurRadius="36" ShadowDepth="10" Direction="270" Color="#000000" Opacity="0.35"/>
         </Border.Effect>
 
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/> <!-- 0: Seamless Header / Title Bar -->
-                <RowDefinition Height="Auto"/> <!-- 1: Double-Bezel Hero & Drive Telemetry -->
-                <RowDefinition Height="Auto"/> <!-- 2: Minimalist Toolbar & Category Filters -->
-                <RowDefinition Height="*"/>    <!-- 3: Cleanable Category Cards -->
-                <RowDefinition Height="Auto"/> <!-- 4: Bottom Floating Action Dock -->
-                <RowDefinition Height="Auto"/> <!-- 5: Collapsible Log Stream -->
-            </Grid.RowDefinitions>
+        <!-- Inner Concentric Clipping Shell to guarantee flawless bottom rounding -->
+        <Border CornerRadius="19" ClipToBounds="True" Background="Transparent">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- 0: Seamless Header / Title Bar -->
+                    <RowDefinition Height="Auto"/> <!-- 1: Double-Bezel Hero & Drive Telemetry -->
+                    <RowDefinition Height="Auto"/> <!-- 2: Minimalist Toolbar & Category Filters -->
+                    <RowDefinition Height="*"/>    <!-- 3: Cleanable Category Cards -->
+                    <RowDefinition Height="Auto"/> <!-- 4: Bottom Floating Action Dock -->
+                    <RowDefinition Height="Auto"/> <!-- 5: Collapsible Log Stream -->
+                </Grid.RowDefinitions>
 
-            <!-- 0. SEAMLESS HEADER / TITLE BAR -->
-            <Border Grid.Row="0"
-                    Background="{DynamicResource HeaderDockBrush}"
-                    CornerRadius="20,20,0,0"
-                    Padding="18,12"
-                    MouseDown="TitleBar_MouseDown">
+                <!-- 0. SEAMLESS HEADER / TITLE BAR -->
+                <Border Grid.Row="0"
+                        Background="{DynamicResource HeaderDockBrush}"
+                        CornerRadius="19,19,0,0"
+                        Padding="18,12"
+                        MouseDown="TitleBar_MouseDown">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -541,11 +543,13 @@
             </ScrollViewer>
 
             <!-- 4. BOTTOM FLOATING ACTION DOCK -->
-            <Border Grid.Row="4"
+            <Border x:Name="BottomActionDockBorder"
+                    Grid.Row="4"
                     Background="{DynamicResource HeaderDockBrush}"
                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                     BorderThickness="0,1,0,0"
-                    Padding="18,12">
+                    CornerRadius="0,0,19,19"
+                    Padding="18,14">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -565,17 +569,19 @@
                                        FontSize="11.5"
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource TextMediumBrush}"
-                                       Margin="0,0,0,4"
+                                       Margin="0,0,0,5"
                                        AutomationProperties.Name="Operation Status"
                                        AutomationProperties.LiveSetting="Polite"/>
-                            <ProgressBar x:Name="AppProgressBar"
-                                         Height="5"
-                                         Minimum="0" Maximum="100"
-                                         Value="0"
-                                         Foreground="{DynamicResource BrandHeroGradientBrush}"
-                                         Background="{DynamicResource TrackBgBrush}"
-                                         BorderThickness="0"
-                                         AutomationProperties.Name="Cleanup Progress"/>
+                            <Border Height="6" CornerRadius="3" Background="{DynamicResource TrackBgBrush}" ClipToBounds="True">
+                                <ProgressBar x:Name="AppProgressBar"
+                                             Height="6"
+                                             Minimum="0" Maximum="100"
+                                             Value="0"
+                                             Foreground="{DynamicResource BrandHeroGradientBrush}"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             AutomationProperties.Name="Cleanup Progress"/>
+                            </Border>
                         </StackPanel>
 
                         <TextBlock Grid.Column="1"
@@ -1272,6 +1278,6 @@
                     </StackPanel>
                 </Border>
             </Grid>
-        </Grid>
+        </Border>
     </Border>
 </Window>
