@@ -39,7 +39,7 @@
   </ItemGroup>
 
   <Target Name="AutoUpdateGraphify" AfterTargets="Build">
-    <Exec Command="pwsh -NoProfile -ExecutionPolicy Bypass -File &quot;$(ProjectDir)scripts\generate_graphify.ps1&quot; -RootPath &quot;$(ProjectDir)&quot;" ContinueOnError="true" />
+    <Exec Command="pwsh -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\scripts\generate_graphify.ps1&quot; -RootPath &quot;$(MSBuildProjectDirectory)&quot;" ContinueOnError="true" />
   </Target>
 
 </Project>
