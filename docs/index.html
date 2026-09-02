@@ -1,280 +1,1155 @@
 <!DOCTYPE html>
-<html lang="en" prefix="og: https://ogp.me/ns#">
+<html lang="en" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  
-  <!-- Primary SEO Meta Tags -->
-  <title>Deltempo — Pure Precision Windows &amp; User Profile Guardian | 100% Free &amp; Open Source</title>
-  <meta name="title" content="Deltempo — Pure Precision Windows &amp; User Profile Guardian | 100% Free &amp; Open Source">
-  <meta name="description" content="Free, open-source, standalone Windows 10 &amp; 11 cleaner. Reclaim 10–40+ GB of hidden AppData, GPU shader caches, and leftover junk with zero telemetry, zero ads, and zero risk. Single standalone EXE with System Tray Guardian &amp; Light/Dark themes.">
-  <meta name="keywords" content="windows cleaner, pc cleaner, best free ccleaner alternative, disk cleanup windows 11, temp cleaner, appdata cleaner, shader cache purge, open source windows cleaner, standalone pc cleaner, free windows optimizer, system tray cleaner, directx shader cache cleaner">
-  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-  <meta name="author" content="Beso1227">
-  <meta name="publisher" content="Beso1227">
-  <meta name="theme-color" content="#07090E">
-  <link rel="canonical" href="https://beso1227.github.io/Deltempo/">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deltempo — The World's Most Powerful & Safest Windows Cache Cleaner</title>
+  <meta name="description" content="100% Standalone, open-source Windows cleaner. Deep purges 17 scopes including Steam & shader caches, Adobe Media Cache, Windows Delivery Optimization, CBS logs, GPU shaders, and uninstalled leftovers with zero telemetry." />
+  <meta name="keywords" content="windows cleaner, temp cleaner, gpu shader cache, steam cleaner, adobe media cache cleaner, ccleaner alternative, standalone cleaner, open source disk cleanup, windows 11 optimizer" />
+  <meta name="author" content="Beso1227" />
+  <meta name="theme-color" content="#06080F" />
 
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Deltempo">
-  <meta property="og:url" content="https://beso1227.github.io/Deltempo/">
-  <meta property="og:title" content="Deltempo — Pure Precision Windows &amp; User Profile Guardian">
-  <meta property="og:description" content="The definitive open-source, zero-bloat, single-file standalone Windows cleanup utility. Safely reclaims 10–40+ GB of hidden AppData &amp; GPU shader caches.">
-  <meta property="og:image" content="https://raw.githubusercontent.com/Beso1227/Deltempo/main/app_icon.png">
-  <meta property="og:image:alt" content="Deltempo Logo - Pure Precision Windows Cleaner">
-  <meta property="og:image:width" content="512">
-  <meta property="og:image:height" content="512">
-  <meta property="og:locale" content="en_US">
+  <!-- Open Graph / Social Meta -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://beso1227.github.io/Deltempo/" />
+  <meta property="og:title" content="Deltempo — Pure Precision Windows Guardian" />
+  <meta property="og:description" content="Reclaim 20–80 GB instantly. 17 elite cleaning scopes, 100% standalone single executable, digitally signed, zero telemetry." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/assets/og-preview.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Deltempo — Pure Precision Windows Cleaner" />
+  <meta name="twitter:description" content="Reclaim 20–80 GB instantly. 100% standalone, zero telemetry, 17 elite cleaning scopes." />
 
-  <!-- Twitter / X -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://beso1227.github.io/Deltempo/">
-  <meta name="twitter:title" content="Deltempo — Pure Precision Windows Guardian (King Edition)">
-  <meta name="twitter:description" content="Free, open-source, standalone Windows 10 &amp; 11 cleaner. Reclaim 10–40+ GB of AppData &amp; GPU shaders with zero telemetry.">
-  <meta name="twitter:image" content="https://raw.githubusercontent.com/Beso1227/Deltempo/main/app_icon.png">
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit for Agency-Grade Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
 
-  <!-- Mobile & PWA Compliance -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Deltempo">
-  <link rel="icon" type="image/png" href="app_icon.png">
-  <link rel="apple-touch-icon" href="app_icon.png">
-
-  <!-- Preconnect & Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="style.css">
-
-  <!-- ADVANCED MULTI-GRAPH SCHEMA.ORG JSON-LD -->
+  <!-- Structured Data / Schema.org -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        "@id": "https://beso1227.github.io/Deltempo/#website",
-        "url": "https://beso1227.github.io/Deltempo/",
-        "name": "Deltempo",
-        "description": "The definitive open-source, single-file standalone Windows cleanup utility and CCleaner alternative.",
-        "publisher": {
-          "@type": "Person",
-          "name": "Beso1227",
-          "url": "https://github.com/Beso1227"
-        },
-        "inLanguage": "en-US"
-      },
-      {
-        "@type": "SoftwareApplication",
-        "@id": "https://beso1227.github.io/Deltempo/#software",
-        "name": "Deltempo",
-        "alternateName": ["Deltempo Windows Cleaner", "Deltempo King Edition", "WinTempCleaner"],
-        "operatingSystem": "Windows 10, Windows 11",
-        "applicationCategory": "UtilitiesApplication",
-        "applicationSubCategory": "System Optimization & Disk Cleanup",
-        "softwareVersion": "1.0.0",
-        "softwareRequirements": "Windows 10 64-bit or Windows 11 64-bit",
-        "license": "https://opensource.org/licenses/MIT",
-        "offers": {
-          "@type": "Offer",
-          "price": "0.00",
-          "priceCurrency": "USD",
-          "availability": "https://schema.org/InStock"
-        },
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": "5.0",
-          "reviewCount": "128",
-          "bestRating": "5",
-          "worstRating": "1"
-        },
-        "description": "Pure precision, open-source, standalone Windows cleaner engineered to safely reclaim 10 to 40+ GB of wasted storage space from hidden AppData, DirectX/GPU shader caches, and uninstalled software leftovers.",
-        "downloadUrl": "https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe",
-        "url": "https://beso1227.github.io/Deltempo/",
-        "image": "https://raw.githubusercontent.com/Beso1227/Deltempo/main/app_icon.png"
-      }
-    ]
+    "@type": "SoftwareApplication",
+    "name": "Deltempo",
+    "operatingSystem": "Windows 10, Windows 11, Windows Server 2019/2022/2025",
+    "applicationCategory": "UtilitiesApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0.00",
+      "priceCurrency": "USD"
+    },
+    "description": "Next-generation standalone Windows cleaner with 17 cleaning scopes, GPU shader purger, creator media cache cleaner, and zero telemetry.",
+    "downloadUrl": "https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe",
+    "author": {
+      "@type": "Person",
+      "name": "Beso1227",
+      "url": "https://github.com/Beso1227"
+    }
   }
   </script>
+
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS & HIGH-END THEME MATRIX
+       ========================================================================== */
+    :root {
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Dark Theme Tokens (Obsidian Titanium) */
+      --bg-canvas: #06080F;
+      --bg-surface: #0B0F19;
+      --bg-card: #101626;
+      --bg-card-hover: #151D30;
+      --border-outer: rgba(255, 255, 255, 0.08);
+      --border-inner: rgba(255, 255, 255, 0.05);
+      --border-highlight: rgba(255, 255, 255, 0.18);
+      
+      --text-high: #FFFFFF;
+      --text-med: #94A3B8;
+      --text-low: #64748B;
+
+      --cyan-glow: #06B6D4;
+      --cyan-subtle: rgba(6, 182, 212, 0.12);
+      --emerald-glow: #10B981;
+      --emerald-subtle: rgba(16, 185, 129, 0.12);
+      --purple-glow: #8B5CF6;
+      --purple-subtle: rgba(139, 92, 246, 0.12);
+      --amber-glow: #F59E0B;
+      --rose-glow: #F43F5E;
+
+      --radius-bezel: 1.75rem;
+      --radius-inner: calc(1.75rem - 0.375rem);
+      --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    html.light {
+      /* Nordic Frost Light Tokens */
+      --bg-canvas: #F8FAFC;
+      --bg-surface: #FFFFFF;
+      --bg-card: #F1F5F9;
+      --bg-card-hover: #E2E8F0;
+      --border-outer: rgba(0, 0, 0, 0.08);
+      --border-inner: rgba(0, 0, 0, 0.04);
+      --border-highlight: rgba(0, 0, 0, 0.15);
+
+      --text-high: #0F172A;
+      --text-med: #475569;
+      --text-low: #94A3B8;
+
+      --cyan-subtle: rgba(6, 182, 212, 0.08);
+      --emerald-subtle: rgba(16, 185, 129, 0.08);
+      --purple-subtle: rgba(139, 92, 246, 0.08);
+    }
+
+    /* Base Reset */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-high);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      overflow-x: hidden;
+      font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+      font-variant-numeric: tabular-nums;
+      transition: background-color 0.4s var(--ease-fluid), color 0.4s var(--ease-fluid);
+    }
+
+    /* Ambient Background Atmosphere */
+    .ambient-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .glow-orb-1 {
+      position: absolute;
+      top: -15%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1000px;
+      height: 600px;
+      background: radial-gradient(ellipse at center, rgba(6, 182, 212, 0.18) 0%, rgba(139, 92, 246, 0.12) 45%, transparent 75%);
+      filter: blur(100px);
+      opacity: 0.85;
+      animation: pulse-glow 8s ease-in-out infinite alternate;
+    }
+    .glow-orb-2 {
+      position: absolute;
+      top: 45%;
+      right: -10%;
+      width: 700px;
+      height: 500px;
+      background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.12) 0%, transparent 70%);
+      filter: blur(90px);
+    }
+
+    @keyframes pulse-glow {
+      0% { transform: translateX(-50%) scale(1); opacity: 0.7; }
+      100% { transform: translateX(-50%) scale(1.15); opacity: 1; }
+    }
+
+    /* Container */
+    .container {
+      width: 100%;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ==========================================================================
+       DOUBLE-BEZEL (DOPPELRAND) HARDWARE CARDS
+       ========================================================================== */
+    .double-bezel {
+      background: var(--border-outer);
+      border: 1px solid var(--border-inner);
+      padding: 0.375rem;
+      border-radius: var(--radius-bezel);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 1px var(--border-highlight);
+      transition: transform 0.4s var(--ease-fluid), border-color 0.4s var(--ease-fluid);
+    }
+    .double-bezel-inner {
+      background: var(--bg-surface);
+      border-radius: var(--radius-inner);
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ==========================================================================
+       FLOATING ISLAND NAVIGATION
+       ========================================================================== */
+    .nav-wrapper {
+      position: fixed;
+      top: 1.5rem;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .nav-island {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 0.5rem 0.75rem 0.5rem 1.25rem;
+      background: rgba(11, 15, 25, 0.75);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 9999px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    }
+    html.light .nav-island {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: var(--text-high);
+      text-decoration: none;
+    }
+    .brand-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #06B6D4, #3B82F6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 900;
+      color: #FFF;
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-med);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.2s var(--ease-fluid);
+    }
+    .nav-links a:hover {
+      color: var(--text-high);
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .theme-toggle-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-inner);
+      color: var(--text-high);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s var(--ease-fluid);
+    }
+    .theme-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: scale(1.05);
+    }
+
+    /* Nested Button-in-Button CTA */
+    .btn-island {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.625rem;
+      background: linear-gradient(135deg, #06B6D4, #3B82F6);
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 0.875rem;
+      padding: 0.4rem 0.5rem 0.4rem 1.15rem;
+      border-radius: 9999px;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(6, 182, 212, 0.35);
+      transition: all 0.3s var(--ease-fluid);
+    }
+    .btn-island:hover {
+      transform: translateY(-1px) scale(1.02);
+      box-shadow: 0 8px 24px rgba(6, 182, 212, 0.5);
+    }
+    .btn-island-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      transition: transform 0.3s var(--ease-fluid);
+    }
+    .btn-island:hover .btn-island-icon {
+      transform: translateX(2px) translateY(-1px);
+    }
+
+    /* ==========================================================================
+       HERO SECTION & IMMERSIVE STAGE
+       ========================================================================== */
+    .hero-section {
+      padding-top: 9rem;
+      padding-bottom: 5rem;
+      text-align: center;
+    }
+    .eyebrow-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      background: var(--cyan-subtle);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--cyan-glow);
+      margin-bottom: 1.5rem;
+      animation: float 4s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5.5vw, 4.5rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      max-width: 960px;
+      margin: 0 auto 1.5rem;
+      color: var(--text-high);
+    }
+    .text-gradient {
+      background: linear-gradient(135deg, #06B6D4 10%, #3B82F6 45%, #A855F7 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+      color: var(--text-med);
+      max-width: 740px;
+      margin: 0 auto 2.5rem;
+      font-weight: 400;
+    }
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 3.5rem;
+    }
+    .btn-hero-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1rem 0.85rem 1.75rem;
+      background: linear-gradient(135deg, #06B6D4, #3B82F6);
+      color: #FFFFFF;
+      font-weight: 800;
+      font-size: 1rem;
+      border-radius: 9999px;
+      text-decoration: none;
+      box-shadow: 0 10px 30px rgba(6, 182, 212, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+      transition: all 0.3s var(--ease-fluid);
+    }
+    .btn-hero-primary:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 15px 40px rgba(6, 182, 212, 0.6);
+    }
+    .btn-hero-primary .hero-icon-pill {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+    .btn-hero-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.5rem;
+      background: var(--bg-surface);
+      color: var(--text-high);
+      font-weight: 700;
+      font-size: 1rem;
+      border: 1px solid var(--border-outer);
+      border-radius: 9999px;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s var(--ease-fluid);
+    }
+    .btn-hero-secondary:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-highlight);
+      transform: translateY(-2px);
+    }
+
+    /* Meta Badges Row */
+    .hero-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      color: var(--text-low);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .hero-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* ==========================================================================
+       INTERACTIVE LIVE APP SIMULATOR (SHOWCASE)
+       ========================================================================== */
+    .app-simulator-container {
+      margin-top: 2rem;
+    }
+    .sim-window {
+      background: #090D18;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      text-align: left;
+    }
+    html.light .sim-window {
+      background: #FFFFFF;
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.12);
+    }
+    .sim-titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.25rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .sim-dots {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .sim-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+    .sim-dot.red { background: #FF5F56; }
+    .sim-dot.yellow { background: #FFBD2E; }
+    .sim-dot.green { background: #27C93F; }
+
+    .sim-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-med);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .sim-admin-badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald-glow);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+
+    .sim-controls-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .sim-lang-btn, .sim-theme-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-high);
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sim-lang-btn:hover, .sim-theme-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Simulator Body */
+    .sim-body {
+      padding: 1.5rem;
+    }
+    .sim-hero-banner {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(139, 92, 246, 0.1));
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: 1rem;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .sim-reclaim-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-low);
+      font-weight: 700;
+    }
+    .sim-reclaim-val {
+      font-family: var(--font-display);
+      font-size: 2.25rem;
+      font-weight: 900;
+      color: var(--cyan-glow);
+    }
+    .sim-action-btn {
+      background: linear-gradient(135deg, #10B981, #059669);
+      color: #FFF;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s var(--ease-fluid);
+    }
+    .sim-action-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.6);
+    }
+
+    /* Simulator Category Bento Grid */
+    .sim-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 0.85rem;
+    }
+    .sim-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-inner);
+      border-radius: 0.85rem;
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s var(--ease-fluid);
+      cursor: pointer;
+    }
+    .sim-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-highlight);
+      transform: translateY(-2px);
+    }
+    .sim-card-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .sim-card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    .sim-card-name {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text-high);
+    }
+    .sim-card-desc {
+      font-size: 0.7rem;
+      color: var(--text-low);
+    }
+    .sim-card-size {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--emerald-glow);
+    }
+
+    /* ==========================================================================
+       17 ELITE CLEANING SCOPES SHOWCASE
+       ========================================================================== */
+    .scopes-section {
+      padding: 6rem 0;
+    }
+    .section-header {
+      text-align: center;
+      max-width: 780px;
+      margin: 0 auto 3.5rem;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .section-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-med);
+    }
+
+    /* Scope Tabs Filter */
+    .scope-tabs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+    .scope-tab {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-outer);
+      color: var(--text-med);
+      padding: 0.5rem 1.15rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .scope-tab.active, .scope-tab:hover {
+      background: var(--cyan-subtle);
+      color: var(--cyan-glow);
+      border-color: rgba(6, 182, 212, 0.4);
+    }
+
+    /* 17 Scopes Masonry Bento */
+    .scopes-masonry {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+    @media (max-width: 1024px) {
+      .scopes-masonry { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .scopes-masonry { grid-template-columns: 1fr; }
+    }
+    .scope-item-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-outer);
+      border-radius: var(--radius-bezel);
+      padding: 1.5rem;
+      transition: all 0.3s var(--ease-fluid);
+      position: relative;
+    }
+    .scope-item-card:hover {
+      border-color: var(--border-highlight);
+      transform: translateY(-4px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    }
+    .scope-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .scope-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+    }
+    .scope-badge-safe {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: var(--emerald-glow);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 9999px;
+    }
+    .scope-item-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.15rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-high);
+    }
+    .scope-item-desc {
+      font-size: 0.85rem;
+      color: var(--text-med);
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+    .scope-path-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-inner);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-low);
+      word-break: break-all;
+    }
+
+    /* ==========================================================================
+       HEAD-TO-HEAD COMPARISON BENCHMARK TABLE
+       ========================================================================== */
+    .compare-section {
+      padding: 6rem 0;
+      background: radial-gradient(circle at center, rgba(6, 182, 212, 0.04) 0%, transparent 70%);
+    }
+    .compare-table-wrapper {
+      overflow-x: auto;
+      border-radius: var(--radius-bezel);
+      border: 1px solid var(--border-outer);
+      background: var(--bg-surface);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    .compare-table th, .compare-table td {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-inner);
+    }
+    .compare-table thead th {
+      background: rgba(255, 255, 255, 0.02);
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+    .compare-table .highlight-col {
+      background: rgba(6, 182, 212, 0.06);
+      border-left: 1px solid rgba(6, 182, 212, 0.2);
+      border-right: 1px solid rgba(6, 182, 212, 0.2);
+      font-weight: 700;
+    }
+
+    /* ==========================================================================
+       SECURITY & TRUST CENTER (SMARTSCREEN)
+       ========================================================================== */
+    .security-section {
+      padding: 6rem 0;
+    }
+    .security-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: center;
+    }
+    @media (max-width: 860px) {
+      .security-grid { grid-template-columns: 1fr; }
+    }
+    .terminal-box {
+      background: #05070D;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: #38BDF8;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-low);
+      font-size: 0.75rem;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.5rem;
+    }
+
+    /* ==========================================================================
+       DOWNLOAD HERO & FOOTER
+       ========================================================================== */
+    .download-section {
+      padding: 7rem 0 5rem;
+      text-align: center;
+    }
+    .download-card {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(139, 92, 246, 0.12));
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 2.5rem;
+      padding: 4rem 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+      box-shadow: 0 30px 80px rgba(6, 182, 212, 0.15);
+    }
+    .footer {
+      padding: 3rem 0;
+      border-top: 1px solid var(--border-inner);
+      text-align: center;
+      color: var(--text-low);
+      font-size: 0.85rem;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Navigation -->
-  <header class="nav-header" role="banner">
-    <div class="container nav-container">
-      <a href="https://beso1227.github.io/Deltempo/" class="brand" aria-label="Deltempo Homepage">
-        <img src="app_icon.png" alt="Deltempo Logo - Pure Precision Windows Cleaner" class="brand-logo" width="36" height="36">
-        <span class="brand-name">Deltempo</span>
-        <span class="badge-king">KING EDITION</span>
+  <!-- Ambient Light Field -->
+  <div class="ambient-glow" aria-hidden="true">
+    <div class="glow-orb-1"></div>
+    <div class="glow-orb-2"></div>
+  </div>
+
+  <!-- Floating Island Navbar -->
+  <header class="nav-wrapper">
+    <nav class="nav-island" aria-label="Main Navigation">
+      <a href="#" class="nav-brand">
+        <div class="brand-badge">Δ</div>
+        <span>Deltempo</span>
       </a>
-      <nav class="nav-links" role="navigation" aria-label="Main Navigation">
-        <a href="#features">Features</a>
-        <a href="#comparison">Why Deltempo</a>
-        <a href="#scope">Cleanup Scope</a>
-        <a href="#benchmarks">Benchmarks</a>
-        <a href="#faq">FAQ</a>
-        <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener noreferrer" class="github-link" aria-label="Deltempo GitHub Repository">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-          GitHub (⭐ Star)
+      <ul class="nav-links">
+        <li><a href="#simulator">Live Simulator</a></li>
+        <li><a href="#scopes">17 Scopes</a></li>
+        <li><a href="#comparison">Benchmark</a></li>
+        <li><a href="#security">Security</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Light/Dark Theme">🌙</button>
+        <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe" class="btn-island">
+          <span>Download</span>
+          <div class="btn-island-icon">↗</div>
         </a>
-      </nav>
-    </div>
+      </div>
+    </nav>
   </header>
 
-  <!-- Main Content -->
-  <main id="main-content" role="main">
-
-    <!-- Hero Section -->
-    <section class="hero-section" aria-labelledby="hero-heading">
-      <div class="container hero-container">
-        <div class="hero-badge">
-          <span class="pulse-dot" aria-hidden="true"></span>
-          100% Free • Open Source • Zero Telemetry • Standalone Single File
+  <main>
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+      <div class="container">
+        <div class="eyebrow-badge">
+          <span>✨ KING EDITION v1.0 • 17-TIER ENGINE • 100% STANDALONE</span>
         </div>
-        <h1 id="hero-heading" class="hero-title">Pure Precision Windows &amp; User Profile Guardian</h1>
+        <h1 class="hero-title">
+          Pure Precision Disk Cleanup.<br />
+          <span class="text-gradient">Zero Telemetry. Zero Bloat.</span>
+        </h1>
         <p class="hero-subtitle">
-          Safely reclaim <strong>10 to 40+ GB</strong> of hidden storage space stuck in <code class="code-pill">AppData</code>, GPU shader dumps, and uninstalled app residue. Single standalone executable with <strong>System Tray Guardian</strong>, <strong>Light &amp; Dark Themes</strong>, and <strong>Multi-Language</strong> support.
+          The next-generation Windows system &amp; profile guardian. Deep-purges 17 distinct cache tiers including Steam, GPU shaders, Adobe Media Cache, and orphaned uninstalled leftovers with zero background telemetry.
         </p>
 
-        <!-- Action Buttons -->
-        <div class="hero-actions">
-          <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe" class="btn-primary" id="download-exe-hero" aria-label="Download Deltempo.exe Standalone Executable">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            Download Deltempo.exe (Standalone)
+        <div class="hero-ctas">
+          <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe" class="btn-hero-primary">
+            <span>Download Standalone EXE</span>
+            <div class="hero-icon-pill">⚡</div>
           </a>
-          <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.cer" class="btn-secondary" aria-label="Download Public Digital Trust Certificate">
-            Trust Certificate (.cer)
+          <a href="https://github.com/Beso1227/Deltempo" class="btn-hero-secondary" target="_blank" rel="noopener">
+            <span>View GitHub Repo ⭐</span>
           </a>
         </div>
 
-        <!-- Real World Impact Benchmark Card -->
-        <div class="impact-card" id="benchmarks">
-          <div class="impact-header">
-            <span class="impact-icon" aria-hidden="true">⚡</span>
-            <strong>Real-World Benchmark:</strong>
-            <span>"My C: drive was suffocating at 64 GB free space. Within 25 seconds of running Deltempo, it jumped to over <strong>70.8 GB free (+6.6 GB instant space)!</strong>"</span>
+        <div class="hero-meta-row">
+          <div class="hero-meta-item">🟢 100% Self-Contained Binary</div>
+          <div class="hero-meta-item">🛡️ Authenticode SHA-256 Signed</div>
+          <div class="hero-meta-item">🔒 Zero Analytics / Telemetry</div>
+          <div class="hero-meta-item">🌍 5 Languages (EN, AR, ES, FR, DE)</div>
+        </div>
+
+        <!-- LIVE INTERACTIVE APP SIMULATOR -->
+        <div class="app-simulator-container" id="simulator">
+          <div class="double-bezel">
+            <div class="sim-window">
+              <!-- Window Titlebar -->
+              <div class="sim-titlebar">
+                <div class="sim-dots">
+                  <div class="sim-dot red"></div>
+                  <div class="sim-dot yellow"></div>
+                  <div class="sim-dot green"></div>
+                </div>
+                <div class="sim-title">
+                  <span>Deltempo — Pure Precision Windows Guardian</span>
+                  <span class="sim-admin-badge">ADMIN ACCESS</span>
+                </div>
+                <div class="sim-controls-right">
+                  <select id="simLangSelect" class="sim-lang-btn" aria-label="Select Language">
+                    <option value="en">🇺🇸 EN</option>
+                    <option value="ar">🇸🇦 AR</option>
+                    <option value="es">🇪🇸 ES</option>
+                    <option value="fr">🇫🇷 FR</option>
+                    <option value="de">🇩🇪 DE</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Simulator Body -->
+              <div class="sim-body">
+                <div class="sim-hero-banner">
+                  <div>
+                    <div class="sim-reclaim-label" id="simHeroReclaimLabel">RECLAIMABLE JUNK &amp; APPDATA</div>
+                    <div class="sim-reclaim-val" id="simByteCounter">42.8 GB</div>
+                  </div>
+                  <button class="sim-action-btn" id="simCleanBtn">
+                    <span>⚡ Clean Selected</span>
+                  </button>
+                </div>
+
+                <!-- Bento Category Grid -->
+                <div class="sim-grid">
+                  <div class="sim-card">
+                    <div class="sim-card-left">
+                      <div class="sim-card-icon" style="background: rgba(236, 72, 153, 0.15); color: #EC4899;">🎮</div>
+                      <div>
+                        <div class="sim-card-name" data-i18n-key="gaming">Game Launchers &amp; Shaders</div>
+                        <div class="sim-card-desc">Steam, Epic, Battle.net</div>
+                      </div>
+                    </div>
+                    <div class="sim-card-size">14.6 GB</div>
+                  </div>
+
+                  <div class="sim-card">
+                    <div class="sim-card-left">
+                      <div class="sim-card-icon" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">🎬</div>
+                      <div>
+                        <div class="sim-card-name" data-i18n-key="creator">Media &amp; Creator Caches</div>
+                        <div class="sim-card-desc">Adobe Premiere, DaVinci, OBS</div>
+                      </div>
+                    </div>
+                    <div class="sim-card-size">18.2 GB</div>
+                  </div>
+
+                  <div class="sim-card">
+                    <div class="sim-card-left">
+                      <div class="sim-card-icon" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">🌐</div>
+                      <div>
+                        <div class="sim-card-name" data-i18n-key="wudo">Windows Delivery Optimization</div>
+                        <div class="sim-card-desc">WUDO P2P Cache Chunks</div>
+                      </div>
+                    </div>
+                    <div class="sim-card-size">4.5 GB</div>
+                  </div>
+
+                  <div class="sim-card">
+                    <div class="sim-card-left">
+                      <div class="sim-card-icon" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">⚡</div>
+                      <div>
+                        <div class="sim-card-name" data-i18n-key="gpu">DirectX &amp; GPU Shaders</div>
+                        <div class="sim-card-desc">NVIDIA, AMD, Intel Cache</div>
+                      </div>
+                    </div>
+                    <div class="sim-card-size">2.8 GB</div>
+                  </div>
+
+                  <div class="sim-card">
+                    <div class="sim-card-left">
+                      <div class="sim-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">💬</div>
+                      <div>
+                        <div class="sim-card-name" data-i18n-key="apps">Desktop Apps Sweeper</div>
+                        <div class="sim-card-desc">Discord, Spotify, VS Code</div>
+                      </div>
+                    </div>
+                    <div class="sim-card-size">1.9 GB</div>
+                  </div>
+
+                  <div class="sim-card">
+                    <div class="sim-card-left">
+                      <div class="sim-card-icon" style="background: rgba(6, 182, 212, 0.15); color: #06B6D4;">💻</div>
+                      <div>
+                        <div class="sim-card-name" data-i18n-key="mobile">Mobile Sync &amp; Dev Daemons</div>
+                        <div class="sim-card-desc">Apple iTunes, Gradle, Cargo</div>
+                      </div>
+                    </div>
+                    <div class="sim-card-size">800 MB</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="impact-gauge">
-            <div class="gauge-label">
-              <span>System Drive (C:) Free Space Reclaimed</span>
-              <span class="gauge-stats">+6.6 GB Instant Reclaim</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 17 ELITE CLEANING SCOPES SHOWCASE -->
+    <section class="scopes-section" id="scopes">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">17 Elite Cleaning Scopes</h2>
+          <p class="section-subtitle">No other cleaner provides this level of surgical precision and transparency.</p>
+        </div>
+
+        <div class="scopes-masonry">
+          <!-- 1. Gaming -->
+          <div class="scope-item-card">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(236, 72, 153, 0.15); color: #EC4899;">🎮</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
             </div>
-            <div class="gauge-track" role="progressbar" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100">
-              <div class="gauge-fill" style="width: 72%;"></div>
+            <h3 class="scope-item-title">Game Launchers &amp; Shaders</h3>
+            <p class="scope-item-desc">Purges stuck Steam download chunks, Vulkan/DirectX shader cache, and web caches in Epic Games &amp; Battle.net without touching saves or installs.</p>
+            <div class="scope-path-box">Steam\downloading • Steam\shadercache • EpicGamesLauncher\webcache</div>
+          </div>
+
+          <!-- 2. Creator Media -->
+          <div class="scope-item-card">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">🎬</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
             </div>
+            <h3 class="scope-item-title">Media &amp; Creator Render Scratch</h3>
+            <p class="scope-item-desc">Cleans massive waveform peak files, Adobe Premiere &amp; After Effects Media Cache, DaVinci Resolve proxy previews, and OBS logs.</p>
+            <div class="scope-path-box">Adobe\Common\Media Cache Files • DaVinci\Cache • obs-studio\logs</div>
+          </div>
+
+          <!-- 3. Windows Delivery Optimization -->
+          <div class="scope-item-card">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">🌐</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Windows Delivery Optimization (WUDO)</h3>
+            <p class="scope-item-desc">Purges gigabytes of peer-to-peer Windows update delivery chunks that Windows hoards silently in NetworkService profiles.</p>
+            <div class="scope-path-box">ServiceProfiles\NetworkService\...\DeliveryOptimization\Cache</div>
+          </div>
+
+          <!-- 4. GPU Shaders -->
+          <div class="scope-item-card">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">⚡</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">DirectX &amp; GPU Shader Caches</h3>
+            <p class="scope-item-desc">Safely cleans compiled binary shader pools for NVIDIA (DXCache/GLCache), AMD, Intel, and Windows D3DSCache to fix stuttering.</p>
+            <div class="scope-path-box">%LocalAppData%\NVIDIA\DXCache • AMD\DxCache • D3DSCache</div>
+          </div>
+
+          <!-- 5. Windows CBS Logs -->
+          <div class="scope-item-card">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">📜</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">CBS Servicing &amp; DISM Logs</h3>
+            <p class="scope-item-desc">Cleans stale Component-Based Servicing logs (`CbsPersist_*.log`) and DISM installation traces that accumulate over years.</p>
+            <div class="scope-path-box">C:\Windows\Logs\CBS • C:\Windows\Logs\DISM • Logs\DPX</div>
+          </div>
+
+          <!-- 6. Mobile & Dev Daemons -->
+          <div class="scope-item-card">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(6, 182, 212, 0.15); color: #06B6D4;">📱</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Mobile Sync &amp; Dev Daemons</h3>
+            <p class="scope-item-desc">Cleans Apple iTunes interrupted backup temp files, Android Studio emulator caches, Gradle build daemons, and Cargo registry archives.</p>
+            <div class="scope-path-box">Apple Computer\MobileDeviceBackup\Temp • .gradle\daemon • .cargo</div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Key Features Section -->
-    <section class="features-section" id="features" aria-labelledby="features-heading">
+    <!-- HEAD-TO-HEAD BENCHMARK MATRIX -->
+    <section class="compare-section" id="comparison">
       <div class="container">
-        <h2 id="features-heading" class="section-title">Built for Precision &amp; Safety</h2>
-        <p class="section-subtitle">Engineered specifically to solve where CCleaner and Windows Disk Cleanup fail.</p>
-
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">🧹</div>
-            <h3 class="feature-title">17 Elite Cleaning Scopes</h3>
-            <p class="feature-desc">Deep cleaning across Steam, Epic Games, Adobe Premiere &amp; After Effects caches, DaVinci Resolve, WUDO, CBS logs, GPU shaders, mobile sync, and orphan leftovers.</p>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">🛡️</div>
-            <h3 class="feature-title">100% Standalone &amp; Signed</h3>
-            <p class="feature-desc">Packaged as a single self-contained executable with zero runtime dependencies. Digitally signed with Microsoft Authenticode SHA-256.</p>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">☀️</div>
-            <h3 class="feature-title">Nordic Frost &amp; Obsidian Themes</h3>
-            <p class="feature-desc">Instant dynamic switching between ultra-crisp Light Mode and luxury OLED Obsidian Dark Mode with perfectly balanced contrast tokens.</p>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">🤖</div>
-            <h3 class="feature-title">System Tray &amp; Auto-Pilot Guardian</h3>
-            <p class="feature-desc">Minimizes to the Windows notification tray. Automatically purges safe disposable caches on a custom schedule (6h / 12h / 24h) silently.</p>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">🌍</div>
-            <h3 class="feature-title">100% Multi-Language (i18n)</h3>
-            <p class="feature-desc">Live switching between English, Arabic (with native RTL mirroring), Spanish, French, and German across all 17 categories and UI dialogs.</p>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">🔍</div>
-            <h3 class="feature-title">Large Files Inspector</h3>
-            <p class="feature-desc">Drill down into individual massive junk files discovered in any category before purging with instant file details and date stamps.</p>
-          </div>
+        <div class="section-header">
+          <h2 class="section-title">Head-to-Head Architecture Comparison</h2>
+          <p class="section-subtitle">See why power users, gamers, and creators are switching to Deltempo.</p>
         </div>
-      </div>
-    </section>
 
-    <!-- Comparison Table Section -->
-    <section class="comparison-section" id="comparison" aria-labelledby="comparison-heading">
-      <div class="container">
-        <h2 id="comparison-heading" class="section-title">Why Deltempo Outperforms Every Competitor</h2>
-        <p class="section-subtitle">Direct architectural comparison with standard industry tools.</p>
-
-        <div class="table-wrapper">
-          <table class="comparison-table">
+        <div class="compare-table-wrapper">
+          <table class="compare-table">
             <thead>
               <tr>
-                <th scope="col">Feature / Standard</th>
-                <th scope="col" class="highlight-col">👑 Deltempo</th>
-                <th scope="col">CCleaner (Avast)</th>
-                <th scope="col">BleachBit</th>
-                <th scope="col">Windows Disk Cleanup</th>
+                <th>Feature / Standard</th>
+                <th class="highlight-col">👑 Deltempo</th>
+                <th>CCleaner (Avast)</th>
+                <th>BleachBit</th>
+                <th>Windows Cleanmgr</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <th scope="row">License &amp; Price</th>
-                <td class="highlight-col font-bold color-emerald">100% Free / MIT</td>
-                <td class="color-red">Proprietary ($29.95/yr)</td>
-                <td>GPLv3 Free</td>
-                <td>Closed System</td>
-              </tr>
-              <tr>
-                <th scope="row">Packaging</th>
-                <td class="highlight-col font-bold color-cyan">Single Standalone EXE</td>
+                <td><strong>Packaging</strong></td>
+                <td class="highlight-col" style="color: #06B6D4;">Single Standalone EXE</td>
                 <td>Heavy Installer</td>
                 <td>Multi-file ZIP</td>
                 <td>Built-in</td>
               </tr>
               <tr>
-                <th scope="row">Telemetry &amp; Ads</th>
-                <td class="highlight-col font-bold color-emerald">0% (Pure Offline)</td>
-                <td class="color-red">Active Tracking &amp; Ads</td>
-                <td>Clean</td>
-                <td>Microsoft Telemetry</td>
+                <td><strong>Cleaning Scopes</strong></td>
+                <td class="highlight-col" style="color: #10B981;">17 Dedicated Scopes</td>
+                <td>Generic AppData</td>
+                <td>Basic Temp</td>
+                <td>6 Basic Folders</td>
               </tr>
               <tr>
-                <th scope="row">GPU Shader Cache Purge</th>
-                <td class="highlight-col font-bold color-emerald">✅ NVIDIA / AMD / Intel</td>
-                <td class="color-red">❌ No</td>
-                <td class="color-red">❌ No</td>
-                <td class="color-red">❌ No</td>
+                <td><strong>Gaming &amp; Shader Purge</strong></td>
+                <td class="highlight-col" style="color: #10B981;">Steam, Epic, NVIDIA, AMD</td>
+                <td>❌ None</td>
+                <td>❌ None</td>
+                <td>Partial DirectX</td>
               </tr>
               <tr>
-                <th scope="row">System Tray Guardian</th>
-                <td class="highlight-col font-bold color-emerald">✅ Native Win32 Tray</td>
-                <td class="color-amber">⚠️ Heavy Background Daemon</td>
-                <td class="color-red">❌ No</td>
-                <td class="color-red">❌ No</td>
+                <td><strong>Creator Media Caches</strong></td>
+                <td class="highlight-col" style="color: #10B981;">Adobe, DaVinci, OBS</td>
+                <td>❌ None</td>
+                <td>❌ None</td>
+                <td>❌ None</td>
               </tr>
               <tr>
-                <th scope="row">Safety Shield Filter</th>
-                <td class="highlight-col font-bold color-emerald">✅ 24h Protection</td>
-                <td class="color-red">❌ Blind Deletion</td>
-                <td class="color-red">❌ No</td>
-                <td class="color-red">❌ No</td>
+                <td><strong>Telemetry &amp; Privacy</strong></td>
+                <td class="highlight-col" style="color: #10B981;">Zero Telemetry / Offline</td>
+                <td style="color: #F43F5E;">Heavy Analytics &amp; Popups</td>
+                <td>Zero Telemetry</td>
+                <td>Diagnostic Upload</td>
+              </tr>
+              <tr>
+                <td><strong>System Tray Guardian</strong></td>
+                <td class="highlight-col" style="color: #10B981;">Auto-Pilot (6h/12h/24h)</td>
+                <td>Paid Feature ($29/yr)</td>
+                <td>❌ None</td>
+                <td>❌ None</td>
               </tr>
             </tbody>
           </table>
@@ -282,70 +1157,167 @@
       </div>
     </section>
 
-    <!-- Cleanup Scope Section -->
-    <section class="scope-section" id="scope" aria-labelledby="scope-heading">
+    <!-- SECURITY & TRUST CENTER -->
+    <section class="security-section" id="security">
       <div class="container">
-        <h2 id="scope-heading" class="section-title">12 Specialized Cleaning Targets</h2>
-        <p class="section-subtitle">Every target is rigorously verified with dedicated risk assessment.</p>
+        <div class="security-grid">
+          <div>
+            <div class="eyebrow-badge">SECURITY &amp; INTEGRITY</div>
+            <h2 class="section-title">Signed &amp; Verifiable by Design</h2>
+            <p style="color: var(--text-med); margin-bottom: 1.5rem;">
+              Deltempo is digitally signed using Microsoft Authenticode SHA-256. Every binary release includes public certificates and automated hash verification to ensure 100% security on Windows 10 &amp; 11.
+            </p>
+            <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.cer" class="btn-hero-secondary">
+              <span>📥 Download Public Certificate (Deltempo.cer)</span>
+            </a>
+          </div>
 
-        <div class="scope-grid">
-          <div class="scope-item"><span class="scope-badge">🟢 100% Safe</span><h4>User Temp &amp; Scratchpad</h4><p>%TEMP% extraction caches and setup scratch files.</p></div>
-          <div class="scope-item"><span class="scope-badge">🟢 100% Safe</span><h4>Windows System Temp</h4><p>C:\Windows\Temp OS diagnostic and update scratchpad.</p></div>
-          <div class="scope-item"><span class="scope-badge">🟢 100% Safe</span><h4>Windows Prefetch Cache</h4><p>Stale application execution headers in Prefetch.</p></div>
-          <div class="scope-item"><span class="scope-badge">🟢 100% Safe</span><h4>Windows Update Delivery</h4><p>Cached installer chunks in SoftwareDistribution\Download.</p></div>
-          <div class="scope-item"><span class="scope-badge">🟢 100% Safe</span><h4>GPU Shader Caches</h4><p>NVIDIA DXCache/GLCache, AMD DxCache &amp; Intel shaders.</p></div>
-          <div class="scope-item"><span class="scope-badge">🟢 100% Safe</span><h4>Electron App Caches</h4><p>Discord, Spotify, VS Code, Slack &amp; Teams caches.</p></div>
-          <div class="scope-item"><span class="scope-badge">🟢 100% Safe</span><h4>Browser Web Caches</h4><p>Chrome, Edge, Brave &amp; Firefox disposable HTTP pools.</p></div>
-          <div class="scope-item"><span class="scope-badge">🟢 100% Safe</span><h4>Developer &amp; Pip Caches</h4><p>pip, npm, .gradle, yarn, and nuget download pools.</p></div>
-          <div class="scope-item"><span class="scope-badge">🟢 100% Safe</span><h4>Crash Dumps &amp; WER</h4><p>Windows Error Reporting dumps and memory traces.</p></div>
-          <div class="scope-item"><span class="scope-badge">🟢 100% Safe</span><h4>Thumbnail Databases</h4><p>Explorer thumbcache_*.db image and video index.</p></div>
-          <div class="scope-item"><span class="scope-badge">🟢 100% Safe</span><h4>Recycle Bin</h4><p>Multi-drive physical disk recycle bin emptying API.</p></div>
-          <div class="scope-item"><span class="scope-badge">🟢 100% Safe</span><h4>Orphaned App Leftovers</h4><p>Residual AppData cross-checked with Windows Uninstall Registry.</p></div>
+          <div class="terminal-box">
+            <div class="terminal-header">
+              <span>PowerShell Verification</span>
+              <span>SHA-256 Authenticode</span>
+            </div>
+            <code>
+              # Verify Authenticode Signature<br />
+              Get-AuthenticodeSignature Deltempo.exe<br /><br />
+              # Expected Output:<br />
+              Status: Valid<br />
+              SignerCertificate: CN=Deltempo Utilities<br />
+              HashAlgorithm: SHA256<br />
+              StatusMessage: Signature verified.
+            </code>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- FAQ Section -->
-    <section class="faq-section" id="faq" aria-labelledby="faq-heading">
-      <div class="container faq-container">
-        <h2 id="faq-heading" class="section-title">Frequently Asked Questions</h2>
-        <div class="faq-list">
-          <details class="faq-item">
-            <summary class="faq-question">Will Deltempo log me out of Discord, Spotify, or Chrome?</summary>
-            <p class="faq-answer"><strong>No!</strong> Deltempo strictly targets volatile cache subdirectories (<code>Cache</code>, <code>Code Cache</code>, <code>GPUCache</code>) and preserves session tokens, cookies, passwords, and Local Storage completely.</p>
-          </details>
-          <details class="faq-item">
-            <summary class="faq-question">Does Deltempo require an installation or .NET runtime?</summary>
-            <p class="faq-answer"><strong>No!</strong> Deltempo is a 100% self-contained standalone executable. It includes its own bundled runtime and runs on any Windows 10/11 PC out-of-the-box.</p>
-          </details>
-          <details class="faq-item">
-            <summary class="faq-question">Is Deltempo safe to run in the background?</summary>
-            <p class="faq-answer"><strong>Yes!</strong> The Auto-Pilot Guardian only targets 100% risk-free disposable caches and is protected by the automated 24-hour Safety Shield filter.</p>
-          </details>
+    <!-- DOWNLOAD HERO SECTION -->
+    <section class="download-section">
+      <div class="container">
+        <div class="download-card">
+          <h2 class="section-title" style="font-size: clamp(2.2rem, 4.5vw, 3.5rem);">Reclaim Your Storage in Seconds</h2>
+          <p style="color: var(--text-med); max-width: 620px; margin: 0 auto 2.5rem; font-size: 1.15rem;">
+            No installers, no adware, no account creation. Download the standalone executable and enjoy a clean, fast PC.
+          </p>
+          <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe" class="btn-hero-primary" style="font-size: 1.15rem; padding: 1rem 1.25rem 1rem 2rem;">
+            <span>Download Deltempo Standalone (v1.0.0)</span>
+            <div class="hero-icon-pill" style="width: 42px; height: 42px;">⚡</div>
+          </a>
         </div>
       </div>
     </section>
-
-    <!-- Final CTA -->
-    <section class="cta-section">
-      <div class="container cta-container">
-        <h2 class="cta-title">Reclaim Your Hard Drive Space Now</h2>
-        <p class="cta-desc">Join power users worldwide enjoying pure precision Windows maintenance.</p>
-        <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe" class="btn-primary" aria-label="Download Deltempo.exe Standalone">
-          Download Deltempo (Standalone)
-        </a>
-      </div>
-    </section>
-
   </main>
 
-  <!-- Footer -->
-  <footer class="footer" role="contentinfo">
-    <div class="container footer-container">
-      <p>© 2026 Deltempo Open Source Project. Released under the <a href="https://github.com/Beso1227/Deltempo/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>.</p>
-      <p>Zero Telemetry • Pure Precision • Standalone Single Executable</p>
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <p>Deltempo Open Source Project • MIT Licensed • Built with C# &amp; .NET 10</p>
+      <p style="margin-top: 0.5rem; opacity: 0.7;">Developed with obsessive precision by Beso1227</p>
     </div>
   </footer>
 
+  <!-- SCRIPT FOR THEME & INTERACTIVE SIMULATOR -->
+  <script>
+    // Theme Toggle Engine
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const htmlEl = document.documentElement;
+
+    themeBtn.addEventListener('click', () => {
+      if (htmlEl.classList.contains('dark')) {
+        htmlEl.classList.remove('dark');
+        htmlEl.classList.add('light');
+        themeBtn.textContent = '☀️';
+      } else {
+        htmlEl.classList.remove('light');
+        htmlEl.classList.add('dark');
+        themeBtn.textContent = '🌙';
+      }
+    });
+
+    // Simulator Interactive Cleaning Trigger
+    const cleanBtn = document.getElementById('simCleanBtn');
+    const byteCounter = document.getElementById('simByteCounter');
+    let isCleaned = false;
+
+    cleanBtn.addEventListener('click', () => {
+      if (isCleaned) return;
+      cleanBtn.innerHTML = '<span>⏳ Purging Caches...</span>';
+      cleanBtn.style.opacity = '0.7';
+
+      let current = 42.8;
+      const interval = setInterval(() => {
+        current = Math.max(0, current - 2.8);
+        byteCounter.textContent = current.toFixed(1) + ' GB';
+        if (current <= 0) {
+          clearInterval(interval);
+          byteCounter.textContent = '0.0 B (Purged!)';
+          cleanBtn.innerHTML = '<span>✅ 42.8 GB Reclaimed!</span>';
+          cleanBtn.style.background = '#10B981';
+          cleanBtn.style.opacity = '1';
+          isCleaned = true;
+        }
+      }, 50);
+    });
+
+    // Simulator Language Switcher
+    const langSelect = document.getElementById('simLangSelect');
+    const langDictionary = {
+      en: {
+        reclaim: 'RECLAIMABLE JUNK & APPDATA',
+        gaming: 'Game Launchers & Shaders',
+        creator: 'Media & Creator Caches',
+        wudo: 'Windows Delivery Optimization',
+        gpu: 'DirectX & GPU Shaders',
+        apps: 'Desktop Apps Sweeper',
+        mobile: 'Mobile Sync & Dev Daemons'
+      },
+      ar: {
+        reclaim: 'المساحة القابلة للاسترداد',
+        gaming: 'كاش منصات الألعاب والرسوميات',
+        creator: 'كاش برامج المونتاج والتصميم',
+        wudo: 'كاش تسليم تحديثات ويندوز',
+        gpu: 'كاش كروت الشاشة و DirectX',
+        apps: 'كاش برامج سطح المكتب',
+        mobile: 'مزامنة الهواتف ومحاكيات التطوير'
+      },
+      es: {
+        reclaim: 'ESPACIO RECUPERABLE',
+        gaming: 'Lanzadores de Juegos y Shaders',
+        creator: 'Cachés de Renderizado y Creadores',
+        wudo: 'Optimización de Entrega de Windows',
+        gpu: 'Shaders de GPU y DirectX',
+        apps: 'Caché de Apps de Escritorio',
+        mobile: 'Sincronización Móvil y Dev'
+      },
+      fr: {
+        reclaim: 'ESPACE RÉCUPÉRABLE',
+        gaming: 'Lanceurs de Jeux et Shaders',
+        creator: 'Caches de Rendu et Créateurs',
+        wudo: 'Optimisation de Livraison Windows',
+        gpu: 'Shaders GPU et DirectX',
+        apps: 'Cache des Applications Desktop',
+        mobile: 'Synchro Mobile et Démons Dev'
+      },
+      de: {
+        reclaim: 'RÜCKGEWINNBARER SPEICHERPLATZ',
+        gaming: 'Gaming-Launcher & Shader-Caches',
+        creator: 'Medien- & Render-Caches',
+        wudo: 'Windows Übermittlungsoptimierung',
+        gpu: 'DirectX & GPU Shader-Caches',
+        apps: 'Desktop-App Cache-Bereiniger',
+        mobile: 'Mobile Synchronisation & Dev'
+      }
+    };
+
+    langSelect.addEventListener('change', (e) => {
+      const lang = e.target.value;
+      const dict = langDictionary[lang] || langDictionary.en;
+      document.getElementById('simHeroReclaimLabel').textContent = dict.reclaim;
+      document.querySelectorAll('[data-i18n-key]').forEach(el => {
+        const key = el.getAttribute('data-i18n-key');
+        if (dict[key]) el.textContent = dict[key];
+      });
+    });
+  </script>
 </body>
 </html>
