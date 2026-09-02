@@ -9,7 +9,7 @@ Commands:
 Installers:
   - Architecture: x64
     InstallerUrl: https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe
-    InstallerSha256: 01D76E67ED266DB091B35BC1E15381450AA28924F1C89FDF9167DC9FE4D90222
+    InstallerSha256: A862338C06A0E32FE71AD83F49C6489CF914C0454E4F4DA5156FF74920A12A85
 ManifestType: installer
 ManifestVersion: 1.6.0
 

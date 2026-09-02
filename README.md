@@ -120,23 +120,29 @@ Windows and desktop applications secretly hoard tens of gigabytes of disposable 
 Deltempo includes a built-in headless CLI engine for DevOps, power users, and Windows Task Scheduler automation:
 
 ```powershell
-# 1. Quick dry-run scan with formatted terminal table
-.\Deltempo.exe --scan
+# 1. Quick dry-run scan (or: deltempo scan --json)
+.\Deltempo.exe scan
 
-# 2. Dry-run scan with structured JSON output
-.\Deltempo.exe --scan --json
+# 2. Clean safe temporary caches and GPU shaders
+.\Deltempo.exe clean
 
-# 3. Safe cleanup (with 24-hour Safety Shield enabled)
-.\Deltempo.exe --clean --safe
+# 3. ⚡ Instant 1-click RAM working set purge
+.\Deltempo.exe boost
 
-# 4. Clean all 17 categories including orphaned app leftovers silently with audit export
-.\Deltempo.exe --clean --all --safe --export "C:\Logs\deltempo_audit.txt" --silent
+# 4. 🚀 List Windows startup apps & boot impact ratings
+.\Deltempo.exe startup
 
-# 5. Automated CI/CD regression verification test
-.\Deltempo.exe --test
+# 5. 🐘 Discover hidden large files (>50 MB)
+.\Deltempo.exe large
 
-# 6. Show help guide
-.\Deltempo.exe --help
+# 6. 🛑 List heavy background memory processes (>80 MB)
+.\Deltempo.exe procs
+
+# 7. 📊 Check drive space and memory health telemetry
+.\Deltempo.exe status
+
+# 8. 🔄 Check for updates on GitHub
+.\Deltempo.exe update
 ```
 
 ---
