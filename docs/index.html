@@ -223,7 +223,51 @@
       will-change: left, top;
     }
 
-    /* Ambient Background Atmosphere */
+    /* Ambient Background Atmosphere & Interactive Mesh */
+    #bgConstellationCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .noise-grain-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+    html.light .noise-grain-overlay {
+      opacity: 0.02;
+    }
+
+    .cyber-grid-floor {
+      position: fixed;
+      bottom: -150px;
+      left: -20%;
+      right: -20%;
+      height: 450px;
+      background-image: 
+        linear-gradient(to right, rgba(6, 182, 212, 0.07) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(6, 182, 212, 0.07) 1px, transparent 1px);
+      background-size: 50px 50px;
+      transform: perspective(400px) rotateX(70deg);
+      transform-origin: bottom center;
+      mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 85%);
+      -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 85%);
+      pointer-events: none;
+      z-index: 0;
+      animation: grid-scroll 20s linear infinite;
+    }
+    @keyframes grid-scroll {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 50px; }
+    }
+
     .ambient-glow {
       position: fixed;
       inset: 0;
@@ -244,13 +288,23 @@
     }
     .glow-orb-2 {
       position: absolute;
-      top: 50%;
+      top: 45%;
       right: -10%;
       width: 800px;
       height: 600px;
       background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.12) 0%, transparent 70%);
       filter: blur(100px);
       animation: drift-glow 12s ease-in-out infinite alternate;
+    }
+    .glow-orb-3 {
+      position: absolute;
+      bottom: -10%;
+      left: -10%;
+      width: 750px;
+      height: 650px;
+      background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.13) 0%, rgba(139, 92, 246, 0.1) 50%, transparent 70%);
+      filter: blur(110px);
+      animation: drift-glow-reverse 15s ease-in-out infinite alternate;
     }
 
     @keyframes pulse-glow {
@@ -261,6 +315,10 @@
       0% { transform: translate(0, 0); }
       100% { transform: translate(-80px, -50px); }
     }
+    @keyframes drift-glow-reverse {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(80px, 60px); }
+    }
 
     /* Container */
     .container {
@@ -269,7 +327,7 @@
       margin: 0 auto;
       padding: 0 1.5rem;
       position: relative;
-      z-index: 1;
+      z-index: 2;
     }
 
     /* ==========================================================================
@@ -1803,6 +1861,15 @@
   <!-- Scroll Reading Progress Bar -->
   <div id="scrollProgressBar" class="scroll-progress-bar"></div>
 
+  <!-- Noise Grain Texture Overlay -->
+  <div class="noise-grain-overlay" aria-hidden="true"></div>
+
+  <!-- Perspective 3D Cyber Horizon Grid Floor -->
+  <div class="cyber-grid-floor" aria-hidden="true"></div>
+
+  <!-- Interactive Background Constellation & Telemetry Canvas -->
+  <canvas id="bgConstellationCanvas" aria-hidden="true"></canvas>
+
   <!-- Dynamic Confetti & Fireworks Particle Canvas -->
   <canvas id="particlesCanvas" class="particles-canvas" aria-hidden="true"></canvas>
 
@@ -1813,6 +1880,7 @@
   <div class="ambient-glow" aria-hidden="true">
     <div class="glow-orb-1"></div>
     <div class="glow-orb-2"></div>
+    <div class="glow-orb-3"></div>
   </div>
 
   <!-- Floating Island Navigation -->
@@ -3163,6 +3231,146 @@
         });
       });
     }
+
+    // 18. Interactive Ambient Background Constellation & Hex Telemetry Engine
+    (function initBackgroundConstellation() {
+      const bgCanvas = document.getElementById('bgConstellationCanvas');
+      if (!bgCanvas) return;
+      const ctx = bgCanvas.getContext('2d');
+      let width = (bgCanvas.width = window.innerWidth);
+      let height = (bgCanvas.height = window.innerHeight);
+
+      function handleResize() {
+        width = bgCanvas.width = window.innerWidth;
+        height = bgCanvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', handleResize);
+
+      const mouse = { x: -1000, y: -1000, active: false };
+      window.addEventListener('pointermove', (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+        mouse.active = true;
+      });
+      window.addEventListener('pointerleave', () => {
+        mouse.active = false;
+      });
+
+      // Quantum node particles
+      const nodeCount = Math.min(48, Math.floor((width * height) / 25000));
+      const nodes = [];
+      const colors = ['#00E5FF', '#3B82F6', '#8B5CF6', '#10B981'];
+
+      for (let i = 0; i < nodeCount; i++) {
+        nodes.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.45,
+          vy: (Math.random() - 0.5) * 0.45,
+          radius: Math.random() * 2 + 1.2,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          baseAlpha: Math.random() * 0.4 + 0.25
+        });
+      }
+
+      // Floating high-tech telemetry hex tags
+      const techTags = [
+        '0x7FFF_SYS', 'AVX2_ACCEL', 'WIN32_NT', 'TRIM_ACTIVE', 'SHA256_VERIFIED',
+        'ZERO_TELEMETRY', 'GUARDIAN_ARMED', 'RAM_FLUSH_28ms', 'WUDO_PURGED', 'DX_CACHE_CLEAN'
+      ];
+      const floatingTags = [];
+      for (let i = 0; i < 8; i++) {
+        floatingTags.push({
+          text: techTags[i % techTags.length],
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.25,
+          vy: (Math.random() - 0.5) * 0.25,
+          alpha: Math.random() * 0.18 + 0.08
+        });
+      }
+
+      function drawConstellation() {
+        ctx.clearRect(0, 0, width, height);
+
+        // 1. Draw floating telemetry tags
+        ctx.font = '10px "JetBrains Mono", monospace';
+        floatingTags.forEach(tag => {
+          tag.x += tag.vx;
+          tag.y += tag.vy;
+          if (tag.x < -100) tag.x = width + 50;
+          if (tag.x > width + 100) tag.x = -50;
+          if (tag.y < -50) tag.y = height + 30;
+          if (tag.y > height + 50) tag.y = -30;
+
+          ctx.fillStyle = `rgba(6, 182, 212, ${tag.alpha})`;
+          ctx.fillText(tag.text, tag.x, tag.y);
+        });
+
+        // 2. Draw nodes & connections
+        for (let i = 0; i < nodes.length; i++) {
+          const n1 = nodes[i];
+          n1.x += n1.vx;
+          n1.y += n1.vy;
+
+          if (n1.x < 0 || n1.x > width) n1.vx *= -1;
+          if (n1.y < 0 || n1.y > height) n1.vy *= -1;
+
+          // Connect with other nodes
+          for (let j = i + 1; j < nodes.length; j++) {
+            const n2 = nodes[j];
+            const dx = n1.x - n2.x;
+            const dy = n1.y - n2.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < 130) {
+              const alpha = (1 - dist / 130) * 0.16;
+              ctx.strokeStyle = `rgba(6, 182, 212, ${alpha})`;
+              ctx.lineWidth = 0.8;
+              ctx.beginPath();
+              ctx.moveTo(n1.x, n1.y);
+              ctx.lineTo(n2.x, n2.y);
+              ctx.stroke();
+            }
+          }
+
+          // Mouse gravity interaction
+          if (mouse.active) {
+            const mdx = n1.x - mouse.x;
+            const mdy = n1.y - mouse.y;
+            const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+            if (mdist < 180) {
+              const mAlpha = (1 - mdist / 180) * 0.35;
+              ctx.strokeStyle = `rgba(0, 229, 255, ${mAlpha})`;
+              ctx.lineWidth = 1.2;
+              ctx.beginPath();
+              ctx.moveTo(n1.x, n1.y);
+              ctx.lineTo(mouse.x, mouse.y);
+              ctx.stroke();
+
+              // Gentle pull
+              n1.x -= (mdx / mdist) * 0.6;
+              n1.y -= (mdy / mdist) * 0.6;
+            }
+          }
+
+          // Draw node point
+          ctx.save();
+          ctx.fillStyle = n1.color;
+          ctx.globalAlpha = n1.baseAlpha;
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = n1.color;
+          ctx.beginPath();
+          ctx.arc(n1.x, n1.y, n1.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        requestAnimationFrame(drawConstellation);
+      }
+
+      requestAnimationFrame(drawConstellation);
+    })();
   </script>
 </body>
 </html>
