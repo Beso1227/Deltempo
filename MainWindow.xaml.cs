@@ -776,7 +776,7 @@ public partial class MainWindow : Window
             ProgressStatusText.Text = LocalizationService.Get("ReadyStatus");
         }
         ToggleLogText.Text = LogDrawerBorder.Visibility == Visibility.Visible ? LocalizationService.Get("HideLog") : LocalizationService.Get("ActivityLog");
-        ExportReportBtn.Content = LocalizationService.Get("ExportReport");
+        ExportReportBtnText.Text = LocalizationService.Get("ExportReport");
         CancelButton.Content = LocalizationService.Get("Cancel");
 
         // 5. Modals & Overlays

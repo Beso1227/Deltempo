@@ -2,85 +2,85 @@
   "edges": [
     {
       "id": "edge1",
-      "toNode": "node_ui",
       "fromNode": "node_app",
-      "label": "GUI Mode"
+      "label": "GUI Mode",
+      "toNode": "node_ui"
     },
     {
       "id": "edge2",
-      "toNode": "node_cli",
       "fromNode": "node_app",
-      "label": "CLI Mode"
+      "label": "CLI Mode",
+      "toNode": "node_cli"
     },
     {
       "id": "edge3",
-      "toNode": "node_cleaner",
       "fromNode": "node_ui",
-      "label": "Clean/Scan"
+      "label": "Clean/Scan",
+      "toNode": "node_cleaner"
     },
     {
       "id": "edge4",
-      "toNode": "node_optimizer",
       "fromNode": "node_ui",
-      "label": "Optimize"
+      "label": "Optimize",
+      "toNode": "node_optimizer"
     },
     {
       "id": "edge5",
-      "toNode": "node_cleaner",
       "fromNode": "node_cli",
-      "label": "deltempo clean"
+      "label": "deltempo clean",
+      "toNode": "node_cleaner"
     }
   ],
   "nodes": [
     {
-      "width": 280,
-      "type": "text",
-      "y": 100,
       "id": "node_app",
       "x": 100,
-      "color": "1",
+      "type": "text",
+      "y": 100,
+      "width": 280,
       "height": 120,
-      "text": "### 🚀 App.xaml.cs\nRoot Entry Point & Mutex Router"
+      "text": "### 🚀 App.xaml.cs\nRoot Entry Point & Mutex Router",
+      "color": "1"
     },
     {
-      "width": 300,
-      "type": "text",
-      "y": 40,
       "id": "node_ui",
       "x": 460,
-      "color": "4",
-      "height": 140,
-      "text": "### 🖥️ MainWindow.xaml.cs\nWPF Dashboard & Controller"
-    },
-    {
-      "width": 300,
-      "type": "text",
-      "y": 220,
-      "id": "node_cli",
-      "x": 460,
-      "color": "5",
-      "height": 140,
-      "text": "### 💻 deltempo_cli.exe\nSynchronous Console CLI"
-    },
-    {
-      "width": 280,
       "type": "text",
       "y": 40,
-      "id": "node_cleaner",
-      "x": 840,
-      "color": "2",
+      "width": 300,
       "height": 140,
-      "text": "### 🧹 CleanerService.cs\n21-Scope Purge Engine"
+      "text": "### 🖥️ MainWindow.xaml.cs\nWPF Dashboard & Controller",
+      "color": "4"
     },
     {
-      "width": 280,
+      "id": "node_cli",
+      "x": 460,
       "type": "text",
       "y": 220,
+      "width": 300,
+      "height": 140,
+      "text": "### 💻 deltempo_cli.exe\nSynchronous Console CLI",
+      "color": "5"
+    },
+    {
+      "id": "node_cleaner",
+      "x": 840,
+      "type": "text",
+      "y": 40,
+      "width": 280,
+      "height": 140,
+      "text": "### 🧹 CleanerService.cs\n21-Scope Purge Engine",
+      "color": "2"
+    },
+    {
       "id": "node_optimizer",
       "x": 840,
-      "color": "3",
+      "type": "text",
+      "y": 220,
+      "width": 280,
       "height": 140,
-      "text": "### ⚡ Memory & Startup\nRAM Booster & Boot Tools"
+      "text": "### ⚡ Memory & Startup\nRAM Booster & Boot Tools",
+      "color": "3"
     }
   ]
 }
