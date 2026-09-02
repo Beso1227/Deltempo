@@ -33,17 +33,42 @@ public static class CliRegistrationService
             if (string.IsNullOrEmpty(exeDir))
                 return;
 
-            // 1. Register in Windows App Paths (Enables Win+R "deltempo" & Windows Shell execution)
+            // 1. Create native console wrappers (.cmd and .ps1) in the app directory for synchronous terminal execution
+            EnsureCliWrapperFiles(exeDir, currentExePath);
+
+            // 2. Register in Windows App Paths (Enables Win+R "deltempo" & Windows Shell execution)
             RegisterAppPaths("deltempo.exe", currentExePath, exeDir);
             RegisterAppPaths("deltempo", currentExePath, exeDir);
 
-            // 2. Ensure current folder is in User PATH environment variable
+            // 3. Ensure current folder is in User PATH environment variable
             RegisterToUserPath(exeDir);
         }
         catch
         {
             // Non-critical background registration failure
         }
+    }
+
+    private static void EnsureCliWrapperFiles(string exeDir, string exePath)
+    {
+        try
+        {
+            string exeName = Path.GetFileName(exePath);
+            string cmdFile = Path.Combine(exeDir, "deltempo.cmd");
+            string cmdContent = $"@echo off\r\n\"%~dp0{exeName}\" %*\r\n";
+            if (!File.Exists(cmdFile) || File.ReadAllText(cmdFile) != cmdContent)
+            {
+                File.WriteAllText(cmdFile, cmdContent);
+            }
+
+            string ps1File = Path.Combine(exeDir, "deltempo.ps1");
+            string ps1Content = $"& \"$PSScriptRoot\\{exeName}\" @args\r\n";
+            if (!File.Exists(ps1File) || File.ReadAllText(ps1File) != ps1Content)
+            {
+                File.WriteAllText(ps1File, ps1Content);
+            }
+        }
+        catch { }
     }
 
     private static void RegisterAppPaths(string appName, string exePath, string exeDir)
