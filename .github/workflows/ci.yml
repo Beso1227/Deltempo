@@ -1,0 +1,44 @@
+name: Deltempo Continuous Integration & Verification
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build, Test & Quality Gate
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore Dependencies
+        run: |
+          dotnet restore WinTempCleaner.csproj
+          dotnet restore Cli/Deltempo.Cli.csproj
+          dotnet restore tests/Deltempo.Tests/Deltempo.Tests.csproj
+
+      - name: Build Core Engine & CLI
+        run: |
+          dotnet build WinTempCleaner.csproj -c Release --no-restore
+          dotnet build Cli/Deltempo.Cli.csproj -c Release --no-restore
+
+      - name: Run xUnit Test Suite & Verification Gates
+        run: |
+          dotnet test tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --verbosity normal --collect:"XPlat Code Coverage"
+
+      - name: Publish Test Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults
+          path: '**/TestResults/*.trx'

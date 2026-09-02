@@ -28,6 +28,8 @@ public static class ProcessOptimizerService
         "deltempo", "wintempcleaner", "audiodg", "spoolsv"
     };
 
+    public static bool IsProtectedProcess(string processName) => ProtectedProcesses.Contains(processName);
+
     public static async Task<List<ProcessMemoryInfo>> GetHeavyProcessesAsync(long minMemoryBytes = 80L * 1024 * 1024)
     {
         return await Task.Run(() =>
