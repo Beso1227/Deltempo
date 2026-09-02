@@ -14,31 +14,19 @@
         Background="Transparent"
         ResizeMode="CanMinimize"
         KeyDown="Window_KeyDown"
-        FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
         AutomationProperties.Name="Deltempo Windows &amp; User Profile Cleaner"
-        FontFamily="{StaticResource AppFont}">
-
-    <Window.Resources>
-        <!-- Modal Entrance Storyboard -->
-        <Storyboard x:Key="ModalEntranceStoryboard">
-            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                             From="0" To="1" Duration="0:0:0.25">
-                <DoubleAnimation.EasingFunction>
-                    <QuarticEase EasingMode="EaseOut"/>
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
-        </Storyboard>
-    </Window.Resources>
+        FontFamily="{DynamicResource AppFont}">
 
     <!-- Master Shell Container with Deep Ambient Shadow -->
     <Border x:Name="MasterShellBorder"
-            Background="{StaticResource CanvasDarkBrush}"
-            BorderBrush="{StaticResource HairlineBorderBrush}"
+            Background="{DynamicResource CanvasDarkBrush}"
+            BorderBrush="{DynamicResource HairlineBorderBrush}"
             BorderThickness="1"
             CornerRadius="20"
             Margin="12">
         <Border.Effect>
-            <DropShadowEffect BlurRadius="36" ShadowDepth="10" Direction="270" Color="#000000" Opacity="0.75"/>
+            <DropShadowEffect BlurRadius="36" ShadowDepth="10" Direction="270" Color="#000000" Opacity="0.5"/>
         </Border.Effect>
 
         <Grid>
@@ -53,7 +41,7 @@
 
             <!-- 0. SEAMLESS HEADER / TITLE BAR -->
             <Border Grid.Row="0"
-                    Background="#0D1017"
+                    Background="{DynamicResource HeaderDockBrush}"
                     CornerRadius="20,20,0,0"
                     Padding="18,12"
                     MouseDown="TitleBar_MouseDown">
@@ -82,9 +70,9 @@
                                 <TextBlock Text="Deltempo"
                                            FontSize="15"
                                            FontWeight="Bold"
-                                           Foreground="{StaticResource TextHighBrush}"/>
-                                <Border Background="#162032"
-                                        BorderBrush="#1E2E48"
+                                           Foreground="{DynamicResource TextHighBrush}"/>
+                                <Border Background="{DynamicResource SurfaceCardHoverBrush}"
+                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="5"
                                         Padding="6,1.5"
@@ -93,13 +81,13 @@
                                     <TextBlock Text="KING EDITION"
                                                FontSize="10"
                                                FontWeight="Bold"
-                                               Foreground="{StaticResource ElectricCyanBrush}"/>
+                                               Foreground="{DynamicResource ElectricCyanBrush}"/>
                                 </Border>
                             </StackPanel>
                             <TextBlock x:Name="BrandSubtitleText"
                                        Text="Windows &amp; User Profile Guardian"
                                        FontSize="11"
-                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
                         </StackPanel>
                     </StackPanel>
 
@@ -107,51 +95,51 @@
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0">
                         <!-- Settings Button -->
                         <Button x:Name="SettingsBtn"
-                                Style="{StaticResource WindowControlButton}"
-                                FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                Style="{DynamicResource WindowControlButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                 AutomationProperties.Name="Open Application Settings"
                                 ToolTip="Deltempo Preferences &amp; Guardian Settings"
-                                Margin="0,0,8,0"
+                                Margin="0,0,6,0"
                                 Click="SettingsBtn_Click">
                             <TextBlock Text="&#xE713;"
-                                       FontFamily="{StaticResource IconFont}"
+                                       FontFamily="{DynamicResource IconFont}"
                                        FontSize="12"
-                                       Foreground="{StaticResource ElectricCyanBrush}"/>
+                                       Foreground="{DynamicResource ElectricCyanBrush}"/>
                         </Button>
 
                         <!-- Theme Mode Toggle (Sun/Moon) -->
                         <Button x:Name="ThemeToggleBtn"
-                                Style="{StaticResource WindowControlButton}"
-                                FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                Style="{DynamicResource WindowControlButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                 AutomationProperties.Name="Toggle Dark / Light Theme"
                                 ToolTip="Toggle Light / Dark Mode"
-                                Margin="0,0,8,0"
+                                Margin="0,0,6,0"
                                 Click="ThemeToggleBtn_Click">
                             <TextBlock x:Name="ThemeToggleIcon"
                                        Text="&#xE708;"
-                                       FontFamily="{StaticResource IconFont}"
+                                       FontFamily="{DynamicResource IconFont}"
                                        FontSize="12"
-                                       Foreground="{StaticResource ElectricCyanBrush}"/>
+                                       Foreground="{DynamicResource ElectricCyanBrush}"/>
                         </Button>
 
                         <!-- Sound FX Toggle -->
                         <Button x:Name="SoundToggleBtn"
-                                Style="{StaticResource WindowControlButton}"
-                                FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                Style="{DynamicResource WindowControlButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                 AutomationProperties.Name="Toggle Haptic Sound Effects"
                                 ToolTip="Toggle Haptic Audio Feedback"
-                                Margin="0,0,8,0"
+                                Margin="0,0,6,0"
                                 Click="SoundToggleBtn_Click">
                             <TextBlock x:Name="SoundToggleIcon"
                                        Text="&#xE767;"
-                                       FontFamily="{StaticResource IconFont}"
+                                       FontFamily="{DynamicResource IconFont}"
                                        FontSize="12"
-                                       Foreground="{StaticResource ElectricCyanBrush}"/>
+                                       Foreground="{DynamicResource ElectricCyanBrush}"/>
                         </Button>
 
                         <!-- Language Selector Pill -->
                         <ComboBox x:Name="LanguageComboBox"
-                                  Style="{StaticResource ModernComboBox}"
+                                  Style="{DynamicResource ModernComboBox}"
                                   Width="88" Height="28"
                                   FocusVisualStyle="{x:Null}"
                                   AutomationProperties.Name="Select Application Language"
@@ -175,16 +163,16 @@
                                 AutomationProperties.Name="Elevated Administrator Status">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="&#xE73E;"
-                                           FontFamily="{StaticResource IconFont}"
+                                           FontFamily="{DynamicResource IconFont}"
                                            FontSize="11"
-                                           Foreground="{StaticResource EmeraldGreenBrush}"
+                                           Foreground="{DynamicResource EmeraldGreenBrush}"
                                            Margin="0,0,5,0"
                                            VerticalAlignment="Center"/>
                                 <TextBlock x:Name="AdminBadgeText"
                                            Text="Administrator"
                                            FontSize="11"
                                            FontWeight="SemiBold"
-                                           Foreground="{StaticResource EmeraldGreenBrush}"
+                                           Foreground="{DynamicResource EmeraldGreenBrush}"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
@@ -192,15 +180,15 @@
 
                     <!-- Window Min / Close Controls -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Style="{StaticResource WindowControlButton}"
+                        <Button Style="{DynamicResource WindowControlButton}"
                                 Content="&#xE921;"
                                 Margin="0,0,4,0"
-                                FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                 AutomationProperties.Name="Minimize Window"
                                 Click="MinimizeButton_Click"/>
-                        <Button Style="{StaticResource WindowCloseButton}"
+                        <Button Style="{DynamicResource WindowCloseButton}"
                                 Content="&#xE8BB;"
-                                FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                 AutomationProperties.Name="Close Application"
                                 Click="CloseButton_Click"/>
                     </StackPanel>
@@ -209,14 +197,14 @@
 
             <!-- 1. DOUBLE-BEZEL HERO & DRIVE TELEMETRY -->
             <Border Grid.Row="1"
-                    Background="{StaticResource DoubleBezelOuterBrush}"
-                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                    Background="{DynamicResource DoubleBezelOuterBrush}"
+                    BorderBrush="{DynamicResource HairlineBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="16"
                     Margin="18,12,18,6"
                     Padding="2">
                 <!-- Inner Core Card -->
-                <Border Background="{StaticResource DoubleBezelInnerBrush}"
+                <Border Background="{DynamicResource DoubleBezelInnerBrush}"
                         CornerRadius="14"
                         Padding="18,14">
                     <Grid>
@@ -231,26 +219,26 @@
                                        Text="RECLAIMABLE JUNK &amp; APPDATA"
                                        FontSize="10.5"
                                        FontWeight="Bold"
-                                       Foreground="{StaticResource ElectricCyanBrush}"
+                                       Foreground="{DynamicResource ElectricCyanBrush}"
                                        Opacity="0.9"/>
                             <TextBlock x:Name="HeroSizeText"
                                        Text="0.0 MB"
                                        FontSize="34"
                                        FontWeight="Bold"
-                                       Foreground="{StaticResource TextHighBrush}"
+                                       Foreground="{DynamicResource TextHighBrush}"
                                        Margin="0,1,0,3"
                                        AutomationProperties.Name="Total Reclaimable Space"
                                        AutomationProperties.LiveSetting="Polite"/>
                             <TextBlock x:Name="HeroSubtext"
                                        Text="Deep scan of User Profile, GPU Shaders, AppData &amp; System Temp"
                                        FontSize="11.5"
-                                       Foreground="{StaticResource TextMediumBrush}"/>
+                                       Foreground="{DynamicResource TextMediumBrush}"/>
                         </StackPanel>
 
                         <!-- Right: Live Drive C: Space Card -->
                         <Border Grid.Column="1"
-                                Background="#121722"
-                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="12"
                                 Padding="16,12"
@@ -266,23 +254,23 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="&#xE7F4;"
-                                                   FontFamily="{StaticResource IconFont}"
+                                                   FontFamily="{DynamicResource IconFont}"
                                                    FontSize="12"
-                                                   Foreground="{StaticResource AccentBlueBrush}"
+                                                   Foreground="{DynamicResource AccentBlueBrush}"
                                                    Margin="0,0,6,0"
                                                    VerticalAlignment="Center"/>
                                         <TextBlock x:Name="DriveTelemetryLabel"
                                                    Text="OS Drive (C:)"
                                                    FontSize="11.5"
                                                    FontWeight="SemiBold"
-                                                   Foreground="{StaticResource TextHighBrush}"/>
+                                                   Foreground="{DynamicResource TextHighBrush}"/>
                                     </StackPanel>
                                     <TextBlock Grid.Column="1"
                                                x:Name="DriveTelemetryPercentage"
                                                Text="-- Free"
                                                FontSize="11.5"
                                                FontWeight="Bold"
-                                               Foreground="{StaticResource ElectricCyanBrush}"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"
                                                AutomationProperties.LiveSetting="Polite"/>
                                 </Grid>
 
@@ -291,8 +279,8 @@
                                              Height="6"
                                              Minimum="0" Maximum="100"
                                              Value="50"
-                                             Foreground="{StaticResource BrandHeroGradientBrush}"
-                                             Background="#1D2436"
+                                             Foreground="{DynamicResource BrandHeroGradientBrush}"
+                                             Background="{DynamicResource TrackBgBrush}"
                                              BorderThickness="0"
                                              Margin="0,0,0,6"
                                              AutomationProperties.Name="Drive Usage Gauge"/>
@@ -301,7 +289,7 @@
                                 <TextBlock x:Name="DriveTelemetryDetails"
                                            Text="Calculating disk space..."
                                            FontSize="10.5"
-                                           Foreground="{StaticResource TextMediumBrush}"
+                                           Foreground="{DynamicResource TextMediumBrush}"
                                            HorizontalAlignment="Left"/>
                             </StackPanel>
                         </Border>
@@ -321,8 +309,8 @@
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="SelectSafeBtn"
                             Content="🟢 Select 100% Safe"
-                            Style="{StaticResource PillButton}"
-                            FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                            Style="{DynamicResource PillButton}"
+                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Select 100% Safe Caches"
                             AutomationProperties.HelpText="Selects all risk-free cache and temporary targets"
                             Padding="12,5"
@@ -331,8 +319,8 @@
                             Click="SelectSafeOnlyButton_Click"/>
                     <Button x:Name="SelectAllBtn"
                             Content="Select All"
-                            Style="{StaticResource PillButton}"
-                            FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                            Style="{DynamicResource PillButton}"
+                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Select All Categories"
                             Padding="10,5"
                             FontSize="11"
@@ -340,16 +328,16 @@
                             Click="SelectAllButton_Click"/>
                     <Button x:Name="ClearBtn"
                             Content="Clear"
-                            Style="{StaticResource PillButton}"
-                            FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                            Style="{DynamicResource PillButton}"
+                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Deselect All Categories"
                             Padding="10,5"
                             FontSize="11"
                             Margin="0,0,10,0"
                             Click="DeselectAllButton_Click"/>
                     <Button x:Name="QuickScanBtn"
-                            Style="{StaticResource PillButton}"
-                            FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                            Style="{DynamicResource PillButton}"
+                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Rescan All Categories"
                             AutomationProperties.HelpText="Shortcut: F5 or Ctrl+R"
                             Padding="12,5"
@@ -357,7 +345,7 @@
                             Click="ScanButton_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="&#xE72C;"
-                                       FontFamily="{StaticResource IconFont}"
+                                       FontFamily="{DynamicResource IconFont}"
                                        FontSize="11"
                                        Margin="0,0,5,0"
                                        VerticalAlignment="Center"/>
@@ -373,8 +361,8 @@
                 <!-- Right: Safety Shield Switch -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <CheckBox x:Name="SafeModeCheckBox"
-                              Style="{StaticResource ModernSwitchCheckBox}"
-                              FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                              Style="{DynamicResource ModernSwitchCheckBox}"
+                              FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                               AutomationProperties.Name="Safety Shield Filter"
                               AutomationProperties.HelpText="Protects files created or modified within the last 24 hours"
                               IsChecked="False"
@@ -386,7 +374,7 @@
                                Text="Safety Shield (&gt;24h Old)"
                                FontSize="11.5"
                                FontWeight="SemiBold"
-                               Foreground="{StaticResource TextMediumBrush}"
+                               Foreground="{DynamicResource TextMediumBrush}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
             </Grid>
@@ -399,7 +387,7 @@
                 <ItemsControl x:Name="TargetCardsItemsControl">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Style="{StaticResource ModernCard}"
+                            <Border Style="{DynamicResource ModernCard}"
                                     Margin="0,0,0,8"
                                     Padding="14,11">
                                 <Grid>
@@ -412,8 +400,8 @@
 
                                     <!-- Switch Toggle -->
                                     <CheckBox Grid.Column="0"
-                                              Style="{StaticResource ModernSwitchCheckBox}"
-                                              FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                              Style="{DynamicResource ModernSwitchCheckBox}"
+                                              FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                               AutomationProperties.Name="{Binding Name}"
                                               AutomationProperties.HelpText="{Binding Description}"
                                               IsChecked="{Binding IsSelected, Mode=TwoWay}"
@@ -426,13 +414,13 @@
                                     <Border Grid.Column="1"
                                             Width="38" Height="38"
                                             CornerRadius="10"
-                                            Background="#141926"
-                                            BorderBrush="{StaticResource HairlineBorderBrush}"
+                                            Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
                                             BorderThickness="1"
                                             Margin="0,0,12,0"
                                             VerticalAlignment="Center">
                                         <TextBlock Text="{Binding IconGlyph}"
-                                                   FontFamily="{StaticResource IconFont}"
+                                                   FontFamily="{DynamicResource IconFont}"
                                                    FontSize="17"
                                                    Foreground="{Binding CategoryColor}"
                                                    HorizontalAlignment="Center"
@@ -445,11 +433,11 @@
                                             <TextBlock Text="{Binding Name}"
                                                        FontSize="13.5"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextHighBrush}"/>
+                                                       Foreground="{DynamicResource TextHighBrush}"/>
 
                                             <!-- Category Badge -->
-                                            <Border Background="#161C2C"
-                                                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                                            <Border Background="{DynamicResource SurfaceCardHoverBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="4"
                                                     Padding="6,1"
@@ -461,9 +449,9 @@
                                                            Foreground="{Binding CategoryColor}"/>
                                             </Border>
 
-                                            <!-- Safety Badge (e.g. 100% Safe Cache / Orphaned Residual) -->
+                                            <!-- Safety Badge -->
                                             <Border Background="#101F1A"
-                                                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="4"
                                                     Padding="6,1"
@@ -478,14 +466,14 @@
 
                                         <TextBlock Text="{Binding Description}"
                                                    FontSize="11"
-                                                   Foreground="{StaticResource TextMediumBrush}"
+                                                   Foreground="{DynamicResource TextMediumBrush}"
                                                    Margin="0,2,0,2"
                                                    TextTrimming="CharacterEllipsis"/>
 
                                         <TextBlock Text="{Binding FolderPath}"
                                                    FontSize="10"
-                                                   FontFamily="{StaticResource MonospaceFont}"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontFamily="{DynamicResource MonospaceFont}"
+                                                   Foreground="{DynamicResource TextMutedBrush}"
                                                    TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
 
@@ -494,24 +482,24 @@
                                         <TextBlock Text="{Binding FormattedSize}"
                                                    FontSize="15"
                                                    FontWeight="Bold"
-                                                   Foreground="{StaticResource TextHighBrush}"
+                                                   Foreground="{DynamicResource TextHighBrush}"
                                                    HorizontalAlignment="Right"/>
                                         <TextBlock Text="{Binding FormattedStats}"
                                                    FontSize="10"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Foreground="{DynamicResource TextMutedBrush}"
                                                    HorizontalAlignment="Right"
                                                    Margin="0,1,0,3"/>
 
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                             <TextBlock Text="{Binding StatusMessage}"
                                                        FontSize="10"
-                                                       Foreground="{StaticResource ElectricCyanBrush}"
+                                                       Foreground="{DynamicResource ElectricCyanBrush}"
                                                        VerticalAlignment="Center"
                                                        Margin="0,0,6,0"/>
 
                                             <Button Content="Inspect"
-                                                    Style="{StaticResource PillButton}"
-                                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                                    Style="{DynamicResource PillButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                     AutomationProperties.Name="Inspect Large Files"
                                                     Padding="8,2"
                                                     FontSize="10"
@@ -529,8 +517,8 @@
 
             <!-- 4. BOTTOM FLOATING ACTION DOCK -->
             <Border Grid.Row="4"
-                    Background="#0D1017"
-                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                    Background="{DynamicResource HeaderDockBrush}"
+                    BorderBrush="{DynamicResource HairlineBorderBrush}"
                     BorderThickness="0,1,0,0"
                     Padding="18,12">
                 <Grid>
@@ -551,7 +539,7 @@
                                        Text="Ready for precision cleanup"
                                        FontSize="11.5"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextMediumBrush}"
+                                       Foreground="{DynamicResource TextMediumBrush}"
                                        Margin="0,0,0,4"
                                        AutomationProperties.Name="Operation Status"
                                        AutomationProperties.LiveSetting="Polite"/>
@@ -559,8 +547,8 @@
                                          Height="5"
                                          Minimum="0" Maximum="100"
                                          Value="0"
-                                         Foreground="{StaticResource BrandHeroGradientBrush}"
-                                         Background="#1A2130"
+                                         Foreground="{DynamicResource BrandHeroGradientBrush}"
+                                         Background="{DynamicResource TrackBgBrush}"
                                          BorderThickness="0"
                                          AutomationProperties.Name="Cleanup Progress"/>
                         </StackPanel>
@@ -570,7 +558,7 @@
                                    Text="0%"
                                    FontSize="12"
                                    FontWeight="Bold"
-                                   Foreground="{StaticResource TextHighBrush}"
+                                   Foreground="{DynamicResource TextHighBrush}"
                                    VerticalAlignment="Center"
                                    Margin="12,12,0,0"
                                    AutomationProperties.LiveSetting="Polite"/>
@@ -587,8 +575,8 @@
                         <!-- Left Secondary Actions -->
                         <StackPanel Grid.Column="0" Orientation="Horizontal">
                             <Button x:Name="ToggleLogBtn"
-                                    Style="{StaticResource PillButton}"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     AutomationProperties.Name="Toggle Activity Log Stream"
                                     Padding="12,7"
                                     Margin="0,0,6,0"
@@ -596,7 +584,7 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock x:Name="ToggleLogIcon"
                                                Text="&#xE756;"
-                                               FontFamily="{StaticResource IconFont}"
+                                               FontFamily="{DynamicResource IconFont}"
                                                FontSize="11"
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
@@ -609,8 +597,8 @@
 
                             <Button x:Name="ExportReportBtn"
                                     Content="Export Report"
-                                    Style="{StaticResource PillButton}"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     AutomationProperties.Name="Export Cleanup Audit Report"
                                     Padding="12,7"
                                     FontSize="11.5"
@@ -621,8 +609,8 @@
                         <StackPanel Grid.Column="2" Orientation="Horizontal">
                             <Button x:Name="CancelButton"
                                     Content="Cancel"
-                                    Style="{StaticResource PillButton}"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     AutomationProperties.Name="Cancel Active Operation"
                                     Padding="16,8"
                                     Margin="0,0,8,0"
@@ -630,14 +618,14 @@
                                     Visibility="Collapsed"/>
 
                             <Button x:Name="CleanButton"
-                                    Style="{StaticResource HeroCTAButton}"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Style="{DynamicResource HeroCTAButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     AutomationProperties.Name="Clean Selected Items"
                                     AutomationProperties.HelpText="Shortcut: Ctrl+Enter"
                                     Click="CleanButton_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE74D;"
-                                               FontFamily="{StaticResource IconFont}"
+                                               FontFamily="{DynamicResource IconFont}"
                                                FontSize="14"
                                                Margin="0,0,8,0"
                                                VerticalAlignment="Center"/>
@@ -656,8 +644,8 @@
             <!-- 5. COLLAPSIBLE LOG STREAM -->
             <Border Grid.Row="5"
                     x:Name="LogDrawerBorder"
-                    Background="#07090E"
-                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                    Background="{DynamicResource SurfaceSubCardBrush}"
+                    BorderBrush="{DynamicResource HairlineBorderBrush}"
                     BorderThickness="0,1,0,0"
                     CornerRadius="0,0,20,20"
                     MaxHeight="150"
@@ -673,20 +661,20 @@
                         <TextBlock Text="ACTIVITY LOG STREAM"
                                    FontSize="10"
                                    FontWeight="Bold"
-                                   Foreground="{StaticResource TextMutedBrush}"
+                                   Foreground="{DynamicResource TextMutedBrush}"
                                    VerticalAlignment="Center"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Content="Copy"
-                                    Style="{StaticResource PillButton}"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     AutomationProperties.Name="Copy Log to Clipboard"
                                     Padding="8,2"
                                     FontSize="10"
                                     Margin="0,0,4,0"
                                     Click="CopyLogButton_Click"/>
                             <Button Content="Clear"
-                                    Style="{StaticResource PillButton}"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     AutomationProperties.Name="Clear Activity Log"
                                     Padding="8,2"
                                     FontSize="10"
@@ -709,14 +697,14 @@
 
                                         <TextBlock Grid.Column="0"
                                                    Text="{Binding FormattedTime}"
-                                                   FontFamily="{StaticResource MonospaceFont}"
+                                                   FontFamily="{DynamicResource MonospaceFont}"
                                                    FontSize="10.5"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Foreground="{DynamicResource TextMutedBrush}"
                                                    Margin="0,0,8,0"/>
 
                                         <TextBlock Grid.Column="1"
                                                    Text="{Binding Message}"
-                                                   FontFamily="{StaticResource MonospaceFont}"
+                                                   FontFamily="{DynamicResource MonospaceFont}"
                                                    FontSize="10.5"
                                                    Foreground="{Binding BadgeColor}"
                                                    TextWrapping="Wrap"/>
@@ -731,15 +719,15 @@
             <!-- 6. TOP FILES INSPECTOR OVERLAY MODAL -->
             <Grid Grid.RowSpan="6"
                   x:Name="InspectorModalOverlay"
-                  Background="#DD05070B"
+                  Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Large Files Inspector Dialog">
-                <Border Style="{StaticResource ModernCard}"
+                <Border Style="{DynamicResource ModernCard}"
                         Width="660" Height="500"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Background="#10141F"
-                        BorderBrush="{StaticResource ElectricCyanBrush}"
+                        Background="{DynamicResource ModalSurfaceBrush}"
+                        BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -755,15 +743,15 @@
                                            Text="Largest Junk Files Inspector"
                                            FontSize="16"
                                            FontWeight="Bold"
-                                           Foreground="{StaticResource TextHighBrush}"/>
+                                           Foreground="{DynamicResource TextHighBrush}"/>
                                 <TextBlock x:Name="InspectorSubtitleText"
                                            Text="Showing individual large files discovered in this category"
                                            FontSize="11.5"
-                                           Foreground="{StaticResource TextMediumBrush}"/>
+                                           Foreground="{DynamicResource TextMediumBrush}"/>
                             </StackPanel>
-                            <Button Style="{StaticResource WindowCloseButton}"
+                            <Button Style="{DynamicResource WindowCloseButton}"
                                     Content="&#xE8BB;"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     AutomationProperties.Name="Close Inspector Dialog"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
@@ -772,8 +760,8 @@
 
                         <!-- Items List -->
                         <Border Grid.Row="1"
-                                Background="#0A0C12"
-                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 Padding="8">
@@ -781,8 +769,8 @@
                                 <ItemsControl x:Name="InspectorItemsControl">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Background="#131722"
-                                                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                                            <Border Background="{DynamicResource SurfaceCardBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="8"
                                                     Margin="0,0,0,6"
@@ -797,11 +785,11 @@
                                                         <TextBlock Text="{Binding FileName}"
                                                                    FontSize="12"
                                                                    FontWeight="SemiBold"
-                                                                   Foreground="{StaticResource TextHighBrush}"/>
+                                                                   Foreground="{DynamicResource TextHighBrush}"/>
                                                         <TextBlock Text="{Binding FilePath}"
                                                                    FontSize="10"
-                                                                   FontFamily="{StaticResource MonospaceFont}"
-                                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                                   FontFamily="{DynamicResource MonospaceFont}"
+                                                                   Foreground="{DynamicResource TextMutedBrush}"
                                                                    TextTrimming="CharacterEllipsis"/>
                                                     </StackPanel>
 
@@ -809,11 +797,11 @@
                                                         <TextBlock Text="{Binding FormattedSize}"
                                                                    FontSize="13.5"
                                                                    FontWeight="Bold"
-                                                                   Foreground="{StaticResource ElectricCyanBrush}"
+                                                                   Foreground="{DynamicResource ElectricCyanBrush}"
                                                                    HorizontalAlignment="Right"/>
                                                         <TextBlock Text="{Binding FormattedDate}"
                                                                    FontSize="10"
-                                                                   Foreground="{StaticResource TextMediumBrush}"
+                                                                   Foreground="{DynamicResource TextMediumBrush}"
                                                                    HorizontalAlignment="Right"/>
                                                     </StackPanel>
                                                 </Grid>
@@ -828,8 +816,8 @@
                         <Button Grid.Row="2"
                                 x:Name="CloseInspectorBtn"
                                 Content="Close Inspector (Esc)"
-                                Style="{StaticResource PillButton}"
-                                FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                Style="{DynamicResource PillButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                 AutomationProperties.Name="Close Inspector Dialog"
                                 HorizontalAlignment="Right"
                                 Margin="0,12,0,0"
@@ -842,33 +830,33 @@
             <!-- 7. GORGEOUS CONFIRMATION OVERLAY MODAL -->
             <Grid Grid.RowSpan="6"
                   x:Name="ConfirmModalOverlay"
-                  Background="#EE05070B"
+                  Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Confirm Cleanup Dialog">
                 <Border Width="540"
-                        Background="#0F131E"
-                        BorderBrush="{StaticResource ElectricCyanBrush}"
+                        Background="{DynamicResource ModalSurfaceBrush}"
+                        BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5"
                         CornerRadius="18"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Padding="28,24">
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.85"/>
+                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.5"/>
                     </Border.Effect>
                     <StackPanel>
                         <!-- Top Icon & Header -->
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                             <Border Width="48" Height="48"
                                     CornerRadius="14"
-                                    Background="#141C2B"
-                                    BorderBrush="{StaticResource ElectricCyanBrush}"
+                                    Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource ElectricCyanBrush}"
                                     BorderThickness="1"
                                     Margin="0,0,16,0">
                                 <TextBlock Text="&#xE74D;"
-                                           FontFamily="{StaticResource IconFont}"
+                                           FontFamily="{DynamicResource IconFont}"
                                            FontSize="22"
-                                           Foreground="{StaticResource ElectricCyanBrush}"
+                                           Foreground="{DynamicResource ElectricCyanBrush}"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"/>
                             </Border>
@@ -877,17 +865,17 @@
                                            Text="Confirm Precision Cleanup"
                                            FontSize="17"
                                            FontWeight="Bold"
-                                           Foreground="{StaticResource TextHighBrush}"/>
+                                           Foreground="{DynamicResource TextHighBrush}"/>
                                 <TextBlock x:Name="ConfirmModalSubtitleText"
                                            Text="Ready to purge selected disposable cache files"
                                            FontSize="12"
-                                           Foreground="{StaticResource TextMediumBrush}"/>
+                                           Foreground="{DynamicResource TextMediumBrush}"/>
                             </StackPanel>
                         </StackPanel>
 
                         <!-- Highlight Stat Callout -->
-                        <Border Background="#090C14"
-                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                        <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="12"
                                 Padding="18,14"
@@ -902,18 +890,18 @@
                                                Text="ESTIMATED RECLAIMABLE SPACE"
                                                FontSize="10"
                                                FontWeight="Bold"
-                                               Foreground="{StaticResource ElectricCyanBrush}"/>
+                                               Foreground="{DynamicResource ElectricCyanBrush}"/>
                                     <TextBlock x:Name="ConfirmModalSizeText"
                                                Text="14.2 GB"
                                                FontSize="26"
                                                FontWeight="Bold"
-                                               Foreground="{StaticResource TextHighBrush}"
+                                               Foreground="{DynamicResource TextHighBrush}"
                                                Margin="0,2,0,0"/>
                                 </StackPanel>
                                 <Border Grid.Column="1"
                                         x:Name="ConfirmModalShieldBadge"
                                         Background="#10241B"
-                                        BorderBrush="{StaticResource EmeraldGreenBrush}"
+                                        BorderBrush="{DynamicResource EmeraldGreenBrush}"
                                         BorderThickness="1"
                                         CornerRadius="8"
                                         Padding="10,6"
@@ -922,7 +910,7 @@
                                                Text="🟢 Safety Shield: ON"
                                                FontSize="11"
                                                FontWeight="Bold"
-                                               Foreground="{StaticResource EmeraldGreenBrush}"/>
+                                               Foreground="{DynamicResource EmeraldGreenBrush}"/>
                                 </Border>
                             </Grid>
                         </Border>
@@ -930,7 +918,7 @@
                         <TextBlock x:Name="ConfirmModalSummaryText"
                                    Text="Cleaning 7 selected categories. User configs and personal files remain 100% protected."
                                    FontSize="12"
-                                   Foreground="{StaticResource TextMediumBrush}"
+                                   Foreground="{DynamicResource TextMediumBrush}"
                                    TextWrapping="Wrap"
                                    Margin="0,0,0,24"/>
 
@@ -944,20 +932,20 @@
                             <Button Grid.Column="1"
                                     x:Name="ConfirmModalCancelBtn"
                                     Content="Cancel"
-                                    Style="{StaticResource PillButton}"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     Padding="18,9"
                                     Margin="0,0,10,0"
                                     Click="CancelConfirmModal_Click"/>
                             <Button Grid.Column="2"
                                     x:Name="ConfirmModalProceedBtn"
-                                    Style="{StaticResource HeroCTAButton}"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Style="{DynamicResource HeroCTAButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     Padding="22,9"
                                     Click="ProceedConfirmModal_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE73E;"
-                                               FontFamily="{StaticResource IconFont}"
+                                               FontFamily="{DynamicResource IconFont}"
                                                FontSize="12"
                                                Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
@@ -976,33 +964,33 @@
             <!-- 8. CELEBRATION / SUCCESS MODAL -->
             <Grid Grid.RowSpan="6"
                   x:Name="CelebrationModalOverlay"
-                  Background="#EE05070B"
+                  Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Cleanup Completed Celebration Dialog">
                 <Border Width="500"
-                        Background="#0F131E"
-                        BorderBrush="{StaticResource EmeraldGreenBrush}"
+                        Background="{DynamicResource ModalSurfaceBrush}"
+                        BorderBrush="{DynamicResource EmeraldGreenBrush}"
                         BorderThickness="1.5"
                         CornerRadius="18"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Padding="28,24">
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.85"/>
+                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.5"/>
                     </Border.Effect>
                     <StackPanel HorizontalAlignment="Center">
                         <!-- Animated Glowing Orb -->
                         <Border Width="60" Height="60"
                                 CornerRadius="30"
                                 Background="#10241B"
-                                BorderBrush="{StaticResource EmeraldGreenBrush}"
+                                BorderBrush="{DynamicResource EmeraldGreenBrush}"
                                 BorderThickness="2"
                                 HorizontalAlignment="Center"
                                 Margin="0,0,0,16">
                             <TextBlock Text="&#xE73E;"
-                                       FontFamily="{StaticResource IconFont}"
+                                       FontFamily="{DynamicResource IconFont}"
                                        FontSize="28"
-                                       Foreground="{StaticResource EmeraldGreenBrush}"
+                                       Foreground="{DynamicResource EmeraldGreenBrush}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
                         </Border>
@@ -1011,19 +999,19 @@
                                    Text="Cleanup Completed!"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="{StaticResource TextHighBrush}"
+                                   Foreground="{DynamicResource TextHighBrush}"
                                    HorizontalAlignment="Center"/>
                         <TextBlock x:Name="CelebrationReclaimedText"
                                    Text="Successfully Reclaimed 6.6 GB"
                                    FontSize="15"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource ElectricCyanBrush}"
+                                   Foreground="{DynamicResource ElectricCyanBrush}"
                                    HorizontalAlignment="Center"
                                    Margin="0,4,0,20"/>
 
                         <!-- Stats Bento Card -->
-                        <Border Background="#090C14"
-                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                        <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="12"
                                 Width="440"
@@ -1037,18 +1025,18 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                                    <TextBlock x:Name="CelebrationFilesLabel" Text="FILES DELETED" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                                    <TextBlock x:Name="CelebrationFilesText" Text="14,280" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextHighBrush}" Margin="0,2,0,0"/>
+                                    <TextBlock x:Name="CelebrationFilesLabel" Text="FILES DELETED" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationFilesText" Text="14,280" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                                    <TextBlock x:Name="CelebrationFoldersLabel" Text="FOLDERS PURGED" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                                    <TextBlock x:Name="CelebrationFoldersText" Text="412" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextHighBrush}" Margin="0,2,0,0"/>
+                                    <TextBlock x:Name="CelebrationFoldersLabel" Text="FOLDERS PURGED" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationFoldersText" Text="412" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                                    <TextBlock x:Name="CelebrationTimeLabel" Text="TIME ELAPSED" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                                    <TextBlock x:Name="CelebrationTimeText" Text="14.2s" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextHighBrush}" Margin="0,2,0,0"/>
+                                    <TextBlock x:Name="CelebrationTimeLabel" Text="TIME ELAPSED" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationTimeText" Text="14.2s" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -1057,15 +1045,15 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <Button x:Name="CelebrationExportBtn"
                                     Content="Export Report"
-                                    Style="{StaticResource PillButton}"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     Padding="18,9"
                                     Margin="0,0,10,0"
                                     Click="CelebrationExport_Click"/>
                             <Button x:Name="CelebrationDoneBtn"
                                     Content="Awesome!"
-                                    Style="{StaticResource HeroCTAButton}"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Style="{DynamicResource HeroCTAButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     Padding="28,9"
                                     Click="CloseCelebration_Click"/>
                         </StackPanel>
@@ -1076,19 +1064,19 @@
             <!-- 9. PREFERENCES & GUARDIAN SETTINGS MODAL -->
             <Grid Grid.RowSpan="6"
                   x:Name="SettingsModalOverlay"
-                  Background="#EE05070B"
+                  Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Deltempo Settings Dialog">
                 <Border Width="560"
-                        Background="#0F131E"
-                        BorderBrush="{StaticResource ElectricCyanBrush}"
+                        Background="{DynamicResource ModalSurfaceBrush}"
+                        BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5"
                         CornerRadius="18"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Padding="26,22">
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.85"/>
+                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.5"/>
                     </Border.Effect>
                     <StackPanel>
                         <!-- Header -->
@@ -1096,14 +1084,14 @@
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Border Width="40" Height="40"
                                         CornerRadius="12"
-                                        Background="#141C2B"
-                                        BorderBrush="{StaticResource ElectricCyanBrush}"
+                                        Background="{DynamicResource SurfaceSubCardBrush}"
+                                        BorderBrush="{DynamicResource ElectricCyanBrush}"
                                         BorderThickness="1"
                                         Margin="0,0,12,0">
                                     <TextBlock Text="&#xE713;"
-                                               FontFamily="{StaticResource IconFont}"
+                                               FontFamily="{DynamicResource IconFont}"
                                                FontSize="18"
-                                               Foreground="{StaticResource ElectricCyanBrush}"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"/>
                                 </Border>
@@ -1111,15 +1099,15 @@
                                     <TextBlock Text="Deltempo Preferences &amp; Guardian"
                                                FontSize="16"
                                                FontWeight="Bold"
-                                               Foreground="{StaticResource TextHighBrush}"/>
+                                               Foreground="{DynamicResource TextHighBrush}"/>
                                     <TextBlock Text="Configure background auto-clean, tray behavior &amp; audio"
                                                FontSize="11.5"
-                                               Foreground="{StaticResource TextMediumBrush}"/>
+                                               Foreground="{DynamicResource TextMediumBrush}"/>
                                 </StackPanel>
                             </StackPanel>
-                            <Button Style="{StaticResource WindowCloseButton}"
+                            <Button Style="{DynamicResource WindowCloseButton}"
                                     Content="&#xE8BB;"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     AutomationProperties.Name="Close Settings Dialog"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
@@ -1129,8 +1117,8 @@
                         <!-- Settings Content Container -->
                         <StackPanel Margin="0,0,0,20">
                             <!-- Group 1: Background Auto-Pilot Guardian -->
-                            <Border Background="#090C14"
-                                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="12"
                                     Padding="16,12"
@@ -1145,15 +1133,15 @@
                                             <TextBlock Text="Background Auto-Pilot Guardian"
                                                        FontSize="12.5"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextHighBrush}"/>
+                                                       Foreground="{DynamicResource TextHighBrush}"/>
                                             <TextBlock Text="Periodically purges safe caches silently in background"
                                                        FontSize="10.5"
-                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                                       Foreground="{DynamicResource TextMutedBrush}"/>
                                         </StackPanel>
                                         <CheckBox Grid.Column="1"
                                                   x:Name="SettingsAutoPilotCheckBox"
-                                                  Style="{StaticResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                                  Style="{DynamicResource ModernSwitchCheckBox}"
+                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                   IsChecked="True"
                                                   VerticalAlignment="Center"/>
                                     </Grid>
@@ -1166,11 +1154,11 @@
                                         <TextBlock Grid.Column="0"
                                                    Text="Auto-Cleaning Interval"
                                                    FontSize="11.5"
-                                                   Foreground="{StaticResource TextMediumBrush}"
+                                                   Foreground="{DynamicResource TextMediumBrush}"
                                                    VerticalAlignment="Center"/>
                                         <ComboBox Grid.Column="1"
                                                   x:Name="SettingsIntervalComboBox"
-                                                  Style="{StaticResource ModernComboBox}"
+                                                  Style="{DynamicResource ModernComboBox}"
                                                   Width="140" Height="26">
                                             <ComboBoxItem Content="Every 6 Hours" Tag="6"/>
                                             <ComboBoxItem Content="Every 12 Hours" Tag="12" IsSelected="True"/>
@@ -1181,8 +1169,8 @@
                             </Border>
 
                             <!-- Group 2: System Tray & Behavior -->
-                            <Border Background="#090C14"
-                                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="12"
                                     Padding="16,12"
@@ -1197,15 +1185,15 @@
                                             <TextBlock Text="Minimize to System Tray"
                                                        FontSize="12.5"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextHighBrush}"/>
+                                                       Foreground="{DynamicResource TextHighBrush}"/>
                                             <TextBlock Text="Keeps Deltempo standing guard in Windows taskbar"
                                                        FontSize="10.5"
-                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                                       Foreground="{DynamicResource TextMutedBrush}"/>
                                         </StackPanel>
                                         <CheckBox Grid.Column="1"
                                                   x:Name="SettingsTrayCheckBox"
-                                                  Style="{StaticResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                                  Style="{DynamicResource ModernSwitchCheckBox}"
+                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                   IsChecked="True"
                                                   VerticalAlignment="Center"/>
                                     </Grid>
@@ -1219,15 +1207,15 @@
                                             <TextBlock Text="Show Desktop Balloon Alerts"
                                                        FontSize="12.5"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextHighBrush}"/>
+                                                       Foreground="{DynamicResource TextHighBrush}"/>
                                             <TextBlock Text="Notify when space is reclaimed automatically"
                                                        FontSize="10.5"
-                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                                       Foreground="{DynamicResource TextMutedBrush}"/>
                                         </StackPanel>
                                         <CheckBox Grid.Column="1"
                                                   x:Name="SettingsNotifyCheckBox"
-                                                  Style="{StaticResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                                  Style="{DynamicResource ModernSwitchCheckBox}"
+                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                   IsChecked="True"
                                                   VerticalAlignment="Center"/>
                                     </Grid>
@@ -1244,15 +1232,15 @@
                             </Grid.ColumnDefinitions>
                             <Button Grid.Column="1"
                                     Content="Cancel"
-                                    Style="{StaticResource PillButton}"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     Padding="18,8"
                                     Margin="0,0,10,0"
                                     Click="CloseSettings_Click"/>
                             <Button Grid.Column="2"
                                     Content="Save &amp; Apply"
-                                    Style="{StaticResource HeroCTAButton}"
-                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Style="{DynamicResource HeroCTAButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     Padding="22,8"
                                     Click="SaveSettings_Click"/>
                         </Grid>
