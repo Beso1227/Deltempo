@@ -39,7 +39,77 @@ public partial class MainWindow : Window
         CheckAdminPrivileges();
         UpdateDriveTelemetry();
         InitializeTargets();
+
+        // Initialize Tray and Auto-Pilot Guardian
+        TrayService.Initialize(
+            this,
+            () => Dispatcher.Invoke(async () => await CleanSafeFromTrayAsync()),
+            () => Dispatcher.Invoke(() => OpenSettingsModal()));
+
+        AutoCleanService.Start();
+        LoadSettingsIntoUI();
+
         await RunScanAllAsync();
+    }
+
+    private void LoadSettingsIntoUI()
+    {
+        SettingsAutoPilotCheckBox.IsChecked = SettingsService.Current.EnableAutoPilot;
+        SettingsTrayCheckBox.IsChecked = SettingsService.Current.MinimizeToTray;
+        SettingsNotifyCheckBox.IsChecked = SettingsService.Current.AutoCleanNotify;
+
+        foreach (ComboBoxItem item in SettingsIntervalComboBox.Items)
+        {
+            if (item.Tag is string tag && int.TryParse(tag, out int val) && val == SettingsService.Current.AutoCleanIntervalHours)
+            {
+                SettingsIntervalComboBox.SelectedItem = item;
+                break;
+            }
+        }
+    }
+
+    private async Task CleanSafeFromTrayAsync()
+    {
+        if (_isBusy) return;
+        SelectSafeOnlyButton_Click(this, new RoutedEventArgs());
+        await ExecuteCleanupAsync();
+    }
+
+    private void SettingsBtn_Click(object sender, RoutedEventArgs e)
+    {
+        OpenSettingsModal();
+    }
+
+    private void OpenSettingsModal()
+    {
+        LoadSettingsIntoUI();
+        SettingsModalOverlay.Visibility = Visibility.Visible;
+        SoundService.PlayClickSound();
+    }
+
+    private void CloseSettings_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsModalOverlay.Visibility = Visibility.Collapsed;
+        SoundService.PlayClickSound();
+    }
+
+    private void SaveSettings_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsService.Current.EnableAutoPilot = SettingsAutoPilotCheckBox.IsChecked == true;
+        SettingsService.Current.MinimizeToTray = SettingsTrayCheckBox.IsChecked == true;
+        SettingsService.Current.AutoCleanNotify = SettingsNotifyCheckBox.IsChecked == true;
+
+        if (SettingsIntervalComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag && int.TryParse(tag, out int hours))
+        {
+            SettingsService.Current.AutoCleanIntervalHours = hours;
+        }
+
+        SettingsService.SaveSettings();
+        AutoCleanService.Start();
+
+        SettingsModalOverlay.Visibility = Visibility.Collapsed;
+        SoundService.PlayClickSound();
+        AddLog("Preferences & Auto-Pilot Guardian settings saved.", LogLevel.Success);
     }
 
     private void CheckAdminPrivileges()
@@ -94,7 +164,12 @@ public partial class MainWindow : Window
     {
         if (e.Key == Key.Escape)
         {
-            if (ConfirmModalOverlay.Visibility == Visibility.Visible)
+            if (SettingsModalOverlay.Visibility == Visibility.Visible)
+            {
+                CloseSettings_Click(sender, e);
+                e.Handled = true;
+            }
+            else if (ConfirmModalOverlay.Visibility == Visibility.Visible)
             {
                 CancelConfirmModal_Click(sender, e);
                 e.Handled = true;
@@ -130,7 +205,14 @@ public partial class MainWindow : Window
 
     private void MinimizeButton_Click(object sender, RoutedEventArgs e)
     {
-        WindowState = WindowState.Minimized;
+        if (SettingsService.Current.MinimizeToTray)
+        {
+            TrayService.MinimizeToTray();
+        }
+        else
+        {
+            WindowState = WindowState.Minimized;
+        }
     }
 
     private void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -138,15 +220,18 @@ public partial class MainWindow : Window
         if (_isBusy)
         {
             var res = MessageBox.Show("A cleanup operation is currently in progress. Do you really want to exit?",
-                "Cancel Cleanup",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+                "Operation in Progress", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (res != MessageBoxResult.Yes) return;
-            _cts?.Cancel();
         }
-        Close();
-    }
 
+        if (SettingsService.Current.MinimizeToTray)
+        {
+            TrayService.MinimizeToTray();
+        }
+        else
+        {
+            TrayService.Dispose();
+            Close();
     private async void ScanButton_Click(object sender, RoutedEventArgs e)
     {
         if (_isBusy) return;
