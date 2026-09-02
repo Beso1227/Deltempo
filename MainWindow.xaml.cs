@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
@@ -22,6 +23,7 @@ public partial class MainWindow : Window
     private bool _isAdmin;
     private long _sessionTotalFreed;
     private CleanSummary? _lastSummary;
+    private uint _restoreMsgId;
 
     public MainWindow()
     {
@@ -32,6 +34,37 @@ public partial class MainWindow : Window
         InspectorItemsControl.ItemsSource = _inspectedFiles;
 
         Loaded += MainWindow_Loaded;
+    }
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        if (PresentationSource.FromVisual(this) is HwndSource source)
+        {
+            _restoreMsgId = SingleInstanceManager.RegisterWindowMessage(SingleInstanceManager.ShowWindowMessageName);
+            source.AddHook(WndProcInstanceHook);
+        }
+    }
+
+    private IntPtr WndProcInstanceHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (_restoreMsgId != 0 && msg == _restoreMsgId)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                Show();
+                if (WindowState == WindowState.Minimized)
+                {
+                    WindowState = WindowState.Normal;
+                }
+                Activate();
+                Topmost = true;
+                Topmost = false;
+                Focus();
+            });
+            handled = true;
+        }
+        return IntPtr.Zero;
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
