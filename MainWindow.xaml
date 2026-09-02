@@ -101,8 +101,42 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Center / Right: Admin Status Pill -->
+                    <!-- Center / Right: Admin Status Pill + Sound Toggle + Language -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0">
+                        <!-- Sound FX Toggle -->
+                        <Button x:Name="SoundToggleBtn"
+                                Style="{StaticResource WindowControlButton}"
+                                FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                AutomationProperties.Name="Toggle Haptic Sound Effects"
+                                ToolTip="Toggle Haptic Audio Feedback"
+                                Margin="0,0,8,0"
+                                Click="SoundToggleBtn_Click">
+                            <TextBlock x:Name="SoundToggleIcon"
+                                       Text="&#xE767;"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="12"
+                                       Foreground="{StaticResource ElectricCyanBrush}"/>
+                        </Button>
+
+                        <!-- Language Selector Pill -->
+                        <ComboBox x:Name="LanguageComboBox"
+                                  Width="75" Height="26"
+                                  Background="#121724"
+                                  Foreground="{StaticResource TextHighBrush}"
+                                  BorderBrush="{StaticResource HairlineBorderBrush}"
+                                  FontSize="11"
+                                  FontWeight="SemiBold"
+                                  Margin="0,0,10,0"
+                                  VerticalContentAlignment="Center"
+                                  SelectionChanged="LanguageComboBox_SelectionChanged">
+                            <ComboBoxItem Content="🇺🇸 EN" IsSelected="True" Tag="en"/>
+                            <ComboBoxItem Content="🇸🇦 AR" Tag="ar"/>
+                            <ComboBoxItem Content="🇪🇸 ES" Tag="es"/>
+                            <ComboBoxItem Content="🇫🇷 FR" Tag="fr"/>
+                            <ComboBoxItem Content="🇩🇪 DE" Tag="de"/>
+                        </ComboBox>
+
+                        <!-- Admin Badge -->
                         <Border x:Name="AdminBadgeBorder"
                                 Background="#10241B"
                                 BorderBrush="#10B981"
