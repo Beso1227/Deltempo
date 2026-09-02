@@ -141,4 +141,28 @@ public class CleanerServiceTests : IDisposable
         Assert.Contains("42", report);
         Assert.Contains("15.0 MB", report);
     }
+
+    [Fact]
+    public void MemoryOptimizer_GetMemoryInfo_ReturnsValidPositiveBytes()
+    {
+        var mem = MemoryOptimizerService.GetMemoryInfo();
+        Assert.True(mem.TotalPhysicalBytes > 0, "Total physical memory should be positive");
+        Assert.True(mem.AvailablePhysicalBytes >= 0, "Available physical memory should be non-negative");
+        Assert.True(mem.UsedPercent >= 0.0 && mem.UsedPercent <= 100.0, "Used percent should be between 0 and 100");
+    }
+
+    [Fact]
+    public async Task StartupManager_GetStartupItemsAsync_ReturnsListWithoutExceptions()
+    {
+        var items = await StartupManagerService.GetStartupItemsAsync();
+        Assert.NotNull(items);
+    }
+
+    [Fact]
+    public async Task ProcessOptimizer_GetHeavyProcessesAsync_ExcludesProtectedProcesses()
+    {
+        var procs = await ProcessOptimizerService.GetHeavyProcessesAsync(1024);
+        Assert.NotNull(procs);
+        Assert.DoesNotContain(procs, p => ProcessOptimizerService.IsProtectedProcess(p.ProcessName));
+    }
 }

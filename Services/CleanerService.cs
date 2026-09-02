@@ -625,8 +625,7 @@ public class CleanerService
             Path.Combine(progData, "AMD"),
             Path.Combine(progData, "Intel"),
             Path.Combine(winDir, "System32", "DriverStore", "Temp"),
-            Path.Combine(winDir, "System32", "DriverState"),
-            Path.Combine(winDir, "INF")
+            Path.Combine(winDir, "System32", "DriverState")
         };
 
         ScanDirectoryList(folder, driverDirs, "Device Driver Packages & GPU Updates", logAction, ct);

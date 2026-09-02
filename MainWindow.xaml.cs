@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,6 +21,7 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<TargetFolderInfo> _targets = new();
     private readonly ObservableCollection<LogEntry> _logs = new();
     private readonly ObservableCollection<JunkFileItem> _inspectedFiles = new();
+    private readonly ObservableCollection<LargeFileInfo> _largeFiles = new();
     private readonly ICollectionView _targetsCollectionView;
     private string _currentFilterTag = "ALL";
     private string _currentSearchText = string.Empty;
@@ -40,9 +42,15 @@ public partial class MainWindow : Window
         TargetCardsItemsControl.ItemsSource = _targetsCollectionView;
         LogItemsControl.ItemsSource = _logs;
         InspectorItemsControl.ItemsSource = _inspectedFiles;
+        LargeFilesItemsControl.ItemsSource = _largeFiles;
 
         Loaded += MainWindow_Loaded;
     }
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool ChangeWindowMessageFilter(uint message, uint dwFlag);
+
+    private const uint MSGFLT_ADD = 1;
 
     protected override void OnSourceInitialized(EventArgs e)
     {
@@ -50,6 +58,14 @@ public partial class MainWindow : Window
         if (PresentationSource.FromVisual(this) is HwndSource source)
         {
             _restoreMsgId = SingleInstanceManager.RegisterWindowMessage(SingleInstanceManager.ShowWindowMessageName);
+            if (_restoreMsgId != 0)
+            {
+                try
+                {
+                    ChangeWindowMessageFilter(_restoreMsgId, MSGFLT_ADD);
+                }
+                catch { }
+            }
             source.AddHook(WndProcInstanceHook);
         }
     }
@@ -61,6 +77,7 @@ public partial class MainWindow : Window
             Dispatcher.Invoke(() =>
             {
                 Show();
+                Visibility = Visibility.Visible;
                 if (WindowState == WindowState.Minimized)
                 {
                     WindowState = WindowState.Normal;
@@ -785,7 +802,7 @@ public partial class MainWindow : Window
             LocalizationService.LocalizeTarget(target);
         }
 
-        TargetCardsItemsControl.Items.Refresh();
+        _targetsCollectionView?.Refresh();
         RecalculateTotals();
         AddLog($"Language switched to {LocalizationService.CurrentLanguage.ToUpperInvariant()}", LogLevel.Info);
     }
@@ -986,6 +1003,7 @@ public partial class MainWindow : Window
             }
             else
             {
+                cb.IsChecked = !isEnabled;
                 AddLog($"Could not change startup status for '{item.Name}'.", LogLevel.Warning);
             }
         }
@@ -999,7 +1017,11 @@ public partial class MainWindow : Window
         LargeFilesStatusText.Text = "Scanning Downloads, Documents, Desktop for disk hogs (>50 MB)...";
 
         var files = await LargeFileHunterService.ScanLargeFilesAsync();
-        LargeFilesItemsControl.ItemsSource = files;
+        _largeFiles.Clear();
+        foreach (var f in files)
+        {
+            _largeFiles.Add(f);
+        }
         long totalBytes = files.Sum(f => f.SizeBytes);
         LargeFilesStatusText.Text = $"Discovered {files.Count} large files ({TargetFolderInfo.FormatBytes(totalBytes)})";
     }
@@ -1041,11 +1063,7 @@ public partial class MainWindow : Window
                 if (ok)
                 {
                     AddLog($"Moved '{info.FileName}' ({info.FormattedSize}) to Recycle Bin.", LogLevel.Success);
-                    if (LargeFilesItemsControl.ItemsSource is List<LargeFileInfo> list)
-                    {
-                        list.Remove(info);
-                        LargeFilesItemsControl.Items.Refresh();
-                    }
+                    _largeFiles.Remove(info);
                     UpdateDriveTelemetry();
                 }
                 else

@@ -183,10 +183,17 @@ start """" %TARGET%
             Process.Start(psi);
 
             // Clean shutdown
-            Application.Current.Dispatcher.Invoke(() =>
+            if (Application.Current != null)
             {
-                Application.Current.Shutdown();
-            });
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Application.Current.Shutdown();
+                });
+            }
+            else
+            {
+                Environment.Exit(0);
+            }
         }
         catch
         {
