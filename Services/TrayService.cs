@@ -101,10 +101,42 @@ public static class TrayService
 
         try
         {
-            string exePath = Environment.ProcessPath ?? "";
-            _hIcon = ExtractIconW(IntPtr.Zero, exePath, 0);
+            var iconUri = new Uri("pack://application:,,,/app_icon.png", UriKind.Absolute);
+            var streamInfo = Application.GetResourceStream(iconUri);
+            if (streamInfo != null)
+            {
+                using var stream = streamInfo.Stream;
+                using var bmp = new System.Drawing.Bitmap(stream);
+                _hIcon = bmp.GetHicon();
+            }
         }
         catch { }
+
+        if (_hIcon == IntPtr.Zero)
+        {
+            try
+            {
+                var icoUri = new Uri("pack://application:,,,/app.ico", UriKind.Absolute);
+                var streamInfo = Application.GetResourceStream(icoUri);
+                if (streamInfo != null)
+                {
+                    using var stream = streamInfo.Stream;
+                    using var ico = new System.Drawing.Icon(stream, 16, 16);
+                    _hIcon = ico.Handle;
+                }
+            }
+            catch { }
+        }
+
+        if (_hIcon == IntPtr.Zero)
+        {
+            try
+            {
+                string exePath = Environment.ProcessPath ?? "";
+                _hIcon = ExtractIconW(IntPtr.Zero, exePath, 0);
+            }
+            catch { }
+        }
 
         var nid = CreateNotifyData(hWnd);
         nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
