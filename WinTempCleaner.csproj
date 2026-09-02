@@ -21,9 +21,12 @@
     <RepositoryUrl>https://github.com/Beso1227/Deltempo</RepositoryUrl>
     <PackageProjectUrl>https://beso1227.github.io/Deltempo/</PackageProjectUrl>
     
-    <!-- Single File & Portable Publish Defaults -->
+    <!-- Unified 100% Standalone Self-Contained Executable -->
     <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
   <ItemGroup>
