@@ -8,15 +8,23 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationTitle>Deltempo - Windows Cleaner</ApplicationTitle>
-    <Company>Deltempo Utilities</Company>
-    <Product>Deltempo Windows Temp &amp; Prefetch Cleaner</Product>
+    <ApplicationTitle>Deltempo - Pure Precision Windows Cleaner</ApplicationTitle>
+    <Authors>Beso1227</Authors>
+    <Company>Deltempo Open Source Project</Company>
+    <Product>Deltempo Windows Cleaner</Product>
+    <Description>Pure precision Windows temporary cache, GPU shader, AppData, and system cleaner with zero telemetry.</Description>
+    <Copyright>Copyright © 2026 Beso1227 / Deltempo Project. MIT Licensed.</Copyright>
     <Version>1.0.0</Version>
     <FileVersion>1.0.0.0</FileVersion>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <RepositoryUrl>https://github.com/Beso1227/Deltempo</RepositoryUrl>
+    <PackageProjectUrl>https://beso1227.github.io/Deltempo/</PackageProjectUrl>
+    
     <!-- Single File & Portable Publish Defaults -->
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
   <ItemGroup>
