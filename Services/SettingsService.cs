@@ -11,6 +11,7 @@ public class AppSettings
     public bool AutoCleanNotify { get; set; } = true;
     public bool IsDarkMode { get; set; } = true;
     public bool SoundEnabled { get; set; } = true;
+    public bool CheckUpdatesOnStartup { get; set; } = true;
     public string Language { get; set; } = "en";
 }
 

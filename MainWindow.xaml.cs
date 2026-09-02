@@ -50,6 +50,15 @@ public partial class MainWindow : Window
         AutoCleanService.Start();
         LoadSettingsIntoUI();
 
+        if (SettingsService.Current.CheckUpdatesOnStartup)
+        {
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(2500);
+                await CheckForUpdatesInternalAsync(silent: true);
+            });
+        }
+
         await RunScanAllAsync();
     }
 
@@ -58,6 +67,8 @@ public partial class MainWindow : Window
         SettingsAutoPilotCheckBox.IsChecked = SettingsService.Current.EnableAutoPilot;
         SettingsTrayCheckBox.IsChecked = SettingsService.Current.MinimizeToTray;
         SettingsNotifyCheckBox.IsChecked = SettingsService.Current.AutoCleanNotify;
+        SettingsCheckUpdatesCheckBox.IsChecked = SettingsService.Current.CheckUpdatesOnStartup;
+        ManualCheckStatusText.Text = $"Current: King Edition v{UpdateService.CurrentVersion}";
 
         foreach (ComboBoxItem item in SettingsIntervalComboBox.Items)
         {
@@ -99,6 +110,7 @@ public partial class MainWindow : Window
         SettingsService.Current.EnableAutoPilot = SettingsAutoPilotCheckBox.IsChecked == true;
         SettingsService.Current.MinimizeToTray = SettingsTrayCheckBox.IsChecked == true;
         SettingsService.Current.AutoCleanNotify = SettingsNotifyCheckBox.IsChecked == true;
+        SettingsService.Current.CheckUpdatesOnStartup = SettingsCheckUpdatesCheckBox.IsChecked == true;
 
         if (SettingsIntervalComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag && int.TryParse(tag, out int hours))
         {
@@ -707,5 +719,131 @@ public partial class MainWindow : Window
         TargetCardsItemsControl.Items.Refresh();
         RecalculateTotals();
         AddLog($"Language switched to {LocalizationService.CurrentLanguage.ToUpperInvariant()}", LogLevel.Info);
+    }
+
+    private ReleaseInfo? _pendingRelease;
+
+    private async Task CheckForUpdatesInternalAsync(bool silent)
+    {
+        try
+        {
+            var release = await UpdateService.CheckForUpdatesAsync();
+            if (release != null && release.IsNewer && !string.IsNullOrEmpty(release.DownloadUrl))
+            {
+                _pendingRelease = release;
+                Dispatcher.Invoke(() =>
+                {
+                    UpdateVersionTagText.Text = release.TagName;
+                    if (!string.IsNullOrWhiteSpace(release.Body))
+                    {
+                        UpdateChangelogText.Text = release.Body;
+                    }
+                    else
+                    {
+                        UpdateChangelogText.Text = "• Performance optimizations & precision engine enhancements\n• Direct in-place hot-swap update (zero installer leftovers)";
+                    }
+                    UpdateProgressContainer.Visibility = Visibility.Collapsed;
+                    ApplyUpdateBtn.IsEnabled = true;
+                    ApplyUpdateBtn.Content = "Update Now ⚡";
+                    UpdateLaterBtn.IsEnabled = true;
+                    UpdateModalOverlay.Visibility = Visibility.Visible;
+                    SoundService.PlayClickSound();
+                    AddLog($"New version available: {release.TagName}", LogLevel.Info);
+                });
+            }
+            else if (!silent)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    ManualCheckStatusText.Text = $"Up to date! (v{UpdateService.CurrentVersion})";
+                    MessageBox.Show(
+                        $"You are running the latest version of Deltempo (v{UpdateService.CurrentVersion}).\n\nNo updates are currently available.",
+                        "Deltempo is Up to Date",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            if (!silent)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    ManualCheckStatusText.Text = "Update check failed";
+                    MessageBox.Show(
+                        $"Unable to check for updates: {ex.Message}",
+                        "Update Check Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                });
+            }
+        }
+    }
+
+    private async void ManualCheckUpdate_Click(object sender, RoutedEventArgs e)
+    {
+        ManualCheckStatusText.Text = "Checking GitHub Releases...";
+        ManualCheckUpdateBtn.IsEnabled = false;
+        try
+        {
+            await CheckForUpdatesInternalAsync(silent: false);
+        }
+        finally
+        {
+            ManualCheckUpdateBtn.IsEnabled = true;
+        }
+    }
+
+    private async void ApplyUpdateBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (_pendingRelease == null || string.IsNullOrEmpty(_pendingRelease.DownloadUrl))
+            return;
+
+        ApplyUpdateBtn.IsEnabled = false;
+        UpdateLaterBtn.IsEnabled = false;
+        ApplyUpdateBtn.Content = "Updating...";
+        UpdateProgressContainer.Visibility = Visibility.Visible;
+        UpdateProgressBar.Value = 0;
+        UpdatePercentText.Text = "0%";
+        UpdateDownloadStatusText.Text = "Streaming update...";
+
+        var progress = new Progress<double>(val =>
+        {
+            Dispatcher.Invoke(() =>
+            {
+                UpdateProgressBar.Value = val;
+                UpdatePercentText.Text = $"{val:F0}%";
+                UpdateDownloadStatusText.Text = $"Downloading update ({val:F0}%)...";
+            });
+        });
+
+        try
+        {
+            AddLog($"Starting atomic in-place update to {_pendingRelease.TagName}...", LogLevel.Info);
+            await UpdateService.DownloadAndApplyUpdateAsync(_pendingRelease.DownloadUrl, progress);
+        }
+        catch (Exception ex)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                UpdateProgressContainer.Visibility = Visibility.Collapsed;
+                ApplyUpdateBtn.IsEnabled = true;
+                UpdateLaterBtn.IsEnabled = true;
+                ApplyUpdateBtn.Content = "Retry Update ⚡";
+                MessageBox.Show(
+                    $"Update failed: {ex.Message}\n\nYou can manually download the latest version from GitHub Releases.",
+                    "Update Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                AddLog($"Update failed: {ex.Message}", LogLevel.Error);
+            });
+        }
+    }
+
+    private void CloseUpdateModal_Click(object sender, RoutedEventArgs e)
+    {
+        UpdateModalOverlay.Visibility = Visibility.Collapsed;
+        SoundService.PlayClickSound();
     }
 }
