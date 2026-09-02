@@ -40,8 +40,9 @@ public static class SingleInstanceManager
             // Previous instance crashed or exited without clean release; ownership acquired
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
             return true;
         }
     }
@@ -74,14 +75,20 @@ public static class SingleInstanceManager
                         }
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                }
                 finally
                 {
                     p.Dispose();
                 }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
     }
 
     public static void Release()
@@ -92,6 +99,9 @@ public static class SingleInstanceManager
             _mutex?.Dispose();
             _mutex = null;
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
     }
 }

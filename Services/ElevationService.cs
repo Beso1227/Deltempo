@@ -35,6 +35,9 @@ public static class ElevationService
             Process.Start(procInfo);
             Environment.Exit(0);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
     }
 }

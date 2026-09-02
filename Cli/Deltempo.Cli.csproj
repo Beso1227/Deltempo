@@ -20,7 +20,6 @@
   <ItemGroup>
     <Compile Include="..\Services\*.cs" Link="Services\%(FileName)%(Extension)" />
     <Compile Include="..\Models\*.cs" Link="Models\%(FileName)%(Extension)" />
-    <Compile Include="..\Tests\*.cs" Link="Tests\%(FileName)%(Extension)" />
   </ItemGroup>
 
 </Project>

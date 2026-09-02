@@ -73,7 +73,10 @@ public static class CliRegistrationService
                 File.WriteAllText(ps1File, ps1Content);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
     }
 
     private static void RegisterPowerShellProfile(string exeDir)
@@ -117,7 +120,10 @@ public static class CliRegistrationService
                 }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
     }
 
     private static void RegisterAppPaths(string appName, string exePath, string exeDir)
@@ -131,7 +137,10 @@ public static class CliRegistrationService
                 key.SetValue("Path", exeDir);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
     }
 
     private static void RegisterToUserPath(string exeDir)
@@ -158,6 +167,9 @@ public static class CliRegistrationService
                     out _);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
     }
 }

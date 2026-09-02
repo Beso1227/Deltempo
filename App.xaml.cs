@@ -33,7 +33,10 @@ public partial class App : System.Windows.Application
                 Directory.CreateDirectory(Path.GetDirectoryName(logFile)!);
                 File.AppendAllText(logFile, $"[{DateTime.Now}] Crash: {args.Exception}\n");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
         };
 
         // Automatically ensure 'deltempo' is globally accessible in terminal & Win+R
@@ -81,7 +84,10 @@ public partial class App : System.Windows.Application
                 }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -91,7 +97,10 @@ public partial class App : System.Windows.Application
             TrayService.Dispose();
             SingleInstanceManager.Release();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
 
         base.OnExit(e);
     }

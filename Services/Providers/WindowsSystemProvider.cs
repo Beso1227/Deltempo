@@ -21,7 +21,10 @@ public class WindowsSystemProvider : ISystemProvider
                 return (drive.TotalSize, drive.AvailableFreeSpace, freePercent);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
 
         return (0, 0, 0);
     }

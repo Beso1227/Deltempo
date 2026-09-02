@@ -93,7 +93,10 @@ public static class TrayService
                 _hIcon = bmp.GetHicon();
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
 
         if (_hIcon == IntPtr.Zero)
         {
@@ -108,7 +111,10 @@ public static class TrayService
                     _hIcon = ico.Handle;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
         }
 
         if (_hIcon == IntPtr.Zero)
@@ -118,7 +124,10 @@ public static class TrayService
                 string exePath = Environment.ProcessPath ?? "";
                 _hIcon = ExtractIconW(IntPtr.Zero, exePath, 0);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
         }
 
         var nid = CreateNotifyData(hWnd);

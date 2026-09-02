@@ -11,7 +11,10 @@ public static class Program
         {
             Console.OutputEncoding = Encoding.UTF8;
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
 
         // If no args passed in console, print help
         if (args.Length == 0)

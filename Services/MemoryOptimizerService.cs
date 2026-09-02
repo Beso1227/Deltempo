@@ -138,7 +138,10 @@ public static class MemoryOptimizerService
             {
                 SetSystemFileCacheSize(IntPtr.Subtract(IntPtr.Zero, 1), IntPtr.Subtract(IntPtr.Zero, 1), 0);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
 
             // Stage 3: Current Process GC & LOH Compaction
             try
@@ -148,7 +151,10 @@ public static class MemoryOptimizerService
                 GC.Collect(2, GCCollectionMode.Forced, true, true);
                 EmptyWorkingSet(Process.GetCurrentProcess().Handle);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
 
             sw.Stop();
             var afterMem = GetMemoryInfo();

@@ -41,10 +41,16 @@ public static class OrphanedAppService
                         activeKeywords.Add(proc.ProcessName);
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
 
         // 3. Scan Start Menu Shortcuts (.lnk files)
         string[] startMenuPaths =
@@ -69,7 +75,10 @@ public static class OrphanedAppService
                         }
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                }
             }
         }
 
@@ -93,7 +102,10 @@ public static class OrphanedAppService
                         activeKeywords.Add(dirName);
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                }
             }
         }
 
@@ -111,14 +123,20 @@ public static class OrphanedAppService
                 using var hklmKey = Registry.LocalMachine.OpenSubKey(rootKey);
                 ExtractNamesFromKey(hklmKey, activeKeywords);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
 
             try
             {
                 using var hkcuKey = Registry.CurrentUser.OpenSubKey(rootKey);
                 ExtractNamesFromKey(hkcuKey, activeKeywords);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
         }
 
         return activeKeywords;
@@ -152,7 +170,10 @@ public static class OrphanedAppService
                     if (!string.IsNullOrEmpty(dirName)) keywords.Add(dirName);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
         }
     }
 
@@ -236,10 +257,16 @@ public static class OrphanedAppService
                             });
                         }
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                    }
                 }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
     }
 }

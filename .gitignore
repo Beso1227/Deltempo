@@ -8,6 +8,14 @@ publish_*/
 *.userosscache
 *.sln.docstates
 
+# Compiled Binaries & Certificates
+*.exe
+*.cer
+
+# Secrets
+.env
+.env.*
+
 # IDE & Editor files
 .vs/
 .vscode/

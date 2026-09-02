@@ -19,7 +19,10 @@ public static class SoundService
                 using var player = new SoundPlayer(ms);
                 player.PlaySync();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
         });
     }
 
@@ -35,7 +38,10 @@ public static class SoundService
                 using var player = new SoundPlayer(ms);
                 player.PlaySync();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
         });
     }
 
