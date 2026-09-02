@@ -3,7 +3,7 @@
   <img src="app_icon.png" alt="Deltempo Logo" width="128" height="128" />
 
   # 👑 Deltempo (King Edition)
-  ### Pure Precision Windows & User Profile Cleaner
+  ### Pure Precision Windows & User Profile Guardian
 
   **Single Standalone Executable (Zero Runtime Dependencies) • Zero Telemetry • 100% Free & Open Source (MIT)**
 
@@ -44,10 +44,16 @@ Windows and modern desktop applications secretly dump tens of gigabytes of dispo
 
 | Feature | Description |
 | :--- | :--- |
+| 🛡️ **100% Standalone Single File** | Zero runtime dependencies — packages the entire .NET runtime inside `Deltempo.exe` to run out-of-the-box anywhere. |
+| ✍️ **Authenticode Code-Signed** | Digitally signed with Microsoft Authenticode SHA-256 for verified publisher security and trust. |
+| ☀️ **Nordic Frost & Obsidian Themes** | Dedicated light and dark mode design systems with instant hot-swapping (`\uE708` 🌙 / `\uE706` ☀️). |
+| 🛡️ **Win32 System Tray Guardian** | Minimizes to the taskbar notification area with tray context actions (*Open, Clean Safe Caches, Settings, Exit*). |
+| 🤖 **Background Auto-Pilot Guardian** | Automated periodic safe cache maintenance (Every 6h / 12h / 24h) with desktop balloon alerts. |
+| ⚙️ **Guardian Settings Modal** | Animated double-bezel modal (`\uE713` ⚙️) to customize intervals, tray behavior, alerts, and sound. |
+| 🌍 **100% Dynamic Multi-Language** | Live runtime translation across English (🇺🇸), Arabic (🇸🇦 RTL layout), Spanish (🇪🇸), French (🇫🇷), and German (🇩🇪). |
+| 🔍 **Large Files Inspector** | Micro-pill inspection drilldown into largest discovered junk items in each category. |
 | ⚡ **Headless CLI Engine** | Run terminal scans & automated scheduled cleanups via `Deltempo.exe --scan`, `--clean`, `--safe`, `--json`. |
 | 🔊 **Procedural Haptic Audio** | Procedural tactile click tones & futuristic celebration chimes synthesized on-the-fly (0 audio files needed). |
-| 🌍 **Multi-Language (i18n)** | Instant single-click language switching: 🇺🇸 English, 🇸🇦 العربية, 🇪🇸 Español, 🇫🇷 Français, 🇩🇪 Deutsch. |
-| 🎨 **Luxury In-App Modals** | Replaced legacy Windows message boxes with double-bezel animated confirmation & celebration dialogs. |
 | 📦 **Winget Distribution** | Official Windows Package Manager manifest included (`winget install Beso1227.Deltempo`). |
 | 🛡️ **24h Safety Shield** | Automated file age filter protects files modified within the last 24 hours from accidental deletion. |
 | ♿ **WCAG 2.2 AA Accessible** | Windows UI Automation semantic attributes, high-contrast bounding rings, and keyboard navigation (`F5`, `Ctrl+Enter`, `Esc`). |
@@ -59,14 +65,15 @@ Windows and modern desktop applications secretly dump tens of gigabytes of dispo
 | Feature / Standard | 👑 Deltempo | CCleaner (Avast) | BleachBit | Windows Disk Cleanup |
 | :--- | :---: | :---: | :---: | :---: |
 | **License & Price** | **100% Free / MIT** | Proprietary / Ads / $29.95/yr | GPLv3 Free | Closed System |
-| **Packaging** | **Single Portable EXE (2.4 MB)** | Heavy Installer + Bundleware | Multi-file ZIP | Built-in |
-| **Telemetry & Background Daemons** | **0% (Pure Offline)** | Active Tracking & Ads | Clean | Microsoft Telemetry |
+| **Packaging** | **Single Standalone EXE** | Heavy Installer + Bundleware | Multi-file ZIP | Built-in |
+| **Telemetry & Tracking** | **0% (Pure Offline)** | Active Tracking & Ads | Clean | Microsoft Telemetry |
 | **GPU Shader Cache Purge** | **✅ NVIDIA / AMD / Intel (5–20 GB)** | ❌ No | ❌ No | ❌ No |
 | **Deep AppData & Electron Sweeper** | **✅ Discord, Spotify, VS Code, Slack** | ⚠️ Basic / Paid Tier | ⚠️ Can break logins | ❌ No |
+| **System Tray Auto-Pilot** | **✅ Native Win32 Tray + Auto-Clean** | ⚠️ Heavy Background Daemon | ❌ No | ❌ No |
 | **Verified Orphaned App Leftovers** | **✅ Registry Cross-Checked** | ❌ Paywalled | ❌ No | ❌ No |
 | **24h Safety Shield Filter** | **✅ Yes (Zero Accidental Loss)** | ❌ Blind Deletion | ❌ No | ❌ No |
 | **Headless CLI Automation** | **✅ Full CLI + JSON output** | ⚠️ Limited CLI | ⚠️ Basic CLI | ⚠️ Legacy cleanmgr |
-| **Design Aesthetics** | **💎 Luxury Double-Bezel Obsidian** | ❌ Cluttered with Upsells | ❌ Legacy 2000s GTK | ❌ 90s System UI |
+| **Design Aesthetics** | **💎 Double-Bezel Obsidian & Frost** | ❌ Cluttered with Upsells | ❌ Legacy 2000s GTK | ❌ 90s System UI |
 
 ---
 
@@ -112,53 +119,25 @@ Deltempo scans and cleans 12 specialized targets across Windows and User Profile
 
 ---
 
-## 📦 Installation via Windows Package Manager (`winget`)
+## 📦 Installation & Download
 
-Once approved in the official Microsoft repository:
+Download the direct standalone executable:
+- **[Download Deltempo.exe (v1.0.0)](https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe)**
+- **[Public Trust Certificate (Deltempo.cer)](https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.cer)**
 
+### Package Manager (`winget`)
 ```powershell
 winget install Beso1227.Deltempo
 ```
 
-Or download the direct portable executable:
-- **[Download Deltempo.exe (v1.0.0)](https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe)** (2.4 MB Standalone)
-
 ---
 
-## 🛠️ Building from Source
-
-### Prerequisites
-- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or higher
-- Windows 10/11 64-bit
-
-### Build Instructions
-```powershell
-# Clone the repository
-git clone https://github.com/Beso1227/Deltempo.git
-cd Deltempo
-
-# Build in Release mode
-dotnet build -c Release
-
-# Publish single standalone portable executable
-dotnet publish -c Release -r win-x64 --self-contained false -o ./publish
-```
-
-The resulting `Deltempo.exe` is a 100% self-contained portable executable.
-
----
-
-## 🔒 Security & Privacy
+## 🔒 Security, Trust & Privacy
 
 - **0% Telemetry**: Deltempo never connects to the internet. It does not track, log, or send any telemetry.
+- **Digitally Signed**: Signed with Microsoft Authenticode SHA-256 for verified integrity.
 - **Safety First**: Protected folders (e.g. system files, user documents `.docx`, `.pdf`, `.psd`, active credentials) are hard-locked against deletion.
 - **Open Source**: Every line of code is inspectable under the permissive [MIT License](LICENSE).
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a [Pull Request](https://github.com/Beso1227/Deltempo/pulls) or open an [Issue](https://github.com/Beso1227/Deltempo/issues).
 
 ---
 
