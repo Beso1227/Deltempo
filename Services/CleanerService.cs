@@ -994,20 +994,23 @@ public class CleanerService
 
     public static string GenerateAuditReport(
         IEnumerable<TargetFolderInfo> targets,
-        long totalFreedBytes,
-        int totalFilesDeleted,
-        int totalFoldersDeleted,
-        TimeSpan elapsed)
+        CleanSummary summary,
+        bool safetyShieldEnabled)
     {
         var sb = new StringBuilder();
         sb.AppendLine("==================================================================");
         sb.AppendLine("         DELTEMPO — PRECISION AUDIT REPORT");
         sb.AppendLine("==================================================================");
         sb.AppendLine($"Execution Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-        sb.AppendLine($"Total Space Reclaimed: {TargetFolderInfo.FormatBytes(totalFreedBytes)}");
-        sb.AppendLine($"Total Files Deleted: {totalFilesDeleted:N0}");
-        sb.AppendLine($"Total Folders Purged: {totalFoldersDeleted:N0}");
-        sb.AppendLine($"Time Elapsed: {elapsed.TotalSeconds:F2} seconds");
+        sb.AppendLine($"Safety Shield (>24h Protection): {(safetyShieldEnabled ? "ENABLED (100% Safe)" : "DISABLED")}");
+        sb.AppendLine($"Total Space Reclaimed: {summary.FormattedFreedSize}");
+        sb.AppendLine($"Total Files Deleted: {summary.TotalFilesDeleted:N0}");
+        sb.AppendLine($"Total Folders Purged: {summary.TotalFoldersDeleted:N0}");
+        sb.AppendLine($"Total Files Skipped / Protected: {summary.TotalFilesSkipped:N0}");
+        if (summary.ElapsedTime > TimeSpan.Zero)
+        {
+            sb.AppendLine($"Time Elapsed: {summary.ElapsedTime.TotalSeconds:F2} seconds");
+        }
         sb.AppendLine("------------------------------------------------------------------");
         sb.AppendLine("CATEGORY BREAKDOWN:");
         foreach (var target in targets)
