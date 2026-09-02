@@ -5,19 +5,20 @@
   # 👑 Deltempo (King Edition)
   ### Pure Precision Windows Optimizer, System Health & Profile Guardian
 
-  **Single Standalone Executable (Zero Runtime Dependencies) • 1-Click RAM Boost • Startup Accelerator • Large File Hunter • 17 Elite Cleaning Scopes • Zero Telemetry • 100% Free & Open Source (MIT)**
+  **Single Standalone Executable (Zero Runtime Dependencies) • 1-Click RAM Boost • Startup Accelerator • Large File Hunter • 21+ Elite Cleaning Scopes • AST Knowledge Graph • xUnit Test Suite • Zero Telemetry • 100% Free & Open Source (MIT)**
 
   [![Release](https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=00E5FF&logo=windows&logoColor=white)](https://github.com/Beso1227/Deltempo/releases/latest)
+  [![CI](https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI%2FCD)](https://github.com/Beso1227/Deltempo/actions)
+  [![Tests](https://img.shields.io/badge/Tests-32%20Passing-10B981?style=for-the-badge&logo=xunit&logoColor=white)](tests/Deltempo.Tests)
   [![License: MIT](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
   [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-3B82F6?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/Beso1227/Deltempo)
   [![Website](https://img.shields.io/badge/Official_Site-Live-8B5CF6?style=for-the-badge&logo=googlechrome&logoColor=white)](https://beso1227.github.io/Deltempo/)
-  [![WCAG 2.2 AA](https://img.shields.io/badge/Accessibility-WCAG_2.2_AA-00E5FF?style=for-the-badge)](https://github.com/Beso1227/Deltempo)
 
   <br />
 
   <p align="center">
     <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe">
-      <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DELTEMPO.EXE_(STANDALONE)-3B82F6?style=for-the-badge&logoColor=white" alt="Download Deltempo.exe" height="42" />
+      <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DELTEMPO.EXE_(v1.1.0)-3B82F6?style=for-the-badge&logoColor=white" alt="Download Deltempo.exe" height="42" />
     </a>
   </p>
 
@@ -31,9 +32,9 @@
 
 ## ⚡ Why Deltempo?
 
-Windows and modern desktop software secretly hoard tens of gigabytes of disposable cache in hidden subdirectories under `AppData`, game launcher temporary chunks, GPU shader pools, video render scratch disks, and leftover uninstalled software directories. Meanwhile, unvetted startup apps silently drag down boot times, and background processes eat up gigabytes of precious RAM.
+Windows and modern desktop software secretly hoard tens of gigabytes of disposable cache in hidden subdirectories under `AppData`, game launcher temporary chunks, GPU shader pools, video render scratch disks, leftover uninstalled software directories, and stale driver installation packages. Meanwhile, unvetted startup apps silently drag down boot times, and background processes eat up gigabytes of precious RAM.
 
-**Deltempo** is engineered as a surgical precision, zero-bloat standalone PC optimization suite. It combines deep cache purging across **17 distinct scopes** with an **elite Microsoft PC Manager-inspired performance toolkit** (RAM Booster, Startup Accelerator, Large File Hunter, Memory Optimizer), a **100% synchronous CLI companion**, and **G-Helper style zero-trash auto-updates** — all while leaving user logins, passwords, and personal files 100% untouched.
+**Deltempo** is engineered as a surgical precision, zero-bloat standalone PC optimization suite. It combines deep cache purging across **21+ distinct scopes** with an **elite Microsoft PC Manager-inspired performance toolkit** (RAM Booster, Startup Accelerator, Large File Hunter, Memory Optimizer), a **100% synchronous CLI companion**, **Graphify AST Knowledge Graph integration**, **Obsidian Knowledge Vault**, and **G-Helper style zero-trash auto-updates** — all while leaving user logins, passwords, and personal files 100% untouched.
 
 > ### 💡 Real-World Impact
 > *"Without Deltempo my C: drive was suffocating at 64 GB free space. In 20 seconds, Deltempo purged **6.8 GB of disposable junk**, boosted **750 MB of RAM**, and disabled 4 high-impact startup hogs with zero panic."*
@@ -42,14 +43,14 @@ Windows and modern desktop software secretly hoard tens of gigabytes of disposab
 
 ## 🌟 Major Highlights & Architecture
 
-```
+```text
   ██████╗ ███████╗██╗  ████████╗███████╗███╗   ███╗██████╗  ██████╗ 
   ██╔══██╗██╔════╝██║  ╚══██╔══╝██╔════╝████╗ ████║██╔══██╗██╔═══██╗
   ██║  ██║█████╗  ██║     ██║   █████╗  ██╔████╔██║██████╔╝██║   ██║
   ██║  ██║██╔══╝  ██║     ██║   ██╔══╝  ██║╚██╔╝██║██╔═══╝ ██║   ██║
   ██████╔╝███████╗███████╗██║   ███████╗██║ ╚═╝ ██║██║     ╚██████╔╝
   ╚═════╝ ╚══════╝╚══════╝╚═╝   ╚══════╝╚═╝     ╚═╝╚═╝      ╚═════╝ 
-       D E L T E M P O  —  Precision Windows Optimizer (v1.0.0)
+       D E L T E M P O  —  Precision Windows Optimizer (v1.1.0)
 ```
 
 ### 🚀 1. Elite PC Performance Toolkit (PC Manager Inspired)
@@ -59,34 +60,28 @@ Windows and modern desktop software secretly hoard tens of gigabytes of disposab
 - **🛑 Heavy Background Memory Apps Optimizer**: Identifies heavy memory consumers ($>80$ MB) with a **hardcoded Windows Core Whitelist** protecting all vital system processes (`explorer.exe`, `dwm.exe`, `svchost.exe`, `csrss.exe`, `lsass.exe`, etc.) from being touched or terminated.
 
 ### 💻 2. Synchronous In-Place CLI Engine & Global Integration
-- **Dual-Mode Desktop & Terminal Architecture**: Just like Visual Studio (`devenv.exe` + `devenv.com`), Deltempo provides a pure desktop GUI application and an in-place synchronous CLI engine.
+- **Dual-Mode Desktop & Terminal Architecture**: Just like Visual Studio (`devenv.exe` + `devenv.com`), Deltempo provides a pure desktop GUI application (`Deltempo.exe`) and a native Console Subsystem binary (`deltempo_cli.exe`).
 - **Zero Prompt Collision**: CLI runs synchronously within the active console session. Output renders in-place, and the shell prompt returns on a clean new line below with zero text overlapping.
 - **Auto Global Registration**: Automatically registers to User `PATH`, Windows `App Paths`, and PowerShell profiles on first run.
 
-### 🛡️ 3. Single-Instance Mutex & System Tray Protection
+### 🧠 3. Graphify AST Knowledge Graph & Obsidian Vault
+- **📊 AST Codebase Graph (`graphify-out/graph.json`)**: Complete relationship graph mapping 30 component nodes, 33 architectural edges, degree metrics, and 8 community clusters.
+- **🌐 Interactive Visual Graph (`graphify-out/graph.html`)**: Standalone 3D/2D Force-Directed visual graph for interactive structural exploration in any browser.
+- **💎 Obsidian Knowledge Vault (`vault/`)**: Obsidian Flavored Markdown notes with frontmatter properties, callouts, `[[wikilinks]]`, and native **JSON Canvas 1.0** architectural blueprints (`vault/05 - Canvases/Deltempo_Architecture.canvas`).
+- **🔄 Automated Synchronization Hooks**: Git pre-commit hooks and MSBuild targets automatically regenerate and stage graph artifacts on every code change.
+
+### 🧪 4. xUnit Test Suite & Mock Provider Architecture
+- **32 Automated Unit Tests (`tests/Deltempo.Tests/`)**: Complete test coverage verifying 21-scope discovery, 24-hour Safe Mode filter, locked file resilience, core system process whitelists, and audit report generation.
+- **Mock Provider Interfaces (`Services/Providers/ISystemProvider.cs`)**: Headless in-memory simulation providers for side-effect-free test execution in CI/CD without touching physical disks.
+- **Automated GitHub Actions CI (`.github/workflows/ci.yml`)**: Automated builds and quality gates on every push and PR.
+
+### 🛡️ 5. Single-Instance Mutex & System Tray Protection
 - **Zero Duplicate Processes**: Prevents duplicate instances or duplicate tray icons from spawning when launched multiple times.
 - **IPC Window Activation**: Launching Deltempo while running in the background brings the existing window to the front smoothly via registered inter-process Windows messages.
-- **Clean Tray Lifecycle**: Automatic Win32 `Shell_NotifyIconW(NIM_DELETE)` cleanup on exit prevents ghost icons from remaining in the Windows notification area.
+- **Clean Tray Lifecycle**: Automatic Win32 `Shell_NotifyIconW(NIM_DELETE)` cleanup on exit prevents ghost icons from remaining in the notification area.
 
-### 🔄 4. G-Helper Style Seamless Auto-Updater
-- **Zero-Installer Atomic Hot-Swap**: Polling GitHub Releases directly, Deltempo streams new updates in the background and replaces its running executable atomically without creating installer leftovers or temporary junk directories.
-
-### 🧹 5. 17 Specialized Precision Cleaning Scopes
-- **User Profile & Windows Temp**: Cleans `%TEMP%`, `C:\Windows\Temp`, and `C:\Windows\Prefetch`.
-- **DirectX & GPU Shader Pools**: Purges compiled binary shader caches from **NVIDIA** (`DXCache`, `GLCache`), **AMD** (`DxCache`), and **Intel** (`D3DSCache`).
-- **Gaming Launchers & Shaders**: Cleans stuck Steam download chunks (`Steam\downloading`), shader caches, and web caches across **Epic Games**, **Battle.net**, **EA Desktop**, and **Ubisoft Connect**.
-- **Creator Render Scratch**: Cleans **Adobe Premiere Pro** & **After Effects** Media Cache, **DaVinci Resolve** proxy cache scratch, **OBS Studio** crash logs, and **Blender** temp renders.
-- **Windows Delivery Optimization (WUDO)**: Purges gigabytes of peer-to-peer Windows update delivery chunks hoarded in `NetworkService\DeliveryOptimization`.
-- **Windows CBS Servicing & DISM Logs**: Cleans stale Component-Based Servicing logs (`CbsPersist_*.log`), DISM installation traces, and DPX setup logs.
-- **Desktop & Electron App Caches**: Sweeps caches for **Discord**, **Spotify**, **Slack**, **VS Code**, **Teams**, and **Notion** (tokens and logins strictly preserved).
-- **Verified Orphaned App Leftovers**: Cross-references residual `AppData` folders against the Windows Uninstall Registry.
-- **24-Hour Safety Shield**: Automated file age filter protects files modified within the last 24 hours from deletion.
-
-### 🎨 6. Luxury Obsidian & Nordic Frost Design System
-- **Double-Bezel Obsidian & Frost Cards**: High-end typography, smooth micro-interactions, floating 7px minimalist scrollbar, and dynamic light/dark mode hot-swapping.
-- **System Tray Guardian**: Native Win32 tray integration with auto-pilot background cleaning (Every 6h / 12h / 24h) and desktop alerts.
-- **100% Dynamic Multi-Language**: Instant runtime translation across English (🇺🇸), Arabic (🇸🇦 RTL layout), Spanish (🇪🇸), French (🇫🇷), and German (🇩🇪).
-- **Procedural Haptic Audio**: Tactile click tones and futuristic celebration chimes synthesized mathematically on-the-fly (zero audio assets required).
+### 🔄 6. G-Helper Style Seamless Auto-Updater
+- **Zero-Installer Atomic Hot-Swap**: Polling GitHub Releases directly, Deltempo streams new updates in the background and replaces its running executable atomically without creating installer leftovers.
 
 ---
 
@@ -100,6 +95,8 @@ Windows and modern desktop software secretly hoard tens of gigabytes of disposab
 | **1-Click RAM Boost** | **✅ Non-destructive** | ✅ Yes | ❌ Paywalled | ❌ No | ❌ No |
 | **Startup Boot Accelerator** | **✅ 100% Reversible** | ⚠️ Basic | ⚠️ Paywalled | ❌ No | ⚠️ Task Manager |
 | **Large File Hunter** | **✅ $>50$ MB + Recycle Bin** | ⚠️ Basic | ❌ Paywalled | ❌ No | ❌ No |
+| **Device Driver Package Purge** | **✅ NVIDIA OTA (3.7+ GB), AMD, Intel** | ⚠️ Limited | ❌ No | ❌ No | ⚠️ Partial |
+| **Defender Antivirus Cache Purge** | **✅ MPLog & Scan History** | ⚠️ Basic | ❌ No | ❌ No | ❌ No |
 | **GPU Shader Cache Purge** | **✅ NVIDIA / AMD / Intel** | ❌ No | ❌ No | ❌ No | ❌ No |
 | **Gaming & Launcher Purge** | **✅ Steam, Epic, EA, Battle.net** | ❌ No | ❌ No | ❌ No | ❌ No |
 | **Creator Media Render Scratch** | **✅ Adobe, DaVinci, OBS, Blender** | ❌ No | ❌ No | ❌ No | ❌ No |
@@ -110,29 +107,35 @@ Windows and modern desktop software secretly hoard tens of gigabytes of disposab
 | **Single-Instance Mutex Guard** | **✅ Yes (Zero Duplicate Icons)** | ⚠️ Basic | ❌ No | ❌ No | N/A |
 | **24h Safety Shield Filter** | **✅ Yes (Zero Accidental Loss)** | ❌ No | ❌ Blind Deletion | ❌ No | ❌ No |
 | **Headless Synchronous CLI** | **✅ Full CLI + JSON output** | ❌ No | ⚠️ Limited CLI | ⚠️ Basic CLI | ⚠️ Legacy cleanmgr |
-| **Design Aesthetics** | **💎 Double-Bezel Obsidian/Frost** | Modern WinUI | ❌ Cluttered with Upsells | ❌ Legacy 2000s GTK | ❌ 90s System UI |
+| **Knowledge Graph & Obsidian Vault** | **✅ Graphify + JSON Canvas** | ❌ No | ❌ No | ❌ No | ❌ No |
+| **Automated xUnit CI/CD** | **✅ 32 Unit Tests + GitHub Actions** | ❌ Proprietary | ❌ Proprietary | ⚠️ Basic | ❌ Proprietary |
 
 ---
 
-## 🧹 Complete 17-Tier Cleaning Scope
+## 🧹 Complete 21-Tier Cleaning Scope
 
 1. **User Temp & Scratchpad**: Application cache, setup extractions, downloaded installers (`%TEMP%`).
 2. **Windows System Temp**: OS diagnostic traces, system update scratchpad (`C:\Windows\Temp`).
 3. **Windows Prefetch Cache**: Stale execution traces & cached startup headers (`C:\Windows\Prefetch`).
 4. **Windows Update Delivery**: Cached installation packages (`SoftwareDistribution\Download`).
-5. **DirectX & GPU Shader Pools**: Binary shader caches from **NVIDIA** (`DXCache`, `GLCache`), **AMD** (`DxCache`), and **Intel** (`D3DSCache`).
-6. **Desktop & Electron App Caches**: Disposable cache folders across **Discord**, **Spotify**, **Slack**, **VS Code**, **Teams**, and **Notion** (preserves logins & tokens).
-7. **Web Browser Caches**: Temporary media and HTTP cache pools for **Chrome**, **Edge**, **Brave**, **Opera**, and **Vivaldi**.
-8. **Developer & Package Caches**: Package manager temporary directories (`pip`, `npm`, `.gradle`, `.cache`, `nuget\temp`).
-9. **Windows Error Reporting (WER)**: Crash dumps, memory dumps, and pending diagnostic queues (`ReportArchive`, `ReportQueue`).
-10. **Explorer Thumbnail Caches**: Consolidated thumbnail databases (`thumbcache_*.db`).
-11. **Native Windows Recycle Bin**: Recycles items across all connected physical drives via shell API (`SHEmptyRecycleBinW`).
-12. **Verified Orphaned App Leftovers**: Detects leftover `AppData` folders from uninstalled applications cross-referenced with the Windows Uninstall Registry.
-13. **Game Launchers & Shaders**: Purges stuck Steam download chunks (`Steam\downloading`), Vulkan/DirectX shader caches (`Steam\shadercache`), and web caches in **Epic Games**, **Battle.net**, **EA Desktop**, and **Ubisoft Connect** without touching save games or game files.
-14. **Media & Creator Render Scratch**: Cleans waveform peak files, **Adobe Premiere Pro** & **After Effects** Media Cache, **DaVinci Resolve** proxy cache scratch, **OBS Studio** crash logs, and **Blender** temp renders.
-15. **Windows Delivery Optimization (WUDO)**: Purges gigabytes of peer-to-peer Windows update delivery chunks hoarded silently in `ServiceProfiles\NetworkService\...\DeliveryOptimization\Cache`.
-16. **Windows CBS Servicing & DISM Logs**: Cleans stale Component-Based Servicing logs (`CbsPersist_*.log`), DISM installation traces, and DPX setup logs (`C:\Windows\Logs\CBS`, `DISM`).
-17. **Mobile Sync & Dev Daemons**: Cleans **Apple iTunes** interrupted backup temp files, **Android Studio** emulator caches, **Gradle** build daemons, and **Rust Cargo** registry cache archives.
+5. **Windows Delivery Optimization (WUDO)**: P2P Windows update delivery chunks (`DeliveryOptimization\Cache`).
+6. **Device Driver Packages & GPU Updates**: NVIDIA App OTA installer artifacts (`ota-artifacts` hoards 3+ GB!), AMD, Intel, and `DriverStore\Temp`.
+7. **Microsoft Defender Support & Scans**: Defender diagnostic support logs (`MPLog-*.log`), definition update backups, and old scan cache.
+8. **Windows System Diagnostic Logs**: Comprehensive servicing traces across `CBS`, `DISM`, `DPX`, `Panther`, `SetupAPI`, `WindowsUpdate`, `GPO`, and `LogFiles` (`WMI`/`HTTPERR`).
+9. **BSOD Minidumps & Kernel Reports**: Crash minidumps (`*.dmp`), `MEMORY.DMP`, and `LiveKernelReports`.
+10. **Temporary Internet Files & WebCache**: Windows `INetCache`, `WebCache`, `Caches`, and `CryptnetUrlCache` (SSL certificate content).
+11. **DirectX & GPU Shader Pools**: Binary shader caches from **NVIDIA** (`DXCache`, `GLCache`), **AMD** (`DxCache`), and **Intel** (`D3DSCache`).
+12. **Game Launchers & Shaders**: Steam download chunks (`Steam\downloading`), shader caches, and web caches in **Epic Games**, **Battle.net**, **EA Desktop**, and **Ubisoft Connect**.
+13. **Media & Creator Render Scratch**: **Adobe Premiere Pro** & **After Effects** Media Cache, **DaVinci Resolve** proxy cache scratch, **OBS Studio** crash logs, and **Blender** temp renders.
+14. **Desktop & Electron App Caches**: Disposable cache folders across **Discord**, **Spotify**, **Slack**, **VS Code**, **Teams**, and **Notion** (logins & tokens preserved).
+15. **Web Browser Caches**: Temporary media and HTTP cache pools for **Chrome**, **Edge**, **Brave**, **Opera**, and **Vivaldi** (`Cache_Data`, `Code Cache`, `GPUCache`, `DawnCache`).
+16. **Developer & Package Caches**: Package manager temporary directories (`pip`, `npm`, `yarn`, `.gradle`, `.cache`, `nuget\v3-cache`).
+17. **Mobile Sync & Dev Daemons**: **Apple iTunes** backup temp files, **Android Studio** emulator caches, **Gradle** build daemons, and **Rust Cargo** cache archives.
+18. **Windows Error Reporting (WER)**: Diagnostic queues and crash archives (`ReportArchive`, `ReportQueue`).
+19. **Explorer Thumbnail Caches**: Consolidated thumbnail databases (`thumbcache_*.db`).
+20. **System & Explorer Usage Traces**: Recent items shortcuts (`*.lnk`), `AutomaticDestinations`, and `CustomDestinations` Jump Lists.
+21. **Native Windows Recycle Bin**: Recycles items across all connected physical drives via shell API (`SHEmptyRecycleBinW`).
+22. **Verified Orphaned App Leftovers**: Detects leftover `AppData` folders from uninstalled applications cross-referenced with the Windows Uninstall Registry.
 
 ---
 
@@ -150,52 +153,41 @@ deltempo clean --safe
 # 3. ⚡ Instant 1-click RAM working set purge
 deltempo boost
 
-# 4. 🚀 List Windows startup apps & boot impact ratings
-deltempo startup
-
-# 5. 🐘 Discover hidden large files (>50 MB)
-deltempo large
-
-# 6. 🛑 List heavy background memory processes (>80 MB)
-deltempo procs
-
-# 7. 📊 Check drive space and memory health telemetry
+# 4. View live system telemetry (Drive storage & RAM usage)
 deltempo status
 
-# 8. 🔄 Check for updates on GitHub
+# 5. Check for updates on GitHub Releases
 deltempo update
-
-# 9. ❓ View friendly help and options guide
-deltempo help
 ```
 
 ---
 
-## 📦 Installation & Download
+## 🛠️ Building & Running Tests Locally
 
-Download the direct standalone executable:
-- **[Download Deltempo.exe (Latest Standalone)](https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe)**
+### Prerequisites
+- Windows 10 / 11 (x64)
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 
-### Windows Package Manager (`winget`)
+### Clone & Build
 ```powershell
-winget install Beso1227.Deltempo
+# Clone the repository
+git clone https://github.com/Beso1227/Deltempo.git
+cd Deltempo
+
+# Run xUnit Unit Test Suite (32 tests)
+dotnet test tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+
+# Publish Standalone GUI Binary (Deltempo.exe)
+dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish_gui
+
+# Publish Synchronous CLI Binary (deltempo_cli.exe)
+dotnet publish Cli/Deltempo.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish_cli
 ```
 
 ---
 
-## 🔒 Security, Trust & Privacy
+## 📜 License & Acknowledgments
 
-- **0% Telemetry**: Deltempo does not track, log, or send any telemetry.
-- **Digitally Signed**: Signed with Microsoft Authenticode SHA-256 for verified integrity.
-- **Safety First**: Protected folders (system files, user documents `.docx`, `.pdf`, `.psd`, active credentials) are hard-locked against deletion.
-- **Open Source**: Every line of code is inspectable under the permissive [MIT License](LICENSE).
-
----
-
-## 📄 License
-
-Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.
-
-<div align="center">
-  <sub>Engineered with precision for Windows power users worldwide by Beso1227.</sub>
-</div>
+- **License**: Released under the ultra-permissive **[MIT License](LICENSE)**.
+- **Author**: **[Beso1227](https://github.com/Beso1227)**
+- **Architecture**: Dual-Subsystem WPF Desktop + Native Console Engine with Graphify AST Knowledge Graph & Obsidian Vault integration.
