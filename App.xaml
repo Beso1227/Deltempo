@@ -288,6 +288,7 @@
             <Setter Property="OverridesDefaultStyle" Value="True"/>
             <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
             <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
             <Setter Property="Padding" Value="10,6"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -298,8 +299,13 @@
                                 Background="Transparent"
                                 CornerRadius="6"
                                 Margin="3,1"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter VerticalAlignment="Center"/>
+                                Padding="{TemplateBinding Padding}"
+                                TextElement.Foreground="{DynamicResource TextHighBrush}"
+                                TextElement.FontFamily="{StaticResource AppFont}"
+                                TextElement.FontSize="11.5"
+                                TextElement.FontWeight="SemiBold">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              TextElement.Foreground="{DynamicResource TextHighBrush}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -319,6 +325,7 @@
             <Setter Property="ItemContainerStyle" Value="{StaticResource ModernComboBoxItem}"/>
             <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
             <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
@@ -336,7 +343,11 @@
                                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="7"
-                                                Padding="8,3">
+                                                Padding="8,3"
+                                                TextElement.Foreground="{DynamicResource TextHighBrush}"
+                                                TextElement.FontFamily="{StaticResource AppFont}"
+                                                TextElement.FontSize="11.5"
+                                                TextElement.FontWeight="SemiBold">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
@@ -345,13 +356,17 @@
                                                 <ContentPresenter Grid.Column="0"
                                                                   Content="{Binding Path=SelectionBoxItem, RelativeSource={RelativeSource AncestorType=ComboBox}}"
                                                                   ContentTemplate="{Binding Path=SelectionBoxItemTemplate, RelativeSource={RelativeSource AncestorType=ComboBox}}"
-                                                                  VerticalAlignment="Center"/>
+                                                                  VerticalAlignment="Center"
+                                                                  TextElement.Foreground="{DynamicResource TextHighBrush}"
+                                                                  TextElement.FontFamily="{StaticResource AppFont}"
+                                                                  TextElement.FontSize="11.5"
+                                                                  TextElement.FontWeight="SemiBold"/>
                                                 <TextBlock Grid.Column="1"
                                                            Text="&#xE70D;"
                                                            FontFamily="{StaticResource IconFont}"
                                                            FontSize="9"
                                                            Foreground="{DynamicResource ElectricCyanBrush}"
-                                                           Margin="4,0,0,0"
+                                                           Margin="5,0,0,0"
                                                            VerticalAlignment="Center"/>
                                             </Grid>
                                         </Border>
