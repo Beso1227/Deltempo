@@ -33,14 +33,17 @@ public static class CliRegistrationService
             if (string.IsNullOrEmpty(exeDir))
                 return;
 
-            // 1. Create native console wrappers (.cmd and .ps1) in the app directory for synchronous terminal execution
+            // 1. Create native console wrappers in the app directory for synchronous terminal execution
             EnsureCliWrapperFiles(exeDir, currentExePath);
 
-            // 2. Register in Windows App Paths (Enables Win+R "deltempo" & Windows Shell execution)
+            // 2. Register PowerShell profile function for 100% synchronous execution in all PowerShell sessions
+            RegisterPowerShellProfile(exeDir);
+
+            // 3. Register in Windows App Paths (Enables Win+R "deltempo" & Windows Shell execution)
             RegisterAppPaths("deltempo.exe", currentExePath, exeDir);
             RegisterAppPaths("deltempo", currentExePath, exeDir);
 
-            // 3. Ensure current folder is in User PATH environment variable
+            // 4. Ensure current folder is in User PATH environment variable
             RegisterToUserPath(exeDir);
         }
         catch
@@ -53,19 +56,65 @@ public static class CliRegistrationService
     {
         try
         {
-            string exeName = Path.GetFileName(exePath);
+            string cliTarget = Path.Combine(exeDir, "deltempo_cli.exe");
+            string targetBinary = File.Exists(cliTarget) ? "deltempo_cli.exe" : Path.GetFileName(exePath);
+
             string cmdFile = Path.Combine(exeDir, "deltempo.cmd");
-            string cmdContent = $"@echo off\r\n\"%~dp0{exeName}\" %*\r\n";
+            string cmdContent = $"@echo off\r\n\"%~dp0{targetBinary}\" %*\r\n";
             if (!File.Exists(cmdFile) || File.ReadAllText(cmdFile) != cmdContent)
             {
                 File.WriteAllText(cmdFile, cmdContent);
             }
 
             string ps1File = Path.Combine(exeDir, "deltempo.ps1");
-            string ps1Content = $"& \"$PSScriptRoot\\{exeName}\" @args\r\n";
+            string ps1Content = $"& \"$PSScriptRoot\\{targetBinary}\" @args\r\n";
             if (!File.Exists(ps1File) || File.ReadAllText(ps1File) != ps1Content)
             {
                 File.WriteAllText(ps1File, ps1Content);
+            }
+        }
+        catch { }
+    }
+
+    private static void RegisterPowerShellProfile(string exeDir)
+    {
+        try
+        {
+            string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string[] profilePaths = new[]
+            {
+                Path.Combine(userDocs, "PowerShell", "Microsoft.PowerShell_profile.ps1"),
+                Path.Combine(userDocs, "WindowsPowerShell", "Microsoft.PowerShell_profile.ps1")
+            };
+
+            string cliExe = Path.Combine(exeDir, "deltempo_cli.exe");
+            if (!File.Exists(cliExe))
+            {
+                cliExe = Path.Combine(exeDir, "deltempo.com");
+            }
+
+            string snippet = $"\r\n# Deltempo Synchronous CLI\r\nfunction deltempo {{ & \"{cliExe}\" @args }}\r\n";
+
+            foreach (var p in profilePaths)
+            {
+                var dir = Path.GetDirectoryName(p);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                if (File.Exists(p))
+                {
+                    string existing = File.ReadAllText(p);
+                    if (!existing.Contains("function deltempo"))
+                    {
+                        File.AppendAllText(p, snippet);
+                    }
+                }
+                else
+                {
+                    File.WriteAllText(p, snippet);
+                }
             }
         }
         catch { }
