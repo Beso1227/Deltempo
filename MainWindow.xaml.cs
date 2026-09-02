@@ -550,7 +550,61 @@ public partial class MainWindow : Window
 
     private void ApplyLocalization()
     {
-        HeroSubtext.Text = LocalizationService.Get("ReclaimableSpace");
+        bool isAr = LocalizationService.CurrentLanguage == "ar";
+        FlowDirection = isAr ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+
+        // 1. Header & Badges
+        BrandSubtitleText.Text = LocalizationService.Get("AppSubtitle");
+        AdminBadgeText.Text = LocalizationService.Get("AdminLabel");
+
+        // 2. Hero & Telemetry
+        HeroHeaderLabel.Text = LocalizationService.Get("ReclaimableSpace");
+        HeroSubtext.Text = LocalizationService.Get("HeroScanSubtext");
+        UpdateDriveTelemetry();
+
+        // 3. Toolbar & Buttons
+        SelectSafeBtn.Content = LocalizationService.Get("SelectSafe");
+        SelectAllBtn.Content = LocalizationService.Get("SelectAll");
+        ClearBtn.Content = LocalizationService.Get("Clear");
+        QuickScanBtnText.Text = LocalizationService.Get("Rescan");
+        SafeModeLabelText.Text = LocalizationService.Get("SafetyShield");
+
+        // 4. Bottom Dock
+        if (!_isBusy)
+        {
+            ProgressStatusText.Text = LocalizationService.Get("ReadyStatus");
+        }
+        ToggleLogText.Text = LogDrawerBorder.Visibility == Visibility.Visible ? LocalizationService.Get("HideLog") : LocalizationService.Get("ActivityLog");
+        ExportReportBtn.Content = LocalizationService.Get("ExportReport");
+        CancelButton.Content = LocalizationService.Get("Cancel");
+
+        // 5. Modals & Overlays
+        InspectorTitleText.Text = LocalizationService.Get("InspectorTitle");
+        InspectorSubtitleText.Text = LocalizationService.Get("InspectorSubtitle");
+        CloseInspectorBtn.Content = LocalizationService.Get("CloseInspector");
+
+        ConfirmModalTitleText.Text = LocalizationService.Get("ConfirmTitle");
+        ConfirmModalSubtitleText.Text = LocalizationService.Get("ConfirmSubtitle");
+        ConfirmModalReclaimableLabel.Text = LocalizationService.Get("ConfirmReclaimableLabel");
+        ConfirmModalShieldText.Text = SafeModeCheckBox.IsChecked == true ? LocalizationService.Get("ConfirmShieldOn") : LocalizationService.Get("ConfirmShieldOff");
+        ConfirmModalSummaryText.Text = LocalizationService.Get("ConfirmSummary");
+        ConfirmModalCancelBtn.Content = LocalizationService.Get("Cancel");
+        ConfirmModalProceedBtnText.Text = LocalizationService.Get("StartCleanup");
+
+        CelebrationModalTitleText.Text = LocalizationService.Get("CompletedTitle");
+        CelebrationFilesLabel.Text = LocalizationService.Get("FilesDeleted");
+        CelebrationFoldersLabel.Text = LocalizationService.Get("FoldersPurged");
+        CelebrationTimeLabel.Text = LocalizationService.Get("TimeElapsed");
+        CelebrationExportBtn.Content = LocalizationService.Get("ExportReport");
+        CelebrationDoneBtn.Content = LocalizationService.Get("Awesome");
+
+        // 6. Localize All 12 Target Categories
+        foreach (var target in _targets)
+        {
+            LocalizationService.LocalizeTarget(target);
+        }
+
+        RecalculateTotals();
         AddLog($"Language switched to {LocalizationService.CurrentLanguage.ToUpperInvariant()}", LogLevel.Info);
     }
 }

@@ -31,7 +31,8 @@
     </Window.Resources>
 
     <!-- Master Shell Container with Deep Ambient Shadow -->
-    <Border Background="{StaticResource CanvasDarkBrush}"
+    <Border x:Name="MasterShellBorder"
+            Background="{StaticResource CanvasDarkBrush}"
             BorderBrush="{StaticResource HairlineBorderBrush}"
             BorderThickness="1"
             CornerRadius="20"
@@ -95,7 +96,8 @@
                                                Foreground="{StaticResource ElectricCyanBrush}"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="Windows &amp; User Profile Guardian"
+                            <TextBlock x:Name="BrandSubtitleText"
+                                       Text="Windows &amp; User Profile Guardian"
                                        FontSize="11"
                                        Foreground="{StaticResource TextMutedBrush}"/>
                         </StackPanel>
@@ -149,7 +151,8 @@
                                            Foreground="{StaticResource EmeraldGreenBrush}"
                                            Margin="0,0,5,0"
                                            VerticalAlignment="Center"/>
-                                <TextBlock Text="Administrator"
+                                <TextBlock x:Name="AdminBadgeText"
+                                           Text="Administrator"
                                            FontSize="11"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource EmeraldGreenBrush}"
@@ -195,7 +198,8 @@
 
                         <!-- Left: Reclaimable Space -->
                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="RECLAIMABLE JUNK &amp; APPDATA"
+                            <TextBlock x:Name="HeroHeaderLabel"
+                                       Text="RECLAIMABLE JUNK &amp; APPDATA"
                                        FontSize="10.5"
                                        FontWeight="Bold"
                                        Foreground="{StaticResource ElectricCyanBrush}"
@@ -286,7 +290,8 @@
 
                 <!-- Left: Quick Select & Smart Select -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="🟢 Select 100% Safe"
+                    <Button x:Name="SelectSafeBtn"
+                            Content="🟢 Select 100% Safe"
                             Style="{StaticResource PillButton}"
                             FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Select 100% Safe Caches"
@@ -295,7 +300,8 @@
                             FontSize="11"
                             Margin="0,0,6,0"
                             Click="SelectSafeOnlyButton_Click"/>
-                    <Button Content="Select All"
+                    <Button x:Name="SelectAllBtn"
+                            Content="Select All"
                             Style="{StaticResource PillButton}"
                             FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Select All Categories"
@@ -303,7 +309,8 @@
                             FontSize="11"
                             Margin="0,0,6,0"
                             Click="SelectAllButton_Click"/>
-                    <Button Content="Clear"
+                    <Button x:Name="ClearBtn"
+                            Content="Clear"
                             Style="{StaticResource PillButton}"
                             FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Deselect All Categories"
@@ -325,7 +332,8 @@
                                        FontSize="11"
                                        Margin="0,0,5,0"
                                        VerticalAlignment="Center"/>
-                            <TextBlock Text="Rescan (F5)"
+                            <TextBlock x:Name="QuickScanBtnText"
+                                       Text="Rescan (F5)"
                                        FontSize="11"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center"/>
@@ -345,7 +353,8 @@
                               Margin="0,0,8,0"
                               Checked="SafeModeCheckBox_Changed"
                               Unchecked="SafeModeCheckBox_Changed"/>
-                    <TextBlock Text="Safety Shield (&gt;24h Old)"
+                    <TextBlock x:Name="SafeModeLabelText"
+                               Text="Safety Shield (&gt;24h Old)"
                                FontSize="11.5"
                                FontWeight="SemiBold"
                                Foreground="{StaticResource TextMediumBrush}"
@@ -569,7 +578,8 @@
                                 </StackPanel>
                             </Button>
 
-                            <Button Content="Export Report"
+                            <Button x:Name="ExportReportBtn"
+                                    Content="Export Report"
                                     Style="{StaticResource PillButton}"
                                     FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
                                     AutomationProperties.Name="Export Cleanup Audit Report"
@@ -787,6 +797,7 @@
 
                         <!-- Modal Footer -->
                         <Button Grid.Row="2"
+                                x:Name="CloseInspectorBtn"
                                 Content="Close Inspector (Esc)"
                                 Style="{StaticResource PillButton}"
                                 FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
@@ -833,11 +844,13 @@
                                            VerticalAlignment="Center"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Confirm Precision Cleanup"
+                                <TextBlock x:Name="ConfirmModalTitleText"
+                                           Text="Confirm Precision Cleanup"
                                            FontSize="17"
                                            FontWeight="Bold"
                                            Foreground="{StaticResource TextHighBrush}"/>
-                                <TextBlock Text="Ready to purge selected disposable cache files"
+                                <TextBlock x:Name="ConfirmModalSubtitleText"
+                                           Text="Ready to purge selected disposable cache files"
                                            FontSize="12"
                                            Foreground="{StaticResource TextMediumBrush}"/>
                             </StackPanel>
@@ -856,7 +869,8 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="ESTIMATED RECLAIMABLE SPACE"
+                                    <TextBlock x:Name="ConfirmModalReclaimableLabel"
+                                               Text="ESTIMATED RECLAIMABLE SPACE"
                                                FontSize="10"
                                                FontWeight="Bold"
                                                Foreground="{StaticResource ElectricCyanBrush}"/>
@@ -899,6 +913,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Button Grid.Column="1"
+                                    x:Name="ConfirmModalCancelBtn"
                                     Content="Cancel"
                                     Style="{StaticResource PillButton}"
                                     FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
@@ -906,6 +921,7 @@
                                     Margin="0,0,10,0"
                                     Click="CancelConfirmModal_Click"/>
                             <Button Grid.Column="2"
+                                    x:Name="ConfirmModalProceedBtn"
                                     Style="{StaticResource HeroCTAButton}"
                                     FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
                                     Padding="22,9"
@@ -916,7 +932,8 @@
                                                FontSize="12"
                                                Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Text="Start Cleanup"
+                                    <TextBlock x:Name="ConfirmModalProceedBtnText"
+                                               Text="Start Cleanup"
                                                FontSize="13"
                                                FontWeight="Bold"
                                                VerticalAlignment="Center"/>
@@ -961,7 +978,8 @@
                                        VerticalAlignment="Center"/>
                         </Border>
 
-                        <TextBlock Text="Cleanup Completed!"
+                        <TextBlock x:Name="CelebrationModalTitleText"
+                                   Text="Cleanup Completed!"
                                    FontSize="20"
                                    FontWeight="Bold"
                                    Foreground="{StaticResource TextHighBrush}"
@@ -990,17 +1008,17 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                                    <TextBlock Text="FILES DELETED" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationFilesLabel" Text="FILES DELETED" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
                                     <TextBlock x:Name="CelebrationFilesText" Text="14,280" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextHighBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                                    <TextBlock Text="FOLDERS PURGED" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationFoldersLabel" Text="FOLDERS PURGED" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
                                     <TextBlock x:Name="CelebrationFoldersText" Text="412" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextHighBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                                    <TextBlock Text="TIME ELAPSED" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationTimeLabel" Text="TIME ELAPSED" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
                                     <TextBlock x:Name="CelebrationTimeText" Text="14.2s" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextHighBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Grid>
@@ -1008,13 +1026,15 @@
 
                         <!-- Action Buttons -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <Button Content="Export Report"
+                            <Button x:Name="CelebrationExportBtn"
+                                    Content="Export Report"
                                     Style="{StaticResource PillButton}"
                                     FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
                                     Padding="18,9"
                                     Margin="0,0,10,0"
                                     Click="CelebrationExport_Click"/>
-                            <Button Content="Awesome!"
+                            <Button x:Name="CelebrationDoneBtn"
+                                    Content="Awesome!"
                                     Style="{StaticResource HeroCTAButton}"
                                     FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
                                     Padding="28,9"
