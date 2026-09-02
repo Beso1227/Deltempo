@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deltempo — Pure Precision Windows &amp; User Profile Cleaner</title>
+  
+  <!-- Primary SEO Meta Tags -->
+  <meta name="title" content="Deltempo — Pure Precision Windows &amp; User Profile Cleaner">
+  <meta name="description" content="Free, open-source, portable Windows 10 &amp; 11 cleaner. Safely reclaim 10–40+ GB of hidden AppData, GPU shader caches, and leftover junk with zero telemetry and zero risk.">
+  <meta name="keywords" content="windows cleaner, pc cleaner, ccleaner alternative, disk cleanup, temp cleaner, appdata cleaner, shader cache purge, open source windows cleaner, portable pc cleaner, free windows optimizer">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Beso1227">
+  <link rel="canonical" href="https://beso1227.github.io/Deltempo/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://beso1227.github.io/Deltempo/">
+  <meta property="og:title" content="Deltempo — Pure Precision Windows &amp; User Profile Cleaner">
+  <meta property="og:description" content="The definitive open-source, zero-bloat, single-file portable Windows cleanup utility. Safely reclaims 10–40+ GB.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/Beso1227/Deltempo/main/app_icon.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://beso1227.github.io/Deltempo/">
+  <meta property="twitter:title" content="Deltempo — Pure Precision Windows Cleaner">
+  <meta property="twitter:description" content="Free, open-source, portable Windows 10 &amp; 11 cleaner. Reclaim 10–40+ GB of AppData &amp; GPU shaders with zero telemetry.">
+  <meta property="twitter:image" content="https://raw.githubusercontent.com/Beso1227/Deltempo/main/app_icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="app_icon.png">
+
+  <!-- Google Structured Data (JSON-LD) for SoftwareApplication & FAQ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Deltempo",
+    "operatingSystem": "Windows 10, Windows 11",
+    "applicationCategory": "UtilitiesApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "Pure precision, open-source, single-file portable Windows cleaner engineered to safely reclaim 10 to 40+ GB of wasted storage space from hidden AppData and GPU shader caches.",
+    "softwareVersion": "1.0.0",
+    "downloadUrl": "https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe",
+    "url": "https://beso1227.github.io/Deltempo/",
+    "author": {
+      "@type": "Person",
+      "name": "Beso1227",
+      "url": "https://github.com/Beso1227"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="nav-header">
+    <div class="container nav-container">
+      <div class="brand">
+        <img src="app_icon.png" alt="Deltempo Logo" class="brand-logo" width="36" height="36">
+        <span class="brand-name">Deltempo</span>
+        <span class="badge-king">KING EDITION</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#comparison">Why Deltempo</a>
+        <a href="#scope">Cleanup Scope</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/Beso1227/Deltempo" target="_blank" class="github-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container hero-container">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        100% Free • Open Source • Zero Telemetry
+      </div>
+      <h1 class="hero-title">Pure Precision Windows &amp; User Profile Cleaner</h1>
+      <p class="hero-subtitle">
+        Reclaim <strong>10 to 40+ GB</strong> of hidden storage space stuck in <code class="code-pill">AppData</code>, GPU shader dumps, and uninstalled app leftovers. Ultra-fast, single portable EXE with zero risk.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="hero-actions">
+        <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe" class="btn-primary" id="download-exe-hero">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Download Deltempo.exe (2.4 MB)
+        </a>
+        <a href="https://github.com/Beso1227/Deltempo" target="_blank" class="btn-secondary">
+          View Source Code on GitHub
+        </a>
+      </div>
+
+      <!-- Real World Impact Pill -->
+      <div class="impact-card">
+        <div class="impact-header">
+          <span class="impact-icon">⚡</span>
+          <strong>Real-World Impact:</strong>
+          <span>"My C: drive was at 64 GB free space. Within 25 seconds of running Deltempo, it jumped to over <strong>70.8 GB free!</strong>"</span>
+        </div>
+        <div class="impact-gauge">
+          <div class="gauge-label">
+            <span>Drive C: Free Space</span>
+            <span class="gauge-stats">+6.6 GB Instantly Reclaimed</span>
+          </div>
+          <div class="gauge-track">
+            <div class="gauge-fill" style="width: 72%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section id="features" class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">The Excellence of Deltempo</h2>
+        <p class="section-subtitle">Engineered to be the definitive hero tool for Windows users.</p>
+      </div>
+
+      <div class="bento-grid">
+        <div class="bento-card card-glow">
+          <div class="card-icon">⚡</div>
+          <h3>Single Portable Executable</h3>
+          <p>Zero installer, zero registry clutter, zero background daemons. Run it directly from Desktop, Downloads, or a USB stick.</p>
+        </div>
+
+        <div class="bento-card">
+          <div class="card-icon">👑</div>
+          <h3>AppData &amp; User Profile Hunter</h3>
+          <p>Solves the #1 Windows problem: cleans gigabytes of throwaway Electron caches across Discord, Spotify, Slack, and VS Code without logging you out.</p>
+        </div>
+
+        <div class="bento-card">
+          <div class="card-icon">🎮</div>
+          <h3>DirectX &amp; GPU Shader Purge</h3>
+          <p>Safely purges compiled shader caches from NVIDIA (DXCache), AMD (DxCache), and Intel that silently accumulate 5–20 GB of stale graphics dumps.</p>
+        </div>
+
+        <div class="bento-card">
+          <div class="card-icon">🕵️</div>
+          <h3>Verified Orphaned App Detector</h3>
+          <p>Cross-references the Windows Uninstall Registry, Start Menu, and running processes to detect true dead folders left by uninstalled programs.</p>
+        </div>
+
+        <div class="bento-card">
+          <div class="card-icon">🛡️</div>
+          <h3>100% Risk-Free Safety Shield</h3>
+          <p>Intelligent 24-hour age filter protects recently created files to ensure active installer sessions or background renders are never disrupted.</p>
+        </div>
+
+        <div class="bento-card">
+          <div class="card-icon">♿</div>
+          <h3>WCAG 2.2 AA Accessible</h3>
+          <p>Full Windows UI Automation semantic labeling, high-contrast focus bounding rings, and keyboard navigation (F5 Rescan, Ctrl+Enter Clean).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Competitive Comparison Table -->
+  <section id="comparison" class="section comparison-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Why Deltempo Outperforms Every Competitor</h2>
+        <p class="section-subtitle">No ads. No telemetry. No fake registry cleaners. Just pure precision cleaning.</p>
+      </div>
+
+      <div class="table-responsive">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature &amp; Metric</th>
+              <th class="highlight-col">👑 Deltempo</th>
+              <th>CCleaner</th>
+              <th>BleachBit</th>
+              <th>Windows Disk Cleanup</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Open Source &amp; Free</strong></td>
+              <td class="highlight-col"><span class="badge-yes">100% MIT</span></td>
+              <td><span class="badge-no">❌ Proprietary</span></td>
+              <td><span class="badge-yes">✅ GPLv3</span></td>
+              <td><span class="badge-warn">⚠️ Closed System</span></td>
+            </tr>
+            <tr>
+              <td><strong>Zero Install Single Portable EXE</strong></td>
+              <td class="highlight-col"><span class="badge-yes">✅ Yes (2.4 MB)</span></td>
+              <td><span class="badge-no">❌ Heavy Installer</span></td>
+              <td><span class="badge-warn">⚠️ Multi-file Zip</span></td>
+              <td><span class="badge-warn">⚠️ System Component</span></td>
+            </tr>
+            <tr>
+              <td><strong>Background Services &amp; Telemetry</strong></td>
+              <td class="highlight-col"><span class="badge-yes">0% (Pure Offline)</span></td>
+              <td><span class="badge-no">❌ Telemetry + Adware</span></td>
+              <td><span class="badge-yes">✅ Clean</span></td>
+              <td><span class="badge-warn">⚠️ MS Telemetry</span></td>
+            </tr>
+            <tr>
+              <td><strong>DirectX &amp; GPU Shader Cache Purge</strong></td>
+              <td class="highlight-col"><span class="badge-yes">✅ Yes (5–20 GB)</span></td>
+              <td><span class="badge-no">❌ No</span></td>
+              <td><span class="badge-no">❌ No</span></td>
+              <td><span class="badge-no">❌ No</span></td>
+            </tr>
+            <tr>
+              <td><strong>Deep AppData &amp; Electron Sweeper</strong></td>
+              <td class="highlight-col"><span class="badge-yes">✅ Yes (Preserves Logins)</span></td>
+              <td><span class="badge-warn">⚠️ Basic / Paid</span></td>
+              <td><span class="badge-warn">⚠️ Can break logins</span></td>
+              <td><span class="badge-no">❌ No</span></td>
+            </tr>
+            <tr>
+              <td><strong>Verified Orphaned App Leftovers</strong></td>
+              <td class="highlight-col"><span class="badge-yes">✅ Yes (Registry Cross-Checked)</span></td>
+              <td><span class="badge-no">❌ Paywalled</span></td>
+              <td><span class="badge-no">❌ No</span></td>
+              <td><span class="badge-no">❌ No</span></td>
+            </tr>
+            <tr>
+              <td><strong>Safety Shield (&lt;24h Protection)</strong></td>
+              <td class="highlight-col"><span class="badge-yes">✅ Yes</span></td>
+              <td><span class="badge-no">❌ Blind Deletion</span></td>
+              <td><span class="badge-no">❌ No</span></td>
+              <td><span class="badge-no">❌ No</span></td>
+            </tr>
+            <tr>
+              <td><strong>UI Design &amp; Aesthetics</strong></td>
+              <td class="highlight-col"><span class="badge-yes">💎 Luxury Double-Bezel</span></td>
+              <td><span class="badge-no">❌ Cluttered / Ads</span></td>
+              <td><span class="badge-no">❌ Legacy 2000s GTK</span></td>
+              <td><span class="badge-no">❌ 90s System UI</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cleanup Scope Matrix -->
+  <section id="scope" class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Complete 12-Tier Cleaning Matrix</h2>
+        <p class="section-subtitle">Every target is granularly toggleable and verified for safety.</p>
+      </div>
+
+      <div class="scope-grid">
+        <div class="scope-item"><span class="scope-tag tag-blue">Core</span><strong>User %TEMP% Scratchpad</strong></div>
+        <div class="scope-item"><span class="scope-tag tag-indigo">System</span><strong>Windows System Temp (C:\Windows\Temp)</strong></div>
+        <div class="scope-item"><span class="scope-tag tag-purple">System</span><strong>Windows Prefetch Cache</strong></div>
+        <div class="scope-item"><span class="scope-tag tag-pink">System</span><strong>Windows Update Download Cache</strong></div>
+        <div class="scope-item"><span class="scope-tag tag-purple">GPU</span><strong>NVIDIA / AMD / Intel Shader Pools</strong></div>
+        <div class="scope-item"><span class="scope-tag tag-green">Apps</span><strong>Desktop Apps (Discord/Spotify/Slack/IDE)</strong></div>
+        <div class="scope-item"><span class="scope-tag tag-orange">Web</span><strong>Browser Web Caches (Chrome/Edge/Brave)</strong></div>
+        <div class="scope-item"><span class="scope-tag tag-cyan">Dev</span><strong>Developer &amp; Package Caches (pip/npm/gradle)</strong></div>
+        <div class="scope-item"><span class="scope-tag tag-amber">Crash</span><strong>Error Reports &amp; Memory Dumps (WER)</strong></div>
+        <div class="scope-item"><span class="scope-tag tag-cyan">Explorer</span><strong>Explorer Thumbnail Caches (thumbcache_*.db)</strong></div>
+        <div class="scope-item"><span class="scope-tag tag-green">Storage</span><strong>Native Windows Recycle Bin (All Drives)</strong></div>
+        <div class="scope-item"><span class="scope-tag tag-amber">Orphans</span><strong>Verified Uninstalled Software Leftovers</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Accordion -->
+  <section id="faq" class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <h3 class="faq-question">Will Deltempo log me out of my browser or desktop apps?</h3>
+          <p class="faq-answer"><strong>No.</strong> Deltempo specifically cleans disposable media and code caches (<code class="code-pill">GPUCache</code>, <code class="code-pill">Code Cache</code>, <code class="code-pill">Cache_Data</code>). It never touches authentication tokens, cookies, or configuration files.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-question">Why does Deltempo require Administrator rights?</h3>
+          <p class="faq-answer">Windows protects system directories like <code class="code-pill">C:\Windows\Temp</code>, <code class="code-pill">C:\Windows\Prefetch</code>, and <code class="code-pill">SoftwareDistribution\Download</code>. Running as administrator allows Deltempo to safely purge these gigabyte-heavy system caches.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-question">Is Deltempo completely free and open-source?</h3>
+          <p class="faq-answer"><strong>Yes, 100% free under the MIT License.</strong> There are no paywalls, no pro tiers, and zero tracking. The full source code is publicly inspectable on GitHub.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <section class="cta-section">
+    <div class="container cta-container">
+      <h2>Reclaim Your Windows Storage Today</h2>
+      <p>Download the single 2.4 MB portable executable and clean your PC in seconds.</p>
+      <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe" class="btn-primary btn-large">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download Deltempo.exe (v1.0.0)
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer-left">
+        <img src="app_icon.png" alt="Deltempo" width="28" height="28">
+        <span><strong>Deltempo</strong> — Pure Precision Windows Cleaner</span>
+      </div>
+      <div class="footer-right">
+        <a href="https://github.com/Beso1227/Deltempo" target="_blank">GitHub Repository</a>
+        <a href="https://github.com/Beso1227/Deltempo/releases">Releases</a>
+        <a href="https://github.com/Beso1227/Deltempo/blob/main/LICENSE">MIT License</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
