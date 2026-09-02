@@ -1000,7 +1000,7 @@
       </ul>
       <div class="nav-actions">
         <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Light/Dark Theme">🌙</button>
-        <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe" class="btn-island">
+        <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-island download-link-btn">
           <span>Download</span>
           <div class="btn-island-icon">↗</div>
         </a>
@@ -1013,7 +1013,7 @@
     <section class="hero-section">
       <div class="container">
         <div class="eyebrow-badge reveal-on-scroll">
-          <span>✨ KING EDITION v1.0 • 17-TIER ENGINE • 100% STANDALONE</span>
+          <span>✨ KING EDITION <span class="release-version-tag">v1.0.0</span> • 17-TIER ENGINE • 100% STANDALONE</span>
         </div>
         <h1 class="hero-title reveal-on-scroll stagger-1">
           Pure Precision Disk Cleanup.<br />
@@ -1024,8 +1024,8 @@
         </p>
 
         <div class="hero-ctas reveal-on-scroll stagger-3">
-          <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe" class="btn-hero-primary">
-            <span>Download Standalone EXE</span>
+          <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-hero-primary download-link-btn">
+            <span>Download Standalone EXE (<span class="release-version-tag">v1.0.0</span>)</span>
             <div class="hero-icon-pill">⚡</div>
           </a>
           <a href="https://github.com/Beso1227/Deltempo" class="btn-hero-secondary" target="_blank" rel="noopener">
@@ -1339,8 +1339,8 @@
           <p style="color: var(--text-med); max-width: 640px; margin: 0 auto 2.75rem; font-size: 1.18rem;">
             No installers, no adware, no account creation. Download the standalone executable and enjoy a clean, fast PC.
           </p>
-          <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe" class="btn-hero-primary" style="font-size: 1.15rem; padding: 1.1rem 1.35rem 1.1rem 2.25rem;">
-            <span>Download Deltempo Standalone (v1.0.0)</span>
+          <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-hero-primary download-link-btn" style="font-size: 1.15rem; padding: 1.1rem 1.35rem 1.1rem 2.25rem;">
+            <span>Download Deltempo Standalone (<span class="release-version-tag">v1.0.0</span>)</span>
             <div class="hero-icon-pill" style="width: 44px; height: 44px;">⚡</div>
           </a>
         </div>
@@ -1356,16 +1356,39 @@
     </div>
   </footer>
 
-  <!-- SCRIPT FOR ANIMATIONS & INTERACTIVE SIMULATOR -->
+  <!-- SCRIPT FOR ANIMATIONS & DYNAMIC RELEASE SYNC -->
   <script>
-    // 1. Dynamic Cursor Light Follower
+    // 1. Dynamic GitHub Release Version Sync with Live Repo API
+    async function syncLatestRelease() {
+      try {
+        const res = await fetch('https://api.github.com/repos/Beso1227/Deltempo/releases/latest');
+        if (res.ok) {
+          const data = await res.json();
+          const tagName = data.tag_name || 'v1.0.0';
+          document.querySelectorAll('.release-version-tag').forEach(el => {
+            el.textContent = tagName;
+          });
+          const exeAsset = data.assets && data.assets.find(a => a.name === 'Deltempo.exe');
+          if (exeAsset && exeAsset.browser_download_url) {
+            document.querySelectorAll('.download-link-btn').forEach(btn => {
+              btn.href = exeAsset.browser_download_url;
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Using standard latest release fallback URL:', err);
+      }
+    }
+    syncLatestRelease();
+
+    // 2. Dynamic Cursor Light Follower
     const cursorGlow = document.getElementById('cursorGlow');
     window.addEventListener('pointermove', (e) => {
       cursorGlow.style.left = `${e.clientX}px`;
       cursorGlow.style.top = `${e.clientY}px`;
     });
 
-    // 2. Scroll Reveal Observer with Fluid Stagger
+    // 3. Scroll Reveal Observer with Fluid Stagger
     const revealElements = document.querySelectorAll('.reveal-on-scroll');
     const revealObserver = new IntersectionObserver((entries, observer) => {
       entries.forEach(entry => {
@@ -1381,7 +1404,7 @@
 
     revealElements.forEach(el => revealObserver.observe(el));
 
-    // 3. 3D Card Hover Tilt Physics
+    // 4. 3D Card Hover Tilt Physics
     const tiltCards = document.querySelectorAll('.scope-item-card, .double-bezel');
     tiltCards.forEach(card => {
       card.addEventListener('mousemove', (e) => {
@@ -1400,7 +1423,7 @@
       });
     });
 
-    // 4. Theme Toggle Engine
+    // 5. Theme Toggle Engine
     const themeBtn = document.getElementById('themeToggleBtn');
     const htmlEl = document.documentElement;
 
@@ -1416,7 +1439,7 @@
       }
     });
 
-    // 5. Simulator Interactive Cleaning Trigger with Dynamic Spring
+    // 6. Simulator Interactive Cleaning Trigger with Dynamic Spring
     const cleanBtn = document.getElementById('simCleanBtn');
     const byteCounter = document.getElementById('simByteCounter');
     let isCleaned = false;
@@ -1444,7 +1467,7 @@
       }, 45);
     });
 
-    // 6. Simulator Multi-Language Transformation
+    // 7. Simulator Multi-Language Transformation
     const langSelect = document.getElementById('simLangSelect');
     const langDictionary = {
       en: {
