@@ -122,7 +122,24 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 5. Windows Delivery Optimization (WUDO)
+            // 5. Windows Upgrade & Setup Leftovers (PC Manager Deep Match)
+            new TargetFolderInfo
+            {
+                Id = "WinUpgradeLeftovers",
+                Name = "Windows Upgrade & Setup Leftovers",
+                Category = "System & OS",
+                CategoryColor = "#F43F5E",
+                SafetyBadge = "🟢 100% Safe Leftovers",
+                SafetyBadgeColor = "#10B981",
+                Description = "Old OS installation leftovers, $WINDOWS.~BT, $WINDOWS.~WS, ESD, and Setup scratchpads",
+                FolderPath = "Windows Upgrade Leftovers Pool",
+                IconGlyph = "\uE777",
+                RequiresAdmin = true,
+                HasAccess = isAdmin,
+                IsSelected = true
+            },
+
+            // 6. Windows Delivery Optimization (WUDO)
             new TargetFolderInfo
             {
                 Id = "WinDeliveryOpt",
@@ -139,7 +156,24 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 6. Device Driver Packages (PC Manager Match)
+            // 7. Windows Component & Font Caches (PC Manager Match)
+            new TargetFolderInfo
+            {
+                Id = "WinComponentCaches",
+                Name = "Windows Component & Font Caches",
+                Category = "System & OS",
+                CategoryColor = "#06B6D4",
+                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadgeColor = "#10B981",
+                Description = "Windows FontCache, Downloaded Program Files, WinSxS temp, DISM scratch & BranchCache",
+                FolderPath = "Windows Components Pool",
+                IconGlyph = "\uE790",
+                RequiresAdmin = true,
+                HasAccess = isAdmin,
+                IsSelected = true
+            },
+
+            // 8. Device Driver Packages (PC Manager Match)
             new TargetFolderInfo
             {
                 Id = "DeviceDriverPackages",
@@ -156,7 +190,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 7. Microsoft Defender Antivirus (PC Manager Match)
+            // 9. Microsoft Defender Antivirus (PC Manager Match)
             new TargetFolderInfo
             {
                 Id = "DefenderAntivirus",
@@ -173,7 +207,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 8. Windows System & Diagnostic Logs (PC Manager Match)
+            // 10. Windows System & Diagnostic Logs (PC Manager Match)
             new TargetFolderInfo
             {
                 Id = "WinSystemLogs",
@@ -190,7 +224,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 9. System Crash Dumps & Minidumps (PC Manager Match)
+            // 11. System Crash Dumps & Minidumps (PC Manager Match)
             new TargetFolderInfo
             {
                 Id = "SystemDumps",
@@ -207,7 +241,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 10. Temporary Internet Files & WebCache (PC Manager Match)
+            // 12. Temporary Internet Files & WebCache (PC Manager Match)
             new TargetFolderInfo
             {
                 Id = "TemporaryInternetFiles",
@@ -224,7 +258,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 11. GPU & DirectX Shaders
+            // 13. GPU & DirectX Shaders
             new TargetFolderInfo
             {
                 Id = "GpuShaderCaches",
@@ -241,7 +275,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 12. Gaming Launchers & Shaders
+            // 14. Gaming Launchers & Shaders
             new TargetFolderInfo
             {
                 Id = "GamingLaunchers",
@@ -250,7 +284,7 @@ public class CleanerService
                 CategoryColor = "#EC4899",
                 SafetyBadge = "🟢 100% Safe Cache",
                 SafetyBadgeColor = "#10B981",
-                Description = "Steam download chunks & shadercache, Epic Games webcache, Battle.net & EA App caches",
+                Description = "Steam downloads & shaders, Epic Games webcache, Battle.net, EA App, Riot Games, Roblox",
                 FolderPath = "Gaming Launchers Pool",
                 IconGlyph = "\uE7FC",
                 RequiresAdmin = false,
@@ -258,7 +292,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 13. Media & Creator Render Scratchpads
+            // 15. Media & Creator Render Scratchpads
             new TargetFolderInfo
             {
                 Id = "MediaCreatorCaches",
@@ -267,7 +301,7 @@ public class CleanerService
                 CategoryColor = "#F59E0B",
                 SafetyBadge = "🟢 100% Safe Cache",
                 SafetyBadgeColor = "#10B981",
-                Description = "Adobe Premiere / After Effects Media Cache & Peak files, DaVinci Resolve proxy scratch, OBS logs",
+                Description = "Adobe Premiere/After Effects/Photoshop scratch, CapCut cache, DaVinci proxy, OBS logs, Blender temp",
                 FolderPath = "Media Creator Caches Pool",
                 IconGlyph = "\uE714",
                 RequiresAdmin = false,
@@ -275,7 +309,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 14. Desktop & Electron Apps Cache Sweeper
+            // 16. Desktop & Electron Apps Cache Sweeper
             new TargetFolderInfo
             {
                 Id = "AppCacheSweeper",
@@ -284,7 +318,7 @@ public class CleanerService
                 CategoryColor = "#10B981",
                 SafetyBadge = "🟢 100% Safe Cache",
                 SafetyBadgeColor = "#10B981",
-                Description = "Disposable GPU & Code Cache in Discord, Spotify, Slack, VS Code, Teams, Notion",
+                Description = "Disposable GPU & Code Cache in Discord, Spotify, Slack, VS Code, Cursor, Teams, WhatsApp, Notion",
                 FolderPath = "App Caches Pool",
                 IconGlyph = "\uE715",
                 RequiresAdmin = false,
@@ -292,7 +326,24 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 15. Web Browser Caches
+            // 17. Windows Store Apps & Modern UWP Caches (PC Manager Match)
+            new TargetFolderInfo
+            {
+                Id = "WinStoreAppCaches",
+                Name = "Windows Store Apps & UWP Caches",
+                Category = "Store Apps",
+                CategoryColor = "#10B981",
+                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadgeColor = "#10B981",
+                Description = "Temporary LocalCache & INetCache across Windows Store packages (New Teams, Xbox, WhatsApp, etc.)",
+                FolderPath = "Windows Store App Packages Pool",
+                IconGlyph = "\uE719",
+                RequiresAdmin = false,
+                HasAccess = true,
+                IsSelected = true
+            },
+
+            // 18. Web Browser Caches (Multi-Profile Engine)
             new TargetFolderInfo
             {
                 Id = "BrowserCaches",
@@ -301,7 +352,7 @@ public class CleanerService
                 CategoryColor = "#F97316",
                 SafetyBadge = "🟢 100% Safe Cache",
                 SafetyBadgeColor = "#10B981",
-                Description = "Chrome, Edge, Brave, Opera, Firefox web cache & code cache (cookies and logins preserved)",
+                Description = "Chrome, Edge, Brave, Opera, Firefox, Arc, Vivaldi multi-profile web & shader cache (logins preserved)",
                 FolderPath = "Browser Web Caches",
                 IconGlyph = "\uE774",
                 RequiresAdmin = false,
@@ -309,7 +360,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 16. Developer & Package Caches
+            // 19. Developer & Package Caches
             new TargetFolderInfo
             {
                 Id = "DevPackageCaches",
@@ -318,7 +369,7 @@ public class CleanerService
                 CategoryColor = "#06B6D4",
                 SafetyBadge = "🟢 100% Safe Cache",
                 SafetyBadgeColor = "#10B981",
-                Description = "pip, npm, .gradle, yarn, .cache, and nuget package download caches",
+                Description = "pip, npm, yarn, pnpm, NuGet, .gradle, Cargo, Go build, Bun, Deno, and .NET temp caches",
                 FolderPath = Path.Combine(localAppData, "pip", "cache"),
                 IconGlyph = "\uE7B8",
                 RequiresAdmin = false,
@@ -326,7 +377,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 17. Mobile Sync & Dev Daemons
+            // 20. Mobile Sync & Dev Daemons
             new TargetFolderInfo
             {
                 Id = "MobileDevResiduals",
@@ -343,7 +394,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 18. Error Reports (WER)
+            // 21. Error Reports (WER)
             new TargetFolderInfo
             {
                 Id = "CrashDumps",
@@ -360,7 +411,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 19. Explorer Thumbnails
+            // 22. Explorer Thumbnails
             new TargetFolderInfo
             {
                 Id = "Thumbnails",
@@ -377,7 +428,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 20. System & Explorer Usage Traces (PC Manager Match)
+            // 23. System & Explorer Usage Traces (PC Manager Match)
             new TargetFolderInfo
             {
                 Id = "SystemUsageTraces",
@@ -394,7 +445,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 21. Windows Recycle Bin
+            // 24. Windows Recycle Bin
             new TargetFolderInfo
             {
                 Id = "RecycleBin",
@@ -413,7 +464,7 @@ public class CleanerService
             }
         };
 
-        // 22. Orphaned Uninstalled AppData Leftovers
+        // 25. Orphaned Uninstalled AppData Leftovers
         try
         {
             var orphans = OrphanedAppService.ScanVerifiedOrphanedFolders();
@@ -440,6 +491,27 @@ public class CleanerService
             if (folder.IsSpecialShellTarget && folder.Id == "RecycleBin")
             {
                 ScanRecycleBin(folder, logAction);
+                folder.IsScanning = false;
+                return;
+            }
+
+            if (folder.Id == "WinUpgradeLeftovers")
+            {
+                ScanUpgradeLeftovers(folder, logAction, ct);
+                folder.IsScanning = false;
+                return;
+            }
+
+            if (folder.Id == "WinComponentCaches")
+            {
+                ScanComponentCaches(folder, logAction, ct);
+                folder.IsScanning = false;
+                return;
+            }
+
+            if (folder.Id == "WinStoreAppCaches")
+            {
+                ScanStoreAppCaches(folder, logAction, ct);
                 folder.IsScanning = false;
                 return;
             }
@@ -618,101 +690,151 @@ public class CleanerService
         }, ct);
     }
 
-    private static void ScanDeviceDriverPackages(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    #region Directory Resolvers (Single Source of Truth for Scan & Clean)
+
+    public static List<string> GetUpgradeLeftoverDirectories()
+    {
+        var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        var rootDrive = Path.GetPathRoot(winDir) ?? @"C:\";
+        var dirs = new List<string>
+        {
+            Path.Combine(rootDrive, "$WINDOWS.~BT"),
+            Path.Combine(rootDrive, "$WINDOWS.~WS"),
+            Path.Combine(rootDrive, "$WinREAgent", "Scratch"),
+            Path.Combine(rootDrive, "ESD"),
+            Path.Combine(rootDrive, "ESD", "Download"),
+            Path.Combine(rootDrive, "Windows.old"),
+            Path.Combine(rootDrive, "$SysReset"),
+            Path.Combine(winDir, "Panther")
+        };
+        return dirs;
+    }
+
+    public static List<string> GetComponentCacheDirectories()
+    {
+        var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        var dirs = new List<string>
+        {
+            Path.Combine(winDir, "ServiceProfiles", "LocalService", "AppData", "Local", "FontCache"),
+            Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "FontCache"),
+            Path.Combine(winDir, "SystemTemp"),
+            Path.Combine(winDir, "Downloaded Program Files"),
+            Path.Combine(winDir, "WinSxS", "Temp"),
+            Path.Combine(winDir, "WinSxS", "ManifestCache"),
+            Path.Combine(winDir, "SoftwareDistribution", "ScanFile"),
+            Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "PeerDistPub"),
+            Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "PeerDistSub")
+        };
+        return dirs;
+    }
+
+    public static List<string> GetStoreAppCacheDirectories()
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var packagesRoot = Path.Combine(localAppData, "Packages");
+        var dirs = new List<string>();
+
+        if (Directory.Exists(packagesRoot))
+        {
+            try
+            {
+                foreach (var pkg in Directory.EnumerateDirectories(packagesRoot))
+                {
+                    dirs.Add(Path.Combine(pkg, "LocalCache"));
+                    dirs.Add(Path.Combine(pkg, "AC", "INetCache"));
+                    dirs.Add(Path.Combine(pkg, "AC", "Temp"));
+                    dirs.Add(Path.Combine(pkg, "TempState"));
+                    dirs.Add(Path.Combine(pkg, "CrashDump"));
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
+        }
+
+        return dirs;
+    }
+
+    public static List<string> GetDeviceDriverDirectories()
     {
         var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
         var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
-        string[] driverDirs =
+        return new List<string>
         {
             Path.Combine(progData, "NVIDIA Corporation", "NVIDIA App", "UpdateFramework", "ota-artifacts"),
             Path.Combine(progData, "NVIDIA Corporation", "Downloader"),
             Path.Combine(progData, "NVIDIA", "Updates"),
+            Path.Combine(progData, "NVIDIA Corporation", "NetService"),
             Path.Combine(progData, "AMD"),
             Path.Combine(progData, "Intel"),
+            Path.Combine(localAppData, "AMD", "DxCache"),
+            Path.Combine(localAppData, "AMD", "DVR"),
             Path.Combine(winDir, "System32", "DriverStore", "Temp"),
             Path.Combine(winDir, "System32", "DriverState")
         };
-
-        ScanDirectoryList(folder, driverDirs, "Device Driver Packages & GPU Updates", logAction, ct);
     }
 
-    private static void ScanDefenderAntivirus(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    public static List<string> GetDefenderDirectories()
     {
         var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-
-        string[] defenderDirs =
+        return new List<string>
         {
             Path.Combine(progData, "Microsoft", "Windows Defender", "Support"),
             Path.Combine(progData, "Microsoft", "Windows Defender", "Definition Updates", "Backup"),
             Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Results", "Quick"),
             Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Results", "Resource")
         };
-
-        ScanDirectoryList(folder, defenderDirs, "Microsoft Defender Antivirus Support", logAction, ct);
     }
 
-    private static void ScanWinSystemLogs(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    public static List<string> GetWinSystemLogDirectories()
     {
         var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-
-        string[] logDirs =
+        return new List<string>
         {
             Path.Combine(winDir, "Logs"),
+            Path.Combine(winDir, "Logs", "CBS"),
+            Path.Combine(winDir, "Logs", "DISM"),
+            Path.Combine(winDir, "Logs", "NetSetup"),
+            Path.Combine(winDir, "Logs", "WindowsUpdate"),
             Path.Combine(winDir, "Debug"),
             Path.Combine(winDir, "System32", "LogFiles"),
             Path.Combine(winDir, "tracing")
         };
-
-        ScanDirectoryList(folder, logDirs, "Windows Diagnostic Logs", logAction, ct);
     }
 
-    private static void ScanSystemDumps(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    public static List<string> GetSystemDumpDirectories()
     {
         var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-
-        string[] dumpDirs =
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return new List<string>
         {
             Path.Combine(winDir, "Minidump"),
             Path.Combine(winDir, "LiveKernelReports"),
-            Path.Combine(winDir, "System32", "CrashDump")
+            Path.Combine(winDir, "System32", "CrashDump"),
+            Path.Combine(localAppData, "CrashDumps")
         };
-
-        ScanDirectoryList(folder, dumpDirs, "BSOD Minidumps & Kernel Reports", logAction, ct);
     }
 
-    private static void ScanTemporaryInternetFiles(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    public static List<string> GetTemporaryInternetDirectories()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
-        string[] inetDirs =
+        return new List<string>
         {
             Path.Combine(localAppData, "Microsoft", "Windows", "INetCache"),
             Path.Combine(localAppData, "Microsoft", "Windows", "WebCache"),
             Path.Combine(localAppData, "Microsoft", "Windows", "Caches"),
             Path.Combine(userProfile, "AppData", "LocalLow", "Microsoft", "CryptnetUrlCache")
         };
-
-        ScanDirectoryList(folder, inetDirs, "Temporary Internet Files & WebCache", logAction, ct);
     }
 
-    private static void ScanSystemUsageTraces(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
-    {
-        var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-
-        string[] traceDirs =
-        {
-            Path.Combine(roamingAppData, "Microsoft", "Windows", "Recent")
-        };
-
-        ScanDirectoryList(folder, traceDirs, "System & Explorer Usage Traces", logAction, ct);
-    }
-
-    private static void ScanGpuShaderPools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    public static List<string> GetGpuShaderDirectories()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        string[] shaderDirs =
+        return new List<string>
         {
             Path.Combine(localAppData, "NVIDIA", "DXCache"),
             Path.Combine(localAppData, "NVIDIA", "GLCache"),
@@ -720,16 +842,15 @@ public class CleanerService
             Path.Combine(localAppData, "D3DSCache"),
             Path.Combine(localAppData, "Intel", "ShaderCache")
         };
-
-        ScanDirectoryList(folder, shaderDirs, "GPU Shaders", logAction, ct);
     }
 
-    private static void ScanGamingLauncherPools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    public static List<string> GetGamingLauncherDirectories()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-        string[] gamingDirs =
+        return new List<string>
         {
             Path.Combine(progFilesX86, "Steam", "downloading"),
             Path.Combine(progFilesX86, "Steam", "shadercache"),
@@ -737,43 +858,74 @@ public class CleanerService
             Path.Combine(localAppData, "Steam", "htmlcache"),
             Path.Combine(localAppData, "EpicGamesLauncher", "Saved", "webcache"),
             Path.Combine(localAppData, "EpicGamesLauncher", "Saved", "webcache_4430"),
+            Path.Combine(localAppData, "EpicGamesLauncher", "Saved", "Logs"),
             Path.Combine(localAppData, "Battle.net", "Cache"),
+            Path.Combine(localAppData, "Battle.net", "Logs"),
             Path.Combine(localAppData, "Blizzard Entertainment", "Battle.net", "Cache"),
             Path.Combine(localAppData, "Electronic Arts", "EA Desktop", "Logs"),
             Path.Combine(localAppData, "Electronic Arts", "EA Desktop", "cache"),
-            Path.Combine(localAppData, "Ubisoft Game Launcher", "cache")
+            Path.Combine(localAppData, "Origin", "Logs"),
+            Path.Combine(localAppData, "Origin", "ThinSetup"),
+            Path.Combine(localAppData, "Ubisoft Game Launcher", "cache"),
+            Path.Combine(localAppData, "Ubisoft Game Launcher", "spool"),
+            Path.Combine(localAppData, "Riot Games", "Riot Client", "Logs"),
+            Path.Combine(localAppData, "Riot Games", "Riot Client", "Data", "Caches"),
+            Path.Combine(localAppData, "VALORANT", "saved", "crashes"),
+            Path.Combine(localAppData, "VALORANT", "saved", "logs"),
+            Path.Combine(localAppData, "GOG.com", "Galaxy", "webcache"),
+            Path.Combine(localAppData, "GOG.com", "Galaxy", "logs"),
+            Path.Combine(localAppData, "Roblox", "logs"),
+            Path.Combine(localAppData, "Roblox", "Downloads")
         };
-
-        ScanDirectoryList(folder, gamingDirs, "Game Launchers & Shaders", logAction, ct);
     }
 
-    private static void ScanMediaCreatorPools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    public static List<string> GetMediaCreatorDirectories()
     {
         var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
-        string[] mediaDirs =
+        var dirs = new List<string>
         {
             Path.Combine(roamingAppData, "Adobe", "Common", "Media Cache Files"),
             Path.Combine(roamingAppData, "Adobe", "Common", "Media Cache"),
             Path.Combine(roamingAppData, "Adobe", "Common", "Peak Files"),
+            Path.Combine(localAppData, "Adobe", "Photoshop", "AutoRecover"),
             Path.Combine(roamingAppData, "Blackmagic Design", "DaVinci Resolve", "Support", "logs"),
             Path.Combine(roamingAppData, "Blackmagic Design", "DaVinci Resolve", "Cache"),
             Path.Combine(roamingAppData, "obs-studio", "logs"),
             Path.Combine(roamingAppData, "obs-studio", "crashes"),
             Path.Combine(roamingAppData, "slobs-client", "cache"),
-            Path.Combine(roamingAppData, "Blender Foundation", "Blender", "temp")
+            Path.Combine(roamingAppData, "Blender Foundation", "Blender", "temp"),
+            Path.Combine(localAppData, "CapCut", "User Data", "Cache"),
+            Path.Combine(localAppData, "audacity", "SessionData")
         };
 
-        ScanDirectoryList(folder, mediaDirs, "Media & Creator Render Caches", logAction, ct);
+        // Adobe After Effects disk cache
+        var adobeLocal = Path.Combine(localAppData, "Adobe", "After Effects");
+        if (Directory.Exists(adobeLocal))
+        {
+            try
+            {
+                foreach (var verDir in Directory.EnumerateDirectories(adobeLocal))
+                {
+                    dirs.Add(Path.Combine(verDir, "Disk Cache"));
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
+        }
+
+        return dirs;
     }
 
-    private static void ScanMobileDevPools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    public static List<string> GetMobileDevDirectories()
     {
         var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-        string[] devDirs =
+        return new List<string>
         {
             Path.Combine(roamingAppData, "Apple Computer", "MobileDeviceBackup", "Temp"),
             Path.Combine(roamingAppData, "Apple Computer", "Logs"),
@@ -785,95 +937,297 @@ public class CleanerService
             Path.Combine(userProfile, ".gradle", "caches", "transforms-3"),
             Path.Combine(userProfile, ".cargo", "registry", "cache")
         };
-
-        ScanDirectoryList(folder, devDirs, "Mobile & Dev Residuals", logAction, ct);
     }
 
-    private static void ScanAppCachePools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    public static List<string> GetAppCacheDirectories()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-        string[] appCacheDirs =
+        var dirs = new List<string>
         {
             Path.Combine(localAppData, "Spotify", "Data"),
             Path.Combine(localAppData, "Spotify", "Storage"),
+            Path.Combine(localAppData, "Spotify", "Browser", "Cache"),
             Path.Combine(roamingAppData, "discord", "Cache"),
             Path.Combine(roamingAppData, "discord", "Code Cache"),
             Path.Combine(roamingAppData, "discord", "GPUCache"),
+            Path.Combine(roamingAppData, "discordcanary", "Cache"),
+            Path.Combine(roamingAppData, "discordptb", "Cache"),
             Path.Combine(roamingAppData, "Slack", "Cache"),
             Path.Combine(roamingAppData, "Slack", "GPUCache"),
+            Path.Combine(roamingAppData, "Slack", "Service Worker", "CacheStorage"),
             Path.Combine(roamingAppData, "Code", "Cache"),
             Path.Combine(roamingAppData, "Code", "CachedData"),
+            Path.Combine(roamingAppData, "Code", "CachedExtensions"),
             Path.Combine(roamingAppData, "Code", "GPUCache"),
+            Path.Combine(roamingAppData, "Code", "logs"),
             Path.Combine(roamingAppData, "Cursor", "Cache"),
+            Path.Combine(roamingAppData, "Cursor", "CachedData"),
             Path.Combine(roamingAppData, "Cursor", "GPUCache"),
+            Path.Combine(roamingAppData, "Windsurf", "Cache"),
+            Path.Combine(roamingAppData, "Windsurf", "GPUCache"),
             Path.Combine(roamingAppData, "Notion", "Cache"),
             Path.Combine(roamingAppData, "Notion", "GPUCache"),
+            Path.Combine(roamingAppData, "Notion", "Code Cache"),
             Path.Combine(localAppData, "Microsoft", "Teams", "Cache"),
-            Path.Combine(roamingAppData, "Telegram Desktop", "tdata", "user_data", "cache")
+            Path.Combine(roamingAppData, "Microsoft", "Teams", "Cache"),
+            Path.Combine(roamingAppData, "Telegram Desktop", "tdata", "user_data", "cache"),
+            Path.Combine(roamingAppData, "WhatsApp", "Cache"),
+            Path.Combine(roamingAppData, "Zoom", "data"),
+            Path.Combine(localAppData, "Zoom", "temp"),
+            Path.Combine(localAppData, "CapCut", "User Data", "Cache")
         };
 
-        ScanDirectoryList(folder, appCacheDirs, "Desktop Apps Caches", logAction, ct);
+        // JetBrains IDE caches
+        var jbRoot = Path.Combine(localAppData, "JetBrains");
+        if (Directory.Exists(jbRoot))
+        {
+            try
+            {
+                foreach (var ideDir in Directory.EnumerateDirectories(jbRoot))
+                {
+                    dirs.Add(Path.Combine(ideDir, "caches"));
+                    dirs.Add(Path.Combine(ideDir, "log"));
+                    dirs.Add(Path.Combine(ideDir, "tmp"));
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
+        }
+
+        return dirs;
     }
 
-    private static void ScanBrowserCachePools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    public static List<string> GetBrowserCacheDirectories()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        string[] browserCacheDirs =
+        var dirs = new List<string>();
+
+        // Chromium browser User Data roots
+        var chromiumRoots = new (string BaseDir, string FallbackSubDir)[]
         {
-            Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "Cache", "Cache_Data"),
-            Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "Code Cache"),
-            Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "GPUCache"),
-            Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "DawnCache"),
-            Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "ShaderCache"),
-            Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "GrShaderCache"),
-            Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "Service Worker", "CacheStorage"),
-
-            Path.Combine(localAppData, "Microsoft", "Edge", "User Data", "Default", "Cache", "Cache_Data"),
-            Path.Combine(localAppData, "Microsoft", "Edge", "User Data", "Default", "Code Cache"),
-            Path.Combine(localAppData, "Microsoft", "Edge", "User Data", "Default", "GPUCache"),
-            Path.Combine(localAppData, "Microsoft", "Edge", "User Data", "Default", "DawnCache"),
-            Path.Combine(localAppData, "Microsoft", "Edge", "User Data", "Default", "ShaderCache"),
-            Path.Combine(localAppData, "Microsoft", "Edge", "User Data", "Default", "GrShaderCache"),
-
-            Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "User Data", "Default", "Cache", "Cache_Data"),
-            Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "User Data", "Default", "Code Cache"),
-            Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "User Data", "Default", "GPUCache"),
-            Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "User Data", "Default", "DawnCache"),
-            Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "User Data", "Default", "ShaderCache"),
-
-            Path.Combine(localAppData, "Opera Software", "Opera Stable", "Cache"),
-            Path.Combine(localAppData, "Opera Software", "Opera Stable", "GPUCache"),
-            Path.Combine(localAppData, "Vivaldi", "User Data", "Default", "Cache", "Cache_Data"),
-            Path.Combine(localAppData, "Vivaldi", "User Data", "Default", "Code Cache")
+            (Path.Combine(localAppData, "Google", "Chrome", "User Data"), "Default"),
+            (Path.Combine(localAppData, "Microsoft", "Edge", "User Data"), "Default"),
+            (Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "User Data"), "Default"),
+            (Path.Combine(localAppData, "Vivaldi", "User Data"), "Default"),
+            (Path.Combine(localAppData, "Arc", "User Data"), "Default"),
+            (Path.Combine(localAppData, "Yandex", "YandexBrowser", "User Data"), "Default"),
+            (Path.Combine(localAppData, "Opera Software", "Opera Stable"), ""),
+            (Path.Combine(localAppData, "Opera Software", "Opera GX Stable"), "")
         };
 
-        ScanDirectoryList(folder, browserCacheDirs, "Web Browsers Cache", logAction, ct);
+        foreach (var (baseDir, fallbackSub) in chromiumRoots)
+        {
+            if (!Directory.Exists(baseDir)) continue;
+
+            var profileDirs = new List<string>();
+
+            // Find all profiles (Default, Profile 1, Profile 2, etc.)
+            try
+            {
+                foreach (var subDir in Directory.EnumerateDirectories(baseDir))
+                {
+                    var dirName = Path.GetFileName(subDir);
+                    if (dirName.Equals("Default", StringComparison.OrdinalIgnoreCase) ||
+                        dirName.StartsWith("Profile", StringComparison.OrdinalIgnoreCase) ||
+                        dirName.Equals("Guest Profile", StringComparison.OrdinalIgnoreCase) ||
+                        dirName.Equals("System Profile", StringComparison.OrdinalIgnoreCase))
+                    {
+                        profileDirs.Add(subDir);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
+
+            // If no profile subdirectories matched, treat baseDir itself as the container (e.g. Opera)
+            if (profileDirs.Count == 0)
+            {
+                profileDirs.Add(baseDir);
+            }
+
+            foreach (var prof in profileDirs)
+            {
+                dirs.Add(Path.Combine(prof, "Cache"));
+                dirs.Add(Path.Combine(prof, "Cache", "Cache_Data"));
+                dirs.Add(Path.Combine(prof, "Code Cache"));
+                dirs.Add(Path.Combine(prof, "GPUCache"));
+                dirs.Add(Path.Combine(prof, "DawnCache"));
+                dirs.Add(Path.Combine(prof, "ShaderCache"));
+                dirs.Add(Path.Combine(prof, "GrShaderCache"));
+                dirs.Add(Path.Combine(prof, "Service Worker", "CacheStorage"));
+                dirs.Add(Path.Combine(prof, "Crashpad", "reports"));
+                dirs.Add(Path.Combine(prof, "blob_storage"));
+            }
+        }
+
+        // Gecko / Firefox-based browsers
+        var geckoRoots = new string[]
+        {
+            Path.Combine(localAppData, "Mozilla", "Firefox", "Profiles"),
+            Path.Combine(localAppData, "Floorp", "Profiles"),
+            Path.Combine(localAppData, "Waterfox", "Profiles"),
+            Path.Combine(localAppData, "LibreWolf", "Profiles"),
+            Path.Combine(localAppData, "zen", "Profiles")
+        };
+
+        foreach (var gRoot in geckoRoots)
+        {
+            if (!Directory.Exists(gRoot)) continue;
+            try
+            {
+                foreach (var prof in Directory.EnumerateDirectories(gRoot))
+                {
+                    dirs.Add(Path.Combine(prof, "cache2"));
+                    dirs.Add(Path.Combine(prof, "startupCache"));
+                    dirs.Add(Path.Combine(prof, "thumbnails"));
+                    dirs.Add(Path.Combine(prof, "jumpListCache"));
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
+        }
+
+        return dirs;
     }
 
-    private static void ScanDevPackageCaches(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    public static List<string> GetDevPackageDirectories()
     {
         var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        string[] devDirs =
+        var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+        return new List<string>
         {
             Path.Combine(localAppData, "pip", "cache"),
             Path.Combine(localAppData, "npm-cache"),
+            Path.Combine(roamingAppData, "npm-cache"),
             Path.Combine(localAppData, "Yarn", "Cache"),
             Path.Combine(localAppData, "pnpm", "store", "v3"),
             Path.Combine(localAppData, "pnpm-cache"),
             Path.Combine(localAppData, "NuGet", "v3-cache"),
+            Path.Combine(localAppData, "NuGet", "plugins-cache"),
             Path.Combine(userProfile, ".cache"),
             Path.Combine(userProfile, ".gradle", "caches"),
             Path.Combine(userProfile, ".cargo", "registry", "cache"),
             Path.Combine(userProfile, ".cargo", "git", "db"),
+            Path.Combine(userProfile, ".rustup", "downloads"),
+            Path.Combine(userProfile, ".rustup", "tmp"),
             Path.Combine(userProfile, ".bun", "install", "cache"),
             Path.Combine(localAppData, "deno", "deps"),
+            Path.Combine(localAppData, "go-build"),
+            Path.Combine(localAppData, "Microsoft", "dotnet"),
+            Path.Combine(localAppData, "Temp", ".net"),
+            Path.Combine(userProfile, ".m2", "repository", ".cache"),
+            Path.Combine(userProfile, ".m2", "temp"),
             Path.Combine(userProfile, ".nuget", "packages", "temp")
         };
+    }
 
-        ScanDirectoryList(folder, devDirs, "Developer Caches", logAction, ct);
+    #endregion
+
+    private static void ScanUpgradeLeftovers(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetUpgradeLeftoverDirectories();
+        ScanDirectoryList(folder, dirs, "Windows Upgrade & Setup Leftovers", logAction, ct);
+    }
+
+    private static void ScanComponentCaches(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetComponentCacheDirectories();
+        ScanDirectoryList(folder, dirs, "Windows Component & Font Caches", logAction, ct);
+    }
+
+    private static void ScanStoreAppCaches(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetStoreAppCacheDirectories();
+        ScanDirectoryList(folder, dirs, "Windows Store & UWP App Caches", logAction, ct);
+    }
+
+    private static void ScanDeviceDriverPackages(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetDeviceDriverDirectories();
+        ScanDirectoryList(folder, dirs, "Device Driver Packages & GPU Updates", logAction, ct);
+    }
+
+    private static void ScanDefenderAntivirus(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetDefenderDirectories();
+        ScanDirectoryList(folder, dirs, "Microsoft Defender Antivirus Support", logAction, ct);
+    }
+
+    private static void ScanWinSystemLogs(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetWinSystemLogDirectories();
+        ScanDirectoryList(folder, dirs, "Windows Diagnostic Logs", logAction, ct);
+    }
+
+    private static void ScanSystemDumps(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetSystemDumpDirectories();
+        ScanDirectoryList(folder, dirs, "BSOD Minidumps & Kernel Reports", logAction, ct);
+    }
+
+    private static void ScanTemporaryInternetFiles(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetTemporaryInternetDirectories();
+        ScanDirectoryList(folder, dirs, "Temporary Internet Files & WebCache", logAction, ct);
+    }
+
+    private static void ScanSystemUsageTraces(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string[] traceDirs = { Path.Combine(roamingAppData, "Microsoft", "Windows", "Recent") };
+        ScanDirectoryList(folder, traceDirs, "System & Explorer Usage Traces", logAction, ct);
+    }
+
+    private static void ScanGpuShaderPools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetGpuShaderDirectories();
+        ScanDirectoryList(folder, dirs, "GPU Shaders", logAction, ct);
+    }
+
+    private static void ScanGamingLauncherPools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetGamingLauncherDirectories();
+        ScanDirectoryList(folder, dirs, "Game Launchers & Shaders", logAction, ct);
+    }
+
+    private static void ScanMediaCreatorPools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetMediaCreatorDirectories();
+        ScanDirectoryList(folder, dirs, "Media & Creator Render Caches", logAction, ct);
+    }
+
+    private static void ScanMobileDevPools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetMobileDevDirectories();
+        ScanDirectoryList(folder, dirs, "Mobile & Dev Residuals", logAction, ct);
+    }
+
+    private static void ScanAppCachePools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetAppCacheDirectories();
+        ScanDirectoryList(folder, dirs, "Desktop Apps Caches", logAction, ct);
+    }
+
+    private static void ScanBrowserCachePools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetBrowserCacheDirectories();
+        ScanDirectoryList(folder, dirs, "Web Browsers Cache Pool", logAction, ct);
+    }
+
+    private static void ScanDevPackageCaches(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetDevPackageDirectories();
+        ScanDirectoryList(folder, dirs, "Developer Caches", logAction, ct);
     }
 
     private static void ScanDirectoryList(
@@ -889,11 +1243,18 @@ public class CleanerService
 
         foreach (var dir in directories)
         {
+            if (ct.IsCancellationRequested) break;
             if (!Directory.Exists(dir)) continue;
             try
             {
                 var dirInfo = new DirectoryInfo(dir);
-                var enumOptions = new EnumerationOptions { IgnoreInaccessible = true, RecurseSubdirectories = true };
+                var enumOptions = new EnumerationOptions
+                {
+                    IgnoreInaccessible = true,
+                    RecurseSubdirectories = true,
+                    AttributesToSkip = FileAttributes.ReparsePoint
+                };
+
                 foreach (var f in dirInfo.EnumerateFiles("*", enumOptions))
                 {
                     if (ct.IsCancellationRequested) break;
@@ -1011,156 +1372,70 @@ public class CleanerService
             }
 
             var directoriesToClean = new List<string>();
-            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            var progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-            var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-            var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
 
-            if (folder.Id == "DeviceDriverPackages")
+            if (folder.Id == "WinUpgradeLeftovers")
             {
-                directoriesToClean.Add(Path.Combine(progData, "NVIDIA Corporation", "NVIDIA App", "UpdateFramework", "ota-artifacts"));
-                directoriesToClean.Add(Path.Combine(progData, "NVIDIA Corporation", "Downloader"));
-                directoriesToClean.Add(Path.Combine(progData, "NVIDIA", "Updates"));
-                directoriesToClean.Add(Path.Combine(progData, "AMD"));
-                directoriesToClean.Add(Path.Combine(progData, "Intel"));
-                directoriesToClean.Add(Path.Combine(winDir, "System32", "DriverStore", "Temp"));
-                directoriesToClean.Add(Path.Combine(winDir, "System32", "DriverState"));
+                directoriesToClean.AddRange(GetUpgradeLeftoverDirectories());
+            }
+            else if (folder.Id == "WinComponentCaches")
+            {
+                directoriesToClean.AddRange(GetComponentCacheDirectories());
+            }
+            else if (folder.Id == "WinStoreAppCaches")
+            {
+                directoriesToClean.AddRange(GetStoreAppCacheDirectories());
+            }
+            else if (folder.Id == "DeviceDriverPackages")
+            {
+                directoriesToClean.AddRange(GetDeviceDriverDirectories());
             }
             else if (folder.Id == "DefenderAntivirus")
             {
-                directoriesToClean.Add(Path.Combine(progData, "Microsoft", "Windows Defender", "Support"));
-                directoriesToClean.Add(Path.Combine(progData, "Microsoft", "Windows Defender", "Definition Updates", "Backup"));
-                directoriesToClean.Add(Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Results", "Quick"));
-                directoriesToClean.Add(Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Results", "Resource"));
+                directoriesToClean.AddRange(GetDefenderDirectories());
             }
             else if (folder.Id == "WinSystemLogs")
             {
-                directoriesToClean.Add(Path.Combine(winDir, "Logs"));
-                directoriesToClean.Add(Path.Combine(winDir, "Debug"));
-                directoriesToClean.Add(Path.Combine(winDir, "System32", "LogFiles"));
-                directoriesToClean.Add(Path.Combine(winDir, "tracing"));
+                directoriesToClean.AddRange(GetWinSystemLogDirectories());
             }
             else if (folder.Id == "SystemDumps")
             {
-                directoriesToClean.Add(Path.Combine(winDir, "Minidump"));
-                directoriesToClean.Add(Path.Combine(winDir, "LiveKernelReports"));
-                directoriesToClean.Add(Path.Combine(winDir, "System32", "CrashDump"));
+                directoriesToClean.AddRange(GetSystemDumpDirectories());
             }
             else if (folder.Id == "TemporaryInternetFiles")
             {
-                directoriesToClean.Add(Path.Combine(localAppData, "Microsoft", "Windows", "INetCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Microsoft", "Windows", "WebCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Microsoft", "Windows", "Caches"));
-                directoriesToClean.Add(Path.Combine(userProfile, "AppData", "LocalLow", "Microsoft", "CryptnetUrlCache"));
+                directoriesToClean.AddRange(GetTemporaryInternetDirectories());
             }
             else if (folder.Id == "SystemUsageTraces")
             {
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Microsoft", "Windows", "Recent"));
+                directoriesToClean.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Recent"));
             }
             else if (folder.Id == "GpuShaderCaches")
             {
-                directoriesToClean.Add(Path.Combine(localAppData, "NVIDIA", "DXCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "NVIDIA", "GLCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "AMD", "DxCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "D3DSCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Intel", "ShaderCache"));
+                directoriesToClean.AddRange(GetGpuShaderDirectories());
             }
             else if (folder.Id == "GamingLaunchers")
             {
-                directoriesToClean.Add(Path.Combine(progFilesX86, "Steam", "downloading"));
-                directoriesToClean.Add(Path.Combine(progFilesX86, "Steam", "shadercache"));
-                directoriesToClean.Add(Path.Combine(progFilesX86, "Steam", "appcache", "httpcache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Steam", "htmlcache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "EpicGamesLauncher", "Saved", "webcache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "EpicGamesLauncher", "Saved", "webcache_4430"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Battle.net", "Cache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Blizzard Entertainment", "Battle.net", "Cache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Electronic Arts", "EA Desktop", "Logs"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Electronic Arts", "EA Desktop", "cache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Ubisoft Game Launcher", "cache"));
+                directoriesToClean.AddRange(GetGamingLauncherDirectories());
             }
             else if (folder.Id == "MediaCreatorCaches")
             {
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Adobe", "Common", "Media Cache Files"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Adobe", "Common", "Media Cache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Adobe", "Common", "Peak Files"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Blackmagic Design", "DaVinci Resolve", "Support", "logs"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Blackmagic Design", "DaVinci Resolve", "Cache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "obs-studio", "logs"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "obs-studio", "crashes"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "slobs-client", "cache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Blender Foundation", "Blender", "temp"));
+                directoriesToClean.AddRange(GetMediaCreatorDirectories());
             }
             else if (folder.Id == "MobileDevResiduals")
             {
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Apple Computer", "MobileDeviceBackup", "Temp"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Apple Computer", "Logs"));
-                directoriesToClean.Add(Path.Combine(userProfile, ".android", "cache"));
-                directoriesToClean.Add(Path.Combine(userProfile, ".android", "build-cache"));
-                directoriesToClean.Add(Path.Combine(userProfile, ".gradle", "daemon"));
-                directoriesToClean.Add(Path.Combine(userProfile, ".gradle", "caches", "transforms-1"));
-                directoriesToClean.Add(Path.Combine(userProfile, ".gradle", "caches", "transforms-2"));
-                directoriesToClean.Add(Path.Combine(userProfile, ".gradle", "caches", "transforms-3"));
-                directoriesToClean.Add(Path.Combine(userProfile, ".cargo", "registry", "cache"));
+                directoriesToClean.AddRange(GetMobileDevDirectories());
             }
             else if (folder.Id == "AppCacheSweeper")
             {
-                directoriesToClean.Add(Path.Combine(localAppData, "Spotify", "Data"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Spotify", "Storage"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "discord", "Cache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "discord", "Code Cache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "discord", "GPUCache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Slack", "Cache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Slack", "GPUCache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Code", "Cache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Code", "CachedData"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Code", "GPUCache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Cursor", "Cache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Cursor", "GPUCache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Notion", "Cache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Notion", "GPUCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Microsoft", "Teams", "Cache"));
-                directoriesToClean.Add(Path.Combine(roamingAppData, "Telegram Desktop", "tdata", "user_data", "cache"));
+                directoriesToClean.AddRange(GetAppCacheDirectories());
             }
             else if (folder.Id == "BrowserCaches")
             {
-                directoriesToClean.Add(Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "Cache", "Cache_Data"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "Code Cache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "GPUCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "DawnCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "ShaderCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "GrShaderCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Google", "Chrome", "User Data", "Default", "Service Worker", "CacheStorage"));
-
-                directoriesToClean.Add(Path.Combine(localAppData, "Microsoft", "Edge", "User Data", "Default", "Cache", "Cache_Data"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Microsoft", "Edge", "User Data", "Default", "Code Cache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Microsoft", "Edge", "User Data", "Default", "GPUCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Microsoft", "Edge", "User Data", "Default", "DawnCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Microsoft", "Edge", "User Data", "Default", "ShaderCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Microsoft", "Edge", "User Data", "Default", "GrShaderCache"));
-
-                directoriesToClean.Add(Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "User Data", "Default", "Cache", "Cache_Data"));
-                directoriesToClean.Add(Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "User Data", "Default", "Code Cache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "User Data", "Default", "GPUCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "User Data", "Default", "DawnCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "User Data", "Default", "ShaderCache"));
-
-                directoriesToClean.Add(Path.Combine(localAppData, "Opera Software", "Opera Stable", "Cache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Opera Software", "Opera Stable", "GPUCache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Vivaldi", "User Data", "Default", "Cache", "Cache_Data"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Vivaldi", "User Data", "Default", "Code Cache"));
+                directoriesToClean.AddRange(GetBrowserCacheDirectories());
             }
             else if (folder.Id == "DevPackageCaches")
             {
-                directoriesToClean.Add(Path.Combine(localAppData, "pip", "cache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "npm-cache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "Yarn", "Cache"));
-                directoriesToClean.Add(Path.Combine(localAppData, "NuGet", "v3-cache"));
-                directoriesToClean.Add(Path.Combine(userProfile, ".cache"));
-                directoriesToClean.Add(Path.Combine(userProfile, ".gradle", "caches"));
-                directoriesToClean.Add(Path.Combine(userProfile, ".nuget", "packages", "temp"));
+                directoriesToClean.AddRange(GetDevPackageDirectories());
             }
             else
             {
@@ -1179,7 +1454,12 @@ public class CleanerService
                 try
                 {
                     var dirInfo = new DirectoryInfo(targetPath);
-                    var enumOptions = new EnumerationOptions { IgnoreInaccessible = true, RecurseSubdirectories = true };
+                    var enumOptions = new EnumerationOptions
+                    {
+                        IgnoreInaccessible = true,
+                        RecurseSubdirectories = true,
+                        AttributesToSkip = FileAttributes.ReparsePoint
+                    };
 
                     var fileList = new List<FileInfo>();
                     try
@@ -1215,7 +1495,7 @@ public class CleanerService
                             long fileLen = file.Length;
                             string path = file.FullName;
 
-                            // Clear ReadOnly / Hidden attributes to prevent deletion failures
+                            // Clear ReadOnly / Hidden / System attributes to prevent deletion failures
                             if ((file.Attributes & (FileAttributes.ReadOnly | FileAttributes.Hidden | FileAttributes.System)) != 0)
                             {
                                 try { file.Attributes = FileAttributes.Normal; } catch { }
@@ -1325,7 +1605,9 @@ public class CleanerService
                 filePath.Contains("download", StringComparison.OrdinalIgnoreCase) ||
                 filePath.Contains("ota-artifacts", StringComparison.OrdinalIgnoreCase) ||
                 filePath.Contains("wer", StringComparison.OrdinalIgnoreCase) ||
-                filePath.Contains("logs", StringComparison.OrdinalIgnoreCase))
+                filePath.Contains("logs", StringComparison.OrdinalIgnoreCase) ||
+                filePath.Contains("$windows.~", StringComparison.OrdinalIgnoreCase) ||
+                filePath.Contains("esd", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }

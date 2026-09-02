@@ -33,20 +33,45 @@ public class CleanerServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetDefaultTargets_ReturnsAll21StandardCategories()
+    public void GetDefaultTargets_ReturnsAllDeepScanStandardCategories()
     {
         // Act
         var targets = CleanerService.GetDefaultTargets();
 
         // Assert
         Assert.NotNull(targets);
-        Assert.True(targets.Count >= 21, $"Expected at least 21 targets, but found {targets.Count}");
+        Assert.True(targets.Count >= 24, $"Expected at least 24 targets, but found {targets.Count}");
+        Assert.Contains(targets, t => t.Id == "WinUpgradeLeftovers");
+        Assert.Contains(targets, t => t.Id == "WinStoreAppCaches");
+        Assert.Contains(targets, t => t.Id == "WinComponentCaches");
         Assert.Contains(targets, t => t.Id == "DeviceDriverPackages");
         Assert.Contains(targets, t => t.Id == "DefenderAntivirus");
         Assert.Contains(targets, t => t.Id == "WinSystemLogs");
         Assert.Contains(targets, t => t.Id == "TemporaryInternetFiles");
         Assert.Contains(targets, t => t.Id == "SystemUsageTraces");
         Assert.Contains(targets, t => t.Id == "RecycleBin");
+    }
+
+    [Fact]
+    public void DirectoryResolvers_ReturnValidNonEmptyTargetLists()
+    {
+        var upgradeDirs = CleanerService.GetUpgradeLeftoverDirectories();
+        Assert.NotEmpty(upgradeDirs);
+
+        var compDirs = CleanerService.GetComponentCacheDirectories();
+        Assert.NotEmpty(compDirs);
+
+        var devDirs = CleanerService.GetDevPackageDirectories();
+        Assert.NotEmpty(devDirs);
+        Assert.Contains(devDirs, d => d.Contains("pip", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(devDirs, d => d.Contains("npm", StringComparison.OrdinalIgnoreCase));
+
+        var appDirs = CleanerService.GetAppCacheDirectories();
+        Assert.NotEmpty(appDirs);
+        Assert.Contains(appDirs, d => d.Contains("discord", StringComparison.OrdinalIgnoreCase));
+
+        var browserDirs = CleanerService.GetBrowserCacheDirectories();
+        Assert.NotNull(browserDirs);
     }
 
     [Fact]
@@ -174,6 +199,24 @@ public class CleanerServiceTests : IDisposable
         Assert.Contains("Safety Shield    : ENABLED", report);
         Assert.Contains("42", report);
         Assert.Contains("15.0 MB", report);
+    }
+
+    [Fact]
+    public void LocalizationService_LocalizesAllEnhancedTargetsWithoutErrors()
+    {
+        var targets = CleanerService.GetDefaultTargets();
+        foreach (var lang in new[] { "en", "ar", "es", "fr", "de" })
+        {
+            LocalizationService.CurrentLanguage = lang;
+            foreach (var t in targets)
+            {
+                LocalizationService.LocalizeTarget(t);
+                Assert.False(string.IsNullOrWhiteSpace(t.Name));
+                Assert.False(string.IsNullOrWhiteSpace(t.Category));
+                Assert.False(string.IsNullOrWhiteSpace(t.Description));
+            }
+        }
+        LocalizationService.CurrentLanguage = "en";
     }
 
     [Fact]
