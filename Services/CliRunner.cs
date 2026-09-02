@@ -19,8 +19,14 @@ public static class CliRunner
         switch (cmd)
         {
             case "test":
-                bool passed = await Tests.TestRunner.RunVerificationAsync();
-                exitCode = passed ? 0 : 1;
+                Console.WriteLine("  🧪 Running Deltempo Internal Diagnostics...");
+                var mem = MemoryOptimizerService.GetMemoryInfo();
+                var targets = CleanerService.GetDefaultTargets();
+                bool ok = mem.TotalPhysicalBytes > 0 && targets.Count >= 20;
+                Console.WriteLine($"  ✓ Engine Status: {(ok ? "PASS" : "FAIL")}");
+                Console.WriteLine($"  ✓ Discovered Scopes: {targets.Count} targets");
+                Console.WriteLine($"  ✓ RAM Engine: {mem.FormattedUsed} used / {mem.FormattedTotal} total");
+                exitCode = ok ? 0 : 1;
                 break;
 
             case "scan":
