@@ -19,26 +19,22 @@ public static class ElevationService
         }
     }
 
-    public static bool RelaunchAsAdmin()
+    public static void RestartAsAdmin(string? args = null)
     {
+        var procInfo = new ProcessStartInfo
+        {
+            UseShellExecute = true,
+            WorkingDirectory = Environment.CurrentDirectory,
+            FileName = Process.GetCurrentProcess().MainModule?.FileName ?? Environment.ProcessPath ?? "Deltempo.exe",
+            Verb = "runas",
+            Arguments = args ?? string.Empty
+        };
+
         try
         {
-            var processInfo = new ProcessStartInfo
-            {
-                FileName = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty,
-                UseShellExecute = true,
-                Verb = "runas"
-            };
-
-            if (string.IsNullOrEmpty(processInfo.FileName))
-                return false;
-
-            Process.Start(processInfo);
-            return true;
+            Process.Start(procInfo);
+            Environment.Exit(0);
         }
-        catch
-        {
-            return false;
-        }
+        catch { }
     }
 }

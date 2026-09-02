@@ -1,2 +1,2 @@
 @echo off
-"%~dp0deltempo_cli.exe" %*
+"%~dp0Deltempo.exe" %*
