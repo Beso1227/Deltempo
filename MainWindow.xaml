@@ -103,8 +103,22 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Center / Right: Admin Status Pill + Sound Toggle + Theme Toggle + Language -->
+                    <!-- Center / Right: Admin Status Pill + Settings + Sound Toggle + Theme Toggle + Language -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0">
+                        <!-- Settings Button -->
+                        <Button x:Name="SettingsBtn"
+                                Style="{StaticResource WindowControlButton}"
+                                FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                AutomationProperties.Name="Open Application Settings"
+                                ToolTip="Deltempo Preferences &amp; Guardian Settings"
+                                Margin="0,0,8,0"
+                                Click="SettingsBtn_Click">
+                            <TextBlock Text="&#xE713;"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="12"
+                                       Foreground="{StaticResource ElectricCyanBrush}"/>
+                        </Button>
+
                         <!-- Theme Mode Toggle (Sun/Moon) -->
                         <Button x:Name="ThemeToggleBtn"
                                 Style="{StaticResource WindowControlButton}"
@@ -1055,6 +1069,193 @@
                                     Padding="28,9"
                                     Click="CloseCelebration_Click"/>
                         </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- 9. PREFERENCES & GUARDIAN SETTINGS MODAL -->
+            <Grid Grid.RowSpan="6"
+                  x:Name="SettingsModalOverlay"
+                  Background="#EE05070B"
+                  Visibility="Collapsed"
+                  AutomationProperties.Name="Deltempo Settings Dialog">
+                <Border Width="560"
+                        Background="#0F131E"
+                        BorderBrush="{StaticResource ElectricCyanBrush}"
+                        BorderThickness="1.5"
+                        CornerRadius="18"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Padding="26,22">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.85"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <!-- Header -->
+                        <Grid Margin="0,0,0,16">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Width="40" Height="40"
+                                        CornerRadius="12"
+                                        Background="#141C2B"
+                                        BorderBrush="{StaticResource ElectricCyanBrush}"
+                                        BorderThickness="1"
+                                        Margin="0,0,12,0">
+                                    <TextBlock Text="&#xE713;"
+                                               FontFamily="{StaticResource IconFont}"
+                                               FontSize="18"
+                                               Foreground="{StaticResource ElectricCyanBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Deltempo Preferences &amp; Guardian"
+                                               FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextHighBrush}"/>
+                                    <TextBlock Text="Configure background auto-clean, tray behavior &amp; audio"
+                                               FontSize="11.5"
+                                               Foreground="{StaticResource TextMediumBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Style="{StaticResource WindowCloseButton}"
+                                    Content="&#xE8BB;"
+                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    AutomationProperties.Name="Close Settings Dialog"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Click="CloseSettings_Click"/>
+                        </Grid>
+
+                        <!-- Settings Content Container -->
+                        <StackPanel Margin="0,0,0,20">
+                            <!-- Group 1: Background Auto-Pilot Guardian -->
+                            <Border Background="#090C14"
+                                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
+                                    Padding="16,12"
+                                    Margin="0,0,0,10">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Background Auto-Pilot Guardian"
+                                                       FontSize="12.5"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextHighBrush}"/>
+                                            <TextBlock Text="Periodically purges safe caches silently in background"
+                                                       FontSize="10.5"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="1"
+                                                  x:Name="SettingsAutoPilotCheckBox"
+                                                  Style="{StaticResource ModernSwitchCheckBox}"
+                                                  FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                                  IsChecked="True"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <Grid Margin="0,4,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0"
+                                                   Text="Auto-Cleaning Interval"
+                                                   FontSize="11.5"
+                                                   Foreground="{StaticResource TextMediumBrush}"
+                                                   VerticalAlignment="Center"/>
+                                        <ComboBox Grid.Column="1"
+                                                  x:Name="SettingsIntervalComboBox"
+                                                  Style="{StaticResource ModernComboBox}"
+                                                  Width="140" Height="26">
+                                            <ComboBoxItem Content="Every 6 Hours" Tag="6"/>
+                                            <ComboBoxItem Content="Every 12 Hours" Tag="12" IsSelected="True"/>
+                                            <ComboBoxItem Content="Every 24 Hours" Tag="24"/>
+                                        </ComboBox>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Group 2: System Tray & Behavior -->
+                            <Border Background="#090C14"
+                                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
+                                    Padding="16,12"
+                                    Margin="0,0,0,10">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Minimize to System Tray"
+                                                       FontSize="12.5"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextHighBrush}"/>
+                                            <TextBlock Text="Keeps Deltempo standing guard in Windows taskbar"
+                                                       FontSize="10.5"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="1"
+                                                  x:Name="SettingsTrayCheckBox"
+                                                  Style="{StaticResource ModernSwitchCheckBox}"
+                                                  FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                                  IsChecked="True"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <Grid Margin="0,4,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Show Desktop Balloon Alerts"
+                                                       FontSize="12.5"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextHighBrush}"/>
+                                            <TextBlock Text="Notify when space is reclaimed automatically"
+                                                       FontSize="10.5"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="1"
+                                                  x:Name="SettingsNotifyCheckBox"
+                                                  Style="{StaticResource ModernSwitchCheckBox}"
+                                                  FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                                  IsChecked="True"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Footer Actions -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="1"
+                                    Content="Cancel"
+                                    Style="{StaticResource PillButton}"
+                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Padding="18,8"
+                                    Margin="0,0,10,0"
+                                    Click="CloseSettings_Click"/>
+                            <Button Grid.Column="2"
+                                    Content="Save &amp; Apply"
+                                    Style="{StaticResource HeroCTAButton}"
+                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Padding="22,8"
+                                    Click="SaveSettings_Click"/>
+                        </Grid>
                     </StackPanel>
                 </Border>
             </Grid>
