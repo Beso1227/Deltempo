@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$resolvedRoot = (Resolve-Path $RootPath).Path
+$resolvedRoot = (Resolve-Path ($RootPath.Trim('\"'))).Path
 Write-Host "🔍 Graphify: Analyzing codebase at $resolvedRoot..."
 
 $nodes = @()

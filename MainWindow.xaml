@@ -36,9 +36,10 @@
                     <RowDefinition Height="Auto"/> <!-- 0: Seamless Header / Title Bar -->
                     <RowDefinition Height="Auto"/> <!-- 1: Double-Bezel Hero & Drive Telemetry -->
                     <RowDefinition Height="Auto"/> <!-- 2: Minimalist Toolbar & Category Filters -->
-                    <RowDefinition Height="*"/>    <!-- 3: Cleanable Category Cards -->
-                    <RowDefinition Height="Auto"/> <!-- 4: Bottom Floating Action Dock -->
-                    <RowDefinition Height="Auto"/> <!-- 5: Collapsible Log Stream -->
+                    <RowDefinition Height="Auto"/> <!-- 3: Category Search & Live Filter Chips -->
+                    <RowDefinition Height="*"/>    <!-- 4: Cleanable Category Cards -->
+                    <RowDefinition Height="Auto"/> <!-- 5: Bottom Floating Action Dock -->
+                    <RowDefinition Height="Auto"/> <!-- 6: Collapsible Log Stream -->
                 </Grid.RowDefinitions>
 
                 <!-- 0. SEAMLESS HEADER / TITLE BAR -->
@@ -468,8 +469,72 @@
                 </StackPanel>
             </Grid>
 
-            <!-- 3. CLEANABLE CATEGORY CARDS (SCROLLABLE BENTO LIST) -->
-            <ScrollViewer Grid.Row="3"
+            <!-- 3. CATEGORY SEARCH & LIVE FILTER CHIPS -->
+            <Grid Grid.Row="3" Margin="18,0,18,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Search Box -->
+                <Border Grid.Column="0"
+                        Background="{DynamicResource SurfaceSubCardBrush}"
+                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="8,3"
+                        Margin="0,0,10,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="&#xE721;"
+                                   FontFamily="{DynamicResource IconFont}"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   Margin="0,0,6,0"
+                                   VerticalAlignment="Center"/>
+                        <TextBox x:Name="CategorySearchBox"
+                                 Grid.Column="1"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Foreground="{DynamicResource TextHighBrush}"
+                                 FontSize="11"
+                                 VerticalAlignment="Center"
+                                 TextChanged="CategorySearchBox_TextChanged"/>
+                        <TextBlock Grid.Column="1"
+                                   x:Name="SearchPlaceholderText"
+                                   Text="Filter scopes (driver, gpu, steam)..."
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   FontSize="10.5"
+                                   VerticalAlignment="Center"
+                                   IsHitTestVisible="False"
+                                   Opacity="0.7"/>
+                        <Button Grid.Column="2"
+                                x:Name="ClearSearchBtn"
+                                Content="&#xE711;"
+                                Style="{DynamicResource WindowControlButton}"
+                                Width="18" Height="18"
+                                FontSize="8"
+                                Visibility="Collapsed"
+                                Click="ClearSearchBtn_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- Quick Filter Chips -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <RadioButton x:Name="FilterAllRadio" Content="All" Style="{DynamicResource FilterChipRadio}" IsChecked="True" Checked="FilterChip_Checked" Tag="ALL"/>
+                    <RadioButton x:Name="FilterSafeRadio" Content="Safe Only" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SAFE"/>
+                    <RadioButton x:Name="FilterDriversRadio" Content="Drivers &amp; System" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SYSTEM"/>
+                    <RadioButton x:Name="FilterGamingRadio" Content="Gaming &amp; GPU" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="GAMING"/>
+                    <RadioButton x:Name="FilterMediaRadio" Content="Media &amp; Apps" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="MEDIA"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- 4. CLEANABLE CATEGORY CARDS (SCROLLABLE BENTO LIST) -->
+            <ScrollViewer Grid.Row="4"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
                           Margin="18,0,18,6">
@@ -616,9 +681,9 @@
                 </ItemsControl>
             </ScrollViewer>
 
-            <!-- 4. BOTTOM FLOATING ACTION DOCK -->
+            <!-- 5. BOTTOM FLOATING ACTION DOCK -->
             <Border x:Name="BottomActionDockBorder"
-                    Grid.Row="4"
+                    Grid.Row="5"
                     Background="{DynamicResource HeaderDockBrush}"
                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                     BorderThickness="0,1,0,0"
@@ -746,8 +811,8 @@
                 </Grid>
             </Border>
 
-            <!-- 5. COLLAPSIBLE LOG STREAM -->
-            <Border Grid.Row="5"
+            <!-- 6. COLLAPSIBLE LOG STREAM -->
+            <Border Grid.Row="6"
                     x:Name="LogDrawerBorder"
                     Background="{DynamicResource SurfaceSubCardBrush}"
                     BorderBrush="{DynamicResource HairlineBorderBrush}"
