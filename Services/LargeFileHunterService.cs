@@ -49,11 +49,11 @@ public static class LargeFileHunterService
 
             var searchRoots = new List<string>
             {
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\Downloads",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads"),
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
-                Path.GetTempPath()
+                Path.GetTempPath().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
             };
 
             int folderIndex = 0;

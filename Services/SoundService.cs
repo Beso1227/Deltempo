@@ -17,7 +17,7 @@ public static class SoundService
                 // Play subtle soft click using generated short PCM wave
                 using var ms = GenerateToneWaveStream(880, 25, 0.15f);
                 using var player = new SoundPlayer(ms);
-                player.Play();
+                player.PlaySync();
             }
             catch { }
         });
@@ -33,7 +33,7 @@ public static class SoundService
                 // Play futuristic positive sweep (587Hz -> 880Hz -> 1174Hz)
                 using var ms = GenerateChimeWaveStream();
                 using var player = new SoundPlayer(ms);
-                player.Play();
+                player.PlaySync();
             }
             catch { }
         });

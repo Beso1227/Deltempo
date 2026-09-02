@@ -17,8 +17,17 @@ public class ProcessMemoryInfo
 
 public static class ProcessOptimizerService
 {
-    [DllImport("psapi.dll")]
+    private const int PROCESS_QUERY_INFORMATION = 0x0400;
+    private const int PROCESS_SET_QUOTA = 0x0100;
+
+    [DllImport("psapi.dll", SetLastError = true)]
     private static extern int EmptyWorkingSet(IntPtr hwProc);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool CloseHandle(IntPtr hObject);
 
     private static readonly HashSet<string> ProtectedProcesses = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -73,10 +82,20 @@ public static class ProcessOptimizerService
         try
         {
             using var p = Process.GetProcessById(pid);
-            if (p != null && !ProtectedProcesses.Contains(p.ProcessName) && p.Handle != IntPtr.Zero)
+            if (p != null && !ProtectedProcesses.Contains(p.ProcessName))
             {
-                EmptyWorkingSet(p.Handle);
-                return true;
+                IntPtr hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_SET_QUOTA, false, pid);
+                if (hProc != IntPtr.Zero)
+                {
+                    try
+                    {
+                        return EmptyWorkingSet(hProc) != 0;
+                    }
+                    finally
+                    {
+                        CloseHandle(hProc);
+                    }
+                }
             }
         }
         catch { }

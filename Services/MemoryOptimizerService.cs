@@ -122,11 +122,6 @@ public static class MemoryOptimizerService
                             CloseHandle(hProc);
                         }
                     }
-                    else if (proc.Handle != IntPtr.Zero)
-                    {
-                        EmptyWorkingSet(proc.Handle);
-                        optimizedCount++;
-                    }
                 }
                 catch
                 {

@@ -9,7 +9,7 @@
 
   [![Release](https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=00E5FF&logo=windows&logoColor=white)](https://github.com/Beso1227/Deltempo/releases/latest)
   [![CI](https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI%2FCD)](https://github.com/Beso1227/Deltempo/actions)
-  [![Tests](https://img.shields.io/badge/Tests-32%20Passing-10B981?style=for-the-badge&logo=xunit&logoColor=white)](tests/Deltempo.Tests)
+  [![Tests](https://img.shields.io/badge/Tests-35%20Passing-10B981?style=for-the-badge&logo=xunit&logoColor=white)](Tests/Deltempo.Tests)
   [![License: MIT](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
   [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-3B82F6?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/Beso1227/Deltempo)
   [![Website](https://img.shields.io/badge/Official_Site-Live-8B5CF6?style=for-the-badge&logo=googlechrome&logoColor=white)](https://beso1227.github.io/Deltempo/)
@@ -34,7 +34,7 @@
 
 Windows and modern desktop software secretly hoard tens of gigabytes of disposable cache in hidden subdirectories under `AppData`, game launcher temporary chunks, GPU shader pools, video render scratch disks, leftover uninstalled software directories, and stale driver installation packages. Meanwhile, unvetted startup apps silently drag down boot times, and background processes eat up gigabytes of precious RAM.
 
-**Deltempo** is engineered as a surgical precision, zero-bloat standalone PC optimization suite. It combines deep cache purging across **21+ distinct scopes** with an **elite Microsoft PC Manager-inspired performance toolkit** (RAM Booster, Startup Accelerator, Large File Hunter, Memory Optimizer), a **100% synchronous CLI companion**, **Graphify AST Knowledge Graph integration**, **Obsidian Knowledge Vault**, and **G-Helper style zero-trash auto-updates** — all while leaving user logins, passwords, and personal files 100% untouched.
+**Deltempo** is engineered as a surgical precision, zero-bloat standalone PC optimization suite. It combines deep cache purging across **21+ distinct scopes** with an **elite Microsoft PC Manager-inspired performance toolkit** (RAM Booster, Startup Accelerator, Large File Hunter, Memory Optimizer), a **Luxury Obsidian System Tray Guardian**, a **100% synchronous CLI companion**, **Graphify AST Knowledge Graph integration**, **Obsidian Knowledge Vault**, and **G-Helper style zero-trash auto-updates** — all while leaving user logins, passwords, and personal files 100% untouched.
 
 > ### 💡 Real-World Impact
 > *"Without Deltempo my C: drive was suffocating at 64 GB free space. In 20 seconds, Deltempo purged **6.8 GB of disposable junk**, boosted **750 MB of RAM**, and disabled 4 high-impact startup hogs with zero panic."*
@@ -55,30 +55,30 @@ Windows and modern desktop software secretly hoard tens of gigabytes of disposab
 
 ### 🚀 1. Elite PC Performance Toolkit (PC Manager Inspired)
 - **⚡ 1-Click Working Set RAM Boost**: Safely purges cached working set memory from background applications and services via native Win32 `GlobalMemoryStatusEx` and PSAPI `EmptyWorkingSet`. Instant millisecond-level feedback (`✓ -750 MB in 335ms`).
-- **🚀 Startup Apps Boot Accelerator**: Scans Windows Run keys and Startup shortcuts with boot impact ratings (`🟢 Low`, `🟡 Medium`, `🔴 High`). **100% Reversible** — disabled items are safely backed up in `Run_Deltempo_Disabled` registry keys with zero risk of corruption.
+- **🚀 Startup Apps Boot Accelerator**: Scans Windows Run keys and Startup shortcuts with boot impact ratings (`🟢 Low`, `🟡 Medium`, `🔴 High`). **100% Reversible** — disabled items are safely backed up in `Run_Deltempo_Disabled` registry keys with auto-rollback on permission failures.
 - **🐘 Disk Hog & Large File Hunter**: Scans Downloads, Documents, Desktop, and Videos for files $>50$ MB. Auto-groups by category (`Installer / ISO`, `Video / Media`, `Archive`, `Dump / Backup`, `Virtual Disk`). Features **1-Click Reveal in Explorer** and safe deletion via Windows Shell `SHFileOperation` (sends directly to **Recycle Bin with Undo**).
 - **🛑 Heavy Background Memory Apps Optimizer**: Identifies heavy memory consumers ($>80$ MB) with a **hardcoded Windows Core Whitelist** protecting all vital system processes (`explorer.exe`, `dwm.exe`, `svchost.exe`, `csrss.exe`, `lsass.exe`, etc.) from being touched or terminated.
 
-### 💻 2. Synchronous In-Place CLI Engine & Global Integration
+### 🛡️ 2. Luxury Obsidian System Tray Guardian & UIPI IPC
+- **💎 Dark Obsidian Glass Menu**: Tailored `#0C1017` dark acrylic aesthetic with 12px rounded corners, 24px soft drop shadow, icon badges (`#141B28`), and live telemetry header card displaying real-time RAM pressure and gradient progress indicators.
+- **🛡️ UIPI-Protected Single-Instance IPC**: Automatically bypasses Windows User Interface Privilege Isolation (`ChangeWindowMessageFilter`) to bring existing background/minimized instances to the foreground smoothly with zero duplicate processes or ghost tray icons.
+- **🤖 Autonomous Auto-Pilot Guardian**: Background timer silently cleans disposable caches on user-defined schedules (e.g. every 12 hours) with subtle desktop notifications.
+
+### 💻 3. Synchronous In-Place CLI Engine & Global Integration
 - **Dual-Mode Desktop & Terminal Architecture**: Just like Visual Studio (`devenv.exe` + `devenv.com`), Deltempo provides a pure desktop GUI application (`Deltempo.exe`) and a native Console Subsystem binary (`deltempo_cli.exe`).
 - **Zero Prompt Collision**: CLI runs synchronously within the active console session. Output renders in-place, and the shell prompt returns on a clean new line below with zero text overlapping.
 - **Auto Global Registration**: Automatically registers to User `PATH`, Windows `App Paths`, and PowerShell profiles on first run.
 
-### 🧠 3. Graphify AST Knowledge Graph & Obsidian Vault
-- **📊 AST Codebase Graph (`graphify-out/graph.json`)**: Complete relationship graph mapping 30 component nodes, 33 architectural edges, degree metrics, and 8 community clusters.
+### 🧠 4. Graphify AST Knowledge Graph & Obsidian Vault
+- **📊 AST Codebase Graph (`graphify-out/graph.json`)**: Complete relationship graph mapping component nodes, architectural edges, degree metrics, and community clusters.
 - **🌐 Interactive Visual Graph (`graphify-out/graph.html`)**: Standalone 3D/2D Force-Directed visual graph for interactive structural exploration in any browser.
 - **💎 Obsidian Knowledge Vault (`vault/`)**: Obsidian Flavored Markdown notes with frontmatter properties, callouts, `[[wikilinks]]`, and native **JSON Canvas 1.0** architectural blueprints (`vault/05 - Canvases/Deltempo_Architecture.canvas`).
 - **🔄 Automated Synchronization Hooks**: Git pre-commit hooks and MSBuild targets automatically regenerate and stage graph artifacts on every code change.
 
-### 🧪 4. xUnit Test Suite & Mock Provider Architecture
-- **32 Automated Unit Tests (`tests/Deltempo.Tests/`)**: Complete test coverage verifying 21-scope discovery, 24-hour Safe Mode filter, locked file resilience, core system process whitelists, and audit report generation.
+### 🧪 5. xUnit Test Suite & Mock Provider Architecture
+- **35 Automated Unit Tests (`Tests/Deltempo.Tests/`)**: Complete test coverage verifying 21-scope discovery, 24-hour Safe Mode filter, locked file resilience, memory metrics, startup enumerators, core system process whitelists, and audit report generation.
 - **Mock Provider Interfaces (`Services/Providers/ISystemProvider.cs`)**: Headless in-memory simulation providers for side-effect-free test execution in CI/CD without touching physical disks.
 - **Automated GitHub Actions CI (`.github/workflows/ci.yml`)**: Automated builds and quality gates on every push and PR.
-
-### 🛡️ 5. Single-Instance Mutex & System Tray Protection
-- **Zero Duplicate Processes**: Prevents duplicate instances or duplicate tray icons from spawning when launched multiple times.
-- **IPC Window Activation**: Launching Deltempo while running in the background brings the existing window to the front smoothly via registered inter-process Windows messages.
-- **Clean Tray Lifecycle**: Automatic Win32 `Shell_NotifyIconW(NIM_DELETE)` cleanup on exit prevents ghost icons from remaining in the notification area.
 
 ### 🔄 6. G-Helper Style Seamless Auto-Updater
 - **Zero-Installer Atomic Hot-Swap**: Polling GitHub Releases directly, Deltempo streams new updates in the background and replaces its running executable atomically without creating installer leftovers.
@@ -95,6 +95,7 @@ Windows and modern desktop software secretly hoard tens of gigabytes of disposab
 | **1-Click RAM Boost** | **✅ Non-destructive** | ✅ Yes | ❌ Paywalled | ❌ No | ❌ No |
 | **Startup Boot Accelerator** | **✅ 100% Reversible** | ⚠️ Basic | ⚠️ Paywalled | ❌ No | ⚠️ Task Manager |
 | **Large File Hunter** | **✅ $>50$ MB + Recycle Bin** | ⚠️ Basic | ❌ Paywalled | ❌ No | ❌ No |
+| **Luxury Tray Guardian** | **✅ Dark Glass + Live Telemetry** | ⚠️ Basic | ❌ Ad-heavy popup | ❌ No | ❌ No |
 | **Device Driver Package Purge** | **✅ NVIDIA OTA (3.7+ GB), AMD, Intel** | ⚠️ Limited | ❌ No | ❌ No | ⚠️ Partial |
 | **Defender Antivirus Cache Purge** | **✅ MPLog & Scan History** | ⚠️ Basic | ❌ No | ❌ No | ❌ No |
 | **GPU Shader Cache Purge** | **✅ NVIDIA / AMD / Intel** | ❌ No | ❌ No | ❌ No | ❌ No |
@@ -104,11 +105,11 @@ Windows and modern desktop software secretly hoard tens of gigabytes of disposab
 | **CBS Servicing & DISM Logs** | **✅ CbsPersist_*.log** | ❌ No | ❌ No | ❌ No | ❌ No |
 | **Orphaned App Leftovers** | **✅ Registry Cross-Checked** | ❌ No | ❌ Paywalled | ❌ No | ❌ No |
 | **In-Place Hot-Swap Updates** | **✅ G-Helper Style (Zero Trash)** | ⚠️ Store Dependent | ❌ Installer Popups | ❌ Manual | ⚠️ Windows Update |
-| **Single-Instance Mutex Guard** | **✅ Yes (Zero Duplicate Icons)** | ⚠️ Basic | ❌ No | ❌ No | N/A |
+| **Single-Instance Mutex Guard** | **✅ Yes (UIPI IPC Window Focus)** | ⚠️ Basic | ❌ No | ❌ No | N/A |
 | **24h Safety Shield Filter** | **✅ Yes (Zero Accidental Loss)** | ❌ No | ❌ Blind Deletion | ❌ No | ❌ No |
 | **Headless Synchronous CLI** | **✅ Full CLI + JSON output** | ❌ No | ⚠️ Limited CLI | ⚠️ Basic CLI | ⚠️ Legacy cleanmgr |
 | **Knowledge Graph & Obsidian Vault** | **✅ Graphify + JSON Canvas** | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Automated xUnit CI/CD** | **✅ 32 Unit Tests + GitHub Actions** | ❌ Proprietary | ❌ Proprietary | ⚠️ Basic | ❌ Proprietary |
+| **Automated xUnit CI/CD** | **✅ 35 Unit Tests + GitHub Actions** | ❌ Proprietary | ❌ Proprietary | ⚠️ Basic | ❌ Proprietary |
 
 ---
 
@@ -174,8 +175,8 @@ deltempo update
 git clone https://github.com/Beso1227/Deltempo.git
 cd Deltempo
 
-# Run xUnit Unit Test Suite (32 tests)
-dotnet test tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+# Run xUnit Unit Test Suite (35 tests)
+dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
 
 # Publish Standalone GUI Binary (Deltempo.exe)
 dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish_gui

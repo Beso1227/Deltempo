@@ -21,8 +21,21 @@ public partial class App : System.Windows.Application
     private const int STD_OUTPUT_HANDLE = -11;
     private const int STD_ERROR_HANDLE = -12;
 
-    protected override async void OnStartup(StartupEventArgs e)
+    protected override void OnStartup(StartupEventArgs e)
     {
+        base.OnStartup(e);
+
+        DispatcherUnhandledException += (s, args) =>
+        {
+            try
+            {
+                var logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Deltempo", "crash.log");
+                Directory.CreateDirectory(Path.GetDirectoryName(logFile)!);
+                File.AppendAllText(logFile, $"[{DateTime.Now}] Crash: {args.Exception}\n");
+            }
+            catch { }
+        };
+
         // Automatically ensure 'deltempo' is globally accessible in terminal & Win+R
         CliRegistrationService.EnsureCliRegistered();
 
@@ -31,7 +44,7 @@ public partial class App : System.Windows.Application
         if (args.Length > 0)
         {
             SetupConsoleStream();
-            int exitCode = await CliRunner.RunAsync(args);
+            int exitCode = CliRunner.RunAsync(args).GetAwaiter().GetResult();
             FreeConsole();
             Shutdown(exitCode);
             return;
@@ -45,7 +58,9 @@ public partial class App : System.Windows.Application
             return;
         }
 
-        base.OnStartup(e);
+        var mainWindow = new MainWindow();
+        MainWindow = mainWindow;
+        mainWindow.Show();
     }
 
     private static void SetupConsoleStream()

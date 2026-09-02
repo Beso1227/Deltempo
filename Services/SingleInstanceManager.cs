@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -15,7 +16,16 @@ public static class SingleInstanceManager
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool SetForegroundWindow(IntPtr hWnd);
+
     private const int HWND_BROADCAST = 0xffff;
+    private const int SW_RESTORE = 9;
     private static Mutex? _mutex;
 
     public static bool TryAcquire()
@@ -24,6 +34,11 @@ public static class SingleInstanceManager
         {
             _mutex = new Mutex(true, MutexName, out bool createdNew);
             return createdNew;
+        }
+        catch (AbandonedMutexException)
+        {
+            // Previous instance crashed or exited without clean release; ownership acquired
+            return true;
         }
         catch
         {
@@ -39,6 +54,31 @@ public static class SingleInstanceManager
             if (msg != 0)
             {
                 PostMessage((IntPtr)HWND_BROADCAST, msg, IntPtr.Zero, IntPtr.Zero);
+            }
+
+            int currentPid = Process.GetCurrentProcess().Id;
+            var processes = Process.GetProcessesByName("Deltempo")
+                .Concat(Process.GetProcessesByName("WinTempCleaner"));
+
+            foreach (var p in processes)
+            {
+                try
+                {
+                    if (p.Id != currentPid)
+                    {
+                        var hWnd = p.MainWindowHandle;
+                        if (hWnd != IntPtr.Zero)
+                        {
+                            ShowWindowAsync(hWnd, SW_RESTORE);
+                            SetForegroundWindow(hWnd);
+                        }
+                    }
+                }
+                catch { }
+                finally
+                {
+                    p.Dispose();
+                }
             }
         }
         catch { }
