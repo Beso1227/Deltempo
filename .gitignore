@@ -1,0 +1,27 @@
+# Build & Output Directories
+bin/
+obj/
+publish/
+publish_*/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE & Editor files
+.vs/
+.vscode/
+.idea/
+*.swp
+*.lock
+
+# OS Generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Crash dumps & logs
+*.log
+*.dmp
+*.tmp

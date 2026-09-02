@@ -1,0 +1,358 @@
+<Application x:Class="WinTempCleaner.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <!-- High-End Luxury Dark Palette (OLED Obsidian & Titanium) -->
+        <Color x:Key="CanvasDarkColor">#090B10</Color>
+        <Color x:Key="SurfaceCardColor">#111520</Color>
+        <Color x:Key="SurfaceCardHoverColor">#171D2C</Color>
+        <Color x:Key="SurfaceCardSelectedColor">#141A28</Color>
+        <Color x:Key="HairlineBorderColor">#1E2538</Color>
+        <Color x:Key="HairlineBorderGlowColor">#3B82F6</Color>
+
+        <!-- Brand Accents -->
+        <Color x:Key="ElectricCyanColor">#00E5FF</Color>
+        <Color x:Key="AccentBlueColor">#3B82F6</Color>
+        <Color x:Key="AccentIndigoColor">#6366F1</Color>
+        <Color x:Key="AccentVioletColor">#8B5CF6</Color>
+        <Color x:Key="EmeraldGreenColor">#10B981</Color>
+        <Color x:Key="AmberWarningColor">#F59E0B</Color>
+
+        <!-- Typography Tones -->
+        <Color x:Key="TextHighColor">#F8FAFC</Color>
+        <Color x:Key="TextMediumColor">#94A3B8</Color>
+        <Color x:Key="TextMutedColor">#526079</Color>
+
+        <!-- Solid Brushes -->
+        <SolidColorBrush x:Key="CanvasDarkBrush" Color="{StaticResource CanvasDarkColor}"/>
+        <SolidColorBrush x:Key="SurfaceCardBrush" Color="{StaticResource SurfaceCardColor}"/>
+        <SolidColorBrush x:Key="SurfaceCardHoverBrush" Color="{StaticResource SurfaceCardHoverColor}"/>
+        <SolidColorBrush x:Key="SurfaceCardSelectedBrush" Color="{StaticResource SurfaceCardSelectedColor}"/>
+        <SolidColorBrush x:Key="HairlineBorderBrush" Color="{StaticResource HairlineBorderColor}"/>
+        <SolidColorBrush x:Key="ElectricCyanBrush" Color="{StaticResource ElectricCyanColor}"/>
+        <SolidColorBrush x:Key="AccentBlueBrush" Color="{StaticResource AccentBlueColor}"/>
+        <SolidColorBrush x:Key="AccentIndigoBrush" Color="{StaticResource AccentIndigoColor}"/>
+        <SolidColorBrush x:Key="AccentVioletBrush" Color="{StaticResource AccentVioletColor}"/>
+        <SolidColorBrush x:Key="EmeraldGreenBrush" Color="{StaticResource EmeraldGreenColor}"/>
+        <SolidColorBrush x:Key="AmberWarningBrush" Color="{StaticResource AmberWarningColor}"/>
+        <SolidColorBrush x:Key="TextHighBrush" Color="{StaticResource TextHighColor}"/>
+        <SolidColorBrush x:Key="TextMediumBrush" Color="{StaticResource TextMediumColor}"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}"/>
+
+        <!-- Gradients -->
+        <LinearGradientBrush x:Key="BrandHeroGradientBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#00E5FF" Offset="0.0"/>
+            <GradientStop Color="#3B82F6" Offset="0.4"/>
+            <GradientStop Color="#8B5CF6" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="DoubleBezelOuterBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#1A2234" Offset="0.0"/>
+            <GradientStop Color="#111624" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="DoubleBezelInnerBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#121622" Offset="0.0"/>
+            <GradientStop Color="#0C0F18" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="HeroActionBtnBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#00B4D8" Offset="0.0"/>
+            <GradientStop Color="#3B82F6" Offset="0.5"/>
+            <GradientStop Color="#7C3AED" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <!-- WCAG 2.2 AA Focus Visual Style (Focus Appearance SC 2.4.11) -->
+        <Style x:Key="AccessibleFocusVisualStyle">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Stroke="{StaticResource ElectricCyanBrush}"
+                                   StrokeThickness="2"
+                                   StrokeDashArray="2 1"
+                                   RadiusX="10" RadiusY="10"
+                                   Margin="-3"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Global Typography -->
+        <FontFamily x:Key="AppFont">Segoe UI Variable Display, Segoe UI, -apple-system, BlinkMacSystemFont, sans-serif</FontFamily>
+        <FontFamily x:Key="MonospaceFont">Cascadia Code, Consolas, monospace</FontFamily>
+        <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets, Segoe UI Symbol</FontFamily>
+
+        <!-- Base Card Container Style -->
+        <Style x:Key="ModernCard" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource SurfaceCardBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource HairlineBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="20" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.4"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Primary Action Button (Glowing Hero CTA) -->
+        <Style x:Key="HeroCTAButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource HeroActionBtnBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="24,11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="outerBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="12"
+                                Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="18" ShadowDepth="2" Direction="270" Color="#3B82F6" Opacity="0.5"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="outerBorder" Property="Opacity" Value="0.94"/>
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="1.02" ScaleY="1.02"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="outerBorder" Property="Opacity" Value="0.85"/>
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="outerBorder" Property="Opacity" Value="0.3"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Secondary Ghost / Pill Button -->
+        <Style x:Key="PillButton" TargetType="Button">
+            <Setter Property="Background" Value="#151A26"/>
+            <Setter Property="Foreground" Value="{StaticResource TextHighBrush}"/>
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1D2436"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#3B82F6"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#111520"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.35"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Toggle Switch Checkbox -->
+        <Style x:Key="ModernSwitchCheckBox" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource TextHighBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid VerticalAlignment="Center">
+                            <!-- Pill Track -->
+                            <Border x:Name="track"
+                                    Width="36" Height="20"
+                                    CornerRadius="10"
+                                    Background="#1A2130"
+                                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                                    BorderThickness="1">
+                                <!-- Switch Thumb -->
+                                <Border x:Name="thumb"
+                                        Width="14" Height="14"
+                                        CornerRadius="7"
+                                        Background="#64748B"
+                                        HorizontalAlignment="Left"
+                                        Margin="2,0,0,0">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="4" ShadowDepth="1" Color="#000000" Opacity="0.3"/>
+                                    </Border.Effect>
+                                </Border>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="track" Property="Background" Value="{StaticResource AccentBlueBrush}"/>
+                                <Setter TargetName="track" Property="BorderBrush" Value="{StaticResource ElectricCyanBrush}"/>
+                                <Setter TargetName="thumb" Property="Background" Value="White"/>
+                                <Setter TargetName="thumb" Property="HorizontalAlignment" Value="Right"/>
+                                <Setter TargetName="thumb" Property="Margin" Value="0,0,2,0"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="track" Property="BorderBrush" Value="{StaticResource ElectricCyanBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Window Control Button (Min/Close) -->
+        <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMediumBrush}"/>
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#1E2538"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#141926"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Close Window Button (Red on hover) -->
+        <Style x:Key="WindowCloseButton" TargetType="Button" BasedOn="{StaticResource WindowControlButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#DC2626"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#991B1B"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- LUXURY MINIMALIST SCROLLBAR STYLES -->
+        <Style x:Key="ScrollThumb" TargetType="{x:Type Thumb}">
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border x:Name="ThumbBorder"
+                                CornerRadius="4"
+                                Background="#2A3448"
+                                Margin="1,0"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ThumbBorder" Property="Background" Value="{StaticResource AccentBlueBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="ThumbBorder" Property="Background" Value="{StaticResource ElectricCyanBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Vertical">
+                    <Setter Property="Width" Value="7"/>
+                    <Setter Property="MinWidth" Value="7"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Grid Background="Transparent">
+                                    <Border Background="#0C0F17"
+                                            CornerRadius="3.5"
+                                            Opacity="0.6"/>
+                                    <Track x:Name="PART_Track"
+                                           IsDirectionReversed="True">
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource ScrollThumb}"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Height" Value="7"/>
+                    <Setter Property="MinHeight" Value="7"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Grid Background="Transparent">
+                                    <Border Background="#0C0F17"
+                                            CornerRadius="3.5"
+                                            Opacity="0.6"/>
+                                    <Track x:Name="PART_Track"
+                                           IsDirectionReversed="False">
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource ScrollThumb}"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Application.Resources>
+</Application>
