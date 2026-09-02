@@ -1103,10 +1103,10 @@ public partial class MainWindow : Window
     {
         if (sender is Button btn && btn.DataContext is ProcessMemoryInfo proc)
         {
-            bool ok = ProcessOptimizerService.TrimProcessMemory(proc.ProcessId);
+            bool ok = ProcessOptimizerService.TrimProcessMemory(proc.ProcessIds.Count > 0 ? proc.ProcessIds : new List<int> { proc.ProcessId });
             if (ok)
             {
-                AddLog($"Trimmed working memory for '{proc.ProcessName}'.", LogLevel.Success);
+                AddLog($"Trimmed working memory for '{proc.DisplayName}'.", LogLevel.Success);
                 UpdateMemoryTelemetry();
                 OpenProcessModal_Click(sender, e);
             }
@@ -1125,10 +1125,10 @@ public partial class MainWindow : Window
 
             if (res == MessageBoxResult.Yes)
             {
-                bool ok = ProcessOptimizerService.SafeTerminateProcess(proc.ProcessId);
+                bool ok = ProcessOptimizerService.SafeTerminateProcess(proc.ProcessIds.Count > 0 ? proc.ProcessIds : new List<int> { proc.ProcessId });
                 if (ok)
                 {
-                    AddLog($"Terminated task '{proc.ProcessName}'.", LogLevel.Info);
+                    AddLog($"Terminated task '{proc.DisplayName}'.", LogLevel.Info);
                     UpdateMemoryTelemetry();
                     OpenProcessModal_Click(sender, e);
                 }
