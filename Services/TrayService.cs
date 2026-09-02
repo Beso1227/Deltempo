@@ -2,7 +2,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Interop;
+using System.Windows.Media;
 using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
@@ -30,11 +32,6 @@ public static class TrayService
     private const int NIF_INFO = 0x00000010;
     private const int NIIF_INFO = 0x00000001;
 
-    private const uint MF_STRING = 0x00000000;
-    private const uint MF_SEPARATOR = 0x00000800;
-    private const uint TPM_RETURNCMD = 0x0100;
-    private const uint TPM_NONOTIFY = 0x0080;
-
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct NOTIFYICONDATA
     {
@@ -59,21 +56,6 @@ public static class TrayService
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     private static extern bool Shell_NotifyIconW(int dwMessage, ref NOTIFYICONDATA lpdata);
 
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern IntPtr CreatePopupMenu();
-
-    [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    private static extern bool AppendMenuW(IntPtr hMenu, uint uFlags, uint uIDNewItem, string lpNewItem);
-
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern uint TrackPopupMenuEx(IntPtr hmenu, uint fuFlags, int x, int y, IntPtr hwnd, IntPtr lptpm);
-
-    [DllImport("user32.dll")]
-    private static extern bool DestroyMenu(IntPtr hMenu);
-
-    [DllImport("user32.dll")]
-    private static extern bool GetCursorPos(out POINT lpPoint);
-
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hWnd);
 
@@ -82,13 +64,6 @@ public static class TrayService
 
     [DllImport("user32.dll")]
     private static extern bool DestroyIcon(IntPtr hIcon);
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct POINT
-    {
-        public int X;
-        public int Y;
-    }
 
     public static void Initialize(
         Window mainWindow,
@@ -201,58 +176,171 @@ public static class TrayService
             }
             else if (eventId == WM_RBUTTONUP)
             {
-                ShowContextMenu(hwnd);
+                ShowLuxuryContextMenu(hwnd);
                 handled = true;
             }
         }
         return IntPtr.Zero;
     }
 
-    private static async void ShowContextMenu(IntPtr hWnd)
+    private static void ShowLuxuryContextMenu(IntPtr hWnd)
     {
-        IntPtr hMenu = CreatePopupMenu();
-        if (hMenu == IntPtr.Zero) return;
+        if (_mainWindow == null) return;
 
-        var mem = MemoryOptimizerService.GetMemoryInfo();
-        AppendMenuW(hMenu, MF_STRING, 1, $"👑 Open Deltempo (RAM: {mem.UsedPercent:0.0}%)");
-        AppendMenuW(hMenu, MF_SEPARATOR, 0, string.Empty);
-        AppendMenuW(hMenu, MF_STRING, 2, "⚡ Boost RAM (Flush Cache & Working Sets)");
-        AppendMenuW(hMenu, MF_STRING, 3, "🧹 Clean Safe Caches Now");
-        AppendMenuW(hMenu, MF_STRING, 4, "⚙️ Settings");
-        AppendMenuW(hMenu, MF_SEPARATOR, 0, string.Empty);
-        AppendMenuW(hMenu, MF_STRING, 5, "❌ Exit Deltempo");
-
-        GetCursorPos(out POINT pt);
-        SetForegroundWindow(hWnd);
-
-        uint cmd = TrackPopupMenuEx(hMenu, TPM_RETURNCMD | TPM_NONOTIFY, pt.X, pt.Y, hWnd, IntPtr.Zero);
-        DestroyMenu(hMenu);
-
-        switch (cmd)
+        _mainWindow.Dispatcher.Invoke(() =>
         {
-            case 1:
-                RestoreMainWindow();
-                break;
-            case 2:
+            var menu = new ContextMenu
+            {
+                Style = Application.Current.TryFindResource("LuxuryTrayContextMenu") as Style,
+                Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint
+            };
+
+            var mem = MemoryOptimizerService.GetMemoryInfo();
+
+            // 1. Header Telemetry Card
+            var headerBorder = new Border
+            {
+                Background = Application.Current.TryFindResource("SurfaceSubCardBrush") as Brush ?? new SolidColorBrush(Color.FromRgb(30, 41, 59)),
+                BorderBrush = Application.Current.TryFindResource("HairlineBorderBrush") as Brush ?? new SolidColorBrush(Color.FromArgb(40, 255, 255, 255)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(10, 8, 10, 8),
+                Margin = new Thickness(2, 2, 2, 6)
+            };
+
+            var headerGrid = new Grid();
+            headerGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            headerGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            headerGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            var titlePanel = new StackPanel { Orientation = Orientation.Horizontal };
+            titlePanel.Children.Add(new TextBlock
+            {
+                Text = "\uEA86",
+                FontFamily = Application.Current.TryFindResource("IconFont") as FontFamily,
+                FontSize = 13,
+                Foreground = Application.Current.TryFindResource("ElectricCyanBrush") as Brush ?? Brushes.Cyan,
+                Margin = new Thickness(0, 0, 6, 0),
+                VerticalAlignment = VerticalAlignment.Center
+            });
+            titlePanel.Children.Add(new TextBlock
+            {
+                Text = "Deltempo Guardian",
+                FontWeight = FontWeights.Bold,
+                FontSize = 12,
+                Foreground = Application.Current.TryFindResource("TextHighBrush") as Brush ?? Brushes.White,
+                VerticalAlignment = VerticalAlignment.Center
+            });
+            Grid.SetRow(titlePanel, 0);
+            headerGrid.Children.Add(titlePanel);
+
+            var ramText = new TextBlock
+            {
+                Text = $"RAM Pressure: {mem.UsedPercent:0.0}% ({mem.FormattedUsed} / {mem.FormattedTotal})",
+                FontSize = 10.5,
+                Foreground = Application.Current.TryFindResource("TextMediumBrush") as Brush ?? Brushes.LightGray,
+                Margin = new Thickness(0, 4, 0, 4)
+            };
+            Grid.SetRow(ramText, 1);
+            headerGrid.Children.Add(ramText);
+
+            var pBarBorder = new Border
+            {
+                Height = 4,
+                CornerRadius = new CornerRadius(2),
+                Background = Application.Current.TryFindResource("TrackBgBrush") as Brush ?? new SolidColorBrush(Color.FromRgb(51, 65, 85)),
+                ClipToBounds = true
+            };
+            var pBar = new ProgressBar
+            {
+                Height = 4,
+                Minimum = 0,
+                Maximum = 100,
+                Value = mem.UsedPercent,
+                Foreground = Application.Current.TryFindResource("BrandHeroGradientBrush") as Brush ?? Brushes.Cyan,
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0)
+            };
+            pBarBorder.Child = pBar;
+            Grid.SetRow(pBarBorder, 2);
+            headerGrid.Children.Add(pBarBorder);
+
+            headerBorder.Child = headerGrid;
+            menu.Items.Add(headerBorder);
+
+            // 2. Open Window
+            var openItem = CreateMenuItem("\uE80F", "Open Deltempo Dashboard", () => RestoreMainWindow(), Brushes.DodgerBlue);
+            menu.Items.Add(openItem);
+
+            // 3. Boost RAM
+            var boostItem = CreateMenuItem("\uE768", "Boost RAM (Flush Standby Cache)", async () =>
+            {
                 if (_onOptimizeRam != null)
                 {
                     var res = await _onOptimizeRam();
                     ShowNotification("⚡ RAM Booster", $"Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} tasks in {res.ExecutionTimeMs}ms!");
                     UpdateTooltip();
                 }
-                break;
-            case 3:
-                _onCleanSafeNow?.Invoke();
-                break;
-            case 4:
+            }, Application.Current.TryFindResource("ElectricCyanBrush") as Brush ?? Brushes.Cyan);
+            menu.Items.Add(boostItem);
+
+            // 4. Quick Clean
+            var cleanItem = CreateMenuItem("\uE74D", "Clean 100% Safe Caches Now", () => _onCleanSafeNow?.Invoke(), Application.Current.TryFindResource("EmeraldGreenBrush") as Brush ?? Brushes.LimeGreen);
+            menu.Items.Add(cleanItem);
+
+            // 5. Settings
+            var settingsItem = CreateMenuItem("\uE713", "Settings & Preferences", () =>
+            {
                 RestoreMainWindow();
                 _onOpenSettings?.Invoke();
-                break;
-            case 5:
+            }, Application.Current.TryFindResource("TextMediumBrush") as Brush ?? Brushes.Gray);
+            menu.Items.Add(settingsItem);
+
+            // Separator
+            menu.Items.Add(new Separator
+            {
+                Background = Application.Current.TryFindResource("HairlineBorderBrush") as Brush ?? new SolidColorBrush(Color.FromArgb(30, 255, 255, 255)),
+                Margin = new Thickness(4, 3, 4, 3)
+            });
+
+            // 6. Exit
+            var exitItem = CreateMenuItem("\uE711", "Exit Deltempo", () =>
+            {
                 Dispose();
                 Application.Current.Shutdown();
-                break;
-        }
+            }, new SolidColorBrush(Color.FromRgb(248, 113, 113)));
+            menu.Items.Add(exitItem);
+
+            SetForegroundWindow(hWnd);
+            menu.IsOpen = true;
+        });
+    }
+
+    private static MenuItem CreateMenuItem(string iconGlyph, string title, Action onClick, Brush iconBrush)
+    {
+        var item = new MenuItem
+        {
+            Style = Application.Current.TryFindResource("LuxuryTrayMenuItem") as Style,
+            Header = new TextBlock
+            {
+                Text = title,
+                FontSize = 11.5,
+                FontWeight = FontWeights.SemiBold,
+                VerticalAlignment = VerticalAlignment.Center
+            },
+            Icon = new TextBlock
+            {
+                Text = iconGlyph,
+                FontFamily = Application.Current.TryFindResource("IconFont") as FontFamily,
+                FontSize = 12,
+                Foreground = iconBrush,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            }
+        };
+
+        item.Click += (s, e) => onClick();
+        return item;
     }
 
     public static void MinimizeToTray()
