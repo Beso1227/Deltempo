@@ -237,64 +237,108 @@
                                        Foreground="{DynamicResource TextMediumBrush}"/>
                         </StackPanel>
 
-                        <!-- Right: Live Drive C: Space Card -->
-                        <Border Grid.Column="1"
-                                Background="{DynamicResource SurfaceSubCardBrush}"
-                                BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="12"
-                                Padding="16,12"
-                                VerticalAlignment="Center"
-                                MinWidth="260"
-                                AutomationProperties.Name="System Drive Storage Telemetry">
-                            <StackPanel>
-                                <!-- Top Row: Icon + Label on Left, Percentage on Right -->
-                                <Grid Margin="0,0,0,7">
+                        <!-- Right: Dual Drive C: & RAM Telemetry Cards -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" MinWidth="270">
+                            <!-- Drive C: Card -->
+                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
+                                    Padding="14,9"
+                                    Margin="0,0,0,6"
+                                    AutomationProperties.Name="System Drive Storage Telemetry">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE7F4;"
+                                                       FontFamily="{DynamicResource IconFont}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource AccentBlueBrush}"
+                                                       Margin="0,0,5,0"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="DriveTelemetryLabel"
+                                                       Text="OS Drive (C:)"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextHighBrush}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1"
+                                                   x:Name="DriveTelemetryPercentage"
+                                                   Text="-- Free"
+                                                   FontSize="11"
+                                                   FontWeight="Bold"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                   AutomationProperties.LiveSetting="Polite"/>
+                                    </Grid>
+                                    <Border Height="5" CornerRadius="2.5" Background="{DynamicResource TrackBgBrush}" ClipToBounds="True" Margin="0,0,0,3">
+                                        <ProgressBar x:Name="DriveUsageBar"
+                                                     Height="5"
+                                                     Minimum="0" Maximum="100"
+                                                     Value="50"
+                                                     Foreground="{DynamicResource BrandHeroGradientBrush}"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"/>
+                                    </Border>
+                                    <TextBlock x:Name="DriveTelemetryDetails"
+                                               Text="Calculating disk space..."
+                                               FontSize="10"
+                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- RAM Telemetry & Instant Boost Card -->
+                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
+                                    Padding="14,8"
+                                    AutomationProperties.Name="System Memory RAM Telemetry">
+                                <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="&#xE7F4;"
-                                                   FontFamily="{DynamicResource IconFont}"
-                                                   FontSize="12"
-                                                   Foreground="{DynamicResource AccentBlueBrush}"
-                                                   Margin="0,0,6,0"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock x:Name="DriveTelemetryLabel"
-                                                   Text="OS Drive (C:)"
-                                                   FontSize="11.5"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource TextHighBrush}"/>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE950;"
+                                                       FontFamily="{DynamicResource IconFont}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource ElectricCyanBrush}"
+                                                       Margin="0,0,5,0"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBlock Text="RAM Memory"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextHighBrush}"/>
+                                            <TextBlock x:Name="HeroRamPercentText"
+                                                       Text="--%"
+                                                       FontSize="11"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource ElectricCyanBrush}"
+                                                       Margin="6,0,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="HeroRamDetailText"
+                                                   Text="Reading RAM telemetry..."
+                                                   FontSize="10"
+                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                   Margin="0,2,0,0"/>
                                     </StackPanel>
-                                    <TextBlock Grid.Column="1"
-                                               x:Name="DriveTelemetryPercentage"
-                                               Text="-- Free"
-                                               FontSize="11.5"
-                                               FontWeight="Bold"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"
-                                               AutomationProperties.LiveSetting="Polite"/>
+                                    <Button Grid.Column="1"
+                                            x:Name="HeroBoostRamBtn"
+                                            Content="⚡ Boost"
+                                            Style="{DynamicResource PillButton}"
+                                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                            Padding="10,4"
+                                            FontSize="10.5"
+                                            VerticalAlignment="Center"
+                                            Click="HeroBoostRamBtn_Click"/>
                                 </Grid>
-
-                                <!-- Middle: Drive Gauge Bar -->
-                                <ProgressBar x:Name="DriveUsageBar"
-                                             Height="6"
-                                             Minimum="0" Maximum="100"
-                                             Value="50"
-                                             Foreground="{DynamicResource BrandHeroGradientBrush}"
-                                             Background="{DynamicResource TrackBgBrush}"
-                                             BorderThickness="0"
-                                             Margin="0,0,0,6"
-                                             AutomationProperties.Name="Drive Usage Gauge"/>
-
-                                <!-- Bottom: Formatted Details -->
-                                <TextBlock x:Name="DriveTelemetryDetails"
-                                           Text="Calculating disk space..."
-                                           FontSize="10.5"
-                                           Foreground="{DynamicResource TextMediumBrush}"
-                                           HorizontalAlignment="Left"/>
-                            </StackPanel>
-                        </Border>
+                            </Border>
+                        </StackPanel>
                     </Grid>
                 </Border>
             </Border>
@@ -314,63 +358,93 @@
                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Select 100% Safe Caches"
                             AutomationProperties.HelpText="Selects all risk-free cache and temporary targets"
-                            Padding="12,5"
-                            FontSize="11"
-                            Margin="0,0,6,0"
+                            Padding="11,5"
+                            FontSize="10.5"
+                            Margin="0,0,5,0"
                             Click="SelectSafeOnlyButton_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="&#xE73E;"
                                        FontFamily="{DynamicResource IconFont}"
                                        FontSize="11"
                                        Foreground="{DynamicResource EmeraldGreenBrush}"
-                                       Margin="0,0,5,0"
+                                       Margin="0,0,4,0"
                                        VerticalAlignment="Center"/>
                             <TextBlock x:Name="SelectSafeBtnText"
-                                       Text="Select 100% Safe"
-                                       FontSize="11"
+                                       Text="Select Safe"
+                                       FontSize="10.5"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                     <Button x:Name="SelectAllBtn"
-                            Content="Select All"
+                            Content="All"
                             Style="{DynamicResource PillButton}"
                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Select All Categories"
-                            Padding="10,5"
-                            FontSize="11"
-                            Margin="0,0,6,0"
+                            Padding="8,5"
+                            FontSize="10.5"
+                            Margin="0,0,5,0"
                             Click="SelectAllButton_Click"/>
                     <Button x:Name="ClearBtn"
                             Content="Clear"
                             Style="{DynamicResource PillButton}"
                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Deselect All Categories"
-                            Padding="10,5"
-                            FontSize="11"
-                            Margin="0,0,10,0"
+                            Padding="8,5"
+                            FontSize="10.5"
+                            Margin="0,0,8,0"
                             Click="DeselectAllButton_Click"/>
                     <Button x:Name="QuickScanBtn"
                             Style="{DynamicResource PillButton}"
                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Rescan All Categories"
                             AutomationProperties.HelpText="Shortcut: F5 or Ctrl+R"
-                            Padding="12,5"
-                            FontSize="11"
+                            Padding="11,5"
+                            FontSize="10.5"
                             Click="ScanButton_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="&#xE72C;"
                                        FontFamily="{DynamicResource IconFont}"
                                        FontSize="11"
-                                       Margin="0,0,5,0"
+                                       Margin="0,0,4,0"
                                        VerticalAlignment="Center"/>
                             <TextBlock x:Name="QuickScanBtnText"
-                                       Text="Rescan (F5)"
-                                       FontSize="11"
+                                       Text="Rescan"
+                                       FontSize="10.5"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+                </StackPanel>
+
+                <!-- Center: Performance Tools Quick Bar -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Button x:Name="ToolStartupBtn"
+                            Content="🚀 Startup"
+                            Style="{DynamicResource PillButton}"
+                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                            Padding="10,5"
+                            FontSize="10.5"
+                            Margin="0,0,5,0"
+                            ToolTip="Speed up Windows boot by managing startup apps"
+                            Click="OpenStartupModal_Click"/>
+                    <Button x:Name="ToolLargeFilesBtn"
+                            Content="🐘 Large Files"
+                            Style="{DynamicResource PillButton}"
+                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                            Padding="10,5"
+                            FontSize="10.5"
+                            Margin="0,0,5,0"
+                            ToolTip="Discover and recycle hidden disk hogs (>50 MB)"
+                            Click="OpenLargeFilesModal_Click"/>
+                    <Button x:Name="ToolProcessesBtn"
+                            Content="🛑 Memory Hogs"
+                            Style="{DynamicResource PillButton}"
+                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                            Padding="10,5"
+                            FontSize="10.5"
+                            ToolTip="Trim RAM and optimize heavy background apps"
+                            Click="OpenProcessModal_Click"/>
                 </StackPanel>
 
                 <!-- Right: Safety Shield Switch -->
@@ -1471,6 +1545,444 @@
                                     Click="ApplyUpdateBtn_Click"/>
                         </Grid>
                     </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- 11. STARTUP APPS BOOT ACCELERATOR MODAL -->
+            <Grid Grid.RowSpan="6"
+                  x:Name="StartupModalOverlay"
+                  Background="{DynamicResource ModalBackdropBrush}"
+                  Visibility="Collapsed"
+                  AutomationProperties.Name="Startup Apps Accelerator Dialog">
+                <Border Width="600" MaxHeight="620"
+                        Background="{DynamicResource ModalSurfaceBrush}"
+                        BorderBrush="{DynamicResource ElectricCyanBrush}"
+                        BorderThickness="1.5"
+                        CornerRadius="18"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Padding="24,20">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.4"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header -->
+                        <Grid Grid.Row="0" Margin="0,0,0,14">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Width="40" Height="40"
+                                        CornerRadius="12"
+                                        Background="{DynamicResource SurfaceSubCardBrush}"
+                                        BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                        BorderThickness="1"
+                                        Margin="0,0,12,0">
+                                    <TextBlock Text="&#xE7E8;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="18"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="🚀 Startup Apps Boot Accelerator"
+                                               FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                    <TextBlock Text="Speed up Windows startup safely with 100% reversible toggles"
+                                               FontSize="11.5"
+                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Style="{DynamicResource WindowCloseButton}"
+                                    Content="&#xE8BB;"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Click="CloseStartupModal_Click"/>
+                        </Grid>
+
+                        <!-- Startup Items List -->
+                        <Border Grid.Row="1"
+                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="12,8"
+                                Margin="0,0,0,14"
+                                MaxHeight="400">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="StartupItemsControl">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{DynamicResource SurfaceCardBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="10"
+                                                    Padding="12,9"
+                                                    Margin="0,0,0,6">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   FontSize="12.5"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource TextHighBrush}"/>
+                                                        <TextBlock Text="{Binding Publisher}"
+                                                                   FontSize="10.5"
+                                                                   Foreground="{DynamicResource TextMutedBrush}"/>
+                                                    </StackPanel>
+                                                    <Border Grid.Column="1"
+                                                            Background="{DynamicResource SurfaceSubCardBrush}"
+                                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="6"
+                                                            Padding="8,3"
+                                                            Margin="10,0"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding ImpactText}"
+                                                                   FontSize="10"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{Binding ImpactColor}"/>
+                                                    </Border>
+                                                    <CheckBox Grid.Column="2"
+                                                              Style="{DynamicResource ModernSwitchCheckBox}"
+                                                              IsChecked="{Binding IsEnabled}"
+                                                              VerticalAlignment="Center"
+                                                              Click="StartupSwitch_Click"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+
+                        <!-- Footer Actions -->
+                        <Grid Grid.Row="2">
+                            <TextBlock x:Name="StartupStatusText"
+                                       Text="Toggles use safe backup keys • Zero registry corruption"
+                                       FontSize="10.5"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       VerticalAlignment="Center"/>
+                            <Button Content="Done"
+                                    Style="{DynamicResource HeroCTAButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    HorizontalAlignment="Right"
+                                    Padding="22,7"
+                                    FontSize="12"
+                                    Click="CloseStartupModal_Click"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- 12. LARGE FILES & DISK HOG HUNTER MODAL -->
+            <Grid Grid.RowSpan="6"
+                  x:Name="LargeFilesModalOverlay"
+                  Background="{DynamicResource ModalBackdropBrush}"
+                  Visibility="Collapsed"
+                  AutomationProperties.Name="Large Files Hunter Dialog">
+                <Border Width="650" MaxHeight="640"
+                        Background="{DynamicResource ModalSurfaceBrush}"
+                        BorderBrush="{DynamicResource ElectricCyanBrush}"
+                        BorderThickness="1.5"
+                        CornerRadius="18"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Padding="24,20">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.4"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header -->
+                        <Grid Grid.Row="0" Margin="0,0,0,14">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Width="40" Height="40"
+                                        CornerRadius="12"
+                                        Background="{DynamicResource SurfaceSubCardBrush}"
+                                        BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                        BorderThickness="1"
+                                        Margin="0,0,12,0">
+                                    <TextBlock Text="&#xE8B7;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="18"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="🐘 Disk Hog &amp; Large File Hunter"
+                                               FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                    <TextBlock Text="Find files &gt;50 MB in Downloads, Documents &amp; User Profile"
+                                               FontSize="11.5"
+                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Style="{DynamicResource WindowCloseButton}"
+                                    Content="&#xE8BB;"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Click="CloseLargeFilesModal_Click"/>
+                        </Grid>
+
+                        <!-- Large Files List -->
+                        <Border Grid.Row="1"
+                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="12,8"
+                                Margin="0,0,0,14"
+                                MaxHeight="420">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="LargeFilesItemsControl">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{DynamicResource SurfaceCardBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="10"
+                                                    Padding="12,9"
+                                                    Margin="0,0,0,6">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                        <TextBlock Text="{Binding FileName}"
+                                                                   FontSize="12"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource TextHighBrush}"
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding FilePath}"
+                                                                   FontSize="9.5"
+                                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                    <Border Grid.Column="1"
+                                                            Background="{DynamicResource SurfaceSubCardBrush}"
+                                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="6"
+                                                            Padding="8,3"
+                                                            Margin="0,0,8,0"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding FormattedSize}"
+                                                                   FontSize="11"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                    </Border>
+                                                    <Button Grid.Column="2"
+                                                            Content="📂 Reveal"
+                                                            Style="{DynamicResource PillButton}"
+                                                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                            Padding="8,4"
+                                                            FontSize="10"
+                                                            Margin="0,0,6,0"
+                                                            Click="RevealLargeFile_Click"/>
+                                                    <Button Grid.Column="3"
+                                                            Content="🗑️ Recycle"
+                                                            Style="{DynamicResource PillButton}"
+                                                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                            Padding="8,4"
+                                                            FontSize="10"
+                                                            Click="RecycleLargeFile_Click"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+
+                        <!-- Footer Actions -->
+                        <Grid Grid.Row="2">
+                            <TextBlock x:Name="LargeFilesStatusText"
+                                       Text="Items are safely sent to Windows Recycle Bin with undo"
+                                       FontSize="10.5"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       VerticalAlignment="Center"/>
+                            <Button Content="Close"
+                                    Style="{DynamicResource HeroCTAButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    HorizontalAlignment="Right"
+                                    Padding="22,7"
+                                    FontSize="12"
+                                    Click="CloseLargeFilesModal_Click"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- 13. BACKGROUND PROCESS & MEMORY OPTIMIZER MODAL -->
+            <Grid Grid.RowSpan="6"
+                  x:Name="ProcessModalOverlay"
+                  Background="{DynamicResource ModalBackdropBrush}"
+                  Visibility="Collapsed"
+                  AutomationProperties.Name="Memory Hogs Dialog">
+                <Border Width="600" MaxHeight="620"
+                        Background="{DynamicResource ModalSurfaceBrush}"
+                        BorderBrush="{DynamicResource ElectricCyanBrush}"
+                        BorderThickness="1.5"
+                        CornerRadius="18"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Padding="24,20">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.4"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header -->
+                        <Grid Grid.Row="0" Margin="0,0,0,14">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Width="40" Height="40"
+                                        CornerRadius="12"
+                                        Background="{DynamicResource SurfaceSubCardBrush}"
+                                        BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                        BorderThickness="1"
+                                        Margin="0,0,12,0">
+                                    <TextBlock Text="&#xE950;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="18"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="🛑 Heavy Background Memory Apps"
+                                               FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                    <TextBlock Text="Trim working memory or close heavy background processes safely"
+                                               FontSize="11.5"
+                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Style="{DynamicResource WindowCloseButton}"
+                                    Content="&#xE8BB;"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Click="CloseProcessModal_Click"/>
+                        </Grid>
+
+                        <!-- Process List -->
+                        <Border Grid.Row="1"
+                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="12,8"
+                                Margin="0,0,0,14"
+                                MaxHeight="400">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="ProcessItemsControl">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{DynamicResource SurfaceCardBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="10"
+                                                    Padding="12,8"
+                                                    Margin="0,0,0,6">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                        <TextBlock Text="{Binding DisplayName}"
+                                                                   FontSize="12"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource TextHighBrush}"
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="Non-system user application"
+                                                                   FontSize="10"
+                                                                   Foreground="{DynamicResource TextMutedBrush}"/>
+                                                    </StackPanel>
+                                                    <Border Grid.Column="1"
+                                                            Background="{DynamicResource SurfaceSubCardBrush}"
+                                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="6"
+                                                            Padding="8,3"
+                                                            Margin="0,0,8,0"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding FormattedMemory}"
+                                                                   FontSize="11"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                    </Border>
+                                                    <Button Grid.Column="2"
+                                                            Content="⚡ Trim RAM"
+                                                            Style="{DynamicResource PillButton}"
+                                                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                            Padding="8,4"
+                                                            FontSize="10"
+                                                            Margin="0,0,6,0"
+                                                            Click="TrimProcessMemory_Click"/>
+                                                    <Button Grid.Column="3"
+                                                            Content="❌ End Task"
+                                                            Style="{DynamicResource PillButton}"
+                                                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                            Padding="8,4"
+                                                            FontSize="10"
+                                                            Click="TerminateProcess_Click"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+
+                        <!-- Footer Actions -->
+                        <Grid Grid.Row="2">
+                            <Button Content="⚡ Trim All Background Memory"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    HorizontalAlignment="Left"
+                                    Padding="14,6"
+                                    FontSize="11"
+                                    Click="TrimAllProcesses_Click"/>
+                            <Button Content="Done"
+                                    Style="{DynamicResource HeroCTAButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    HorizontalAlignment="Right"
+                                    Padding="22,7"
+                                    FontSize="12"
+                                    Click="CloseProcessModal_Click"/>
+                        </Grid>
+                    </Grid>
                 </Border>
             </Grid>
         </Grid>
