@@ -18,6 +18,18 @@
         AutomationProperties.Name="Deltempo Windows &amp; User Profile Cleaner"
         FontFamily="{StaticResource AppFont}">
 
+    <Window.Resources>
+        <!-- Modal Entrance Storyboard -->
+        <Storyboard x:Key="ModalEntranceStoryboard">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                             From="0" To="1" Duration="0:0:0.25">
+                <DoubleAnimation.EasingFunction>
+                    <QuarticEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </Window.Resources>
+
     <!-- Master Shell Container with Deep Ambient Shadow -->
     <Border Background="{StaticResource CanvasDarkBrush}"
             BorderBrush="{StaticResource HairlineBorderBrush}"
@@ -753,6 +765,231 @@
                                 Padding="18,7"
                                 Click="CloseInspector_Click"/>
                     </Grid>
+                </Border>
+            </Grid>
+
+            <!-- 7. GORGEOUS CONFIRMATION OVERLAY MODAL -->
+            <Grid Grid.RowSpan="6"
+                  x:Name="ConfirmModalOverlay"
+                  Background="#EE05070B"
+                  Visibility="Collapsed"
+                  AutomationProperties.Name="Confirm Cleanup Dialog">
+                <Border Width="540"
+                        Background="#0F131E"
+                        BorderBrush="{StaticResource ElectricCyanBrush}"
+                        BorderThickness="1.5"
+                        CornerRadius="18"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Padding="28,24">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.85"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <!-- Top Icon & Header -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                            <Border Width="48" Height="48"
+                                    CornerRadius="14"
+                                    Background="#141C2B"
+                                    BorderBrush="{StaticResource ElectricCyanBrush}"
+                                    BorderThickness="1"
+                                    Margin="0,0,16,0">
+                                <TextBlock Text="&#xE74D;"
+                                           FontFamily="{StaticResource IconFont}"
+                                           FontSize="22"
+                                           Foreground="{StaticResource ElectricCyanBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Confirm Precision Cleanup"
+                                           FontSize="17"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource TextHighBrush}"/>
+                                <TextBlock Text="Ready to purge selected disposable cache files"
+                                           FontSize="12"
+                                           Foreground="{StaticResource TextMediumBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Highlight Stat Callout -->
+                        <Border Background="#090C14"
+                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="18,14"
+                                Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="ESTIMATED RECLAIMABLE SPACE"
+                                               FontSize="10"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource ElectricCyanBrush}"/>
+                                    <TextBlock x:Name="ConfirmModalSizeText"
+                                               Text="14.2 GB"
+                                               FontSize="26"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextHighBrush}"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <Border Grid.Column="1"
+                                        x:Name="ConfirmModalShieldBadge"
+                                        Background="#10241B"
+                                        BorderBrush="{StaticResource EmeraldGreenBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="10,6"
+                                        VerticalAlignment="Center">
+                                    <TextBlock x:Name="ConfirmModalShieldText"
+                                               Text="🟢 Safety Shield: ON"
+                                               FontSize="11"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource EmeraldGreenBrush}"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock x:Name="ConfirmModalSummaryText"
+                                   Text="Cleaning 7 selected categories. User configs and personal files remain 100% protected."
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextMediumBrush}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,24"/>
+
+                        <!-- Action Buttons -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="1"
+                                    Content="Cancel"
+                                    Style="{StaticResource PillButton}"
+                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Padding="18,9"
+                                    Margin="0,0,10,0"
+                                    Click="CancelConfirmModal_Click"/>
+                            <Button Grid.Column="2"
+                                    Style="{StaticResource HeroCTAButton}"
+                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Padding="22,9"
+                                    Click="ProceedConfirmModal_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE73E;"
+                                               FontFamily="{StaticResource IconFont}"
+                                               FontSize="12"
+                                               Margin="0,0,6,0"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="Start Cleanup"
+                                               FontSize="13"
+                                               FontWeight="Bold"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- 8. CELEBRATION / SUCCESS MODAL -->
+            <Grid Grid.RowSpan="6"
+                  x:Name="CelebrationModalOverlay"
+                  Background="#EE05070B"
+                  Visibility="Collapsed"
+                  AutomationProperties.Name="Cleanup Completed Celebration Dialog">
+                <Border Width="500"
+                        Background="#0F131E"
+                        BorderBrush="{StaticResource EmeraldGreenBrush}"
+                        BorderThickness="1.5"
+                        CornerRadius="18"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Padding="28,24">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.85"/>
+                    </Border.Effect>
+                    <StackPanel HorizontalAlignment="Center">
+                        <!-- Animated Glowing Orb -->
+                        <Border Width="60" Height="60"
+                                CornerRadius="30"
+                                Background="#10241B"
+                                BorderBrush="{StaticResource EmeraldGreenBrush}"
+                                BorderThickness="2"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,16">
+                            <TextBlock Text="&#xE73E;"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="28"
+                                       Foreground="{StaticResource EmeraldGreenBrush}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+
+                        <TextBlock Text="Cleanup Completed!"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextHighBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="CelebrationReclaimedText"
+                                   Text="Successfully Reclaimed 6.6 GB"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource ElectricCyanBrush}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,4,0,20"/>
+
+                        <!-- Stats Bento Card -->
+                        <Border Background="#090C14"
+                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Width="440"
+                                Padding="16"
+                                Margin="0,0,0,24">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                    <TextBlock Text="FILES DELETED" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationFilesText" Text="14,280" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextHighBrush}" Margin="0,2,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                    <TextBlock Text="FOLDERS PURGED" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationFoldersText" Text="412" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextHighBrush}" Margin="0,2,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                                    <TextBlock Text="TIME ELAPSED" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationTimeText" Text="14.2s" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextHighBrush}" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Action Buttons -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Content="Export Report"
+                                    Style="{StaticResource PillButton}"
+                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Padding="18,9"
+                                    Margin="0,0,10,0"
+                                    Click="CelebrationExport_Click"/>
+                            <Button Content="Awesome!"
+                                    Style="{StaticResource HeroCTAButton}"
+                                    FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                    Padding="28,9"
+                                    Click="CloseCelebration_Click"/>
+                        </StackPanel>
+                    </StackPanel>
                 </Border>
             </Grid>
         </Grid>

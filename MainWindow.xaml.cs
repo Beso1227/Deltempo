@@ -93,7 +93,17 @@ public partial class MainWindow : Window
     {
         if (e.Key == Key.Escape)
         {
-            if (InspectorModalOverlay.Visibility == Visibility.Visible)
+            if (ConfirmModalOverlay.Visibility == Visibility.Visible)
+            {
+                CancelConfirmModal_Click(sender, e);
+                e.Handled = true;
+            }
+            else if (CelebrationModalOverlay.Visibility == Visibility.Visible)
+            {
+                CloseCelebration_Click(sender, e);
+                e.Handled = true;
+            }
+            else if (InspectorModalOverlay.Visibility == Visibility.Visible)
             {
                 CloseInspector_Click(sender, e);
                 e.Handled = true;
@@ -182,19 +192,45 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void CleanButton_Click(object sender, RoutedEventArgs e)
+    private void CleanButton_Click(object sender, RoutedEventArgs e)
     {
         if (_isBusy) return;
 
         var selectedTargets = _targets.Where(t => t.IsSelected).ToList();
         if (selectedTargets.Count == 0)
         {
-            MessageBox.Show("Please select at least one category to clean.",
-                "No Selection",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            AddLog("Please select at least one category to clean.", LogLevel.Warning);
+            ProgressStatusText.Text = "No categories selected.";
             return;
         }
+
+        long totalEstimatedBytes = selectedTargets.Sum(t => t.SizeBytes);
+        bool safeMode = SafeModeCheckBox.IsChecked == true;
+
+        ConfirmModalSizeText.Text = TargetFolderInfo.FormatBytes(totalEstimatedBytes);
+        ConfirmModalShieldText.Text = safeMode ? "🟢 Safety Shield: ON" : "⚠️ Safety Shield: OFF";
+        ConfirmModalShieldBadge.BorderBrush = safeMode ? (Brush)FindResource("EmeraldGreenBrush") : (Brush)FindResource("AmberWarningBrush");
+        ConfirmModalShieldBadge.Background = safeMode ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10241B")) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A1E16"));
+
+        ConfirmModalSummaryText.Text = $"Purging {selectedTargets.Count} selected categories. System integrity, active accounts, and work documents are strictly protected.";
+        ConfirmModalOverlay.Visibility = Visibility.Visible;
+    }
+
+    private void CancelConfirmModal_Click(object sender, RoutedEventArgs e)
+    {
+        ConfirmModalOverlay.Visibility = Visibility.Collapsed;
+    }
+
+    private async void ProceedConfirmModal_Click(object sender, RoutedEventArgs e)
+    {
+        ConfirmModalOverlay.Visibility = Visibility.Collapsed;
+        await ExecuteCleanupAsync();
+    }
+
+    private async Task ExecuteCleanupAsync()
+    {
+        var selectedTargets = _targets.Where(t => t.IsSelected).ToList();
+        if (selectedTargets.Count == 0) return;
 
         bool safeMode = SafeModeCheckBox.IsChecked == true;
         _isBusy = true;
@@ -252,7 +288,7 @@ public partial class MainWindow : Window
             RecalculateTotals();
             UpdateDriveTelemetry(totalFreed);
 
-            var summary = new CleanSummary
+            _lastSummary = new CleanSummary
             {
                 TotalFreedBytes = totalFreed,
                 TotalFilesDeleted = totalFilesDeleted,
@@ -262,17 +298,14 @@ public partial class MainWindow : Window
             };
 
             ProgressStatusText.Text = "Cleanup complete!";
-            AddLog($"Cleanup Finished: Freed {summary.FormattedFreedSize} ({totalFilesDeleted:N0} deleted, {totalFilesSkipped:N0} protected) in {stopwatch.Elapsed.TotalSeconds:N1}s", LogLevel.Success);
+            AddLog($"Cleanup Finished: Freed {_lastSummary.FormattedFreedSize} ({totalFilesDeleted:N0} deleted, {totalFilesSkipped:N0} protected) in {stopwatch.Elapsed.TotalSeconds:N1}s", LogLevel.Success);
 
-            MessageBox.Show($"Deltempo Cleanup Completed!\n\n" +
-                            $"• Reclaimed Disk Space: {summary.FormattedFreedSize}\n" +
-                            $"• Files Safely Deleted: {totalFilesDeleted:N0}\n" +
-                            $"• Subfolders Purged: {totalFoldersDeleted:N0}\n" +
-                            $"• Files Protected / In-Use: {totalFilesSkipped:N0}\n" +
-                            $"• Total Time: {stopwatch.Elapsed.TotalSeconds:N1} seconds",
-                            "Deltempo Hero Cleanup Summary",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+            // Show Animated Celebration Modal Dialog
+            CelebrationReclaimedText.Text = $"Successfully Reclaimed {_lastSummary.FormattedFreedSize}";
+            CelebrationFilesText.Text = $"{totalFilesDeleted:N0}";
+            CelebrationFoldersText.Text = $"{totalFoldersDeleted:N0}";
+            CelebrationTimeText.Text = $"{stopwatch.Elapsed.TotalSeconds:N1}s";
+            CelebrationModalOverlay.Visibility = Visibility.Visible;
         }
         catch (OperationCanceledException)
         {
@@ -290,6 +323,17 @@ public partial class MainWindow : Window
             CancelButton.Visibility = Visibility.Collapsed;
             SetControlsEnabled(true);
         }
+    }
+
+    private void CloseCelebration_Click(object sender, RoutedEventArgs e)
+    {
+        CelebrationModalOverlay.Visibility = Visibility.Collapsed;
+    }
+
+    private void CelebrationExport_Click(object sender, RoutedEventArgs e)
+    {
+        CelebrationModalOverlay.Visibility = Visibility.Collapsed;
+        ExportAuditReport_Click(sender, e);
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs e)
