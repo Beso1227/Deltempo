@@ -100,9 +100,10 @@
                                        Text="Windows &amp; User Profile Guardian"
                                        FontSize="11"
                                        Foreground="{StaticResource TextMutedBrush}"/>
-                        </StackPanel>
                     </StackPanel>
 
+                    <!-- Center / Right: Admin Status Pill + Sound Toggle + Theme Toggle + Language -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0">
                         <!-- Theme Mode Toggle (Sun/Moon) -->
                         <Button x:Name="ThemeToggleBtn"
                                 Style="{StaticResource WindowControlButton}"
