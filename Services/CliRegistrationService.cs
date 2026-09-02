@@ -37,7 +37,7 @@ public static class CliRegistrationService
             EnsureCliWrapperFiles(exeDir, currentExePath);
 
             // 2. Register PowerShell profile function for 100% synchronous execution in all PowerShell sessions
-            RegisterPowerShellProfile(exeDir);
+            RegisterPowerShellProfile(exeDir, currentExePath);
 
             // 3. Register in Windows App Paths (Enables Win+R "deltempo" & Windows Shell execution)
             RegisterAppPaths("deltempo.exe", currentExePath, exeDir);
@@ -79,7 +79,7 @@ public static class CliRegistrationService
         }
     }
 
-    private static void RegisterPowerShellProfile(string exeDir)
+    private static void RegisterPowerShellProfile(string exeDir, string currentExePath)
     {
         try
         {
@@ -95,6 +95,10 @@ public static class CliRegistrationService
             {
                 cliExe = Path.Combine(exeDir, "deltempo.com");
             }
+            if (!File.Exists(cliExe))
+            {
+                cliExe = currentExePath;
+            }
 
             string snippet = $"\r\n# Deltempo Synchronous CLI\r\nfunction deltempo {{ & \"{cliExe}\" @args }}\r\n";
 
@@ -109,7 +113,19 @@ public static class CliRegistrationService
                 if (File.Exists(p))
                 {
                     string existing = File.ReadAllText(p);
-                    if (!existing.Contains("function deltempo"))
+                    if (existing.Contains("function deltempo"))
+                    {
+                        var regex = new System.Text.RegularExpressions.Regex(@"# Deltempo Synchronous CLI\r?\nfunction deltempo\s*\{[^}]*\}", System.Text.RegularExpressions.RegexOptions.Multiline);
+                        if (regex.IsMatch(existing))
+                        {
+                            string updated = regex.Replace(existing, $"# Deltempo Synchronous CLI\r\nfunction deltempo {{ & \"{cliExe}\" @args }}");
+                            if (updated != existing)
+                            {
+                                File.WriteAllText(p, updated);
+                            }
+                        }
+                    }
+                    else
                     {
                         File.AppendAllText(p, snippet);
                     }
