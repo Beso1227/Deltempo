@@ -21,6 +21,7 @@ public partial class MainWindow : Window
     private bool _isBusy;
     private bool _isAdmin;
     private long _sessionTotalFreed;
+    private CleanSummary? _lastSummary;
 
     public MainWindow()
     {
