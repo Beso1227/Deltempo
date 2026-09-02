@@ -1,2 +1,2 @@
 @echo off
-"%~dp0Deltempo.exe" %*
+"%~dp0deltempo.com" %*
