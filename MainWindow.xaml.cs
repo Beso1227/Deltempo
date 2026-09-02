@@ -561,12 +561,15 @@ public partial class MainWindow : Window
         if (LogDrawerBorder.Visibility == Visibility.Visible)
         {
             LogDrawerBorder.Visibility = Visibility.Collapsed;
+            BottomActionDockBorder.CornerRadius = new CornerRadius(0, 0, 19, 19);
             ToggleLogText.Text = "Activity Log";
             ToggleLogIcon.Text = "\uE756";
         }
         else
         {
             LogDrawerBorder.Visibility = Visibility.Visible;
+            BottomActionDockBorder.CornerRadius = new CornerRadius(0, 0, 0, 0);
+            LogDrawerBorder.CornerRadius = new CornerRadius(0, 0, 19, 19);
             ToggleLogText.Text = "Hide Log";
             ToggleLogIcon.Text = "\uE70D";
             LogScrollViewer.ScrollToEnd();
