@@ -232,6 +232,9 @@ public partial class MainWindow : Window
         {
             TrayService.Dispose();
             Close();
+        }
+    }
+
     private async void ScanButton_Click(object sender, RoutedEventArgs e)
     {
         if (_isBusy) return;
