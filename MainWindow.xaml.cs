@@ -518,4 +518,39 @@ public partial class MainWindow : Window
             }
         });
     }
+
+    private void SoundToggleBtn_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.IsSoundEnabled = !SoundService.IsSoundEnabled;
+        SoundToggleIcon.Text = SoundService.IsSoundEnabled ? "\uE767" : "\uE74F";
+        SoundToggleIcon.Foreground = SoundService.IsSoundEnabled 
+            ? (Brush)FindResource("ElectricCyanBrush") 
+            : (Brush)FindResource("TextMutedBrush");
+
+        if (SoundService.IsSoundEnabled)
+        {
+            SoundService.PlayClickSound();
+            AddLog("Haptic sound effects enabled.", LogLevel.Info);
+        }
+        else
+        {
+            AddLog("Haptic sound effects muted.", LogLevel.Info);
+        }
+    }
+
+    private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (LanguageComboBox.SelectedItem is ComboBoxItem item && item.Tag is string langCode)
+        {
+            LocalizationService.CurrentLanguage = langCode;
+            SoundService.PlayClickSound();
+            ApplyLocalization();
+        }
+    }
+
+    private void ApplyLocalization()
+    {
+        HeroSubtext.Text = LocalizationService.Get("ReclaimableSpace");
+        AddLog($"Language switched to {LocalizationService.CurrentLanguage.ToUpperInvariant()}", LogLevel.Info);
+    }
 }
