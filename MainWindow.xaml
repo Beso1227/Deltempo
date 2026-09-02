@@ -100,6 +100,7 @@
                                        Text="Windows &amp; User Profile Guardian"
                                        FontSize="11"
                                        Foreground="{StaticResource TextMutedBrush}"/>
+                        </StackPanel>
                     </StackPanel>
 
                     <!-- Center / Right: Admin Status Pill + Sound Toggle + Theme Toggle + Language -->
