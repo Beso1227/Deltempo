@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+
         <!-- High-End Dynamic Palette Tokens (Initial Dark State) -->
         <SolidColorBrush x:Key="CanvasDarkBrush" Color="#090B10"/>
         <SolidColorBrush x:Key="HeaderDockBrush" Color="#0D1017"/>

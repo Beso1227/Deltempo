@@ -308,7 +308,6 @@
                 <!-- Left: Quick Select & Smart Select -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="SelectSafeBtn"
-                            Content="🟢 Select 100% Safe"
                             Style="{DynamicResource PillButton}"
                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Select 100% Safe Caches"
@@ -316,7 +315,21 @@
                             Padding="12,5"
                             FontSize="11"
                             Margin="0,0,6,0"
-                            Click="SelectSafeOnlyButton_Click"/>
+                            Click="SelectSafeOnlyButton_Click">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="&#xE73E;"
+                                       FontFamily="{DynamicResource IconFont}"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource EmeraldGreenBrush}"
+                                       Margin="0,0,5,0"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock x:Name="SelectSafeBtnText"
+                                       Text="Select 100% Safe"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
                     <Button x:Name="SelectAllBtn"
                             Content="Select All"
                             Style="{DynamicResource PillButton}"
@@ -497,15 +510,27 @@
                                                        VerticalAlignment="Center"
                                                        Margin="0,0,6,0"/>
 
-                                            <Button Content="Inspect"
-                                                    Style="{DynamicResource PillButton}"
+                                            <Button Style="{DynamicResource PillButton}"
                                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                     AutomationProperties.Name="Inspect Large Files"
                                                     Padding="8,2"
                                                     FontSize="10"
                                                     Tag="{Binding}"
                                                     Click="InspectTarget_Click"
-                                                    Visibility="{Binding HasTopFiles, Converter={x:Null}}"/>
+                                                    Visibility="{Binding HasTopFiles, Converter={StaticResource BoolToVisConverter}}">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="&#xE721;"
+                                                               FontFamily="{DynamicResource IconFont}"
+                                                               FontSize="9"
+                                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                                               Margin="0,0,4,0"
+                                                               VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Inspect"
+                                                               FontSize="10"
+                                                               FontWeight="SemiBold"
+                                                               VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
                                         </StackPanel>
                                     </StackPanel>
                                 </Grid>

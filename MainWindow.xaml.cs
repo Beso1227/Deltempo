@@ -660,7 +660,7 @@ public partial class MainWindow : Window
         UpdateDriveTelemetry();
 
         // 3. Toolbar & Buttons
-        SelectSafeBtn.Content = LocalizationService.Get("SelectSafe");
+        SelectSafeBtnText.Text = LocalizationService.Get("SelectSafe");
         SelectAllBtn.Content = LocalizationService.Get("SelectAll");
         ClearBtn.Content = LocalizationService.Get("Clear");
         QuickScanBtnText.Text = LocalizationService.Get("Rescan");
