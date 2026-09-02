@@ -5,12 +5,12 @@
   # Deltempo — Pure Precision Windows & User Profile Cleaner
   ### 👑 The definitive open-source, zero-bloat, single-file portable Windows cleanup utility & modern CCleaner alternative.
 
-  [![Release](https://img.shields.io/github/v/release/yourusername/deltempo?style=for-the-badge&color=blue)](https://github.com/yourusername/deltempo/releases)
+  [![Release](https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=blue)](https://github.com/Beso1227/Deltempo/releases)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-  [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-0078D6?style=for-the-badge&logo=windows)](https://github.com/yourusername/deltempo)
-  [![Type](https://img.shields.io/badge/Portable-Single%20EXE-10B981?style=for-the-badge)](https://github.com/yourusername/deltempo/releases)
-  [![Telemetry](https://img.shields.io/badge/Telemetry-0%25%20Zero-success?style=for-the-badge)](https://github.com/yourusername/deltempo)
-  [![Accessibility](https://img.shields.io/badge/WCAG%202.2-Level%20AA-purple?style=for-the-badge)](https://github.com/yourusername/deltempo)
+  [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-0078D6?style=for-the-badge&logo=windows)](https://github.com/Beso1227/Deltempo)
+  [![Type](https://img.shields.io/badge/Portable-Single%20EXE-10B981?style=for-the-badge)](https://github.com/Beso1227/Deltempo/releases)
+  [![Telemetry](https://img.shields.io/badge/Telemetry-0%25%20Zero-success?style=for-the-badge)](https://github.com/Beso1227/Deltempo)
+  [![Accessibility](https://img.shields.io/badge/WCAG%202.2-Level%20AA-purple?style=for-the-badge)](https://github.com/Beso1227/Deltempo)
 
   <p align="center">
     <a href="#-quick-download">Quick Download</a> •
@@ -84,7 +84,7 @@ Unlike legacy optimizer tools that bundle background telemetry, intrusive ads, o
 
 ## ⚡ Quick Download
 
-Download the latest standalone executable from the [Releases](https://github.com/yourusername/deltempo/releases) page:
+Download the latest standalone executable from the [Releases](https://github.com/Beso1227/Deltempo/releases) page:
 - **`Deltempo.exe`** (Single portable executable, ~2.4 MB, requires no installation)
 
 > **Note**: Deltempo automatically requests Administrator privileges on launch to enable full access to system-level directories (`C:\Windows\Temp`, `Prefetch`, and `SoftwareDistribution`).
@@ -100,8 +100,8 @@ Download the latest standalone executable from the [Releases](https://github.com
 ### Build Commands
 ```powershell
 # Clone the repository
-git clone https://github.com/yourusername/deltempo.git
-cd deltempo
+git clone https://github.com/Beso1227/Deltempo.git
+cd Deltempo
 
 # Build Release binary
 dotnet build -c Release
