@@ -38,6 +38,7 @@ public static class ThemeService
             res["TrackBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1A2333"));
             res["TrackThumbBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#64748B"));
             res["ScrollThumbBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A3448"));
+            res["ScrollThumbHoverBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#06B6D4"));
 
             // Badges
             res["AdminBadgeBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10241B"));
@@ -88,6 +89,7 @@ public static class ThemeService
             res["TrackBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E2E8F0"));
             res["TrackThumbBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8"));
             res["ScrollThumbBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#CBD5E1"));
+            res["ScrollThumbHoverBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0284C7"));
 
             // Badges (Crisp Pastel Emerald on Light)
             res["AdminBadgeBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ECFDF5"));
