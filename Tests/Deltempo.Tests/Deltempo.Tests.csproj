@@ -23,10 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\WinTempCleaner\Services\*.cs" Link="Services\%(FileName)%(Extension)" />
-    <Compile Include="..\..\WinTempCleaner\Services\Providers\*.cs" Link="Services\Providers\%(FileName)%(Extension)" />
-    <Compile Include="..\..\WinTempCleaner\Models\*.cs" Link="Models\%(FileName)%(Extension)" />
-    <Compile Include="..\..\WinTempCleaner\Tests\*.cs" Link="Tests\%(FileName)%(Extension)" />
+    <Compile Include="..\..\Services\*.cs" Link="Services\%(FileName)%(Extension)" />
+    <Compile Include="..\..\Services\Providers\*.cs" Link="Services\Providers\%(FileName)%(Extension)" />
+    <Compile Include="..\..\Models\*.cs" Link="Models\%(FileName)%(Extension)" />
+    <Compile Include="..\..\Tests\*.cs" Link="Tests\%(FileName)%(Extension)" />
   </ItemGroup>
 
 </Project>
