@@ -856,9 +856,15 @@ public class CleanerService
             Path.Combine(localAppData, "pip", "cache"),
             Path.Combine(localAppData, "npm-cache"),
             Path.Combine(localAppData, "Yarn", "Cache"),
+            Path.Combine(localAppData, "pnpm", "store", "v3"),
+            Path.Combine(localAppData, "pnpm-cache"),
             Path.Combine(localAppData, "NuGet", "v3-cache"),
             Path.Combine(userProfile, ".cache"),
             Path.Combine(userProfile, ".gradle", "caches"),
+            Path.Combine(userProfile, ".cargo", "registry", "cache"),
+            Path.Combine(userProfile, ".cargo", "git", "db"),
+            Path.Combine(userProfile, ".bun", "install", "cache"),
+            Path.Combine(localAppData, "deno", "deps"),
             Path.Combine(userProfile, ".nuget", "packages", "temp")
         };
 
