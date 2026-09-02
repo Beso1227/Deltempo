@@ -38,6 +38,7 @@ public partial class MainWindow : Window
     {
         CheckAdminPrivileges();
         UpdateDriveTelemetry();
+        UpdateMemoryTelemetry();
         InitializeTargets();
         ApplyLocalization();
 
@@ -195,6 +196,26 @@ public partial class MainWindow : Window
             else if (InspectorModalOverlay.Visibility == Visibility.Visible)
             {
                 CloseInspector_Click(sender, e);
+                e.Handled = true;
+            }
+            else if (StartupModalOverlay.Visibility == Visibility.Visible)
+            {
+                CloseStartupModal_Click(sender, e);
+                e.Handled = true;
+            }
+            else if (LargeFilesModalOverlay.Visibility == Visibility.Visible)
+            {
+                CloseLargeFilesModal_Click(sender, e);
+                e.Handled = true;
+            }
+            else if (ProcessModalOverlay.Visibility == Visibility.Visible)
+            {
+                CloseProcessModal_Click(sender, e);
+                e.Handled = true;
+            }
+            else if (UpdateModalOverlay.Visibility == Visibility.Visible)
+            {
+                CloseUpdateModal_Click(sender, e);
                 e.Handled = true;
             }
         }
@@ -845,5 +866,207 @@ public partial class MainWindow : Window
     {
         UpdateModalOverlay.Visibility = Visibility.Collapsed;
         SoundService.PlayClickSound();
+    }
+
+    // ==========================================
+    // ELITE PC PERFORMANCE TOOLKIT HANDLERS
+    // ==========================================
+
+    private void UpdateMemoryTelemetry()
+    {
+        try
+        {
+            var mem = MemoryOptimizerService.GetMemoryInfo();
+            HeroRamPercentText.Text = $"{mem.UsedPercent:F0}%";
+            HeroRamDetailText.Text = $"{mem.FormattedUsed} / {mem.FormattedTotal} Used";
+        }
+        catch { }
+    }
+
+    private async void HeroBoostRamBtn_Click(object sender, RoutedEventArgs e)
+    {
+        HeroBoostRamBtn.IsEnabled = false;
+        HeroBoostRamBtn.Content = "⚡ Boosting...";
+        SoundService.PlayClickSound();
+
+        try
+        {
+            var res = await MemoryOptimizerService.OptimizeRamAsync();
+            UpdateMemoryTelemetry();
+            AddLog($"⚡ RAM Boost Complete: Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} processes in {res.ExecutionTimeMs}ms.", LogLevel.Success);
+            HeroBoostRamBtn.Content = $"✓ -{res.FormattedReclaimed}";
+            await Task.Delay(1500);
+        }
+        catch (Exception ex)
+        {
+            AddLog($"RAM optimization error: {ex.Message}", LogLevel.Warning);
+        }
+        finally
+        {
+            HeroBoostRamBtn.IsEnabled = true;
+            HeroBoostRamBtn.Content = "⚡ Boost";
+        }
+    }
+
+    // 1. Startup Accelerator Handlers
+    private async void OpenStartupModal_Click(object sender, RoutedEventArgs e)
+    {
+        StartupModalOverlay.Visibility = Visibility.Visible;
+        SoundService.PlayClickSound();
+        StartupStatusText.Text = "Scanning startup entries...";
+        
+        var items = await StartupManagerService.GetStartupItemsAsync();
+        StartupItemsControl.ItemsSource = items;
+        StartupStatusText.Text = $"Found {items.Count} startup programs • Toggles use safe backup keys";
+    }
+
+    private void CloseStartupModal_Click(object sender, RoutedEventArgs e)
+    {
+        StartupModalOverlay.Visibility = Visibility.Collapsed;
+        SoundService.PlayClickSound();
+    }
+
+    private void StartupSwitch_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox cb && cb.DataContext is StartupItem item)
+        {
+            bool isEnabled = cb.IsChecked == true;
+            bool success = StartupManagerService.ToggleStartupItem(item, isEnabled);
+            if (success)
+            {
+                AddLog($"Startup app '{item.Name}' is now {(isEnabled ? "ENABLED" : "DISABLED")}.", LogLevel.Info);
+            }
+            else
+            {
+                AddLog($"Could not change startup status for '{item.Name}'.", LogLevel.Warning);
+            }
+        }
+    }
+
+    // 2. Large File Hunter Handlers
+    private async void OpenLargeFilesModal_Click(object sender, RoutedEventArgs e)
+    {
+        LargeFilesModalOverlay.Visibility = Visibility.Visible;
+        SoundService.PlayClickSound();
+        LargeFilesStatusText.Text = "Scanning Downloads, Documents, Desktop for disk hogs (>50 MB)...";
+
+        var files = await LargeFileHunterService.ScanLargeFilesAsync();
+        LargeFilesItemsControl.ItemsSource = files;
+        long totalBytes = files.Sum(f => f.SizeBytes);
+        LargeFilesStatusText.Text = $"Discovered {files.Count} large files ({TargetFolderInfo.FormatBytes(totalBytes)})";
+    }
+
+    private void CloseLargeFilesModal_Click(object sender, RoutedEventArgs e)
+    {
+        LargeFilesModalOverlay.Visibility = Visibility.Collapsed;
+        SoundService.PlayClickSound();
+    }
+
+    private void RevealLargeFile_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.DataContext is LargeFileInfo info)
+        {
+            try
+            {
+                if (File.Exists(info.FilePath))
+                {
+                    Process.Start("explorer.exe", $"/select,\"{info.FilePath}\"");
+                }
+            }
+            catch { }
+        }
+    }
+
+    private void RecycleLargeFile_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.DataContext is LargeFileInfo info)
+        {
+            var res = MessageBox.Show(
+                $"Send '{info.FileName}' ({info.FormattedSize}) to the Windows Recycle Bin?",
+                "Recycle Large File",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (res == MessageBoxResult.Yes)
+            {
+                bool ok = LargeFileHunterService.MoveToRecycleBin(info.FilePath);
+                if (ok)
+                {
+                    AddLog($"Moved '{info.FileName}' ({info.FormattedSize}) to Recycle Bin.", LogLevel.Success);
+                    if (LargeFilesItemsControl.ItemsSource is List<LargeFileInfo> list)
+                    {
+                        list.Remove(info);
+                        LargeFilesItemsControl.Items.Refresh();
+                    }
+                    UpdateDriveTelemetry();
+                }
+                else
+                {
+                    AddLog($"Could not recycle file '{info.FileName}'.", LogLevel.Warning);
+                }
+            }
+        }
+    }
+
+    // 3. Process Optimizer Handlers
+    private async void OpenProcessModal_Click(object sender, RoutedEventArgs e)
+    {
+        ProcessModalOverlay.Visibility = Visibility.Visible;
+        SoundService.PlayClickSound();
+
+        var procs = await ProcessOptimizerService.GetHeavyProcessesAsync();
+        ProcessItemsControl.ItemsSource = procs;
+    }
+
+    private void CloseProcessModal_Click(object sender, RoutedEventArgs e)
+    {
+        ProcessModalOverlay.Visibility = Visibility.Collapsed;
+        SoundService.PlayClickSound();
+    }
+
+    private void TrimProcessMemory_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.DataContext is ProcessMemoryInfo proc)
+        {
+            bool ok = ProcessOptimizerService.TrimProcessMemory(proc.ProcessId);
+            if (ok)
+            {
+                AddLog($"Trimmed working memory for '{proc.ProcessName}'.", LogLevel.Success);
+                UpdateMemoryTelemetry();
+                OpenProcessModal_Click(sender, e);
+            }
+        }
+    }
+
+    private void TerminateProcess_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.DataContext is ProcessMemoryInfo proc)
+        {
+            var res = MessageBox.Show(
+                $"Safely end background task '{proc.DisplayName}'?",
+                "End Background Task",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (res == MessageBoxResult.Yes)
+            {
+                bool ok = ProcessOptimizerService.SafeTerminateProcess(proc.ProcessId);
+                if (ok)
+                {
+                    AddLog($"Terminated task '{proc.ProcessName}'.", LogLevel.Info);
+                    UpdateMemoryTelemetry();
+                    OpenProcessModal_Click(sender, e);
+                }
+            }
+        }
+    }
+
+    private async void TrimAllProcesses_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        var res = await MemoryOptimizerService.OptimizeRamAsync();
+        AddLog($"⚡ Trimmed background working sets: Reclaimed {res.FormattedReclaimed}.", LogLevel.Success);
+        UpdateMemoryTelemetry();
+        OpenProcessModal_Click(sender, e);
     }
 }
