@@ -94,8 +94,41 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Center / Right: Admin Status Pill + Settings + Sound Toggle + Theme Toggle + Language -->
+                    <!-- Center / Right: Performance Tools + Settings + Sound Toggle + Theme Toggle + Language -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0">
+                        <!-- Quick Performance Tools -->
+                        <Button x:Name="ToolStartupBtn"
+                                Style="{DynamicResource HeaderToolButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                ToolTip="Startup Apps Boot Accelerator"
+                                Click="OpenStartupModal_Click">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🚀" FontSize="11" Margin="0,0,4,0"/>
+                                <TextBlock Text="Startup" FontSize="11" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="ToolLargeFilesBtn"
+                                Style="{DynamicResource HeaderToolButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                ToolTip="Large File &amp; Storage Hog Hunter"
+                                Click="OpenLargeFilesModal_Click">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🐘" FontSize="11" Margin="0,0,4,0"/>
+                                <TextBlock Text="Large Files" FontSize="11" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="ToolProcessesBtn"
+                                Style="{DynamicResource HeaderToolButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                ToolTip="Memory Hogs &amp; Background App Optimizer"
+                                Margin="0,0,10,0"
+                                Click="OpenProcessModal_Click">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🛑" FontSize="11" Margin="0,0,4,0"/>
+                                <TextBlock Text="Processes" FontSize="11" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+
                         <!-- Settings Button -->
                         <Button x:Name="SettingsBtn"
                                 Style="{DynamicResource WindowControlButton}"
@@ -344,10 +377,9 @@
                 </Border>
             </Border>
 
-            <!-- 2. MINIMALIST TOOLBAR & ACCESSIBLE ACTION BUTTONS -->
+            <!-- 2. MINIMALIST TOOLBAR & SELECTION / SAFETY CONTROLS -->
             <Grid Grid.Row="2" Margin="18,6,18,8">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
@@ -359,97 +391,67 @@
                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Select 100% Safe Caches"
                             AutomationProperties.HelpText="Selects all risk-free cache and temporary targets"
-                            Padding="11,5"
-                            FontSize="10.5"
-                            Margin="0,0,5,0"
+                            Padding="12,5"
+                            FontSize="11"
+                            Margin="0,0,6,0"
                             Click="SelectSafeOnlyButton_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="&#xE73E;"
                                        FontFamily="{DynamicResource IconFont}"
                                        FontSize="11"
                                        Foreground="{DynamicResource EmeraldGreenBrush}"
-                                       Margin="0,0,4,0"
+                                       Margin="0,0,5,0"
                                        VerticalAlignment="Center"/>
                             <TextBlock x:Name="SelectSafeBtnText"
-                                       Text="Select Safe"
-                                       FontSize="10.5"
+                                       Text="Select 100% Safe"
+                                       FontSize="11"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                     <Button x:Name="SelectAllBtn"
-                            Content="All"
+                            Content="Select All"
                             Style="{DynamicResource PillButton}"
                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Select All Categories"
-                            Padding="8,5"
-                            FontSize="10.5"
-                            Margin="0,0,5,0"
+                            Padding="10,5"
+                            FontSize="11"
+                            Margin="0,0,6,0"
                             Click="SelectAllButton_Click"/>
                     <Button x:Name="ClearBtn"
                             Content="Clear"
                             Style="{DynamicResource PillButton}"
                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Deselect All Categories"
-                            Padding="8,5"
-                            FontSize="10.5"
-                            Margin="0,0,8,0"
+                            Padding="10,5"
+                            FontSize="11"
+                            Margin="0,0,6,0"
                             Click="DeselectAllButton_Click"/>
                     <Button x:Name="QuickScanBtn"
                             Style="{DynamicResource PillButton}"
                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                             AutomationProperties.Name="Rescan All Categories"
                             AutomationProperties.HelpText="Shortcut: F5 or Ctrl+R"
-                            Padding="11,5"
-                            FontSize="10.5"
+                            Padding="12,5"
+                            FontSize="11"
                             Click="ScanButton_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="&#xE72C;"
                                        FontFamily="{DynamicResource IconFont}"
                                        FontSize="11"
-                                       Margin="0,0,4,0"
+                                       Margin="0,0,5,0"
                                        VerticalAlignment="Center"/>
                             <TextBlock x:Name="QuickScanBtnText"
                                        Text="Rescan"
-                                       FontSize="10.5"
+                                       FontSize="11"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
 
-                <!-- Center: Performance Tools Quick Bar -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Button x:Name="ToolStartupBtn"
-                            Content="🚀 Startup"
-                            Style="{DynamicResource PillButton}"
-                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                            Padding="10,5"
-                            FontSize="10.5"
-                            Margin="0,0,5,0"
-                            ToolTip="Speed up Windows boot by managing startup apps"
-                            Click="OpenStartupModal_Click"/>
-                    <Button x:Name="ToolLargeFilesBtn"
-                            Content="🐘 Large Files"
-                            Style="{DynamicResource PillButton}"
-                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                            Padding="10,5"
-                            FontSize="10.5"
-                            Margin="0,0,5,0"
-                            ToolTip="Discover and recycle hidden disk hogs (>50 MB)"
-                            Click="OpenLargeFilesModal_Click"/>
-                    <Button x:Name="ToolProcessesBtn"
-                            Content="🛑 Memory Hogs"
-                            Style="{DynamicResource PillButton}"
-                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                            Padding="10,5"
-                            FontSize="10.5"
-                            ToolTip="Trim RAM and optimize heavy background apps"
-                            Click="OpenProcessModal_Click"/>
-                </StackPanel>
-
                 <!-- Right: Safety Shield Switch -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <CheckBox x:Name="SafeModeCheckBox"
                               Style="{DynamicResource ModernSwitchCheckBox}"
                               FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
