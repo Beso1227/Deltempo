@@ -5,7 +5,7 @@
   # 👑 Deltempo (King Edition)
   ### Pure Precision Windows & User Profile Cleaner
 
-  **Single Portable Executable • Zero Telemetry • 100% Free & Open Source (MIT)**
+  **Single Standalone Executable (Zero Runtime Dependencies) • Zero Telemetry • 100% Free & Open Source (MIT)**
 
   [![Release](https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=00E5FF&logo=windows&logoColor=white)](https://github.com/Beso1227/Deltempo/releases/latest)
   [![License: MIT](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
@@ -17,7 +17,7 @@
 
   <p align="center">
     <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe">
-      <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DELTEMPO.EXE_(2.4_MB)-3B82F6?style=for-the-badge&logoColor=white" alt="Download Deltempo.exe" height="42" />
+      <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DELTEMPO.EXE_(STANDALONE)-3B82F6?style=for-the-badge&logoColor=white" alt="Download Deltempo.exe" height="42" />
     </a>
   </p>
 
