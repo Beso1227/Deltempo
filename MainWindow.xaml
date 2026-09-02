@@ -103,8 +103,21 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Center / Right: Admin Status Pill + Sound Toggle + Language -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0">
+                        <!-- Theme Mode Toggle (Sun/Moon) -->
+                        <Button x:Name="ThemeToggleBtn"
+                                Style="{StaticResource WindowControlButton}"
+                                FocusVisualStyle="{StaticResource AccessibleFocusVisualStyle}"
+                                AutomationProperties.Name="Toggle Dark / Light Theme"
+                                ToolTip="Toggle Light / Dark Mode"
+                                Margin="0,0,8,0"
+                                Click="ThemeToggleBtn_Click">
+                            <TextBlock x:Name="ThemeToggleIcon"
+                                       Text="&#xE708;"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="12"
+                                       Foreground="{StaticResource ElectricCyanBrush}"/>
+                        </Button>
+
                         <!-- Sound FX Toggle -->
                         <Button x:Name="SoundToggleBtn"
                                 Style="{StaticResource WindowControlButton}"

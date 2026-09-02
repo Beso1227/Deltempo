@@ -519,6 +519,14 @@ public partial class MainWindow : Window
         });
     }
 
+    private void ThemeToggleBtn_Click(object sender, RoutedEventArgs e)
+    {
+        ThemeService.SetTheme(!ThemeService.IsDarkMode);
+        ThemeToggleIcon.Text = ThemeService.IsDarkMode ? "\uE708" : "\uE706";
+        SoundService.PlayClickSound();
+        AddLog($"Theme switched to {(ThemeService.IsDarkMode ? "Dark Obsidian" : "Nordic Frost Light")}", LogLevel.Info);
+    }
+
     private void SoundToggleBtn_Click(object sender, RoutedEventArgs e)
     {
         SoundService.IsSoundEnabled = !SoundService.IsSoundEnabled;
