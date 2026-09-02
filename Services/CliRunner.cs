@@ -93,7 +93,7 @@ public static class CliRunner
   ╚═════╝ ╚══════╝╚══════╝╚═╝   ╚══════╝╚═╝     ╚═╝╚═╝      ╚═════╝ ");
         
         Console.ForegroundColor = ConsoleColor.DarkCyan;
-        Console.WriteLine("       D E L T E M P O  —  Precision Windows Optimizer (v1.0.0)\n");
+        Console.WriteLine("       D E L T E M P O  —  Precision Windows Optimizer (v1.1.0)\n");
         Console.ResetColor();
 
         Console.ForegroundColor = ConsoleColor.White;
@@ -444,14 +444,14 @@ public static class CliRunner
         if (release != null && release.IsNewer)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"  ✓ New version available: {release.TagName} (Current: v1.0.0)");
+            Console.WriteLine($"  ✓ New version available: {release.TagName} (Current: v1.1.0)");
             Console.WriteLine($"  📥 Download: {release.DownloadUrl}");
             Console.ResetColor();
         }
         else
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("  ✓ You are running the latest version of Deltempo (v1.0.0).");
+            Console.WriteLine("  ✓ You are running the latest version of Deltempo (v1.1.0).");
             Console.ResetColor();
         }
 
