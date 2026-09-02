@@ -209,6 +209,117 @@
       transition: background-color 0.4s var(--ease-fluid), color 0.4s var(--ease-fluid);
     }
 
+    /* Custom Precision Cyber Cursor System */
+    @media (hover: hover) and (pointer: fine) {
+      body, 
+      body a, 
+      body button, 
+      body input, 
+      body select, 
+      body textarea, 
+      body [role="button"],
+      body .interactive-card,
+      body .sim-card,
+      body .faq-summary,
+      body .filter-pill,
+      body .cli-tab,
+      body .download-link-btn,
+      body .github-stars-pill,
+      body .theme-toggle-btn,
+      body .sound-toggle-btn {
+        cursor: none !important;
+      }
+
+      .custom-cursor-dot {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #00E5FF;
+        box-shadow: 0 0 10px #00E5FF, 0 0 20px rgba(0, 229, 255, 0.7);
+        pointer-events: none;
+        z-index: 999999;
+        transform: translate(-50%, -50%);
+        transition: opacity 0.3s ease, background-color 0.2s ease, width 0.2s ease, height 0.2s ease, box-shadow 0.2s ease;
+        will-change: left, top, transform;
+      }
+
+      .custom-cursor-ring {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(0, 229, 255, 0.65);
+        background: radial-gradient(circle, rgba(0, 229, 255, 0.08) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 999998;
+        transform: translate(-50%, -50%);
+        transition: width 0.24s cubic-bezier(0.16, 1, 0.3, 1), 
+                    height 0.24s cubic-bezier(0.16, 1, 0.3, 1), 
+                    border-color 0.2s ease, 
+                    background-color 0.2s ease, 
+                    box-shadow 0.2s ease, 
+                    opacity 0.3s ease,
+                    backdrop-filter 0.2s ease;
+        will-change: left, top, width, height, transform;
+      }
+
+      /* Hover States */
+      .custom-cursor-ring.cursor-hover {
+        width: 60px;
+        height: 60px;
+        border-color: #A855F7;
+        background: radial-gradient(circle, rgba(168, 85, 247, 0.18) 0%, rgba(0, 229, 255, 0.09) 60%, transparent 80%);
+        box-shadow: 0 0 28px rgba(168, 85, 247, 0.45), inset 0 0 14px rgba(0, 229, 255, 0.3);
+        backdrop-filter: blur(1.5px);
+      }
+
+      .custom-cursor-dot.cursor-hover {
+        width: 8px;
+        height: 8px;
+        background-color: #C084FC;
+        box-shadow: 0 0 14px #C084FC, 0 0 24px rgba(192, 132, 252, 0.85);
+      }
+
+      /* Text/Input State */
+      .custom-cursor-ring.cursor-text {
+        width: 24px;
+        height: 36px;
+        border-radius: 4px;
+        border-color: #3B82F6;
+        background: rgba(59, 130, 246, 0.12);
+      }
+
+      /* Active / Click Down */
+      .custom-cursor-ring.cursor-active {
+        width: 26px;
+        height: 26px;
+        border-color: #10B981;
+        background: rgba(16, 185, 129, 0.28);
+        box-shadow: 0 0 22px rgba(16, 185, 129, 0.65);
+      }
+
+      .custom-cursor-dot.cursor-active {
+        background-color: #10B981;
+        box-shadow: 0 0 16px #10B981;
+      }
+
+      .custom-cursor-hidden {
+        opacity: 0 !important;
+      }
+    }
+
+    @media (hover: none) or (pointer: coarse) {
+      .custom-cursor-dot,
+      .custom-cursor-ring {
+        display: none !important;
+      }
+    }
+
     /* Mouse Glow Follower */
     #cursorGlow {
       position: fixed;
@@ -1858,6 +1969,10 @@
 </head>
 <body>
 
+  <!-- Precision Custom Cyber Cursor Elements -->
+  <div id="customCursorDot" class="custom-cursor-dot custom-cursor-hidden" aria-hidden="true"></div>
+  <div id="customCursorRing" class="custom-cursor-ring custom-cursor-hidden" aria-hidden="true"></div>
+
   <!-- Scroll Reading Progress Bar -->
   <div id="scrollProgressBar" class="scroll-progress-bar"></div>
 
@@ -3370,6 +3485,140 @@
       }
 
       requestAnimationFrame(drawConstellation);
+    })();
+
+    // 19. Smooth Physics Cybernetic Custom Cursor Engine
+    (function initCustomCyberCursor() {
+      const dot = document.getElementById('customCursorDot');
+      const ring = document.getElementById('customCursorRing');
+      if (!dot || !ring) return;
+
+      // Only enable on desktop pointer fine devices
+      if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        return;
+      }
+
+      let mouseX = -100, mouseY = -100;
+      let ringX = -100, ringY = -100;
+      let isVisible = false;
+      let isHovered = false;
+      let isText = false;
+      let isActive = false;
+      let targetElement = null;
+
+      // Mouse position update
+      window.addEventListener('pointermove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        if (!isVisible) {
+          isVisible = true;
+          dot.classList.remove('custom-cursor-hidden');
+          ring.classList.remove('custom-cursor-hidden');
+          ringX = mouseX;
+          ringY = mouseY;
+        }
+
+        // Instant dot tracking
+        dot.style.left = `${mouseX}px`;
+        dot.style.top = `${mouseY}px`;
+      }, { passive: true });
+
+      // Handle leaving / entering window
+      document.addEventListener('mouseleave', () => {
+        isVisible = false;
+        dot.classList.add('custom-cursor-hidden');
+        ring.classList.add('custom-cursor-hidden');
+      });
+
+      document.addEventListener('mouseenter', () => {
+        isVisible = true;
+        dot.classList.remove('custom-cursor-hidden');
+        ring.classList.remove('custom-cursor-hidden');
+      });
+
+      // Mouse Down / Up Active state
+      window.addEventListener('mousedown', () => {
+        isActive = true;
+        dot.classList.add('cursor-active');
+        ring.classList.add('cursor-active');
+      });
+
+      window.addEventListener('mouseup', () => {
+        isActive = false;
+        dot.classList.remove('cursor-active');
+        ring.classList.remove('cursor-active');
+      });
+
+      // Detect Hover Targets via Event Delegation
+      const interactiveSelector = `
+        a, button, input, textarea, select, 
+        .interactive-card, .sim-card, .faq-summary, 
+        .filter-pill, .cli-tab, .download-link-btn, 
+        .github-stars-pill, .theme-toggle-btn, .sound-toggle-btn, 
+        [role="button"], .benchmark-bar-fill, .hero-icon-pill
+      `;
+
+      document.addEventListener('mouseover', (e) => {
+        const target = e.target.closest(interactiveSelector);
+        if (target) {
+          isHovered = true;
+          targetElement = target;
+          ring.classList.add('cursor-hover');
+          dot.classList.add('cursor-hover');
+
+          if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+            isText = true;
+            ring.classList.add('cursor-text');
+          } else {
+            isText = false;
+            ring.classList.remove('cursor-text');
+          }
+        }
+      });
+
+      document.addEventListener('mouseout', (e) => {
+        const target = e.target.closest(interactiveSelector);
+        if (target) {
+          isHovered = false;
+          isText = false;
+          targetElement = null;
+          ring.classList.remove('cursor-hover');
+          ring.classList.remove('cursor-text');
+          dot.classList.remove('cursor-hover');
+        }
+      });
+
+      // 120fps Fluid Spring Physics Loop for the Halo Ring
+      function updateRingPosition() {
+        if (isVisible) {
+          let destX = mouseX;
+          let destY = mouseY;
+
+          // Optional Magnetic Snapping on compact action buttons
+          if (targetElement && (targetElement.classList.contains('theme-toggle-btn') || 
+                                targetElement.classList.contains('sound-toggle-btn') ||
+                                targetElement.classList.contains('github-stars-pill'))) {
+            const rect = targetElement.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            destX = mouseX * 0.4 + centerX * 0.6;
+            destY = mouseY * 0.4 + centerY * 0.6;
+          }
+
+          // Smooth Lerp Spring Interpolation
+          const ease = isHovered ? 0.22 : 0.16;
+          ringX += (destX - ringX) * ease;
+          ringY += (destY - ringY) * ease;
+
+          ring.style.left = `${ringX}px`;
+          ring.style.top = `${ringY}px`;
+        }
+
+        requestAnimationFrame(updateRingPosition);
+      }
+
+      requestAnimationFrame(updateRingPosition);
     })();
   </script>
 </body>
