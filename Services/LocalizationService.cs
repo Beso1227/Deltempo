@@ -122,20 +122,20 @@ public static class LocalizationService
             ["FoldersPurged"] = "CARPETAS PURGADAS",
             ["TimeElapsed"] = "TIEMPO TRANSCURRIDO",
             ["InspectorTitle"] = "Inspector de Archivos Grandes",
-            ["InspectorSubtitle"] = "Mostrando archivos más pesados en esta categoría",
+            ["InspectorSubtitle"] = "Archivos individuales descubiertos en esta categoría",
             ["CloseInspector"] = "Cerrar Inspector (Esc)"
         },
         ["fr"] = new()
         {
             ["AppTitle"] = "Deltempo",
-            ["AppSubtitle"] = "Gardien de Windows et Profils Utilisateur",
+            ["AppSubtitle"] = "Gardien de Windows et Profil Utilisateur",
             ["AdminLabel"] = "Administrateur",
             ["ReclaimableSpace"] = "ESPACE RÉCUPÉRABLE",
-            ["HeroScanSubtext"] = "Analyse approfondie d'AppData, shaders GPU et fichiers temporaires",
+            ["HeroScanSubtext"] = "Scan profond d'AppData, shaders GPU et fichiers temporaires",
             ["DriveOsLabel"] = "Disque Système",
             ["DriveFree"] = "Libre",
             ["DriveOf"] = "libre sur",
-            ["SelectSafe"] = "🟢 100% Sûr",
+            ["SelectSafe"] = "🟢 100% Sécurisé",
             ["SelectAll"] = "Tout Sélectionner",
             ["Clear"] = "Effacer",
             ["Rescan"] = "Re-scanner (F5)",
@@ -144,58 +144,58 @@ public static class LocalizationService
             ["ActivityLog"] = "Journal d'Activité",
             ["HideLog"] = "Masquer le Journal",
             ["ExportReport"] = "Exporter le Rapport",
-            ["CleanSelected"] = "Nettoyer la Sélection",
+            ["CleanSelected"] = "Nettoyer Sélection",
             ["Cancel"] = "Annuler",
             ["Inspect"] = "Inspecter",
             ["ConfirmTitle"] = "Confirmer le Nettoyage",
             ["ConfirmSubtitle"] = "Prêt à purger les fichiers de cache sélectionnés",
-            ["ConfirmReclaimableLabel"] = "ESPACE ESTIMÉ À RÉCUPÉRER",
-            ["ConfirmShieldOn"] = "🟢 Bouclier de Sécurité: ACTIF",
-            ["ConfirmShieldOff"] = "⚠️ Bouclier de Sécurité: INACTIF",
-            ["ConfirmSummary"] = "Nettoyage des catégories. Comptes et documents protégés à 100%.",
-            ["StartCleanup"] = "Démarrer",
-            ["CompletedTitle"] = "Nettoyage Terminé!",
+            ["ConfirmReclaimableLabel"] = "ESPACE ESTIMÉ RÉCUPÉRABLE",
+            ["ConfirmShieldOn"] = "🟢 Bouclier: ACTIF",
+            ["ConfirmShieldOff"] = "⚠️ Bouclier: INACTIF",
+            ["ConfirmSummary"] = "Nettoyage en cours. Vos comptes et documents restent strictement protégés.",
+            ["StartCleanup"] = "Lancer le Nettoyage",
+            ["CompletedTitle"] = "Nettoyage Terminé !",
             ["SuccessfullyReclaimed"] = "Espace Récupéré",
-            ["Awesome"] = "Super!",
+            ["Awesome"] = "Super !",
             ["FilesDeleted"] = "FICHIERS SUPPRIMÉS",
             ["FoldersPurged"] = "DOSSIERS PURGÉS",
             ["TimeElapsed"] = "TEMPS ÉCOULÉ",
-            ["InspectorTitle"] = "Inspecteur de Gros Fichiers",
-            ["InspectorSubtitle"] = "Affichage des fichiers volumineux dans cette catégorie",
+            ["InspectorTitle"] = "Inspecteur des Fichiers Volumineux",
+            ["InspectorSubtitle"] = "Fichiers volumineux découverts dans cette catégorie",
             ["CloseInspector"] = "Fermer (Esc)"
         },
         ["de"] = new()
         {
             ["AppTitle"] = "Deltempo",
-            ["AppSubtitle"] = "Windows & Benutzerprofil Wächter",
+            ["AppSubtitle"] = "Windows- & Benutzerprofil-Wächter",
             ["AdminLabel"] = "Administrator",
-            ["ReclaimableSpace"] = "RÜCKGEWINNBARER SPEICHERPLATZ",
-            ["HeroScanSubtext"] = "Tiefenscan von AppData, GPU-Shadern & System-Temporärdateien",
-            ["DriveOsLabel"] = "Systemlaufwerk (C:)",
+            ["ReclaimableSpace"] = "WIEDERHERSTELLBARER SPEICHER",
+            ["HeroScanSubtext"] = "Tiefenscan von Benutzerprofil, GPU-Shadern, AppData & Temp-Dateien",
+            ["DriveOsLabel"] = "Systemlaufwerk",
             ["DriveFree"] = "Frei",
             ["DriveOf"] = "frei von",
             ["SelectSafe"] = "🟢 100% Sicher",
             ["SelectAll"] = "Alles Auswählen",
             ["Clear"] = "Auswahl Aufheben",
-            ["Rescan"] = "Erneut Scannen (F5)",
-            ["SafetyShield"] = "Sicherheitsschild (>24h)",
-            ["ReadyStatus"] = "Bereit für Präzisionsreinigung",
+            ["Rescan"] = "Neu Scannen (F5)",
+            ["SafetyShield"] = "Sicherheitsschild (>24h alt)",
+            ["ReadyStatus"] = "Bereit für Präzisionsbereinigung",
             ["ActivityLog"] = "Aktivitätsprotokoll",
             ["HideLog"] = "Protokoll Ausblenden",
             ["ExportReport"] = "Bericht Exportieren",
-            ["CleanSelected"] = "Auswahl Bereinigen",
+            ["CleanSelected"] = "Ausgewählte Bereinigen",
             ["Cancel"] = "Abbrechen",
             ["Inspect"] = "Inspizieren",
-            ["ConfirmTitle"] = "Bereinigung Bestätigen",
-            ["ConfirmSubtitle"] = "Bereit zum Löschen ausgewählter Cache-Dateien",
-            ["ConfirmReclaimableLabel"] = "GESCHÄTZTER SPEICHERPLATZ",
-            ["ConfirmShieldOn"] = "🟢 Sicherheitsschild: AKTIV",
-            ["ConfirmShieldOff"] = "⚠️ Sicherheitsschild: INAKTIV",
-            ["ConfirmSummary"] = "Bereinigung ausgewählter Kategorien. Konten & persönliche Daten 100% geschützt.",
+            ["ConfirmTitle"] = "Präzisionsbereinigung Bestätigen",
+            ["ConfirmSubtitle"] = "Bereit zum Löschen temporärer Cache-Dateien",
+            ["ConfirmReclaimableLabel"] = "GESCHÄTZTER FREIER SPEICHER",
+            ["ConfirmShieldOn"] = "🟢 Sicherheitsschild: AN",
+            ["ConfirmShieldOff"] = "⚠️ Sicherheitsschild: AUS",
+            ["ConfirmSummary"] = "Bereinigt ausgewählte Kategorien. Konten und persönliche Dokumente bleiben 100% geschützt.",
             ["StartCleanup"] = "Bereinigung Starten",
             ["CompletedTitle"] = "Bereinigung Abgeschlossen!",
             ["SuccessfullyReclaimed"] = "Erfolgreich Freigegeben",
-            ["Awesome"] = "Hervorragend!",
+            ["Awesome"] = "Klasse!",
             ["FilesDeleted"] = "GELÖSCHTE DATEIEN",
             ["FoldersPurged"] = "GELÖSCHTE ORDNER",
             ["TimeElapsed"] = "BENÖTIGTE ZEIT",
@@ -304,6 +304,30 @@ public static class LocalizationService
                 };
                 break;
 
+            case "WinUpgradeLeftovers":
+                target.Name = CurrentLanguage switch {
+                    "ar" => "بقايا ترقيات وتثبيت ويندوز السابقة",
+                    "es" => "Restos de Actualizaciones de Windows",
+                    "fr" => "Résidus de Mises à Niveau Windows",
+                    "de" => "Windows Upgrade- & Setup-Rückstände",
+                    _ => "Windows Upgrade & Setup Leftovers"
+                };
+                target.Category = CurrentLanguage switch {
+                    "ar" => "النظام والتحديثات",
+                    "es" => "Sistema y SO",
+                    "fr" => "Système & OS",
+                    "de" => "System & OS",
+                    _ => "System & OS"
+                };
+                target.Description = CurrentLanguage switch {
+                    "ar" => "بقايا ترقيات النظام السابقة ($WINDOWS.~BT و $WINDOWS.~WS و ESD ومسودات الإعداد)",
+                    "es" => "Restos de instalaciones anteriores, $WINDOWS.~BT, $WINDOWS.~WS y ESD",
+                    "fr" => "Restes d'anciennes installations d'OS, $WINDOWS.~BT, $WINDOWS.~WS, ESD",
+                    "de" => "Alte OS-Installationsreste, $WINDOWS.~BT, $WINDOWS.~WS, ESD und Setup-Dateien",
+                    _ => "Old OS installation leftovers, $WINDOWS.~BT, $WINDOWS.~WS, ESD, and Setup scratchpads"
+                };
+                break;
+
             case "WinDeliveryOpt":
                 target.Name = CurrentLanguage switch {
                     "ar" => "كاش تسليم التحديثات عبر الشبكة (WUDO)",
@@ -328,6 +352,150 @@ public static class LocalizationService
                 };
                 break;
 
+            case "WinComponentCaches":
+                target.Name = CurrentLanguage switch {
+                    "ar" => "كاش مكونات وخطوط ويندوز",
+                    "es" => "Cachés de Componentes y Fuentes de Windows",
+                    "fr" => "Caches Composants & Polices Windows",
+                    "de" => "Windows Komponenten- & Schriftarten-Caches",
+                    _ => "Windows Component & Font Caches"
+                };
+                target.Category = CurrentLanguage switch {
+                    "ar" => "النظام والتحديثات",
+                    "es" => "Sistema y SO",
+                    "fr" => "Système & OS",
+                    "de" => "System & OS",
+                    _ => "System & OS"
+                };
+                target.Description = CurrentLanguage switch {
+                    "ar" => "كاش خطوط ويندوز FontCache ومجلد البرامج المنزلة ومسودات WinSxS و DISM و BranchCache",
+                    "es" => "FontCache de Windows, Archivos de programa descargados, temporal WinSxS y DISM",
+                    "fr" => "FontCache Windows, fichiers téléchargés, WinSxS temp, DISM et BranchCache",
+                    "de" => "Windows FontCache, Downloaded Program Files, WinSxS-Temp, DISM & BranchCache",
+                    _ => "Windows FontCache, Downloaded Program Files, WinSxS temp, DISM scratch & BranchCache"
+                };
+                break;
+
+            case "DeviceDriverPackages":
+                target.Name = CurrentLanguage switch {
+                    "ar" => "حزم تعاريف الأجهزة وتحديثات GPU",
+                    "es" => "Paquetes de Controladores y GPU",
+                    "fr" => "Pilotes Périphériques & Mises à Jour GPU",
+                    "de" => "Gerätetreiber-Pakete & GPU-Updates",
+                    _ => "Device Driver Packages & GPU Updates"
+                };
+                target.Category = CurrentLanguage switch {
+                    "ar" => "النظام والتعريفات",
+                    "es" => "Sistema y Controladores",
+                    "fr" => "Système & Pilotes",
+                    "de" => "System & Treiber",
+                    _ => "System & Drivers"
+                };
+                target.Description = CurrentLanguage switch {
+                    "ar" => "حزم تحديثات NVIDIA App و AMD و Intel وكاش DriverStore المؤقت",
+                    "es" => "Paquetes OTA de NVIDIA App, instaladores AMD e Intel, temp DriverStore",
+                    "fr" => "Packages OTA NVIDIA App, installateurs AMD/Intel, DriverStore temp",
+                    "de" => "NVIDIA App/GeForce OTA-Treiberpakete, AMD- & Intel-Caches, DriverStore temp",
+                    _ => "NVIDIA App/GeForce OTA driver packages, AMD & Intel installer caches, DriverStore temp"
+                };
+                break;
+
+            case "DefenderAntivirus":
+                target.Name = CurrentLanguage switch {
+                    "ar" => "سجلات وفحوصات حماية Microsoft Defender",
+                    "es" => "Soporte y Análisis de Microsoft Defender",
+                    "fr" => "Support & Analyses Microsoft Defender",
+                    "de" => "Microsoft Defender Support & Scans",
+                    _ => "Microsoft Defender Support & Scans"
+                };
+                target.Category = CurrentLanguage switch {
+                    "ar" => "الأمان والسجلات",
+                    "es" => "Seguridad y Registros",
+                    "fr" => "Sécurité & Journaux",
+                    "de" => "Sicherheit & Protokolle",
+                    _ => "Security & Logs"
+                };
+                target.Description = CurrentLanguage switch {
+                    "ar" => "سجلات تشخيص Defender (MPLog)، النسخ الاحتياطية لتحديثات التواقيع وسجل الفحص",
+                    "es" => "Registros MPLog de Defender, copias de seguridad de definiciones y caché de análisis",
+                    "fr" => "Journaux de support Defender (MPLog), sauvegardes de définitions et historique d'analyse",
+                    "de" => "Defender-Diagnoseprotokolle (MPLog), Definitions-Backups & Scan-Verlauf",
+                    _ => "Defender support diagnostic logs (MPLog), definition update backups & scan history cache"
+                };
+                break;
+
+            case "WinSystemLogs":
+                target.Name = CurrentLanguage switch {
+                    "ar" => "سجلات تشخيص النظام",
+                    "es" => "Registros de Diagnóstico de Windows",
+                    "fr" => "Journaux de Diagnostic Système",
+                    "de" => "Windows System-Diagnoseprotokolle",
+                    _ => "Windows System Diagnostic Logs"
+                };
+                target.Category = CurrentLanguage switch {
+                    "ar" => "التشخيص والسجلات",
+                    "es" => "Diagnóstico",
+                    "fr" => "Diagnostic",
+                    "de" => "Diagnose",
+                    _ => "Diagnostics"
+                };
+                target.Description = CurrentLanguage switch {
+                    "ar" => "سجلات CBS و DISM و Panther و SetupAPI و LogFiles وسجلات التتبع",
+                    "es" => "Registros CBS, DISM, Panther, SetupAPI, LogFiles y seguimiento",
+                    "fr" => "Journaux CBS, DISM, Panther, SetupAPI, LogFiles et traces",
+                    "de" => "CBS, DISM, Panther, SetupAPI, LogFiles (WMI/HTTPERR) und Ablaufverfolgungen",
+                    _ => "CBS, DISM, Panther, SetupAPI, LogFiles (WMI/HTTPERR), and tracing logs"
+                };
+                break;
+
+            case "SystemDumps":
+                target.Name = CurrentLanguage switch {
+                    "ar" => "تفريغات انهيار النظام وتقارير الكيرنل",
+                    "es" => "Volcados de Bloqueo y Minivolcados BSOD",
+                    "fr" => "Vidages de Mémoire et Rapports Noyau",
+                    "de" => "BSOD-Minidumps & Kernel-Berichte",
+                    _ => "BSOD Minidumps & Kernel Reports"
+                };
+                target.Category = CurrentLanguage switch {
+                    "ar" => "التشخيص والسجلات",
+                    "es" => "Diagnóstico",
+                    "fr" => "Diagnostic",
+                    "de" => "Diagnose",
+                    _ => "Diagnostics"
+                };
+                target.Description = CurrentLanguage switch {
+                    "ar" => "تفريغات أخطاء الشاشة الزرقاء (*.dmp) و MEMORY.DMP وتقارير LiveKernelReports",
+                    "es" => "Minivolcados BSOD (*.dmp), MEMORY.DMP y LiveKernelReports",
+                    "fr" => "Minividages BSOD (*.dmp), MEMORY.DMP et LiveKernelReports",
+                    "de" => "Windows Crash-Minidumps (*.dmp), MEMORY.DMP und LiveKernelReports",
+                    _ => "Windows crash minidumps (*.dmp), MEMORY.DMP, and LiveKernelReports"
+                };
+                break;
+
+            case "TemporaryInternetFiles":
+                target.Name = CurrentLanguage switch {
+                    "ar" => "ملفات الإنترنت المؤقتة و WebCache",
+                    "es" => "Archivos Temporales de Internet y WebCache",
+                    "fr" => "Fichiers Internet Temporaires & WebCache",
+                    "de" => "Temporäre Internetdateien & WebCache",
+                    _ => "Temporary Internet Files & WebCache"
+                };
+                target.Category = CurrentLanguage switch {
+                    "ar" => "كاش الإنترنت",
+                    "es" => "Caché de Internet",
+                    "fr" => "Cache Internet",
+                    "de" => "Internet-Cache",
+                    _ => "Internet Cache"
+                };
+                target.Description = CurrentLanguage switch {
+                    "ar" => "كاش INetCache و WebCache ومحتوى شهادات CryptnetUrlCache",
+                    "es" => "INetCache de Windows, WebCache y certificados CryptnetUrlCache",
+                    "fr" => "INetCache Windows, WebCache et contenu de certificat CryptnetUrlCache",
+                    "de" => "Windows INetCache, WebCache und CryptnetUrlCache-Zertifikatinhalte",
+                    _ => "Windows INetCache, WebCache, and CryptnetUrlCache certificate content"
+                };
+                break;
+
             case "GpuShaderCaches":
                 target.Name = CurrentLanguage switch {
                     "ar" => "كاش كروت الشاشة و DirectX",
@@ -338,9 +506,9 @@ public static class LocalizationService
                 };
                 target.Category = CurrentLanguage switch {
                     "ar" => "كارت الشاشة",
-                    "es" => "GPU Shaders",
-                    "fr" => "GPU Shaders",
-                    "de" => "GPU-Shader",
+                    "es" => "Sistema y GPU",
+                    "fr" => "Système & GPU",
+                    "de" => "System & GPU",
                     _ => "System & GPU"
                 };
                 target.Description = CurrentLanguage switch {
@@ -354,7 +522,7 @@ public static class LocalizationService
 
             case "GamingLaunchers":
                 target.Name = CurrentLanguage switch {
-                    "ar" => "كاش منصات الألعاب (Steam / Epic / Battle.net)",
+                    "ar" => "كاش منصات الألعاب (Steam / Epic / Battle.net / Riot)",
                     "es" => "Lanzadores de Juegos y Shaders",
                     "fr" => "Lanceurs de Jeux et Shaders",
                     "de" => "Gaming-Launcher & Shader-Caches",
@@ -368,17 +536,17 @@ public static class LocalizationService
                     _ => "Gaming & Media"
                 };
                 target.Description = CurrentLanguage switch {
-                    "ar" => "ملفات تنزيلات Steam المؤقتة وكاش المتصفح لـ Epic Games و Battle.net و EA App",
-                    "es" => "Descargas temporales de Steam, caché web de Epic Games y Battle.net",
-                    "fr" => "Fichiers de téléchargement Steam, caches web Epic Games et Battle.net",
-                    "de" => "Steam Download-Fragmente & Shader, Epic Games Webcache, Battle.net & EA App",
-                    _ => "Steam download chunks & shadercache, Epic Games webcache, Battle.net & EA App caches"
+                    "ar" => "تنزيلات Steam، كاش Epic Games و Battle.net و EA App وسجلات Riot Games و Roblox",
+                    "es" => "Descargas temporales de Steam, caché de Epic Games, Battle.net, Riot y Roblox",
+                    "fr" => "Téléchargements Steam, caches web Epic Games, Battle.net, Riot et Roblox",
+                    "de" => "Steam Downloads & Shader, Epic Games Webcache, Battle.net, EA App, Riot Games, Roblox",
+                    _ => "Steam downloads & shaders, Epic Games webcache, Battle.net, EA App, Riot Games, Roblox"
                 };
                 break;
 
             case "MediaCreatorCaches":
                 target.Name = CurrentLanguage switch {
-                    "ar" => "كاش برامج المونتاج والتصميم (Adobe / DaVinci)",
+                    "ar" => "كاش برامج المونتاج والتصميم (Adobe / CapCut / DaVinci)",
                     "es" => "Cachés de Renderizado y Creadores",
                     "fr" => "Caches de Rendu et Créateurs",
                     "de" => "Medien- & Render-Caches",
@@ -392,62 +560,86 @@ public static class LocalizationService
                     _ => "Creator & Media"
                 };
                 target.Description = CurrentLanguage switch {
-                    "ar" => "ملفات Media Cache و Peak في Adobe Premiere و DaVinci Resolve وسجلات OBS",
-                    "es" => "Media Cache y Peak de Adobe Premiere, caché proxy de DaVinci y logs de OBS",
-                    "fr" => "Fichiers Media Cache Adobe Premiere, proxies DaVinci et logs OBS",
-                    "de" => "Adobe Premiere Media Cache & Peak-Dateien, DaVinci Resolve Proxy-Cache, OBS-Logs",
-                    _ => "Adobe Premiere / After Effects Media Cache & Peak files, DaVinci Resolve proxy scratch, OBS logs"
+                    "ar" => "ملفات Media Cache في Adobe و CapCut و DaVinci Resolve وسجلات OBS ومؤقتات Blender",
+                    "es" => "Media Cache de Adobe, CapCut, proxy de DaVinci, logs de OBS y Blender temp",
+                    "fr" => "Media Cache Adobe, CapCut, proxies DaVinci, logs OBS et Blender temp",
+                    "de" => "Adobe Premiere/Photoshop Scratch, CapCut Cache, DaVinci Proxy, OBS Logs, Blender Temp",
+                    _ => "Adobe Premiere/After Effects/Photoshop scratch, CapCut cache, DaVinci proxy, OBS logs, Blender temp"
                 };
                 break;
 
             case "AppCacheSweeper":
                 target.Name = CurrentLanguage switch {
-                    "ar" => "كاش برامج سطح المكتب (Discord/Spotify)",
+                    "ar" => "كاش برامج سطح المكتب (Discord/WhatsApp/Teams)",
                     "es" => "Caché de Apps de Escritorio",
                     "fr" => "Cache des Applications Desktop",
                     "de" => "Desktop-App Cache-Bereiniger",
                     _ => "Desktop Apps Cache Sweeper"
                 };
                 target.Description = CurrentLanguage switch {
-                    "ar" => "كاش GPU و Code Cache المؤقت في Discord و Spotify و Slack و VS Code و Notion",
-                    "es" => "Caché GPU y código de Discord, Spotify, Slack, VS Code y Notion",
-                    "fr" => "Cache GPU et code de Discord, Spotify, Slack, VS Code et Notion",
-                    "de" => "Flüchtiger GPU- & Code-Cache in Discord, Spotify, Slack, VS Code, Teams, Notion",
-                    _ => "Disposable GPU & Code Cache in Discord, Spotify, Slack, VS Code, Teams, Notion"
+                    "ar" => "كاش GPU و Code Cache المؤقت في Discord و Spotify و Slack و VS Code و WhatsApp و Notion",
+                    "es" => "Caché GPU y código de Discord, Spotify, Slack, VS Code, WhatsApp y Notion",
+                    "fr" => "Cache GPU et code de Discord, Spotify, Slack, VS Code, WhatsApp et Notion",
+                    "de" => "Flüchtiger GPU- & Code-Cache in Discord, Spotify, Slack, VS Code, Teams, WhatsApp, Notion",
+                    _ => "Disposable GPU & Code Cache in Discord, Spotify, Slack, VS Code, Cursor, Teams, WhatsApp, Notion"
+                };
+                break;
+
+            case "WinStoreAppCaches":
+                target.Name = CurrentLanguage switch {
+                    "ar" => "كاش تطبيقات متجر ويندوز و UWP",
+                    "es" => "Caché de Apps de la Tienda y UWP",
+                    "fr" => "Caches Applications Windows Store & UWP",
+                    "de" => "Windows Store-Apps & UWP Caches",
+                    _ => "Windows Store Apps & UWP Caches"
+                };
+                target.Category = CurrentLanguage switch {
+                    "ar" => "تطبيقات المتجر",
+                    "es" => "Apps de Tienda",
+                    "fr" => "Applications Store",
+                    "de" => "Store-Apps",
+                    _ => "Store Apps"
+                };
+                target.Description = CurrentLanguage switch {
+                    "ar" => "ملفات LocalCache و INetCache المؤقتة لحزم تطبيقات متجر ويندوز (Teams الجديد و Xbox وغيرها)",
+                    "es" => "LocalCache e INetCache temporales de paquetes Windows Store (Teams, Xbox, etc.)",
+                    "fr" => "LocalCache et INetCache temporaires des applications Store (New Teams, Xbox, etc.)",
+                    "de" => "Temporärer LocalCache & INetCache über Windows Store-Pakete (New Teams, Xbox, etc.)",
+                    _ => "Temporary LocalCache & INetCache across Windows Store packages (New Teams, Xbox, WhatsApp, etc.)"
                 };
                 break;
 
             case "BrowserCaches":
                 target.Name = CurrentLanguage switch {
-                    "ar" => "كاش متصفحات الإنترنت (Chrome/Edge/Brave)",
-                    "es" => "Caché de Navegadores Web",
-                    "fr" => "Cache des Navigateurs Web",
-                    "de" => "Webbrowser-Caches",
+                    "ar" => "كاش متصفحات الإنترنت متعددة الحسابات",
+                    "es" => "Caché de Navegadores Web Multiprofil",
+                    "fr" => "Cache des Navigateurs Web Multi-Profils",
+                    "de" => "Webbrowser-Caches (Multi-Profil)",
                     _ => "Web Browsers Cache Pool"
                 };
                 target.Description = CurrentLanguage switch {
-                    "ar" => "كاش صفحات الويب والوسائط في Chrome و Edge و Brave (مع الحفاظ على تسجيلات الدخول)",
-                    "es" => "Caché web de Chrome, Edge, Brave (preserva sesiones y contraseñas)",
-                    "fr" => "Cache web Chrome, Edge, Brave (mots de passe et sessions préservés)",
-                    "de" => "Chrome, Edge, Brave, Firefox Web-Cache (Cookies und Logins bleiben erhalten)",
-                    _ => "Chrome, Edge, Brave, Firefox web cache (cookies and logins preserved)"
+                    "ar" => "فحص عميق وشامل لكافة حسابات ومتصفحات Chrome و Edge و Brave و Opera و Firefox و Arc و Vivaldi",
+                    "es" => "Caché web y shaders de todos los perfiles de Chrome, Edge, Brave, Opera, Firefox, Arc, Vivaldi",
+                    "fr" => "Cache web et shaders multi-profils de Chrome, Edge, Brave, Opera, Firefox, Arc, Vivaldi",
+                    "de" => "Chrome, Edge, Brave, Opera, Firefox, Arc, Vivaldi Multi-Profil Web- & Shader-Caches",
+                    _ => "Chrome, Edge, Brave, Opera, Firefox, Arc, Vivaldi multi-profile web & shader cache (logins preserved)"
                 };
                 break;
 
             case "DevPackageCaches":
                 target.Name = CurrentLanguage switch {
-                    "ar" => "كاش حزم المطورين (pip / npm / gradle)",
+                    "ar" => "كاش حزم وأدوات المطورين",
                     "es" => "Caché de Paquetes de Desarrollo",
                     "fr" => "Caches de Packages Développeur",
                     "de" => "Entwickler- & Paket-Caches",
                     _ => "Developer & Package Caches"
                 };
                 target.Description = CurrentLanguage switch {
-                    "ar" => "كاش تنزيلات الحزم في pip و npm و yarn و gradle و nuget",
-                    "es" => "Descargas temporales de pip, npm, yarn, gradle y nuget",
-                    "fr" => "Téléchargements de packages pip, npm, yarn, gradle et nuget",
-                    "de" => "pip, npm, .gradle, yarn, .cache und nuget Paket-Download-Caches",
-                    _ => "pip, npm, .gradle, yarn, .cache, and nuget package download caches"
+                    "ar" => "كاش تنزيلات الحزم في pip و npm و yarn و pnpm و NuGet و Cargo و Go و Bun و .NET",
+                    "es" => "Descargas temporales de pip, npm, yarn, pnpm, NuGet, Cargo, Go, Bun y .NET",
+                    "fr" => "Téléchargements de packages pip, npm, yarn, pnpm, NuGet, Cargo, Go, Bun et .NET",
+                    "de" => "pip, npm, yarn, pnpm, NuGet, .gradle, Cargo, Go build, Bun, Deno und .NET Caches",
+                    _ => "pip, npm, yarn, pnpm, NuGet, .gradle, Cargo, Go build, Bun, Deno, and .NET temp caches"
                 };
                 break;
 
@@ -475,44 +667,20 @@ public static class LocalizationService
                 };
                 break;
 
-            case "WinServicingLogs":
-                target.Name = CurrentLanguage switch {
-                    "ar" => "سجلات صيانة ويندوز (CBS & DISM)",
-                    "es" => "Registros de Mantenimiento y CBS",
-                    "fr" => "Journaux de Maintenance et CBS",
-                    "de" => "Windows Wartungs- & CBS-Protokolle",
-                    _ => "Windows Servicing & CBS Logs"
-                };
-                target.Category = CurrentLanguage switch {
-                    "ar" => "التشخيص والسجلات",
-                    "es" => "Diagnóstico",
-                    "fr" => "Diagnostic",
-                    "de" => "Diagnose",
-                    _ => "Diagnostics"
-                };
-                target.Description = CurrentLanguage switch {
-                    "ar" => "سجلات خدمة المكونات القديمة وسجلات نشر DISM وتتبعات التثبيت (CbsPersist)",
-                    "es" => "Registros antiguos de servicio de componentes y despliegue DISM",
-                    "fr" => "Journaux de maintenance des composants et déploiement DISM",
-                    "de" => "Veraltete Component-Based Servicing Protokolle, DISM-Logs & Setup-Spuren",
-                    _ => "Stale Component-Based Servicing logs, DISM deployment logs & setup traces (CbsPersist)"
-                };
-                break;
-
             case "CrashDumps":
                 target.Name = CurrentLanguage switch {
                     "ar" => "تقارير أخطاء النظام وسجلات الانهيار",
                     "es" => "Informes de Errores y Volcados",
                     "fr" => "Rapports d'Erreurs et Vidages",
                     "de" => "Fehlerberichte & Speicherabdrücke",
-                    _ => "Error Reports & Crash Dumps"
+                    _ => "Windows Error Reports (WER)"
                 };
                 target.Description = CurrentLanguage switch {
                     "ar" => "سجلات تقارير أخطاء ويندوز (WER) وتفريغات ذاكرة العمليات عند الانهيار",
                     "es" => "Registros de Windows Error Reporting y volcados de memoria",
                     "fr" => "Journaux Windows Error Reporting et vidages mémoire processus",
                     "de" => "Windows Error Reporting Protokolle und Prozess-Speicherabdrücke (WER / Dumps)",
-                    _ => "Windows Error Reporting logs & process memory dumps (WER / Dumps)"
+                    _ => "Windows Error Reporting logs & diagnostic queues (WER ReportArchive/ReportQueue)"
                 };
                 break;
 
@@ -530,6 +698,30 @@ public static class LocalizationService
                     "fr" => "Bases de données de miniatures d'images et vidéos",
                     "de" => "Gecachte Bild- & Video-Miniaturansichten (thumbcache_*.db)",
                     _ => "Cached image & video thumbnail databases (thumbcache_*.db)"
+                };
+                break;
+
+            case "SystemUsageTraces":
+                target.Name = CurrentLanguage switch {
+                    "ar" => "آثار استخدام النظام ومستكشف الملفات",
+                    "es" => "Rastros de Uso del Sistema y Explorador",
+                    "fr" => "Traces d'Utilisation Système & Explorateur",
+                    "de" => "System- & Explorer-Nutzungsspuren",
+                    _ => "System & Explorer Usage Traces"
+                };
+                target.Category = CurrentLanguage switch {
+                    "ar" => "آثار الخصوصية",
+                    "es" => "Privacidad",
+                    "fr" => "Confidentialité",
+                    "de" => "Privatsphäre",
+                    _ => "Privacy Traces"
+                };
+                target.Description = CurrentLanguage switch {
+                    "ar" => "اختصارات العناصر الأخيرة وقوائم الانتقال السريع (Jump Lists)",
+                    "es" => "Accesos directos a elementos recientes y listas de accesos rápidos Jump Lists",
+                    "fr" => "Raccourcis d'éléments récents et listes de raccourcis Jump Lists",
+                    "de" => "Zuletzt verwendete Elemente und Jump-Listen (Automatic/CustomDestinations)",
+                    _ => "Recent items shortcuts, AutomaticDestinations, and CustomDestinations Jump Lists"
                 };
                 break;
 
