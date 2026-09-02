@@ -39,6 +39,7 @@ public partial class MainWindow : Window
         CheckAdminPrivileges();
         UpdateDriveTelemetry();
         InitializeTargets();
+        ApplyLocalization();
 
         // Initialize Tray and Auto-Pilot Guardian
         TrayService.Initialize(
@@ -700,6 +701,7 @@ public partial class MainWindow : Window
             LocalizationService.LocalizeTarget(target);
         }
 
+        TargetCardsItemsControl.Items.Refresh();
         RecalculateTotals();
         AddLog($"Language switched to {LocalizationService.CurrentLanguage.ToUpperInvariant()}", LogLevel.Info);
     }
