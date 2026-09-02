@@ -330,10 +330,10 @@ public class CleanerService
         // 17. Orphaned Uninstalled AppData Leftovers
         try
         {
-            var orphan = OrphanedAppDataService.ScanForOrphanedAppData();
-            if (orphan != null)
+            var orphans = OrphanedAppService.ScanVerifiedOrphanedFolders();
+            foreach (var o in orphans)
             {
-                targets.Add(orphan);
+                targets.Add(o);
             }
         }
         catch { }
@@ -990,5 +990,32 @@ public class CleanerService
             return true;
         }
         return false;
+    }
+
+    public static string GenerateAuditReport(
+        IEnumerable<TargetFolderInfo> targets,
+        long totalFreedBytes,
+        int totalFilesDeleted,
+        int totalFoldersDeleted,
+        TimeSpan elapsed)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("==================================================================");
+        sb.AppendLine("         DELTEMPO — PRECISION AUDIT REPORT");
+        sb.AppendLine("==================================================================");
+        sb.AppendLine($"Execution Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        sb.AppendLine($"Total Space Reclaimed: {TargetFolderInfo.FormatBytes(totalFreedBytes)}");
+        sb.AppendLine($"Total Files Deleted: {totalFilesDeleted:N0}");
+        sb.AppendLine($"Total Folders Purged: {totalFoldersDeleted:N0}");
+        sb.AppendLine($"Time Elapsed: {elapsed.TotalSeconds:F2} seconds");
+        sb.AppendLine("------------------------------------------------------------------");
+        sb.AppendLine("CATEGORY BREAKDOWN:");
+        foreach (var target in targets)
+        {
+            sb.AppendLine($" • [{target.Category}] {target.Name}: {TargetFolderInfo.FormatBytes(target.SizeBytes)} ({target.FileCount:N0} files) - {target.StatusMessage}");
+        }
+        sb.AppendLine("==================================================================");
+        sb.AppendLine("Zero Telemetry • Pure Precision • Deltempo Open Source Project");
+        return sb.ToString();
     }
 }
