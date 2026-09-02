@@ -1,1 +1,1 @@
-& "$PSScriptRoot\Deltempo.exe" @args
+& "$PSScriptRoot\deltempo_cli.exe" @args

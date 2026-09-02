@@ -33,6 +33,9 @@
   <ItemGroup>
     <Resource Include="app_icon.png" />
     <Resource Include="app.ico" />
+    <Compile Remove="Cli\**" />
+    <EmbeddedResource Remove="Cli\**" />
+    <None Remove="Cli\**" />
   </ItemGroup>
 
 </Project>
