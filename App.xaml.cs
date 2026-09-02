@@ -27,9 +27,9 @@ public partial class App : Application
 
             if (args.Contains("--test", StringComparer.OrdinalIgnoreCase))
             {
-                int exitCode = Tests.CleanerTests.RunAllTests();
+                bool passed = await Tests.TestRunner.RunVerificationAsync();
                 FreeConsole();
-                Shutdown(exitCode);
+                Shutdown(passed ? 0 : 1);
                 return;
             }
 
