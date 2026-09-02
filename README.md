@@ -18,7 +18,7 @@
 
   <p align="center">
     <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe">
-      <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DELTEMPO.EXE_(v1.1.0)-3B82F6?style=for-the-badge&logoColor=white" alt="Download Deltempo.exe" height="42" />
+      <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DELTEMPO.EXE_(v1.2.0)-3B82F6?style=for-the-badge&logoColor=white" alt="Download Deltempo.exe" height="42" />
     </a>
   </p>
 
@@ -50,7 +50,7 @@ Windows and modern desktop software secretly hoard tens of gigabytes of disposab
   ██║  ██║██╔══╝  ██║     ██║   ██╔══╝  ██║╚██╔╝██║██╔═══╝ ██║   ██║
   ██████╔╝███████╗███████╗██║   ███████╗██║ ╚═╝ ██║██║     ╚██████╔╝
   ╚═════╝ ╚══════╝╚══════╝╚═╝   ╚══════╝╚═╝     ╚═╝╚═╝      ╚═════╝ 
-       D E L T E M P O  —  Precision Windows Optimizer (v1.1.0)
+       D E L T E M P O  —  Precision Windows Optimizer (v1.2.0)
 ```
 
 ### 🚀 1. Advanced Deep Scan & System Cleanup Engine (Surpassing Microsoft PC Manager)
