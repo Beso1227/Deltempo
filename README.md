@@ -31,27 +31,47 @@
 
 ## ⚡ Why Deltempo?
 
-Windows and desktop applications secretly hoard tens of gigabytes of disposable cache in hidden subdirectories under `AppData`, game launcher temporary chunks, GPU shader pools, video render scratch disks, and leftover uninstalled software directories. Meanwhile, startup apps silently drag down boot times, and background processes eat up gigabytes of precious RAM.
+Windows and modern desktop software secretly hoard tens of gigabytes of disposable cache in hidden subdirectories under `AppData`, game launcher temporary chunks, GPU shader pools, video render scratch disks, and leftover uninstalled software directories. Meanwhile, unvetted startup apps silently drag down boot times, and background processes eat up gigabytes of precious RAM.
 
-**Deltempo** is engineered as a surgical precision, zero-bloat standalone PC optimization suite. It combines deep cache purging across **17 distinct scopes** with an **elite Microsoft PC Manager-inspired performance toolkit** (RAM Booster, Startup Accelerator, Large File Hunter, Memory Optimizer) and **G-Helper style zero-trash auto-updates** — all while leaving user logins, passwords, and personal files 100% untouched.
+**Deltempo** is engineered as a surgical precision, zero-bloat standalone PC optimization suite. It combines deep cache purging across **17 distinct scopes** with an **elite Microsoft PC Manager-inspired performance toolkit** (RAM Booster, Startup Accelerator, Large File Hunter, Memory Optimizer), a **100% synchronous CLI companion**, and **G-Helper style zero-trash auto-updates** — all while leaving user logins, passwords, and personal files 100% untouched.
 
 > ### 💡 Real-World Impact
 > *"Without Deltempo my C: drive was suffocating at 64 GB free space. In 20 seconds, Deltempo purged **6.8 GB of disposable junk**, boosted **750 MB of RAM**, and disabled 4 high-impact startup hogs with zero panic."*
 
 ---
 
-## 🌟 Major Highlights & New Features
+## 🌟 Major Highlights & Architecture
+
+```
+  ██████╗ ███████╗██╗  ████████╗███████╗███╗   ███╗██████╗  ██████╗ 
+  ██╔══██╗██╔════╝██║  ╚══██╔══╝██╔════╝████╗ ████║██╔══██╗██╔═══██╗
+  ██║  ██║█████╗  ██║     ██║   █████╗  ██╔████╔██║██████╔╝██║   ██║
+  ██║  ██║██╔══╝  ██║     ██║   ██╔══╝  ██║╚██╔╝██║██╔═══╝ ██║   ██║
+  ██████╔╝███████╗███████╗██║   ███████╗██║ ╚═╝ ██║██║     ╚██████╔╝
+  ╚═════╝ ╚══════╝╚══════╝╚═╝   ╚══════╝╚═╝     ╚═╝╚═╝      ╚═════╝ 
+       D E L T E M P O  —  Precision Windows Optimizer (v1.0.0)
+```
 
 ### 🚀 1. Elite PC Performance Toolkit (PC Manager Inspired)
-- **⚡ 1-Click Working Set RAM Boost**: Safely purges cached working set memory from background applications and services via native Win32 `GlobalMemoryStatusEx` and PSAPI `EmptyWorkingSet`. Instant millisecond-level feedback (`✓ -450 MB`).
+- **⚡ 1-Click Working Set RAM Boost**: Safely purges cached working set memory from background applications and services via native Win32 `GlobalMemoryStatusEx` and PSAPI `EmptyWorkingSet`. Instant millisecond-level feedback (`✓ -750 MB in 335ms`).
 - **🚀 Startup Apps Boot Accelerator**: Scans Windows Run keys and Startup shortcuts with boot impact ratings (`🟢 Low`, `🟡 Medium`, `🔴 High`). **100% Reversible** — disabled items are safely backed up in `Run_Deltempo_Disabled` registry keys with zero risk of corruption.
 - **🐘 Disk Hog & Large File Hunter**: Scans Downloads, Documents, Desktop, and Videos for files $>50$ MB. Auto-groups by category (`Installer / ISO`, `Video / Media`, `Archive`, `Dump / Backup`, `Virtual Disk`). Features **1-Click Reveal in Explorer** and safe deletion via Windows Shell `SHFileOperation` (sends directly to **Recycle Bin with Undo**).
 - **🛑 Heavy Background Memory Apps Optimizer**: Identifies heavy memory consumers ($>80$ MB) with a **hardcoded Windows Core Whitelist** protecting all vital system processes (`explorer.exe`, `dwm.exe`, `svchost.exe`, `csrss.exe`, `lsass.exe`, etc.) from being touched or terminated.
 
-### 🔄 2. G-Helper Style Seamless Auto-Updater
-- **Zero-Installer Atomic Hot-Swap**: Polling GitHub Releases directly, Deltempo streams new updates in the background and replaces its running executable atomically without creating installer leftovers or junk directories.
+### 💻 2. Synchronous In-Place CLI Engine & Global Integration
+- **Dual-Mode Desktop & Terminal Architecture**: Just like Visual Studio (`devenv.exe` + `devenv.com`), Deltempo provides a pure desktop GUI application and an in-place synchronous CLI engine.
+- **Zero Prompt Collision**: CLI runs synchronously within the active console session. Output renders in-place, and the shell prompt returns on a clean new line below with zero text overlapping.
+- **Auto Global Registration**: Automatically registers to User `PATH`, Windows `App Paths`, and PowerShell profiles on first run.
 
-### 🧹 3. 17 Specialized Precision Cleaning Scopes
+### 🛡️ 3. Single-Instance Mutex & System Tray Protection
+- **Zero Duplicate Processes**: Prevents duplicate instances or duplicate tray icons from spawning when launched multiple times.
+- **IPC Window Activation**: Launching Deltempo while running in the background brings the existing window to the front smoothly via registered inter-process Windows messages.
+- **Clean Tray Lifecycle**: Automatic Win32 `Shell_NotifyIconW(NIM_DELETE)` cleanup on exit prevents ghost icons from remaining in the Windows notification area.
+
+### 🔄 4. G-Helper Style Seamless Auto-Updater
+- **Zero-Installer Atomic Hot-Swap**: Polling GitHub Releases directly, Deltempo streams new updates in the background and replaces its running executable atomically without creating installer leftovers or temporary junk directories.
+
+### 🧹 5. 17 Specialized Precision Cleaning Scopes
 - **User Profile & Windows Temp**: Cleans `%TEMP%`, `C:\Windows\Temp`, and `C:\Windows\Prefetch`.
 - **DirectX & GPU Shader Pools**: Purges compiled binary shader caches from **NVIDIA** (`DXCache`, `GLCache`), **AMD** (`DxCache`), and **Intel** (`D3DSCache`).
 - **Gaming Launchers & Shaders**: Cleans stuck Steam download chunks (`Steam\downloading`), shader caches, and web caches across **Epic Games**, **Battle.net**, **EA Desktop**, and **Ubisoft Connect**.
@@ -62,7 +82,7 @@ Windows and desktop applications secretly hoard tens of gigabytes of disposable 
 - **Verified Orphaned App Leftovers**: Cross-references residual `AppData` folders against the Windows Uninstall Registry.
 - **24-Hour Safety Shield**: Automated file age filter protects files modified within the last 24 hours from deletion.
 
-### 🎨 4. Luxury Obsidian & Nordic Frost Design System
+### 🎨 6. Luxury Obsidian & Nordic Frost Design System
 - **Double-Bezel Obsidian & Frost Cards**: High-end typography, smooth micro-interactions, floating 7px minimalist scrollbar, and dynamic light/dark mode hot-swapping.
 - **System Tray Guardian**: Native Win32 tray integration with auto-pilot background cleaning (Every 6h / 12h / 24h) and desktop alerts.
 - **100% Dynamic Multi-Language**: Instant runtime translation across English (🇺🇸), Arabic (🇸🇦 RTL layout), Spanish (🇪🇸), French (🇫🇷), and German (🇩🇪).
@@ -87,8 +107,9 @@ Windows and desktop applications secretly hoard tens of gigabytes of disposable 
 | **CBS Servicing & DISM Logs** | **✅ CbsPersist_*.log** | ❌ No | ❌ No | ❌ No | ❌ No |
 | **Orphaned App Leftovers** | **✅ Registry Cross-Checked** | ❌ No | ❌ Paywalled | ❌ No | ❌ No |
 | **In-Place Hot-Swap Updates** | **✅ G-Helper Style (Zero Trash)** | ⚠️ Store Dependent | ❌ Installer Popups | ❌ Manual | ⚠️ Windows Update |
+| **Single-Instance Mutex Guard** | **✅ Yes (Zero Duplicate Icons)** | ⚠️ Basic | ❌ No | ❌ No | N/A |
 | **24h Safety Shield Filter** | **✅ Yes (Zero Accidental Loss)** | ❌ No | ❌ Blind Deletion | ❌ No | ❌ No |
-| **Headless CLI Engine** | **✅ Full CLI + JSON output** | ❌ No | ⚠️ Limited CLI | ⚠️ Basic CLI | ⚠️ Legacy cleanmgr |
+| **Headless Synchronous CLI** | **✅ Full CLI + JSON output** | ❌ No | ⚠️ Limited CLI | ⚠️ Basic CLI | ⚠️ Legacy cleanmgr |
 | **Design Aesthetics** | **💎 Double-Bezel Obsidian/Frost** | Modern WinUI | ❌ Cluttered with Upsells | ❌ Legacy 2000s GTK | ❌ 90s System UI |
 
 ---
@@ -117,32 +138,35 @@ Windows and desktop applications secretly hoard tens of gigabytes of disposable 
 
 ## 💻 Command-Line Interface (CLI Automation)
 
-Deltempo includes a built-in headless CLI engine for DevOps, power users, and Windows Task Scheduler automation:
+Deltempo provides a fast, synchronous CLI engine with clear tabular formatting, color-coded status badges, and structured JSON output:
 
 ```powershell
 # 1. Quick dry-run scan (or: deltempo scan --json)
-.\Deltempo.exe scan
+deltempo scan
 
 # 2. Clean safe temporary caches and GPU shaders
-.\Deltempo.exe clean
+deltempo clean --safe
 
 # 3. ⚡ Instant 1-click RAM working set purge
-.\Deltempo.exe boost
+deltempo boost
 
 # 4. 🚀 List Windows startup apps & boot impact ratings
-.\Deltempo.exe startup
+deltempo startup
 
 # 5. 🐘 Discover hidden large files (>50 MB)
-.\Deltempo.exe large
+deltempo large
 
 # 6. 🛑 List heavy background memory processes (>80 MB)
-.\Deltempo.exe procs
+deltempo procs
 
 # 7. 📊 Check drive space and memory health telemetry
-.\Deltempo.exe status
+deltempo status
 
 # 8. 🔄 Check for updates on GitHub
-.\Deltempo.exe update
+deltempo update
+
+# 9. ❓ View friendly help and options guide
+deltempo help
 ```
 
 ---
