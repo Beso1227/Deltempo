@@ -120,14 +120,11 @@
 
                         <!-- Language Selector Pill -->
                         <ComboBox x:Name="LanguageComboBox"
-                                  Width="75" Height="26"
-                                  Background="#121724"
-                                  Foreground="{StaticResource TextHighBrush}"
-                                  BorderBrush="{StaticResource HairlineBorderBrush}"
-                                  FontSize="11"
-                                  FontWeight="SemiBold"
+                                  Style="{StaticResource ModernComboBox}"
+                                  Width="88" Height="28"
+                                  FocusVisualStyle="{x:Null}"
+                                  AutomationProperties.Name="Select Application Language"
                                   Margin="0,0,10,0"
-                                  VerticalContentAlignment="Center"
                                   SelectionChanged="LanguageComboBox_SelectionChanged">
                             <ComboBoxItem Content="🇺🇸 EN" IsSelected="True" Tag="en"/>
                             <ComboBoxItem Content="🇸🇦 AR" Tag="ar"/>
