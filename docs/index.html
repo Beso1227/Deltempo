@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Deltempo — The World's Most Powerful & Safest Windows Cache Cleaner</title>
+  <title>Deltempo — The World's Most Powerful &amp; Safest Windows Cache Cleaner</title>
   <meta name="description" content="100% Standalone, open-source Windows cleaner. Deep purges 17 scopes including Steam & shader caches, Adobe Media Cache, Windows Delivery Optimization, CBS logs, GPU shaders, and uninstalled leftovers with zero telemetry." />
   <meta name="keywords" content="windows cleaner, temp cleaner, gpu shader cache, steam cleaner, adobe media cache cleaner, ccleaner alternative, standalone cleaner, open source disk cleanup, windows 11 optimizer" />
   <meta name="author" content="Beso1227" />
@@ -14,7 +14,6 @@
   <meta property="og:url" content="https://beso1227.github.io/Deltempo/" />
   <meta property="og:title" content="Deltempo — Pure Precision Windows Guardian" />
   <meta property="og:description" content="Reclaim 20–80 GB instantly. 17 elite cleaning scopes, 100% standalone single executable, digitally signed, zero telemetry." />
-  <meta property="og:image" content="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/assets/og-preview.png" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Deltempo — Pure Precision Windows Cleaner" />
   <meta name="twitter:description" content="Reclaim 20–80 GB instantly. 100% standalone, zero telemetry, 17 elite cleaning scopes." />
@@ -22,34 +21,11 @@
   <!-- Google Fonts: Plus Jakarta Sans & Outfit for Agency-Grade Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
-
-  <!-- Structured Data / Schema.org -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "Deltempo",
-    "operatingSystem": "Windows 10, Windows 11, Windows Server 2019/2022/2025",
-    "applicationCategory": "UtilitiesApplication",
-    "offers": {
-      "@type": "Offer",
-      "price": "0.00",
-      "priceCurrency": "USD"
-    },
-    "description": "Next-generation standalone Windows cleaner with 17 cleaning scopes, GPU shader purger, creator media cache cleaner, and zero telemetry.",
-    "downloadUrl": "https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe",
-    "author": {
-      "@type": "Person",
-      "name": "Beso1227",
-      "url": "https://github.com/Beso1227"
-    }
-  }
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet" />
 
   <style>
     /* ==========================================================================
-       DESIGN TOKENS & HIGH-END THEME MATRIX
+       DESIGN TOKENS & DYNAMIC THEME MATRIX
        ========================================================================== */
     :root {
       --font-display: 'Outfit', sans-serif;
@@ -63,7 +39,7 @@
       --bg-card-hover: #151D30;
       --border-outer: rgba(255, 255, 255, 0.08);
       --border-inner: rgba(255, 255, 255, 0.05);
-      --border-highlight: rgba(255, 255, 255, 0.18);
+      --border-highlight: rgba(255, 255, 255, 0.2);
       
       --text-high: #FFFFFF;
       --text-med: #94A3B8;
@@ -80,7 +56,8 @@
 
       --radius-bezel: 1.75rem;
       --radius-inner: calc(1.75rem - 0.375rem);
-      --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
+      --ease-fluid: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     html.light {
@@ -109,6 +86,10 @@
       padding: 0;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       background-color: var(--bg-canvas);
       color: var(--text-high);
@@ -118,6 +99,20 @@
       font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
       font-variant-numeric: tabular-nums;
       transition: background-color 0.4s var(--ease-fluid), color 0.4s var(--ease-fluid);
+    }
+
+    /* Mouse Glow Follower */
+    #cursorGlow {
+      position: fixed;
+      width: 450px;
+      height: 450px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.09) 0%, transparent 70%);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: 0;
+      transition: opacity 0.3s ease;
+      will-change: left, top;
     }
 
     /* Ambient Background Atmosphere */
@@ -133,26 +128,30 @@
       top: -15%;
       left: 50%;
       transform: translateX(-50%);
-      width: 1000px;
-      height: 600px;
-      background: radial-gradient(ellipse at center, rgba(6, 182, 212, 0.18) 0%, rgba(139, 92, 246, 0.12) 45%, transparent 75%);
-      filter: blur(100px);
-      opacity: 0.85;
-      animation: pulse-glow 8s ease-in-out infinite alternate;
+      width: 1100px;
+      height: 700px;
+      background: radial-gradient(ellipse at center, rgba(6, 182, 212, 0.18) 0%, rgba(139, 92, 246, 0.14) 45%, transparent 75%);
+      filter: blur(120px);
+      animation: pulse-glow 9s ease-in-out infinite alternate;
     }
     .glow-orb-2 {
       position: absolute;
-      top: 45%;
+      top: 50%;
       right: -10%;
-      width: 700px;
-      height: 500px;
+      width: 800px;
+      height: 600px;
       background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.12) 0%, transparent 70%);
-      filter: blur(90px);
+      filter: blur(100px);
+      animation: drift-glow 12s ease-in-out infinite alternate;
     }
 
     @keyframes pulse-glow {
       0% { transform: translateX(-50%) scale(1); opacity: 0.7; }
-      100% { transform: translateX(-50%) scale(1.15); opacity: 1; }
+      100% { transform: translateX(-50%) scale(1.18); opacity: 1; }
+    }
+    @keyframes drift-glow {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-80px, -50px); }
     }
 
     /* Container */
@@ -166,15 +165,41 @@
     }
 
     /* ==========================================================================
-       DOUBLE-BEZEL (DOPPELRAND) HARDWARE CARDS
+       SCROLL REVEAL (INTERSECTION OBSERVER) SYSTEM
+       ========================================================================== */
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(35px) scale(0.98);
+      filter: blur(6px);
+      transition: opacity 0.8s var(--ease-fluid), transform 0.8s var(--ease-fluid), filter 0.8s var(--ease-fluid);
+      will-change: opacity, transform, filter;
+    }
+    .reveal-on-scroll.is-revealed {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+    .stagger-1 { transition-delay: 0.1s; }
+    .stagger-2 { transition-delay: 0.2s; }
+    .stagger-3 { transition-delay: 0.3s; }
+    .stagger-4 { transition-delay: 0.4s; }
+
+    /* ==========================================================================
+       DOUBLE-BEZEL (DOPPELRAND) HARDWARE CARDS WITH 3D TILT
        ========================================================================== */
     .double-bezel {
       background: var(--border-outer);
       border: 1px solid var(--border-inner);
       padding: 0.375rem;
       border-radius: var(--radius-bezel);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 1px var(--border-highlight);
-      transition: transform 0.4s var(--ease-fluid), border-color 0.4s var(--ease-fluid);
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6), inset 0 1px 1px var(--border-highlight);
+      transition: transform 0.3s var(--ease-fluid), border-color 0.3s var(--ease-fluid), box-shadow 0.3s var(--ease-fluid);
+      transform-style: preserve-3d;
+      perspective: 1200px;
+    }
+    .double-bezel:hover {
+      border-color: rgba(6, 182, 212, 0.35);
+      box-shadow: 0 35px 70px -10px rgba(6, 182, 212, 0.18), inset 0 1px 2px rgba(255, 255, 255, 0.3);
     }
     .double-bezel-inner {
       background: var(--bg-surface);
@@ -203,15 +228,16 @@
       align-items: center;
       gap: 1.5rem;
       padding: 0.5rem 0.75rem 0.5rem 1.25rem;
-      background: rgba(11, 15, 25, 0.75);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+      background: rgba(11, 15, 25, 0.8);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 9999px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+      transition: all 0.3s var(--ease-fluid);
     }
     html.light .nav-island {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.88);
       border-color: rgba(0, 0, 0, 0.08);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     }
@@ -226,17 +252,22 @@
       text-decoration: none;
     }
     .brand-badge {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
       background: linear-gradient(135deg, #06B6D4, #3B82F6);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       font-weight: 900;
       color: #FFF;
-      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.45);
+      animation: badge-spin 8s linear infinite;
+    }
+    @keyframes badge-spin {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(5deg) scale(1.05); }
     }
     .nav-links {
       display: flex;
@@ -248,11 +279,26 @@
       color: var(--text-med);
       text-decoration: none;
       font-size: 0.875rem;
-      font-weight: 500;
+      font-weight: 600;
       transition: color 0.2s var(--ease-fluid);
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--cyan-glow);
+      transition: width 0.25s var(--ease-fluid);
+      border-radius: 2px;
     }
     .nav-links a:hover {
       color: var(--text-high);
+    }
+    .nav-links a:hover::after {
+      width: 100%;
     }
     .nav-actions {
       display: flex;
@@ -260,8 +306,8 @@
       gap: 0.5rem;
     }
     .theme-toggle-btn {
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border-inner);
@@ -270,12 +316,12 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 1rem;
-      transition: all 0.2s var(--ease-fluid);
+      font-size: 1.1rem;
+      transition: all 0.3s var(--ease-spring);
     }
     .theme-toggle-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.15);
+      transform: rotate(20deg) scale(1.1);
     }
 
     /* Nested Button-in-Button CTA */
@@ -287,29 +333,44 @@
       color: #FFFFFF;
       font-weight: 700;
       font-size: 0.875rem;
-      padding: 0.4rem 0.5rem 0.4rem 1.15rem;
+      padding: 0.4rem 0.5rem 0.4rem 1.25rem;
       border-radius: 9999px;
       text-decoration: none;
-      box-shadow: 0 4px 16px rgba(6, 182, 212, 0.35);
+      box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4);
       transition: all 0.3s var(--ease-fluid);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-island::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+      transition: left 0.6s ease;
+    }
+    .btn-island:hover::before {
+      left: 100%;
     }
     .btn-island:hover {
-      transform: translateY(-1px) scale(1.02);
-      box-shadow: 0 8px 24px rgba(6, 182, 212, 0.5);
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 8px 30px rgba(6, 182, 212, 0.6);
     }
     .btn-island-icon {
-      width: 28px;
-      height: 28px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       background: rgba(0, 0, 0, 0.25);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 0.85rem;
-      transition: transform 0.3s var(--ease-fluid);
+      transition: transform 0.3s var(--ease-spring);
     }
     .btn-island:hover .btn-island-icon {
-      transform: translateX(2px) translateY(-1px);
+      transform: translateX(3px) translateY(-2px) scale(1.1);
     }
 
     /* ==========================================================================
@@ -319,104 +380,128 @@
       padding-top: 9rem;
       padding-bottom: 5rem;
       text-align: center;
+      position: relative;
     }
     .eyebrow-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.35rem 0.85rem;
+      gap: 0.6rem;
+      padding: 0.4rem 1rem;
       background: var(--cyan-subtle);
-      border: 1px solid rgba(6, 182, 212, 0.3);
+      border: 1px solid rgba(6, 182, 212, 0.35);
       border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 700;
+      font-size: 0.78rem;
+      font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--cyan-glow);
-      margin-bottom: 1.5rem;
-      animation: float 4s ease-in-out infinite;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 4px 20px rgba(6, 182, 212, 0.2);
+      animation: float-badge 4s ease-in-out infinite;
     }
-    @keyframes float {
+    @keyframes float-badge {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
+      50% { transform: translateY(-5px); }
     }
     .hero-title {
       font-family: var(--font-display);
-      font-size: clamp(2.5rem, 5.5vw, 4.5rem);
+      font-size: clamp(2.75rem, 5.8vw, 4.85rem);
       font-weight: 900;
-      line-height: 1.1;
-      letter-spacing: -0.03em;
-      max-width: 960px;
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+      max-width: 980px;
       margin: 0 auto 1.5rem;
       color: var(--text-high);
     }
     .text-gradient {
-      background: linear-gradient(135deg, #06B6D4 10%, #3B82F6 45%, #A855F7 80%);
+      background: linear-gradient(135deg, #06B6D4 10%, #3B82F6 45%, #A855F7 85%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 4px 20px rgba(6, 182, 212, 0.3));
     }
     .hero-subtitle {
-      font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+      font-size: clamp(1.1rem, 1.85vw, 1.28rem);
       color: var(--text-med);
-      max-width: 740px;
-      margin: 0 auto 2.5rem;
+      max-width: 760px;
+      margin: 0 auto 2.75rem;
       font-weight: 400;
+      line-height: 1.6;
     }
     .hero-ctas {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 1rem;
+      gap: 1.25rem;
       flex-wrap: wrap;
       margin-bottom: 3.5rem;
     }
     .btn-hero-primary {
       display: inline-flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.85rem 1rem 0.85rem 1.75rem;
+      gap: 0.85rem;
+      padding: 0.95rem 1.15rem 0.95rem 2rem;
       background: linear-gradient(135deg, #06B6D4, #3B82F6);
       color: #FFFFFF;
       font-weight: 800;
-      font-size: 1rem;
+      font-size: 1.05rem;
       border-radius: 9999px;
       text-decoration: none;
-      box-shadow: 0 10px 30px rgba(6, 182, 212, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
-      transition: all 0.3s var(--ease-fluid);
+      box-shadow: 0 12px 35px rgba(6, 182, 212, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+      transition: all 0.3s var(--ease-spring);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-hero-primary::after {
+      content: '';
+      position: absolute;
+      inset: -50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+      opacity: 0;
+      transform: scale(0.5);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .btn-hero-primary:hover::after {
+      opacity: 1;
+      transform: scale(1);
     }
     .btn-hero-primary:hover {
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 15px 40px rgba(6, 182, 212, 0.6);
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 18px 45px rgba(6, 182, 212, 0.65);
     }
     .btn-hero-primary .hero-icon-pill {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       background: rgba(0, 0, 0, 0.25);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.1rem;
+      font-size: 1.15rem;
+      transition: transform 0.3s var(--ease-spring);
+    }
+    .btn-hero-primary:hover .hero-icon-pill {
+      transform: rotate(15deg) scale(1.15);
     }
     .btn-hero-secondary {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.85rem 1.5rem;
+      gap: 0.6rem;
+      padding: 0.95rem 1.75rem;
       background: var(--bg-surface);
       color: var(--text-high);
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 1.05rem;
       border: 1px solid var(--border-outer);
       border-radius: 9999px;
       text-decoration: none;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
       transition: all 0.3s var(--ease-fluid);
     }
     .btn-hero-secondary:hover {
       background: var(--bg-card-hover);
       border-color: var(--border-highlight);
-      transform: translateY(-2px);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
     }
 
     /* Meta Badges Row */
@@ -424,73 +509,85 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 1.5rem;
+      gap: 1.75rem;
       flex-wrap: wrap;
       color: var(--text-low);
-      font-size: 0.85rem;
-      font-weight: 500;
+      font-size: 0.88rem;
+      font-weight: 600;
     }
     .hero-meta-item {
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.45rem;
+      transition: transform 0.2s;
+    }
+    .hero-meta-item:hover {
+      color: var(--text-high);
+      transform: scale(1.05);
     }
 
     /* ==========================================================================
        INTERACTIVE LIVE APP SIMULATOR (SHOWCASE)
        ========================================================================== */
     .app-simulator-container {
-      margin-top: 2rem;
+      margin-top: 2.5rem;
     }
     .sim-window {
       background: #090D18;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 1.5rem;
       overflow: hidden;
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      box-shadow: 0 35px 90px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.06);
       text-align: left;
+      position: relative;
     }
     html.light .sim-window {
       background: #FFFFFF;
       border-color: rgba(0, 0, 0, 0.08);
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 35px 90px rgba(0, 0, 0, 0.14);
     }
     .sim-titlebar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.75rem 1.25rem;
+      padding: 0.85rem 1.35rem;
       background: rgba(255, 255, 255, 0.03);
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
     .sim-dots {
       display: flex;
-      gap: 0.4rem;
+      gap: 0.45rem;
     }
     .sim-dot {
-      width: 11px;
-      height: 11px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.2s var(--ease-spring);
+    }
+    .sim-dot:hover {
+      transform: scale(1.2);
     }
     .sim-dot.red { background: #FF5F56; }
     .sim-dot.yellow { background: #FFBD2E; }
     .sim-dot.green { background: #27C93F; }
 
     .sim-title {
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 700;
       color: var(--text-med);
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.55rem;
     }
     .sim-admin-badge {
       background: rgba(16, 185, 129, 0.15);
       color: var(--emerald-glow);
-      padding: 0.15rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      font-weight: 700;
+      padding: 0.18rem 0.55rem;
+      border-radius: 5px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      border: 1px solid rgba(16, 185, 129, 0.3);
     }
 
     .sim-controls-right {
@@ -498,176 +595,178 @@
       align-items: center;
       gap: 0.5rem;
     }
-    .sim-lang-btn, .sim-theme-btn {
+    .sim-lang-btn {
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.08);
       color: var(--text-high);
-      padding: 0.25rem 0.6rem;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
+      padding: 0.3rem 0.7rem;
+      border-radius: 7px;
+      font-size: 0.78rem;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
     }
-    .sim-lang-btn:hover, .sim-theme-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
+    .sim-lang-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: var(--cyan-glow);
     }
 
     /* Simulator Body */
     .sim-body {
-      padding: 1.5rem;
+      padding: 1.75rem;
     }
     .sim-hero-banner {
-      background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(139, 92, 246, 0.1));
-      border: 1px solid rgba(6, 182, 212, 0.2);
-      border-radius: 1rem;
-      padding: 1.25rem 1.5rem;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(139, 92, 246, 0.12));
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      border-radius: 1.15rem;
+      padding: 1.35rem 1.75rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 1.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .sim-hero-banner::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
+      pointer-events: none;
     }
     .sim-reclaim-label {
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.09em;
       color: var(--text-low);
-      font-weight: 700;
+      font-weight: 800;
     }
     .sim-reclaim-val {
       font-family: var(--font-display);
-      font-size: 2.25rem;
+      font-size: 2.5rem;
       font-weight: 900;
       color: var(--cyan-glow);
+      text-shadow: 0 4px 20px rgba(6, 182, 212, 0.4);
+      transition: all 0.3s var(--ease-fluid);
     }
     .sim-action-btn {
       background: linear-gradient(135deg, #10B981, #059669);
       color: #FFF;
       border: none;
-      padding: 0.75rem 1.5rem;
+      padding: 0.85rem 1.75rem;
       border-radius: 9999px;
       font-weight: 800;
-      font-size: 0.95rem;
+      font-size: 1rem;
       cursor: pointer;
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45);
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      transition: all 0.3s var(--ease-fluid);
+      gap: 0.6rem;
+      transition: all 0.3s var(--ease-spring);
+      position: relative;
+      overflow: hidden;
     }
     .sim-action-btn:hover {
-      transform: scale(1.04);
-      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.6);
+      transform: scale(1.05);
+      box-shadow: 0 12px 35px rgba(16, 185, 129, 0.65);
+    }
+    .sim-action-btn:active {
+      transform: scale(0.97);
     }
 
     /* Simulator Category Bento Grid */
     .sim-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 0.85rem;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
     }
     .sim-card {
       background: var(--bg-card);
       border: 1px solid var(--border-inner);
-      border-radius: 0.85rem;
-      padding: 0.85rem 1rem;
+      border-radius: 0.95rem;
+      padding: 1rem 1.15rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      transition: all 0.2s var(--ease-fluid);
+      transition: all 0.25s var(--ease-fluid);
       cursor: pointer;
+      position: relative;
     }
     .sim-card:hover {
       background: var(--bg-card-hover);
       border-color: var(--border-highlight);
-      transform: translateY(-2px);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
     .sim-card-left {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.85rem;
     }
     .sim-card-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1rem;
+      font-size: 1.1rem;
+      transition: transform 0.25s var(--ease-spring);
+    }
+    .sim-card:hover .sim-card-icon {
+      transform: scale(1.15) rotate(5deg);
     }
     .sim-card-name {
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       color: var(--text-high);
     }
     .sim-card-desc {
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       color: var(--text-low);
     }
     .sim-card-size {
       font-family: var(--font-mono);
-      font-weight: 700;
-      font-size: 0.85rem;
+      font-weight: 800;
+      font-size: 0.88rem;
       color: var(--emerald-glow);
+      transition: color 0.3s;
     }
 
     /* ==========================================================================
-       17 ELITE CLEANING SCOPES SHOWCASE
+       17 ELITE CLEANING SCOPES SHOWCASE (INTERACTIVE TABS & CARDS)
        ========================================================================== */
     .scopes-section {
-      padding: 6rem 0;
+      padding: 7rem 0;
     }
     .section-header {
       text-align: center;
-      max-width: 780px;
+      max-width: 800px;
       margin: 0 auto 3.5rem;
     }
     .section-title {
       font-family: var(--font-display);
-      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-size: clamp(2.2rem, 3.8vw, 3.25rem);
       font-weight: 900;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.025em;
       margin-bottom: 1rem;
     }
     .section-subtitle {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       color: var(--text-med);
+      line-height: 1.5;
     }
 
-    /* Scope Tabs Filter */
-    .scope-tabs {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-bottom: 2.5rem;
-    }
-    .scope-tab {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-outer);
-      color: var(--text-med);
-      padding: 0.5rem 1.15rem;
-      border-radius: 9999px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .scope-tab.active, .scope-tab:hover {
-      background: var(--cyan-subtle);
-      color: var(--cyan-glow);
-      border-color: rgba(6, 182, 212, 0.4);
-    }
-
-    /* 17 Scopes Masonry Bento */
+    /* 17 Scopes Masonry Bento with 3D Hover */
     .scopes-masonry {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1.25rem;
+      gap: 1.5rem;
     }
     @media (max-width: 1024px) {
       .scopes-masonry { grid-template-columns: repeat(2, 1fr); }
@@ -679,97 +778,125 @@
       background: var(--bg-surface);
       border: 1px solid var(--border-outer);
       border-radius: var(--radius-bezel);
-      padding: 1.5rem;
-      transition: all 0.3s var(--ease-fluid);
+      padding: 1.75rem;
+      transition: all 0.35s var(--ease-fluid);
       position: relative;
+      overflow: hidden;
+    }
+    .scope-item-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--cyan-glow), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .scope-item-card:hover::before {
+      opacity: 1;
     }
     .scope-item-card:hover {
       border-color: var(--border-highlight);
-      transform: translateY(-4px);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
     }
     .scope-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 1rem;
+      margin-bottom: 1.15rem;
     }
     .scope-icon-box {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.35rem;
+      font-size: 1.45rem;
+      transition: transform 0.3s var(--ease-spring);
+    }
+    .scope-item-card:hover .scope-icon-box {
+      transform: scale(1.12) rotate(6deg);
     }
     .scope-badge-safe {
       background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.25);
+      border: 1px solid rgba(16, 185, 129, 0.3);
       color: var(--emerald-glow);
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 0.2rem 0.55rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 0.25rem 0.65rem;
       border-radius: 9999px;
     }
     .scope-item-title {
       font-family: var(--font-display);
       font-weight: 800;
-      font-size: 1.15rem;
-      margin-bottom: 0.5rem;
+      font-size: 1.25rem;
+      margin-bottom: 0.6rem;
       color: var(--text-high);
     }
     .scope-item-desc {
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       color: var(--text-med);
-      margin-bottom: 1rem;
-      line-height: 1.5;
+      margin-bottom: 1.25rem;
+      line-height: 1.55;
     }
     .scope-path-box {
       background: var(--bg-card);
       border: 1px solid var(--border-inner);
-      padding: 0.5rem 0.75rem;
-      border-radius: 8px;
+      padding: 0.6rem 0.85rem;
+      border-radius: 9px;
       font-family: var(--font-mono);
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       color: var(--text-low);
       word-break: break-all;
+      transition: border-color 0.2s;
+    }
+    .scope-item-card:hover .scope-path-box {
+      border-color: rgba(6, 182, 212, 0.25);
+      color: var(--text-med);
     }
 
     /* ==========================================================================
        HEAD-TO-HEAD COMPARISON BENCHMARK TABLE
        ========================================================================== */
     .compare-section {
-      padding: 6rem 0;
-      background: radial-gradient(circle at center, rgba(6, 182, 212, 0.04) 0%, transparent 70%);
+      padding: 7rem 0;
+      background: radial-gradient(circle at center, rgba(6, 182, 212, 0.05) 0%, transparent 70%);
     }
     .compare-table-wrapper {
       overflow-x: auto;
       border-radius: var(--radius-bezel);
       border: 1px solid var(--border-outer);
       background: var(--bg-surface);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
     }
     .compare-table {
       width: 100%;
       border-collapse: collapse;
       text-align: left;
-      font-size: 0.95rem;
+      font-size: 0.98rem;
     }
     .compare-table th, .compare-table td {
-      padding: 1.25rem 1.5rem;
+      padding: 1.35rem 1.65rem;
       border-bottom: 1px solid var(--border-inner);
+      transition: background 0.2s;
+    }
+    .compare-table tbody tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
     }
     .compare-table thead th {
       background: rgba(255, 255, 255, 0.02);
       font-family: var(--font-display);
       font-weight: 800;
-      font-size: 1.05rem;
+      font-size: 1.1rem;
     }
     .compare-table .highlight-col {
-      background: rgba(6, 182, 212, 0.06);
-      border-left: 1px solid rgba(6, 182, 212, 0.2);
-      border-right: 1px solid rgba(6, 182, 212, 0.2);
+      background: rgba(6, 182, 212, 0.07);
+      border-left: 1px solid rgba(6, 182, 212, 0.25);
+      border-right: 1px solid rgba(6, 182, 212, 0.25);
       font-weight: 700;
     }
 
@@ -777,12 +904,12 @@
        SECURITY & TRUST CENTER (SMARTSCREEN)
        ========================================================================== */
     .security-section {
-      padding: 6rem 0;
+      padding: 7rem 0;
     }
     .security-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 2rem;
+      gap: 2.5rem;
       align-items: center;
     }
     @media (max-width: 860px) {
@@ -790,51 +917,67 @@
     }
     .terminal-box {
       background: #05070D;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 1rem;
-      padding: 1.25rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 1.15rem;
+      padding: 1.5rem;
       font-family: var(--font-mono);
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       color: #38BDF8;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.65);
+      position: relative;
     }
     .terminal-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       color: var(--text-low);
-      font-size: 0.75rem;
-      margin-bottom: 0.75rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      padding-bottom: 0.5rem;
+      font-size: 0.78rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 0.65rem;
     }
 
     /* ==========================================================================
        DOWNLOAD HERO & FOOTER
        ========================================================================== */
     .download-section {
-      padding: 7rem 0 5rem;
+      padding: 8rem 0 6rem;
       text-align: center;
     }
     .download-card {
-      background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(139, 92, 246, 0.12));
-      border: 1px solid rgba(6, 182, 212, 0.3);
-      border-radius: 2.5rem;
-      padding: 4rem 2rem;
-      max-width: 960px;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.14), rgba(139, 92, 246, 0.14));
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      border-radius: 2.75rem;
+      padding: 4.5rem 2rem;
+      max-width: 980px;
       margin: 0 auto;
-      box-shadow: 0 30px 80px rgba(6, 182, 212, 0.15);
+      box-shadow: 0 35px 90px rgba(6, 182, 212, 0.18);
+      position: relative;
+      overflow: hidden;
+    }
+    .download-card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 60%);
+      pointer-events: none;
     }
     .footer {
-      padding: 3rem 0;
+      padding: 3.5rem 0;
       border-top: 1px solid var(--border-inner);
       text-align: center;
       color: var(--text-low);
-      font-size: 0.85rem;
+      font-size: 0.88rem;
     }
   </style>
 </head>
 <body>
+
+  <!-- Dynamic Cursor Light Follower -->
+  <div id="cursorGlow" aria-hidden="true"></div>
 
   <!-- Ambient Light Field -->
   <div class="ambient-glow" aria-hidden="true">
@@ -842,7 +985,7 @@
     <div class="glow-orb-2"></div>
   </div>
 
-  <!-- Floating Island Navbar -->
+  <!-- Floating Island Navigation -->
   <header class="nav-wrapper">
     <nav class="nav-island" aria-label="Main Navigation">
       <a href="#" class="nav-brand">
@@ -869,18 +1012,18 @@
     <!-- HERO SECTION -->
     <section class="hero-section">
       <div class="container">
-        <div class="eyebrow-badge">
+        <div class="eyebrow-badge reveal-on-scroll">
           <span>✨ KING EDITION v1.0 • 17-TIER ENGINE • 100% STANDALONE</span>
         </div>
-        <h1 class="hero-title">
+        <h1 class="hero-title reveal-on-scroll stagger-1">
           Pure Precision Disk Cleanup.<br />
           <span class="text-gradient">Zero Telemetry. Zero Bloat.</span>
         </h1>
-        <p class="hero-subtitle">
+        <p class="hero-subtitle reveal-on-scroll stagger-2">
           The next-generation Windows system &amp; profile guardian. Deep-purges 17 distinct cache tiers including Steam, GPU shaders, Adobe Media Cache, and orphaned uninstalled leftovers with zero background telemetry.
         </p>
 
-        <div class="hero-ctas">
+        <div class="hero-ctas reveal-on-scroll stagger-3">
           <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe" class="btn-hero-primary">
             <span>Download Standalone EXE</span>
             <div class="hero-icon-pill">⚡</div>
@@ -890,7 +1033,7 @@
           </a>
         </div>
 
-        <div class="hero-meta-row">
+        <div class="hero-meta-row reveal-on-scroll stagger-4">
           <div class="hero-meta-item">🟢 100% Self-Contained Binary</div>
           <div class="hero-meta-item">🛡️ Authenticode SHA-256 Signed</div>
           <div class="hero-meta-item">🔒 Zero Analytics / Telemetry</div>
@@ -898,15 +1041,15 @@
         </div>
 
         <!-- LIVE INTERACTIVE APP SIMULATOR -->
-        <div class="app-simulator-container" id="simulator">
+        <div class="app-simulator-container reveal-on-scroll" id="simulator">
           <div class="double-bezel">
             <div class="sim-window">
               <!-- Window Titlebar -->
               <div class="sim-titlebar">
                 <div class="sim-dots">
-                  <div class="sim-dot red"></div>
-                  <div class="sim-dot yellow"></div>
-                  <div class="sim-dot green"></div>
+                  <div class="sim-dot red" title="Close"></div>
+                  <div class="sim-dot yellow" title="Minimize"></div>
+                  <div class="sim-dot green" title="Maximize"></div>
                 </div>
                 <div class="sim-title">
                   <span>Deltempo — Pure Precision Windows Guardian</span>
@@ -1014,14 +1157,14 @@
     <!-- 17 ELITE CLEANING SCOPES SHOWCASE -->
     <section class="scopes-section" id="scopes">
       <div class="container">
-        <div class="section-header">
+        <div class="section-header reveal-on-scroll">
           <h2 class="section-title">17 Elite Cleaning Scopes</h2>
-          <p class="section-subtitle">No other cleaner provides this level of surgical precision and transparency.</p>
+          <p class="section-subtitle">No other cleaner provides this level of surgical precision, transparency, and safety.</p>
         </div>
 
         <div class="scopes-masonry">
           <!-- 1. Gaming -->
-          <div class="scope-item-card">
+          <div class="scope-item-card reveal-on-scroll stagger-1">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(236, 72, 153, 0.15); color: #EC4899;">🎮</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
@@ -1032,7 +1175,7 @@
           </div>
 
           <!-- 2. Creator Media -->
-          <div class="scope-item-card">
+          <div class="scope-item-card reveal-on-scroll stagger-2">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">🎬</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
@@ -1043,7 +1186,7 @@
           </div>
 
           <!-- 3. Windows Delivery Optimization -->
-          <div class="scope-item-card">
+          <div class="scope-item-card reveal-on-scroll stagger-3">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">🌐</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
@@ -1054,7 +1197,7 @@
           </div>
 
           <!-- 4. GPU Shaders -->
-          <div class="scope-item-card">
+          <div class="scope-item-card reveal-on-scroll stagger-1">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">⚡</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
@@ -1065,7 +1208,7 @@
           </div>
 
           <!-- 5. Windows CBS Logs -->
-          <div class="scope-item-card">
+          <div class="scope-item-card reveal-on-scroll stagger-2">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">📜</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
@@ -1076,7 +1219,7 @@
           </div>
 
           <!-- 6. Mobile & Dev Daemons -->
-          <div class="scope-item-card">
+          <div class="scope-item-card reveal-on-scroll stagger-3">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(6, 182, 212, 0.15); color: #06B6D4;">📱</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
@@ -1092,12 +1235,12 @@
     <!-- HEAD-TO-HEAD BENCHMARK MATRIX -->
     <section class="compare-section" id="comparison">
       <div class="container">
-        <div class="section-header">
+        <div class="section-header reveal-on-scroll">
           <h2 class="section-title">Head-to-Head Architecture Comparison</h2>
           <p class="section-subtitle">See why power users, gamers, and creators are switching to Deltempo.</p>
         </div>
 
-        <div class="compare-table-wrapper">
+        <div class="compare-table-wrapper reveal-on-scroll stagger-1">
           <table class="compare-table">
             <thead>
               <tr>
@@ -1161,18 +1304,15 @@
     <section class="security-section" id="security">
       <div class="container">
         <div class="security-grid">
-          <div>
+          <div class="reveal-on-scroll stagger-1">
             <div class="eyebrow-badge">SECURITY &amp; INTEGRITY</div>
             <h2 class="section-title">Signed &amp; Verifiable by Design</h2>
-            <p style="color: var(--text-med); margin-bottom: 1.5rem;">
-              Deltempo is digitally signed using Microsoft Authenticode SHA-256. Every binary release includes public certificates and automated hash verification to ensure 100% security on Windows 10 &amp; 11.
+            <p style="color: var(--text-med); margin-bottom: 1.5rem; font-size: 1.05rem;">
+              Deltempo is digitally signed using Microsoft Authenticode SHA-256. Every binary release is built with automated hash verification to guarantee 100% security on Windows 10 &amp; 11 without third-party tracking.
             </p>
-            <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.cer" class="btn-hero-secondary">
-              <span>📥 Download Public Certificate (Deltempo.cer)</span>
-            </a>
           </div>
 
-          <div class="terminal-box">
+          <div class="terminal-box reveal-on-scroll stagger-2">
             <div class="terminal-header">
               <span>PowerShell Verification</span>
               <span>SHA-256 Authenticode</span>
@@ -1194,14 +1334,14 @@
     <!-- DOWNLOAD HERO SECTION -->
     <section class="download-section">
       <div class="container">
-        <div class="download-card">
-          <h2 class="section-title" style="font-size: clamp(2.2rem, 4.5vw, 3.5rem);">Reclaim Your Storage in Seconds</h2>
-          <p style="color: var(--text-med); max-width: 620px; margin: 0 auto 2.5rem; font-size: 1.15rem;">
+        <div class="download-card reveal-on-scroll">
+          <h2 class="section-title" style="font-size: clamp(2.3rem, 4.8vw, 3.65rem);">Reclaim Your Storage in Seconds</h2>
+          <p style="color: var(--text-med); max-width: 640px; margin: 0 auto 2.75rem; font-size: 1.18rem;">
             No installers, no adware, no account creation. Download the standalone executable and enjoy a clean, fast PC.
           </p>
-          <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe" class="btn-hero-primary" style="font-size: 1.15rem; padding: 1rem 1.25rem 1rem 2rem;">
+          <a href="https://github.com/Beso1227/Deltempo/releases/download/v1.0.0/Deltempo.exe" class="btn-hero-primary" style="font-size: 1.15rem; padding: 1.1rem 1.35rem 1.1rem 2.25rem;">
             <span>Download Deltempo Standalone (v1.0.0)</span>
-            <div class="hero-icon-pill" style="width: 42px; height: 42px;">⚡</div>
+            <div class="hero-icon-pill" style="width: 44px; height: 44px;">⚡</div>
           </a>
         </div>
       </div>
@@ -1216,9 +1356,51 @@
     </div>
   </footer>
 
-  <!-- SCRIPT FOR THEME & INTERACTIVE SIMULATOR -->
+  <!-- SCRIPT FOR ANIMATIONS & INTERACTIVE SIMULATOR -->
   <script>
-    // Theme Toggle Engine
+    // 1. Dynamic Cursor Light Follower
+    const cursorGlow = document.getElementById('cursorGlow');
+    window.addEventListener('pointermove', (e) => {
+      cursorGlow.style.left = `${e.clientX}px`;
+      cursorGlow.style.top = `${e.clientY}px`;
+    });
+
+    // 2. Scroll Reveal Observer with Fluid Stagger
+    const revealElements = document.querySelectorAll('.reveal-on-scroll');
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, {
+      rootMargin: '0px 0px -80px 0px',
+      threshold: 0.15
+    });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+
+    // 3. 3D Card Hover Tilt Physics
+    const tiltCards = document.querySelectorAll('.scope-item-card, .double-bezel');
+    tiltCards.forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -5;
+        const rotateY = ((x - centerX) / centerX) * 5;
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+      });
+
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)';
+      });
+    });
+
+    // 4. Theme Toggle Engine
     const themeBtn = document.getElementById('themeToggleBtn');
     const htmlEl = document.documentElement;
 
@@ -1234,7 +1416,7 @@
       }
     });
 
-    // Simulator Interactive Cleaning Trigger
+    // 5. Simulator Interactive Cleaning Trigger with Dynamic Spring
     const cleanBtn = document.getElementById('simCleanBtn');
     const byteCounter = document.getElementById('simByteCounter');
     let isCleaned = false;
@@ -1248,18 +1430,21 @@
       const interval = setInterval(() => {
         current = Math.max(0, current - 2.8);
         byteCounter.textContent = current.toFixed(1) + ' GB';
+        byteCounter.style.transform = 'scale(1.08)';
         if (current <= 0) {
           clearInterval(interval);
           byteCounter.textContent = '0.0 B (Purged!)';
+          byteCounter.style.transform = 'scale(1)';
+          byteCounter.style.color = '#10B981';
           cleanBtn.innerHTML = '<span>✅ 42.8 GB Reclaimed!</span>';
           cleanBtn.style.background = '#10B981';
           cleanBtn.style.opacity = '1';
           isCleaned = true;
         }
-      }, 50);
+      }, 45);
     });
 
-    // Simulator Language Switcher
+    // 6. Simulator Multi-Language Transformation
     const langSelect = document.getElementById('simLangSelect');
     const langDictionary = {
       en: {
