@@ -34,7 +34,7 @@ jobs:
       - name: Build & Publish GUI + CLI Executables
         run: |
           dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist/standalone
-          dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o ./dist/portable
+          dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=false -o ./dist/portable
           Copy-Item ./dist/standalone/Deltempo.exe ./dist/Deltempo.exe
           Copy-Item ./dist/standalone/Deltempo.exe ./dist/Deltempo-Standalone.exe
           Copy-Item ./dist/portable/Deltempo.exe ./dist/Deltempo-Portable.exe
