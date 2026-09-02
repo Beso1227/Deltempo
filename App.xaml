@@ -402,6 +402,9 @@
             </Setter>
         </Style>
 
+        <!-- Default Implicit ComboBoxItem Style -->
+        <Style TargetType="ComboBoxItem" BasedOn="{StaticResource ModernComboBoxItem}"/>
+
         <!-- Modern Luxury Pill ComboBox Style -->
         <Style x:Key="ModernComboBox" TargetType="ComboBox">
             <Setter Property="ItemContainerStyle" Value="{StaticResource ModernComboBoxItem}"/>
@@ -461,7 +464,7 @@
                                 </ToggleButton.Template>
                             </ToggleButton>
 
-                            <!-- Floating Popup Menu -->
+                            <!-- Floating Popup Menu with Luxury Dark / Light Theme -->
                             <Popup x:Name="Popup"
                                    Placement="Bottom"
                                    IsOpen="{TemplateBinding IsDropDownOpen}"
@@ -469,17 +472,27 @@
                                    Focusable="False"
                                    PopupAnimation="Fade"
                                    VerticalOffset="4">
-                                <Border Background="{DynamicResource ModalSurfaceBrush}"
+                                <Border Background="{DynamicResource SurfaceCardBrush}"
                                         BorderBrush="{DynamicResource HairlineBorderBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="10"
+                                        CornerRadius="8"
                                         MinWidth="{TemplateBinding ActualWidth}"
-                                        Padding="3">
+                                        Padding="3"
+                                        TextElement.Foreground="{DynamicResource TextHighBrush}"
+                                        TextElement.FontFamily="{StaticResource AppFont}"
+                                        TextElement.FontSize="11.5"
+                                        TextElement.FontWeight="SemiBold">
                                     <Border.Effect>
-                                        <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.2"/>
+                                        <DropShadowEffect BlurRadius="20" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.45"/>
                                     </Border.Effect>
-                                    <ScrollViewer MaxHeight="180" VerticalScrollBarVisibility="Auto">
-                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    <ScrollViewer MaxHeight="180" 
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled"
+                                                  Background="Transparent"
+                                                  Focusable="False">
+                                        <StackPanel IsItemsHost="True" 
+                                                    Background="Transparent"
+                                                    KeyboardNavigation.DirectionalNavigation="Contained"/>
                                     </ScrollViewer>
                                 </Border>
                             </Popup>

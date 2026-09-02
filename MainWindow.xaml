@@ -140,16 +140,16 @@
                         <!-- Language Selector Pill -->
                         <ComboBox x:Name="LanguageComboBox"
                                   Style="{DynamicResource ModernComboBox}"
-                                  Width="88" Height="28"
+                                  Width="94" Height="28"
                                   FocusVisualStyle="{x:Null}"
                                   AutomationProperties.Name="Select Application Language"
                                   Margin="0,0,10,0"
                                   SelectionChanged="LanguageComboBox_SelectionChanged">
-                            <ComboBoxItem Content="🇺🇸 EN" IsSelected="True" Tag="en"/>
-                            <ComboBoxItem Content="🇸🇦 AR" Tag="ar"/>
-                            <ComboBoxItem Content="🇪🇸 ES" Tag="es"/>
-                            <ComboBoxItem Content="🇫🇷 FR" Tag="fr"/>
-                            <ComboBoxItem Content="🇩🇪 DE" Tag="de"/>
+                            <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="🇺🇸 EN" IsSelected="True" Tag="en"/>
+                            <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="🇸🇦 AR" Tag="ar"/>
+                            <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="🇪🇸 ES" Tag="es"/>
+                            <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="🇫🇷 FR" Tag="fr"/>
+                            <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="🇩🇪 DE" Tag="de"/>
                         </ComboBox>
 
                         <!-- Admin Badge -->
