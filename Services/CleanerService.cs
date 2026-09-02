@@ -121,7 +121,24 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 5. GPU & DirectX Shaders
+            // 5. Windows Delivery Optimization (WUDO)
+            new TargetFolderInfo
+            {
+                Id = "WinDeliveryOpt",
+                Name = "Windows Delivery Optimization",
+                Category = "System & OS",
+                CategoryColor = "#3B82F6",
+                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadgeColor = "#10B981",
+                Description = "P2P Windows update delivery chunks and background bits cache (DeliveryOptimization)",
+                FolderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "ServiceProfiles", "NetworkService", "AppData", "Local", "Microsoft", "Windows", "DeliveryOptimization", "Cache"),
+                IconGlyph = "\uE774",
+                RequiresAdmin = true,
+                HasAccess = isAdmin,
+                IsSelected = true
+            },
+
+            // 6. GPU & DirectX Shaders
             new TargetFolderInfo
             {
                 Id = "GpuShaderCaches",
@@ -138,7 +155,41 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 6. Desktop & Electron Apps Cache Sweeper
+            // 7. Gaming Launchers & Shaders
+            new TargetFolderInfo
+            {
+                Id = "GamingLaunchers",
+                Name = "Game Launchers & Shaders",
+                Category = "Gaming & Media",
+                CategoryColor = "#EC4899",
+                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadgeColor = "#10B981",
+                Description = "Steam download chunks & shadercache, Epic Games webcache, Battle.net & EA App caches",
+                FolderPath = "Gaming Launchers Pool",
+                IconGlyph = "\uE7FC",
+                RequiresAdmin = false,
+                HasAccess = true,
+                IsSelected = true
+            },
+
+            // 8. Media & Creator Render Scratchpads
+            new TargetFolderInfo
+            {
+                Id = "MediaCreatorCaches",
+                Name = "Media & Creator Render Caches",
+                Category = "Creator & Media",
+                CategoryColor = "#F59E0B",
+                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadgeColor = "#10B981",
+                Description = "Adobe Premiere / After Effects Media Cache & Peak files, DaVinci Resolve proxy scratch, OBS logs",
+                FolderPath = "Media Creator Caches Pool",
+                IconGlyph = "\uE714",
+                RequiresAdmin = false,
+                HasAccess = true,
+                IsSelected = true
+            },
+
+            // 9. Desktop & Electron Apps Cache Sweeper
             new TargetFolderInfo
             {
                 Id = "AppCacheSweeper",
@@ -155,7 +206,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 7. Web Browser Caches
+            // 10. Web Browser Caches
             new TargetFolderInfo
             {
                 Id = "BrowserCaches",
@@ -172,7 +223,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 8. Developer & Package Caches
+            // 11. Developer & Package Caches
             new TargetFolderInfo
             {
                 Id = "DevPackageCaches",
@@ -189,7 +240,41 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 9. Error Dumps
+            // 12. Mobile Sync & Dev Daemons
+            new TargetFolderInfo
+            {
+                Id = "MobileDevResiduals",
+                Name = "Mobile Sync & Dev Daemons",
+                Category = "Dev & Mobile",
+                CategoryColor = "#06B6D4",
+                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadgeColor = "#10B981",
+                Description = "Apple iTunes temp sync cache, Android Studio emulator cache, Gradle & Cargo caches",
+                FolderPath = "Mobile & Dev Residuals Pool",
+                IconGlyph = "\uE8EA",
+                RequiresAdmin = false,
+                HasAccess = true,
+                IsSelected = true
+            },
+
+            // 13. CBS & Servicing Diagnostic Logs
+            new TargetFolderInfo
+            {
+                Id = "WinServicingLogs",
+                Name = "Windows Servicing & CBS Logs",
+                Category = "Diagnostics",
+                CategoryColor = "#8B5CF6",
+                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadgeColor = "#10B981",
+                Description = "Stale Component-Based Servicing logs, DISM deployment logs & setup traces (CbsPersist)",
+                FolderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Logs", "CBS"),
+                IconGlyph = "\uE7C3",
+                RequiresAdmin = true,
+                HasAccess = isAdmin,
+                IsSelected = true
+            },
+
+            // 14. Error Reports & Crash Dumps
             new TargetFolderInfo
             {
                 Id = "CrashDumps",
@@ -206,7 +291,7 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 10. Thumbnails
+            // 15. Explorer Thumbnails
             new TargetFolderInfo
             {
                 Id = "Thumbnails",
@@ -223,30 +308,30 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 11. Recycle Bin
+            // 16. Recycle Bin
             new TargetFolderInfo
             {
                 Id = "RecycleBin",
                 Name = "Windows Recycle Bin",
                 Category = "Storage",
-                CategoryColor = "#10B981",
+                CategoryColor = "#EF4444",
                 SafetyBadge = "🟢 100% Safe Cache",
                 SafetyBadgeColor = "#10B981",
-                Description = "Deleted files across all local drive recycle bins",
-                FolderPath = "Recycle Bin",
+                Description = "All physical drive Recycle Bins via Windows Shell API (SHEmptyRecycleBin)",
+                FolderPath = "Recycle Bin (All Drives)",
                 IconGlyph = "\uE74D",
-                IsSpecialShellTarget = true,
                 RequiresAdmin = false,
                 HasAccess = true,
-                IsSelected = true
+                IsSelected = true,
+                IsSpecialShellTarget = true
             }
         };
 
-        // 12. Add verified true orphaned leftover folders (checked against processes, start menu & registry)
+        // 17. Orphaned Uninstalled AppData Leftovers
         try
         {
-            var verifiedOrphans = OrphanedAppService.ScanVerifiedOrphanedFolders();
-            foreach (var orphan in verifiedOrphans)
+            var orphan = OrphanedAppDataService.ScanForOrphanedAppData();
+            if (orphan != null)
             {
                 targets.Add(orphan);
             }
@@ -273,6 +358,34 @@ public class CleanerService
             if (folder.Id == "GpuShaderCaches")
             {
                 ScanGpuShaderPools(folder, logAction, ct);
+                folder.IsScanning = false;
+                return;
+            }
+
+            if (folder.Id == "GamingLaunchers")
+            {
+                ScanGamingLauncherPools(folder, logAction, ct);
+                folder.IsScanning = false;
+                return;
+            }
+
+            if (folder.Id == "MediaCreatorCaches")
+            {
+                ScanMediaCreatorPools(folder, logAction, ct);
+                folder.IsScanning = false;
+                return;
+            }
+
+            if (folder.Id == "MobileDevResiduals")
+            {
+                ScanMobileDevPools(folder, logAction, ct);
+                folder.IsScanning = false;
+                return;
+            }
+
+            if (folder.Id == "WinServicingLogs")
+            {
+                ScanWinServicingLogs(folder, logAction, ct);
                 folder.IsScanning = false;
                 return;
             }
@@ -391,6 +504,84 @@ public class CleanerService
         };
 
         ScanDirectoryList(folder, shaderDirs, "GPU Shaders", logAction, ct);
+    }
+
+    private static void ScanGamingLauncherPools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+
+        string[] gamingDirs =
+        {
+            Path.Combine(progFilesX86, "Steam", "downloading"),
+            Path.Combine(progFilesX86, "Steam", "shadercache"),
+            Path.Combine(progFilesX86, "Steam", "appcache", "httpcache"),
+            Path.Combine(localAppData, "Steam", "htmlcache"),
+            Path.Combine(localAppData, "EpicGamesLauncher", "Saved", "webcache"),
+            Path.Combine(localAppData, "EpicGamesLauncher", "Saved", "webcache_4430"),
+            Path.Combine(localAppData, "Battle.net", "Cache"),
+            Path.Combine(localAppData, "Blizzard Entertainment", "Battle.net", "Cache"),
+            Path.Combine(localAppData, "Electronic Arts", "EA Desktop", "Logs"),
+            Path.Combine(localAppData, "Electronic Arts", "EA Desktop", "cache"),
+            Path.Combine(localAppData, "Ubisoft Game Launcher", "cache")
+        };
+
+        ScanDirectoryList(folder, gamingDirs, "Game Launchers & Shaders", logAction, ct);
+    }
+
+    private static void ScanMediaCreatorPools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+        string[] mediaDirs =
+        {
+            Path.Combine(roamingAppData, "Adobe", "Common", "Media Cache Files"),
+            Path.Combine(roamingAppData, "Adobe", "Common", "Media Cache"),
+            Path.Combine(roamingAppData, "Adobe", "Common", "Peak Files"),
+            Path.Combine(roamingAppData, "Blackmagic Design", "DaVinci Resolve", "Support", "logs"),
+            Path.Combine(roamingAppData, "Blackmagic Design", "DaVinci Resolve", "Cache"),
+            Path.Combine(roamingAppData, "obs-studio", "logs"),
+            Path.Combine(roamingAppData, "obs-studio", "crashes"),
+            Path.Combine(roamingAppData, "slobs-client", "cache"),
+            Path.Combine(roamingAppData, "Blender Foundation", "Blender", "temp")
+        };
+
+        ScanDirectoryList(folder, mediaDirs, "Media & Creator Render Caches", logAction, ct);
+    }
+
+    private static void ScanMobileDevPools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+        string[] devDirs =
+        {
+            Path.Combine(roamingAppData, "Apple Computer", "MobileDeviceBackup", "Temp"),
+            Path.Combine(roamingAppData, "Apple Computer", "Logs"),
+            Path.Combine(userProfile, ".android", "cache"),
+            Path.Combine(userProfile, ".android", "build-cache"),
+            Path.Combine(userProfile, ".gradle", "daemon"),
+            Path.Combine(userProfile, ".gradle", "caches", "transforms-1"),
+            Path.Combine(userProfile, ".gradle", "caches", "transforms-2"),
+            Path.Combine(userProfile, ".gradle", "caches", "transforms-3"),
+            Path.Combine(userProfile, ".cargo", "registry", "cache")
+        };
+
+        ScanDirectoryList(folder, devDirs, "Mobile & Dev Residuals", logAction, ct);
+    }
+
+    private static void ScanWinServicingLogs(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        string[] logDirs =
+        {
+            Path.Combine(winDir, "Logs", "CBS"),
+            Path.Combine(winDir, "Logs", "DISM"),
+            Path.Combine(winDir, "Logs", "DPX")
+        };
+
+        ScanDirectoryList(folder, logDirs, "Windows Servicing & CBS Logs", logAction, ct);
     }
 
     private static void ScanAppCachePools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
@@ -582,6 +773,8 @@ public class CleanerService
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
 
             if (folder.Id == "GpuShaderCaches")
             {
@@ -590,6 +783,50 @@ public class CleanerService
                 directoriesToClean.Add(Path.Combine(localAppData, "AMD", "DxCache"));
                 directoriesToClean.Add(Path.Combine(localAppData, "D3DSCache"));
                 directoriesToClean.Add(Path.Combine(localAppData, "Intel", "ShaderCache"));
+            }
+            else if (folder.Id == "GamingLaunchers")
+            {
+                directoriesToClean.Add(Path.Combine(progFilesX86, "Steam", "downloading"));
+                directoriesToClean.Add(Path.Combine(progFilesX86, "Steam", "shadercache"));
+                directoriesToClean.Add(Path.Combine(progFilesX86, "Steam", "appcache", "httpcache"));
+                directoriesToClean.Add(Path.Combine(localAppData, "Steam", "htmlcache"));
+                directoriesToClean.Add(Path.Combine(localAppData, "EpicGamesLauncher", "Saved", "webcache"));
+                directoriesToClean.Add(Path.Combine(localAppData, "EpicGamesLauncher", "Saved", "webcache_4430"));
+                directoriesToClean.Add(Path.Combine(localAppData, "Battle.net", "Cache"));
+                directoriesToClean.Add(Path.Combine(localAppData, "Blizzard Entertainment", "Battle.net", "Cache"));
+                directoriesToClean.Add(Path.Combine(localAppData, "Electronic Arts", "EA Desktop", "Logs"));
+                directoriesToClean.Add(Path.Combine(localAppData, "Electronic Arts", "EA Desktop", "cache"));
+                directoriesToClean.Add(Path.Combine(localAppData, "Ubisoft Game Launcher", "cache"));
+            }
+            else if (folder.Id == "MediaCreatorCaches")
+            {
+                directoriesToClean.Add(Path.Combine(roamingAppData, "Adobe", "Common", "Media Cache Files"));
+                directoriesToClean.Add(Path.Combine(roamingAppData, "Adobe", "Common", "Media Cache"));
+                directoriesToClean.Add(Path.Combine(roamingAppData, "Adobe", "Common", "Peak Files"));
+                directoriesToClean.Add(Path.Combine(roamingAppData, "Blackmagic Design", "DaVinci Resolve", "Support", "logs"));
+                directoriesToClean.Add(Path.Combine(roamingAppData, "Blackmagic Design", "DaVinci Resolve", "Cache"));
+                directoriesToClean.Add(Path.Combine(roamingAppData, "obs-studio", "logs"));
+                directoriesToClean.Add(Path.Combine(roamingAppData, "obs-studio", "crashes"));
+                directoriesToClean.Add(Path.Combine(roamingAppData, "slobs-client", "cache"));
+                directoriesToClean.Add(Path.Combine(roamingAppData, "Blender Foundation", "Blender", "temp"));
+            }
+            else if (folder.Id == "MobileDevResiduals")
+            {
+                directoriesToClean.Add(Path.Combine(roamingAppData, "Apple Computer", "MobileDeviceBackup", "Temp"));
+                directoriesToClean.Add(Path.Combine(roamingAppData, "Apple Computer", "Logs"));
+                directoriesToClean.Add(Path.Combine(userProfile, ".android", "cache"));
+                directoriesToClean.Add(Path.Combine(userProfile, ".android", "build-cache"));
+                directoriesToClean.Add(Path.Combine(userProfile, ".gradle", "daemon"));
+                directoriesToClean.Add(Path.Combine(userProfile, ".gradle", "caches", "transforms-1"));
+                directoriesToClean.Add(Path.Combine(userProfile, ".gradle", "caches", "transforms-2"));
+                directoriesToClean.Add(Path.Combine(userProfile, ".gradle", "caches", "transforms-3"));
+                directoriesToClean.Add(Path.Combine(userProfile, ".cargo", "registry", "cache"));
+            }
+            else if (folder.Id == "WinServicingLogs")
+            {
+                directoriesToClean.Add(Path.Combine(winDir, "Logs", "CBS"));
+                directoriesToClean.Add(Path.Combine(winDir, "Logs", "DISM"));
+                directoriesToClean.Add(Path.Combine(winDir, "Logs", "DPX"));
             }
             else if (folder.Id == "AppCacheSweeper")
             {
@@ -649,79 +886,78 @@ public class CleanerService
                     }
                     catch { }
 
-                    int totalCount = fileList.Count;
-                    int processedCounter = 0;
+                    int totalFileCount = fileList.Count;
+                    int processedFiles = 0;
 
-                    var parallelOptions = new ParallelOptions
+                    foreach (var file in fileList)
                     {
-                        MaxDegreeOfParallelism = Math.Clamp(Environment.ProcessorCount * 2, 4, 16),
-                        CancellationToken = ct
-                    };
+                        if (ct.IsCancellationRequested) break;
 
-                    Parallel.ForEach(fileList, parallelOptions, file =>
-                    {
-                        if (ct.IsCancellationRequested) return;
-
-                        if (safeMode24Hours && folder.IsSafeModeEligible && file.LastWriteTime > cutoffTime)
+                        if (safeMode24Hours && file.LastWriteTime > cutoffTime)
                         {
-                            Interlocked.Increment(ref filesSkipped);
-                            int p = Interlocked.Increment(ref processedCounter);
-                            ReportThrottledProgress(p, totalCount, progressReport, ref lastProgressTime);
-                            return;
+                            filesSkipped++;
+                            continue;
                         }
 
-                        // Strict Safety Shield: Never delete user personal documents
-                        string ext = file.Extension.ToLowerInvariant();
-                        if (ext is ".docx" or ".xlsx" or ".pptx" or ".pdf" or ".psd" or ".blend" or ".sln" or ".json" or ".ini")
+                        if (IsProtectedFile(file.FullName))
                         {
-                            // If it's an active app cache sweeper, preserve config files
-                            if (folder.Id == "AppCacheSweeper")
-                            {
-                                Interlocked.Increment(ref filesSkipped);
-                                return;
-                            }
+                            filesSkipped++;
+                            continue;
                         }
 
-                        long fileLength = 0;
                         try
                         {
-                            fileLength = file.Length;
-                            if (!DeleteFileW(file.FullName))
+                            long fileLen = file.Length;
+                            if (file.IsReadOnly)
                             {
-                                File.SetAttributes(file.FullName, FileAttributes.Normal);
-                                if (!DeleteFileW(file.FullName))
-                                {
-                                    File.Delete(file.FullName);
-                                }
+                                file.Attributes = FileAttributes.Normal;
                             }
 
-                            Interlocked.Add(ref freedBytes, fileLength);
-                            Interlocked.Increment(ref filesDeleted);
+                            bool deleted = DeleteFileW(file.FullName);
+                            if (!deleted)
+                            {
+                                file.Delete();
+                            }
+
+                            freedBytes += fileLen;
+                            filesDeleted++;
                         }
                         catch
                         {
-                            Interlocked.Increment(ref filesSkipped);
+                            filesSkipped++;
                         }
 
-                        int currentProcessed = Interlocked.Increment(ref processedCounter);
-                        ReportThrottledProgress(currentProcessed, totalCount, progressReport, ref lastProgressTime);
-                    });
+                        processedFiles++;
+                        if (Environment.TickCount64 - lastProgressTime > 100)
+                        {
+                            lastProgressTime = Environment.TickCount64;
+                            double progress = totalFileCount > 0 ? (double)processedFiles / totalFileCount : 1.0;
+                            progressReport(progress);
+                        }
+                    }
 
-                    // Cleanup empty subdirectories
+                    // Prune empty subdirectories
                     try
                     {
-                        var subdirs = dirInfo.EnumerateDirectories("*", enumOptions)
-                            .OrderByDescending(d => d.FullName.Length)
-                            .ToList();
+                        var subDirs = dirInfo.EnumerateDirectories("*", SearchOption.AllDirectories)
+                                             .OrderByDescending(d => d.FullName.Length);
 
-                        foreach (var subDir in subdirs)
+                        foreach (var sub in subDirs)
                         {
                             if (ct.IsCancellationRequested) break;
                             try
                             {
-                                if (RemoveDirectoryW(subDir.FullName))
+                                if (!sub.EnumerateFileSystemInfos().Any())
                                 {
-                                    foldersDeleted++;
+                                    if (RemoveDirectoryW(sub.FullName) || !Directory.Exists(sub.FullName))
+                                    {
+                                        foldersDeleted++;
+                                    }
+                                    else
+                                    {
+                                        sub.Delete();
+                                        foldersDeleted++;
+                                    }
                                 }
                             }
                             catch { }
@@ -734,51 +970,25 @@ public class CleanerService
 
             folder.SizeBytes = Math.Max(0, folder.SizeBytes - freedBytes);
             folder.FileCount = Math.Max(0, folder.FileCount - filesDeleted);
-            folder.FolderCount = Math.Max(0, folder.FolderCount - foldersDeleted);
-            folder.TopFiles.Clear();
-            folder.StatusMessage = $"Cleaned ({TargetFolderInfo.FormatBytes(freedBytes)} freed)";
-
-            logAction($"Cleaned {folder.Name}: {TargetFolderInfo.FormatBytes(freedBytes)} freed ({filesDeleted:N0} deleted, {filesSkipped:N0} protected/in use)",
-                filesDeleted > 0 ? LogLevel.Success : LogLevel.Info);
-
+            folder.StatusMessage = $"Purged {TargetFolderInfo.FormatBytes(freedBytes)}";
             folder.IsCleaning = false;
+
+            logAction($"Cleaned {folder.Name}: {TargetFolderInfo.FormatBytes(freedBytes)} reclaimed ({filesDeleted:N0} files deleted, {filesSkipped:N0} skipped)", LogLevel.Success);
         }, ct);
 
         return (freedBytes, filesDeleted, foldersDeleted, filesSkipped);
     }
 
-    private static void ReportThrottledProgress(int current, int total, Action<double> progressReport, ref long lastProgressTime)
+    private static bool IsProtectedFile(string filePath)
     {
-        if (total <= 0) return;
-        long now = Environment.TickCount64;
-        if (current == total || now - Interlocked.Read(ref lastProgressTime) > 40)
+        var ext = Path.GetExtension(filePath).ToLowerInvariant();
+        string[] dangerousExtensions = { ".sys", ".drv", ".msc", ".cpl", ".key", ".dat", ".docx", ".xlsx", ".pptx", ".pdf", ".psd", ".blend" };
+        if (dangerousExtensions.Contains(ext))
         {
-            Interlocked.Exchange(ref lastProgressTime, now);
-            progressReport((double)current / total);
+            var fileName = Path.GetFileName(filePath).ToLowerInvariant();
+            if (fileName == "thumbcache_idx.db" || fileName.StartsWith("thumbcache_")) return false;
+            return true;
         }
-    }
-
-    public static string GenerateAuditReport(IEnumerable<TargetFolderInfo> targets, CleanSummary summary, bool safeMode)
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine("================================================================================");
-        sb.AppendLine("                         DELTEMPO CLEANUP AUDIT REPORT                          ");
-        sb.AppendLine("================================================================================");
-        sb.AppendLine($"Timestamp:         {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-        sb.AppendLine($"Safety Shield:     {(safeMode ? "Enabled (Files < 24h protected)" : "Disabled (All temporary files purged)")}");
-        sb.AppendLine($"Total Space Freed: {summary.FormattedFreedSize}");
-        sb.AppendLine($"Files Removed:     {summary.TotalFilesDeleted:N0}");
-        sb.AppendLine($"Folders Removed:   {summary.TotalFoldersDeleted:N0}");
-        sb.AppendLine($"Files Skipped:     {summary.TotalFilesSkipped:N0} (In-use / protected)");
-        sb.AppendLine($"Duration:          {summary.ElapsedTime.TotalSeconds:F2} seconds");
-        sb.AppendLine("--------------------------------------------------------------------------------");
-        sb.AppendLine("TARGET BREAKDOWN:");
-        foreach (var t in targets)
-        {
-            sb.AppendLine($"• [{t.Category}] {t.Name} ({t.FolderPath})");
-            sb.AppendLine($"   Status: {t.StatusMessage} | Remaining: {t.FormattedSize} ({t.FormattedStats})");
-        }
-        sb.AppendLine("================================================================================");
-        return sb.ToString();
+        return false;
     }
 }
