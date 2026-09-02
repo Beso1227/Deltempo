@@ -35,11 +35,10 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/> <!-- 0: Seamless Header / Title Bar -->
                     <RowDefinition Height="Auto"/> <!-- 1: Double-Bezel Hero & Drive Telemetry -->
-                    <RowDefinition Height="Auto"/> <!-- 2: Minimalist Toolbar & Category Filters -->
-                    <RowDefinition Height="Auto"/> <!-- 3: Category Search & Live Filter Chips -->
-                    <RowDefinition Height="*"/>    <!-- 4: Cleanable Category Cards -->
-                    <RowDefinition Height="Auto"/> <!-- 5: Bottom Floating Action Dock -->
-                    <RowDefinition Height="Auto"/> <!-- 6: Collapsible Log Stream -->
+                    <RowDefinition Height="Auto"/> <!-- 2: Unified Command, Search & Filter Strip -->
+                    <RowDefinition Height="*"/>    <!-- 3: Cleanable Category Cards -->
+                    <RowDefinition Height="Auto"/> <!-- 4: Bottom Floating Action Dock -->
+                    <RowDefinition Height="Auto"/> <!-- 5: Collapsible Log Stream -->
                 </Grid.RowDefinitions>
 
                 <!-- 0. SEAMLESS HEADER / TITLE BAR -->
@@ -377,116 +376,28 @@
                 </Border>
             </Border>
 
-            <!-- 2. MINIMALIST TOOLBAR & SELECTION / SAFETY CONTROLS -->
-            <Grid Grid.Row="2" Margin="18,6,18,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <!-- 2. UNIFIED SCOPE EXPLORER & QUICK SELECTION STRIP -->
+            <Border Grid.Row="2"
+                    Background="{DynamicResource SurfaceSubCardBrush}"
+                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Margin="18,4,18,8"
+                    Padding="10,6">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <!-- Search Box -->
+                        <ColumnDefinition Width="190"/>
+                        <!-- Divider -->
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- Filter Chips -->
+                        <ColumnDefinition Width="*"/>
+                        <!-- Quick Actions -->
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <!-- Left: Quick Select & Smart Select -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="SelectSafeBtn"
-                            Style="{DynamicResource PillButton}"
-                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                            AutomationProperties.Name="Select 100% Safe Caches"
-                            AutomationProperties.HelpText="Selects all risk-free cache and temporary targets"
-                            Padding="12,5"
-                            FontSize="11"
-                            Margin="0,0,6,0"
-                            Click="SelectSafeOnlyButton_Click">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="&#xE73E;"
-                                       FontFamily="{DynamicResource IconFont}"
-                                       FontSize="11"
-                                       Foreground="{DynamicResource EmeraldGreenBrush}"
-                                       Margin="0,0,5,0"
-                                       VerticalAlignment="Center"/>
-                            <TextBlock x:Name="SelectSafeBtnText"
-                                       Text="Select 100% Safe"
-                                       FontSize="11"
-                                       FontWeight="SemiBold"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <Button x:Name="SelectAllBtn"
-                            Content="Select All"
-                            Style="{DynamicResource PillButton}"
-                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                            AutomationProperties.Name="Select All Categories"
-                            Padding="10,5"
-                            FontSize="11"
-                            Margin="0,0,6,0"
-                            Click="SelectAllButton_Click"/>
-                    <Button x:Name="ClearBtn"
-                            Content="Clear"
-                            Style="{DynamicResource PillButton}"
-                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                            AutomationProperties.Name="Deselect All Categories"
-                            Padding="10,5"
-                            FontSize="11"
-                            Margin="0,0,6,0"
-                            Click="DeselectAllButton_Click"/>
-                    <Button x:Name="QuickScanBtn"
-                            Style="{DynamicResource PillButton}"
-                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                            AutomationProperties.Name="Rescan All Categories"
-                            AutomationProperties.HelpText="Shortcut: F5 or Ctrl+R"
-                            Padding="12,5"
-                            FontSize="11"
-                            Click="ScanButton_Click">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="&#xE72C;"
-                                       FontFamily="{DynamicResource IconFont}"
-                                       FontSize="11"
-                                       Margin="0,0,5,0"
-                                       VerticalAlignment="Center"/>
-                            <TextBlock x:Name="QuickScanBtnText"
-                                       Text="Rescan"
-                                       FontSize="11"
-                                       FontWeight="SemiBold"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-
-                <!-- Right: Safety Shield Switch -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <CheckBox x:Name="SafeModeCheckBox"
-                              Style="{DynamicResource ModernSwitchCheckBox}"
-                              FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                              AutomationProperties.Name="Safety Shield Filter"
-                              AutomationProperties.HelpText="Protects files created or modified within the last 24 hours"
-                              IsChecked="False"
-                              VerticalAlignment="Center"
-                              Margin="0,0,8,0"
-                              Checked="SafeModeCheckBox_Changed"
-                              Unchecked="SafeModeCheckBox_Changed"/>
-                    <TextBlock x:Name="SafeModeLabelText"
-                               Text="Safety Shield (&gt;24h Old)"
-                               FontSize="11.5"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextMediumBrush}"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
-            </Grid>
-
-            <!-- 3. CATEGORY SEARCH & LIVE FILTER CHIPS -->
-            <Grid Grid.Row="3" Margin="18,0,18,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="220"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Search Box -->
-                <Border Grid.Column="0"
-                        Background="{DynamicResource SurfaceSubCardBrush}"
-                        BorderBrush="{DynamicResource HairlineBorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="8,3"
-                        Margin="0,0,10,0">
-                    <Grid>
+                    <!-- Search Input -->
+                    <Grid Grid.Column="0" VerticalAlignment="Center" Margin="2,0,8,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -508,9 +419,9 @@
                                  TextChanged="CategorySearchBox_TextChanged"/>
                         <TextBlock Grid.Column="1"
                                    x:Name="SearchPlaceholderText"
-                                   Text="Filter scopes (driver, gpu, steam)..."
+                                   Text="Filter 21 scopes..."
                                    Foreground="{DynamicResource TextMutedBrush}"
-                                   FontSize="10.5"
+                                   FontSize="11"
                                    VerticalAlignment="Center"
                                    IsHitTestVisible="False"
                                    Opacity="0.7"/>
@@ -518,25 +429,95 @@
                                 x:Name="ClearSearchBtn"
                                 Content="&#xE711;"
                                 Style="{DynamicResource WindowControlButton}"
-                                Width="18" Height="18"
+                                Width="16" Height="16"
                                 FontSize="8"
                                 Visibility="Collapsed"
                                 Click="ClearSearchBtn_Click"/>
                     </Grid>
-                </Border>
 
-                <!-- Quick Filter Chips -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <RadioButton x:Name="FilterAllRadio" Content="All" Style="{DynamicResource FilterChipRadio}" IsChecked="True" Checked="FilterChip_Checked" Tag="ALL"/>
-                    <RadioButton x:Name="FilterSafeRadio" Content="Safe Only" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SAFE"/>
-                    <RadioButton x:Name="FilterDriversRadio" Content="Drivers &amp; System" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SYSTEM"/>
-                    <RadioButton x:Name="FilterGamingRadio" Content="Gaming &amp; GPU" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="GAMING"/>
-                    <RadioButton x:Name="FilterMediaRadio" Content="Media &amp; Apps" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="MEDIA"/>
-                </StackPanel>
-            </Grid>
+                    <!-- Vertical Subtle Divider -->
+                    <Border Grid.Column="1" Width="1" Height="18" Background="{DynamicResource HairlineBorderBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
-            <!-- 4. CLEANABLE CATEGORY CARDS (SCROLLABLE BENTO LIST) -->
-            <ScrollViewer Grid.Row="4"
+                    <!-- Category Filter Chips -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <RadioButton x:Name="FilterAllRadio" Content="All" Style="{DynamicResource FilterChipRadio}" IsChecked="True" Checked="FilterChip_Checked" Tag="ALL"/>
+                        <RadioButton x:Name="FilterSafeRadio" Content="Safe" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SAFE"/>
+                        <RadioButton x:Name="FilterDriversRadio" Content="Drivers &amp; System" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SYSTEM"/>
+                        <RadioButton x:Name="FilterGamingRadio" Content="Gaming" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="GAMING"/>
+                        <RadioButton x:Name="FilterMediaRadio" Content="Media &amp; Apps" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="MEDIA"/>
+                    </StackPanel>
+
+                    <!-- Quick Select & Rescan Action Pills -->
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="SelectSafeBtn"
+                                Style="{DynamicResource PillButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                ToolTip="Select 100% safe junk targets"
+                                Padding="10,4"
+                                FontSize="10.5"
+                                Margin="0,0,4,0"
+                                Click="SelectSafeOnlyButton_Click">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="&#xE73E;"
+                                           FontFamily="{DynamicResource IconFont}"
+                                           FontSize="10"
+                                           Foreground="{DynamicResource EmeraldGreenBrush}"
+                                           Margin="0,0,4,0"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock x:Name="SelectSafeBtnText"
+                                           Text="Safe"
+                                           FontSize="10.5"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button x:Name="SelectAllBtn"
+                                Content="All"
+                                Style="{DynamicResource PillButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                ToolTip="Select all 21 scopes"
+                                Padding="8,4"
+                                FontSize="10.5"
+                                Margin="0,0,4,0"
+                                Click="SelectAllButton_Click"/>
+
+                        <Button x:Name="ClearBtn"
+                                Content="None"
+                                Style="{DynamicResource PillButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                ToolTip="Deselect all scopes"
+                                Padding="8,4"
+                                FontSize="10.5"
+                                Margin="0,0,4,0"
+                                Click="DeselectAllButton_Click"/>
+
+                        <Button x:Name="QuickScanBtn"
+                                Style="{DynamicResource PillButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                ToolTip="Rescan all categories (F5)"
+                                Padding="9,4"
+                                FontSize="10.5"
+                                Click="ScanButton_Click">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="&#xE72C;"
+                                           FontFamily="{DynamicResource IconFont}"
+                                           FontSize="10"
+                                           Margin="0,0,4,0"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock x:Name="QuickScanBtnText"
+                                           Text="Rescan"
+                                           FontSize="10.5"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- 3. CLEANABLE CATEGORY CARDS (SCROLLABLE BENTO LIST) -->
+            <ScrollViewer Grid.Row="3"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
                           Margin="18,0,18,6">
@@ -683,14 +664,14 @@
                 </ItemsControl>
             </ScrollViewer>
 
-            <!-- 5. BOTTOM FLOATING ACTION DOCK -->
+            <!-- 4. BOTTOM FLOATING ACTION DOCK -->
             <Border x:Name="BottomActionDockBorder"
-                    Grid.Row="5"
+                    Grid.Row="4"
                     Background="{DynamicResource HeaderDockBrush}"
                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                     BorderThickness="0,1,0,0"
                     CornerRadius="0,0,19,19"
-                    Padding="18,14">
+                    Padding="18,12">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -698,7 +679,7 @@
                     </Grid.RowDefinitions>
 
                     <!-- Progress Bar & Status -->
-                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                    <Grid Grid.Row="0" Margin="0,0,0,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
@@ -707,15 +688,15 @@
                         <StackPanel Grid.Column="0">
                             <TextBlock x:Name="ProgressStatusText"
                                        Text="Ready for precision cleanup"
-                                       FontSize="11.5"
+                                       FontSize="11"
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource TextMediumBrush}"
-                                       Margin="0,0,0,5"
+                                       Margin="0,0,0,4"
                                        AutomationProperties.Name="Operation Status"
                                        AutomationProperties.LiveSetting="Polite"/>
-                            <Border Height="6" CornerRadius="3" Background="{DynamicResource TrackBgBrush}" ClipToBounds="True">
+                            <Border Height="5" CornerRadius="2.5" Background="{DynamicResource TrackBgBrush}" ClipToBounds="True">
                                 <ProgressBar x:Name="AppProgressBar"
-                                             Height="6"
+                                             Height="5"
                                              Minimum="0" Maximum="100"
                                              Value="0"
                                              Foreground="{DynamicResource BrandHeroGradientBrush}"
@@ -728,11 +709,11 @@
                         <TextBlock Grid.Column="1"
                                    x:Name="ProgressPercentageText"
                                    Text="0%"
-                                   FontSize="12"
+                                   FontSize="11.5"
                                    FontWeight="Bold"
                                    Foreground="{DynamicResource TextHighBrush}"
                                    VerticalAlignment="Center"
-                                   Margin="12,12,0,0"
+                                   Margin="12,8,0,0"
                                    AutomationProperties.LiveSetting="Polite"/>
                     </Grid>
 
@@ -744,13 +725,31 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Left Secondary Actions -->
-                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <!-- Left Secondary Actions & Safety Shield -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <CheckBox x:Name="SafeModeCheckBox"
+                                      Style="{DynamicResource ModernSwitchCheckBox}"
+                                      FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                      AutomationProperties.Name="Safety Shield Filter"
+                                      AutomationProperties.HelpText="Protects files created or modified within the last 24 hours"
+                                      IsChecked="False"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,6,0"
+                                      Checked="SafeModeCheckBox_Changed"
+                                      Unchecked="SafeModeCheckBox_Changed"/>
+                            <TextBlock x:Name="SafeModeLabelText"
+                                       Text="Safety Shield (>24h)"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextMediumBrush}"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,12,0"/>
+
                             <Button x:Name="ToggleLogBtn"
                                     Style="{DynamicResource PillButton}"
                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     AutomationProperties.Name="Toggle Activity Log Stream"
-                                    Padding="12,7"
+                                    Padding="10,6"
                                     Margin="0,0,6,0"
                                     Click="ToggleLogBtn_Click">
                                 <StackPanel Orientation="Horizontal">
@@ -758,11 +757,11 @@
                                                Text="&#xE756;"
                                                FontFamily="{DynamicResource IconFont}"
                                                FontSize="11"
-                                               Margin="0,0,5,0"
+                                               Margin="0,0,4,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToggleLogText"
                                                Text="Activity Log"
-                                               FontSize="11.5"
+                                               FontSize="11"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
@@ -772,8 +771,8 @@
                                     Style="{DynamicResource PillButton}"
                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     AutomationProperties.Name="Export Cleanup Audit Report"
-                                    Padding="12,7"
-                                    FontSize="11.5"
+                                    Padding="10,6"
+                                    FontSize="11"
                                     Click="ExportAuditReport_Click"/>
                         </StackPanel>
 
@@ -784,7 +783,7 @@
                                     Style="{DynamicResource PillButton}"
                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     AutomationProperties.Name="Cancel Active Operation"
-                                    Padding="16,8"
+                                    Padding="14,7"
                                     Margin="0,0,8,0"
                                     Click="CancelButton_Click"
                                     Visibility="Collapsed"/>
@@ -798,12 +797,12 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE74D;"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="14"
-                                               Margin="0,0,8,0"
+                                               FontSize="13"
+                                               Margin="0,0,7,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="CleanButtonText"
                                                Text="Clean Selected (0.0 MB)"
-                                               FontSize="13.5"
+                                               FontSize="13"
                                                FontWeight="Bold"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
@@ -813,8 +812,8 @@
                 </Grid>
             </Border>
 
-            <!-- 6. COLLAPSIBLE LOG STREAM -->
-            <Border Grid.Row="6"
+            <!-- 5. COLLAPSIBLE LOG STREAM -->
+            <Border Grid.Row="5"
                     x:Name="LogDrawerBorder"
                     Background="{DynamicResource SurfaceSubCardBrush}"
                     BorderBrush="{DynamicResource HairlineBorderBrush}"
