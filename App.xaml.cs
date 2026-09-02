@@ -16,6 +16,9 @@ public partial class App : System.Windows.Application
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        // Automatically ensure 'deltempo' is globally accessible in terminal & Win+R
+        CliRegistrationService.EnsureCliRegistered();
+
         var args = e.Args;
 
         if (args.Length > 0)
