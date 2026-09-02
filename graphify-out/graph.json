@@ -1,8 +1,51 @@
 {
-  "generatedAt": "2026-09-02T18:42:59.2672460+03:00",
+  "generatedAt": "2026-09-02T18:49:36.9144489+03:00",
   "version": "1.1.0",
   "statistics": {
     "totalEdges": 33,
+    "clusters": [
+      {
+        "count": 2,
+        "cluster": "Cleaner"
+      },
+      {
+        "count": 3,
+        "cluster": "CLI"
+      },
+      {
+        "count": 1,
+        "cluster": "Core"
+      },
+      {
+        "count": 1,
+        "cluster": "DevOps"
+      },
+      {
+        "count": 5,
+        "cluster": "Models"
+      },
+      {
+        "count": 4,
+        "cluster": "Optimizer"
+      },
+      {
+        "count": 3,
+        "cluster": "Providers"
+      },
+      {
+        "count": 4,
+        "cluster": "System"
+      },
+      {
+        "count": 3,
+        "cluster": "Tests"
+      },
+      {
+        "count": 4,
+        "cluster": "UI"
+      }
+    ],
+    "totalNodes": 30,
     "godNodes": [
       {
         "id": "MainWindow",
@@ -33,49 +76,6 @@
         "label": "App.xaml / App.xaml.cs",
         "degree": 3,
         "cluster": "Core"
-      }
-    ],
-    "totalNodes": 30,
-    "clusters": [
-      {
-        "cluster": "Cleaner",
-        "count": 2
-      },
-      {
-        "cluster": "CLI",
-        "count": 3
-      },
-      {
-        "cluster": "Core",
-        "count": 1
-      },
-      {
-        "cluster": "DevOps",
-        "count": 1
-      },
-      {
-        "cluster": "Models",
-        "count": 5
-      },
-      {
-        "cluster": "Optimizer",
-        "count": 4
-      },
-      {
-        "cluster": "Providers",
-        "count": 3
-      },
-      {
-        "cluster": "System",
-        "count": 4
-      },
-      {
-        "cluster": "Tests",
-        "count": 3
-      },
-      {
-        "cluster": "UI",
-        "count": 4
       }
     ]
   },

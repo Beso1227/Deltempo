@@ -974,8 +974,376 @@
       transition: color 0.3s;
     }
 
+    /* Simulator Multi-Tool Navigation Tabs */
+    .sim-nav-tabs {
+      display: flex;
+      background: rgba(0, 0, 0, 0.25);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0.35rem 0.75rem 0;
+      gap: 0.5rem;
+      overflow-x: auto;
+    }
+    html.light .sim-nav-tabs {
+      background: #F8FAFC;
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+    .sim-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.15rem;
+      background: transparent;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      color: var(--text-med);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-fluid);
+      white-space: nowrap;
+    }
+    .sim-tab:hover {
+      color: var(--text-high);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .sim-tab.active {
+      background: var(--bg-surface);
+      color: var(--cyan-glow);
+      border-color: rgba(255, 255, 255, 0.12);
+      border-bottom-color: var(--bg-surface);
+      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3);
+    }
+    html.light .sim-tab.active {
+      background: #FFFFFF;
+      border-color: rgba(0, 0, 0, 0.1);
+      border-bottom-color: #FFFFFF;
+    }
+
+    .sim-tab-pane {
+      display: none;
+      animation: fadeInPane 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sim-tab-pane.active {
+      display: block;
+    }
+    @keyframes fadeInPane {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* RAM Booster Tab Styles */
+    .sim-ram-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-inner);
+      border-radius: 1.15rem;
+      padding: 1.5rem;
+    }
+    .sim-ram-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .sim-ram-stats-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.65rem;
+    }
+    .sim-ram-pct {
+      font-family: var(--font-display);
+      font-size: 2.25rem;
+      font-weight: 900;
+      color: var(--cyan-glow);
+      transition: all 0.3s;
+    }
+    .sim-ram-fraction {
+      font-size: 0.95rem;
+      color: var(--text-med);
+      font-weight: 600;
+    }
+    .sim-ram-bar-track {
+      width: 100%;
+      height: 10px;
+      background: #1E293B;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+    .sim-ram-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #06B6D4, #3B82F6, #8B5CF6);
+      border-radius: 5px;
+      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
+    }
+    .sim-ram-processes-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 0.85rem;
+    }
+    .sim-proc-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-inner);
+      border-radius: 0.75rem;
+      padding: 0.85rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    .sim-proc-info {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+    .sim-proc-icon {
+      font-size: 1.25rem;
+    }
+    .sim-proc-name {
+      font-weight: 700;
+      font-size: 0.82rem;
+      color: var(--text-high);
+    }
+    .sim-proc-sub {
+      font-size: 0.7rem;
+      color: var(--text-low);
+    }
+    .sim-proc-mem {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--cyan-glow);
+      transition: all 0.3s;
+    }
+
+    /* Startup Accelerator Tab Styles */
+    .sim-startup-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-inner);
+      border-radius: 1.15rem;
+      padding: 1.5rem;
+    }
+    .sim-startup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .sim-startup-delta {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-high);
+      margin-top: 0.25rem;
+    }
+    .sim-startup-shield-badge {
+      font-size: 0.78rem;
+      font-weight: 800;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--emerald-glow);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+    }
+    .sim-startup-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .sim-startup-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-inner);
+      border-radius: 0.85rem;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    .sim-startup-left {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .sim-startup-icon {
+      font-size: 1.35rem;
+    }
+    .sim-startup-name {
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--text-high);
+    }
+    .sim-startup-impact {
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .impact-high { color: #F43F5E; }
+    .impact-med { color: #F59E0B; }
+    .impact-low { color: #10B981; }
+
+    /* Custom iOS/W11 Switch */
+    .sim-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .sim-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .sim-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #334155;
+      transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border-radius: 24px;
+    }
+    .sim-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    }
+    input:checked + .sim-slider {
+      background: linear-gradient(135deg, #06B6D4, #3B82F6);
+    }
+    input:checked + .sim-slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Obsidian Tray Guardian Showcase */
+    .sim-tray-showcase {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 2rem;
+      align-items: center;
+      padding: 0.5rem;
+    }
+    @media (max-width: 768px) {
+      .sim-tray-showcase { grid-template-columns: 1fr; }
+    }
+    .tray-menu-replica {
+      width: 290px;
+      background: #0C1017;
+      border: 1px solid #1E293B;
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      user-select: none;
+    }
+    .tray-header-card {
+      background: #111724;
+      border: 1px solid #1E2A3F;
+      border-radius: 9px;
+      padding: 8px 10px;
+      margin-bottom: 4px;
+    }
+    .tray-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .tray-brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: #F8FAFC;
+    }
+    .tray-brand-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: #10242B;
+      border: 1px solid #00E5FF;
+      color: #00E5FF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+    }
+    .tray-active-badge {
+      font-size: 0.6rem;
+      font-weight: 800;
+      background: #10241B;
+      border: 1px solid #10B981;
+      color: #10B981;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+    .tray-ram-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: #94A3B8;
+      margin-bottom: 4px;
+    }
+    .tray-pbar-track {
+      height: 4px;
+      border-radius: 2px;
+      background: #1E293B;
+      overflow: hidden;
+    }
+    .tray-pbar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00E5FF, #8B5CF6);
+    }
+    .tray-menu-items {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .tray-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      color: #F8FAFC;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tray-item:hover {
+      background: #172133;
+    }
+    .tray-item-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      background: #141B28;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+    .tray-divider {
+      height: 1px;
+      background: #1E293B;
+      margin: 3px 4px;
+    }
+
     /* ==========================================================================
-       17 ELITE CLEANING SCOPES SHOWCASE (INTERACTIVE TABS & CARDS)
+       21+ ELITE CLEANING SCOPES SHOWCASE (INTERACTIVE TABS & CARDS)
        ========================================================================== */
     .scopes-section {
       padding: 7rem 0;
@@ -1342,7 +1710,7 @@
           <div class="hero-meta-item">🌍 5 Languages (EN, AR, ES, FR, DE)</div>
         </div>
 
-        <!-- LIVE INTERACTIVE APP SIMULATOR -->
+        <!-- LIVE INTERACTIVE APP SIMULATOR (MULTI-TOOL SUITE SHOWCASE) -->
         <div class="app-simulator-container reveal-on-scroll" id="simulator">
           <div class="double-bezel">
             <div class="sim-window">
@@ -1355,7 +1723,7 @@
                 </div>
                 <div class="sim-title">
                   <img src="app_icon.png" alt="Deltempo Logo" class="sim-title-icon" />
-                  <span>Deltempo — Pure Precision Windows Guardian</span>
+                  <span>Deltempo — Pure Precision Windows Guardian (King Edition v1.1.0)</span>
                   <span class="sim-admin-badge">ADMIN ACCESS</span>
                 </div>
                 <div class="sim-controls-right">
@@ -1375,86 +1743,310 @@
                 </div>
               </div>
 
+              <!-- Interactive Simulator Navigation Strip -->
+              <div class="sim-nav-tabs">
+                <button class="sim-tab active" data-tab="cleaner">
+                  <span class="sim-tab-icon">🧹</span>
+                  <span>Deep Cache Purge</span>
+                </button>
+                <button class="sim-tab" data-tab="ram">
+                  <span class="sim-tab-icon">⚡</span>
+                  <span>RAM Booster</span>
+                </button>
+                <button class="sim-tab" data-tab="startup">
+                  <span class="sim-tab-icon">🚀</span>
+                  <span>Startup Accelerator</span>
+                </button>
+                <button class="sim-tab" data-tab="tray">
+                  <span class="sim-tab-icon">🛡️</span>
+                  <span>Obsidian Tray Guardian</span>
+                </button>
+              </div>
+
               <!-- Simulator Body -->
               <div class="sim-body">
-                <div class="sim-hero-banner">
-                  <div>
-                    <div class="sim-reclaim-label" id="simHeroReclaimLabel">RECLAIMABLE JUNK &amp; APPDATA</div>
-                    <div class="sim-reclaim-val" id="simByteCounter">42.8 GB</div>
+                <!-- 1. TAB: DEEP CACHE CLEANER -->
+                <div class="sim-tab-pane active" id="paneCleaner">
+                  <div class="sim-hero-banner">
+                    <div>
+                      <div class="sim-reclaim-label" id="simHeroReclaimLabel">RECLAIMABLE JUNK &amp; APPDATA</div>
+                      <div class="sim-reclaim-val" id="simByteCounter">42.8 GB</div>
+                    </div>
+                    <button class="sim-action-btn" id="simCleanBtn">
+                      <span>⚡ Clean Selected (21 Scopes)</span>
+                    </button>
                   </div>
-                  <button class="sim-action-btn" id="simCleanBtn">
-                    <span>⚡ Clean Selected</span>
-                  </button>
+
+                  <!-- Bento Category Grid -->
+                  <div class="sim-grid">
+                    <div class="sim-card">
+                      <div class="sim-card-left">
+                        <div class="sim-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">🚗</div>
+                        <div>
+                          <div class="sim-card-name" data-i18n-key="drivers">Device Drivers &amp; GPU OTA</div>
+                          <div class="sim-card-desc">NVIDIA App (3.7+ GB), AMD, Intel</div>
+                        </div>
+                      </div>
+                      <div class="sim-card-size">3.7 GB</div>
+                    </div>
+
+                    <div class="sim-card">
+                      <div class="sim-card-left">
+                        <div class="sim-card-icon" style="background: rgba(236, 72, 153, 0.15); color: #EC4899;">🎮</div>
+                        <div>
+                          <div class="sim-card-name" data-i18n-key="gaming">Game Launchers &amp; Shaders</div>
+                          <div class="sim-card-desc">Steam, Epic, Battle.net</div>
+                        </div>
+                      </div>
+                      <div class="sim-card-size">14.6 GB</div>
+                    </div>
+
+                    <div class="sim-card">
+                      <div class="sim-card-left">
+                        <div class="sim-card-icon" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">🎬</div>
+                        <div>
+                          <div class="sim-card-name" data-i18n-key="creator">Media &amp; Creator Caches</div>
+                          <div class="sim-card-desc">Adobe Premiere, DaVinci, OBS</div>
+                        </div>
+                      </div>
+                      <div class="sim-card-size">18.2 GB</div>
+                    </div>
+
+                    <div class="sim-card">
+                      <div class="sim-card-left">
+                        <div class="sim-card-icon" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">🌐</div>
+                        <div>
+                          <div class="sim-card-name" data-i18n-key="wudo">Windows Delivery Optimization</div>
+                          <div class="sim-card-desc">WUDO P2P Cache Chunks</div>
+                        </div>
+                      </div>
+                      <div class="sim-card-size">4.5 GB</div>
+                    </div>
+
+                    <div class="sim-card">
+                      <div class="sim-card-left">
+                        <div class="sim-card-icon" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">⚡</div>
+                        <div>
+                          <div class="sim-card-name" data-i18n-key="gpu">DirectX &amp; GPU Shaders</div>
+                          <div class="sim-card-desc">NVIDIA, AMD, Intel Cache</div>
+                        </div>
+                      </div>
+                      <div class="sim-card-size">2.8 GB</div>
+                    </div>
+
+                    <div class="sim-card">
+                      <div class="sim-card-left">
+                        <div class="sim-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">💬</div>
+                        <div>
+                          <div class="sim-card-name" data-i18n-key="apps">Desktop Apps Sweeper</div>
+                          <div class="sim-card-desc">Discord, Spotify, VS Code</div>
+                        </div>
+                      </div>
+                      <div class="sim-card-size">1.9 GB</div>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Bento Category Grid -->
-                <div class="sim-grid">
-                  <div class="sim-card">
-                    <div class="sim-card-left">
-                      <div class="sim-card-icon" style="background: rgba(236, 72, 153, 0.15); color: #EC4899;">🎮</div>
+                <!-- 2. TAB: LIVE RAM BOOSTER -->
+                <div class="sim-tab-pane" id="paneRam">
+                  <div class="sim-ram-box">
+                    <div class="sim-ram-header">
                       <div>
-                        <div class="sim-card-name" data-i18n-key="gaming">Game Launchers &amp; Shaders</div>
-                        <div class="sim-card-desc">Steam, Epic, Battle.net</div>
+                        <div class="sim-reclaim-label">SYSTEM MEMORY PRESSURE</div>
+                        <div class="sim-ram-stats-row">
+                          <span class="sim-ram-pct" id="simRamPct">74.2%</span>
+                          <span class="sim-ram-fraction" id="simRamFraction">(11.6 GB / 15.6 GB)</span>
+                        </div>
                       </div>
+                      <button class="sim-action-btn" id="simBoostBtn" style="background: linear-gradient(135deg, #06B6D4, #3B82F6); box-shadow: 0 8px 25px rgba(6, 182, 212, 0.45);">
+                        <span>⚡ 1-Click Boost RAM</span>
+                      </button>
                     </div>
-                    <div class="sim-card-size">14.6 GB</div>
-                  </div>
 
-                  <div class="sim-card">
-                    <div class="sim-card-left">
-                      <div class="sim-card-icon" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">🎬</div>
-                      <div>
-                        <div class="sim-card-name" data-i18n-key="creator">Media &amp; Creator Caches</div>
-                        <div class="sim-card-desc">Adobe Premiere, DaVinci, OBS</div>
-                      </div>
+                    <div class="sim-ram-bar-track">
+                      <div class="sim-ram-bar-fill" id="simRamBarFill" style="width: 74.2%;"></div>
                     </div>
-                    <div class="sim-card-size">18.2 GB</div>
-                  </div>
 
-                  <div class="sim-card">
-                    <div class="sim-card-left">
-                      <div class="sim-card-icon" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">🌐</div>
-                      <div>
-                        <div class="sim-card-name" data-i18n-key="wudo">Windows Delivery Optimization</div>
-                        <div class="sim-card-desc">WUDO P2P Cache Chunks</div>
+                    <div class="sim-ram-processes-list">
+                      <div class="sim-proc-item">
+                        <div class="sim-proc-info">
+                          <span class="sim-proc-icon">🌐</span>
+                          <div>
+                            <div class="sim-proc-name">Google Chrome (24 tabs)</div>
+                            <div class="sim-proc-sub">Working Set Cache</div>
+                          </div>
+                        </div>
+                        <span class="sim-proc-mem" id="procMemChrome">1,840 MB</span>
+                      </div>
+                      <div class="sim-proc-item">
+                        <div class="sim-proc-info">
+                          <span class="sim-proc-icon">🎮</span>
+                          <div>
+                            <div class="sim-proc-name">Steam Client Bootstrapper</div>
+                            <div class="sim-proc-sub">Standby Memory Chunk</div>
+                          </div>
+                        </div>
+                        <span class="sim-proc-mem" id="procMemSteam">720 MB</span>
+                      </div>
+                      <div class="sim-proc-item">
+                        <div class="sim-proc-info">
+                          <span class="sim-proc-icon">💬</span>
+                          <div>
+                            <div class="sim-proc-name">Discord Canary</div>
+                            <div class="sim-proc-sub">Electron WebRTC Heap</div>
+                          </div>
+                        </div>
+                        <span class="sim-proc-mem" id="procMemDiscord">540 MB</span>
+                      </div>
+                      <div class="sim-proc-item">
+                        <div class="sim-proc-info">
+                          <span class="sim-proc-icon">🎵</span>
+                          <div>
+                            <div class="sim-proc-name">Spotify Desktop</div>
+                            <div class="sim-proc-sub">Audio Buffer Cache</div>
+                          </div>
+                        </div>
+                        <span class="sim-proc-mem" id="procMemSpotify">430 MB</span>
                       </div>
                     </div>
-                    <div class="sim-card-size">4.5 GB</div>
-                  </div>
-
-                  <div class="sim-card">
-                    <div class="sim-card-left">
-                      <div class="sim-card-icon" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">⚡</div>
-                      <div>
-                        <div class="sim-card-name" data-i18n-key="gpu">DirectX &amp; GPU Shaders</div>
-                        <div class="sim-card-desc">NVIDIA, AMD, Intel Cache</div>
-                      </div>
-                    </div>
-                    <div class="sim-card-size">2.8 GB</div>
-                  </div>
-
-                  <div class="sim-card">
-                    <div class="sim-card-left">
-                      <div class="sim-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">💬</div>
-                      <div>
-                        <div class="sim-card-name" data-i18n-key="apps">Desktop Apps Sweeper</div>
-                        <div class="sim-card-desc">Discord, Spotify, VS Code</div>
-                      </div>
-                    </div>
-                    <div class="sim-card-size">1.9 GB</div>
-                  </div>
-
-                  <div class="sim-card">
-                    <div class="sim-card-left">
-                      <div class="sim-card-icon" style="background: rgba(6, 182, 212, 0.15); color: #06B6D4;">💻</div>
-                      <div>
-                        <div class="sim-card-name" data-i18n-key="mobile">Mobile Sync &amp; Dev Daemons</div>
-                        <div class="sim-card-desc">Apple iTunes, Gradle, Cargo</div>
-                      </div>
-                    </div>
-                    <div class="sim-card-size">800 MB</div>
                   </div>
                 </div>
+
+                <!-- 3. TAB: STARTUP BOOT ACCELERATOR -->
+                <div class="sim-tab-pane" id="paneStartup">
+                  <div class="sim-startup-box">
+                    <div class="sim-startup-header">
+                      <div>
+                        <div class="sim-reclaim-label">BOOT TIME IMPACT OPTIMIZATION</div>
+                        <div class="sim-startup-delta" id="simStartupDelta">Estimated Boot Speedup: <strong style="color: #10B981;">-0.0s</strong></div>
+                      </div>
+                      <div class="sim-startup-shield-badge">🛡️ 100% Reversible Registry Keys</div>
+                    </div>
+
+                    <div class="sim-startup-list">
+                      <div class="sim-startup-item">
+                        <div class="sim-startup-left">
+                          <span class="sim-startup-icon">💬</span>
+                          <div>
+                            <div class="sim-startup-name">Discord Canary</div>
+                            <div class="sim-startup-impact impact-high">🔴 High Impact (~1.8s delay)</div>
+                          </div>
+                        </div>
+                        <label class="sim-switch">
+                          <input type="checkbox" class="startup-toggle" data-impact="1.8" checked />
+                          <span class="sim-slider"></span>
+                        </label>
+                      </div>
+
+                      <div class="sim-startup-item">
+                        <div class="sim-startup-left">
+                          <span class="sim-startup-icon">🎵</span>
+                          <div>
+                            <div class="sim-startup-name">Spotify Web Helper</div>
+                            <div class="sim-startup-impact impact-high">🔴 High Impact (~1.4s delay)</div>
+                          </div>
+                        </div>
+                        <label class="sim-switch">
+                          <input type="checkbox" class="startup-toggle" data-impact="1.4" checked />
+                          <span class="sim-slider"></span>
+                        </label>
+                      </div>
+
+                      <div class="sim-startup-item">
+                        <div class="sim-startup-left">
+                          <span class="sim-startup-icon">🎮</span>
+                          <div>
+                            <div class="sim-startup-name">Steam Client Service</div>
+                            <div class="sim-startup-impact impact-med">🟡 Medium Impact (~1.1s delay)</div>
+                          </div>
+                        </div>
+                        <label class="sim-switch">
+                          <input type="checkbox" class="startup-toggle" data-impact="1.1" checked />
+                          <span class="sim-slider"></span>
+                        </label>
+                      </div>
+
+                      <div class="sim-startup-item">
+                        <div class="sim-startup-left">
+                          <span class="sim-startup-icon">⚡</span>
+                          <div>
+                            <div class="sim-startup-name">Epic Games Launcher</div>
+                            <div class="sim-startup-impact impact-med">🟡 Medium Impact (~0.9s delay)</div>
+                          </div>
+                        </div>
+                        <label class="sim-switch">
+                          <input type="checkbox" class="startup-toggle" data-impact="0.9" checked />
+                          <span class="sim-slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 4. TAB: OBSIDIAN TRAY GUARDIAN SHOWCASE -->
+                <div class="sim-tab-pane" id="paneTray">
+                  <div class="sim-tray-showcase">
+                    <div class="sim-tray-info">
+                      <div class="eyebrow-badge" style="margin-bottom: 0.75rem;">NEW IN v1.1.0</div>
+                      <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">Luxury Obsidian Tray Guardian</h3>
+                      <p style="color: var(--text-med); font-size: 0.95rem; margin-bottom: 1.25rem;">
+                        Machined dark titanium acrylic canvas with real-time RAM pressure telemetry, "ACTIVE" pulse pill, and 1-click haptic actions right from your Windows notification area.
+                      </p>
+                      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <span class="hero-meta-item">🛡️ UIPI IPC Protection</span>
+                        <span class="hero-meta-item">⚡ 1-Click Working Set Flush</span>
+                        <span class="hero-meta-item">🤖 Auto-Pilot Silent Cleaning</span>
+                      </div>
+                    </div>
+
+                    <!-- Realistic Interactive Tray Window Replica -->
+                    <div class="tray-menu-replica">
+                      <!-- Header Telemetry Card -->
+                      <div class="tray-header-card">
+                        <div class="tray-title-row">
+                          <div class="tray-brand">
+                            <div class="tray-brand-icon">⚙️</div>
+                            <strong>Deltempo Guardian</strong>
+                          </div>
+                          <span class="tray-active-badge">ACTIVE</span>
+                        </div>
+                        <div class="tray-ram-row">
+                          <span>RAM Pressure: <strong>48.2%</strong></span>
+                          <span style="color: #64748B; font-size: 0.8rem;">(7.5 GB / 15.6 GB)</span>
+                        </div>
+                        <div class="tray-pbar-track">
+                          <div class="tray-pbar-fill" style="width: 48.2%;"></div>
+                        </div>
+                      </div>
+
+                      <!-- Menu Items -->
+                      <div class="tray-menu-items">
+                        <div class="tray-item" onclick="alert('⚡ Reclaimed 740 MB RAM in 280ms!')">
+                          <div class="tray-item-icon" style="color: #38BDF8;">🏠</div>
+                          <span>Open Deltempo Dashboard</span>
+                        </div>
+                        <div class="tray-item" onclick="alert('⚡ RAM Booster executed successfully!')">
+                          <div class="tray-item-icon" style="color: #00E5FF;">⚡</div>
+                          <span>Boost RAM (Flush Working Sets)</span>
+                        </div>
+                        <div class="tray-item" onclick="alert('🧹 100% Safe Caches cleaned!')">
+                          <div class="tray-item-icon" style="color: #10B981;">🧹</div>
+                          <span>Clean 100% Safe Caches Now</span>
+                        </div>
+                        <div class="tray-item">
+                          <div class="tray-item-icon" style="color: #94A3B8;">⚙️</div>
+                          <span>Settings &amp; Preferences</span>
+                        </div>
+                        <div class="tray-divider"></div>
+                        <div class="tray-item" style="color: #F87171;">
+                          <div class="tray-item-icon" style="color: #F87171;">✕</div>
+                          <span>Exit Deltempo</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
@@ -1912,6 +2504,164 @@
           });
         });
       });
+    }
+
+    // 8. Interactive Simulator Tab Switcher
+    const simTabs = document.querySelectorAll('.sim-tab');
+    const simPanes = {
+      cleaner: document.getElementById('paneCleaner'),
+      ram: document.getElementById('paneRam'),
+      startup: document.getElementById('paneStartup'),
+      tray: document.getElementById('paneTray')
+    };
+
+    simTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        simTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.getAttribute('data-tab');
+        Object.keys(simPanes).forEach(k => {
+          if (simPanes[k]) {
+            simPanes[k].classList.toggle('active', k === target);
+          }
+        });
+        playSynthClick(440);
+      });
+    });
+
+    // 9. Interactive RAM Booster Simulator
+    const boostBtn = document.getElementById('simBoostBtn');
+    const ramPct = document.getElementById('simRamPct');
+    const ramFraction = document.getElementById('simRamFraction');
+    const ramBarFill = document.getElementById('simRamBarFill');
+    let isRamBoosted = false;
+
+    if (boostBtn) {
+      boostBtn.addEventListener('click', () => {
+        if (isRamBoosted) return;
+        boostBtn.innerHTML = '<span>⚡ Flushing Working Sets...</span>';
+        boostBtn.style.opacity = '0.75';
+        playSynthSweep();
+
+        let currentPct = 74.2;
+        let currentGb = 11.6;
+        const targetPct = 38.5;
+        const targetGb = 6.0;
+
+        const ramInterval = setInterval(() => {
+          currentPct = Math.max(targetPct, currentPct - 2.8);
+          currentGb = Math.max(targetGb, currentGb - 0.44);
+          ramPct.textContent = currentPct.toFixed(1) + '%';
+          ramFraction.textContent = `(${currentGb.toFixed(1)} GB / 15.6 GB)`;
+          ramBarFill.style.width = currentPct.toFixed(1) + '%';
+
+          if (currentPct <= targetPct) {
+            clearInterval(ramInterval);
+            ramPct.textContent = '38.5%';
+            ramPct.style.color = '#10B981';
+            ramFraction.textContent = '(6.0 GB / 15.6 GB)';
+            boostBtn.innerHTML = '<span>✅ +5.6 GB RAM Flushed in 312ms!</span>';
+            boostBtn.style.background = '#10B981';
+            boostBtn.style.opacity = '1';
+            isRamBoosted = true;
+
+            // Update process memory counters
+            document.getElementById('procMemChrome').textContent = '610 MB (-1.2 GB)';
+            document.getElementById('procMemChrome').style.color = '#10B981';
+            document.getElementById('procMemSteam').textContent = '190 MB (-530 MB)';
+            document.getElementById('procMemSteam').style.color = '#10B981';
+            document.getElementById('procMemDiscord').textContent = '160 MB (-380 MB)';
+            document.getElementById('procMemDiscord').style.color = '#10B981';
+            document.getElementById('procMemSpotify').textContent = '120 MB (-310 MB)';
+            document.getElementById('procMemSpotify').style.color = '#10B981';
+
+            playSynthChime();
+          }
+        }, 35);
+      });
+    }
+
+    // 10. Interactive Startup Accelerator Real-time Calculator
+    const startupToggles = document.querySelectorAll('.startup-toggle');
+    const startupDelta = document.getElementById('simStartupDelta');
+
+    function updateStartupSpeedup() {
+      let disabledImpact = 0;
+      startupToggles.forEach(toggle => {
+        if (!toggle.checked) {
+          disabledImpact += parseFloat(toggle.getAttribute('data-impact') || 0);
+        }
+      });
+      if (disabledImpact > 0) {
+        startupDelta.innerHTML = `Estimated Boot Speedup: <strong style="color: #10B981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);">-${disabledImpact.toFixed(1)}s Acceleration 🚀</strong>`;
+      } else {
+        startupDelta.innerHTML = 'Estimated Boot Speedup: <strong style="color: #94A3B8;">-0.0s (All Apps Enabled)</strong>';
+      }
+      playSynthClick(520);
+    }
+
+    startupToggles.forEach(t => t.addEventListener('change', updateStartupSpeedup));
+
+    // 11. Synthesized Web Audio Haptics (Zero Dependencies)
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+
+    function playSynthClick(freq = 600) {
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freq / 2, ctx.currentTime + 0.04);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.04);
+      } catch { }
+    }
+
+    function playSynthSweep() {
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.06, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+      } catch { }
+    }
+
+    function playSynthChime() {
+      try {
+        const ctx = getAudioContext();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + (i * 0.06));
+          gain.gain.setValueAtTime(0.07, ctx.currentTime + (i * 0.06));
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (i * 0.06) + 0.25);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + (i * 0.06));
+          osc.stop(ctx.currentTime + (i * 0.06) + 0.25);
+        });
+      } catch { }
     }
   </script>
 </body>
