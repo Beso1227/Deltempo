@@ -1167,6 +1167,7 @@ public class CleanerService
                 directoriesToClean.Add(folder.FolderPath);
             }
 
+            bool applySafeTimeCheck = safeMode24Hours && (folder.Id is "UserTemp" or "WinTemp" or "SandboxTest");
             var cutoffTime = DateTime.Now - TimeSpan.FromHours(24);
             long lastProgressTime = 0;
 
@@ -1197,7 +1198,7 @@ public class CleanerService
                     {
                         if (ct.IsCancellationRequested) break;
 
-                        if (safeMode24Hours && file.LastWriteTime > cutoffTime)
+                        if (applySafeTimeCheck && file.LastWriteTime > cutoffTime)
                         {
                             filesSkipped++;
                             continue;
@@ -1214,6 +1215,12 @@ public class CleanerService
                             long fileLen = file.Length;
                             string path = file.FullName;
 
+                            // Clear ReadOnly / Hidden attributes to prevent deletion failures
+                            if ((file.Attributes & (FileAttributes.ReadOnly | FileAttributes.Hidden | FileAttributes.System)) != 0)
+                            {
+                                try { file.Attributes = FileAttributes.Normal; } catch { }
+                            }
+
                             if (DeleteFileW(path))
                             {
                                 freedBytes += fileLen;
@@ -1223,7 +1230,6 @@ public class CleanerService
                             {
                                 try
                                 {
-                                    file.Attributes = FileAttributes.Normal;
                                     file.Delete();
                                     freedBytes += fileLen;
                                     filesDeleted++;
@@ -1283,10 +1289,22 @@ public class CleanerService
 
             folder.SizeBytes = Math.Max(0, folder.SizeBytes - freedBytes);
             folder.FileCount = Math.Max(0, folder.FileCount - filesDeleted);
-            folder.StatusMessage = $"Reclaimed: {TargetFolderInfo.FormatBytes(freedBytes)}";
 
-            logAction($"Cleaned {folder.Name}: {TargetFolderInfo.FormatBytes(freedBytes)} reclaimed ({filesDeleted:N0} files deleted, {filesSkipped:N0} protected)",
-                filesDeleted > 0 ? LogLevel.Success : LogLevel.Info);
+            if (freedBytes > 0)
+            {
+                folder.StatusMessage = $"Reclaimed: {TargetFolderInfo.FormatBytes(freedBytes)}";
+                logAction($"Cleaned {folder.Name}: {TargetFolderInfo.FormatBytes(freedBytes)} reclaimed ({filesDeleted:N0} files deleted, {filesSkipped:N0} in use/protected)", LogLevel.Success);
+            }
+            else if (filesSkipped > 0)
+            {
+                folder.StatusMessage = $"Protected ({filesSkipped:N0} in use)";
+                logAction($"Protected {folder.Name}: {filesSkipped:N0} files in active use by running apps or protected by Safety Shield", LogLevel.Info);
+            }
+            else
+            {
+                folder.StatusMessage = "Already Clean (0 B)";
+                logAction($"Checked {folder.Name}: Already clean (0 bytes)", LogLevel.Info);
+            }
 
             folder.IsCleaning = false;
         }, ct);

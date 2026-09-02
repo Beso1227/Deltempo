@@ -90,6 +90,37 @@ public class CleanerServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task CleanFolderAsync_PureCacheScopes_PurgesRecentCacheFilesEvenWithSafeModeEnabled()
+    {
+        // Arrange - Cache file created 5 minutes ago in a pure cache target
+        var cacheFile = Path.Combine(_testSandboxDir, "recent_browser_cache.data");
+        File.WriteAllText(cacheFile, "pure disposable cache data");
+        File.SetLastWriteTime(cacheFile, DateTime.Now - TimeSpan.FromMinutes(5));
+
+        var target = new TargetFolderInfo
+        {
+            Id = "CustomCacheScope",
+            Name = "Custom Pure Cache Scope",
+            FolderPath = _testSandboxDir,
+            IsSafeModeEligible = false
+        };
+
+        // Act - Clean with SafeMode enabled (pure caches should NOT be blocked)
+        var (freedBytes, filesDeleted, foldersDeleted, filesSkipped) = await _cleanerService.CleanFolderAsync(
+            target,
+            safeMode24Hours: true,
+            logAction: (msg, lvl) => { },
+            progressReport: p => { },
+            ct: CancellationToken.None);
+
+        // Assert
+        Assert.False(File.Exists(cacheFile), "Pure cache file under 24h should be cleaned directly");
+        Assert.Equal(1, filesDeleted);
+        Assert.Equal(0, filesSkipped);
+        Assert.True(freedBytes > 0);
+    }
+
+    [Fact]
     public async Task CleanFolderAsync_HandlesLockedFilesInUseWithoutCrashing()
     {
         // Arrange
