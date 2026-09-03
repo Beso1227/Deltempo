@@ -51,13 +51,40 @@ public partial class MainWindow : Window
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool ChangeWindowMessageFilter(uint message, uint dwFlag);
 
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern IntPtr LoadIcon(IntPtr hInstance, IntPtr lpIconName);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+    private static extern IntPtr GetModuleHandle(string? lpModuleName);
+
     private const uint MSGFLT_ADD = 1;
+    private const uint WM_SETICON = 0x0080;
+    private const IntPtr ICON_SMALL = 0;
+    private const IntPtr ICON_BIG = (IntPtr)1;
 
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
         if (PresentationSource.FromVisual(this) is HwndSource source)
         {
+            try
+            {
+                IntPtr hModule = GetModuleHandle(null);
+                IntPtr hIcon = LoadIcon(hModule, (IntPtr)1);
+                if (hIcon != IntPtr.Zero)
+                {
+                    SendMessage(source.Handle, WM_SETICON, ICON_SMALL, hIcon);
+                    SendMessage(source.Handle, WM_SETICON, ICON_BIG, hIcon);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] WM_SETICON suppressed: {ex.Message}");
+            }
+
             _restoreMsgId = SingleInstanceManager.RegisterWindowMessage(SingleInstanceManager.ShowWindowMessageName);
             if (_restoreMsgId != 0)
             {
@@ -267,16 +294,22 @@ public partial class MainWindow : Window
         if (_isAdmin)
         {
             AdminBadgeText.Text = "Admin";
+            AdminBadgeText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#34D399"));
             AdminBadgeIcon.Text = "\uE73E";
-            AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#162A20"));
+            AdminBadgeIcon.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981"));
+            AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#14281E"));
+            AdminBadgeBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3310B981"));
             AdminElevationButton.ToolTip = "Running with full Administrator privileges (Full access to all system locations).";
             AddLog("Running with Administrator privileges (Full access to all system locations)", LogLevel.Success);
         }
         else
         {
             AdminBadgeText.Text = "Elevate";
+            AdminBadgeText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FBBF24"));
             AdminBadgeIcon.Text = "\uE7EF";
-            AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3B2610"));
+            AdminBadgeIcon.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B"));
+            AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A1C0E"));
+            AdminBadgeBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4DF59E0B"));
             AdminElevationButton.ToolTip = "Running as Standard User. Click to relaunch as Administrator to clean system-level caches.";
             AddLog("Running as Standard User. Windows system caches require Administrator rights.", LogLevel.Warning);
         }
@@ -847,7 +880,7 @@ public partial class MainWindow : Window
 
         // 1. Header & Badges
         BrandSubtitleText.Text = LocalizationService.Get("AppSubtitle");
-        AdminBadgeText.Text = LocalizationService.Get("AdminLabel");
+        AdminBadgeText.Text = _isAdmin ? LocalizationService.Get("AdminLabel") : "Elevate";
 
         // 2. Hero & Telemetry
         HeroHeaderLabel.Text = LocalizationService.Get("ReclaimableSpace");
