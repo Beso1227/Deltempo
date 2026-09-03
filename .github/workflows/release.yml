@@ -29,7 +29,7 @@ jobs:
           dotnet restore Tests/Deltempo.Tests/Deltempo.Tests.csproj
 
       - name: Run Tests
-        run: dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
+        run: dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --verbosity normal
 
       - name: Build & Publish Standalone Executable
         run: |
