@@ -1,0 +1,34 @@
+{
+  "default": true,
+  "MD013": false,
+  "MD033": {
+    "allowed_elements": [
+      "div",
+      "p",
+      "a",
+      "img",
+      "br",
+      "hr",
+      "h1",
+      "h2",
+      "h3",
+      "span",
+      "details",
+      "summary",
+      "kbd",
+      "b",
+      "i",
+      "strong",
+      "em",
+      "table",
+      "tbody",
+      "thead",
+      "tr",
+      "th",
+      "td"
+    ]
+  },
+  "MD041": false,
+  "MD023": false,
+  "MD024": false
+}
