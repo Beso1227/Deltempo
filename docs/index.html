@@ -55,13 +55,6 @@
           "price": "0",
           "priceCurrency": "USD"
         },
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": "5.0",
-          "reviewCount": "186",
-          "bestRating": "5",
-          "worstRating": "1"
-        },
         "author": {
           "@type": "Person",
           "name": "Beso1227",
@@ -93,7 +86,7 @@
             "name": "What is Deltempo?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Deltempo is a 100% standalone, open-source precision disk cleaner and user profile guardian for Windows 10 and 11. It deep-purges 21+ distinct cache tiers including Device Driver OTA packages, Steam downloading chunks, GPU shader pools, Adobe Media Cache, Defender support logs, and orphaned app remnants with zero background telemetry."
+              "text": "Deltempo is a standalone, open-source disk cleaner and memory optimizer for Windows 10 and 11. It cleans 25 distinct cache targets including device driver packages, browser caches, gaming shaders, Adobe media caches, and Windows upgrade leftovers with zero telemetry."
             }
           },
           {
@@ -101,7 +94,7 @@
             "name": "Is Deltempo safe to use on Windows 10 and 11?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes, 100%. Deltempo features a built-in 24-Hour Safety Shield that automatically protects active installers and recently modified files. It never deletes personal documents, browser passwords, or application login tokens."
+              "text": "Yes. Deltempo includes a 24-Hour Safety Shield protecting recently modified files and active installers. It never deletes personal documents, browser passwords, or application login tokens."
             }
           },
           {
@@ -109,7 +102,7 @@
             "name": "How does Deltempo compare to CCleaner and Microsoft PC Manager?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Unlike CCleaner, Deltempo is completely free with zero ads, popups, or telemetry. Unlike Microsoft PC Manager, Deltempo cleans deeper (21+ scopes including NVIDIA OTA drivers, gaming shaders, creator scratch media) and provides a standalone portable executable with a synchronous CLI."
+              "text": "Unlike CCleaner, Deltempo is completely free with zero ads or telemetry. Unlike Microsoft PC Manager, Deltempo cleans across 25 targets including GPU drivers, gaming shaders, and media scratch, and includes a dual-engine NT kernel memory cleaner."
             }
           },
           {
@@ -117,7 +110,7 @@
             "name": "Does Deltempo require installation or administrative rights?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "No installation is required. Deltempo runs as a single self-contained executable. Standard user profile cleaning runs without elevation, while system-level caches (such as WUDO and CBS logs) utilize Windows administrator privileges safely."
+              "text": "No installation is required. Deltempo runs as a single self-contained executable. Standard user profile cleaning runs without elevation, while system-level caches utilize Windows administrator privileges safely."
             }
           }
         ]
@@ -566,6 +559,20 @@
       align-items: center;
       gap: 0.85rem;
       list-style: none;
+    }
+    @media (max-width: 960px) {
+      .nav-links {
+        display: none;
+      }
+      .nav-island {
+        gap: 0.75rem;
+        padding: 0.35rem 0.6rem 0.35rem 0.95rem;
+      }
+    }
+    @media (max-width: 480px) {
+      .github-stars-pill {
+        display: none;
+      }
     }
     .nav-links a {
       color: var(--text-med);
@@ -2085,7 +2092,7 @@
       </a>
       <ul class="nav-links">
         <li><a href="#simulator" class="nav-link active">Simulator</a></li>
-        <li><a href="#scopes" class="nav-link">21 Scopes</a></li>
+        <li><a href="#scopes" class="nav-link">25 Scopes</a></li>
         <li><a href="#terminal" class="nav-link">Terminal CLI</a></li>
         <li><a href="#comparison" class="nav-link">Benchmark</a></li>
         <li><a href="#security" class="nav-link">Security</a></li>
@@ -2194,7 +2201,7 @@
                 </button>
                 <button class="sim-tab" data-tab="largefiles">
                   <span class="sim-tab-icon">📦</span>
-                  <span>AI Large Files</span>
+                  <span>Large Files</span>
                 </button>
                 <button class="sim-tab" data-tab="startup">
                   <span class="sim-tab-icon">🚀</span>
@@ -2202,7 +2209,7 @@
                 </button>
                 <button class="sim-tab" data-tab="tray">
                   <span class="sim-tab-icon">🛡️</span>
-                  <span>Obsidian Tray Guardian</span>
+                  <span>System Tray Monitor</span>
                 </button>
               </div>
 
@@ -2216,7 +2223,7 @@
                       <div class="sim-reclaim-val" id="simByteCounter">42.8 GB</div>
                     </div>
                     <button class="sim-action-btn" id="simCleanBtn">
-                      <span>⚡ Clean Selected (21 Scopes)</span>
+                      <span>⚡ Clean Selected (25 Scopes)</span>
                     </button>
                   </div>
 
@@ -2466,7 +2473,7 @@
                   <div class="sim-ram-box">
                     <div class="sim-ram-header">
                       <div>
-                        <div class="sim-reclaim-label">AI LARGE FILE HUNTER &amp; SAFETY VERDICTS</div>
+                        <div class="sim-reclaim-label">LARGE FILE HUNTER &amp; SAFETY VERDICTS</div>
                         <div class="sim-ram-stats-row">
                           <span class="sim-ram-pct" id="simLargeFilesSafeVal" style="color: #10B981;">18.4 GB</span>
                           <span class="sim-ram-fraction">Identified 100% Safe to Clean (53.2 GB Scanned)</span>
@@ -2720,79 +2727,289 @@
 
         <!-- Interactive Scope Category Filter Pills -->
         <div class="scope-filters-bar reveal-on-scroll">
-          <button class="scope-filter-btn active" data-filter="all">✨ All Scopes (21)</button>
-          <button class="scope-filter-btn" data-filter="drivers">🚗 Drivers &amp; GPU OTA (3)</button>
-          <button class="scope-filter-btn" data-filter="gaming">🎮 Gaming &amp; Shaders (4)</button>
-          <button class="scope-filter-btn" data-filter="creator">🎬 Creator &amp; Media (3)</button>
-          <button class="scope-filter-btn" data-filter="system">🛡️ Windows Logs &amp; WUDO (6)</button>
+          <button class="scope-filter-btn active" data-filter="all">✨ All Targets (25)</button>
+          <button class="scope-filter-btn" data-filter="system">🛡️ Windows System (12)</button>
+          <button class="scope-filter-btn" data-filter="drivers">🚗 Drivers &amp; Hardware (2)</button>
+          <button class="scope-filter-btn" data-filter="gaming">🎮 Gaming &amp; Shaders (2)</button>
+          <button class="scope-filter-btn" data-filter="creator">🎬 Media &amp; Creator (1)</button>
           <button class="scope-filter-btn" data-filter="apps">💬 Desktop &amp; Dev (5)</button>
+          <button class="scope-filter-btn" data-filter="browsers">🌐 Browsers &amp; Web (3)</button>
         </div>
 
         <div class="scopes-masonry">
-          <!-- 1. Driver Packages -->
+          <!-- 1. User Temp -->
+          <div class="scope-item-card reveal-on-scroll stagger-1" data-category="system">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">📁</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">User Temporary Files</h3>
+            <p class="scope-item-desc">Application scratch files, software setup extractions, and temporary working data in user profile storage.</p>
+            <div class="scope-path-box">%TEMP% • AppData\Local\Temp</div>
+          </div>
+
+          <!-- 2. Windows System Temp -->
+          <div class="scope-item-card reveal-on-scroll stagger-2" data-category="system">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">⚙️</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Windows System Temp</h3>
+            <p class="scope-item-desc">Operating system diagnostic scratchpad, update staging traces, and driver install temporary files.</p>
+            <div class="scope-path-box">C:\Windows\Temp</div>
+          </div>
+
+          <!-- 3. Windows Prefetch -->
+          <div class="scope-item-card reveal-on-scroll stagger-3" data-category="system">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">⚡</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Windows Prefetch Cache</h3>
+            <p class="scope-item-desc">Stale program execution headers and startup traces left behind by previously run or uninstalled applications.</p>
+            <div class="scope-path-box">C:\Windows\Prefetch</div>
+          </div>
+
+          <!-- 4. Windows Update Delivery -->
+          <div class="scope-item-card reveal-on-scroll stagger-1" data-category="system">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">📦</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Update Delivery Packages</h3>
+            <p class="scope-item-desc">Downloaded Windows Update packages and staging archives already installed or superseded by newer patches.</p>
+            <div class="scope-path-box">C:\Windows\SoftwareDistribution\Download</div>
+          </div>
+
+          <!-- 5. Windows Upgrade Residue -->
+          <div class="scope-item-card reveal-on-scroll stagger-2" data-category="system">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">🪟</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Windows Upgrade Residue</h3>
+            <p class="scope-item-desc">Post-upgrade setup files, ESD recovery archives, and leftover update folders saving 5 to 30+ GB after major updates.</p>
+            <div class="scope-path-box">C:\$WINDOWS.~BT • C:\$WINDOWS.~WS • C:\ESD</div>
+          </div>
+
+          <!-- 6. Delivery Optimization (WUDO) -->
+          <div class="scope-item-card reveal-on-scroll stagger-3" data-category="system">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(6, 182, 212, 0.15); color: #06B6D4;">🌐</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Delivery Optimization (WUDO)</h3>
+            <p class="scope-item-desc">Peer-to-peer Windows update distribution chunks cached by the NetworkService background service.</p>
+            <div class="scope-path-box">ServiceProfiles\NetworkService\...\DeliveryOptimization\Cache</div>
+          </div>
+
+          <!-- 7. Component & Font Caches -->
+          <div class="scope-item-card reveal-on-scroll stagger-1" data-category="system">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(99, 102, 241, 0.15); color: #6366F1;">🔤</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Component &amp; Font Caches</h3>
+            <p class="scope-item-desc">System font cache databases, WinSxS temporary servicing files, and Downloaded Program Files.</p>
+            <div class="scope-path-box">WinSxS\Temp • FontCache • Downloaded Program Files</div>
+          </div>
+
+          <!-- 8. Defender Support Logs -->
+          <div class="scope-item-card reveal-on-scroll stagger-2" data-category="system">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(244, 63, 94, 0.15); color: #F43F5E;">🛡️</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Microsoft Defender Logs</h3>
+            <p class="scope-item-desc">Defender diagnostic support logs (MPLog-*.log), definition update backup archives, and old scan cache.</p>
+            <div class="scope-path-box">ProgramData\Microsoft\Windows Defender\Support</div>
+          </div>
+
+          <!-- 9. Diagnostic Logs -->
+          <div class="scope-item-card reveal-on-scroll stagger-3" data-category="system">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">📋</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">System Diagnostic Logs</h3>
+            <p class="scope-item-desc">CBS servicing logs, DISM component logs, SetupAPI hardware traces, and Windows Update log archives.</p>
+            <div class="scope-path-box">C:\Windows\Logs\CBS • C:\Windows\Logs\DISM • SetupAPI</div>
+          </div>
+
+          <!-- 10. Crash Dumps -->
+          <div class="scope-item-card reveal-on-scroll stagger-1" data-category="system">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(239, 68, 68, 0.15); color: #EF4444;">💥</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Crash Dumps &amp; BSOD Minidumps</h3>
+            <p class="scope-item-desc">Kernel memory dumps (MEMORY.DMP), BSOD minidumps, and LiveKernelReports taking up gigabytes of drive space.</p>
+            <div class="scope-path-box">C:\Windows\Minidump • C:\Windows\MEMORY.DMP</div>
+          </div>
+
+          <!-- 11. Explorer Thumbnails & Usage -->
+          <div class="scope-item-card reveal-on-scroll stagger-2" data-category="system">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">🖼️</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Explorer Thumbnails &amp; Usage Traces</h3>
+            <p class="scope-item-desc">Cached thumbnail databases (thumbcache_*.db), Jump Lists, and recent file links that can be safely rebuilt.</p>
+            <div class="scope-path-box">AppData\Local\Microsoft\Windows\Explorer</div>
+          </div>
+
+          <!-- 12. Windows Recycle Bin -->
+          <div class="scope-item-card reveal-on-scroll stagger-3" data-category="system">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">🗑️</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Windows Recycle Bin</h3>
+            <p class="scope-item-desc">Empties recycled items across all mounted physical drives using native Windows shell APIs.</p>
+            <div class="scope-path-box">$Recycle.Bin across all fixed drive volumes</div>
+          </div>
+
+          <!-- 13. NVIDIA OTA Driver Packages -->
           <div class="scope-item-card reveal-on-scroll stagger-1" data-category="drivers">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">🚗</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
             </div>
-            <h3 class="scope-item-title">Device Drivers &amp; GPU OTA Packages</h3>
-            <p class="scope-item-desc">Purges gigabytes of leftover NVIDIA App installer packages (3.7+ GB), AMD/Intel display drivers, and DriverStore temp caches.</p>
-            <div class="scope-path-box">AppData\Local\NVIDIA Corporation\ota-artifacts • DriverStore\Temp</div>
+            <h3 class="scope-item-title">NVIDIA App OTA Installer Packages</h3>
+            <p class="scope-item-desc">Leftover installer archives and downloaded driver bundles from NVIDIA App and GeForce Experience, often saving 3 to 8 GB.</p>
+            <div class="scope-path-box">AppData\Local\NVIDIA Corporation\ota-artifacts</div>
           </div>
 
-          <!-- 2. Gaming -->
-          <div class="scope-item-card reveal-on-scroll stagger-2" data-category="gaming">
+          <!-- 14. AMD & Intel Drivers -->
+          <div class="scope-item-card reveal-on-scroll stagger-2" data-category="drivers">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(239, 68, 68, 0.15); color: #EF4444;">🔧</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">AMD &amp; Intel Driver Temp Packages</h3>
+            <p class="scope-item-desc">Stale driver package extractors and installer temp folders from AMD Software Adrenalin and Intel Graphics Command Center.</p>
+            <div class="scope-path-box">DriverStore\Temp • C:\AMD\Temp • C:\Intel\Logs</div>
+          </div>
+
+          <!-- 15. Game Launchers -->
+          <div class="scope-item-card reveal-on-scroll stagger-1" data-category="gaming">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(236, 72, 153, 0.15); color: #EC4899;">🎮</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
             </div>
-            <h3 class="scope-item-title">Game Launchers &amp; Shaders</h3>
-            <p class="scope-item-desc">Purges stuck Steam download chunks, Vulkan/DirectX shader cache, and web caches in Epic Games &amp; Battle.net without touching saves or installs.</p>
-            <div class="scope-path-box">Steam\downloading • Steam\shadercache • EpicGamesLauncher\webcache</div>
+            <h3 class="scope-item-title">Game Launchers &amp; Download Chunks</h3>
+            <p class="scope-item-desc">Purges stuck Steam download chunks, Epic Games webcache, Battle.net update caches, and Riot client temporary files without touching games or saves.</p>
+            <div class="scope-path-box">Steam\downloading • EpicGamesLauncher\webcache • Battle.net</div>
           </div>
 
-          <!-- 3. Creator Media -->
-          <div class="scope-item-card reveal-on-scroll stagger-3" data-category="creator">
-            <div class="scope-header">
-              <div class="scope-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">🎬</div>
-              <span class="scope-badge-safe">🟢 100% Safe</span>
-            </div>
-            <h3 class="scope-item-title">Media &amp; Creator Render Scratch</h3>
-            <p class="scope-item-desc">Cleans massive waveform peak files, Adobe Premiere &amp; After Effects Media Cache, DaVinci Resolve proxy previews, and OBS logs.</p>
-            <div class="scope-path-box">Adobe\Common\Media Cache Files • DaVinci\Cache • obs-studio\logs</div>
-          </div>
-
-          <!-- 4. Windows Delivery Optimization -->
-          <div class="scope-item-card reveal-on-scroll stagger-1" data-category="system">
-            <div class="scope-header">
-              <div class="scope-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">🌐</div>
-              <span class="scope-badge-safe">🟢 100% Safe</span>
-            </div>
-            <h3 class="scope-item-title">Windows Delivery Optimization (WUDO)</h3>
-            <p class="scope-item-desc">Purges gigabytes of peer-to-peer Windows update delivery chunks that Windows hoards silently in NetworkService profiles.</p>
-            <div class="scope-path-box">ServiceProfiles\NetworkService\...\DeliveryOptimization\Cache</div>
-          </div>
-
-          <!-- 5. GPU Shaders -->
+          <!-- 16. DirectX & GPU Shaders -->
           <div class="scope-item-card reveal-on-scroll stagger-2" data-category="gaming">
             <div class="scope-header">
               <div class="scope-icon-box" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">⚡</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
             </div>
-            <h3 class="scope-item-title">DirectX &amp; GPU Shader Caches</h3>
-            <p class="scope-item-desc">Safely cleans compiled binary shader pools for NVIDIA (DXCache/GLCache), AMD, Intel, and Windows D3DSCache to fix stuttering.</p>
+            <h3 class="scope-item-title">DirectX &amp; GPU Shader Pools</h3>
+            <p class="scope-item-desc">Compiled binary shaders for NVIDIA (DXCache, GLCache), AMD (DxCache), and Intel to rebuild stale caches and eliminate micro-stuttering.</p>
             <div class="scope-path-box">%LocalAppData%\NVIDIA\DXCache • AMD\DxCache • D3DSCache</div>
           </div>
 
-          <!-- 6. Windows CBS & Diagnostic Logs -->
-          <div class="scope-item-card reveal-on-scroll stagger-3" data-category="system">
+          <!-- 17. Media Render Scratch -->
+          <div class="scope-item-card reveal-on-scroll stagger-1" data-category="creator">
             <div class="scope-header">
-              <div class="scope-icon-box" style="background: rgba(244, 63, 94, 0.15); color: #F43F5E;">🛡️</div>
+              <div class="scope-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">🎬</div>
               <span class="scope-badge-safe">🟢 100% Safe</span>
             </div>
-            <h3 class="scope-item-title">Defender Logs &amp; Servicing Diagnostics</h3>
-            <p class="scope-item-desc">Cleans Microsoft Defender MPLog files, DISM setup logs, CBS servicing logs, BSOD memory dumps, and Windows Error Reports.</p>
-            <div class="scope-path-box">ProgramData\Microsoft\Windows Defender\Support • C:\Windows\Logs\CBS</div>
+            <h3 class="scope-item-title">Media &amp; Creator Render Scratch</h3>
+            <p class="scope-item-desc">Adobe Premiere and After Effects Media Cache Files, DaVinci Resolve proxy previews, OBS crash logs, and Blender temporary render frames.</p>
+            <div class="scope-path-box">Adobe\Common\Media Cache Files • DaVinci\Cache • obs-studio</div>
+          </div>
+
+          <!-- 18. Desktop & Electron Apps -->
+          <div class="scope-item-card reveal-on-scroll stagger-1" data-category="apps">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">💬</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Desktop &amp; Electron App Caches</h3>
+            <p class="scope-item-desc">Media and GPU caches for Discord, Spotify, Slack, Telegram, and VS Code. Login credentials, tokens, and settings remain untouched.</p>
+            <div class="scope-path-box">Discord\Cache • Spotify\Storage • Slack\Cache • Code\Cache</div>
+          </div>
+
+          <!-- 19. Windows Store UWP Packages -->
+          <div class="scope-item-card reveal-on-scroll stagger-2" data-category="apps">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">🏪</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Windows Store &amp; Modern App Packages</h3>
+            <p class="scope-item-desc">Temporary cache folders across all installed Windows Store/MSIX packages including New Teams, WhatsApp Desktop, and Xbox App.</p>
+            <div class="scope-path-box">Packages\*\LocalCache • Packages\*\AC\INetCache</div>
+          </div>
+
+          <!-- 20. Package Managers -->
+          <div class="scope-item-card reveal-on-scroll stagger-3" data-category="apps">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">📦</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Package Manager Caches</h3>
+            <p class="scope-item-desc">Dependency and download caches for pip, npm, yarn, pnpm, NuGet v3, Cargo, and Go build cache, freeing gigabytes of developer disk space.</p>
+            <div class="scope-path-box">npm-cache • pip\cache • nuget\v3-cache • go-build</div>
+          </div>
+
+          <!-- 21. Dev Daemons & Emulators -->
+          <div class="scope-item-card reveal-on-scroll stagger-1" data-category="apps">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">🤖</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Development Daemons &amp; Emulators</h3>
+            <p class="scope-item-desc">Android Studio emulator caches, Gradle build daemons, Rustup download temp, and iTunes mobile backup temporary sync files.</p>
+            <div class="scope-path-box">.gradle\caches • .android\avd\*\cache • Apple Computer\SyncServices</div>
+          </div>
+
+          <!-- 22. Orphaned AppData Leftovers -->
+          <div class="scope-item-card reveal-on-scroll stagger-2" data-category="apps">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(239, 68, 68, 0.15); color: #EF4444;">🧹</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Orphaned AppData Leftovers</h3>
+            <p class="scope-item-desc">Detects and purges leftover folders in AppData from software that was uninstalled, cross-referenced against the Windows Uninstall Registry.</p>
+            <div class="scope-path-box">AppData\Local\* • AppData\Roaming\* (Verified Orphaned)</div>
+          </div>
+
+          <!-- 23. Chromium Browser Profiles -->
+          <div class="scope-item-card reveal-on-scroll stagger-1" data-category="browsers">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(6, 182, 212, 0.15); color: #06B6D4;">🌐</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Chromium Browser Profiles</h3>
+            <p class="scope-item-desc">Disk caches, code caches, GPU caches, and service worker caches for Google Chrome, Microsoft Edge, Brave, Opera, Vivaldi, and Arc.</p>
+            <div class="scope-path-box">User Data\*\Cache • Code Cache • GPUCache • ShaderCache</div>
+          </div>
+
+          <!-- 24. Gecko Firefox Profiles -->
+          <div class="scope-item-card reveal-on-scroll stagger-2" data-category="browsers">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">🦊</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Gecko Firefox Profiles</h3>
+            <p class="scope-item-desc">HTTP cache, startup caches, and thumbnail caches across Mozilla Firefox, Floorp, Waterfox, LibreWolf, and Zen profiles.</p>
+            <div class="scope-path-box">Mozilla\Firefox\Profiles\*\cache2 • startupCache</div>
+          </div>
+
+          <!-- 25. Temporary Internet Files -->
+          <div class="scope-item-card reveal-on-scroll stagger-3" data-category="browsers">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">🔒</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Temporary Internet Files &amp; WebCache</h3>
+            <p class="scope-item-desc">Windows system web cache, SSL certificate revocation cache (CryptnetUrlCache), and system HTTP caches.</p>
+            <div class="scope-path-box">AppData\Local\Microsoft\Windows\INetCache • CryptnetUrlCache</div>
           </div>
         </div>
       </div>
@@ -2849,7 +3066,7 @@
             <thead>
               <tr>
                 <th>Feature / Standard</th>
-                <th class="highlight-col">👑 Deltempo (v1.3.0)</th>
+                <th class="highlight-col">Deltempo (v1.3.0)</th>
                 <th>Microsoft PC Manager</th>
                 <th>CCleaner (Avast)</th>
                 <th>Windows Cleanmgr</th>
@@ -2865,7 +3082,7 @@
               </tr>
               <tr>
                 <td><strong>Cleaning Scopes</strong></td>
-                <td class="highlight-col" style="color: #10B981;">25+ Dedicated Scopes</td>
+                <td class="highlight-col" style="color: #10B981;">25 Dedicated Targets</td>
                 <td>~10 Basic Scopes</td>
                 <td>Generic AppData</td>
                 <td>6 Basic Folders</td>
@@ -2878,8 +3095,8 @@
                 <td>❌ None</td>
               </tr>
               <tr>
-                <td><strong>AI Large File Hunter</strong></td>
-                <td class="highlight-col" style="color: #10B981;">✅ 100% Binary Safe + Recycle Undo</td>
+                <td><strong>Large File Hunter</strong></td>
+                <td class="highlight-col" style="color: #10B981;">✅ Binary Safe + Recycle Undo</td>
                 <td>⚠️ Basic (Permanent Deletion)</td>
                 <td>❌ Paywalled Blind Delete</td>
                 <td>❌ None</td>
@@ -2914,7 +3131,7 @@
               </tr>
               <tr>
                 <td><strong>Automated Test Coverage</strong></td>
-                <td class="highlight-col" style="color: #10B981;">✅ 67 xUnit Tests + CI/CD</td>
+                <td class="highlight-col" style="color: #10B981;">✅ 79 xUnit Tests + CI/CD</td>
                 <td>❌ Proprietary</td>
                 <td>❌ Proprietary</td>
                 <td>❌ Proprietary</td>
@@ -2978,7 +3195,7 @@
           <details class="faq-item" open>
             <summary class="faq-summary">What makes Deltempo different from CCleaner and BleachBit?</summary>
             <div class="faq-answer">
-              Deltempo is 100% free, standalone (single portable executable), and built with zero telemetry or ads. Unlike traditional cleaners, Deltempo includes 17 specialized cleaning scopes specifically designed for modern workloads — including Steam download chunks, DirectX &amp; GPU shader pools, Adobe Media Cache, and Windows Delivery Optimization (WUDO).
+              Deltempo is 100% free, standalone (single portable executable), and built with zero telemetry or ads. Unlike traditional cleaners, Deltempo includes 25 specialized cleaning targets designed for modern workloads, including Steam download chunks, DirectX and GPU shader pools, Adobe Media Cache, browser profiles, and Windows Delivery Optimization (WUDO).
             </div>
           </details>
 
@@ -2990,7 +3207,7 @@
           </details>
 
           <details class="faq-item">
-            <summary class="faq-summary">Does Deltempo require installation or background background services?</summary>
+            <summary class="faq-summary">Does Deltempo require installation or background services?</summary>
             <div class="faq-answer">
               No installation is required. Deltempo is distributed as a single, self-contained Windows executable (.exe). You can run it directly from your Downloads folder or a USB drive without creating background services, startup clutter, or registry junk.
             </div>
@@ -3015,7 +3232,7 @@
             No installers, no adware, no account creation. Download the standalone executable and enjoy a clean, fast PC.
           </p>
           <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-hero-primary download-link-btn" style="font-size: 1.15rem; padding: 1.1rem 1.35rem 1.1rem 2.25rem;">
-            <span>Download Deltempo Standalone (<span class="release-version-tag">v1.0.0</span>)</span>
+            <span>Download Deltempo Standalone (<span class="release-version-tag">v1.3.0</span>)</span>
             <div class="hero-icon-pill" style="width: 44px; height: 44px;">⚡</div>
           </a>
         </div>
@@ -3031,7 +3248,7 @@
         <strong style="font-family: var(--font-display); font-size: 1.15rem; color: var(--text-high);">Deltempo</strong>
       </div>
       <p>Deltempo Open Source Project • MIT Licensed • Built with C# &amp; .NET 10</p>
-      <p style="margin-top: 0.5rem; opacity: 0.7;">Developed with obsessive precision by Beso1227</p>
+      <p style="margin-top: 0.5rem; opacity: 0.7;">Maintained by Beso1227 and open-source contributors</p>
     </div>
   </footer>
 
@@ -3043,7 +3260,7 @@
         const res = await fetch('https://api.github.com/repos/Beso1227/Deltempo/releases/latest');
         if (res.ok) {
           const data = await res.json();
-          const tagName = data.tag_name || 'v1.0.0';
+          const tagName = data.tag_name || 'v1.3.0';
           document.querySelectorAll('.release-version-tag').forEach(el => {
             el.textContent = tagName;
           });
@@ -3612,7 +3829,7 @@
 <br />
 <pre style="color: #38BDF8; font-family: var(--font-mono); margin: 0;">
 {
-  "guardian_status": "ACTIVE",
+  "status": "ACTIVE",
   "ram_pressure_pct": 38.5,
   "last_clean_reclaimed_mb": 45035,
   "safety_shield": "ENABLED",
@@ -3621,24 +3838,24 @@
 }
 </pre>
 <br />
-<div class="term-line-green">✔ Deltempo Obsidian Guardian running smoothly in system tray.</div>`
+<div class="term-line-green">✔ Deltempo running in system tray.</div>`
       },
       large: {
         cmd: 'deltempo large --min 500MB',
-        output: `<div class="term-line-dim">[18:50:35] AI Large File Hunter (>500.0 MB across drives)...</div>
+        output: `<div class="term-line-dim">[18:50:35] Large File Hunter (>500.0 MB across drives)...</div>
 <div><span class="term-prompt">$</span> deltempo large --min 500MB</div>
 <br />
 <div class="term-line-cyan">┌──────────┬──────────────────────────┬──────────────────────┬──────────────────────────────────┐</div>
-<div class="term-line-cyan">│ SIZE     │ AI SAFETY VERDICT        │ CATEGORY             │ FILE NAME                        │</div>
+<div class="term-line-cyan">│ SIZE     │ SAFETY VERDICT           │ CATEGORY             │ FILE NAME                        │</div>
 <div class="term-line-cyan">├──────────┼──────────────────────────┼──────────────────────┼──────────────────────────────────┤</div>
 <div class="term-line-dim">│ 25.4 GB  │ <span style="color:#EF4444;font-weight:bold;">PROTECTED (Game Asset)</span>   │ Game Asset / Pak     │ BendGame-WindowsNoEditor.pak     │</div>
 <div class="term-line-dim">│  7.4 GB  │ <span style="color:#10B981;font-weight:bold;">SAFE TO DELETE</span>           │ Game Shader Cache    │ Steam_Shader_Cache_chunk0.bin    │</div>
 <div class="term-line-dim">│  6.8 GB  │ <span style="color:#10B981;font-weight:bold;">SAFE TO DELETE</span>           │ Installer / ISO      │ NVIDIA_Driver_560.70_Extract.exe │</div>
 <div class="term-line-dim">│  4.2 GB  │ <span style="color:#10B981;font-weight:bold;">SAFE TO DELETE</span>           │ Crash / Dump         │ MEMORY.DMP                       │</div>
-<div class="term-line-dim">│  4.0 GB  │ <span style="color:#EF4444;font-weight:bold;">PROTECTED (AI Model)</span>     │ AI Weights / Models  │ weights.bin                      │</div>
+<div class="term-line-dim">│  4.0 GB  │ <span style="color:#EF4444;font-weight:bold;">PROTECTED (Model Weight)</span> │ Model Weights        │ weights.bin                      │</div>
 <div class="term-line-cyan">└──────────┴──────────────────────────┴──────────────────────┴──────────────────────────────────┘</div>
 <br />
-<div class="term-line-green">✔ Scanned 47.8 GB • AI identified 18.4 GB 100% safe to recycle with full Undo support.</div>`
+<div class="term-line-green">✔ Scanned 47.8 GB • Identified 18.4 GB safe to recycle with full Undo support.</div>`
       },
       kill: {
         cmd: 'deltempo kill',
