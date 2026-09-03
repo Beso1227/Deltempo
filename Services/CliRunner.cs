@@ -33,6 +33,21 @@ public static class CliRunner
                 exitCode = await HandleScanAsync(args);
                 break;
 
+            case "deep-clean":
+            case "deepclean":
+            case "1click":
+            case "deep":
+            case "all-in-one":
+                exitCode = await HandleDeepCleanAsync(args);
+                break;
+
+            case "restore-points":
+            case "restorepoints":
+            case "restore":
+            case "vss":
+                exitCode = await HandleRestorePointsAsync(args);
+                break;
+
             case "clean":
             case "c":
                 exitCode = await HandleCleanAsync(args);
@@ -113,6 +128,8 @@ public static class CliRunner
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("  CLEANUP & CACHE COMMANDS:");
         Console.ResetColor();
+        PrintCmdRow("deep-clean", "Autonomous 1-click full OS cleanup: RAM, DISM, 26 scopes & VSS");
+        PrintCmdRow("restore-points", "Inspect & purge old System Restore Points (--clean, --all)");
         PrintCmdRow("scan [category]", "Scan temporary files and cache targets");
         PrintCmdRow("clean [category]", "Clean safe temporary caches and shaders");
 
@@ -190,6 +207,186 @@ public static class CliRunner
         Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine(desc);
         Console.ResetColor();
+    }
+
+    // ─── DEEP CLEAN (1-CLICK ALL-IN-ONE) ───────────────────────────────
+
+    private static async Task<int> HandleDeepCleanAsync(string[] args)
+    {
+        bool isJson = HasFlag(args, "--json", "-j");
+        bool silent = HasFlag(args, "--silent", "-s");
+        bool yesPrompt = HasFlag(args, "--yes", "-y");
+        bool purgeAllVss = HasFlag(args, "--purge-all-restore-points");
+
+        if (!silent && !isJson)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine(@"  ⚡ [Deltempo 1-Click Deep Clean]");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.WriteLine(@"  Autonomous full-system optimization: RAM flush, 26 disk scopes, DISM & VSS.");
+            Console.ResetColor();
+            Console.WriteLine();
+        }
+
+        if (!yesPrompt && !silent && !isJson)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("  Execute autonomous deep clean now? [Y/n]: ");
+            Console.ResetColor();
+            var key = Console.ReadLine()?.Trim().ToLowerInvariant();
+            if (!string.IsNullOrEmpty(key) && key != "y" && key != "yes")
+            {
+                Console.WriteLine("  Cancelled by user.");
+                return 0;
+            }
+            Console.WriteLine();
+        }
+
+        using var cts = new CancellationTokenSource();
+        var progress = new Progress<DeepCleanProgress>(p =>
+        {
+            if (!silent && !isJson)
+            {
+                int barWidth = 24;
+                int filled = (int)(p.OverallPercent * barWidth);
+                string bar = new string('█', filled) + new string('░', Math.Max(0, barWidth - filled));
+                string detail = p.DetailMessage.Length > 48 ? p.DetailMessage.Substring(0, 45) + "..." : p.DetailMessage;
+                Console.Write($"\r  [{bar}] {p.OverallPercent * 100,3:0}% | {detail.PadRight(48)}");
+            }
+        });
+
+        var result = await DeepCleanEngine.ExecuteDeepCleanAsync(
+            logAction: (msg, lvl) => { },
+            progress: progress,
+            purgeAllRestorePoints: purgeAllVss,
+            ct: cts.Token);
+
+        if (!silent && !isJson)
+        {
+            Console.WriteLine("\n");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("  ╔══════════════════════════════════════════════════════════════════╗");
+            Console.WriteLine("  ║              ✓ 1-CLICK DEEP CLEAN COMPLETED                     ║");
+            Console.WriteLine("  ╚══════════════════════════════════════════════════════════════════╝");
+            Console.ResetColor();
+            Console.WriteLine();
+            Console.WriteLine($"  💾 Total Disk Junk Purged : {result.FormattedDiskFreed} ({result.FilesDeleted:N0} files)");
+            Console.WriteLine($"  🧠 RAM Memory Recovered   : {result.FormattedRamFreed}");
+            Console.WriteLine($"  📁 Categories Processed   : {result.CategoriesProcessed} scopes");
+            Console.WriteLine($"  ⏱️  Execution Duration    : {result.Duration.TotalSeconds:0.1}s");
+            Console.WriteLine();
+
+            if (result.SummaryHighlights.Count > 0)
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine("  Highlights:");
+                Console.ResetColor();
+                foreach (var h in result.SummaryHighlights)
+                {
+                    Console.WriteLine($"    • {h}");
+                }
+                Console.WriteLine();
+            }
+        }
+        else if (isJson)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                timestamp = DateTime.UtcNow,
+                diskFreedBytes = result.DiskFreedBytes,
+                formattedDiskFreed = result.FormattedDiskFreed,
+                ramFreedBytes = result.RamFreedBytes,
+                formattedRamFreed = result.FormattedRamFreed,
+                filesDeleted = result.FilesDeleted,
+                foldersDeleted = result.FoldersDeleted,
+                categoriesProcessed = result.CategoriesProcessed,
+                dismCleaned = result.DismCleaned,
+                restorePointsCleaned = result.RestorePointsCleaned,
+                durationSeconds = result.Duration.TotalSeconds,
+                highlights = result.SummaryHighlights
+            }, new JsonSerializerOptions { WriteIndented = true }));
+        }
+
+        return 0;
+    }
+
+    // ─── RESTORE POINTS COMMAND ────────────────────────────────────────
+
+    private static async Task<int> HandleRestorePointsAsync(string[] args)
+    {
+        bool isJson = HasFlag(args, "--json", "-j");
+        bool clean = HasFlag(args, "--clean", "-c") || HasFlag(args, "--purge");
+        bool purgeAll = HasFlag(args, "--all");
+
+        if (!ElevationService.IsRunAsAdmin())
+        {
+            if (isJson)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { error = "Administrator privileges required to query or clean restore points." }));
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("  ❌ Error: Managing Windows Restore Points requires elevated Administrator privileges.");
+                Console.ResetColor();
+            }
+            return 1;
+        }
+
+        var (used, count) = CleanerService.QueryShadowStorageInfo();
+
+        if (clean)
+        {
+            if (!isJson)
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine($"  🛡️ Cleaning Windows System Restore Points (Safe mode: {(purgeAll ? "Purge All" : "Keep Latest")})...");
+                Console.ResetColor();
+            }
+
+            var (ok, reclaimed, msg) = await CleanerService.CleanRestorePointsAsync(purgeAll, (m, l) => { });
+
+            if (isJson)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new
+                {
+                    success = ok,
+                    reclaimedBytes = reclaimed,
+                    formattedReclaimed = TargetFolderInfo.FormatBytes(reclaimed),
+                    message = msg
+                }, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            else
+            {
+                Console.ForegroundColor = ok ? ConsoleColor.Green : ConsoleColor.Yellow;
+                Console.WriteLine($"  {(ok ? "✓" : "⚠️")} {msg} Reclaimed: {TargetFolderInfo.FormatBytes(reclaimed)}");
+                Console.ResetColor();
+            }
+            return ok ? 0 : 1;
+        }
+
+        if (isJson)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                usedBytes = used,
+                formattedUsed = TargetFolderInfo.FormatBytes(used),
+                snapshotCount = count
+            }, new JsonSerializerOptions { WriteIndented = true }));
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("  🛡️ Windows System Restore Points & Shadow Copies (VSS):");
+            Console.ResetColor();
+            Console.WriteLine($"     Used Shadow Storage: {TargetFolderInfo.FormatBytes(used)}");
+            Console.WriteLine($"     Detected Snapshots : {count}");
+            Console.WriteLine();
+            Console.WriteLine("  💡 Run 'deltempo restore-points --clean' to purge older points (safely keeping latest).");
+            Console.WriteLine("  💡 Run 'deltempo restore-points --clean --all' to purge all shadow copies.");
+        }
+
+        return 0;
     }
 
     // ─── SCAN COMMAND ──────────────────────────────────────────────────

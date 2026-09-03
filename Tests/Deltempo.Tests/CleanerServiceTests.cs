@@ -40,7 +40,7 @@ public class CleanerServiceTests : IDisposable
 
         // Assert
         Assert.NotNull(targets);
-        Assert.True(targets.Count >= 24, $"Expected at least 24 targets, but found {targets.Count}");
+        Assert.True(targets.Count >= 25, $"Expected at least 25 targets, but found {targets.Count}");
         Assert.Contains(targets, t => t.Id == "WinUpgradeLeftovers");
         Assert.Contains(targets, t => t.Id == "WinStoreAppCaches");
         Assert.Contains(targets, t => t.Id == "WinComponentCaches");
@@ -49,7 +49,20 @@ public class CleanerServiceTests : IDisposable
         Assert.Contains(targets, t => t.Id == "WinSystemLogs");
         Assert.Contains(targets, t => t.Id == "TemporaryInternetFiles");
         Assert.Contains(targets, t => t.Id == "SystemUsageTraces");
+        Assert.Contains(targets, t => t.Id == "SystemRestorePoints");
         Assert.Contains(targets, t => t.Id == "RecycleBin");
+    }
+
+    [Theory]
+    [InlineData("1024 B", 1024)]
+    [InlineData("50 KB", 50 * 1024)]
+    [InlineData("100.5 MB", (long)(100.5 * 1024 * 1024))]
+    [InlineData("8.5 GB", (long)(8.5 * 1024 * 1024 * 1024))]
+    [InlineData("2 TB", 2L * 1024 * 1024 * 1024 * 1024)]
+    public void ParseSizeStringToBytes_ConvertsVariousUnitsAccurately(string input, long expectedApprox)
+    {
+        long actual = CleanerService.ParseSizeStringToBytes(input);
+        Assert.Equal(expectedApprox, actual);
     }
 
     [Fact]
