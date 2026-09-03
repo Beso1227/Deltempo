@@ -527,6 +527,59 @@ public class CleanerServiceTests : IDisposable
         Assert.True(result.SafetyScore <= 20);
         Assert.Contains("PROTECTED", result.Verdict);
     }
+
+    [Theory]
+    [InlineData(@"C:\Windows\Prefetch\NOTEPAD.EXE-1234.pf", "NOTEPAD.EXE-1234.pf")]
+    [InlineData(@"C:\Windows\SoftwareDistribution\Download\abc\update.cab", "update.cab")]
+    [InlineData(@"C:\Windows\Minidump\minidump.dmp", "minidump.dmp")]
+    [InlineData(@"C:\Windows\ServiceProfiles\NetworkService\AppData\Local\Microsoft\Windows\DeliveryOptimization\Cache\f123", "f123")]
+    [InlineData(@"C:\Users\username\AppData\Local\D3DSCache\test.bin", "test.bin")]
+    [InlineData(@"C:\Users\username\AppData\Local\Google\Chrome\User Data\Default\Cache\Cache_Data\data_0", "data_0")]
+    public void AiFileSafetyService_SystemDisposableFolders_CorrectlyMarkedSafeToClean(string path, string filename)
+    {
+        var result = AiFileSafetyService.AnalyzeFile(path, filename, "System Cache Chunk", 5 * 1024 * 1024, DateTime.Now.AddDays(-5));
+
+        Assert.Equal(AiSafetyTier.SafeToClean, result.Tier);
+        Assert.True(result.IsSafeToAutoClean);
+        Assert.True(result.SafetyScore >= 90);
+        Assert.Contains("SAFE", result.Verdict);
+    }
+
+    [Fact]
+    public void CleanerService_GetDeliveryOptimizationDirectories_ReturnsValidPaths()
+    {
+        var dirs = CleanerService.GetDeliveryOptimizationDirectories();
+        Assert.NotNull(dirs);
+        Assert.True(dirs.Count >= 2);
+        Assert.Contains(dirs, d => d.Contains("DeliveryOptimization", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void CleanerService_GetComponentCacheDirectories_IncludesPatchCacheAndPackageCache()
+    {
+        var dirs = CleanerService.GetComponentCacheDirectories();
+        Assert.NotNull(dirs);
+        Assert.Contains(dirs, d => d.Contains("$PatchCache$", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(dirs, d => d.Contains("Package Cache", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void CleanerService_GetWinSystemLogDirectories_IncludesDiagnosticLogsAndPanther()
+    {
+        var dirs = CleanerService.GetWinSystemLogDirectories();
+        Assert.NotNull(dirs);
+        Assert.Contains(dirs, d => d.Contains("Panther", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(dirs, d => d.Contains("ETLLogs", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void CleanerService_GetUpgradeLeftoverDirectories_IncludesModernSetupPaths()
+    {
+        var dirs = CleanerService.GetUpgradeLeftoverDirectories();
+        Assert.NotNull(dirs);
+        Assert.Contains(dirs, d => d.Contains("MoSetup", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(dirs, d => d.Contains("$WINDOWS.~BT", StringComparison.OrdinalIgnoreCase));
+    }
 }
 
 

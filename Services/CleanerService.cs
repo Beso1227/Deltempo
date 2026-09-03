@@ -32,6 +32,74 @@ public class CleanerService
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool RemoveDirectoryW(string lpPathName);
 
+    [DllImport("advapi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool OpenProcessToken(IntPtr ProcessHandle, uint DesiredAccess, out IntPtr TokenHandle);
+
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool LookupPrivilegeValue(string? lpSystemName, string lpName, ref long lpLuid);
+
+    [DllImport("advapi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool AdjustTokenPrivileges(IntPtr TokenHandle, [MarshalAs(UnmanagedType.Bool)] bool DisableAllPrivileges, ref TokenPrivileges NewState, int BufferLength, IntPtr PreviousState, IntPtr ReturnLength);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool CloseHandle(IntPtr hObject);
+
+    [DllImport("shell32.dll")]
+    private static extern void SHChangeNotify(int wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    private struct TokenPrivileges
+    {
+        public int Count;
+        public long Luid;
+        public int Attr;
+    }
+
+    private const int PrivilegeAttributeEnabled = 2;
+    private const int TokenAdjustPrivileges = 0x0020;
+    private const int TokenQuery = 0x0008;
+
+    private const string SeBackupName = "SeBackupPrivilege";
+    private const string SeRestoreName = "SeRestorePrivilege";
+    private const string SeTakeOwnershipName = "SeTakeOwnershipPrivilege";
+    private const string SeSecurityName = "SeSecurityPrivilege";
+
+    public static void EnableFileManagementPrivileges()
+    {
+        SetIncreasePrivilege(SeBackupName);
+        SetIncreasePrivilege(SeRestoreName);
+        SetIncreasePrivilege(SeTakeOwnershipName);
+        SetIncreasePrivilege(SeSecurityName);
+    }
+
+    private static bool SetIncreasePrivilege(string privilegeName)
+    {
+        try
+        {
+            if (OpenProcessToken(System.Diagnostics.Process.GetCurrentProcess().Handle, TokenAdjustPrivileges | TokenQuery, out IntPtr tokenHandle))
+            {
+                try
+                {
+                    var tp = new TokenPrivileges { Count = 1, Attr = PrivilegeAttributeEnabled };
+                    if (LookupPrivilegeValue(null, privilegeName, ref tp.Luid))
+                    {
+                        return AdjustTokenPrivileges(tokenHandle, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
+                    }
+                }
+                finally
+                {
+                    CloseHandle(tokenHandle);
+                }
+            }
+        }
+        catch { }
+        return false;
+    }
+
     private const uint SHERB_NOCONFIRMATION = 0x00000001;
     private const uint SHERB_NOPROGRESSUI = 0x00000002;
     private const uint SHERB_NOSOUND = 0x00000004;
@@ -499,9 +567,19 @@ public class CleanerService
 
         await Task.Run(() =>
         {
+            EnableFileManagementPrivileges();
+
             if (folder.IsSpecialShellTarget && folder.Id == "RecycleBin")
             {
                 ScanRecycleBin(folder, logAction);
+                folder.IsScanning = false;
+                return;
+            }
+
+            if (folder.Id == "WinDeliveryOpt")
+            {
+                var dirs = GetDeliveryOptimizationDirectories();
+                ScanDirectoryList(folder, dirs, "Windows Delivery Optimization", logAction, ct);
                 folder.IsScanning = false;
                 return;
             }
@@ -721,7 +799,11 @@ public class CleanerService
             Path.Combine(rootDrive, "ESD"),
             Path.Combine(rootDrive, "ESD", "Download"),
             Path.Combine(rootDrive, "Windows.old"),
-            Path.Combine(rootDrive, "$SysReset")
+            Path.Combine(rootDrive, "$SysReset"),
+            Path.Combine(rootDrive, "$GetCurrent"),
+            Path.Combine(winDir, "Panther"),
+            Path.Combine(winDir, "Logs", "MoSetup"),
+            Path.Combine(winDir, "System32", "Sysprep", "Panther")
         };
         return dirs;
     }
@@ -730,6 +812,7 @@ public class CleanerService
     {
         var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
         var dirs = new List<string>
         {
             Path.Combine(winDir, "ServiceProfiles", "LocalService", "AppData", "Local", "FontCache"),
@@ -737,6 +820,11 @@ public class CleanerService
             Path.Combine(winDir, "SystemTemp"),
             Path.Combine(winDir, "Downloaded Program Files"),
             Path.Combine(winDir, "SoftwareDistribution", "ScanFile"),
+            Path.Combine(winDir, "SoftwareDistribution", "DataStore", "Logs"),
+            Path.Combine(winDir, "SoftwareDistribution", "PostRebootEventCache"),
+            Path.Combine(winDir, "SoftwareDistribution", "AuthCabs"),
+            Path.Combine(winDir, "Installer", "$PatchCache$"),
+            Path.Combine(progData, "Package Cache"),
             Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "PeerDistPub"),
             Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "PeerDistSub"),
             Path.Combine(localAppData, "FontCache")
@@ -757,6 +845,7 @@ public class CleanerService
                 foreach (var pkg in Directory.EnumerateDirectories(packagesRoot))
                 {
                     dirs.Add(Path.Combine(pkg, "LocalCache"));
+                    dirs.Add(Path.Combine(pkg, "LocalState", "Cache"));
                     dirs.Add(Path.Combine(pkg, "AC", "INetCache"));
                     dirs.Add(Path.Combine(pkg, "AC", "Temp"));
                     dirs.Add(Path.Combine(pkg, "TempState"));
@@ -777,6 +866,7 @@ public class CleanerService
         var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
         var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var rootDrive = Path.GetPathRoot(winDir) ?? @"C:\";
 
         return new List<string>
         {
@@ -786,6 +876,9 @@ public class CleanerService
             Path.Combine(progData, "NVIDIA Corporation", "NetService"),
             Path.Combine(progData, "AMD"),
             Path.Combine(progData, "Intel"),
+            Path.Combine(rootDrive, "NVIDIA", "DisplayDriver"),
+            Path.Combine(rootDrive, "AMD", "Packages"),
+            Path.Combine(rootDrive, "Intel", "Logs"),
             Path.Combine(localAppData, "AMD", "DxCache"),
             Path.Combine(localAppData, "AMD", "DVR"),
             Path.Combine(winDir, "System32", "DriverStore", "Temp"),
@@ -801,13 +894,15 @@ public class CleanerService
             Path.Combine(progData, "Microsoft", "Windows Defender", "Support"),
             Path.Combine(progData, "Microsoft", "Windows Defender", "Definition Updates", "Backup"),
             Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Results", "Quick"),
-            Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Results", "Resource")
+            Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Results", "Resource"),
+            Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Store")
         };
     }
 
     public static List<string> GetWinSystemLogDirectories()
     {
         var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
         return new List<string>
         {
             Path.Combine(winDir, "Logs"),
@@ -815,9 +910,13 @@ public class CleanerService
             Path.Combine(winDir, "Logs", "DISM"),
             Path.Combine(winDir, "Logs", "NetSetup"),
             Path.Combine(winDir, "Logs", "WindowsUpdate"),
+            Path.Combine(winDir, "Logs", "MoSetup"),
+            Path.Combine(winDir, "Panther"),
             Path.Combine(winDir, "Debug"),
             Path.Combine(winDir, "System32", "LogFiles"),
-            Path.Combine(winDir, "tracing")
+            Path.Combine(winDir, "tracing"),
+            Path.Combine(progData, "Microsoft", "Diagnosis", "ETLLogs"),
+            Path.Combine(progData, "Microsoft", "Diagnosis", "SoftLanding")
         };
     }
 
@@ -825,12 +924,19 @@ public class CleanerService
     {
         var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
         return new List<string>
         {
             Path.Combine(winDir, "Minidump"),
             Path.Combine(winDir, "LiveKernelReports"),
             Path.Combine(winDir, "System32", "CrashDump"),
-            Path.Combine(localAppData, "CrashDumps")
+            Path.Combine(localAppData, "CrashDumps"),
+            Path.Combine(progData, "Microsoft", "Windows", "WER", "ReportArchive"),
+            Path.Combine(progData, "Microsoft", "Windows", "WER", "ReportQueue"),
+            Path.Combine(progData, "Microsoft", "Windows", "WER", "Temp"),
+            Path.Combine(localAppData, "Microsoft", "Windows", "WER", "ReportArchive"),
+            Path.Combine(localAppData, "Microsoft", "Windows", "WER", "ReportQueue"),
+            Path.Combine(localAppData, "Microsoft", "Windows", "WER", "Temp")
         };
     }
 
@@ -847,13 +953,27 @@ public class CleanerService
         };
     }
 
+    public static List<string> GetDeliveryOptimizationDirectories()
+    {
+        var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return new List<string>
+        {
+            Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "Microsoft", "Windows", "DeliveryOptimization", "Cache"),
+            Path.Combine(winDir, "SoftwareDistribution", "DeliveryOptimization"),
+            Path.Combine(localAppData, "Microsoft", "Windows", "DeliveryOptimization")
+        };
+    }
+
     public static List<string> GetGpuShaderDirectories()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         return new List<string>
         {
             Path.Combine(localAppData, "NVIDIA", "DXCache"),
             Path.Combine(localAppData, "NVIDIA", "GLCache"),
+            Path.Combine(userProfile, "AppData", "LocalLow", "NVIDIA", "PerDriverVersion", "DXCache"),
             Path.Combine(localAppData, "AMD", "DxCache"),
             Path.Combine(localAppData, "D3DSCache"),
             Path.Combine(localAppData, "Intel", "ShaderCache")
@@ -1355,6 +1475,8 @@ public class CleanerService
 
         await Task.Run(() =>
         {
+            EnableFileManagementPrivileges();
+
             if (folder.IsSpecialShellTarget && folder.Id == "RecycleBin")
             {
                 try
@@ -1493,6 +1615,10 @@ public class CleanerService
             {
                 directoriesToClean.AddRange(GetDevPackageDirectories());
             }
+            else if (folder.Id == "WinDeliveryOpt")
+            {
+                directoriesToClean.AddRange(GetDeliveryOptimizationDirectories());
+            }
             else
             {
                 directoriesToClean.Add(folder.FolderPath);
@@ -1553,12 +1679,13 @@ public class CleanerService
                             long fileLen = file.Length;
                             string path = file.FullName;
 
-                            // Clear ReadOnly / Hidden / System attributes to prevent deletion failures
+                            // 1. Clear ReadOnly / Hidden / System attributes to prevent deletion failures
                             if ((file.Attributes & (FileAttributes.ReadOnly | FileAttributes.Hidden | FileAttributes.System)) != 0)
                             {
                                 try { file.Attributes = FileAttributes.Normal; } catch { }
                             }
 
+                            // 2. Primary native Win32 deletion
                             if (DeleteFileW(path))
                             {
                                 freedBytes += fileLen;
@@ -1566,6 +1693,7 @@ public class CleanerService
                             }
                             else
                             {
+                                // 3. Fallback standard .NET delete
                                 try
                                 {
                                     file.Delete();
@@ -1574,7 +1702,26 @@ public class CleanerService
                                 }
                                 catch
                                 {
-                                    filesSkipped++;
+                                    // 4. POSIX delete attempt for files shared with delete permission
+                                    bool sharedDeleted = false;
+                                    try
+                                    {
+                                        using (var fs = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
+                                        {
+                                        }
+                                        if (DeleteFileW(path))
+                                        {
+                                            freedBytes += fileLen;
+                                            filesDeleted++;
+                                            sharedDeleted = true;
+                                        }
+                                    }
+                                    catch { }
+
+                                    if (!sharedDeleted)
+                                    {
+                                        filesSkipped++;
+                                    }
                                 }
                             }
                         }
@@ -1631,6 +1778,30 @@ public class CleanerService
                 }
             }
 
+            // Flush Explorer thumbnail databases if cleaned
+            if (folder.Id == "Thumbnails")
+            {
+                try
+                {
+                    SHChangeNotify(0x08000000 /* SHCNE_ASSOCCHANGED */, 0x0000 /* SHCNF_IDLIST */, IntPtr.Zero, IntPtr.Zero);
+                }
+                catch { }
+            }
+
+            // Deep Windows Component Store / WinSxS scavenger cleanup (DISM)
+            if ((folder.Id == "WinComponentCaches" || folder.Id == "WinUpdateCache") && ElevationService.IsRunAsAdmin())
+            {
+                try
+                {
+                    var dismTask = RunDismComponentCleanupAsync(logAction, ct);
+                    dismTask.GetAwaiter().GetResult();
+                }
+                catch (Exception ex)
+                {
+                    logAction($"DISM Component Store note: {ex.Message}", LogLevel.Info);
+                }
+            }
+
             folder.SizeBytes = Math.Max(0, folder.SizeBytes - freedBytes);
             folder.FileCount = Math.Max(0, folder.FileCount - filesDeleted);
 
@@ -1654,6 +1825,56 @@ public class CleanerService
         }, ct);
 
         return (freedBytes, filesDeleted, foldersDeleted, filesSkipped);
+    }
+
+    public static async Task<(bool Success, string Message)> RunDismComponentCleanupAsync(Action<string, LogLevel>? logAction = null, CancellationToken ct = default)
+    {
+        if (!ElevationService.IsRunAsAdmin())
+        {
+            return (false, "Administrator privileges required to run Component Store cleanup.");
+        }
+
+        return await Task.Run(() =>
+        {
+            try
+            {
+                logAction?.Invoke("Initiating Windows Component Store (WinSxS) deep cleanup via DISM (purging superseded updates)...", LogLevel.Info);
+
+                string dismPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "dism.exe");
+                if (!File.Exists(dismPath)) return (false, "dism.exe not found");
+
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = dismPath,
+                    Arguments = "/Online /Cleanup-Image /StartComponentCleanup /NoRestart",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+
+                using var proc = System.Diagnostics.Process.Start(psi);
+                if (proc == null) return (false, "Could not launch dism.exe");
+
+                proc.WaitForExit(180_000); // 3-minute timeout
+
+                if (proc.ExitCode == 0)
+                {
+                    logAction?.Invoke("Windows Component Store deep cleanup completed! Superseded Windows update packages purged.", LogLevel.Success);
+                    return (true, "Component store cleaned successfully.");
+                }
+                else
+                {
+                    logAction?.Invoke($"DISM Component cleanup completed with exit code {proc.ExitCode}.", LogLevel.Info);
+                    return (true, $"DISM exit code: {proc.ExitCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                logAction?.Invoke($"DISM execution note: {ex.Message}", LogLevel.Warning);
+                return (false, ex.Message);
+            }
+        }, ct);
     }
 
     private static bool IsProtectedFile(string filePath)
