@@ -918,8 +918,8 @@
                                 Background="{DynamicResource SurfaceSubCardBrush}"
                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1"
-                                CornerRadius="10"
-                                Padding="10,5">
+                                CornerRadius="8"
+                                Padding="9,4">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <CheckBox x:Name="SafeModeCheckBox"
                                           Style="{DynamicResource ModernSwitchCheckBox}"
@@ -933,7 +933,7 @@
                                           Unchecked="SafeModeCheckBox_Changed"/>
                                 <TextBlock Text="&#xE72A;"
                                            FontFamily="{DynamicResource IconFont}"
-                                           FontSize="11"
+                                           FontSize="10.5"
                                            Foreground="{DynamicResource EmeraldGreenBrush}"
                                            Margin="0,0,5,0"
                                            VerticalAlignment="Center"/>
@@ -946,96 +946,27 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Pillar 2: Utility Tools Pod (Large Files, Startup, Activity Log & Audit Report) -->
+                        <!-- Pillar 2: Diagnostics & Audit Pod (Activity Log & Audit Report) -->
                         <Border Grid.Column="2"
                                 Background="{DynamicResource SurfaceSubCardBrush}"
                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1"
-                                CornerRadius="10"
-                                Padding="4,3">
+                                CornerRadius="8"
+                                Padding="2">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <!-- Large Files Hunter Button -->
-                                <Button x:Name="OpenLargeFilesBtn"
-                                        Style="{DynamicResource PillButton}"
-                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                        AutomationProperties.Name="Open AI Large Files Hunter"
-                                        ToolTip="Deep Storage &amp; AI Large Files Hunter"
-                                        Padding="10,4.5"
-                                        Margin="0,0,3,0"
-                                        Click="OpenLargeFilesModal_Click">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="&#xE8B7;"
-                                                   FontFamily="{DynamicResource IconFont}"
-                                                   FontSize="10.5"
-                                                   Foreground="{DynamicResource ElectricCyanBrush}"
-                                                   Margin="0,0,5,0"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="Large Files"
-                                                   FontSize="11"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource ElectricCyanBrush}"
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-
-                                <!-- RAM Optimizer Button (WinMemoryCleaner) -->
-                                <Button x:Name="OpenMemoryCleanerBtn"
-                                        Style="{DynamicResource PillButton}"
-                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                        AutomationProperties.Name="Open Windows Memory Cleaner"
-                                        ToolTip="Deep Kernel Memory &amp; Cache Cleaner (WinMemoryCleaner)"
-                                        Padding="10,4.5"
-                                        Margin="0,0,3,0"
-                                        Click="OpenMemoryCleanerModal_Click">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="&#xE950;"
-                                                   FontFamily="{DynamicResource IconFont}"
-                                                   FontSize="10.5"
-                                                   Foreground="{DynamicResource ElectricCyanBrush}"
-                                                   Margin="0,0,5,0"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="RAM Cleaner"
-                                                   FontSize="11"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource ElectricCyanBrush}"
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-
-                                <!-- Startup Apps Manager Button -->
-                                <Button x:Name="OpenStartupBtn"
-                                        Style="{DynamicResource PillButton}"
-                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                        AutomationProperties.Name="Manage Windows Startup Programs"
-                                        ToolTip="Windows Startup Apps &amp; Boot Accelerator"
-                                        Padding="10,4.5"
-                                        Margin="0,0,3,0"
-                                        Click="OpenStartupModal_Click">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="&#xE7B5;"
-                                                   FontFamily="{DynamicResource IconFont}"
-                                                   FontSize="10.5"
-                                                   Margin="0,0,5,0"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="Startup"
-                                                   FontSize="11"
-                                                   FontWeight="SemiBold"
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-
                                 <Button x:Name="ToggleLogBtn"
-                                        Style="{DynamicResource PillButton}"
+                                        Style="{DynamicResource HeaderToolButton}"
                                         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                         AutomationProperties.Name="Toggle Activity Log Stream"
-                                        Padding="10,4.5"
-                                        Margin="0,0,3,0"
+                                        Padding="10,4"
+                                        Margin="0,0,2,0"
                                         Click="ToggleLogBtn_Click">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock x:Name="ToggleLogIcon"
                                                    Text="&#xE756;"
                                                    FontFamily="{DynamicResource IconFont}"
                                                    FontSize="10.5"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
                                                    Margin="0,0,5,0"
                                                    VerticalAlignment="Center"/>
                                         <TextBlock x:Name="ToggleLogText"
@@ -1047,15 +978,16 @@
                                 </Button>
 
                                 <Button x:Name="ExportReportBtn"
-                                        Style="{DynamicResource PillButton}"
+                                        Style="{DynamicResource HeaderToolButton}"
                                         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                         AutomationProperties.Name="Export Cleanup Audit Report"
-                                        Padding="10,4.5"
+                                        Padding="10,4"
                                         Click="ExportAuditReport_Click">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="&#xE8A5;"
                                                    FontFamily="{DynamicResource IconFont}"
                                                    FontSize="10.5"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
                                                    Margin="0,0,5,0"
                                                    VerticalAlignment="Center"/>
                                         <TextBlock x:Name="ExportReportBtnText"
