@@ -386,26 +386,17 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- RAM Telemetry & Instant Boost Card (WinMemoryCleaner-style area breakdown) -->
+                            <!-- RAM Telemetry & Quick Optimizer Card -->
                             <Border Background="{DynamicResource SurfaceSubCardBrush}"
                                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="10"
                                     Padding="12,8"
-                                    AutomationProperties.Name="System Memory Area Breakdown">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <!-- Header row -->
-                                        <RowDefinition Height="Auto"/>
-                                        <!-- Memory area rows (8 areas) -->
-                                        <RowDefinition Height="Auto"/>
-                                        <!-- Global Boost row -->
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-
-                                    <!-- Header: title + global usage + global boost -->
-                                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                                    AutomationProperties.Name="System Memory RAM Telemetry">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,4">
                                         <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -416,179 +407,57 @@
                                                        Foreground="{DynamicResource ElectricCyanBrush}"
                                                        Margin="0,0,5,0"
                                                        VerticalAlignment="Center"/>
-                                            <TextBlock Text="Memory Areas"
+                                            <TextBlock Text="RAM Memory"
                                                        FontSize="11"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextHighBrush}"
-                                                       VerticalAlignment="Center"/>
+                                                       Foreground="{DynamicResource TextHighBrush}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                             <TextBlock x:Name="HeroRamPercentText"
                                                        Text="--%"
                                                        FontSize="11"
                                                        FontWeight="Bold"
                                                        Foreground="{DynamicResource ElectricCyanBrush}"
-                                                       Margin="8,0,0,0"
+                                                       Margin="0,0,8,0"
                                                        VerticalAlignment="Center"/>
+                                            <Button Style="{DynamicResource PillButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="8,2.5"
+                                                    ToolTip="Open Deep Kernel Memory &amp; Cache Cleaner"
+                                                    Click="OpenMemoryCleanerModal_Click">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="&#xE950;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="RAM Cleaner" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource ElectricCyanBrush}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
                                         </StackPanel>
+                                    </Grid>
+                                    <Border Height="5" CornerRadius="2.5" Background="{DynamicResource TrackBgBrush}" ClipToBounds="True" Margin="0,0,0,4">
+                                        <ProgressBar x:Name="HeroRamProgressBar"
+                                                     Height="5"
+                                                     Minimum="0" Maximum="100"
+                                                     Value="50"
+                                                     Foreground="{DynamicResource BrandHeroGradientBrush}"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"/>
+                                    </Border>
+                                    <Grid>
                                         <TextBlock x:Name="HeroRamDetailText"
-                                                   Grid.Column="1"
-                                                   Text="Reading telemetry..."
+                                                   Text="Reading RAM telemetry..."
                                                    FontSize="10"
-                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                   Foreground="{DynamicResource TextMediumBrush}"
                                                    VerticalAlignment="Center"/>
-                                        <Button Grid.Column="2"
-                                                x:Name="HeroBoostRamBtn"
-                                                Content="⚡ Boost All"
-                                                Style="{DynamicResource HeroCTAButton}"
+                                        <Button x:Name="HeroBoostRamBtn"
+                                                Content="⚡ Quick Boost"
+                                                Style="{DynamicResource PillButton}"
                                                 FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                Padding="14,7"
-                                                FontSize="11.5"
+                                                Padding="8,2"
+                                                FontSize="9.5"
+                                                HorizontalAlignment="Right"
                                                 VerticalAlignment="Center"
-                                                Margin="10,0,0,0"
                                                 Click="HeroBoostRamBtn_Click"/>
                                     </Grid>
-
-                                    <!-- Per-area breakdown (data-bound to _memoryAreaSnapshots) -->
-                                    <ScrollViewer Grid.Row="1"
-                                                  x:Name="MemoryAreaScrollViewer"
-                                                  VerticalScrollBarVisibility="Auto"
-                                                  HorizontalScrollBarVisibility="Disabled"
-                                                  MaxHeight="240">
-                                        <ItemsControl x:Name="MemoryAreaItemsControl">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Background="{DynamicResource SurfaceCardBrush}"
-                                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                            BorderThickness="1"
-                                                            CornerRadius="8"
-                                                            Padding="10,7"
-                                                            Margin="0,0,0,5">
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="Auto"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="Auto"/>
-                                                            </Grid.ColumnDefinitions>
-
-                                                            <!-- Area icon -->
-                                                            <Border Grid.Column="0"
-                                                                    Width="28" Height="28"
-                                                                    CornerRadius="7"
-                                                                    Background="{DynamicResource SurfaceSubCardBrush}"
-                                                                    BorderBrush="{DynamicResource ElectricCyanBrush}"
-                                                                    BorderThickness="1"
-                                                                    Margin="0,0,8,0">
-                                                                <TextBlock Text="{Binding IconGlyph}"
-                                                                           FontFamily="{DynamicResource IconFont}"
-                                                                           FontSize="12"
-                                                                           Foreground="{DynamicResource ElectricCyanBrush}"
-                                                                           HorizontalAlignment="Center"
-                                                                           VerticalAlignment="Center"/>
-                                                            </Border>
-
-                                                            <!-- Area name + usage bar -->
-                                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                                <StackPanel Orientation="Horizontal">
-                                                                    <TextBlock Text="{Binding DisplayName}"
-                                                                               FontSize="11"
-                                                                               FontWeight="SemiBold"
-                                                                               Foreground="{DynamicResource TextHighBrush}"
-                                                                               VerticalAlignment="Center"/>
-                                                                    <TextBlock Text="{Binding FormattedUsedPercent}"
-                                                                               FontSize="10"
-                                                                               FontWeight="Bold"
-                                                                               Foreground="{Binding UsedPercentBrush}"
-                                                                               Margin="6,0,0,0"
-                                                                               VerticalAlignment="Center"/>
-                                                                </StackPanel>
-                                                                <TextBlock Text="{Binding Description}"
-                                                                           FontSize="9.5"
-                                                                           Foreground="{DynamicResource TextMutedBrush}"
-                                                                           TextTrimming="CharacterEllipsis"
-                                                                           Margin="0,1,0,3"
-                                                                           MaxWidth="320"/>
-                                                                <Grid>
-                                                                    <Border Height="3.5"
-                                                                            CornerRadius="1.75"
-                                                                            Background="{DynamicResource TrackBgBrush}"
-                                                                            ClipToBounds="True"/>
-                                                                    <Border Height="3.5"
-                                                                            CornerRadius="1.75"
-                                                                            Background="{Binding UsageBarBrush}"
-                                                                            HorizontalAlignment="Left"
-                                                                            ClipToBounds="True">
-                                                                        <Border.Width>
-                                                                            <MultiBinding Converter="{StaticResource PercentWidthConverter}">
-                                                                                <Binding Path="UsedPercent"/>
-                                                                                <Binding RelativeSource="{RelativeSource AncestorType=Grid}" Path="ActualWidth"/>
-                                                                            </MultiBinding>
-                                                                        </Border.Width>
-                                                                    </Border>
-                                                                </Grid>
-                                                            </StackPanel>
-
-                                                            <!-- Per-area boost button + free space -->
-                                                            <StackPanel Grid.Column="2"
-                                                                        Orientation="Vertical"
-                                                                        VerticalAlignment="Center"
-                                                                        Margin="8,0,0,0"
-                                                                        Width="82">
-                                                                <TextBlock Text="{Binding FormattedFree}"
-                                                                           FontSize="10.5"
-                                                                           FontWeight="Bold"
-                                                                           Foreground="{DynamicResource ElectricCyanBrush}"
-                                                                           HorizontalAlignment="Right"
-                                                                           TextWrapping="Wrap"
-                                                                           TextAlignment="Right"
-                                                                           MaxWidth="76"
-                                                                           Margin="0,0,0,2"/>
-                                                                <Button Content="Boost"
-                                                                        Tag="{Binding Target}"
-                                                                        Style="{DynamicResource PillButton}"
-                                                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                                        Padding="6,2.5"
-                                                                        FontSize="9.5"
-                                                                        FontWeight="SemiBold"
-                                                                        HorizontalAlignment="Right"
-                                                                        Click="PerAreaBoostButton_Click"/>
-                                                            </StackPanel>
-                                                        </Grid>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
-
-                                    <!-- Footer status -->
-                                    <Border Grid.Row="2"
-                                            Background="{DynamicResource SurfaceSubCardBrush}"
-                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="8"
-                                            Padding="10,6"
-                                            Margin="0,4,0,0">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                                <TextBlock x:Name="MemoryAreaStatusText"
-                                                           Text="8 areas · all available"
-                                                           FontSize="10"
-                                                           Foreground="{DynamicResource TextMutedBrush}"
-                                                           VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                            <Button Grid.Column="1"
-                                                    x:Name="HeroBoostRamBtnInline"
-                                                    Content="⚡ Boost All"
-                                                    Style="{DynamicResource PillButton}"
-                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                    Padding="12,4"
-                                                    FontSize="10.5"
-                                                    Click="HeroBoostRamBtn_Click"/>
-                                        </Grid>
-                                    </Border>
-                                </Grid>
+                                </StackPanel>
                             </Border>
                         </StackPanel>
                     </Grid>
@@ -1064,6 +933,30 @@
                                                    Margin="0,0,5,0"
                                                    VerticalAlignment="Center"/>
                                         <TextBlock Text="Large Files"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- RAM Optimizer Button (WinMemoryCleaner) -->
+                                <Button x:Name="OpenMemoryCleanerBtn"
+                                        Style="{DynamicResource PillButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        AutomationProperties.Name="Open Windows Memory Cleaner"
+                                        ToolTip="Deep Kernel Memory &amp; Cache Cleaner (WinMemoryCleaner)"
+                                        Padding="10,4.5"
+                                        Margin="0,0,3,0"
+                                        Click="OpenMemoryCleanerModal_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE950;"
+                                                   FontFamily="{DynamicResource IconFont}"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                   Margin="0,0,5,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="RAM Cleaner"
                                                    FontSize="11"
                                                    FontWeight="SemiBold"
                                                    Foreground="{DynamicResource ElectricCyanBrush}"
@@ -2944,7 +2837,286 @@
                     </Grid>
                 </Border>
             </Grid>
+
+            <!-- WINDOWS MEMORY CLEANER & STANDBY CACHE OPTIMIZER MODAL -->
+            <Grid Grid.RowSpan="6"
+                  x:Name="MemoryModalOverlay"
+                  Visibility="Collapsed"
+                  Background="{DynamicResource ModalBackdropBrush}">
+            <Border Width="880" MaxHeight="680"
+                    Background="{DynamicResource DoubleBezelOuterBrush}"
+                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="16"
+                    Padding="2"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <Border Background="{DynamicResource ModalSurfaceBrush}"
+                        CornerRadius="14"
+                        Padding="20,18">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/> <!-- 0: Header -->
+                            <RowDefinition Height="Auto"/> <!-- 1: Telemetry Strip -->
+                            <RowDefinition Height="Auto"/> <!-- 2: Selection Toolbar -->
+                            <RowDefinition Height="*"/>    <!-- 3: Zones Bento List -->
+                            <RowDefinition Height="Auto"/> <!-- 4: Footer -->
+                        </Grid.RowDefinitions>
+
+                        <!-- 0: Header -->
+                        <Grid Grid.Row="0" Margin="0,0,0,14">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Width="40" Height="40"
+                                        CornerRadius="12"
+                                        Background="{DynamicResource SurfaceSubCardBrush}"
+                                        BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                        BorderThickness="1"
+                                        Margin="0,0,12,0">
+                                    <TextBlock Text="&#xE950;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="18"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Windows Memory Cleaner &amp; Standby Cache"
+                                               FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                    <TextBlock Text="Kernel-level Standby List, System File Cache &amp; Working Set Optimizer"
+                                               FontSize="11.5"
+                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Style="{DynamicResource WindowCloseButton}"
+                                    Content="&#xE8BB;"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Click="CloseMemoryCleanerModal_Click"/>
+                        </Grid>
+
+                        <!-- 1: Telemetry Strip (3 Concentric Double-Bezel Pods) -->
+                        <Grid Grid.Row="1" Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Pod 1: Physical RAM -->
+                            <Border Grid.Column="0" Margin="0,0,6,0"
+                                    Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                    BorderThickness="1" CornerRadius="10" Padding="12,10">
+                                <StackPanel>
+                                    <TextBlock Text="TOTAL PHYSICAL RAM" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="ModalTotalRamText" Text="16.0 GB" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
+                                    <TextBlock x:Name="ModalUsedRamText" Text="7.8 GB (49%) In Use" FontSize="10.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,1,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Pod 2: Reclaimable Standby & File Cache -->
+                            <Border Grid.Column="1" Margin="3,0,3,0"
+                                    Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                    BorderThickness="1" CornerRadius="10" Padding="12,10">
+                                <StackPanel>
+                                    <TextBlock Text="RECLAIMABLE STANDBY CACHE" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="ModalStandbyCacheText" Text="4.2 GB" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource SuccessGlowBrush}" Margin="0,2,0,0"/>
+                                    <TextBlock Text="Cached inactive pages" FontSize="10.5" Foreground="{DynamicResource SuccessGlowBrush}" Margin="0,1,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Pod 3: Kernel Immunity Shield -->
+                            <Border Grid.Column="2" Margin="6,0,0,0"
+                                    Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                    BorderThickness="1" CornerRadius="10" Padding="12,10">
+                                <StackPanel>
+                                    <TextBlock Text="KERNEL ISOLATION SHIELD" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <TextBlock Text="100% IMMUNE" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
+                                    <TextBlock Text="Windows, Explorer &amp; Security protected" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" Margin="0,1,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- 2: Selection Toolbar -->
+                        <Grid Grid.Row="2" Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="Select All"
+                                        Style="{DynamicResource PillButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        Padding="8,3"
+                                        FontSize="10"
+                                        Margin="0,0,6,0"
+                                        Click="SelectAllMemoryZones_Click"/>
+                                <Button Content="Deselect All"
+                                        Style="{DynamicResource PillButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        Padding="8,3"
+                                        FontSize="10"
+                                        Click="DeselectAllMemoryZones_Click"/>
+                            </StackPanel>
+                            <TextBlock x:Name="MemoryModalStatusText"
+                                       Text="8 memory zones ready for privileged NT flush"
+                                       FontSize="10.5"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- 3: Zones Bento List -->
+                        <Border Grid.Row="3"
+                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="10,6"
+                                Margin="0,0,0,12"
+                                MaxHeight="330">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl x:Name="MemoryAreaItemsControl">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{DynamicResource SurfaceCardBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="8"
+                                                    Padding="12,8"
+                                                    Margin="0,0,0,6">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/> <!-- Checkbox -->
+                                                        <ColumnDefinition Width="Auto"/> <!-- Icon -->
+                                                        <ColumnDefinition Width="*"/>    <!-- Details -->
+                                                        <ColumnDefinition Width="Auto"/> <!-- Badge -->
+                                                        <ColumnDefinition Width="Auto"/> <!-- Size -->
+                                                        <ColumnDefinition Width="Auto"/> <!-- Action -->
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <!-- CheckBox -->
+                                                    <CheckBox Grid.Column="0"
+                                                              IsChecked="{Binding IsSelected}"
+                                                              VerticalAlignment="Center"
+                                                              Margin="0,0,10,0"/>
+
+                                                    <!-- Icon pod -->
+                                                    <Border Grid.Column="1"
+                                                            Width="32" Height="32"
+                                                            CornerRadius="8"
+                                                            Background="{DynamicResource SurfaceSubCardBrush}"
+                                                            BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                                            BorderThickness="1"
+                                                            Margin="0,0,10,0"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding IconGlyph}"
+                                                                   FontFamily="{DynamicResource IconFont}"
+                                                                   FontSize="13"
+                                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"/>
+                                                    </Border>
+
+                                                    <!-- Zone Details -->
+                                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding DisplayName}"
+                                                                   FontSize="12"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource TextHighBrush}"/>
+                                                        <TextBlock Text="{Binding Description}"
+                                                                   FontSize="10"
+                                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   MaxWidth="360"
+                                                                   Margin="0,1,0,0"/>
+                                                    </StackPanel>
+
+                                                    <!-- Safety Badge -->
+                                                    <Border Grid.Column="3"
+                                                            Background="{DynamicResource SurfaceSubCardBrush}"
+                                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="6"
+                                                            Padding="7,2"
+                                                            Margin="8,0"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding SafetyBadge}"
+                                                                   FontSize="9"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                    </Border>
+
+                                                    <!-- Estimated Cache / Usage Size -->
+                                                    <Border Grid.Column="4"
+                                                            Background="{DynamicResource SurfaceSubCardBrush}"
+                                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="6"
+                                                            Padding="8,3"
+                                                            Margin="0,0,10,0"
+                                                            VerticalAlignment="Center"
+                                                            MinWidth="70">
+                                                        <TextBlock Text="{Binding FormattedCurrent}"
+                                                                   FontSize="10.5"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource TextHighBrush}"
+                                                                   HorizontalAlignment="Right"/>
+                                                    </Border>
+
+                                                    <!-- Per-zone surgical flush button -->
+                                                    <Button Grid.Column="5"
+                                                            Content="⚡ Flush"
+                                                            Tag="{Binding Target}"
+                                                            Style="{DynamicResource PillButton}"
+                                                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                            Padding="10,4"
+                                                            FontSize="10"
+                                                            FontWeight="SemiBold"
+                                                            VerticalAlignment="Center"
+                                                            Click="PerAreaBoostButton_Click"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+
+                        <!-- 4: Footer Actions -->
+                        <Grid Grid.Row="4">
+                            <Button Content="⚡ Quick Trim Working Sets"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Padding="14,6"
+                                    FontSize="11"
+                                    Click="QuickTrimWorkingSets_Click"/>
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button x:Name="PurgeSelectedZonesBtn"
+                                        Content="⚡ Purge Selected Zones"
+                                        Style="{DynamicResource HeroCTAButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        Padding="18,7"
+                                        FontSize="11.5"
+                                        Margin="0,0,8,0"
+                                        Click="PurgeSelectedZones_Click"/>
+                                <Button Content="Close"
+                                        Style="{DynamicResource PillButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        Padding="16,7"
+                                        FontSize="11"
+                                        Click="CloseMemoryCleanerModal_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Border>
         </Grid>
-    </Border>
+    </Grid>
+</Border>
 </Border>
 </Window>
