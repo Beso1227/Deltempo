@@ -134,7 +134,7 @@ Windows and modern desktop software secretly hoard tens of gigabytes of disposab
 | **In-Place Hot-Swap Updates** | **✅ G-Helper Style (Zero Trash)** | ⚠️ Store Dependent | ❌ Installer Popups | ❌ Manual | ⚠️ Windows Update |
 | **Single-Instance Mutex Guard** | **✅ Yes (UIPI IPC Window Focus)** | ⚠️ Basic | ❌ No | ❌ No | N/A |
 | **Headless Synchronous CLI** | **✅ Full CLI + JSON output** | ❌ No | ⚠️ Limited CLI | ⚠️ Basic CLI | ⚠️ Legacy cleanmgr |
-| **Automated xUnit CI/CD** | **✅ 67 Unit Tests + Actions** | ❌ Proprietary | ❌ Proprietary | ⚠️ Basic | ❌ Proprietary |
+| **Automated xUnit CI/CD** | **✅ 79 Unit Tests + Actions** | ❌ Proprietary | ❌ Proprietary | ⚠️ Basic | ❌ Proprietary |
 
 ---
 
