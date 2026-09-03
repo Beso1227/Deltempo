@@ -17,12 +17,24 @@ public partial class App : System.Windows.Application
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern IntPtr GetStdHandle(int nStdHandle);
 
+    [DllImport("shell32.dll", SetLastError = true)]
+    private static extern void SetCurrentProcessExplicitAppUserModelID([MarshalAs(UnmanagedType.LPWStr)] string AppID);
+
     private const int ATTACH_PARENT_PROCESS = -1;
     private const int STD_OUTPUT_HANDLE = -11;
     private const int STD_ERROR_HANDLE = -12;
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        try
+        {
+            SetCurrentProcessExplicitAppUserModelID("Deltempo.Guardian.WindowsCleaner");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] SetAppUserModelID suppressed: {ex.Message}");
+        }
+
         base.OnStartup(e);
 
         DispatcherUnhandledException += (s, args) =>

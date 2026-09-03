@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WinTempCleaner"
         mc:Ignorable="d"
         Title="Deltempo — Pure Precision Windows Cleaner"
-        Icon="app_icon.png"
+        Icon="app.ico"
         Height="840" Width="880"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
@@ -172,9 +172,44 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Right: Unified Utility Pod & Window Controls -->
+                    <!-- Right: Dedicated Admin Status & Quick Preferences Pod -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- Unified Quick Settings Capsule -->
+                        <!-- Dedicated Admin Elevation Status Capsule -->
+                        <Button x:Name="AdminElevationButton"
+                                Style="{DynamicResource GhostButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                Cursor="Hand"
+                                Padding="0"
+                                Margin="0,0,8,0"
+                                VerticalAlignment="Center"
+                                Click="AdminElevationButton_Click"
+                                ToolTip="Status of Administrator Privileges (Click to Elevate)"
+                                AutomationProperties.Name="Administrator Privileges Status">
+                            <Border x:Name="AdminBadgeBorder"
+                                    Background="#14281E"
+                                    BorderBrush="#3310B981"
+                                    BorderThickness="1"
+                                    CornerRadius="7"
+                                    Padding="8,3.5">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock x:Name="AdminBadgeIcon"
+                                               Text="&#xE73E;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="10"
+                                               Foreground="#10B981"
+                                               Margin="0,0,5,0"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="AdminBadgeText"
+                                               Text="Admin"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               Foreground="#34D399"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </Button>
+
+                        <!-- Quick Preferences Pod -->
                         <Border Background="{DynamicResource SurfaceSubCardBrush}"
                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1"
@@ -182,44 +217,6 @@
                                 Padding="3,2"
                                 Margin="0,0,8,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <!-- Admin Badge / Elevation Button -->
-                                <Button x:Name="AdminElevationButton"
-                                        Style="{DynamicResource GhostButton}"
-                                        Padding="0"
-                                        Margin="0"
-                                        VerticalAlignment="Center"
-                                        Click="AdminElevationButton_Click"
-                                        ToolTip="Status of Administrator Privileges"
-                                        AutomationProperties.Name="Administrator Privileges Status">
-                                    <Border x:Name="AdminBadgeBorder"
-                                            Background="{DynamicResource AdminBadgeBgBrush}"
-                                            BorderBrush="{DynamicResource AdminBadgeBorderBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="5"
-                                            Padding="6,3">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock x:Name="AdminBadgeIcon"
-                                                       Text="&#xE73E;"
-                                                       FontFamily="{DynamicResource IconFont}"
-                                                       FontSize="9.5"
-                                                       Foreground="{DynamicResource AdminBadgeTextBrush}"
-                                                       Margin="0,0,4,0"
-                                                       VerticalAlignment="Center"/>
-                                            <TextBlock x:Name="AdminBadgeText"
-                                                       Text="Admin"
-                                                       FontSize="10.5"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource AdminBadgeTextBrush}"
-                                                       VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </Border>
-                                </Button>
-
-                                <!-- Subtle Vertical Separator -->
-                                <Border Width="1" Height="14"
-                                        Background="{DynamicResource HairlineBorderBrush}"
-                                        Margin="5,0"/>
-
                                 <!-- Language Selector Pill -->
                                 <ComboBox x:Name="LanguageComboBox"
                                           Style="{DynamicResource ModernComboBox}"
@@ -238,7 +235,7 @@
                                 <!-- Subtle Vertical Separator -->
                                 <Border Width="1" Height="14"
                                         Background="{DynamicResource HairlineBorderBrush}"
-                                        Margin="5,0"/>
+                                        Margin="4,0"/>
 
                                 <!-- Sound FX Toggle -->
                                 <Button x:Name="SoundToggleBtn"
