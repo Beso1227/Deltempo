@@ -47,7 +47,7 @@
         "url": "https://beso1227.github.io/Deltempo/",
         "applicationCategory": "UtilitiesApplication",
         "operatingSystem": "Windows 10, Windows 11",
-        "softwareVersion": "1.2.0",
+        "softwareVersion": "1.3.0",
         "description": "100% Standalone, open-source Windows cache cleaner. Deep-purges 25+ cache tiers including Windows Upgrade leftovers, UWP Store apps, Device Driver Packages, Steam, GPU shaders, Adobe Media Cache, Defender logs, and Windows update delivery leftovers with zero telemetry.",
         "downloadUrl": "https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe",
         "offers": {
@@ -1241,6 +1241,84 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* Large Files & NT Memory Tab Styles */
+    .sim-verdict-safe {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid #10B981;
+      color: #10B981;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      letter-spacing: 0.03em;
+    }
+    .sim-verdict-protect {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #EF4444;
+      color: #EF4444;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      letter-spacing: 0.03em;
+    }
+    .sim-reasoning-capsule {
+      font-size: 0.8rem;
+      color: var(--text-med);
+      margin-top: 0.25rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .sim-pod-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .sim-pod {
+      background: var(--bg-card);
+      border: 1px solid var(--border-inner);
+      border-radius: 0.85rem;
+      padding: 0.85rem 1rem;
+    }
+    .sim-pod-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .sim-pod-val {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-top: 0.25rem;
+      color: var(--text-high);
+    }
+    .sim-pod-sub {
+      font-size: 0.78rem;
+      color: var(--cyan-glow);
+      margin-top: 0.15rem;
+    }
+    .sim-zone-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.75rem;
+    }
+    .sim-zone-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-inner);
+      border-radius: 0.85rem;
+      padding: 0.85rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: border-color 0.2s;
+    }
+    .sim-zone-card:hover {
+      border-color: var(--border-accent);
+    }
+
     /* RAM Booster Tab Styles */
     .sim-ram-box {
       background: var(--bg-surface);
@@ -2039,7 +2117,7 @@
             <img src="app_icon.png" alt="Deltempo App Logo" class="hero-logo-img" />
           </div>
           <div class="eyebrow-badge">
-            <span>✨ KING EDITION <span class="release-version-tag">v1.2.0</span> • 25+ ELITE SCOPES • 100% STANDALONE</span>
+            <span>✨ KING EDITION <span class="release-version-tag">v1.3.0</span> • 25+ ELITE SCOPES • WINMEMORYCLEANER NT ENGINE • AI LARGE FILES • 100% STANDALONE</span>
           </div>
         </div>
         <h1 class="hero-title reveal-on-scroll stagger-1">
@@ -2047,12 +2125,12 @@
           <span class="text-gradient">Zero Telemetry. Zero Bloat.</span>
         </h1>
         <p class="hero-subtitle reveal-on-scroll stagger-2">
-          The next-generation Windows system &amp; profile guardian. Deep-purges 25+ distinct cache tiers including Windows Upgrade leftovers, UWP Store apps, Device Driver OTA packages, Steam, GPU shaders, Adobe Media Cache, Defender logs, and orphaned uninstalled leftovers with zero background telemetry.
+          The next-generation Windows system &amp; profile guardian. Deep-purges 25+ distinct cache tiers, features the authentic Windows NT Kernel Memory Cleaner (Standby list &amp; working sets), and deploys the AI Large Files Hunter with 100% binary safety certainty.
         </p>
 
         <div class="hero-ctas reveal-on-scroll stagger-3">
           <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-hero-primary download-link-btn">
-            <span>Download Standalone EXE (<span class="release-version-tag">v1.2.0</span>)</span>
+            <span>Download Standalone EXE (<span class="release-version-tag">v1.3.0</span>)</span>
             <div class="hero-icon-pill">⚡</div>
           </a>
           <a href="https://github.com/Beso1227/Deltempo" class="btn-hero-secondary" target="_blank" rel="noopener">
@@ -2080,7 +2158,7 @@
                 </div>
                 <div class="sim-title">
                   <img src="app_icon.png" alt="Deltempo Logo" class="sim-title-icon" />
-                  <span>Deltempo — Pure Precision Windows Guardian (King Edition v1.2.0)</span>
+                  <span>Deltempo — Pure Precision Windows Guardian (King Edition v1.3.0)</span>
                   <span class="sim-admin-badge">ADMIN ACCESS</span>
                 </div>
                 <div class="sim-controls-right">
@@ -2109,6 +2187,14 @@
                 <button class="sim-tab" data-tab="ram">
                   <span class="sim-tab-icon">⚡</span>
                   <span>RAM Booster</span>
+                </button>
+                <button class="sim-tab" data-tab="kernelram">
+                  <span class="sim-tab-icon">🧠</span>
+                  <span>NT Kernel Memory</span>
+                </button>
+                <button class="sim-tab" data-tab="largefiles">
+                  <span class="sim-tab-icon">📦</span>
+                  <span>AI Large Files</span>
                 </button>
                 <button class="sim-tab" data-tab="startup">
                   <span class="sim-tab-icon">🚀</span>
@@ -2264,6 +2350,217 @@
                           </div>
                         </div>
                         <span class="sim-proc-mem" id="procMemSpotify">430 MB</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2B. TAB: NT KERNEL MEMORY OPTIMIZER (WinMemoryCleaner & RAMMap) -->
+                <div class="sim-tab-pane" id="paneKernelRam">
+                  <div class="sim-ram-box">
+                    <div class="sim-ram-header">
+                      <div>
+                        <div class="sim-reclaim-label">PRIVILEGED NT KERNEL MEMORY MANAGEMENT</div>
+                        <div class="sim-ram-stats-row">
+                          <span class="sim-ram-pct" id="simKernelRamPct" style="color: #10B981;">4.2 GB</span>
+                          <span class="sim-ram-fraction">Reclaimable Standby &amp; System File Cache</span>
+                        </div>
+                      </div>
+                      <button class="sim-action-btn" id="simKernelPurgeBtn" style="background: linear-gradient(135deg, #10B981, #06B6D4); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45);">
+                        <span>⚡ Purge NT Memory Zones</span>
+                      </button>
+                    </div>
+
+                    <!-- 3 Telemetry Pods -->
+                    <div class="sim-pod-strip">
+                      <div class="sim-pod">
+                        <div class="sim-pod-title">TOTAL PHYSICAL RAM</div>
+                        <div class="sim-pod-val">16.0 GB</div>
+                        <div class="sim-pod-sub">7.8 GB (49%) In Use</div>
+                      </div>
+                      <div class="sim-pod">
+                        <div class="sim-pod-title">RECLAIMABLE STANDBY</div>
+                        <div class="sim-pod-val" style="color: #10B981;" id="simStandbyPodVal">4.2 GB</div>
+                        <div class="sim-pod-sub" style="color: #10B981;">Cached Inactive Pages</div>
+                      </div>
+                      <div class="sim-pod">
+                        <div class="sim-pod-title">KERNEL ISOLATION SHIELD</div>
+                        <div class="sim-pod-val">100% IMMUNE</div>
+                        <div class="sim-pod-sub" style="color: #94A3B8;">Windows &amp; Defender Protected</div>
+                      </div>
+                    </div>
+
+                    <!-- 8 Memory Zones Bento Grid -->
+                    <div class="sim-zone-grid" id="simKernelZonesGrid">
+                      <div class="sim-zone-card">
+                        <div>
+                          <div style="font-weight: 700; font-size: 0.92rem;">Standby List (Full)</div>
+                          <div class="sim-reasoning-capsule">Cached closed app memory</div>
+                        </div>
+                        <div style="text-align: right;">
+                          <span class="sim-verdict-safe">100% SAFE</span>
+                          <div style="font-weight: 800; font-size: 0.95rem; margin-top: 0.2rem;" class="zone-size">4.2 GB</div>
+                        </div>
+                      </div>
+
+                      <div class="sim-zone-card">
+                        <div>
+                          <div style="font-weight: 700; font-size: 0.92rem;">Standby (Low Priority)</div>
+                          <div class="sim-reasoning-capsule">Gentle background purge</div>
+                        </div>
+                        <div style="text-align: right;">
+                          <span class="sim-verdict-safe">GENTLE TRIM</span>
+                          <div style="font-weight: 800; font-size: 0.95rem; margin-top: 0.2rem;" class="zone-size">1.5 GB</div>
+                        </div>
+                      </div>
+
+                      <div class="sim-zone-card">
+                        <div>
+                          <div style="font-weight: 700; font-size: 0.92rem;">Process Working Sets</div>
+                          <div class="sim-reasoning-capsule">Non-whitelisted background apps</div>
+                        </div>
+                        <div style="text-align: right;">
+                          <span class="sim-verdict-safe">SAFE TO TRIM</span>
+                          <div style="font-weight: 800; font-size: 0.95rem; margin-top: 0.2rem;" class="zone-size">3.8 GB</div>
+                        </div>
+                      </div>
+
+                      <div class="sim-zone-card">
+                        <div>
+                          <div style="font-weight: 700; font-size: 0.92rem;">System File Cache</div>
+                          <div class="sim-reasoning-capsule">Flushes Windows filesystem cache</div>
+                        </div>
+                        <div style="text-align: right;">
+                          <span class="sim-verdict-safe">SAFE TO FLUSH</span>
+                          <div style="font-weight: 800; font-size: 0.95rem; margin-top: 0.2rem;" class="zone-size">1.9 GB</div>
+                        </div>
+                      </div>
+
+                      <div class="sim-zone-card">
+                        <div>
+                          <div style="font-weight: 700; font-size: 0.92rem;">Modified Page List</div>
+                          <div class="sim-reasoning-capsule">Writes dirty pages to disk</div>
+                        </div>
+                        <div style="text-align: right;">
+                          <span class="sim-verdict-safe">DIRTY FLUSH</span>
+                          <div style="font-weight: 800; font-size: 0.95rem; margin-top: 0.2rem;" class="zone-size">640 MB</div>
+                        </div>
+                      </div>
+
+                      <div class="sim-zone-card">
+                        <div>
+                          <div style="font-weight: 700; font-size: 0.92rem;">Combined Page List</div>
+                          <div class="sim-reasoning-capsule">De-duplicated identical memory</div>
+                        </div>
+                        <div style="text-align: right;">
+                          <span class="sim-verdict-safe">SAFE DE-DUP</span>
+                          <div style="font-weight: 800; font-size: 0.95rem; margin-top: 0.2rem;" class="zone-size">480 MB</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2C. TAB: AI LARGE FILES HUNTER (100% Binary Safety Certainty) -->
+                <div class="sim-tab-pane" id="paneLargeFiles">
+                  <div class="sim-ram-box">
+                    <div class="sim-ram-header">
+                      <div>
+                        <div class="sim-reclaim-label">AI LARGE FILE HUNTER &amp; SAFETY VERDICTS</div>
+                        <div class="sim-ram-stats-row">
+                          <span class="sim-ram-pct" id="simLargeFilesSafeVal" style="color: #10B981;">18.4 GB</span>
+                          <span class="sim-ram-fraction">Identified 100% Safe to Clean (53.2 GB Scanned)</span>
+                        </div>
+                      </div>
+                      <button class="sim-action-btn" id="simCleanLargeFilesBtn" style="background: linear-gradient(135deg, #10B981, #06B6D4); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45);">
+                        <span>⚡ Clean Safe Files (Recycle Bin Undo)</span>
+                      </button>
+                    </div>
+
+                    <div class="sim-ram-processes-list" id="simLargeFilesList">
+                      <!-- Item 1: Safe Installer -->
+                      <div class="sim-proc-item large-file-item" data-safe="true" data-size="6.8">
+                        <div class="sim-proc-info">
+                          <span class="sim-proc-icon">📦</span>
+                          <div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                              <span style="font-weight: 700;">NVIDIA_Driver_560.70_Extraction.exe</span>
+                              <span class="sim-verdict-safe">SAFE TO DELETE</span>
+                            </div>
+                            <div class="sim-reasoning-capsule">
+                              <span>Installer / ISO</span> • <span>Stale driver installation package in Downloads. 100% safe to remove.</span>
+                            </div>
+                          </div>
+                        </div>
+                        <span class="sim-proc-mem" style="color: #10B981;">6.8 GB</span>
+                      </div>
+
+                      <!-- Item 2: Safe Kernel Dump -->
+                      <div class="sim-proc-item large-file-item" data-safe="true" data-size="4.2">
+                        <div class="sim-proc-info">
+                          <span class="sim-proc-icon">📋</span>
+                          <div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                              <span style="font-weight: 700;">MEMORY.DMP</span>
+                              <span class="sim-verdict-safe">SAFE TO DELETE</span>
+                            </div>
+                            <div class="sim-reasoning-capsule">
+                              <span>Diagnostics / Dump</span> • <span>Post-mortem BSOD crash dump from 14 days ago. Safe to purge.</span>
+                            </div>
+                          </div>
+                        </div>
+                        <span class="sim-proc-mem" style="color: #10B981;">4.2 GB</span>
+                      </div>
+
+                      <!-- Item 3: Safe Shader Chunk -->
+                      <div class="sim-proc-item large-file-item" data-safe="true" data-size="7.4">
+                        <div class="sim-proc-info">
+                          <span class="sim-proc-icon">🎮</span>
+                          <div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                              <span style="font-weight: 700;">Steam_Shader_Cache_chunk0.bin</span>
+                              <span class="sim-verdict-safe">SAFE TO DELETE</span>
+                            </div>
+                            <div class="sim-reasoning-capsule">
+                              <span>Game Shader Cache</span> • <span>Unreferenced DirectX shader pre-cache for uninstalled titles.</span>
+                            </div>
+                          </div>
+                        </div>
+                        <span class="sim-proc-mem" style="color: #10B981;">7.4 GB</span>
+                      </div>
+
+                      <!-- Item 4: Protected Game Asset -->
+                      <div class="sim-proc-item large-file-item" data-safe="false">
+                        <div class="sim-proc-info">
+                          <span class="sim-proc-icon">🛡️</span>
+                          <div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                              <span style="font-weight: 700;">BendGame-WindowsNoEditor.pak</span>
+                              <span class="sim-verdict-protect">PROTECTED</span>
+                            </div>
+                            <div class="sim-reasoning-capsule">
+                              <span>Game Asset / Pak</span> • <span>Active Steam game archive. Critical for gameplay. Never delete.</span>
+                            </div>
+                          </div>
+                        </div>
+                        <span class="sim-proc-mem" style="color: #EF4444;">25.4 GB</span>
+                      </div>
+
+                      <!-- Item 5: Protected AI Model -->
+                      <div class="sim-proc-item large-file-item" data-safe="false">
+                        <div class="sim-proc-info">
+                          <span class="sim-proc-icon">🧠</span>
+                          <div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                              <span style="font-weight: 700;">weights.bin</span>
+                              <span class="sim-verdict-protect">PROTECTED</span>
+                            </div>
+                            <div class="sim-reasoning-capsule">
+                              <span>AI Weights &amp; Models</span> • <span>Local machine learning weights. Protected from deletion.</span>
+                            </div>
+                          </div>
+                        </div>
+                        <span class="sim-proc-mem" style="color: #EF4444;">4.0 GB</span>
                       </div>
                     </div>
                   </div>
@@ -2516,8 +2813,10 @@
               <div class="term-tabs">
                 <button class="term-tab-btn active" data-cmd="scan">🔍 deltempo scan</button>
                 <button class="term-tab-btn" data-cmd="boost">⚡ deltempo boost</button>
+                <button class="term-tab-btn" data-cmd="large">📦 deltempo large</button>
                 <button class="term-tab-btn" data-cmd="clean">🧹 deltempo clean --safe</button>
                 <button class="term-tab-btn" data-cmd="status">📊 deltempo status</button>
+                <button class="term-tab-btn" data-cmd="kill">🛑 deltempo kill</button>
               </div>
               <button class="copy-cmd-btn" id="copyCmdBtn" title="Copy Command Line">
                 <span>📋 Copy Command</span>
@@ -2550,7 +2849,7 @@
             <thead>
               <tr>
                 <th>Feature / Standard</th>
-                <th class="highlight-col">👑 Deltempo (v1.2.0)</th>
+                <th class="highlight-col">👑 Deltempo (v1.3.0)</th>
                 <th>Microsoft PC Manager</th>
                 <th>CCleaner (Avast)</th>
                 <th>Windows Cleanmgr</th>
@@ -2566,10 +2865,24 @@
               </tr>
               <tr>
                 <td><strong>Cleaning Scopes</strong></td>
-                <td class="highlight-col" style="color: #10B981;">21+ Dedicated Scopes</td>
+                <td class="highlight-col" style="color: #10B981;">25+ Dedicated Scopes</td>
                 <td>~10 Basic Scopes</td>
                 <td>Generic AppData</td>
                 <td>6 Basic Folders</td>
+              </tr>
+              <tr>
+                <td><strong>NT Kernel Standby List Purging</strong></td>
+                <td class="highlight-col" style="color: #10B981;">✅ Standby + Cache + Working Sets</td>
+                <td>❌ No Standby Purge</td>
+                <td>❌ Paywalled Basic Trim</td>
+                <td>❌ None</td>
+              </tr>
+              <tr>
+                <td><strong>AI Large File Hunter</strong></td>
+                <td class="highlight-col" style="color: #10B981;">✅ 100% Binary Safe + Recycle Undo</td>
+                <td>⚠️ Basic (Permanent Deletion)</td>
+                <td>❌ Paywalled Blind Delete</td>
+                <td>❌ None</td>
               </tr>
               <tr>
                 <td><strong>Device Driver OTA Purge</strong></td>
@@ -2598,6 +2911,13 @@
                 <td>❌ None</td>
                 <td>❌ None</td>
                 <td>❌ None</td>
+              </tr>
+              <tr>
+                <td><strong>Automated Test Coverage</strong></td>
+                <td class="highlight-col" style="color: #10B981;">✅ 67 xUnit Tests + CI/CD</td>
+                <td>❌ Proprietary</td>
+                <td>❌ Proprietary</td>
+                <td>❌ Proprietary</td>
               </tr>
               <tr>
                 <td><strong>Telemetry &amp; Privacy</strong></td>
@@ -2915,6 +3235,8 @@
     const simPanes = {
       cleaner: document.getElementById('paneCleaner'),
       ram: document.getElementById('paneRam'),
+      kernelram: document.getElementById('paneKernelRam'),
+      largefiles: document.getElementById('paneLargeFiles'),
       startup: document.getElementById('paneStartup'),
       tray: document.getElementById('paneTray')
     };
@@ -2982,6 +3304,80 @@
             playSynthChime();
           }
         }, 35);
+      });
+    }
+
+    // 9B. Interactive NT Kernel Memory Simulator (WinMemoryCleaner API)
+    const kernelPurgeBtn = document.getElementById('simKernelPurgeBtn');
+    const kernelRamPct = document.getElementById('simKernelRamPct');
+    const standbyPodVal = document.getElementById('simStandbyPodVal');
+    let isKernelPurged = false;
+
+    if (kernelPurgeBtn) {
+      kernelPurgeBtn.addEventListener('click', () => {
+        if (isKernelPurged) return;
+        kernelPurgeBtn.innerHTML = '<span>⚡ Purging NT Standby &amp; Working Sets...</span>';
+        kernelPurgeBtn.style.opacity = '0.75';
+        playSynthSweep();
+
+        setTimeout(() => {
+          if (kernelRamPct) {
+            kernelRamPct.textContent = '0.0 MB (-4.2 GB)';
+            kernelRamPct.style.color = '#10B981';
+          }
+          if (standbyPodVal) {
+            standbyPodVal.textContent = '0.0 MB';
+            standbyPodVal.style.color = '#10B981';
+          }
+          document.querySelectorAll('#simKernelZonesGrid .zone-size').forEach(el => {
+            el.textContent = '0.0 MB';
+            el.style.color = '#10B981';
+          });
+          kernelPurgeBtn.innerHTML = '<span>✅ 4.2 GB Standby &amp; Cache Purged in 14ms!</span>';
+          kernelPurgeBtn.style.background = '#10B981';
+          kernelPurgeBtn.style.opacity = '1';
+          isKernelPurged = true;
+          playSynthChime();
+          showToast('⚡ NT Kernel Memory Purged: 4.2 GB reclaimed instantly!');
+        }, 320);
+      });
+    }
+
+    // 9C. Interactive AI Large Files Hunter Simulator
+    const cleanLargeFilesBtn = document.getElementById('simCleanLargeFilesBtn');
+    const largeFilesSafeVal = document.getElementById('simLargeFilesSafeVal');
+    let isLargeFilesCleaned = false;
+
+    if (cleanLargeFilesBtn) {
+      cleanLargeFilesBtn.addEventListener('click', () => {
+        if (isLargeFilesCleaned) return;
+        cleanLargeFilesBtn.innerHTML = '<span>⚡ Moving Safe Files to Recycle Bin...</span>';
+        cleanLargeFilesBtn.style.opacity = '0.75';
+        playSynthSweep();
+
+        setTimeout(() => {
+          document.querySelectorAll('#simLargeFilesList .large-file-item').forEach(item => {
+            if (item.getAttribute('data-safe') === 'true') {
+              item.style.transition = 'all 0.3s';
+              item.style.opacity = '0.35';
+              const memBadge = item.querySelector('.sim-proc-mem');
+              if (memBadge) {
+                memBadge.textContent = 'Recycled (Undoable)';
+                memBadge.style.color = '#10B981';
+              }
+            }
+          });
+          if (largeFilesSafeVal) {
+            largeFilesSafeVal.textContent = '0.0 B (Purged)';
+            largeFilesSafeVal.style.color = '#10B981';
+          }
+          cleanLargeFilesBtn.innerHTML = '<span>✅ 18.4 GB Moved to Recycle Bin (Undo Supported)!</span>';
+          cleanLargeFilesBtn.style.background = '#10B981';
+          cleanLargeFilesBtn.style.opacity = '1';
+          isLargeFilesCleaned = true;
+          playSynthChime();
+          showToast('📦 18.4 GB safe large files recycled! Full undo supported.');
+        }, 350);
       });
     }
 
@@ -3171,7 +3567,7 @@
       scan: {
         cmd: 'deltempo scan',
         output: `<div class="term-line-dim">[18:50:12] Initializing Deltempo CLI Subsystem (x64 AVX2)...</div>
-<div class="term-line-cyan">➜ Deltempo Pure Precision Engine v1.2.0</div>
+<div class="term-line-cyan">➜ Deltempo Pure Precision Engine v1.3.0</div>
 <div><span class="term-prompt">$</span> deltempo scan</div>
 <br />
 <div class="term-line-amber">⚡ Scanning 25+ Deep Cache Tiers...</div>
@@ -3226,6 +3622,34 @@
 </pre>
 <br />
 <div class="term-line-green">✔ Deltempo Obsidian Guardian running smoothly in system tray.</div>`
+      },
+      large: {
+        cmd: 'deltempo large --min 500MB',
+        output: `<div class="term-line-dim">[18:50:35] AI Large File Hunter (>500.0 MB across drives)...</div>
+<div><span class="term-prompt">$</span> deltempo large --min 500MB</div>
+<br />
+<div class="term-line-cyan">┌──────────┬──────────────────────────┬──────────────────────┬──────────────────────────────────┐</div>
+<div class="term-line-cyan">│ SIZE     │ AI SAFETY VERDICT        │ CATEGORY             │ FILE NAME                        │</div>
+<div class="term-line-cyan">├──────────┼──────────────────────────┼──────────────────────┼──────────────────────────────────┤</div>
+<div class="term-line-dim">│ 25.4 GB  │ <span style="color:#EF4444;font-weight:bold;">PROTECTED (Game Asset)</span>   │ Game Asset / Pak     │ BendGame-WindowsNoEditor.pak     │</div>
+<div class="term-line-dim">│  7.4 GB  │ <span style="color:#10B981;font-weight:bold;">SAFE TO DELETE</span>           │ Game Shader Cache    │ Steam_Shader_Cache_chunk0.bin    │</div>
+<div class="term-line-dim">│  6.8 GB  │ <span style="color:#10B981;font-weight:bold;">SAFE TO DELETE</span>           │ Installer / ISO      │ NVIDIA_Driver_560.70_Extract.exe │</div>
+<div class="term-line-dim">│  4.2 GB  │ <span style="color:#10B981;font-weight:bold;">SAFE TO DELETE</span>           │ Crash / Dump         │ MEMORY.DMP                       │</div>
+<div class="term-line-dim">│  4.0 GB  │ <span style="color:#EF4444;font-weight:bold;">PROTECTED (AI Model)</span>     │ AI Weights / Models  │ weights.bin                      │</div>
+<div class="term-line-cyan">└──────────┴──────────────────────────┴──────────────────────┴──────────────────────────────────┘</div>
+<br />
+<div class="term-line-green">✔ Scanned 47.8 GB • AI identified 18.4 GB 100% safe to recycle with full Undo support.</div>`
+      },
+      kill: {
+        cmd: 'deltempo kill',
+        output: `<div class="term-line-dim">[18:50:42] Single-Instance Guardian & Process Purge</div>
+<div><span class="term-prompt">$</span> deltempo kill</div>
+<br />
+<div class="term-line-amber">Scanning for orphaned background and headless Deltempo instances...</div>
+<div class="term-line-dim">✔ Scanned system process table for WinTempCleaner / Deltempo PIDs</div>
+<div class="term-line-dim">✔ Terminated 0 orphaned headless processes (System clean)</div>
+<br />
+<div class="term-line-green">✔ Clean state verified. Deltempo ready for desktop launch.</div>`
       }
     };
 
