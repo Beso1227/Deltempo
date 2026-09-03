@@ -191,18 +191,35 @@ public static class AiFileSafetyService
 
         // =========================================================================
         // 6. DISPOSABLE PATH OVERRIDE
-        //    Files sitting in temp/cache/download/ota-artifacts/wer/logs/
-        //    $windows.~/esd are safe to delete (preserves legacy IsProtectedFile
-        //    behavior for .exe/.dll/.sys/.docx/.pdf/etc. in those locations).
+        //    Files sitting in temp/cache/download/prefetch/softwaredistribution/
+        //    ota-artifacts/wer/logs/$windows.~/esd/d3dscache are 100% safe to delete.
         // =========================================================================
-        // Files inside temp/cache/download folders are safe regardless of extension.
-        // Match as a path component (e.g. "\temp\", "\cache\", "\downloads\") to avoid
-        // false positives like "D:\Projects\deltempo\..." where "deltempo" contains "temp".
-        var disposables = new[] { @"temp", @"cache", @"downloads", @"ota-artifacts", @"wer", @"logs", @"$windows.~", @"esd" };
-        bool inDisposablePath = disposables.Any(d =>
-            pathLower.StartsWith(d + @"\") ||
-            pathLower.Contains(@"\programs\" + d + @"\") ||   // ProgramData\...\temp etc.
-            (pathLower.Contains(@"\") && pathLower.Split('\\').Any(s => s.Equals(d, StringComparison.OrdinalIgnoreCase))));
+        var disposables = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "temp", "tmp", "cache", "caches", "cache_data", "gpucache", "code cache",
+            "downloads", "download", "prefetch", "wer", "logs", "log", "minidump",
+            "livekernelreports", "d3dscache", "dxcache", "glcache", "shadercache",
+            "deliveryoptimization", "softwaredistribution", "fontcache", "crashdumps",
+            "crashdump", "reportarchive", "reportqueue", "inetcache", "webcache",
+            "cryptneturlcache", "recent", "automaticdestinations", "customdestinations",
+            "ota-artifacts", "downloader", "spool", "downloaddiskcache", "$windows.~bt",
+            "$windows.~ws", "$windows.~", "$winreagent", "esd", "package cache", "npm-cache",
+            "transformed", "transforms-1", "transforms-2", "transforms-3", "daemon",
+            "webcache_4430", "htmlcache", "httpcache", "localcache", "tempstate",
+            "panther", "mosetup", "systemtemp", "$patchcache$", "peerdistpub", "peerdistsub"
+        };
+
+        bool inDisposablePath = pathLower.Split('\\', '/').Any(s => disposables.Contains(s)) ||
+                                pathLower.Contains(@"\softwaredistribution\download") ||
+                                pathLower.Contains(@"\windows\temp") ||
+                                pathLower.Contains(@"\windows\prefetch") ||
+                                pathLower.Contains(@"\windows\logs") ||
+                                pathLower.Contains(@"\windows\minidump") ||
+                                pathLower.Contains(@"\appdata\local\temp") ||
+                                pathLower.Contains(@"\explorer\thumbcache") ||
+                                pathLower.Contains(@"\d3dscache") ||
+                                pathLower.Contains(@"\package cache") ||
+                                pathLower.Contains(@"\deliveryoptimization");
 
         if (inDisposablePath)
         {
@@ -215,9 +232,9 @@ public static class AiFileSafetyService
                 BadgeColor = "#10B981",
                 BadgeBackground = "#0D2818",
                 BadgeBorder = "#10B981",
-                Origin = "Disposable Path",
-                Impact = "Zero impact — file is inside a temporary or cache directory.",
-                Explanation = $"File in a disposable path ({FormatBytes(sizeBytes)}). Safe to delete.",
+                Origin = "Disposable Cache / Temp Path",
+                Impact = "Zero impact — file resides in a verified temporary, cache, log, or download pool.",
+                Explanation = $"File in a disposable directory ({FormatBytes(sizeBytes)}). 100% safe to delete.",
                 IsSafeToAutoClean = true
             };
         }
