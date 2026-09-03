@@ -12,7 +12,7 @@ public static class LocalizationService
         {
             ["AppTitle"] = "Deltempo",
             ["AppSubtitle"] = "Windows & User Profile Guardian",
-            ["AdminLabel"] = "Administrator",
+            ["AdminLabel"] = "Admin",
             ["ReclaimableSpace"] = "RECLAIMABLE JUNK & APPDATA",
             ["HeroScanSubtext"] = "Deep scan of User Profile, GPU Shaders, AppData & System Temp",
             ["DriveOsLabel"] = "OS Drive (C:)",
@@ -51,7 +51,7 @@ public static class LocalizationService
         {
             ["AppTitle"] = "ديلتيمبو",
             ["AppSubtitle"] = "حارس نظام ويندوز وملفات المستخدم",
-            ["AdminLabel"] = "مسؤول النظام",
+            ["AdminLabel"] = "مسؤول",
             ["ReclaimableSpace"] = "المساحة القابلة للاسترداد",
             ["HeroScanSubtext"] = "فحص شامل للملفات المؤقتة وكاش البرامج وكروت الشاشة",
             ["DriveOsLabel"] = "قرص النظام (C:)",
@@ -90,7 +90,7 @@ public static class LocalizationService
         {
             ["AppTitle"] = "Deltempo",
             ["AppSubtitle"] = "Guardián de Windows y Perfiles de Usuario",
-            ["AdminLabel"] = "Administrador",
+            ["AdminLabel"] = "Admin",
             ["ReclaimableSpace"] = "ESPACIO RECUPERABLE",
             ["HeroScanSubtext"] = "Escaneo profundo de AppData, shaders GPU y temporales",
             ["DriveOsLabel"] = "Disco SO",
@@ -129,7 +129,7 @@ public static class LocalizationService
         {
             ["AppTitle"] = "Deltempo",
             ["AppSubtitle"] = "Gardien de Windows et Profil Utilisateur",
-            ["AdminLabel"] = "Administrateur",
+            ["AdminLabel"] = "Admin",
             ["ReclaimableSpace"] = "ESPACE RÉCUPÉRABLE",
             ["HeroScanSubtext"] = "Scan profond d'AppData, shaders GPU et fichiers temporaires",
             ["DriveOsLabel"] = "Disque Système",
@@ -168,7 +168,7 @@ public static class LocalizationService
         {
             ["AppTitle"] = "Deltempo",
             ["AppSubtitle"] = "Windows- & Benutzerprofil-Wächter",
-            ["AdminLabel"] = "Administrator",
+            ["AdminLabel"] = "Admin",
             ["ReclaimableSpace"] = "WIEDERHERSTELLBARER SPEICHER",
             ["HeroScanSubtext"] = "Tiefenscan von Benutzerprofil, GPU-Shadern, AppData & Temp-Dateien",
             ["DriveOsLabel"] = "Systemlaufwerk",

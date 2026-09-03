@@ -320,31 +320,31 @@
             </Setter>
         </Style>
 
-        <!-- Header Quick Tool Button Style -->
+        <!-- Header Quick Tool Button Style (Segmented Capsule) -->
         <Style x:Key="HeaderToolButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource SurfaceSubCardBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
             <Setter Property="FontFamily" Value="{DynamicResource AppFont}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Padding" Value="9,4"/>
-            <Setter Property="Margin" Value="0,0,5,0"/>
+            <Setter Property="Padding" Value="8,3.5"/>
+            <Setter Property="Margin" Value="0,0,2,0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="border"
                                 Background="{TemplateBinding Background}"
-                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderBrush="Transparent"
                                 BorderThickness="1"
-                                CornerRadius="7"
+                                CornerRadius="6"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="{DynamicResource SurfaceCardHoverBrush}"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource ElectricCyanBrush}"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource HairlineBorderBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="{DynamicResource PillButtonBorderBrush}"/>
