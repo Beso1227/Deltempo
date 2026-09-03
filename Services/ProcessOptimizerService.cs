@@ -1,5 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
@@ -25,7 +29,7 @@ public class ProcessMemoryInfo
             string baseName = !string.IsNullOrWhiteSpace(FriendlyName) ? FriendlyName : ProcessName;
             if (ProcessCount > 1)
             {
-                return $"{baseName} ({ProcessCount} processes)";
+                return $"{baseName} ({ProcessCount} instances)";
             }
             return !string.IsNullOrWhiteSpace(WindowTitle) ? $"{baseName} — {WindowTitle}" : baseName;
         }
@@ -36,6 +40,33 @@ public static class ProcessOptimizerService
 {
     private const int PROCESS_QUERY_INFORMATION = 0x0400;
     private const int PROCESS_SET_QUOTA = 0x0100;
+    private const int PROCESS_TERMINATE = 0x0001;
+
+    private const string SeDebugName = "SeDebugPrivilege";
+    private const string SeIncreaseQuotaName = "SeIncreaseQuotaPrivilege";
+    private const int PrivilegeAttributeEnabled = 2;
+    private const int TokenAdjustPrivileges = 0x0020;
+    private const int TokenQuery = 0x0008;
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    private struct TokenPrivileges
+    {
+        public int Count;
+        public long Luid;
+        public int Attr;
+    }
+
+    [DllImport("advapi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool OpenProcessToken(IntPtr ProcessHandle, uint DesiredAccess, out IntPtr TokenHandle);
+
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool LookupPrivilegeValue(string? lpSystemName, string lpName, ref long lpLuid);
+
+    [DllImport("advapi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool AdjustTokenPrivileges(IntPtr TokenHandle, [MarshalAs(UnmanagedType.Bool)] bool DisableAllPrivileges, ref TokenPrivileges NewState, int BufferLength, IntPtr PreviousState, IntPtr ReturnLength);
 
     [DllImport("psapi.dll", SetLastError = true)]
     private static extern int EmptyWorkingSet(IntPtr hwProc);
@@ -45,6 +76,30 @@ public static class ProcessOptimizerService
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool CloseHandle(IntPtr hObject);
+
+    private static bool SetIncreasePrivilege(string privilegeName)
+    {
+        try
+        {
+            if (OpenProcessToken(Process.GetCurrentProcess().Handle, TokenAdjustPrivileges | TokenQuery, out IntPtr tokenHandle))
+            {
+                try
+                {
+                    var tp = new TokenPrivileges { Count = 1, Attr = PrivilegeAttributeEnabled };
+                    if (LookupPrivilegeValue(null, privilegeName, ref tp.Luid))
+                    {
+                        return AdjustTokenPrivileges(tokenHandle, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
+                    }
+                }
+                finally
+                {
+                    CloseHandle(tokenHandle);
+                }
+            }
+        }
+        catch { }
+        return false;
+    }
 
     // 65+ Core Windows System, Kernel, Security & Infrastructure Whitelist
     private static readonly HashSet<string> ProtectedProcesses = new(StringComparer.OrdinalIgnoreCase)
@@ -70,6 +125,8 @@ public static class ProcessOptimizerService
         { "firefox", ("Mozilla Firefox", "Web Browser", "🌐") },
         { "opera", ("Opera Browser", "Web Browser", "🌐") },
         { "opera_gx", ("Opera GX Gaming Browser", "Web Browser", "🌐") },
+        { "arc", ("Arc Browser", "Web Browser", "🌐") },
+        { "vivaldi", ("Vivaldi Browser", "Web Browser", "🌐") },
         { "discord", ("Discord", "Communication & Voice", "💬") },
         { "discordcanary", ("Discord Canary", "Communication & Voice", "💬") },
         { "discordptb", ("Discord PTB", "Communication & Voice", "💬") },
@@ -105,8 +162,11 @@ public static class ProcessOptimizerService
         { "blender", ("Blender 3D", "3D Graphics & Animation", "🎨") },
         { "notion", ("Notion Desktop", "Productivity & Workspace", "📝") },
         { "docker desktop", ("Docker Desktop", "Containers & Virtualization", "🐳") },
+        { "com.docker.backend", ("Docker Backend Engine", "Containers & Virtualization", "🐳") },
         { "postman", ("Postman API", "Developer API Tool", "🛠️") },
-        { "gitkraken", ("GitKraken", "Git Client", "🛠️") }
+        { "gitkraken", ("GitKraken", "Git Client", "🛠️") },
+        { "onedrive", ("Microsoft OneDrive", "Cloud Storage Sync", "☁️") },
+        { "dropbox", ("Dropbox", "Cloud Storage Sync", "☁️") }
     };
 
     public static bool IsProtectedProcess(string processName)
@@ -116,7 +176,7 @@ public static class ProcessOptimizerService
         return ProtectedProcesses.Contains(clean);
     }
 
-    public static async Task<List<ProcessMemoryInfo>> GetHeavyProcessesAsync(long minMemoryBytes = 60L * 1024 * 1024)
+    public static async Task<List<ProcessMemoryInfo>> GetHeavyProcessesAsync(long minMemoryBytes = 20L * 1024 * 1024)
     {
         return await Task.Run(() =>
         {
@@ -181,7 +241,7 @@ public static class ProcessOptimizerService
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed process query: {ex.Message}");
+                    Trace.WriteLine($"[Deltempo] Suppressed process query: {ex.Message}");
                 }
                 finally
                 {
@@ -192,7 +252,7 @@ public static class ProcessOptimizerService
             return groups.Values
                 .Where(x => x.WorkingSetBytes >= minMemoryBytes)
                 .OrderByDescending(x => x.WorkingSetBytes)
-                .Take(35)
+                .Take(50)
                 .ToList();
         });
     }
@@ -204,7 +264,6 @@ public static class ProcessOptimizerService
             return known;
         }
 
-        // Attempt to inspect FileDescription from MainModule
         try
         {
             if (p.MainModule?.FileVersionInfo?.FileDescription is { Length: > 0 } desc)
@@ -214,7 +273,6 @@ public static class ProcessOptimizerService
         }
         catch { }
 
-        // Fallback: capitalized process name
         string prettyName = string.IsNullOrWhiteSpace(processName) ? "Unknown" : char.ToUpperInvariant(processName[0]) + processName[1..];
         return (prettyName, "Background Application", "⚙️");
     }
@@ -226,7 +284,18 @@ public static class ProcessOptimizerService
 
     public static bool TrimProcessMemory(IEnumerable<int> pids)
     {
+        var (success, _) = TrimProcessMemoryEx(pids);
+        return success;
+    }
+
+    public static (bool Success, long FreedBytes) TrimProcessMemoryEx(IEnumerable<int> pids)
+    {
+        SetIncreasePrivilege(SeDebugName);
+        SetIncreasePrivilege(SeIncreaseQuotaName);
+
         bool anySuccess = false;
+        long totalFreed = 0;
+
         foreach (int pid in pids)
         {
             try
@@ -234,6 +303,9 @@ public static class ProcessOptimizerService
                 using var p = Process.GetProcessById(pid);
                 if (p != null && !IsProtectedProcess(p.ProcessName))
                 {
+                    long before = 0;
+                    try { before = p.WorkingSet64; } catch { }
+
                     IntPtr hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_SET_QUOTA, false, pid);
                     if (hProc != IntPtr.Zero)
                     {
@@ -242,6 +314,13 @@ public static class ProcessOptimizerService
                             if (EmptyWorkingSet(hProc) != 0)
                             {
                                 anySuccess = true;
+                                try
+                                {
+                                    p.Refresh();
+                                    long after = p.WorkingSet64;
+                                    if (before > after) totalFreed += (before - after);
+                                }
+                                catch { }
                             }
                         }
                         finally
@@ -253,10 +332,11 @@ public static class ProcessOptimizerService
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed trim exception for PID {pid}: {ex.Message}");
+                Trace.WriteLine($"[Deltempo] Suppressed trim exception for PID {pid}: {ex.Message}");
             }
         }
-        return anySuccess;
+
+        return (anySuccess, totalFreed);
     }
 
     public static bool SafeTerminateProcess(int pid)
@@ -266,6 +346,8 @@ public static class ProcessOptimizerService
 
     public static bool SafeTerminateProcess(IEnumerable<int> pids)
     {
+        SetIncreasePrivilege(SeDebugName);
+
         bool anySuccess = false;
         foreach (int pid in pids)
         {
@@ -280,10 +362,9 @@ public static class ProcessOptimizerService
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed kill exception for PID {pid}: {ex.Message}");
+                Trace.WriteLine($"[Deltempo] Suppressed kill exception for PID {pid}: {ex.Message}");
             }
         }
         return anySuccess;
     }
 }
-
