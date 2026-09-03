@@ -1,32 +1,21 @@
-<div align="center">
+# Deltempo
 
-  <img src="app_icon.png" alt="Deltempo Logo" width="128" height="128" />
+![Deltempo Logo](app_icon.png)
 
-  # Deltempo
-  ### Open Source Windows Cleaner and Memory Optimizer
+## Open Source Windows Cleaner and Memory Optimizer
 
-  **Portable Executable • NT Kernel Memory Cleaner • Large File Hunter • Startup Manager • 25 Cleanup Targets • Browser Cache Cleaner • Zero Telemetry • MIT Licensed**
+Portable Executable • NT Kernel Memory Cleaner • Large File Hunter • Startup Manager • 25 Cleanup Targets • Browser Cache Cleaner • Zero Telemetry • MIT Licensed
 
-  [![Release](https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=00E5FF&logo=windows&logoColor=white)](https://github.com/Beso1227/Deltempo/releases/latest)
-  [![CI](https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI%2FCD)](https://github.com/Beso1227/Deltempo/actions)
-  [![Tests](https://img.shields.io/badge/Tests-79%20Passing-10B981?style=for-the-badge&logo=xunit&logoColor=white)](Tests/Deltempo.Tests)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
-  [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-3B82F6?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/Beso1227/Deltempo)
-  [![Website](https://img.shields.io/badge/Official_Site-Live-8B5CF6?style=for-the-badge&logo=googlechrome&logoColor=white)](https://beso1227.github.io/Deltempo/)
+[![Release](https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=00E5FF&logo=windows&logoColor=white)](https://github.com/Beso1227/Deltempo/releases/latest)
+[![CI](https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI%2FCD)](https://github.com/Beso1227/Deltempo/actions)
+[![Tests](https://img.shields.io/badge/Tests-79%20Passing-10B981?style=for-the-badge&logo=xunit&logoColor=white)](Tests/Deltempo.Tests)
+[![License: MIT](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-3B82F6?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/Beso1227/Deltempo)
+[![Website](https://img.shields.io/badge/Official_Site-Live-8B5CF6?style=for-the-badge&logo=googlechrome&logoColor=white)](https://beso1227.github.io/Deltempo/)
 
-  <br />
+[![Download Deltempo](https://img.shields.io/badge/DOWNLOAD_DELTEMPO.EXE_(v1.3.0)-3B82F6?style=for-the-badge&logoColor=white)](https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe)
 
-  <p align="center">
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe">
-      <img src="https://img.shields.io/badge/DOWNLOAD_DELTEMPO.EXE_(v1.3.0)-3B82F6?style=for-the-badge&logoColor=white" alt="Download Deltempo.exe" height="42" />
-    </a>
-  </p>
-
-  <p align="center">
-    <strong>Web Documentation:</strong> <a href="https://beso1227.github.io/Deltempo/">https://beso1227.github.io/Deltempo/</a>
-  </p>
-
-</div>
+**Web Documentation**: [https://beso1227.github.io/Deltempo/](https://beso1227.github.io/Deltempo/)
 
 ---
 
@@ -41,7 +30,9 @@ Deltempo cleans these files across 25 targets and reclaims memory. It preserves 
 ## Features
 
 ### NT Kernel Memory Cleaner
+
 Integrates the memory management engine from WinMemoryCleaner (by Igor Mundstein).
+
 - **Working set flush**: Flushes process working sets across Windows in a single kernel call with `SeProfileSingleProcessPrivilege`, followed by per-process trims with `SeDebugPrivilege`.
 - **Standby list purge**: Purges cached pages left behind by closed applications (`NtSetSystemInformation` class 80).
 - **System file cache reset**: Flushes and resets filesystem cache with `SetSystemFileCacheSize` and `SystemFileCacheInformation`.
@@ -51,6 +42,7 @@ Integrates the memory management engine from WinMemoryCleaner (by Igor Mundstein
 - **Process immunity list**: Protects system processes from memory trimming, including `csrss`, `dwm`, `explorer`, `lsass`, `services`, `smss`, `svchost`, and Windows Defender.
 
 ### Storage Cleanup (25 Targets)
+
 - **Windows system caches**: User temp, system temp, prefetch files, component store temp files, font caches, and update delivery caches.
 - **Windows upgrade residue**: Removes post-update files like `$WINDOWS.~BT`, `$WINDOWS.~WS`, `$WinREAgent\Scratch`, and `ESD`.
 - **Browser caches**: Cleans disk and shader caches for Chrome, Edge, Brave, Opera, Vivaldi, Arc, and Firefox profiles.
@@ -60,16 +52,19 @@ Integrates the memory management engine from WinMemoryCleaner (by Igor Mundstein
 - **Developer caches**: Cleans package manager caches for npm, yarn, pnpm, pip, NuGet, Go, Rust Cargo, and .NET temp files.
 
 ### Large File Finder
+
 - Finds files larger than 50 MB on any drive or custom path.
 - Inspects files and flags them as safe to remove (driver installers, old crash dumps, temporary archives) or protected (game assets, system files, machine learning models).
 - Sends files to the Windows Recycle Bin with undo support via `SHFileOperation`.
 
 ### Startup Manager
+
 - Scans Windows Run keys and startup folders.
 - Displays boot impact ratings for each program.
 - Disables startup entries with automatic registry backup to `Run_Deltempo_Disabled` for simple reversal.
 
 ### Command-Line Interface
+
 - Runs synchronously from your terminal (`deltempo_cli.exe` or `deltempo`).
 - Supports scanning, cleaning, dry runs, RAM boosting, startup toggling, and large file inspection.
 - Formats output as tables or JSON.
@@ -163,10 +158,12 @@ deltempo startup disable "Cortana"
 ## Building and Testing
 
 ### Requirements
+
 - Windows 10 or 11 (64-bit)
 - [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 
 ### Commands
+
 ```powershell
 # Clone the repository
 git clone https://github.com/Beso1227/Deltempo.git
