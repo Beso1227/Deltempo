@@ -1,86 +1,86 @@
 {
   "nodes": [
     {
-      "x": 100,
-      "id": "node_app",
       "color": "1",
+      "y": 100,
+      "x": 100,
+      "width": 280,
+      "height": 120,
       "type": "text",
       "text": "### 🚀 App.xaml.cs\nRoot Entry Point & Mutex Router",
-      "width": 280,
-      "y": 100,
-      "height": 120
+      "id": "node_app"
     },
     {
-      "x": 460,
-      "id": "node_ui",
       "color": "4",
+      "y": 40,
+      "x": 460,
+      "width": 300,
+      "height": 140,
       "type": "text",
       "text": "### 🖥️ MainWindow.xaml.cs\nWPF Dashboard & Controller",
-      "width": 300,
-      "y": 40,
-      "height": 140
+      "id": "node_ui"
     },
     {
-      "x": 460,
-      "id": "node_cli",
       "color": "5",
+      "y": 220,
+      "x": 460,
+      "width": 300,
+      "height": 140,
       "type": "text",
       "text": "### 💻 deltempo_cli.exe\nSynchronous Console CLI",
-      "width": 300,
-      "y": 220,
-      "height": 140
+      "id": "node_cli"
     },
     {
-      "x": 840,
-      "id": "node_cleaner",
       "color": "2",
+      "y": 40,
+      "x": 840,
+      "width": 280,
+      "height": 140,
       "type": "text",
       "text": "### 🧹 CleanerService.cs\n21-Scope Purge Engine",
-      "width": 280,
-      "y": 40,
-      "height": 140
+      "id": "node_cleaner"
     },
     {
-      "x": 840,
-      "id": "node_optimizer",
       "color": "3",
+      "y": 220,
+      "x": 840,
+      "width": 280,
+      "height": 140,
       "type": "text",
       "text": "### ⚡ Memory & Startup\nRAM Booster & Boot Tools",
-      "width": 280,
-      "y": 220,
-      "height": 140
+      "id": "node_optimizer"
     }
   ],
   "edges": [
     {
       "id": "edge1",
+      "label": "GUI Mode",
       "fromNode": "node_app",
-      "toNode": "node_ui",
-      "label": "GUI Mode"
+      "toNode": "node_ui"
     },
     {
       "id": "edge2",
+      "label": "CLI Mode",
       "fromNode": "node_app",
-      "toNode": "node_cli",
-      "label": "CLI Mode"
+      "toNode": "node_cli"
     },
     {
       "id": "edge3",
+      "label": "Clean/Scan",
       "fromNode": "node_ui",
-      "toNode": "node_cleaner",
-      "label": "Clean/Scan"
+      "toNode": "node_cleaner"
     },
     {
       "id": "edge4",
+      "label": "Optimize",
       "fromNode": "node_ui",
-      "toNode": "node_optimizer",
-      "label": "Optimize"
+      "toNode": "node_optimizer"
     },
     {
       "id": "edge5",
+      "label": "deltempo clean",
       "fromNode": "node_cli",
-      "toNode": "node_cleaner",
-      "label": "deltempo clean"
+      "toNode": "node_cleaner"
     }
   ]
 }
