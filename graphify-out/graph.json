@@ -1,8 +1,7 @@
 {
-  "generatedAt": "2026-09-03T22:53:48.7496673+03:00",
+  "generatedAt": "2026-09-03T23:01:36.2473704+03:00",
   "version": "1.1.0",
   "statistics": {
-    "totalNodes": 30,
     "godNodes": [
       {
         "id": "MainWindow",
@@ -35,49 +34,50 @@
         "cluster": "Core"
       }
     ],
+    "totalEdges": 33,
+    "totalNodes": 30,
     "clusters": [
       {
-        "cluster": "Cleaner",
-        "count": 2
+        "count": 2,
+        "cluster": "Cleaner"
       },
       {
-        "cluster": "CLI",
-        "count": 3
+        "count": 3,
+        "cluster": "CLI"
       },
       {
-        "cluster": "Core",
-        "count": 1
+        "count": 1,
+        "cluster": "Core"
       },
       {
-        "cluster": "DevOps",
-        "count": 1
+        "count": 1,
+        "cluster": "DevOps"
       },
       {
-        "cluster": "Models",
-        "count": 5
+        "count": 5,
+        "cluster": "Models"
       },
       {
-        "cluster": "Optimizer",
-        "count": 4
+        "count": 4,
+        "cluster": "Optimizer"
       },
       {
-        "cluster": "Providers",
-        "count": 3
+        "count": 3,
+        "cluster": "Providers"
       },
       {
-        "cluster": "System",
-        "count": 4
+        "count": 4,
+        "cluster": "System"
       },
       {
-        "cluster": "Tests",
-        "count": 3
+        "count": 3,
+        "cluster": "Tests"
       },
       {
-        "cluster": "UI",
-        "count": 4
+        "count": 4,
+        "cluster": "UI"
       }
-    ],
-    "totalEdges": 33
+    ]
   },
   "nodes": [
     {
