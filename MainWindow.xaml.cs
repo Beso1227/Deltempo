@@ -166,7 +166,7 @@ public partial class MainWindow : Window
         SettingsTrayCheckBox.IsChecked = SettingsService.Current.MinimizeToTray;
         SettingsNotifyCheckBox.IsChecked = SettingsService.Current.AutoCleanNotify;
         SettingsCheckUpdatesCheckBox.IsChecked = SettingsService.Current.CheckUpdatesOnStartup;
-        ManualCheckStatusText.Text = $"Current: King Edition v{UpdateService.CurrentVersion}";
+        ManualCheckStatusText.Text = $"Current: v{UpdateService.CurrentVersion}";
 
         // Find matching interval combo box item (no loop needed — just pick by tag)
         ComboBoxItem? foundInterval = null;

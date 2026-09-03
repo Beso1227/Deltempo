@@ -104,7 +104,7 @@ public static class CliRunner
   ╚═════╝ ╚══════╝╚══════╝╚═╝   ╚══════╝╚═╝     ╚═╝╚═╝      ╚═════╝ ");
 
         Console.ForegroundColor = ConsoleColor.DarkCyan;
-        Console.WriteLine($"       D E L T E M P O  —  Precision Windows Optimizer (v{UpdateService.CurrentVersion.ToString(3)})\n");
+        Console.WriteLine($"       D E L T E M P O - Windows Cleaner and Memory Optimizer (v{UpdateService.CurrentVersion.ToString(3)})\n");
         Console.ResetColor();
 
         Console.ForegroundColor = ConsoleColor.White;
@@ -113,16 +113,16 @@ public static class CliRunner
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("  CLEANUP & CACHE COMMANDS:");
         Console.ResetColor();
-        PrintCmdRow("scan [category]", "Scan junk & cache scopes (e.g. deltempo scan gpu, deltempo scan temp)");
-        PrintCmdRow("clean [category]", "Clean temporary caches & shaders with Safety Shield protection");
+        PrintCmdRow("scan [category]", "Scan temporary files and cache targets");
+        PrintCmdRow("clean [category]", "Clean safe temporary caches and shaders");
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("\n  STORAGE & BIG FILES COMMANDS:");
         Console.ResetColor();
-        PrintCmdRow("large [path]", "Find large space-hogs (options: --min, --type, --safe, --sort, --top)");
-        PrintCmdRow("large clean", "Recycle AI-verified safe large files to Recycle Bin (--dry-run, --yes)");
-        PrintCmdRow("large inspect <file>", "Run AI safety analysis on a specific file (verdict, origin, impact)");
-        PrintCmdRow("large delete <file>", "Safely move a specific file to Windows Recycle Bin");
+        PrintCmdRow("large [path]", "Find large files (options: --min, --type, --safe, --sort, --top)");
+        PrintCmdRow("large clean", "Move disposable large files to the Recycle Bin (--dry-run, --yes)");
+        PrintCmdRow("large inspect <file>", "Inspect file deletion safety and risk profile");
+        PrintCmdRow("large delete <file>", "Move a specific file to the Recycle Bin");
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("\n  PERFORMANCE & RAM COMMANDS:");

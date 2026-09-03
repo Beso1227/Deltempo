@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WinTempCleaner"
         mc:Ignorable="d"
-        Title="Deltempo — Pure Precision Windows Cleaner"
+        Title="Deltempo"
         Icon="app.ico"
         Height="840" Width="880"
         WindowStartupLocation="CenterScreen"
@@ -15,7 +15,7 @@
         ResizeMode="CanMinimize"
         KeyDown="Window_KeyDown"
         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-        AutomationProperties.Name="Deltempo Windows &amp; User Profile Cleaner"
+        AutomationProperties.Name="Deltempo"
         FontFamily="{DynamicResource AppFont}">
 
     <!-- Master Shell Container with Deep Ambient Shadow -->
@@ -89,7 +89,7 @@
                                             <GradientStop Color="#158B5CF6" Offset="1"/>
                                         </LinearGradientBrush>
                                     </Border.Background>
-                                    <TextBlock Text="KING EDITION"
+                                    <TextBlock Text="V1.3.0"
                                                FontSize="9"
                                                FontWeight="Bold"
                                                Foreground="#00E5FF"
@@ -97,7 +97,7 @@
                                 </Border>
                             </StackPanel>
                             <TextBlock x:Name="BrandSubtitleText"
-                                       Text="Windows &amp; User Profile Guardian"
+                                       Text="Windows Cleaner &amp; Memory Optimizer"
                                        FontSize="10.5"
                                        Foreground="{DynamicResource TextMutedBrush}"
                                        Margin="0,1.5,0,0"/>
@@ -1836,7 +1836,7 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                             <TextBlock x:Name="ManualCheckStatusText"
-                                                       Text="Current: King Edition v1.0.0"
+                                                       Text="Current Version: v1.3.0"
                                                        FontSize="11.5"
                                                        Foreground="{DynamicResource TextMediumBrush}"/>
                                         </StackPanel>

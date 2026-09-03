@@ -9,11 +9,11 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationTitle>Deltempo - Pure Precision Windows Cleaner</ApplicationTitle>
+    <ApplicationTitle>Deltempo - Windows Cleaner and Memory Optimizer</ApplicationTitle>
     <Authors>Beso1227</Authors>
     <Company>Deltempo Open Source Project</Company>
     <Product>Deltempo Windows Cleaner</Product>
-    <Description>Pure precision Windows temporary cache, GPU shader, AppData, and system cleaner with zero telemetry.</Description>
+    <Description>Open source Windows cache cleaner and memory optimizer with zero telemetry.</Description>
     <Copyright>Copyright © 2026 Beso1227 / Deltempo Project. MIT Licensed.</Copyright>
     <Version>1.3.0</Version>
     <FileVersion>1.3.0.0</FileVersion>

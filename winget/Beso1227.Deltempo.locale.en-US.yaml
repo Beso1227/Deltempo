@@ -11,7 +11,7 @@ PackageName: Deltempo
 PackageUrl: https://beso1227.github.io/Deltempo/
 License: MIT
 LicenseUrl: https://github.com/Beso1227/Deltempo/blob/main/LICENSE
-ShortDescription: Pure precision, open-source, single-file portable Windows and AppData cleaner.
+ShortDescription: Open-source, single-file portable Windows cleaner and memory optimizer.
 Description: >-
   Deltempo is a fast, transparent, zero-bloat Windows cleaner engineered to reclaim 10 to 40+ GB
   of wasted disk space from hidden AppData bloat, GPU shader caches, and leftover uninstalled software.

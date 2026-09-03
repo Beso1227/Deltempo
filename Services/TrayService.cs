@@ -143,12 +143,12 @@ public static class TrayService
         try
         {
             var mem = MemoryOptimizerService.GetMemoryInfo();
-            string tip = $"Deltempo King\nRAM: {mem.UsedPercent:0.0}% ({mem.FormattedUsed} / {mem.FormattedTotal})";
+            string tip = $"Deltempo\nRAM: {mem.UsedPercent:0.0}% ({mem.FormattedUsed} / {mem.FormattedTotal})";
             return tip.Length > 120 ? tip.Substring(0, 120) : tip;
         }
         catch
         {
-            return "Deltempo — Pure Precision Windows Cleaner";
+            return "Deltempo";
         }
     }
 

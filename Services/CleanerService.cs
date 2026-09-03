@@ -1700,7 +1700,7 @@ public class CleanerService
             sb.AppendLine($"  • [{t.Category}] {t.Name,-35} : {t.StatusMessage}");
         }
         sb.AppendLine("================================================================================");
-        sb.AppendLine("Deltempo - Pure Precision Windows Optimizer • 100% Free & Open Source");
+        sb.AppendLine("Deltempo - Windows Cleaner and Memory Optimizer (MIT Licensed)");
         return sb.ToString();
     }
 }
