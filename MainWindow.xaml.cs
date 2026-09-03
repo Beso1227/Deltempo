@@ -266,7 +266,7 @@ public partial class MainWindow : Window
         _isAdmin = ElevationService.IsRunAsAdmin();
         if (_isAdmin)
         {
-            AdminBadgeText.Text = "Elevated";
+            AdminBadgeText.Text = "Admin";
             AdminBadgeIcon.Text = "\uE73E";
             AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#162A20"));
             AdminElevationButton.ToolTip = "Running with full Administrator privileges (Full access to all system locations).";
@@ -274,7 +274,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            AdminBadgeText.Text = "Standard (Click to Elevate)";
+            AdminBadgeText.Text = "Elevate";
             AdminBadgeIcon.Text = "\uE7EF";
             AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3B2610"));
             AdminElevationButton.ToolTip = "Running as Standard User. Click to relaunch as Administrator to clean system-level caches.";
