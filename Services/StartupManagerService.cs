@@ -1,5 +1,7 @@
 using Microsoft.Win32;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace WinTempCleaner.Services;
 
@@ -36,123 +38,124 @@ public static class StartupManagerService
 {
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string RunDisabledKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run_Deltempo_Disabled";
+    private const string RunOnceKeyPath = @"Software\Microsoft\Windows\CurrentVersion\RunOnce";
 
     public static async Task<List<StartupItem>> GetStartupItemsAsync()
     {
         return await Task.Run(() =>
         {
             var list = new List<StartupItem>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            // 1. Current User Run Key
-            try
-            {
-                using var runKey = Registry.CurrentUser.OpenSubKey(RunKeyPath);
-                if (runKey != null)
-                {
-                    foreach (var valName in runKey.GetValueNames())
-                    {
-                        var cmd = runKey.GetValue(valName)?.ToString() ?? "";
-                        list.Add(new StartupItem
-                        {
-                            Name = valName,
-                            Command = cmd,
-                            Location = "HKCU",
-                            IsEnabled = true,
-                            Impact = CalculateImpact(cmd),
-                            Publisher = InferPublisher(valName, cmd)
-                        });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
-            }
-
-            // 2. Current User Disabled Key (Deltempo backup)
-            try
-            {
-                using var disKey = Registry.CurrentUser.OpenSubKey(RunDisabledKeyPath);
-                if (disKey != null)
-                {
-                    foreach (var valName in disKey.GetValueNames())
-                    {
-                        var cmd = disKey.GetValue(valName)?.ToString() ?? "";
-                        list.Add(new StartupItem
-                        {
-                            Name = valName,
-                            Command = cmd,
-                            Location = "HKCU",
-                            IsEnabled = false,
-                            Impact = CalculateImpact(cmd),
-                            Publisher = InferPublisher(valName, cmd)
-                        });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
-            }
-
-            // 3. User Startup Folder
-            try
-            {
-                string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
-                if (Directory.Exists(startupFolder))
-                {
-                    foreach (var file in Directory.GetFiles(startupFolder))
-                    {
-                        string ext = Path.GetExtension(file).ToLowerInvariant();
-                        if (ext == ".lnk" || ext == ".bat" || ext == ".cmd")
-                        {
-                            string name = Path.GetFileNameWithoutExtension(file);
-                            list.Add(new StartupItem
-                            {
-                                Name = name,
-                                Command = file,
-                                Location = "Startup Folder",
-                                IsEnabled = true,
-                                Impact = BootImpact.Medium,
-                                Publisher = "Startup Folder Link"
-                            });
-                        }
-                        else if (ext == ".disabled")
-                        {
-                            string name = Path.GetFileNameWithoutExtension(file);
-                            list.Add(new StartupItem
-                            {
-                                Name = name,
-                                Command = file,
-                                Location = "Startup Folder",
-                                IsEnabled = false,
-                                Impact = BootImpact.Medium,
-                                Publisher = "Startup Folder Link"
-                            });
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
-            }
+            // 1. Current User Run Key (HKCU)
+            AddRunKeyItems(Registry.CurrentUser, RunKeyPath, "HKCU", true, list, seen);
+            // 2. Local Machine Run Key (HKLM) — requires admin to read some values
+            AddRunKeyItems(Registry.LocalMachine, RunKeyPath, "HKLM", true, list, seen);
+            // 3. RunOnce keys (both HKCU and HKLM) — one-shot, usually empty
+            AddRunKeyItems(Registry.CurrentUser, RunOnceKeyPath, "HKCU", false, list, seen);
+            AddRunKeyItems(Registry.LocalMachine, RunOnceKeyPath, "HKLM", false, list, seen);
+            // 4. Current User Disabled Key (Deltempo backup)
+            AddRunKeyItems(Registry.CurrentUser, RunDisabledKeyPath, "HKCU", false, list, seen);
+            // 5. User Startup Folder
+            AddStartupFolderItems(list, seen);
 
             return list;
         });
     }
 
-    public static bool ToggleStartupItem(StartupItem item, bool enable)
+    private static void AddRunKeyItems(RegistryKey rootKey, string subKeyPath, string location, bool enabledDefault, List<StartupItem> list, HashSet<string> seen)
     {
         try
         {
-            if (item.Location == "HKCU")
+            using var key = rootKey.OpenSubKey(subKeyPath);
+            if (key == null) return;
+
+            foreach (var valName in key.GetValueNames())
             {
+                var cmd = key.GetValue(valName)?.ToString() ?? "";
+                if (string.IsNullOrWhiteSpace(cmd)) continue;
+                if (!seen.Add(valName)) continue;
+
+                list.Add(new StartupItem
+                {
+                    Name = valName,
+                    Command = cmd,
+                    Location = location,
+                    IsEnabled = enabledDefault,
+                    Impact = CalculateImpact(cmd),
+                    Publisher = InferPublisher(valName, cmd)
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception enumerating {location}\\{subKeyPath}: {ex.Message}");
+        }
+    }
+
+    private static void AddStartupFolderItems(List<StartupItem> list, HashSet<string> seen)
+    {
+        try
+        {
+            string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+            if (!Directory.Exists(startupFolder)) return;
+
+            foreach (var file in Directory.GetFiles(startupFolder))
+            {
+                string ext = Path.GetExtension(file).ToLowerInvariant();
+                string name = Path.GetFileNameWithoutExtension(file);
+                if (!seen.Add(name)) continue;
+
+                if (ext == ".lnk" || ext == ".bat" || ext == ".cmd")
+                {
+                    list.Add(new StartupItem
+                    {
+                        Name = name,
+                        Command = file,
+                        Location = "Startup Folder",
+                        IsEnabled = true,
+                        Impact = BootImpact.Medium,
+                        Publisher = "Startup Folder Link"
+                    });
+                }
+                else if (ext == ".disabled")
+                {
+                    list.Add(new StartupItem
+                    {
+                        Name = name,
+                        Command = file,
+                        Location = "Startup Folder",
+                        IsEnabled = false,
+                        Impact = BootImpact.Medium,
+                        Publisher = "Startup Folder Link"
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception enumerating Startup folder: {ex.Message}");
+        }
+    }
+
+    public static bool ToggleStartupItem(StartupItem item, bool enable)
+    {
+        bool alreadyDisabled = !item.IsEnabled;
+        try
+        {
+            if (item.Location == "HKCU" || item.Location == "HKLM")
+            {
+                bool isHkcu = item.Location == "HKCU";
+                RegistryKey rootKey = isHkcu ? Registry.CurrentUser : Registry.LocalMachine;
+                string subKey = isHkcu ? RunKeyPath : RunKeyPath;
+                string disSubKey = isHkcu ? RunDisabledKeyPath : RunDisabledKeyPath;
+
                 if (!enable)
                 {
-                    // Move from Run to Run_Deltempo_Disabled
-                    using var runKey = Registry.CurrentUser.OpenSubKey(RunKeyPath, true);
-                    using var disKey = Registry.CurrentUser.CreateSubKey(RunDisabledKeyPath);
+                    if (alreadyDisabled) return false; // already disabled
+
+                    using var runKey = rootKey.OpenSubKey(subKey, true);
+                    using var disKey = rootKey.CreateSubKey(disSubKey);
 
                     if (runKey != null && disKey != null)
                     {
@@ -168,9 +171,10 @@ public static class StartupManagerService
                 }
                 else
                 {
-                    // Move back from Run_Deltempo_Disabled to Run
-                    using var disKey = Registry.CurrentUser.OpenSubKey(RunDisabledKeyPath, true);
-                    using var runKey = Registry.CurrentUser.CreateSubKey(RunKeyPath);
+                    if (!alreadyDisabled) return false; // already enabled
+
+                    using var disKey = rootKey.OpenSubKey(disSubKey, true);
+                    using var runKey = rootKey.CreateSubKey(subKey);
 
                     if (disKey != null && runKey != null)
                     {
@@ -207,7 +211,7 @@ public static class StartupManagerService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception toggling startup item '{item.Name}': {ex.Message}");
         }
 
         return false;

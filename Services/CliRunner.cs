@@ -164,7 +164,6 @@ public static class CliRunner
         bool isJson = args.Contains("--json", StringComparer.OrdinalIgnoreCase);
         bool silent = args.Contains("--silent", StringComparer.OrdinalIgnoreCase) || args.Contains("-s", StringComparer.OrdinalIgnoreCase);
 
-        var cleanerService = new CleanerService();
         var targets = CleanerService.GetDefaultTargets();
 
         if (!silent && !isJson)
@@ -175,7 +174,7 @@ public static class CliRunner
         }
 
         using var cts = new CancellationTokenSource();
-        var tasks = targets.Select(t => cleanerService.ScanFolderAsync(t, (msg, level) => { }, cts.Token)).ToList();
+        var tasks = targets.Select(t => new CleanerService().ScanFolderAsync(t, (msg, level) => { }, cts.Token)).ToList();
         await Task.WhenAll(tasks);
 
         long totalBytes = targets.Sum(t => t.SizeBytes);
@@ -235,7 +234,6 @@ public static class CliRunner
                 exportPath = args[i + 1];
         }
 
-        var cleanerService = new CleanerService();
         var targets = CleanerService.GetDefaultTargets();
         var selectedTargets = cleanAll ? targets : targets.Where(t => !t.IsOrphanedAppFolder).ToList();
 
@@ -247,6 +245,7 @@ public static class CliRunner
         }
 
         using var cts = new CancellationTokenSource();
+        var cleanerService = new CleanerService();
         long totalFreed = 0;
         int totalFilesDeleted = 0;
         int totalFoldersDeleted = 0;

@@ -1,10 +1,12 @@
 <Application x:Class="WinTempCleaner.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:WinTempCleaner.Services">
     <Application.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
 
         <!-- High-End Dynamic Palette Tokens (Initial Dark State) -->
+        <!-- Canvas & base layers -->
         <SolidColorBrush x:Key="CanvasDarkBrush" Color="#090B10"/>
         <SolidColorBrush x:Key="HeaderDockBrush" Color="#0D1017"/>
         <SolidColorBrush x:Key="SurfaceCardBrush" Color="#111520"/>
@@ -12,20 +14,25 @@
         <SolidColorBrush x:Key="SurfaceCardSelectedBrush" Color="#141A28"/>
         <SolidColorBrush x:Key="SurfaceSubCardBrush" Color="#141926"/>
         <SolidColorBrush x:Key="HairlineBorderBrush" Color="#1E2538"/>
+        <SolidColorBrush x:Key="AccentBorderBrush" Color="#26354D"/>
 
+        <!-- Typography -->
         <SolidColorBrush x:Key="TextHighBrush" Color="#F8FAFC"/>
         <SolidColorBrush x:Key="TextMediumBrush" Color="#94A3B8"/>
         <SolidColorBrush x:Key="TextMutedBrush" Color="#64748B"/>
 
+        <!-- Pills & controls -->
         <SolidColorBrush x:Key="PillButtonBgBrush" Color="#151D2A"/>
         <SolidColorBrush x:Key="PillButtonHoverBrush" Color="#1E293B"/>
         <SolidColorBrush x:Key="PillButtonBorderBrush" Color="#26354D"/>
 
+        <!-- Track & scroll -->
         <SolidColorBrush x:Key="TrackBgBrush" Color="#1A2333"/>
         <SolidColorBrush x:Key="TrackThumbBrush" Color="#64748B"/>
         <SolidColorBrush x:Key="ScrollThumbBrush" Color="#2A3448"/>
         <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#06B6D4"/>
 
+        <!-- Badges -->
         <SolidColorBrush x:Key="AdminBadgeBgBrush" Color="#10241B"/>
         <SolidColorBrush x:Key="AdminBadgeBorderBrush" Color="#10B981"/>
         <SolidColorBrush x:Key="AdminBadgeTextBrush" Color="#10B981"/>
@@ -34,21 +41,33 @@
         <SolidColorBrush x:Key="SafetyBadgeBorderBrush" Color="#10B981"/>
         <SolidColorBrush x:Key="SafetyBadgeTextBrush" Color="#10B981"/>
 
+        <SolidColorBrush x:Key="WarningBadgeBgBrush" Color="#2A1E16"/>
+        <SolidColorBrush x:Key="WarningBadgeBorderBrush" Color="#F59E0B"/>
+        <SolidColorBrush x:Key="WarningBadgeTextBrush" Color="#F59E0B"/>
+
+        <!-- Models -->
         <SolidColorBrush x:Key="ModalSurfaceBrush" Color="#0F131E"/>
         <SolidColorBrush x:Key="ModalBackdropBrush" Color="#EE05070B"/>
 
-        <!-- Brand Accents -->
+        <!-- Brand Accents — electric cyan primary, blue→indigo→violet gradient -->
         <SolidColorBrush x:Key="ElectricCyanBrush" Color="#00E5FF"/>
         <SolidColorBrush x:Key="AccentBlueBrush" Color="#3B82F6"/>
         <SolidColorBrush x:Key="AccentIndigoBrush" Color="#6366F1"/>
         <SolidColorBrush x:Key="AccentVioletBrush" Color="#8B5CF6"/>
         <SolidColorBrush x:Key="EmeraldGreenBrush" Color="#10B981"/>
         <SolidColorBrush x:Key="AmberWarningBrush" Color="#F59E0B"/>
+        <SolidColorBrush x:Key="RoseErrorBrush" Color="#F43F5E"/>
 
         <!-- Gradients -->
         <LinearGradientBrush x:Key="BrandHeroGradientBrush" StartPoint="0,0" EndPoint="1,1">
             <GradientStop Color="#00E5FF" Offset="0.0"/>
             <GradientStop Color="#3B82F6" Offset="0.4"/>
+            <GradientStop Color="#8B5CF6" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="BrandHeroGradientBrushTop" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#00E5FF" Offset="0.0"/>
+            <GradientStop Color="#3B82F6" Offset="0.5"/>
             <GradientStop Color="#8B5CF6" Offset="1.0"/>
         </LinearGradientBrush>
 
@@ -66,6 +85,12 @@
             <GradientStop Color="#00B4D8" Offset="0.0"/>
             <GradientStop Color="#3B82F6" Offset="0.5"/>
             <GradientStop Color="#7C3AED" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="HeroActionBtnPressedBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#0096C7" Offset="0.0"/>
+            <GradientStop Color="#2563EB" Offset="0.5"/>
+            <GradientStop Color="#6D28D9" Offset="1.0"/>
         </LinearGradientBrush>
 
         <!-- WCAG 2.2 AA Focus Visual Style -->
@@ -89,9 +114,33 @@
         <FontFamily x:Key="MonoFont">Cascadia Code, Consolas, monospace</FontFamily>
         <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets, Segoe UI Symbol</FontFamily>
 
+        <!-- Typography Scale -->
+        <sys:Double x:Key="TextCaption" xmlns:sys="clr-namespace:System;assembly=mscorlib">9.5</sys:Double>
+        <sys:Double x:Key="TextSmall" xmlns:sys="clr-namespace:System;assembly=mscorlib">10.5</sys:Double>
+        <sys:Double x:Key="TextBody" xmlns:sys="clr-namespace:System;assembly=mscorlib">11.5</sys:Double>
+        <sys:Double x:Key="TextSubhead" xmlns:sys="clr-namespace:System;assembly=mscorlib">12.5</sys:Double>
+        <sys:Double x:Key="TextTitle" xmlns:sys="clr-namespace:System;assembly=mscorlib">15</sys:Double>
+        <sys:Double x:Key="TextDisplay" xmlns:sys="clr-namespace:System;assembly=mscorlib">18</sys:Double>
+        <sys:Double x:Key="TextHero" xmlns:sys="clr-namespace:System;assembly=mscorlib">24</sys:Double>
+
         <!-- ============================================ -->
         <!-- ULTRA-SLEEK MODERN FLOATING SCROLLBAR STYLE -->
         <!-- ============================================ -->
+        <CornerRadius x:Key="RadPill">999</CornerRadius>
+        <CornerRadius x:Key="RadSm">6</CornerRadius>
+        <CornerRadius x:Key="RadMd">10</CornerRadius>
+        <CornerRadius x:Key="RadLg">14</CornerRadius>
+        <CornerRadius x:Key="RadXl">18</CornerRadius>
+        <CornerRadius x:Key="Rad2xl">20</CornerRadius>
+        <CornerRadius x:Key="Rad2xlTop">20,20,4,4</CornerRadius>
+
+        <!-- Spacing Tokens -->
+        <Thickness x:Key="GapXS">2</Thickness>
+        <Thickness x:Key="GapSm">5</Thickness>
+        <Thickness x:Key="GapMd">10</Thickness>
+        <Thickness x:Key="GapLg">14</Thickness>
+        <Thickness x:Key="GapXl">18</Thickness>
+        <Thickness x:Key="Gap2xl">24</Thickness>
         <Style x:Key="ModernScrollBarThumb" TargetType="{x:Type Thumb}">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
             <Setter Property="IsTabStop" Value="False"/>
@@ -672,5 +721,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- PercentWidthConverter (multi-binding: percentage + total width → pixel width) -->
+        <local:PercentWidthConverter x:Key="PercentWidthConverter"/>
     </Application.Resources>
 </Application>

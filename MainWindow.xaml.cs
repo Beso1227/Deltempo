@@ -141,14 +141,45 @@ public partial class MainWindow : Window
         SettingsCheckUpdatesCheckBox.IsChecked = SettingsService.Current.CheckUpdatesOnStartup;
         ManualCheckStatusText.Text = $"Current: King Edition v{UpdateService.CurrentVersion}";
 
-        foreach (ComboBoxItem item in SettingsIntervalComboBox.Items)
+        // Find matching interval combo box item (no loop needed — just pick by tag)
+        ComboBoxItem? foundInterval = null;
+        foreach (ComboBoxItem candidate in SettingsIntervalComboBox.Items)
         {
-            if (item.Tag is string tag && int.TryParse(tag, out int val) && val == SettingsService.Current.AutoCleanIntervalHours)
+            if (candidate.Tag is string itag && int.TryParse(itag, out int ival) && ival == SettingsService.Current.AutoCleanIntervalHours)
             {
-                SettingsIntervalComboBox.SelectedItem = item;
+                foundInterval = candidate;
                 break;
             }
         }
+        SettingsIntervalComboBox.SelectedItem = foundInterval;
+
+        // Memory Optimizer settings
+        MemoryAutoOptCheckBox.IsChecked = SettingsService.Current.MemoryAutoOptimizeEnabled;
+        MemoryShowInTrayCheckBox.IsChecked = SettingsService.Current.MemoryShowInTray;
+        MemoryAlwaysOnTopCheckBox.IsChecked = SettingsService.Current.MemoryAlwaysOnTop;
+        MemoryCompactModeCheckBox.IsChecked = SettingsService.Current.MemoryCompactMode;
+        MemoryCloseToTrayCheckBox.IsChecked = SettingsService.Current.MemoryCloseToTray;
+        MemoryShowNotifyCheckBox.IsChecked = SettingsService.Current.MemoryShowNotifications;
+
+        foreach (ComboBoxItem mi in MemoryAutoOptIntervalComboBox.Items)
+        {
+            if (mi.Tag is string mt && int.TryParse(mt, out int mh) && mh == SettingsService.Current.MemoryAutoOptimizeIntervalHours)
+            {
+                MemoryAutoOptIntervalComboBox.SelectedItem = mi;
+                break;
+            }
+        }
+
+        foreach (ComboBoxItem mt in MemoryThresholdComboBox.Items)
+        {
+            if (mt.Tag is string ttt && int.TryParse(ttt, out int tv) && tv == SettingsService.Current.MemoryAutoOptimizeFreeRamThresholdPercent)
+            {
+                MemoryThresholdComboBox.SelectedItem = mt;
+                break;
+            }
+        }
+
+        ApplyMemorySettingsToWindow();
     }
 
     private async Task CleanSafeFromTrayAsync()
@@ -188,12 +219,46 @@ public partial class MainWindow : Window
             SettingsService.Current.AutoCleanIntervalHours = hours;
         }
 
+        // Memory Optimizer settings
+        SettingsService.Current.MemoryAutoOptimizeEnabled = MemoryAutoOptCheckBox.IsChecked == true;
+        SettingsService.Current.MemoryShowInTray = MemoryShowInTrayCheckBox.IsChecked == true;
+        SettingsService.Current.MemoryAlwaysOnTop = MemoryAlwaysOnTopCheckBox.IsChecked == true;
+        SettingsService.Current.MemoryCompactMode = MemoryCompactModeCheckBox.IsChecked == true;
+        SettingsService.Current.MemoryCloseToTray = MemoryCloseToTrayCheckBox.IsChecked == true;
+        SettingsService.Current.MemoryShowNotifications = MemoryShowNotifyCheckBox.IsChecked == true;
+
+        if (MemoryAutoOptIntervalComboBox.SelectedItem is ComboBoxItem mi && mi.Tag is string mt && int.TryParse(mt, out int mph))
+        {
+            SettingsService.Current.MemoryAutoOptimizeIntervalHours = mph;
+        }
+
+        if (MemoryThresholdComboBox.SelectedItem is ComboBoxItem mt2 && mt2.Tag is string ttt && int.TryParse(ttt, out int tval))
+        {
+            SettingsService.Current.MemoryAutoOptimizeFreeRamThresholdPercent = tval;
+        }
+
         SettingsService.SaveSettings();
         AutoCleanService.Start();
+        ApplyMemorySettingsToWindow();
 
         SettingsModalOverlay.Visibility = Visibility.Collapsed;
         SoundService.PlayClickSound();
         AddLog("Preferences & Auto-Pilot Guardian settings saved.", LogLevel.Success);
+    }
+
+    /// <summary>
+    /// Applies memory optimizer runtime settings to the live window.
+    /// </summary>
+    private void ApplyMemorySettingsToWindow()
+    {
+        try
+        {
+            Topmost = SettingsService.Current.MemoryAlwaysOnTop;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] ApplyMemorySettingsToWindow suppressed: {ex.Message}");
+        }
     }
 
     private void CheckAdminPrivileges()
@@ -973,10 +1038,50 @@ public partial class MainWindow : Window
             var mem = MemoryOptimizerService.GetMemoryInfo();
             HeroRamPercentText.Text = $"{mem.UsedPercent:F0}%";
             HeroRamDetailText.Text = $"{mem.FormattedUsed} / {mem.FormattedTotal} Used";
+
+            // Populate per-area breakdown (WinMemoryCleaner-style)
+            var snapshots = MemoryOptimizerService.GetMemoryAreaSnapshots();
+            MemoryAreaItemsControl.ItemsSource = null; // refresh
+            MemoryAreaItemsControl.ItemsSource = snapshots;
+
+            int available = snapshots.Count(s => s.IsAvailableOnThisOs);
+            MemoryAreaStatusText.Text = $"{snapshots.Count} areas · {available} available{(snapshots.Count != available ? $", {snapshots.Count - available} N/A" : "")}";
         }
         catch (Exception ex)
         {
             System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
+    }
+
+    private async void PerAreaBoostButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn || btn.Tag is not Services.MemoryTargetType target)
+            return;
+
+        btn.IsEnabled = false;
+        btn.Content = "⋯";
+        try
+        {
+            var result = await MemoryOptimizerService.OptimizeAreaAsync(target);
+            if (result.Success)
+            {
+                AddLog($"⚡ Boosted {target}: reclaimed {result.FormattedFreed}.", LogLevel.Success);
+                // Refresh the affected area row only by refreshing the whole list
+                UpdateMemoryTelemetry();
+            }
+            else
+            {
+                AddLog($"⚠ Failed to boost {target}: {result.ErrorMessage}", LogLevel.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            AddLog($"Error boosting {target}: {ex.Message}", LogLevel.Error);
+        }
+        finally
+        {
+            btn.IsEnabled = true;
+            btn.Content = "Boost";
         }
     }
 
