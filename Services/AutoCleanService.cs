@@ -7,6 +7,8 @@ public static class AutoCleanService
 {
     private static System.Timers.Timer? _timer;
     private static bool _isCleaning;
+    private static CleanerService? _cleanerInstance;
+    private static CleanerService CleanerInstance => _cleanerInstance ??= new CleanerService();
 
     public static void Start()
     {
@@ -38,7 +40,6 @@ public static class AutoCleanService
 
         try
         {
-            var cleanerService = new CleanerService();
             var targets = CleanerService.GetDefaultTargets();
 
             // Only clean safe targets
@@ -50,7 +51,7 @@ public static class AutoCleanService
 
             foreach (var target in safeTargets)
             {
-                var (freed, filesDel, foldersDel, filesSkip) = await cleanerService.CleanFolderAsync(
+                var (freed, filesDel, foldersDel, filesSkip) = await CleanerInstance.CleanFolderAsync(
                     target,
                     safeMode24Hours: true,
                     logAction: (msg, lvl) => { },

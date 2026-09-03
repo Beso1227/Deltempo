@@ -6,7 +6,7 @@ namespace WinTempCleaner.Services;
 
 public static class SingleInstanceManager
 {
-    private const string MutexName = "Local\\Deltempo_App_SingleInstance_Mutex_v2";
+    private const string MutexName = "Global\\Deltempo_App_SingleInstance_Mutex_v2";
     public const string ShowWindowMessageName = "DELTEMPO_RESTORE_SHOW_WINDOW_MSG";
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]

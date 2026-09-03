@@ -28,6 +28,8 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
+nul
+NUL
 
 # Crash dumps & logs
 *.log

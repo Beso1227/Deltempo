@@ -18,6 +18,7 @@ public class ReleaseInfo
     public long FileSizeBytes { get; set; }
     public bool IsNewer { get; set; }
     public string VersionString { get; set; } = "1.0.0";
+    public bool CheckSucceeded { get; set; }
 }
 
 public static class UpdateService
@@ -38,16 +39,18 @@ public static class UpdateService
     public static Version CurrentVersion =>
         Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 0, 0);
 
-    public static async Task<ReleaseInfo?> CheckForUpdatesAsync()
+    public static async Task<ReleaseInfo?> CheckForUpdatesAsync(CancellationToken ct = default)
     {
         try
         {
             string url = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/latest";
-            using var response = await HttpClient.GetAsync(url);
+            using var response = await HttpClient.GetAsync(url, ct);
             if (!response.IsSuccessStatusCode)
-                return null;
+            {
+                return new ReleaseInfo { CheckSucceeded = false };
+            }
 
-            string json = await response.Content.ReadAsStringAsync();
+            string json = await response.Content.ReadAsStringAsync(ct);
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
@@ -76,7 +79,6 @@ public static class UpdateService
             var cleanTag = Regex.Replace(tagName, @"^[^\d]*", ""); // remove 'v' or letters
             if (!Version.TryParse(cleanTag, out var remoteVer))
             {
-                // Fallback to major.minor
                 var parts = cleanTag.Split('.');
                 if (parts.Length >= 2 && int.TryParse(parts[0], out var maj) && int.TryParse(parts[1], out var min))
                 {
@@ -93,6 +95,7 @@ public static class UpdateService
 
             return new ReleaseInfo
             {
+                CheckSucceeded = true,
                 TagName = tagName,
                 ReleaseName = string.IsNullOrWhiteSpace(releaseName) ? tagName : releaseName,
                 Body = body,
@@ -102,9 +105,13 @@ public static class UpdateService
                 VersionString = cleanTag
             };
         }
+        catch (OperationCanceledException)
+        {
+            return new ReleaseInfo { CheckSucceeded = false };
+        }
         catch
         {
-            return null;
+            return new ReleaseInfo { CheckSucceeded = false };
         }
     }
 
@@ -137,7 +144,7 @@ public static class UpdateService
 
             fileStream.Close();
 
-            // Prepare Atomic Hot-Swap Handover
+            // Prepare Atomic Hot-Swap Handover via PowerShell (immune to special characters in paths)
             string currentExePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "";
             if (string.IsNullOrEmpty(currentExePath) || !File.Exists(currentExePath))
             {
@@ -145,36 +152,45 @@ public static class UpdateService
             }
 
             int currentPid = Process.GetCurrentProcess().Id;
-            string swapScript = Path.Combine(Path.GetTempPath(), $"deltempo_swap_{Guid.NewGuid():N}.bat");
+            string psScript = Path.Combine(Path.GetTempPath(), $"deltempo_swap_{Guid.NewGuid():N}.ps1");
 
-            // Batch script waits for current PID to terminate, overwrites EXE atomically, relaunches and self-deletes
-            string scriptContent = $@"@echo off
-setlocal
-set PID={currentPid}
-set TARGET=""{currentExePath}""
-set SOURCE=""{tempFile}""
+            // PowerShell script: wait for PID to exit, then atomically copy the new EXE over the old one,
+            // launch the updated EXE, and self-delete the script.
+            // NOTE: $$ escapes to a literal $ in a C# interpolated verbatim string ($@"..."),
+            // so each PowerShell variable is written as $$.
+            string psContent = $@"$ErrorActionPreference = 'Stop'
+$$PID = {currentPid}
+$$TARGET = {currentExePath.ToSOSPlate()}
+$$SOURCE = {tempFile.ToSOSPlate()}
 
-:wait_loop
-tasklist /fi ""pid eq %PID%"" 2>NUL | find ""%PID%"" >NUL
-if not errorlevel 1 (
-    timeout /t 1 /nobreak >NUL
-    goto wait_loop
-)
+# Wait for the current process to terminate
+while ($$true) {{
+    try {{
+        $$proc = Get-Process -Id $$PID -ErrorAction Stop
+        Start-Sleep -Milliseconds 500
+    }} catch {{
+        break
+    }}
+}}
 
-copy /y %SOURCE% %TARGET% >NUL 2>&1
-del /f /q %SOURCE% >NUL 2>&1
+# Atomic overwrite: copy new EXE over the old one
+Copy-Item -Force -Path $$SOURCE -Destination $$TARGET | Out-Null
+Remove-Item -Force -Path $$SOURCE | Out-Null
 
-start """" %TARGET%
+# Launch the updated executable
+Start-Process -FilePath $$TARGET
 
-(goto) 2>nul & del ""%~f0""
+# Self-delete this script
+$$scriptPath = $$MyInvocation.MyCommand.Path
+Start-Process -FilePath 'cmd.exe' -ArgumentList '/c del /f /q', $$scriptPath -WindowStyle Hidden
 ";
 
-            File.WriteAllText(swapScript, scriptContent);
+            File.WriteAllText(psScript, psContent);
 
             var psi = new ProcessStartInfo
             {
-                FileName = "cmd.exe",
-                Arguments = $"/c \"{swapScript}\"",
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{psScript}\"",
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 WindowStyle = ProcessWindowStyle.Hidden
@@ -209,4 +225,8 @@ start """" %TARGET%
             throw;
         }
     }
+
+    // Helper to produce a PowerShell-escaped single-quoted string literal
+    private static string ToSOSPlate(this string s) =>
+        "'" + s.Replace("'", "''") + "'";
 }

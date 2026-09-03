@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
+using System.Threading;
 
 namespace WinTempCleaner.Services;
 
@@ -13,6 +16,17 @@ public class AppSettings
     public bool SoundEnabled { get; set; } = true;
     public bool CheckUpdatesOnStartup { get; set; } = true;
     public string Language { get; set; } = "en";
+
+    // ─── Memory Optimizer (WinMemoryCleaner integration) ──────────────────
+    public bool MemoryAutoOptimizeEnabled { get; set; } = false;
+    public int MemoryAutoOptimizeIntervalHours { get; set; } = 4;
+    public int MemoryAutoOptimizeFreeRamThresholdPercent { get; set; } = 30;
+    public bool MemoryShowInTray { get; set; } = true;
+    public bool MemoryAlwaysOnTop { get; set; } = false;
+    public bool MemoryCompactMode { get; set; } = false;
+    public string MemoryGlobalHotkey { get; set; } = "CTRL+SHIFT+M";
+    public bool MemoryCloseToTray { get; set; } = true;
+    public bool MemoryShowNotifications { get; set; } = true;
 }
 
 public static class SettingsService
@@ -22,6 +36,7 @@ public static class SettingsService
         "Deltempo");
 
     private static readonly string SettingsFile = Path.Combine(SettingsDir, "settings.json");
+    private static readonly ReaderWriterLockSlim SettingsLock = new(LockRecursionPolicy.NoRecursion);
 
     public static AppSettings Current { get; set; } = new();
 
@@ -34,14 +49,22 @@ public static class SettingsService
     {
         try
         {
-            if (File.Exists(SettingsFile))
+            SettingsLock.EnterReadLock();
+            try
             {
-                string json = File.ReadAllText(SettingsFile);
-                var loaded = JsonSerializer.Deserialize<AppSettings>(json);
-                if (loaded != null)
+                if (File.Exists(SettingsFile))
                 {
-                    Current = loaded;
+                    string json = File.ReadAllText(SettingsFile);
+                    var loaded = JsonSerializer.Deserialize<AppSettings>(json);
+                    if (loaded != null)
+                    {
+                        Current = loaded;
+                    }
                 }
+            }
+            finally
+            {
+                SettingsLock.ExitReadLock();
             }
         }
         catch (Exception ex)
@@ -56,7 +79,15 @@ public static class SettingsService
         {
             Directory.CreateDirectory(SettingsDir);
             string json = JsonSerializer.Serialize(Current, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(SettingsFile, json);
+            SettingsLock.EnterWriteLock();
+            try
+            {
+                File.WriteAllText(SettingsFile, json);
+            }
+            finally
+            {
+                SettingsLock.ExitWriteLock();
+            }
         }
         catch (Exception ex)
         {
