@@ -252,6 +252,43 @@ public class CleanerServiceTests : IDisposable
         Assert.Contains(MemoryTargetType.StandbyList, targets);
         Assert.Contains(MemoryTargetType.WorkingSet, targets);
         Assert.Contains(MemoryTargetType.SystemFileCache, targets);
+        Assert.Contains(MemoryTargetType.CombinedPageList, targets);
+        Assert.Contains(MemoryTargetType.ModifiedFileCache, targets);
+        Assert.Contains(MemoryTargetType.RegistryCache, targets);
+    }
+
+    [Fact]
+    public void MemoryOptimizer_DefaultActiveTargetTypes_MatchesWinMemoryCleanerSevenZones()
+    {
+        var active = MemoryOptimizerService.DefaultActiveTargetTypes();
+        Assert.Equal(7, active.Length);
+        Assert.Contains(MemoryTargetType.WorkingSet, active);
+        Assert.Contains(MemoryTargetType.StandbyList, active);
+        Assert.Contains(MemoryTargetType.SystemFileCache, active);
+        Assert.Contains(MemoryTargetType.ModifiedPageList, active);
+        Assert.Contains(MemoryTargetType.CombinedPageList, active);
+        Assert.Contains(MemoryTargetType.ModifiedFileCache, active);
+        Assert.Contains(MemoryTargetType.RegistryCache, active);
+    }
+
+    [Fact]
+    public async Task MemoryOptimizer_OptimizeAreaAsync_WorkingSet_ExecutesSafely()
+    {
+        var result = await MemoryOptimizerService.OptimizeAreaAsync(MemoryTargetType.WorkingSet);
+        Assert.NotNull(result);
+        Assert.Equal(MemoryTargetType.WorkingSet, result.Target);
+        Assert.True(result.BytesFreed >= 0);
+    }
+
+    [Fact]
+    public async Task MemoryOptimizer_OptimizeRamAsync_WinMemoryCleanerEngine_ReturnsValidResult()
+    {
+        var result = await MemoryOptimizerService.OptimizeRamAsync();
+        Assert.NotNull(result);
+        Assert.True(result.ExecutionTimeMs >= 0);
+        Assert.True(result.ReclaimedBytes >= 0);
+        Assert.NotEmpty(result.AreaResults);
+        Assert.Equal(7, result.AreaResults.Count);
     }
 
     [Fact]
