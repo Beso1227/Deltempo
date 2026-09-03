@@ -267,10 +267,34 @@ public static class LargeFileHunterService
             return roots;
         }
 
-        // If specific drive passed (e.g. "C:", "D:")
+        // If specific path, user folder, or drive passed
         if (!string.Equals(targetScope, "ALL", StringComparison.OrdinalIgnoreCase) &&
             !string.IsNullOrWhiteSpace(targetScope))
         {
+            // 1. Direct directory or full path
+            if (Directory.Exists(targetScope))
+            {
+                roots.Add(Path.GetFullPath(targetScope));
+                return roots;
+            }
+
+            // 2. Relative to current working directory
+            string localPath = Path.GetFullPath(targetScope);
+            if (Directory.Exists(localPath))
+            {
+                roots.Add(localPath);
+                return roots;
+            }
+
+            // 3. User subfolder (e.g. "Downloads", "Documents", "Desktop", "Videos")
+            string userFolder = Path.Combine(userProfile, targetScope);
+            if (Directory.Exists(userFolder))
+            {
+                roots.Add(userFolder);
+                return roots;
+            }
+
+            // 4. Drive letter (e.g. "C", "C:", "D:")
             string cleanDrive = targetScope.Trim().TrimEnd('\\');
             if (cleanDrive.Length == 1) cleanDrive += ":";
             cleanDrive += "\\";
