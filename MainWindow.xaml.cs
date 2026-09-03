@@ -297,8 +297,8 @@ public partial class MainWindow : Window
             AdminBadgeText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#34D399"));
             AdminBadgeIcon.Text = "\uE73E";
             AdminBadgeIcon.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981"));
-            AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#14281E"));
-            AdminBadgeBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3310B981"));
+            AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#142B20"));
+            AdminBadgeBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3D10B981"));
             AdminElevationButton.ToolTip = "Running with full Administrator privileges (Full access to all system locations).";
             AddLog("Running with Administrator privileges (Full access to all system locations)", LogLevel.Success);
         }
@@ -308,7 +308,7 @@ public partial class MainWindow : Window
             AdminBadgeText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FBBF24"));
             AdminBadgeIcon.Text = "\uE7EF";
             AdminBadgeIcon.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B"));
-            AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A1C0E"));
+            AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#281C0E"));
             AdminBadgeBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4DF59E0B"));
             AdminElevationButton.ToolTip = "Running as Standard User. Click to relaunch as Administrator to clean system-level caches.";
             AddLog("Running as Standard User. Windows system caches require Administrator rights.", LogLevel.Warning);

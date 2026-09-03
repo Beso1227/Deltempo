@@ -116,7 +116,7 @@
                         <StackPanel Orientation="Horizontal">
                             <Button x:Name="ToolStartupBtn"
                                     Style="{DynamicResource HeaderToolButton}"
-                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    FocusVisualStyle="{x:Null}"
                                     ToolTip="Startup Apps Boot Accelerator"
                                     Click="OpenStartupModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -134,7 +134,7 @@
                             </Button>
                             <Button x:Name="ToolLargeFilesBtn"
                                     Style="{DynamicResource HeaderToolButton}"
-                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    FocusVisualStyle="{x:Null}"
                                     ToolTip="Large File &amp; Storage Hog Hunter"
                                     Click="OpenLargeFilesModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -152,7 +152,7 @@
                             </Button>
                             <Button x:Name="ToolProcessesBtn"
                                     Style="{DynamicResource HeaderToolButton}"
-                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    FocusVisualStyle="{x:Null}"
                                     ToolTip="Memory Hogs &amp; Background App Optimizer"
                                     Margin="0"
                                     Click="OpenProcessModal_Click">
@@ -176,21 +176,41 @@
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <!-- Dedicated Admin Elevation Status Capsule -->
                         <Button x:Name="AdminElevationButton"
-                                Style="{DynamicResource GhostButton}"
-                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                FocusVisualStyle="{x:Null}"
                                 Cursor="Hand"
+                                Background="Transparent"
+                                BorderThickness="0"
                                 Padding="0"
                                 Margin="0,0,8,0"
+                                Height="24"
                                 VerticalAlignment="Center"
                                 Click="AdminElevationButton_Click"
                                 ToolTip="Status of Administrator Privileges (Click to Elevate)"
                                 AutomationProperties.Name="Administrator Privileges Status">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="btnBorder" Background="Transparent" CornerRadius="12">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Opacity" Value="0.82"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter Property="Opacity" Value="0.65"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
                             <Border x:Name="AdminBadgeBorder"
-                                    Background="#14281E"
-                                    BorderBrush="#3310B981"
+                                    Background="#142B20"
+                                    BorderBrush="#3D10B981"
                                     BorderThickness="1"
-                                    CornerRadius="7"
-                                    Padding="8,3.5">
+                                    CornerRadius="12"
+                                    Height="24"
+                                    Padding="8,0,9,0"
+                                    SnapsToDevicePixels="True"
+                                    VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock x:Name="AdminBadgeIcon"
                                                Text="&#xE73E;"
@@ -241,7 +261,7 @@
                                 <Button x:Name="SoundToggleBtn"
                                         Style="{DynamicResource WindowControlButton}"
                                         Width="25" Height="24"
-                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        FocusVisualStyle="{x:Null}"
                                         AutomationProperties.Name="Toggle Haptic Sound Effects"
                                         ToolTip="Toggle Haptic Audio Feedback"
                                         Margin="0,0,1,0"
@@ -257,7 +277,7 @@
                                 <Button x:Name="ThemeToggleBtn"
                                         Style="{DynamicResource WindowControlButton}"
                                         Width="25" Height="24"
-                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        FocusVisualStyle="{x:Null}"
                                         AutomationProperties.Name="Toggle Dark / Light Theme"
                                         ToolTip="Toggle Light / Dark Mode"
                                         Margin="0,0,1,0"
@@ -273,7 +293,7 @@
                                 <Button x:Name="SettingsBtn"
                                         Style="{DynamicResource WindowControlButton}"
                                         Width="25" Height="24"
-                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        FocusVisualStyle="{x:Null}"
                                         AutomationProperties.Name="Open Application Settings"
                                         ToolTip="Deltempo Preferences &amp; Guardian Settings"
                                         Margin="0"
@@ -292,13 +312,13 @@
                                     Content="&#xE921;"
                                     Width="28" Height="26"
                                     Margin="0,0,2,0"
-                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    FocusVisualStyle="{x:Null}"
                                     AutomationProperties.Name="Minimize Window"
                                     Click="MinimizeButton_Click"/>
                             <Button Style="{DynamicResource WindowCloseButton}"
                                     Content="&#xE8BB;"
                                     Width="28" Height="26"
-                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    FocusVisualStyle="{x:Null}"
                                     AutomationProperties.Name="Close Application"
                                     Click="CloseButton_Click"/>
                         </StackPanel>
