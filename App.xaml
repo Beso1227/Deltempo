@@ -24,6 +24,7 @@
         <SolidColorBrush x:Key="TrackBgBrush" Color="#1A2333"/>
         <SolidColorBrush x:Key="TrackThumbBrush" Color="#64748B"/>
         <SolidColorBrush x:Key="ScrollThumbBrush" Color="#2A3448"/>
+        <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#06B6D4"/>
 
         <SolidColorBrush x:Key="AdminBadgeBgBrush" Color="#10241B"/>
         <SolidColorBrush x:Key="AdminBadgeBorderBrush" Color="#10B981"/>
@@ -85,6 +86,7 @@
         <!-- Global Typography -->
         <FontFamily x:Key="AppFont">Segoe UI Variable Display, Segoe UI, -apple-system, BlinkMacSystemFont, sans-serif</FontFamily>
         <FontFamily x:Key="MonospaceFont">Cascadia Code, Consolas, monospace</FontFamily>
+        <FontFamily x:Key="MonoFont">Cascadia Code, Consolas, monospace</FontFamily>
         <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets, Segoe UI Symbol</FontFamily>
 
         <!-- ============================================ -->

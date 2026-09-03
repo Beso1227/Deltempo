@@ -48,8 +48,8 @@ public partial class App : System.Windows.Application
         {
             SetupConsoleStream();
             int exitCode = CliRunner.RunAsync(args).GetAwaiter().GetResult();
-            FreeConsole();
-            Shutdown(exitCode);
+            try { Console.Out.Flush(); } catch { }
+            Environment.Exit(exitCode);
             return;
         }
 
@@ -70,18 +70,17 @@ public partial class App : System.Windows.Application
     {
         try
         {
-            if (AttachConsole(ATTACH_PARENT_PROCESS))
+            AttachConsole(ATTACH_PARENT_PROCESS);
+
+            IntPtr stdOutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+            if (stdOutHandle != IntPtr.Zero && stdOutHandle != new IntPtr(-1))
             {
-                IntPtr stdOutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-                if (stdOutHandle != IntPtr.Zero && stdOutHandle != new IntPtr(-1))
-                {
-                    var safeHandle = new Microsoft.Win32.SafeHandles.SafeFileHandle(stdOutHandle, ownsHandle: false);
-                    var fs = new FileStream(safeHandle, FileAccess.Write);
-                    var writer = new StreamWriter(fs, Encoding.UTF8) { AutoFlush = true };
-                    Console.SetOut(writer);
-                    Console.SetError(writer);
-                    Console.OutputEncoding = Encoding.UTF8;
-                }
+                var safeHandle = new Microsoft.Win32.SafeHandles.SafeFileHandle(stdOutHandle, ownsHandle: false);
+                var fs = new FileStream(safeHandle, FileAccess.Write);
+                var writer = new StreamWriter(fs, new UTF8Encoding(false)) { AutoFlush = true };
+                Console.SetOut(writer);
+                Console.SetError(writer);
+                Console.OutputEncoding = Encoding.UTF8;
             }
         }
         catch (Exception ex)

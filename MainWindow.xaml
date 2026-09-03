@@ -214,31 +214,38 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Admin Badge -->
-                        <Border x:Name="AdminBadgeBorder"
-                                Background="{DynamicResource AdminBadgeBgBrush}"
-                                BorderBrush="{DynamicResource AdminBadgeBorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="10"
-                                Padding="8,4"
+                        <!-- Admin Badge / Elevation Button -->
+                        <Button x:Name="AdminElevationButton"
+                                Style="{DynamicResource GhostButton}"
+                                Padding="0"
                                 Margin="0,0,10,0"
                                 VerticalAlignment="Center"
-                                AutomationProperties.Name="Elevated Administrator Status">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="&#xE73E;"
-                                           FontFamily="{DynamicResource IconFont}"
-                                           FontSize="10"
-                                           Foreground="{DynamicResource AdminBadgeTextBrush}"
-                                           Margin="0,0,4,0"
-                                           VerticalAlignment="Center"/>
-                                <TextBlock x:Name="AdminBadgeText"
-                                           Text="Admin"
-                                           FontSize="10.5"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource AdminBadgeTextBrush}"
-                                           VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
+                                Click="AdminElevationButton_Click"
+                                ToolTip="Status of Administrator Privileges"
+                                AutomationProperties.Name="Administrator Privileges Status">
+                            <Border x:Name="AdminBadgeBorder"
+                                    Background="{DynamicResource AdminBadgeBgBrush}"
+                                    BorderBrush="{DynamicResource AdminBadgeBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Padding="8,4">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock x:Name="AdminBadgeIcon"
+                                               Text="&#xE73E;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="10"
+                                               Foreground="{DynamicResource AdminBadgeTextBrush}"
+                                               Margin="0,0,4,0"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="AdminBadgeText"
+                                               Text="Admin"
+                                               FontSize="10.5"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource AdminBadgeTextBrush}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </Button>
 
                         <!-- Window Min / Close Controls -->
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -329,13 +336,35 @@
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource TextHighBrush}"/>
                                         </StackPanel>
-                                        <TextBlock Grid.Column="1"
-                                                   x:Name="DriveTelemetryPercentage"
-                                                   Text="-- Free"
-                                                   FontSize="11"
-                                                   FontWeight="Bold"
-                                                   Foreground="{DynamicResource ElectricCyanBrush}"
-                                                   AutomationProperties.LiveSetting="Polite"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock x:Name="DriveTelemetryPercentage"
+                                                       Text="-- Free"
+                                                       FontSize="11"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource ElectricCyanBrush}"
+                                                       Margin="0,0,8,0"
+                                                       VerticalAlignment="Center"
+                                                       AutomationProperties.LiveSetting="Polite"/>
+                                            <Button Style="{DynamicResource PillButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="8,2.5"
+                                                    ToolTip="Scan Drive for AI-categorized Large Files"
+                                                    Click="OpenLargeFilesModal_Click">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="&#xE8B7;"
+                                                               FontFamily="{DynamicResource IconFont}"
+                                                               FontSize="9.5"
+                                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                                               Margin="0,0,4,0"
+                                                               VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Large Files"
+                                                               FontSize="10"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                                               VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
                                     </Grid>
                                     <Border Height="5" CornerRadius="2.5" Background="{DynamicResource TrackBgBrush}" ClipToBounds="True" Margin="0,0,0,3">
                                         <ProgressBar x:Name="DriveUsageBar"
@@ -850,7 +879,7 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Pillar 2: Utility Tools Pod (Activity Log & Audit Report) -->
+                        <!-- Pillar 2: Utility Tools Pod (Large Files, Startup, Activity Log & Audit Report) -->
                         <Border Grid.Column="2"
                                 Background="{DynamicResource SurfaceSubCardBrush}"
                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
@@ -858,6 +887,52 @@
                                 CornerRadius="10"
                                 Padding="4,3">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <!-- Large Files Hunter Button -->
+                                <Button x:Name="OpenLargeFilesBtn"
+                                        Style="{DynamicResource PillButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        AutomationProperties.Name="Open AI Large Files Hunter"
+                                        ToolTip="Deep Storage &amp; AI Large Files Hunter"
+                                        Padding="10,4.5"
+                                        Margin="0,0,3,0"
+                                        Click="OpenLargeFilesModal_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE8B7;"
+                                                   FontFamily="{DynamicResource IconFont}"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                   Margin="0,0,5,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="Large Files"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Startup Apps Manager Button -->
+                                <Button x:Name="OpenStartupBtn"
+                                        Style="{DynamicResource PillButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        AutomationProperties.Name="Manage Windows Startup Programs"
+                                        ToolTip="Windows Startup Apps &amp; Boot Accelerator"
+                                        Padding="10,4.5"
+                                        Margin="0,0,3,0"
+                                        Click="OpenStartupModal_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE7B5;"
+                                                   FontFamily="{DynamicResource IconFont}"
+                                                   FontSize="10.5"
+                                                   Margin="0,0,5,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="Startup"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
                                 <Button x:Name="ToggleLogBtn"
                                         Style="{DynamicResource PillButton}"
                                         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
@@ -1884,29 +1959,31 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Large Files Hunter Dialog">
-                <Border Width="650" MaxHeight="640"
+                <Border Width="920" MaxHeight="750"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5"
-                        CornerRadius="18"
+                        CornerRadius="16"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Padding="24,20">
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.4"/>
+                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.45"/>
                     </Border.Effect>
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/> <!-- Row 0: Header -->
+                            <RowDefinition Height="Auto"/> <!-- Row 1: Telemetry Hero Strip -->
+                            <RowDefinition Height="Auto"/> <!-- Row 2: Filter Toolbar -->
+                            <RowDefinition Height="*"/>    <!-- Row 3: Cards List -->
+                            <RowDefinition Height="Auto"/> <!-- Row 4: Footer -->
                         </Grid.RowDefinitions>
 
                         <!-- Header -->
-                        <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <Grid Grid.Row="0" Margin="0,0,0,12">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Border Width="40" Height="40"
-                                        CornerRadius="12"
+                                        CornerRadius="10"
                                         Background="{DynamicResource SurfaceSubCardBrush}"
                                         BorderBrush="{DynamicResource ElectricCyanBrush}"
                                         BorderThickness="1"
@@ -1919,11 +1996,11 @@
                                                VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="🐘 Disk Hog &amp; Large File Hunter"
+                                    <TextBlock Text="Deep Storage &amp; AI Large File Hunter"
                                                FontSize="16"
                                                FontWeight="Bold"
                                                Foreground="{DynamicResource TextHighBrush}"/>
-                                    <TextBlock Text="Find files &gt;50 MB in Downloads, Documents &amp; User Profile"
+                                    <TextBlock Text="Deterministic offline AI risk engine • 100% certainty classification • Reversible Recycle Bin cleanup"
                                                FontSize="11.5"
                                                Foreground="{DynamicResource TextMediumBrush}"/>
                                 </StackPanel>
@@ -1936,15 +2013,202 @@
                                     Click="CloseLargeFilesModal_Click"/>
                         </Grid>
 
-                        <!-- Large Files List -->
+                        <!-- Row 1: Telemetry Hero Strip (Double-Bezel concentric architecture) -->
                         <Border Grid.Row="1"
                                 Background="{DynamicResource SurfaceSubCardBrush}"
                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="12"
-                                Padding="12,8"
-                                Margin="0,0,0,14"
-                                MaxHeight="420">
+                                Padding="6"
+                                Margin="0,0,0,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Pod 1: Total Scanned -->
+                                <Border Grid.Column="0"
+                                        Background="{DynamicResource SurfaceCardBrush}"
+                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="14,8"
+                                        Margin="0,0,4,0">
+                                    <StackPanel>
+                                        <TextBlock Text="TOTAL SCANNED VOLUME" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                        <TextBlock x:Name="LargeFilesTotalStorageText" Text="0 B (0 files)" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Pod 2: 100% Safe to Reclaim (Emerald Glow) -->
+                                <Border Grid.Column="1"
+                                        Background="#0D2818"
+                                        BorderBrush="#10B981"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="14,8"
+                                        Margin="2,0,2,0">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Ellipse Width="6" Height="6" Fill="#10B981" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="100% SAFE TO RECLAIM" FontSize="9" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="LargeFilesSafeStorageText" Text="0 B (0 safe)" FontSize="13.5" FontWeight="Bold" Foreground="#34D399" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Pod 3: Protected Game/App Files (Crimson Shield) -->
+                                <Border Grid.Column="2"
+                                        Background="#2A0E0E"
+                                        BorderBrush="#EF4444"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="14,8"
+                                        Margin="4,0,0,0">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Ellipse Width="6" Height="6" Fill="#EF4444" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="PROTECTED APP &amp; SYSTEM" FontSize="9" FontWeight="Bold" Foreground="#F87171" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="LargeFilesProtectedStorageText" Text="0 B (0 protected)" FontSize="13.5" FontWeight="Bold" Foreground="#FCA5A5" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Row 2: Filter & Scope Toolbar -->
+                        <Border Grid.Row="2"
+                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="12,9"
+                                Margin="0,0,0,10">
+                            <StackPanel>
+                                <!-- Line 1: Scope, Size, Risk Filter, and Scan -->
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Drive Scope Selection -->
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Scope:" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextMediumBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <ComboBox x:Name="LargeFileDriveComboBox"
+                                                  Style="{DynamicResource ModernComboBox}"
+                                                  Width="130" Height="26"
+                                                  SelectionChanged="LargeFileFilter_Changed"/>
+                                    </StackPanel>
+
+                                    <!-- Minimum Size Selection -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Min Size:" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextMediumBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <ComboBox x:Name="LargeFileSizeComboBox"
+                                                  Style="{DynamicResource ModernComboBox}"
+                                                  Width="95" Height="26"
+                                                  SelectionChanged="LargeFileFilter_Changed">
+                                            <ComboBoxItem Content="> 50 MB" Tag="52428800" IsSelected="True"/>
+                                            <ComboBoxItem Content="> 100 MB" Tag="104857600"/>
+                                            <ComboBoxItem Content="> 500 MB" Tag="524288000"/>
+                                            <ComboBoxItem Content="> 1 GB" Tag="1073741824"/>
+                                            <ComboBoxItem Content="> 5 GB" Tag="5368709120"/>
+                                        </ComboBox>
+                                    </StackPanel>
+
+                                    <!-- Category & Risk Filter -->
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="Filter:" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextMediumBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <ComboBox x:Name="LargeFileCategoryComboBox"
+                                                  Style="{DynamicResource ModernComboBox}"
+                                                  Width="150" Height="26"
+                                                  SelectionChanged="LargeFileCategoryFilter_Changed">
+                                            <ComboBoxItem Content="All Items" Tag="ALL"/>
+                                            <ComboBoxItem Content="Safe to Delete Only" Tag="SAFE"/>
+                                            <ComboBoxItem Content="Protected Files Only" Tag="RISK"/>
+                                            <ComboBoxItem Content="Installers &amp; ISOs" Tag="Installer / ISO"/>
+                                            <ComboBoxItem Content="Game Assets" Tag="Game Asset / Pak"/>
+                                            <ComboBoxItem Content="Media &amp; Videos" Tag="Video / Media"/>
+                                            <ComboBoxItem Content="Archives" Tag="Archive"/>
+                                        </ComboBox>
+                                    </StackPanel>
+
+                                    <!-- Rescan Button -->
+                                    <Button Grid.Column="4"
+                                            x:Name="RescanLargeFilesBtn"
+                                            Style="{DynamicResource PillButton}"
+                                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                            Padding="12,5"
+                                            Click="RescanLargeFilesBtn_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE72C;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Scan Now" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+
+                                <!-- Line 2: Smart AI Action & Selection Strip -->
+                                <Border Background="{DynamicResource SurfaceCardHoverBrush}"
+                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="8,5">
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button x:Name="SelectSafeLargeFilesBtn"
+                                                    Style="{DynamicResource PillButton}"
+                                                    Padding="12,4"
+                                                    FontSize="10.5"
+                                                    FontWeight="Bold"
+                                                    Margin="0,0,6,0"
+                                                    Click="SelectSafeLargeFiles_Click"
+                                                    ToolTip="Instantly select only verified 100% safe-to-delete installers, dumps, and old setup files with zero risk">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="&#xE8E5;" FontFamily="{DynamicResource IconFont}" FontSize="11" Foreground="{DynamicResource SuccessGreenBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Select Safe Files" Foreground="{DynamicResource SuccessGreenBrush}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Content="Select All"
+                                                    Style="{DynamicResource PillButton}"
+                                                    Padding="8,3"
+                                                    FontSize="10.5"
+                                                    Margin="0,0,4,0"
+                                                    Click="SelectAllLargeFiles_Click"/>
+                                            <Button Content="Clear"
+                                                    Style="{DynamicResource PillButton}"
+                                                    Padding="8,3"
+                                                    FontSize="10.5"
+                                                    Click="ClearLargeFilesSelection_Click"/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="LargeFilesSelectedSummaryText"
+                                                   Text="Selected: 0 files (0 B)"
+                                                   FontSize="11"
+                                                   FontWeight="Bold"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                   HorizontalAlignment="Right"
+                                                   VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Row 3: Large Files List -->
+                        <Border Grid.Row="3"
+                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="10,8"
+                                Margin="0,0,0,12"
+                                MaxHeight="370">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <ItemsControl x:Name="LargeFilesItemsControl">
                                     <ItemsControl.ItemTemplate>
@@ -1953,54 +2217,156 @@
                                                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="10"
-                                                    Padding="12,9"
-                                                    Margin="0,0,0,6">
+                                                    Padding="12,10"
+                                                    Margin="0,0,0,8">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/> <!-- Selection CheckBox -->
+                                                        <ColumnDefinition Width="Auto"/> <!-- Category Icon Pod -->
+                                                        <ColumnDefinition Width="*"/>    <!-- File Details & AI Reasoning -->
+                                                        <ColumnDefinition Width="Auto"/> <!-- Formatted Size -->
+                                                        <ColumnDefinition Width="Auto"/> <!-- Reveal Button -->
+                                                        <ColumnDefinition Width="Auto"/> <!-- Recycle Button -->
                                                     </Grid.ColumnDefinitions>
-                                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
-                                                        <TextBlock Text="{Binding FileName}"
-                                                                   FontSize="12"
-                                                                   FontWeight="Bold"
-                                                                   Foreground="{DynamicResource TextHighBrush}"
-                                                                   TextTrimming="CharacterEllipsis"/>
-                                                        <TextBlock Text="{Binding FilePath}"
-                                                                   FontSize="9.5"
-                                                                   Foreground="{DynamicResource TextMutedBrush}"
-                                                                   TextTrimming="CharacterEllipsis"/>
-                                                    </StackPanel>
+
+                                                    <!-- CheckBox -->
+                                                    <CheckBox Grid.Column="0"
+                                                              Style="{DynamicResource ModernSwitchCheckBox}"
+                                                              IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                              VerticalAlignment="Center"
+                                                              Margin="0,0,12,0"
+                                                              Checked="LargeFileItem_CheckChanged"
+                                                              Unchecked="LargeFileItem_CheckChanged"/>
+
+                                                    <!-- Category Icon Pod (Machined rounded square with vector icon) -->
                                                     <Border Grid.Column="1"
+                                                            Width="38" Height="38"
+                                                            CornerRadius="9"
                                                             Background="{DynamicResource SurfaceSubCardBrush}"
                                                             BorderBrush="{DynamicResource HairlineBorderBrush}"
                                                             BorderThickness="1"
-                                                            CornerRadius="6"
-                                                            Padding="8,3"
+                                                            VerticalAlignment="Center"
+                                                            Margin="0,0,12,0">
+                                                        <TextBlock Text="{Binding CategoryIcon}"
+                                                                   FontFamily="{DynamicResource IconFont}"
+                                                                   FontSize="16"
+                                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"/>
+                                                    </Border>
+
+                                                    <!-- File Details & AI Reasoning -->
+                                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                        <!-- Row 1: File Name + Category Badge + AI Safety Badge -->
+                                                        <WrapPanel VerticalAlignment="Center" Margin="0,0,0,2">
+                                                            <TextBlock Text="{Binding FileName}"
+                                                                       FontSize="12.5"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="{DynamicResource TextHighBrush}"
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       MaxWidth="380"
+                                                                       VerticalAlignment="Center"/>
+
+                                                            <!-- Category Badge -->
+                                                            <Border Margin="8,0,0,0"
+                                                                    Background="{DynamicResource SurfaceSubCardBrush}"
+                                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="5"
+                                                                    Padding="6,2"
+                                                                    VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Category}" FontSize="9" FontWeight="SemiBold"
+                                                                           Foreground="{DynamicResource TextMediumBrush}"/>
+                                                            </Border>
+
+                                                            <!-- AI Safety Verdict Badge with dynamic dot & border -->
+                                                            <Border Margin="6,0,0,0"
+                                                                    Background="{Binding BadgeBackground}"
+                                                                    BorderBrush="{Binding BadgeBorder}"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="5"
+                                                                    Padding="7,2"
+                                                                    VerticalAlignment="Center">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <Ellipse Width="6" Height="6" Fill="{Binding AiBadgeColor}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding AiVerdict}" FontSize="9" FontWeight="Bold"
+                                                                               Foreground="{Binding AiBadgeColor}" VerticalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </WrapPanel>
+
+                                                        <!-- Row 2: File Path in clean Monospace -->
+                                                        <TextBlock Text="{Binding FilePath}"
+                                                                   FontSize="9.5"
+                                                                   FontFamily="{DynamicResource MonospaceFont}"
+                                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   MaxWidth="500"
+                                                                   Margin="0,1,0,3"/>
+
+                                                        <!-- Row 3: AI Explanation & Origin Capsule -->
+                                                        <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="6"
+                                                                Padding="8,5"
+                                                                HorizontalAlignment="Left"
+                                                                MaxWidth="510">
+                                                            <StackPanel>
+                                                                <TextBlock Text="{Binding AiOrigin}"
+                                                                           FontSize="9.5"
+                                                                           FontWeight="SemiBold"
+                                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                                           Margin="0,0,0,2"/>
+                                                                <TextBlock Text="{Binding AiExplanation}"
+                                                                           FontSize="9.5"
+                                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                                           TextWrapping="Wrap"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </StackPanel>
+
+                                                    <!-- Formatted Size -->
+                                                    <Border Grid.Column="3"
+                                                            Background="{DynamicResource SurfaceSubCardBrush}"
+                                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="8"
+                                                            Padding="10,4"
                                                             Margin="0,0,8,0"
                                                             VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding FormattedSize}"
-                                                                   FontSize="11"
+                                                                   FontSize="11.5"
                                                                    FontWeight="Bold"
                                                                    Foreground="{DynamicResource ElectricCyanBrush}"/>
                                                     </Border>
-                                                    <Button Grid.Column="2"
-                                                            Content="📂 Reveal"
+
+                                                    <!-- Reveal in Explorer -->
+                                                    <Button Grid.Column="4"
                                                             Style="{DynamicResource PillButton}"
                                                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                            Padding="8,4"
-                                                            FontSize="10"
+                                                            Padding="9,5"
                                                             Margin="0,0,6,0"
-                                                            Click="RevealLargeFile_Click"/>
-                                                    <Button Grid.Column="3"
-                                                            Content="🗑️ Recycle"
+                                                            Click="RevealLargeFile_Click"
+                                                            ToolTip="Show in File Explorer">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="&#xED25;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="Reveal" FontSize="10.5" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Button>
+
+                                                    <!-- Single Recycle -->
+                                                    <Button Grid.Column="5"
                                                             Style="{DynamicResource PillButton}"
                                                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                            Padding="8,4"
-                                                            FontSize="10"
-                                                            Click="RecycleLargeFile_Click"/>
+                                                            Padding="9,5"
+                                                            Click="RecycleLargeFile_Click"
+                                                            ToolTip="Move to Windows Recycle Bin">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="&#xE74D;" FontFamily="{DynamicResource IconFont}" FontSize="11" Foreground="{DynamicResource DestructiveRedBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="Recycle" FontSize="10.5" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Button>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
@@ -2009,20 +2375,43 @@
                             </ScrollViewer>
                         </Border>
 
-                        <!-- Footer Actions -->
-                        <Grid Grid.Row="2">
-                            <TextBlock x:Name="LargeFilesStatusText"
-                                       Text="Items are safely sent to Windows Recycle Bin with undo"
-                                       FontSize="10.5"
-                                       Foreground="{DynamicResource TextMutedBrush}"
-                                       VerticalAlignment="Center"/>
-                            <Button Content="Close"
-                                    Style="{DynamicResource HeroCTAButton}"
-                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                    HorizontalAlignment="Right"
-                                    Padding="22,7"
-                                    FontSize="12"
-                                    Click="CloseLargeFilesModal_Click"/>
+                        <!-- Row 4: Footer Actions -->
+                        <Grid Grid.Row="4">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Style="{DynamicResource PillButton}"
+                                        Padding="11,6"
+                                        Margin="0,0,10,0"
+                                        Click="OpenRecycleBin_Click"
+                                        ToolTip="Open Windows Recycle Bin to restore any recycled file">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE72C;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Open Recycle Bin" FontSize="10.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <TextBlock x:Name="LargeFilesStatusText"
+                                           Text="All files are safely recycled with 100% undo capability"
+                                           FontSize="10.5"
+                                           Foreground="{DynamicResource TextMutedBrush}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button x:Name="RecycleSelectedLargeFilesBtn"
+                                        Content="Recycle Selected (0 B)"
+                                        Style="{DynamicResource HeroCTAButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        Padding="18,8"
+                                        FontSize="11.5"
+                                        FontWeight="Bold"
+                                        Margin="0,0,8,0"
+                                        IsEnabled="False"
+                                        Click="RecycleSelectedLargeFiles_Click"/>
+                                <Button Content="Close"
+                                        Style="{DynamicResource PillButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        Padding="18,8"
+                                        FontSize="11.5"
+                                        Click="CloseLargeFilesModal_Click"/>
+                            </StackPanel>
                         </Grid>
                     </Grid>
                 </Border>
@@ -2145,7 +2534,7 @@
                                                                        Foreground="{DynamicResource TextMutedBrush}"/>
                                                             <TextBlock Text="{Binding ProcessName}"
                                                                        FontSize="10"
-                                                                       FontFamily="{DynamicResource MonoFont}"
+                                                                       FontFamily="{DynamicResource MonospaceFont}"
                                                                        Foreground="{DynamicResource TextMutedBrush}"/>
                                                         </StackPanel>
                                                     </StackPanel>
