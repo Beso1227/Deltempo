@@ -298,6 +298,46 @@ public class CleanerServiceTests : IDisposable
         Assert.NotNull(items);
     }
 
+    [Theory]
+    [InlineData("\"C:\\Program Files\\App\\app.exe\" --arg1", "C:\\Program Files\\App\\app.exe")]
+    [InlineData("\"D:\\Games\\launcher.exe\"", "D:\\Games\\launcher.exe")]
+    [InlineData("C:\\Windows\\system32\\cmd.exe /c start", "C:\\Windows\\system32\\cmd.exe")]
+    [InlineData("", "")]
+    public void StartupManager_ExtractExecutablePath_ParsesPathsCorrectly(string rawCmd, string expectedPrefix)
+    {
+        string extracted = StartupManagerService.ExtractExecutablePath(rawCmd);
+        if (string.IsNullOrEmpty(expectedPrefix))
+        {
+            Assert.True(string.IsNullOrEmpty(extracted));
+        }
+        else
+        {
+            Assert.StartsWith(expectedPrefix, extracted, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    [Fact]
+    public void StartupManager_LocationDisplay_ProvidesClearLocations()
+    {
+        var item1 = new StartupItem { Location = "HKCU" };
+        var item2 = new StartupItem { Location = "HKLM" };
+        var item3 = new StartupItem { Location = "WOW64_HKLM" };
+        var item4 = new StartupItem { Location = "Startup Folder" };
+
+        Assert.Equal("Registry (Current User)", item1.LocationDisplay);
+        Assert.Equal("Registry (All Users)", item2.LocationDisplay);
+        Assert.Equal("Registry (32-bit All Users)", item3.LocationDisplay);
+        Assert.Equal("Startup Folder (User)", item4.LocationDisplay);
+    }
+
+    [Fact]
+    public void ProcessOptimizer_TrimProcessMemoryEx_HandlesInvalidPidsGracefully()
+    {
+        var (success, freed) = ProcessOptimizerService.TrimProcessMemoryEx(new[] { 99999999 });
+        Assert.False(success);
+        Assert.Equal(0, freed);
+    }
+
     [Fact]
     public async Task ProcessOptimizer_GetHeavyProcessesAsync_ExcludesProtectedProcesses()
     {
