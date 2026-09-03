@@ -229,6 +229,32 @@ public class CleanerServiceTests : IDisposable
     }
 
     [Fact]
+    public void MemoryOptimizer_GetMemoryAreaSnapshots_ReturnsAllEightZonesWithBadges()
+    {
+        var snapshots = MemoryOptimizerService.GetMemoryAreaSnapshots();
+        Assert.NotNull(snapshots);
+        Assert.Equal(8, snapshots.Count);
+        Assert.All(snapshots, s =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(s.DisplayName));
+            Assert.False(string.IsNullOrWhiteSpace(s.Description));
+            Assert.False(string.IsNullOrWhiteSpace(s.SafetyBadge));
+            Assert.False(string.IsNullOrWhiteSpace(s.IconGlyph));
+            Assert.True(s.TotalBytes > 0);
+        });
+    }
+
+    [Fact]
+    public void MemoryOptimizer_AllTargetTypes_ContainsExpectedTargets()
+    {
+        var targets = MemoryOptimizerService.AllTargetTypes();
+        Assert.Equal(8, targets.Length);
+        Assert.Contains(MemoryTargetType.StandbyList, targets);
+        Assert.Contains(MemoryTargetType.WorkingSet, targets);
+        Assert.Contains(MemoryTargetType.SystemFileCache, targets);
+    }
+
+    [Fact]
     public async Task StartupManager_GetStartupItemsAsync_ReturnsListWithoutExceptions()
     {
         var items = await StartupManagerService.GetStartupItemsAsync();

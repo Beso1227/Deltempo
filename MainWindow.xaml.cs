@@ -1036,16 +1036,17 @@ public partial class MainWindow : Window
         try
         {
             var mem = MemoryOptimizerService.GetMemoryInfo();
-            HeroRamPercentText.Text = $"{mem.UsedPercent:F0}%";
-            HeroRamDetailText.Text = $"{mem.FormattedUsed} / {mem.FormattedTotal} Used";
+            if (HeroRamPercentText != null)
+                HeroRamPercentText.Text = $"{mem.UsedPercent:F0}%";
+            if (HeroRamDetailText != null)
+                HeroRamDetailText.Text = $"{mem.FormattedUsed} / {mem.FormattedTotal} Used";
+            if (HeroRamProgressBar != null)
+                HeroRamProgressBar.Value = mem.UsedPercent;
 
-            // Populate per-area breakdown (WinMemoryCleaner-style)
-            var snapshots = MemoryOptimizerService.GetMemoryAreaSnapshots();
-            MemoryAreaItemsControl.ItemsSource = null; // refresh
-            MemoryAreaItemsControl.ItemsSource = snapshots;
-
-            int available = snapshots.Count(s => s.IsAvailableOnThisOs);
-            MemoryAreaStatusText.Text = $"{snapshots.Count} areas · {available} available{(snapshots.Count != available ? $", {snapshots.Count - available} N/A" : "")}";
+            if (MemoryModalOverlay != null && MemoryModalOverlay.Visibility == Visibility.Visible)
+            {
+                UpdateModalMemoryTelemetry(mem);
+            }
         }
         catch (Exception ex)
         {
@@ -1053,35 +1054,157 @@ public partial class MainWindow : Window
         }
     }
 
+    private void UpdateModalMemoryTelemetry(MemoryInfo? mem = null)
+    {
+        try
+        {
+            mem ??= MemoryOptimizerService.GetMemoryInfo();
+            if (ModalTotalRamText != null)
+                ModalTotalRamText.Text = mem.FormattedTotal;
+            if (ModalUsedRamText != null)
+                ModalUsedRamText.Text = $"{mem.FormattedUsed} ({mem.UsedPercent:F0}%) In Use";
+            if (ModalStandbyCacheText != null)
+                ModalStandbyCacheText.Text = mem.FormattedSystemCache;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Telemetry update suppressed: {ex.Message}");
+        }
+    }
+
+    private void OpenMemoryCleanerModal_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        MemoryModalOverlay.Visibility = Visibility.Visible;
+        RefreshMemoryModalData();
+    }
+
+    private void CloseMemoryCleanerModal_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        MemoryModalOverlay.Visibility = Visibility.Collapsed;
+        UpdateMemoryTelemetry();
+    }
+
+    private void RefreshMemoryModalData()
+    {
+        try
+        {
+            UpdateModalMemoryTelemetry();
+            var snapshots = MemoryOptimizerService.GetMemoryAreaSnapshots();
+            MemoryAreaItemsControl.ItemsSource = snapshots;
+
+            int available = snapshots.Count(s => s.IsAvailableOnThisOs);
+            MemoryModalStatusText.Text = $"{snapshots.Count} memory zones · {available} available for privileged NT flush";
+        }
+        catch (Exception ex)
+        {
+            AddLog($"Failed to refresh memory zones: {ex.Message}", LogLevel.Warning);
+        }
+    }
+
+    private void SelectAllMemoryZones_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        if (MemoryAreaItemsControl.ItemsSource is IEnumerable<MemoryAreaSnapshot> list)
+        {
+            foreach (var item in list) item.IsSelected = true;
+            MemoryAreaItemsControl.Items.Refresh();
+        }
+    }
+
+    private void DeselectAllMemoryZones_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        if (MemoryAreaItemsControl.ItemsSource is IEnumerable<MemoryAreaSnapshot> list)
+        {
+            foreach (var item in list) item.IsSelected = false;
+            MemoryAreaItemsControl.Items.Refresh();
+        }
+    }
+
+    private async void QuickTrimWorkingSets_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        AddLog("⚡ Quick trimming non-whitelisted process working sets...", LogLevel.Info);
+        var res = await MemoryOptimizerService.OptimizeAreaAsync(MemoryTargetType.WorkingSet);
+        if (res.Success)
+        {
+            AddLog($"✓ Process Working Sets Trimmed: Reclaimed {res.FormattedFreed} across {res.ProcessesOptimized} tasks.", LogLevel.Success);
+            RefreshMemoryModalData();
+            UpdateMemoryTelemetry();
+        }
+        else
+        {
+            AddLog($"Working sets trim failed: {res.ErrorMessage}", LogLevel.Error);
+        }
+    }
+
+    private async void PurgeSelectedZones_Click(object sender, RoutedEventArgs e)
+    {
+        if (MemoryAreaItemsControl.ItemsSource is not IEnumerable<MemoryAreaSnapshot> list)
+            return;
+
+        var selected = list.Where(s => s.IsSelected && s.IsAvailableOnThisOs).Select(s => s.Target).ToArray();
+        if (selected.Length == 0)
+        {
+            AddLog("No memory zones selected for purge.", LogLevel.Warning);
+            return;
+        }
+
+        PurgeSelectedZonesBtn.IsEnabled = false;
+        PurgeSelectedZonesBtn.Content = "⚡ Purging NT Cache...";
+        SoundService.PlayClickSound();
+
+        try
+        {
+            var result = await MemoryOptimizerService.OptimizeRamAsync(selected);
+            AddLog($"⚡ NT Kernel Memory Clean Complete: Purged {result.FormattedReclaimed} in {result.ExecutionTimeMs}ms across {result.AreaResults.Count} zones.", LogLevel.Success);
+            RefreshMemoryModalData();
+            UpdateMemoryTelemetry();
+        }
+        catch (Exception ex)
+        {
+            AddLog($"Memory purge error: {ex.Message}", LogLevel.Error);
+        }
+        finally
+        {
+            PurgeSelectedZonesBtn.IsEnabled = true;
+            PurgeSelectedZonesBtn.Content = "⚡ Purge Selected Zones";
+        }
+    }
+
     private async void PerAreaBoostButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button btn || btn.Tag is not Services.MemoryTargetType target)
+        if (sender is not Button btn || btn.Tag is not MemoryTargetType target)
             return;
 
         btn.IsEnabled = false;
         btn.Content = "⋯";
+        SoundService.PlayClickSound();
+
         try
         {
             var result = await MemoryOptimizerService.OptimizeAreaAsync(target);
             if (result.Success)
             {
-                AddLog($"⚡ Boosted {target}: reclaimed {result.FormattedFreed}.", LogLevel.Success);
-                // Refresh the affected area row only by refreshing the whole list
+                AddLog($"⚡ Flushed {target}: reclaimed {result.FormattedFreed}.", LogLevel.Success);
+                RefreshMemoryModalData();
                 UpdateMemoryTelemetry();
             }
             else
             {
-                AddLog($"⚠ Failed to boost {target}: {result.ErrorMessage}", LogLevel.Error);
+                AddLog($"⚠ Failed to flush {target}: {result.ErrorMessage}", LogLevel.Error);
             }
         }
         catch (Exception ex)
         {
-            AddLog($"Error boosting {target}: {ex.Message}", LogLevel.Error);
+            AddLog($"Error flushing {target}: {ex.Message}", LogLevel.Error);
         }
         finally
         {
             btn.IsEnabled = true;
-            btn.Content = "Boost";
+            btn.Content = "⚡ Flush";
         }
     }
 

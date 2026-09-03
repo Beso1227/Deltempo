@@ -1,8 +1,40 @@
 {
-  "generatedAt": "2026-09-03T22:09:26.6820629+03:00",
+  "generatedAt": "2026-09-03T22:19:18.6535596+03:00",
   "version": "1.1.0",
   "statistics": {
     "totalEdges": 33,
+    "godNodes": [
+      {
+        "id": "MainWindow",
+        "label": "MainWindow.xaml / .cs",
+        "degree": 11,
+        "cluster": "UI"
+      },
+      {
+        "id": "CleanerService",
+        "label": "CleanerService.cs",
+        "degree": 8,
+        "cluster": "Cleaner"
+      },
+      {
+        "id": "CliRunner",
+        "label": "CliRunner.cs",
+        "degree": 7,
+        "cluster": "CLI"
+      },
+      {
+        "id": "WindowsSystemProvider",
+        "label": "WindowsSystemProvider.cs",
+        "degree": 4,
+        "cluster": "Providers"
+      },
+      {
+        "id": "App_xaml",
+        "label": "App.xaml / App.xaml.cs",
+        "degree": 3,
+        "cluster": "Core"
+      }
+    ],
     "clusters": [
       {
         "count": 2,
@@ -43,38 +75,6 @@
       {
         "count": 4,
         "cluster": "UI"
-      }
-    ],
-    "godNodes": [
-      {
-        "id": "MainWindow",
-        "label": "MainWindow.xaml / .cs",
-        "degree": 11,
-        "cluster": "UI"
-      },
-      {
-        "id": "CleanerService",
-        "label": "CleanerService.cs",
-        "degree": 8,
-        "cluster": "Cleaner"
-      },
-      {
-        "id": "CliRunner",
-        "label": "CliRunner.cs",
-        "degree": 7,
-        "cluster": "CLI"
-      },
-      {
-        "id": "WindowsSystemProvider",
-        "label": "WindowsSystemProvider.cs",
-        "degree": 4,
-        "cluster": "Providers"
-      },
-      {
-        "id": "App_xaml",
-        "label": "App.xaml / App.xaml.cs",
-        "degree": 3,
-        "cluster": "Core"
       }
     ],
     "totalNodes": 30
