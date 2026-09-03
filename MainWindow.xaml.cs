@@ -603,6 +603,22 @@ public partial class MainWindow : Window
             RecalculateTotals();
             UpdateDriveTelemetry(totalFreed);
 
+            // Zero out cleaned targets immediately so hero size & button reflect reality right now,
+            // then schedule a background rescan to re-measure all remaining dirty targets.
+            foreach (var t in selectedTargets)
+            {
+                t.SizeBytes = 0;
+                t.FileCount = 0;
+            }
+            RecalculateTotals(); // push zeroed values to HeroSizeText + CleanButtonText instantly
+
+            // Background rescan: re-measures remaining targets and updates the hero with real numbers
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(600);
+                await Dispatcher.InvokeAsync(() => ScanButton_Click(this, new RoutedEventArgs()));
+            });
+
             _lastSummary = new CleanSummary
             {
                 TotalFreedBytes = totalFreed,
@@ -1525,6 +1541,12 @@ public partial class MainWindow : Window
 
             string readableScope = scope == "ALL" ? "all drives" : scope == "USER" ? "user profile" : scope;
             LargeFilesStatusText.Text = $"Scanning {readableScope} for files > {TargetFolderInfo.FormatBytes(minBytes)}...";
+            if (LargeFilesEmptyState != null)
+            {
+                LargeFilesEmptyStateTitle.Text = $"Scanning {readableScope}...";
+                LargeFilesEmptyStateHint.Text = "Analyzing drives for large files. This may take a moment.";
+                LargeFilesEmptyState.Visibility = Visibility.Visible;
+            }
 
             var progress = new Progress<int>(pct =>
             {
@@ -1554,14 +1576,41 @@ public partial class MainWindow : Window
             long safeBytes = files.Where(f => f.IsAiSafe).Sum(f => f.SizeBytes);
 
             LargeFilesStatusText.Text = $"Discovered {files.Count} files ({TargetFolderInfo.FormatBytes(totalBytes)}). AI verified {safeCount} 100% safe to clean.";
+
+            // Update empty state visibility
+            if (LargeFilesEmptyState != null)
+            {
+                if (files.Count == 0)
+                {
+                    LargeFilesEmptyStateTitle.Text = "No large files found";
+                    LargeFilesEmptyStateHint.Text = "Try a different scope or lower the minimum file size.";
+                    LargeFilesEmptyState.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    LargeFilesEmptyState.Visibility = Visibility.Collapsed;
+                }
+            }
         }
         catch (OperationCanceledException)
         {
             LargeFilesStatusText.Text = "Scan cancelled.";
+            if (LargeFilesEmptyState != null)
+            {
+                LargeFilesEmptyStateTitle.Text = "Scan cancelled";
+                LargeFilesEmptyStateHint.Text = "Click Scan Now to run a new scan.";
+                LargeFilesEmptyState.Visibility = Visibility.Visible;
+            }
         }
         catch (Exception ex)
         {
             LargeFilesStatusText.Text = $"Scan completed with warnings: {ex.Message}";
+            if (LargeFilesEmptyState != null)
+            {
+                LargeFilesEmptyStateTitle.Text = "Scan encountered an issue";
+                LargeFilesEmptyStateHint.Text = ex.Message;
+                LargeFilesEmptyState.Visibility = Visibility.Visible;
+            }
         }
         finally
         {
