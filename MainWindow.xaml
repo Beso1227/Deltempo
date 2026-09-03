@@ -364,6 +364,53 @@
                                        Text="Deep scan of User Profile, GPU Shaders, AppData &amp; System Temp"
                                        FontSize="11"
                                        Foreground="{DynamicResource TextMediumBrush}"/>
+
+                            <!-- 1-Click Autonomous Deep Clean Action Bar -->
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button x:Name="HeroOneClickDeepCleanBtn"
+                                        Style="{DynamicResource HeroCTAButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        Padding="15,6.5"
+                                        ToolTip="Autonomous 1-Click Deep Clean: purges all safe disk caches, superseded Windows updates, old restore points &amp; flushes RAM in 1 click"
+                                        Click="HeroOneClickDeepCleanBtn_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE7E8;"
+                                                   FontFamily="{DynamicResource IconFont}"
+                                                   FontSize="12"
+                                                   Foreground="#FFFFFF"
+                                                   Margin="0,0,6,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="HeroOneClickBtnText"
+                                                   Text="⚡ 1-Click Deep Clean"
+                                                   FontSize="11.5"
+                                                   FontWeight="Bold"
+                                                   Foreground="#FFFFFF"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button x:Name="HeroRescanBtn"
+                                        Style="{DynamicResource PillButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        Padding="12,6"
+                                        Margin="8,0,0,0"
+                                        ToolTip="Rescan all categories and update storage metrics (F5)"
+                                        Click="ScanButton_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE72C;"
+                                                   FontFamily="{DynamicResource IconFont}"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                   Margin="0,0,5,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="HeroRescanBtnText"
+                                                   Text="Quick Rescan"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
                         </StackPanel>
 
                         <!-- Right: Dual Drive C: & RAM Telemetry Cards -->
@@ -1029,6 +1076,28 @@
                                     Click="CancelButton_Click"
                                     Visibility="Collapsed"/>
 
+                            <Button x:Name="FooterOneClickBtn"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    ToolTip="1-Click Autonomous Deep Clean (All 26 Scopes, DISM &amp; RAM)"
+                                    Padding="13,8.5"
+                                    Margin="0,0,8,0"
+                                    Click="HeroOneClickDeepCleanBtn_Click">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE7E8;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="11.5"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                               Margin="0,0,5,0"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="⚡ 1-Click Deep Clean"
+                                               FontSize="11"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource TextHighBrush}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
                             <Button x:Name="CleanButton"
                                     Style="{DynamicResource HeroCTAButton}"
                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
@@ -1435,21 +1504,27 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0" HorizontalAlignment="Center">
                                     <TextBlock x:Name="CelebrationFilesLabel" Text="FILES DELETED" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
-                                    <TextBlock x:Name="CelebrationFilesText" Text="14,280" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
+                                    <TextBlock x:Name="CelebrationFilesText" Text="14,280" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="1" HorizontalAlignment="Center">
                                     <TextBlock x:Name="CelebrationFoldersLabel" Text="FOLDERS PURGED" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
-                                    <TextBlock x:Name="CelebrationFoldersText" Text="412" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
+                                    <TextBlock x:Name="CelebrationFoldersText" Text="412" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                                    <TextBlock x:Name="CelebrationRamLabel" Text="RAM RECOVERED" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationRamText" Text="-- MB" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,2,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="3" HorizontalAlignment="Center">
                                     <TextBlock x:Name="CelebrationTimeLabel" Text="TIME ELAPSED" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
-                                    <TextBlock x:Name="CelebrationTimeText" Text="14.2s" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
+                                    <TextBlock x:Name="CelebrationTimeText" Text="14.2s" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Grid>
                         </Border>

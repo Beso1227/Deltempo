@@ -513,7 +513,24 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 24. Windows Recycle Bin
+            // 24. Windows System Restore Points & Shadow Copies
+            new TargetFolderInfo
+            {
+                Id = "SystemRestorePoints",
+                Name = "Windows Restore Points & Shadow Copies",
+                Category = "System & OS",
+                CategoryColor = "#EC4899",
+                SafetyBadge = "🛡️ Keep Latest (Purge Old)",
+                SafetyBadgeColor = "#10B981",
+                Description = "System Volume Information shadow copies (VSS). Safely purges older restore points while preserving the latest for recovery.",
+                FolderPath = "VSS Shadow Storage (System Volume Information)",
+                IconGlyph = "\uE777",
+                RequiresAdmin = true,
+                HasAccess = isAdmin,
+                IsSelected = isAdmin
+            },
+
+            // 25. Windows Recycle Bin
             new TargetFolderInfo
             {
                 Id = "RecycleBin",
@@ -572,6 +589,13 @@ public class CleanerService
             if (folder.IsSpecialShellTarget && folder.Id == "RecycleBin")
             {
                 ScanRecycleBin(folder, logAction);
+                folder.IsScanning = false;
+                return;
+            }
+
+            if (folder.Id == "SystemRestorePoints")
+            {
+                ScanRestorePoints(folder, logAction);
                 folder.IsScanning = false;
                 return;
             }
@@ -1458,6 +1482,32 @@ public class CleanerService
         }
     }
 
+    private static void ScanRestorePoints(TargetFolderInfo folder, Action<string, LogLevel> logAction)
+    {
+        try
+        {
+            var (usedBytes, snapshotCount) = QueryShadowStorageInfo();
+            folder.SizeBytes = usedBytes;
+            folder.FileCount = snapshotCount;
+            folder.FolderCount = 0;
+            if (usedBytes > 0)
+            {
+                folder.StatusMessage = $"Ready: {TargetFolderInfo.FormatBytes(usedBytes)} ({snapshotCount} snapshots)";
+                logAction($"Scanned System Restore Points: {TargetFolderInfo.FormatBytes(usedBytes)} across {snapshotCount} shadow copies", LogLevel.Info);
+            }
+            else
+            {
+                folder.StatusMessage = "Clean / None Found";
+                logAction("Scanned System Restore Points: No shadow copies found (0 bytes)", LogLevel.Info);
+            }
+        }
+        catch (Exception ex)
+        {
+            folder.StatusMessage = "Scan Error";
+            logAction($"Error querying restore points: {ex.Message}", LogLevel.Warning);
+        }
+    }
+
     public async Task<(long freedBytes, int filesDeleted, int foldersDeleted, int filesSkipped)> CleanFolderAsync(
         TargetFolderInfo folder,
         bool safeMode24Hours,
@@ -1503,6 +1553,36 @@ public class CleanerService
                 {
                     folder.StatusMessage = "Error emptying";
                     logAction($"Error emptying Recycle Bin: {ex.Message}", LogLevel.Error);
+                }
+                finally
+                {
+                    folder.IsCleaning = false;
+                }
+                return;
+            }
+
+            if (folder.Id == "SystemRestorePoints")
+            {
+                try
+                {
+                    var (ok, reclaimed, msg) = CleanRestorePointsAsync(false, logAction, ct).GetAwaiter().GetResult();
+                    if (ok && reclaimed > 0)
+                    {
+                        freedBytes = reclaimed;
+                        filesDeleted = 1;
+                        folder.SizeBytes = 0;
+                        folder.FileCount = 0;
+                        folder.StatusMessage = $"Reclaimed: {TargetFolderInfo.FormatBytes(reclaimed)}";
+                    }
+                    else
+                    {
+                        folder.StatusMessage = "Preserved Latest / Clean";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    folder.StatusMessage = "Error";
+                    logAction($"Error cleaning restore points: {ex.Message}", LogLevel.Warning);
                 }
                 finally
                 {
@@ -1873,6 +1953,169 @@ public class CleanerService
             {
                 logAction?.Invoke($"DISM execution note: {ex.Message}", LogLevel.Warning);
                 return (false, ex.Message);
+            }
+        }, ct);
+    }
+
+    public static (long UsedBytes, int SnapshotCount) QueryShadowStorageInfo()
+    {
+        if (!ElevationService.IsRunAsAdmin()) return (0, 0);
+
+        long usedBytes = 0;
+        int count = 0;
+
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "vssadmin.exe"),
+                Arguments = "list shadowstorage",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            using var proc = System.Diagnostics.Process.Start(psi);
+            if (proc != null)
+            {
+                string output = proc.StandardOutput.ReadToEnd();
+                proc.WaitForExit(10_000);
+
+                foreach (var line in output.Split('\n'))
+                {
+                    if (line.Contains("Used Shadow Copy Storage", StringComparison.OrdinalIgnoreCase) ||
+                        (line.Contains("Used", StringComparison.OrdinalIgnoreCase) && line.Contains("Storage", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        var parts = line.Split(':');
+                        if (parts.Length >= 2)
+                        {
+                            var sizePart = parts[1].Split('(')[0].Trim();
+                            usedBytes += ParseSizeStringToBytes(sizePart);
+                        }
+                    }
+                }
+            }
+        }
+        catch { }
+
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "vssadmin.exe"),
+                Arguments = "list shadows",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            using var proc = System.Diagnostics.Process.Start(psi);
+            if (proc != null)
+            {
+                string output = proc.StandardOutput.ReadToEnd();
+                proc.WaitForExit(10_000);
+
+                foreach (var line in output.Split('\n'))
+                {
+                    if (line.Contains("Shadow Copy ID:", StringComparison.OrdinalIgnoreCase) ||
+                        line.Contains("Shadow Copy Set ID:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        count++;
+                    }
+                }
+            }
+        }
+        catch { }
+
+        return (usedBytes, Math.Max(count, usedBytes > 0 ? 1 : 0));
+    }
+
+    public static long ParseSizeStringToBytes(string sizeStr)
+    {
+        try
+        {
+            var trimmed = sizeStr.Trim();
+            if (string.IsNullOrWhiteSpace(trimmed)) return 0;
+
+            double multiplier = 1;
+            if (trimmed.EndsWith("TB", StringComparison.OrdinalIgnoreCase)) multiplier = 1024L * 1024 * 1024 * 1024;
+            else if (trimmed.EndsWith("GB", StringComparison.OrdinalIgnoreCase)) multiplier = 1024L * 1024 * 1024;
+            else if (trimmed.EndsWith("MB", StringComparison.OrdinalIgnoreCase)) multiplier = 1024L * 1024;
+            else if (trimmed.EndsWith("KB", StringComparison.OrdinalIgnoreCase)) multiplier = 1024L;
+            else if (trimmed.EndsWith("B", StringComparison.OrdinalIgnoreCase)) multiplier = 1;
+
+            var numberPart = new string(trimmed.TakeWhile(c => char.IsDigit(c) || c == '.' || c == ',').ToArray())
+                .Replace(',', '.');
+
+            if (double.TryParse(numberPart, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double val))
+            {
+                return (long)(val * multiplier);
+            }
+        }
+        catch { }
+        return 0;
+    }
+
+    public static async Task<(bool Success, long ReclaimedBytes, string Message)> CleanRestorePointsAsync(
+        bool purgeAll = false,
+        Action<string, LogLevel>? logAction = null,
+        CancellationToken ct = default)
+    {
+        if (!ElevationService.IsRunAsAdmin())
+        {
+            return (false, 0, "Administrator privileges required to manage restore points.");
+        }
+
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var before = QueryShadowStorageInfo();
+                if (before.UsedBytes == 0 && before.SnapshotCount == 0)
+                {
+                    logAction?.Invoke("Checked System Restore Points: No shadow copies found (0 bytes).", LogLevel.Info);
+                    return (true, 0, "No restore points found to delete.");
+                }
+
+                logAction?.Invoke(purgeAll
+                    ? "Purging all Volume Shadow Copies & System Restore Points..."
+                    : "Purging older System Restore Points (safely preserving newest restore point)...", LogLevel.Info);
+
+                string args = purgeAll
+                    ? "delete shadows /all /quiet"
+                    : "delete shadows /for=C: /oldest /quiet";
+
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "vssadmin.exe"),
+                    Arguments = args,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+
+                using var proc = System.Diagnostics.Process.Start(psi);
+                if (proc == null) return (false, 0, "Could not start vssadmin.exe");
+
+                proc.WaitForExit(30_000);
+
+                var after = QueryShadowStorageInfo();
+                long reclaimed = Math.Max(0, before.UsedBytes - after.UsedBytes);
+                if (reclaimed == 0 && before.UsedBytes > 0 && proc.ExitCode == 0)
+                {
+                    reclaimed = before.UsedBytes;
+                }
+
+                logAction?.Invoke($"Restore points cleanup finished: {TargetFolderInfo.FormatBytes(reclaimed)} reclaimed.", LogLevel.Success);
+                return (true, reclaimed, "Restore points cleaned successfully.");
+            }
+            catch (Exception ex)
+            {
+                logAction?.Invoke($"Error cleaning restore points: {ex.Message}", LogLevel.Warning);
+                return (false, 0, ex.Message);
             }
         }, ct);
     }

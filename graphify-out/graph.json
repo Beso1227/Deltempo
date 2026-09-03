@@ -1,7 +1,8 @@
 {
-  "generatedAt": "2026-09-04T00:25:01.6969826+03:00",
+  "generatedAt": "2026-09-04T00:48:16.3366147+03:00",
   "version": "1.1.0",
   "statistics": {
+    "totalEdges": 33,
     "godNodes": [
       {
         "id": "MainWindow",
@@ -34,7 +35,6 @@
         "cluster": "Core"
       }
     ],
-    "totalEdges": 33,
     "clusters": [
       {
         "cluster": "Cleaner",

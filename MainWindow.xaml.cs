@@ -616,9 +616,11 @@ public partial class MainWindow : Window
             AddLog($"Cleanup Finished: Freed {_lastSummary.FormattedFreedSize} ({totalFilesDeleted:N0} deleted, {totalFilesSkipped:N0} protected) in {stopwatch.Elapsed.TotalSeconds:N1}s", LogLevel.Success);
 
             // Show Animated Celebration Modal Dialog
+            CelebrationModalTitleText.Text = "Cleanup Completed!";
             CelebrationReclaimedText.Text = $"Successfully Reclaimed {_lastSummary.FormattedFreedSize}";
             CelebrationFilesText.Text = $"{totalFilesDeleted:N0}";
             CelebrationFoldersText.Text = $"{totalFoldersDeleted:N0}";
+            CelebrationRamText.Text = "-- MB";
             CelebrationTimeText.Text = $"{stopwatch.Elapsed.TotalSeconds:N1}s";
             CelebrationModalOverlay.Visibility = Visibility.Visible;
         }
@@ -656,6 +658,90 @@ public partial class MainWindow : Window
         _cts?.Cancel();
         CancelButton.IsEnabled = false;
         ProgressStatusText.Text = "Cancelling operation...";
+    }
+
+    private async void HeroOneClickDeepCleanBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isBusy) return;
+
+        SoundService.PlayClickSound();
+        _isBusy = true;
+        _cts = new CancellationTokenSource();
+        SetControlsEnabled(false);
+        CancelButton.Visibility = Visibility.Visible;
+        CancelButton.IsEnabled = true;
+
+        ProgressStatusText.Text = "⚡ Running 1-Click Deep Clean...";
+        HeroSubtext.Text = "Autonomous deep clean in progress...";
+
+        try
+        {
+            var progress = new Progress<DeepCleanProgress>(p =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    ProgressStatusText.Text = $"⚡ [{p.CurrentStage}] {p.DetailMessage}";
+                    HeroSubtext.Text = p.DetailMessage;
+                });
+            });
+
+            var result = await DeepCleanEngine.ExecuteDeepCleanAsync(
+                logAction: (msg, lvl) => Dispatcher.Invoke(() => AddLog(msg, lvl)),
+                progress: progress,
+                purgeAllRestorePoints: false,
+                ct: _cts.Token);
+
+            _lastSummary = new CleanSummary
+            {
+                TotalFreedBytes = result.DiskFreedBytes,
+                TotalFilesDeleted = result.FilesDeleted,
+                TotalFoldersDeleted = result.FoldersDeleted,
+                TotalFilesSkipped = result.FilesSkipped,
+                ElapsedTime = result.Duration
+            };
+
+            ProgressStatusText.Text = $"1-Click Deep Clean complete! Reclaimed {result.FormattedDiskFreed} disk, {result.FormattedRamFreed} RAM.";
+            HeroSubtext.Text = $"Last Clean: {result.FormattedDiskFreed} disk, {result.FormattedRamFreed} RAM freed in {result.Duration.TotalSeconds:0.1}s";
+            AddLog($"1-Click Deep Clean complete: Reclaimed {result.FormattedDiskFreed} disk, {result.FormattedRamFreed} RAM ({result.FilesDeleted:N0} files deleted)", LogLevel.Success);
+
+            // Update Telemetry & Hero Cards
+            UpdateDriveTelemetry();
+            UpdateMemoryTelemetry();
+
+            // Display Celebration Modal
+            CelebrationModalTitleText.Text = "⚡ 1-Click Deep Clean Complete!";
+            CelebrationReclaimedText.Text = $"Reclaimed {result.FormattedDiskFreed} Disk & {result.FormattedRamFreed} RAM";
+            CelebrationFilesText.Text = $"{result.FilesDeleted:N0}";
+            CelebrationFoldersText.Text = $"{result.FoldersDeleted:N0}";
+            CelebrationRamText.Text = result.FormattedRamFreed;
+            CelebrationTimeText.Text = $"{result.Duration.TotalSeconds:0.1}s";
+            CelebrationModalOverlay.Visibility = Visibility.Visible;
+
+            // Trigger a background rescan to refresh target cards
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(800);
+                await Dispatcher.InvokeAsync(() => ScanButton_Click(this, new RoutedEventArgs()));
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            ProgressStatusText.Text = "Deep Clean cancelled.";
+            HeroSubtext.Text = "Deep clean cancelled by user.";
+            AddLog("1-Click Deep Clean was cancelled by user.", LogLevel.Warning);
+        }
+        catch (Exception ex)
+        {
+            ProgressStatusText.Text = "Error during Deep Clean.";
+            HeroSubtext.Text = $"Error: {ex.Message}";
+            AddLog($"1-Click Deep Clean error: {ex.Message}", LogLevel.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+            CancelButton.Visibility = Visibility.Collapsed;
+            SetControlsEnabled(true);
+        }
     }
 
     private void SelectSafeOnlyButton_Click(object sender, RoutedEventArgs e)
@@ -779,6 +865,9 @@ public partial class MainWindow : Window
     {
         QuickScanBtn.IsEnabled = enabled;
         CleanButton.IsEnabled = enabled;
+        if (HeroOneClickDeepCleanBtn != null) HeroOneClickDeepCleanBtn.IsEnabled = enabled;
+        if (HeroRescanBtn != null) HeroRescanBtn.IsEnabled = enabled;
+        if (FooterOneClickBtn != null) FooterOneClickBtn.IsEnabled = enabled;
     }
 
     private void ToggleLogBtn_Click(object sender, RoutedEventArgs e)
