@@ -61,13 +61,20 @@ public static class MemoryOptimizerService
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool SetSystemFileCacheSize(IntPtr MinimumFileCacheSize, IntPtr MaximumFileCacheSize, int Flags);
 
-    // Core System Whitelist - These are NEVER touched or terminated
+    // Core System Whitelist - shared with ProcessOptimizerService.ProtectedProcesses
+    // These are NEVER touched or terminated by either RAM boost or process optimization
     private static readonly HashSet<string> SystemProcessWhitelist = new(StringComparer.OrdinalIgnoreCase)
     {
-        "system", "idle", "registry", "smss", "csrss", "wininit", "services", "lsass",
-        "svchost", "fontdrvhost", "winlogon", "dwm", "explorer", "sihost", "taskhostw",
-        "ctfmon", "shellexperiencehost", "startmenuexperiencehost", "searchhost", "taskmgr",
-        "deltempo", "wintempcleaner"
+        "system", "idle", "system idle process", "registry", "memory compression",
+        "smss", "csrss", "wininit", "services", "lsass", "svchost", "fontdrvhost",
+        "winlogon", "dwm", "explorer", "sihost", "taskhostw", "ctfmon",
+        "shellexperiencehost", "startmenuexperiencehost", "searchhost", "taskmgr",
+        "deltempo", "wintempcleaner", "audiodg", "spoolsv", "conhost", "runtimebroker",
+        "searchindexer", "wmiprvse", "dllhost", "smartscreen", "msmpeng", "nissrv",
+        "securityhealthservice", "securityhealthsystray", "mpdefendercoreprocess", "mpdefendercoreservice",
+        "sense", "secure system", "vmmem", "vmmemwsl", "dasHost", "lsiso", "ngcsvc",
+        "compattelrunner", "deviceassociationframeworkproviderhost", "tiworker", "trustedinstaller",
+        "wlanext", "wudfhost", "sedsvc", "mpsvc"
     };
 
     public static MemoryInfo GetMemoryInfo()

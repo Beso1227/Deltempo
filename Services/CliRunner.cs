@@ -73,6 +73,11 @@ public static class CliRunner
                 exitCode = await HandleUpdateAsync(args);
                 break;
 
+            case "kill":
+            case "close":
+                exitCode = HandleKill(args);
+                break;
+
             case "help":
             case "h":
             case "?":
@@ -169,7 +174,7 @@ public static class CliRunner
             Console.ResetColor();
         }
 
-        var cts = new CancellationTokenSource();
+        using var cts = new CancellationTokenSource();
         var tasks = targets.Select(t => cleanerService.ScanFolderAsync(t, (msg, level) => { }, cts.Token)).ToList();
         await Task.WhenAll(tasks);
 
@@ -241,7 +246,7 @@ public static class CliRunner
             Console.ResetColor();
         }
 
-        var cts = new CancellationTokenSource();
+        using var cts = new CancellationTokenSource();
         long totalFreed = 0;
         int totalFilesDeleted = 0;
         int totalFoldersDeleted = 0;
@@ -364,11 +369,46 @@ public static class CliRunner
     private static async Task<int> HandleLargeFilesAsync(string[] args)
     {
         bool isJson = args.Contains("--json", StringComparer.OrdinalIgnoreCase);
-        Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine("  🐘 [Deltempo] Searching for large files (>50 MB)...\n");
-        Console.ResetColor();
 
-        var files = await LargeFileHunterService.ScanLargeFilesAsync();
+        string scope = "ALL";
+        for (int i = 0; i < args.Length; i++)
+        {
+            if ((args[i].Equals("--drive", StringComparison.OrdinalIgnoreCase) || args[i].Equals("--scope", StringComparison.OrdinalIgnoreCase)) && i + 1 < args.Length)
+            {
+                scope = args[i + 1];
+            }
+        }
+
+        long minBytes = 50L * 1024 * 1024;
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i].Equals("--min", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
+            {
+                string raw = args[i + 1].Trim().ToUpperInvariant();
+                if (raw.EndsWith("GB") && double.TryParse(raw[..^2], out double gbs))
+                    minBytes = (long)(gbs * 1024 * 1024 * 1024);
+                else if (raw.EndsWith("G") && double.TryParse(raw[..^1], out double g))
+                    minBytes = (long)(g * 1024 * 1024 * 1024);
+                else if (raw.EndsWith("MB") && double.TryParse(raw[..^2], out double mbs))
+                    minBytes = (long)(mbs * 1024 * 1024);
+                else if (raw.EndsWith("M") && double.TryParse(raw[..^1], out double m))
+                    minBytes = (long)(m * 1024 * 1024);
+                else if (long.TryParse(raw, out long bytes))
+                    minBytes = bytes;
+            }
+        }
+
+        bool clean = args.Contains("--clean", StringComparer.OrdinalIgnoreCase);
+        bool safeOnly = args.Contains("--safe-only", StringComparer.OrdinalIgnoreCase) || args.Contains("--ai-safe", StringComparer.OrdinalIgnoreCase);
+
+        if (!isJson)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine($"  [Deltempo] AI Large File Hunter (>{TargetFolderInfo.FormatBytes(minBytes)}) on scope '{scope}'...\n");
+            Console.ResetColor();
+        }
+
+        var files = await LargeFileHunterService.ScanLargeFilesAsync(minBytes, scope);
 
         if (isJson)
         {
@@ -376,18 +416,42 @@ public static class CliRunner
             return 0;
         }
 
-        Console.WriteLine("  ┌──────────────┬────────────────────┬──────────────────────────────────────────────────┐");
-        Console.WriteLine($"  │ {"SIZE",-12} │ {"CATEGORY",-18} │ {"FILE NAME",-48} │");
-        Console.WriteLine("  ├──────────────┼────────────────────┼──────────────────────────────────────────────────┤");
-        foreach (var f in files.Take(25))
+        Console.WriteLine("  ┌──────────────┬──────────────────────────────┬─────────────────────┬──────────────────────────────────────┐");
+        Console.WriteLine($"  │ {"SIZE",-12} │ {"AI SAFETY VERDICT",-28} │ {"CATEGORY",-19} │ {"FILE NAME",-36} │");
+        Console.WriteLine("  ├──────────────┼──────────────────────────────┼─────────────────────┼──────────────────────────────────────┤");
+        foreach (var f in files.Take(35))
         {
-            string name = f.FileName.Length > 48 ? f.FileName.Substring(0, 45) + "..." : f.FileName;
-            Console.WriteLine($"  │ {f.FormattedSize,-12} │ {f.Category,-18} │ {name,-48} │");
+            string name = f.FileName.Length > 36 ? f.FileName.Substring(0, 33) + "..." : f.FileName;
+            string verdict = f.AiVerdict.Length > 28 ? f.AiVerdict.Substring(0, 25) + "..." : f.AiVerdict;
+            Console.WriteLine($"  │ {f.FormattedSize,-12} │ {verdict,-28} │ {f.Category,-19} │ {name,-36} │");
         }
-        Console.WriteLine("  └──────────────┴────────────────────┴──────────────────────────────────────────────────┘");
+        Console.WriteLine("  └──────────────┴──────────────────────────────┴─────────────────────┴──────────────────────────────────────┘");
+
+        long totalBytes = files.Sum(x => x.SizeBytes);
+        var safeFiles = files.Where(x => x.IsAiSafe).ToList();
+        long safeBytes = safeFiles.Sum(x => x.SizeBytes);
+
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"  ✓ Discovered {files.Count} large files ({TargetFolderInfo.FormatBytes(files.Sum(x => x.SizeBytes))})");
+        Console.WriteLine($"  ✓ Discovered {files.Count} large files ({TargetFolderInfo.FormatBytes(totalBytes)}).");
+        Console.WriteLine($"  ✓ AI Identified {safeFiles.Count} safe to clean ({TargetFolderInfo.FormatBytes(safeBytes)}): Stale installers, dumps, temp.");
         Console.ResetColor();
+
+        if (clean)
+        {
+            var toRecycle = safeOnly ? safeFiles : files;
+            if (toRecycle.Count == 0)
+            {
+                Console.WriteLine("  • No matching files selected for recycling.");
+                return 0;
+            }
+
+            Console.WriteLine($"\n  • Recycling {toRecycle.Count} files ({TargetFolderInfo.FormatBytes(toRecycle.Sum(x => x.SizeBytes))}) to Windows Recycle Bin...");
+            var (succ, fail, freed) = LargeFileHunterService.BatchMoveToRecycleBin(toRecycle);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"  ✓ Successfully recycled {succ} files ({TargetFolderInfo.FormatBytes(freed)} freed) with undo capability.");
+            Console.ResetColor();
+        }
+
         return 0;
     }
 
@@ -461,6 +525,39 @@ public static class CliRunner
             Console.ResetColor();
         }
 
+        return 0;
+    }
+
+    private static int HandleKill(string[] args)
+    {
+        int myPid = Process.GetCurrentProcess().Id;
+        var procs = Process.GetProcessesByName("Deltempo")
+            .Concat(Process.GetProcessesByName("WinTempCleaner"))
+            .Where(p => p.Id != myPid)
+            .ToList();
+
+        int killed = 0;
+        foreach (var p in procs)
+        {
+            try
+            {
+                p.Kill();
+                p.WaitForExit(1000);
+                killed++;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"  ⚠️ Failed to terminate PID {p.Id}: {ex.Message}");
+            }
+            finally
+            {
+                p.Dispose();
+            }
+        }
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"  ✓ Terminated {killed} running Deltempo process(es).");
+        Console.ResetColor();
         return 0;
     }
 }

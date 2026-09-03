@@ -85,7 +85,7 @@ public class CleanerService
                 IconGlyph = "\uE770",
                 RequiresAdmin = true,
                 HasAccess = isAdmin,
-                IsSelected = true
+                IsSelected = isAdmin
             },
 
             // 3. Windows Prefetch
@@ -102,7 +102,7 @@ public class CleanerService
                 IconGlyph = "\uE945",
                 RequiresAdmin = true,
                 HasAccess = isAdmin,
-                IsSelected = true
+                IsSelected = isAdmin
             },
 
             // 4. Windows Update Delivery Cache
@@ -119,7 +119,7 @@ public class CleanerService
                 IconGlyph = "\uE896",
                 RequiresAdmin = true,
                 HasAccess = isAdmin,
-                IsSelected = true
+                IsSelected = isAdmin
             },
 
             // 5. Windows Upgrade & Setup Leftovers (PC Manager Deep Match)
@@ -136,7 +136,7 @@ public class CleanerService
                 IconGlyph = "\uE777",
                 RequiresAdmin = true,
                 HasAccess = isAdmin,
-                IsSelected = true
+                IsSelected = isAdmin
             },
 
             // 6. Windows Delivery Optimization (WUDO)
@@ -153,7 +153,7 @@ public class CleanerService
                 IconGlyph = "\uE774",
                 RequiresAdmin = true,
                 HasAccess = isAdmin,
-                IsSelected = true
+                IsSelected = isAdmin
             },
 
             // 7. Windows Component & Font Caches (PC Manager Match)
@@ -170,7 +170,7 @@ public class CleanerService
                 IconGlyph = "\uE790",
                 RequiresAdmin = true,
                 HasAccess = isAdmin,
-                IsSelected = true
+                IsSelected = isAdmin
             },
 
             // 8. Device Driver Packages (PC Manager Match)
@@ -187,7 +187,7 @@ public class CleanerService
                 IconGlyph = "\uEA86",
                 RequiresAdmin = true,
                 HasAccess = isAdmin,
-                IsSelected = true
+                IsSelected = isAdmin
             },
 
             // 9. Microsoft Defender Antivirus (PC Manager Match)
@@ -204,7 +204,7 @@ public class CleanerService
                 IconGlyph = "\uE83D",
                 RequiresAdmin = true,
                 HasAccess = isAdmin,
-                IsSelected = true
+                IsSelected = isAdmin
             },
 
             // 10. Windows System & Diagnostic Logs (PC Manager Match)
@@ -221,7 +221,7 @@ public class CleanerService
                 IconGlyph = "\uE7C3",
                 RequiresAdmin = true,
                 HasAccess = isAdmin,
-                IsSelected = true
+                IsSelected = isAdmin
             },
 
             // 11. System Crash Dumps & Minidumps (PC Manager Match)
@@ -238,7 +238,7 @@ public class CleanerService
                 IconGlyph = "\uE7BA",
                 RequiresAdmin = true,
                 HasAccess = isAdmin,
-                IsSelected = true
+                IsSelected = isAdmin
             },
 
             // 12. Temporary Internet Files & WebCache (PC Manager Match)
@@ -408,7 +408,7 @@ public class CleanerService
                 IconGlyph = "\uE7BA",
                 RequiresAdmin = true,
                 HasAccess = isAdmin,
-                IsSelected = true
+                IsSelected = isAdmin
             },
 
             // 22. Explorer Thumbnails
@@ -481,10 +481,21 @@ public class CleanerService
         return targets;
     }
 
-    public async Task ScanFolderAsync(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    public async Task ScanFolderAsync(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct, bool safeMode24Hours = false)
     {
         folder.IsScanning = true;
         folder.StatusMessage = "Scanning...";
+
+        if (folder.RequiresAdmin && !ElevationService.IsRunAsAdmin())
+        {
+            folder.SizeBytes = 0;
+            folder.FileCount = 0;
+            folder.FolderCount = 0;
+            folder.TopFiles = new List<JunkFileItem>();
+            folder.StatusMessage = "Requires Admin";
+            folder.IsScanning = false;
+            return;
+        }
 
         await Task.Run(() =>
         {
@@ -633,11 +644,17 @@ public class CleanerService
                     AttributesToSkip = FileAttributes.ReparsePoint
                 };
 
+                bool applySafeTimeCheck = safeMode24Hours && (folder.Id is "UserTemp" or "WinTemp" or "SandboxTest");
+                var cutoffTime = DateTime.Now - TimeSpan.FromHours(24);
+
                 foreach (var file in dirInfo.EnumerateFiles("*", enumOptions))
                 {
                     if (ct.IsCancellationRequested) break;
                     try
                     {
+                        if (applySafeTimeCheck && file.LastWriteTime > cutoffTime) continue;
+                        if (IsProtectedFile(file.FullName)) continue;
+
                         long len = file.Length;
                         totalBytes += len;
                         fileCount++;
@@ -704,8 +721,7 @@ public class CleanerService
             Path.Combine(rootDrive, "ESD"),
             Path.Combine(rootDrive, "ESD", "Download"),
             Path.Combine(rootDrive, "Windows.old"),
-            Path.Combine(rootDrive, "$SysReset"),
-            Path.Combine(winDir, "Panther")
+            Path.Combine(rootDrive, "$SysReset")
         };
         return dirs;
     }
@@ -713,17 +729,17 @@ public class CleanerService
     public static List<string> GetComponentCacheDirectories()
     {
         var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var dirs = new List<string>
         {
             Path.Combine(winDir, "ServiceProfiles", "LocalService", "AppData", "Local", "FontCache"),
             Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "FontCache"),
             Path.Combine(winDir, "SystemTemp"),
             Path.Combine(winDir, "Downloaded Program Files"),
-            Path.Combine(winDir, "WinSxS", "Temp"),
-            Path.Combine(winDir, "WinSxS", "ManifestCache"),
             Path.Combine(winDir, "SoftwareDistribution", "ScanFile"),
             Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "PeerDistPub"),
-            Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "PeerDistSub")
+            Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "PeerDistSub"),
+            Path.Combine(localAppData, "FontCache")
         };
         return dirs;
     }
@@ -1260,6 +1276,8 @@ public class CleanerService
                     if (ct.IsCancellationRequested) break;
                     try
                     {
+                        if (IsProtectedFile(f.FullName)) continue;
+
                         totalBytes += f.Length;
                         fileCount++;
                         if (topFilesBag.Count < 20 || f.Length > 2 * 1024 * 1024)
@@ -1363,6 +1381,44 @@ public class CleanerService
                 {
                     folder.StatusMessage = "Error emptying";
                     logAction($"Error emptying Recycle Bin: {ex.Message}", LogLevel.Error);
+                }
+                finally
+                {
+                    folder.IsCleaning = false;
+                }
+                return;
+            }
+
+            if (folder.IsOrphanedAppFolder)
+            {
+                try
+                {
+                    if (Directory.Exists(folder.FolderPath))
+                    {
+                        long initialSize = folder.SizeBytes;
+                        int initialFiles = folder.FileCount;
+                        bool ok = LargeFileHunterService.MoveToRecycleBin(folder.FolderPath);
+                        if (ok)
+                        {
+                            freedBytes = initialSize;
+                            filesDeleted = initialFiles;
+                            foldersDeleted = 1;
+                            folder.SizeBytes = 0;
+                            folder.FileCount = 0;
+                            folder.StatusMessage = "Moved to Recycle Bin (Undoable)";
+                            logAction($"Safely recycled residual folder '{folder.FolderPath}' to Windows Recycle Bin ({TargetFolderInfo.FormatBytes(initialSize)})", LogLevel.Success);
+                        }
+                        else
+                        {
+                            folder.StatusMessage = "In Use or Locked";
+                            logAction($"Could not recycle '{folder.FolderPath}'. File may be in use or require admin rights.", LogLevel.Warning);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    folder.StatusMessage = "Error";
+                    logAction($"Error cleaning residual folder '{folder.FolderPath}': {ex.Message}", LogLevel.Error);
                 }
                 finally
                 {
@@ -1484,7 +1540,9 @@ public class CleanerService
                             continue;
                         }
 
-                        if (IsProtectedFile(file.FullName))
+                        // AI safety gate: protect files the heuristic engine flags as high-risk
+                        var aiResult = AiFileSafetyService.AnalyzeFile(file.FullName, file.Name, "File", file.Length, file.LastWriteTime);
+                        if (aiResult.Tier == AiSafetyTier.HighRiskKeep)
                         {
                             filesSkipped++;
                             continue;
@@ -1537,13 +1595,19 @@ public class CleanerService
                     // Delete empty subdirectories safely
                     try
                     {
-                        foreach (var subDir in dirInfo.EnumerateDirectories("*", SearchOption.AllDirectories).OrderByDescending(d => d.FullName.Length))
+                        var subCheckOptions = new EnumerationOptions { IgnoreInaccessible = true };
+                        foreach (var subDir in dirInfo.EnumerateDirectories("*", enumOptions).OrderByDescending(d => d.FullName.Length))
                         {
                             if (ct.IsCancellationRequested) break;
                             try
                             {
-                                if (!subDir.EnumerateFileSystemInfos().Any())
+                                if (!subDir.EnumerateFileSystemInfos("*", subCheckOptions).Any())
                                 {
+                                    if ((subDir.Attributes & FileAttributes.ReadOnly) != 0)
+                                    {
+                                        try { subDir.Attributes = FileAttributes.Normal; } catch { }
+                                    }
+
                                     if (RemoveDirectoryW(subDir.FullName) || !Directory.Exists(subDir.FullName))
                                     {
                                         foldersDeleted++;

@@ -215,7 +215,7 @@ public static class ProcessOptimizerService
         catch { }
 
         // Fallback: capitalized process name
-        string prettyName = char.ToUpperInvariant(processName[0]) + processName[1..];
+        string prettyName = string.IsNullOrWhiteSpace(processName) ? "Unknown" : char.ToUpperInvariant(processName[0]) + processName[1..];
         return (prettyName, "Background Application", "⚙️");
     }
 

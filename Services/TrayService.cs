@@ -108,7 +108,8 @@ public static class TrayService
                 {
                     using var stream = streamInfo.Stream;
                     using var ico = new System.Drawing.Icon(stream, 16, 16);
-                    _hIcon = ico.Handle;
+                    using var bmp = ico.ToBitmap();
+                    _hIcon = bmp.GetHicon();
                 }
             }
             catch (Exception ex)

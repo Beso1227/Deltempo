@@ -6,7 +6,7 @@ namespace WinTempCleaner.Services;
 
 public static class SingleInstanceManager
 {
-    private const string MutexName = "Global\\Deltempo_App_SingleInstance_Mutex_v1";
+    private const string MutexName = "Local\\Deltempo_App_SingleInstance_Mutex_v2";
     public const string ShowWindowMessageName = "DELTEMPO_RESTORE_SHOW_WINDOW_MSG";
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
@@ -32,17 +32,62 @@ public static class SingleInstanceManager
     {
         try
         {
-            _mutex = new Mutex(true, MutexName, out bool createdNew);
-            return createdNew;
+            int currentPid = Process.GetCurrentProcess().Id;
+            var otherInstances = Process.GetProcessesByName("Deltempo")
+                .Concat(Process.GetProcessesByName("WinTempCleaner"))
+                .Where(p => p.Id != currentPid)
+                .ToList();
+
+            // Automatically purge any orphaned / headless ghost instances (MainWindowHandle == 0)
+            var ghosts = otherInstances.Where(p => p.MainWindowHandle == IntPtr.Zero).ToList();
+            foreach (var ghost in ghosts)
+            {
+                try
+                {
+                    ghost.Kill();
+                    ghost.WaitForExit(500);
+                }
+                catch { }
+                finally
+                {
+                    ghost.Dispose();
+                }
+            }
+
+            // Refresh list after clearing ghosts: only consider instances that actually have a visible window
+            otherInstances = Process.GetProcessesByName("Deltempo")
+                .Concat(Process.GetProcessesByName("WinTempCleaner"))
+                .Where(p => p.Id != currentPid && p.MainWindowHandle != IntPtr.Zero)
+                .ToList();
+
+            // If no visible window exists, always allow this instance to start
+            if (otherInstances.Count == 0)
+            {
+                try
+                {
+                    _mutex = new Mutex(true, MutexName, out _);
+                }
+                catch { }
+                return true;
+            }
+
+            // An actual instance with a visible window is running
+            try
+            {
+                _mutex = new Mutex(true, MutexName, out bool createdNew);
+                return createdNew;
+            }
+            catch (AbandonedMutexException)
+            {
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
-        catch (AbandonedMutexException)
+        catch
         {
-            // Previous instance crashed or exited without clean release; ownership acquired
-            return true;
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
             return true;
         }
     }

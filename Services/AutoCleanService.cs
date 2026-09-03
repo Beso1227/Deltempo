@@ -43,7 +43,7 @@ public static class AutoCleanService
 
             // Only clean safe targets
             var safeTargets = targets.Where(t => !t.IsOrphanedAppFolder).ToList();
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
 
             long totalFreed = 0;
             int totalFiles = 0;

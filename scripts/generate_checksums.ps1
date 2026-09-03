@@ -1,33 +1,31 @@
 # ==============================================================================
-# Deltempo Binary Release Integrity & Checksum Generator
-# Generates cryptographic SHA-256, SHA-512, and MD5 hashes for builds
+# Deltempo Checksum and Integrity Generator
 # ==============================================================================
 
 param(
-    [string]$TargetDir = "$PSScriptRoot\..\bin\Release\net10.0-windows\win-x64\publish"
+    [string]$TargetDir = ""
 )
 
 $ErrorActionPreference = "Stop"
 
-if (-not (Test-Path $TargetDir)) {
-    $TargetDir = "$PSScriptRoot\..\bin\Release\net10.0-windows\win-x64"
+$scriptRoot = $PSScriptRoot
+$projectRoot = "$scriptRoot\.."
+
+$resolvedPath = if ([string]::IsNullOrWhiteSpace($TargetDir)) {
+    "$projectRoot\publish"
+} else {
+    $TargetDir
 }
 
-if (-not (Test-Path $TargetDir)) {
-    Write-Warning "Target directory not found: $TargetDir. Run 'dotnet publish' first."
-    exit 0
+if (-not (Test-Path $resolvedPath)) {
+    Write-Error "Target directory does not exist: $resolvedPath"
+    exit 1
 }
 
-$resolvedPath = (Resolve-Path $TargetDir).Path
-Write-Host "🔐 Deltempo Integrity: Generating checksums for binaries at $resolvedPath..."
+Write-Host ">>> Generating SHA-256 and SHA-512 integrity manifests for: $resolvedPath" -ForegroundColor Cyan
 
-$exeFiles = Get-ChildItem -Path $resolvedPath -Filter "*.exe" -File
-$dllFiles = Get-ChildItem -Path $resolvedPath -Filter "Deltempo*.dll" -File
-$allFiles = @($exeFiles) + @($dllFiles)
-
-if ($allFiles.Count -eq 0) {
-    Write-Warning "No release binaries found to hash in $resolvedPath."
-    exit 0
+$allFiles = Get-ChildItem -Path $resolvedPath -File | Where-Object { 
+    $_.Name -ne "checksums.sha256" -and $_.Name -ne "integrity.json"
 }
 
 $sha256Lines = @()
@@ -48,7 +46,7 @@ foreach ($file in $allFiles) {
         Timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss UTC")
     }
 
-    Write-Host "  ✓ $($file.Name) [$sizeFormatted] -> SHA256: $sha256"
+    Write-Host "  [OK] $($file.Name) [$sizeFormatted] -> SHA256: $sha256"
 }
 
 $sha256OutputFile = Join-Path $resolvedPath "checksums.sha256"
@@ -57,4 +55,5 @@ $sha256Lines | Out-File -FilePath $sha256OutputFile -Encoding utf8 -Force
 $jsonOutputFile = Join-Path $resolvedPath "integrity.json"
 $manifest | ConvertTo-Json -Depth 4 | Out-File -FilePath $jsonOutputFile -Encoding utf8 -Force
 
-Write-Host "`n🎉 Checksums generated successfully at $sha256OutputFile!"
+Write-Host ""
+Write-Host "SUCCESS: Checksums generated successfully at $sha256OutputFile!" -ForegroundColor Green

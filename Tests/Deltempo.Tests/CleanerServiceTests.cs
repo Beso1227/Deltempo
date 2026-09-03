@@ -242,4 +242,190 @@ public class CleanerServiceTests : IDisposable
         Assert.NotNull(procs);
         Assert.DoesNotContain(procs, p => ProcessOptimizerService.IsProtectedProcess(p.ProcessName));
     }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public void ProcessOptimizer_IsProtectedProcess_HandlesEmptyOrNullSafely(string? processName)
+    {
+        bool isProtected = ProcessOptimizerService.IsProtectedProcess(processName!);
+        Assert.True(isProtected, "Null or empty process name should fail-safe to protected");
+    }
+
+    [Fact]
+    public void OrphanedAppService_GetComprehensiveActiveAppKeywords_ContainsCoreVendors()
+    {
+        var keywords = OrphanedAppService.GetComprehensiveActiveAppKeywords();
+        Assert.NotNull(keywords);
+        Assert.Contains("Microsoft", keywords);
+        Assert.Contains("Windows", keywords);
+        Assert.Contains("Temp", keywords);
+    }
+
+    [Fact]
+    public async Task CleanFolderAsync_RemovesEmptySubdirectoriesSafely()
+    {
+        // Arrange
+        var emptySubDir = Path.Combine(_testSandboxDir, "empty_temp_subdir");
+        Directory.CreateDirectory(emptySubDir);
+
+        var target = new TargetFolderInfo
+        {
+            Id = "SubDirTest",
+            Name = "SubDir Test Target",
+            FolderPath = _testSandboxDir
+        };
+
+        // Act
+        var (_, _, foldersDeleted, _) = await _cleanerService.CleanFolderAsync(
+            target,
+            safeMode24Hours: false,
+            logAction: (msg, lvl) => { },
+            progressReport: p => { },
+            ct: CancellationToken.None);
+
+        // Assert
+        Assert.False(Directory.Exists(emptySubDir), "Empty subdirectory should be removed");
+        Assert.True(foldersDeleted >= 1, "At least one folder should be deleted");
+    }
+
+    [Theory]
+    [InlineData(".iso", "Installer / ISO", "\uE8B7")]
+    [InlineData(".pak", "Game Asset / Pak", "\uE7FC")]
+    [InlineData(".safetensors", "AI Model / Weights", "\uE943")]
+    [InlineData(".mp4", "Video / Media", "\uE714")]
+    [InlineData(".zip", "Archive", "\uF012")]
+    [InlineData(".vmdk", "Virtual Disk / Image", "\uEDA2")]
+    [InlineData(".exe", "Application / Binary", "\uE756")]
+    public void LargeFileHunter_ClassifyFileCategory_CategorizesAccurately(string ext, string expectedCat, string expectedIcon)
+    {
+        var (category, icon) = LargeFileHunterService.ClassifyFileCategory(ext);
+        Assert.Equal(expectedCat, category);
+        Assert.Equal(expectedIcon, icon);
+    }
+
+    [Fact]
+    public void LargeFileHunter_GetAvailableDrives_ReturnsValidDrives()
+    {
+        var drives = LargeFileHunterService.GetAvailableDrives();
+        Assert.NotEmpty(drives);
+        Assert.Contains(drives, d => d.Contains(':'));
+    }
+
+    [Fact]
+    public async Task LargeFileHunter_ScanLargeFilesAsync_DetectsFileAboveThreshold()
+    {
+        // Arrange
+        string testFile = Path.Combine(_testSandboxDir, "big_test_asset.pak");
+        long targetSize = 55L * 1024 * 1024; // 55 MB
+        using (var fs = new FileStream(testFile, FileMode.Create, FileAccess.Write))
+        {
+            fs.SetLength(targetSize);
+        }
+
+        string smallFile = Path.Combine(_testSandboxDir, "small_test_asset.txt");
+        using (var fs = new FileStream(smallFile, FileMode.Create, FileAccess.Write))
+        {
+            fs.SetLength(1024);
+        }
+
+        try
+        {
+            // Act
+            var results = await LargeFileHunterService.ScanLargeFilesAsync(
+                minSizeBytes: 50L * 1024 * 1024,
+                targetScope: _testSandboxDir);
+
+            // Assert
+            Assert.Contains(results, f => f.FileName == "big_test_asset.pak");
+            Assert.DoesNotContain(results, f => f.FileName == "small_test_asset.txt");
+
+            var match = results.First(f => f.FileName == "big_test_asset.pak");
+            Assert.Equal("Game Asset / Pak", match.Category);
+            Assert.Equal("\uE7FC", match.CategoryIcon);
+            Assert.Equal(targetSize, match.SizeBytes);
+        }
+        finally
+        {
+            if (File.Exists(testFile)) File.Delete(testFile);
+            if (File.Exists(smallFile)) File.Delete(smallFile);
+        }
+    }
+
+    [Fact]
+    public void OrphanedAppService_ScanVerifiedOrphanedFolders_NeverFlagsProtectedSystemFolders()
+    {
+        var orphans = OrphanedAppService.ScanVerifiedOrphanedFolders();
+        Assert.NotNull(orphans);
+
+        // Crucial security invariant: Windows, Microsoft, Common Files, etc. MUST never appear in orphans
+        Assert.DoesNotContain(orphans, o => o.Name.Contains("Windows", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(orphans, o => o.Name.Contains("Microsoft", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(orphans, o => o.FolderPath.Contains("Common Files", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(orphans, o => o.FolderPath.Contains("Package Cache", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void OrphanedAppService_AllDiscoveredOrphans_AreUncheckedByDefault()
+    {
+        var orphans = OrphanedAppService.ScanVerifiedOrphanedFolders();
+        foreach (var orphan in orphans)
+        {
+            Assert.False(orphan.IsSelected, $"Orphaned folder '{orphan.Name}' must be unselected by default for safety.");
+            Assert.True(orphan.IsOrphanedAppFolder);
+        }
+    }
+
+    [Fact]
+    public void AiFileSafetyService_DownloadsInstaller_ClassifiesAsSafeToClean()
+    {
+        string path = @"C:\Users\JohnDoe\Downloads\Win11_23H2_English_x64.iso";
+        var result = AiFileSafetyService.AnalyzeFile(path, "Win11_23H2_English_x64.iso", "Installer / ISO", 5L * 1024 * 1024 * 1024, DateTime.Now.AddDays(-30));
+
+        Assert.Equal(AiSafetyTier.SafeToClean, result.Tier);
+        Assert.True(result.IsSafeToAutoClean);
+        Assert.True(result.SafetyScore >= 90);
+        Assert.Contains("SAFE", result.Verdict);
+    }
+
+    [Fact]
+    public void AiFileSafetyService_CrashDump_ClassifiesAsSafeToClean()
+    {
+        string path = @"C:\ProgramData\CrashDumps\app_crash.dmp";
+        var result = AiFileSafetyService.AnalyzeFile(path, "app_crash.dmp", "Dump / Temp / Download", 800L * 1024 * 1024, DateTime.Now.AddDays(-5));
+
+        Assert.Equal(AiSafetyTier.SafeToClean, result.Tier);
+        Assert.True(result.IsSafeToAutoClean);
+        Assert.True(result.SafetyScore >= 95);
+    }
+
+    [Fact]
+    public void AiFileSafetyService_SteamGameAsset_ClassifiesAsHighRisk()
+    {
+        string path = @"D:\SteamLibrary\steamapps\common\Palworld\Pal\Content\Paks\Pal-Windows.pak";
+        var result = AiFileSafetyService.AnalyzeFile(path, "Pal-Windows.pak", "Game Asset / Pak", 18L * 1024 * 1024 * 1024, DateTime.Now.AddDays(-10));
+
+        Assert.Equal(AiSafetyTier.HighRiskKeep, result.Tier);
+        Assert.False(result.IsSafeToAutoClean);
+        Assert.True(result.SafetyScore <= 30);
+        Assert.Contains("Steam", result.Origin);
+        Assert.Contains("PROTECTED", result.Verdict);
+    }
+
+    [Fact]
+    public void AiFileSafetyService_ProjectModelWeights_ClassifiesAsHighRisk()
+    {
+        string path = @"D:\Projects\deltempo\ai_models\weights.safetensors";
+        var result = AiFileSafetyService.AnalyzeFile(path, "weights.safetensors", "AI Model / Weights", 4L * 1024 * 1024 * 1024, DateTime.Now.AddDays(-2));
+
+        Assert.Equal(AiSafetyTier.HighRiskKeep, result.Tier);
+        Assert.False(result.IsSafeToAutoClean);
+        Assert.True(result.SafetyScore <= 20);
+        Assert.Contains("PROTECTED", result.Verdict);
+    }
 }
+
+
+
+
