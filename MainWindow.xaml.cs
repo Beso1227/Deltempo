@@ -146,7 +146,8 @@ public partial class MainWindow : Window
             }));
 
         AutoCleanService.Start();
-        AppVersionHeaderBadge.Text = $"v{UpdateService.CurrentVersion.ToString(3)}";
+        AppVersionHeaderBadge.Text = BuildInfo.VersionWithPatchDisplay;
+        AppVersionHeaderBadge.ToolTip = $"Commit: {BuildInfo.CommitSha}\nBuilt: {BuildInfo.BuildDateUtc:yyyy-MM-dd HH:mm} UTC";
         LoadSettingsIntoUI();
 
         if (SettingsService.Current.CheckUpdatesOnStartup)
@@ -169,7 +170,18 @@ public partial class MainWindow : Window
         SettingsCheckUpdatesCheckBox.IsChecked = SettingsService.Current.CheckUpdatesOnStartup;
         SettingsRecycleBinCheckBox.IsChecked = SettingsService.Current.SendToRecycleBin;
         SettingsLowDiskAlertCheckBox.IsChecked = SettingsService.Current.LowDiskAlertEnabled;
-        ManualCheckStatusText.Text = $"Current: v{UpdateService.CurrentVersion.ToString(3)}";
+        ManualCheckStatusText.Text = $"Current: {BuildInfo.VersionWithPatchDisplay}";
+
+        // Update channel selection
+        string currentChan = SettingsService.Current.UpdateChannel?.ToLowerInvariant() ?? "patch";
+        foreach (ComboBoxItem item in SettingsUpdateChannelComboBox.Items)
+        {
+            if (item.Tag is string t && t.Equals(currentChan, StringComparison.OrdinalIgnoreCase))
+            {
+                SettingsUpdateChannelComboBox.SelectedItem = item;
+                break;
+            }
+        }
 
         // Find matching interval combo box item (no loop needed — just pick by tag)
         ComboBoxItem? foundInterval = null;
@@ -245,6 +257,11 @@ public partial class MainWindow : Window
         SettingsService.Current.CheckUpdatesOnStartup = SettingsCheckUpdatesCheckBox.IsChecked == true;
         SettingsService.Current.SendToRecycleBin = SettingsRecycleBinCheckBox.IsChecked == true;
         SettingsService.Current.LowDiskAlertEnabled = SettingsLowDiskAlertCheckBox.IsChecked == true;
+
+        if (SettingsUpdateChannelComboBox.SelectedItem is ComboBoxItem uci && uci.Tag is string uct)
+        {
+            SettingsService.Current.UpdateChannel = uct;
+        }
 
         if (SettingsIntervalComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag && int.TryParse(tag, out int hours))
         {
@@ -1067,6 +1084,15 @@ public partial class MainWindow : Window
                 Dispatcher.Invoke(() =>
                 {
                     UpdateVersionTagText.Text = release.TagName;
+                    if (release.IsPatchUpdate)
+                    {
+                        UpdateSubtitleText.Text = $"Instant Patch update ready (Commit {release.ShortCommitSha})";
+                    }
+                    else
+                    {
+                        UpdateSubtitleText.Text = "A new official release of Deltempo is ready";
+                    }
+
                     if (!string.IsNullOrWhiteSpace(release.Body))
                     {
                         UpdateChangelogText.Text = release.Body;
@@ -1081,16 +1107,18 @@ public partial class MainWindow : Window
                     UpdateLaterBtn.IsEnabled = true;
                     UpdateModalOverlay.Visibility = Visibility.Visible;
                     SoundService.PlayClickSound();
-                    AddLog($"New version available: {release.TagName}", LogLevel.Info);
+                    AddLog(release.IsPatchUpdate 
+                        ? $"Continuous patch available: {release.TagName}" 
+                        : $"New version available: {release.TagName}", LogLevel.Info);
                 });
             }
             else if (!silent)
             {
                 Dispatcher.Invoke(() =>
                 {
-                    ManualCheckStatusText.Text = $"Up to date! (v{UpdateService.CurrentVersion.ToString(3)})";
+                    ManualCheckStatusText.Text = $"Up to date! ({BuildInfo.VersionWithPatchDisplay})";
                     MessageBox.Show(
-                        $"You are running the latest version of Deltempo (v{UpdateService.CurrentVersion.ToString(3)}).\n\nNo updates are currently available.",
+                        $"You are running the latest build of Deltempo ({BuildInfo.VersionWithPatchDisplay}).\n\nNo updates or patches are currently available.",
                         "Deltempo is Up to Date",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);

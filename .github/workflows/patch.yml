@@ -1,0 +1,102 @@
+name: Continuous Patch Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-patch:
+    name: Build & Publish Continuous Patch
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore All Dependencies
+        run: |
+          dotnet restore WinTempCleaner.csproj
+          dotnet restore Cli/Deltempo.Cli.csproj
+          dotnet restore Tests/Deltempo.Tests/Deltempo.Tests.csproj
+
+      - name: Run Verification Tests
+        run: dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --verbosity normal
+
+      - name: Build & Publish Standalone Executables
+        run: |
+          dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
+          dotnet publish Cli/Deltempo.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
+
+      - name: Generate Patch Manifest
+        shell: pwsh
+        run: |
+          $sha = (git rev-parse HEAD).Trim()
+          $shortSha = (git rev-parse --short HEAD).Trim()
+          $msg = (git log -1 --pretty=%B).Trim()
+          $date = (Get-Date).ToUniversalTime().ToString("o")
+          $guiSize = (Get-Item ./dist/Deltempo.exe).Length
+          $guiHash = (Get-FileHash ./dist/Deltempo.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+
+          $manifest = @{
+              channel = "patch"
+              baseVersion = "1.3.3"
+              commitSha = $sha
+              shortSha = $shortSha
+              commitMessage = $msg
+              timestamp = $date
+              downloadUrl = "https://github.com/Beso1227/Deltempo/releases/download/patch/Deltempo.exe"
+              fileSizeBytes = $guiSize
+              sha256 = $guiHash
+          }
+
+          $json = $manifest | ConvertTo-Json -Depth 4
+          $json | Out-File -FilePath ./dist/patch-manifest.json -Encoding utf8 -Force
+
+          Write-Host "Generated patch manifest for commit: $shortSha"
+          Write-Host $json
+
+      - name: Publish Rolling Patch Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: patch
+          name: "Deltempo Continuous Patch (Latest Main)"
+          body: |
+            ## ⚡ Deltempo Continuous Patch Build
+
+            Automatically compiled and published on push to `main`.
+
+            - **Commit**: `${{ github.sha }}`
+            - **Published**: `${{ github.event.head_commit.timestamp || '' }}`
+            - **Commit Message**:
+            > ${{ github.event.head_commit.message }}
+
+            <!-- DELTEMPO_PATCH_MANIFEST
+            {
+              "commitSha": "${{ github.sha }}",
+              "timestamp": "${{ github.event.head_commit.timestamp }}",
+              "commitMessage": "${{ github.event.head_commit.message }}"
+            }
+            -->
+
+            ### 📦 Standalone Assets
+            - `Deltempo.exe` (Standalone GUI & CLI)
+            - `deltempo_cli.exe` (Headless CLI)
+            - `patch-manifest.json` (Automated patch metadata)
+          files: |
+            ./dist/Deltempo.exe
+            ./dist/deltempo_cli.exe
+            ./dist/patch-manifest.json
+          draft: false
+          prerelease: true
