@@ -63,7 +63,6 @@ public static class BrowserCacheResolver
                 dirs.Add(Path.Combine(prof, "DawnCache"));
                 dirs.Add(Path.Combine(prof, "ShaderCache"));
                 dirs.Add(Path.Combine(prof, "GrShaderCache"));
-                dirs.Add(Path.Combine(prof, "Service Worker", "CacheStorage"));
                 dirs.Add(Path.Combine(prof, "Crashpad", "reports"));
                 dirs.Add(Path.Combine(prof, "blob_storage"));
             }

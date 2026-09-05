@@ -1337,6 +1337,13 @@ public class CleanerService
                             continue;
                         }
 
+                        // Essential session and credential guard: NEVER delete protected files
+                        if (IsProtectedFile(file.FullName))
+                        {
+                            filesSkipped++;
+                            continue;
+                        }
+
                         // AI safety gate: protect files the heuristic engine flags as high-risk
                         var aiResult = AiFileSafetyService.AnalyzeFile(file.FullName, file.Name, "File", file.Length, file.LastWriteTime);
                         if (aiResult.Tier == AiSafetyTier.HighRiskKeep)
@@ -1439,6 +1446,8 @@ public class CleanerService
                             if (ct.IsCancellationRequested) break;
                             try
                             {
+                                if (IsProtectedSessionOrCredentialFile(subDir.FullName)) continue;
+
                                 if (!subDir.EnumerateFileSystemInfos("*", subCheckOptions).Any())
                                 {
                                     if ((subDir.Attributes & FileAttributes.ReadOnly) != 0)
@@ -1731,6 +1740,15 @@ public class CleanerService
         }, ct);
     }
 
+    public static readonly string[] CommunicationAppKeywords =
+    {
+        "whatsapp", "telegram", "msteams", "teams", "discord", "slack", "signal",
+        "skype", "zoom", "viber", "element", "wechat", "line", "kakao", "messenger",
+        "session", "threema", "wire", "icq", "mattermost", "webex", "cisco-spark", "ciscospark",
+        "ringcentral", "thunderbird", "outlook", "rocketchat", "keybase", "zulip", "chime", "flock",
+        "matrix", "accountscontrol", "aad", "cloudexperiencehost", "bioenrollment", "auth"
+    };
+
     public static bool IsProtectedSessionOrCredentialFile(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath)) return false;
@@ -1738,8 +1756,19 @@ public class CleanerService
         var pathLower = filePath.ToLowerInvariant();
         var fileName = Path.GetFileName(pathLower);
 
-        // 1. Critical session, credential, login and account files
-        if (fileName.StartsWith("login data") ||
+        // 1. Zero-touch sandbox protection for ALL messaging, communication, meeting, and auth Store packages
+        if (pathLower.Contains(@"\packages\"))
+        {
+            foreach (var kw in CommunicationAppKeywords)
+            {
+                if (pathLower.Contains(kw)) return true;
+            }
+        }
+
+        // 2. Critical session, credential, login, encryption master key, and account files
+        if (fileName == "local state" ||
+            fileName.StartsWith("local state") ||
+            fileName.StartsWith("login data") ||
             fileName.StartsWith("cookies") ||
             fileName.StartsWith("web data") ||
             fileName.StartsWith("preferences") ||
@@ -1754,6 +1783,11 @@ public class CleanerService
             fileName.StartsWith("userclasses.dat") ||
             fileName.StartsWith("storage.json") ||
             fileName.StartsWith("state.vscdb") ||
+            fileName.StartsWith("persistent.conf") ||
+            fileName.StartsWith("cs_shared.conf") ||
+            fileName.StartsWith("ecs.conf") ||
+            fileName.StartsWith("sadrecord.dat") ||
+            fileName.StartsWith("session.db") ||
             fileName.Contains("session") ||
             fileName.Contains("token") ||
             fileName.Contains("identity") ||
@@ -1766,7 +1800,7 @@ public class CleanerService
             return true;
         }
 
-        // 2. Telegram Desktop authentication keys & account maps (inside tdata)
+        // 3. Telegram Desktop authentication keys & account maps (inside tdata)
         // Telegram stores user auth keys as hex files (e.g., D877F783D5D3EF8C0, D877F783D5D3EF8C1, etc.),
         // map0, map1, configs, settings0, settings1, key_datas, etc.
         // ONLY user_data\cache, temp, and dumps subfolders in tdata are safe to clean.
@@ -1780,10 +1814,12 @@ public class CleanerService
             }
         }
 
-        // 3. Database & storage paths holding active user sessions / auth tokens / sync databases / SSO identity
+        // 4. Database & storage paths holding active user sessions / auth tokens / sync databases / SSO identity
         if (pathLower.Contains(@"\indexeddb\") ||
             pathLower.Contains(@"\local storage\") ||
             pathLower.Contains(@"\session storage\") ||
+            pathLower.Contains(@"\sharedstorage\") ||
+            pathLower.Contains(@"\service worker\") ||
             pathLower.Contains(@"\sync data\") ||
             pathLower.Contains(@"\keytar\") ||
             pathLower.Contains(@"\keystore\") ||
@@ -1793,9 +1829,46 @@ public class CleanerService
             pathLower.Contains(@"\tokenbroker\") ||
             pathLower.Contains(@"\msal\") ||
             pathLower.Contains(@"\wam\") ||
-            pathLower.Contains(@"\aad\"))
+            pathLower.Contains(@"\aad\") ||
+            pathLower.Contains(@"\sessions\") ||
+            pathLower.Contains(@"\edgesessions\"))
         {
             return true;
+        }
+
+        // 5. If the file/dir is inside any communication app's AppData tree, strictly protect non-cache folders & files
+        if (pathLower.Contains(@"\appdata\"))
+        {
+            foreach (var kw in CommunicationAppKeywords)
+            {
+                if (pathLower.Contains(kw))
+                {
+                    // Never delete database, configuration, state, or key files inside a communication app
+                    if (fileName.EndsWith(".db") || fileName.EndsWith(".db-wal") || fileName.EndsWith(".db-shm") ||
+                        fileName.EndsWith(".sqlite") || fileName.EndsWith(".sqlite-wal") || fileName.EndsWith(".sqlite-shm") ||
+                        fileName.EndsWith(".ldb") || fileName.EndsWith(".log") || fileName.EndsWith(".json") ||
+                        fileName.EndsWith(".conf") || fileName.EndsWith(".cfg") || fileName.EndsWith(".ini") ||
+                        fileName.EndsWith(".key") || fileName.EndsWith(".crt") || fileName.EndsWith(".pem"))
+                    {
+                        return true;
+                    }
+
+                    // If it's not inside an explicitly safe temporary/cache folder, protect it!
+                    if (!pathLower.Contains(@"\gpucache\") &&
+                        !pathLower.Contains(@"\dawncache\") &&
+                        !pathLower.Contains(@"\crashpad\") &&
+                        !pathLower.Contains(@"\temp\") &&
+                        !pathLower.Contains(@"\dumps\") &&
+                        !pathLower.Contains(@"\avatars\") &&
+                        !pathLower.Contains(@"\all users\cache\") &&
+                        !pathLower.Contains(@"\cache\") &&
+                        !pathLower.Contains(@"\cache2\entries\") &&
+                        !pathLower.Contains(@"\logs\"))
+                    {
+                        return true;
+                    }
+                }
+            }
         }
 
         return false;

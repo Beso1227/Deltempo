@@ -4,6 +4,27 @@ namespace WinTempCleaner.Services.Providers.CacheResolvers;
 
 public static class StoreAppCacheResolver
 {
+    // Strict blacklist of all communication, messaging, meeting, collaboration, and identity store packages
+    public static readonly string[] ProtectedStorePackageKeywords =
+    {
+        "whatsapp", "telegram", "msteams", "teams", "discord", "slack", "signal",
+        "skype", "zoom", "viber", "element", "wechat", "line", "kakao", "messenger",
+        "session", "threema", "wire", "icq", "mattermost", "webex", "cisco-spark", "ciscospark",
+        "ringcentral", "thunderbird", "outlook", "rocketchat", "keybase", "zulip", "chime", "flock",
+        "matrix", "accountscontrol", "aad", "cloudexperiencehost", "bioenrollment", "auth"
+    };
+
+    public static bool IsProtectedStorePackage(string packageNameOrPath)
+    {
+        if (string.IsNullOrWhiteSpace(packageNameOrPath)) return false;
+        var lower = packageNameOrPath.ToLowerInvariant();
+        foreach (var kw in ProtectedStorePackageKeywords)
+        {
+            if (lower.Contains(kw)) return true;
+        }
+        return false;
+    }
+
     public static List<string> Resolve()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -16,7 +37,15 @@ public static class StoreAppCacheResolver
             {
                 foreach (var pkg in Directory.EnumerateDirectories(packagesRoot))
                 {
-                    // 100% safe standard UWP temporary/cache locations
+                    var pkgName = Path.GetFileName(pkg);
+
+                    // ZERO-TOUCH POLICY: Completely skip any messaging, communication, collaboration, or auth package!
+                    if (IsProtectedStorePackage(pkgName))
+                    {
+                        continue;
+                    }
+
+                    // 100% safe standard UWP temporary/cache locations for generic non-communication store apps
                     dirs.Add(Path.Combine(pkg, "AC", "INetCache"));
                     dirs.Add(Path.Combine(pkg, "AC", "Temp"));
                     dirs.Add(Path.Combine(pkg, "TempState"));
@@ -30,10 +59,6 @@ public static class StoreAppCacheResolver
                     }
 
                     // Safe sub-caches inside LocalCache
-                    // CRITICAL: NEVER add pkg\LocalCache wholesale!
-                    // In Centennial (Desktop Bridge) apps, LocalCache\Roaming and LocalCache\Local contain virtualized %APPDATA%
-                    // (e.g. Telegram Desktop UWP session tdata, Slack, etc.).
-                    // In WebView2 apps (WhatsApp Desktop, New Teams), LocalCache\EBWebView contains Login Data and IndexedDB!
                     var localCache = Path.Combine(pkg, "LocalCache");
                     if (Directory.Exists(localCache))
                     {
@@ -50,12 +75,6 @@ public static class StoreAppCacheResolver
                         if (Directory.Exists(ebRoot))
                         {
                             AddEbWebViewSafeCaches(ebRoot, dirs);
-                        }
-
-                        var msTeamsEbRoot = Path.Combine(localCache, "Microsoft", "MSTeams", "EBWebView");
-                        if (Directory.Exists(msTeamsEbRoot))
-                        {
-                            AddEbWebViewSafeCaches(msTeamsEbRoot, dirs);
                         }
                     }
                 }
@@ -93,8 +112,7 @@ public static class StoreAppCacheResolver
                 {
                     continue;
                 }
-
-                // Profile-specific safe disposable caches ONLY
+                // Profile-specific safe disposable caches ONLY (HTTP cache, compiled shaders, bytecode)
                 dirs.Add(Path.Combine(profileDir, "Cache"));
                 dirs.Add(Path.Combine(profileDir, "Cache", "Cache_Data"));
                 dirs.Add(Path.Combine(profileDir, "Code Cache"));
@@ -102,8 +120,7 @@ public static class StoreAppCacheResolver
                 dirs.Add(Path.Combine(profileDir, "DawnCache"));
                 dirs.Add(Path.Combine(profileDir, "ShaderCache"));
                 dirs.Add(Path.Combine(profileDir, "GrShaderCache"));
-                dirs.Add(Path.Combine(profileDir, "Service Worker", "CacheStorage"));
-                // Strictly NEVER add profileDir itself, IndexedDB, Login Data, Cookies, Local Storage, or Web Data!
+                // Strictly NEVER add profileDir itself, IndexedDB, Service Worker, Login Data, Cookies, Local Storage, or Web Data!
             }
         }
         catch (Exception ex)

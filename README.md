@@ -8,16 +8,16 @@
   <p>The open-source, zero-bloat disk cleaner and NT kernel memory optimizer for Windows 10 &amp; 11.</p>
 
   <p>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=06B6D4&logo=windows&logoColor=white" alt="Release v1.3.2" /></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=06B6D4&logo=windows&logoColor=white" alt="Release v1.3.3" /></a>
     <a href="https://github.com/Beso1227/Deltempo/actions"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=Build" alt="CI Status" /></a>
-    <a href="Tests/Deltempo.Tests"><img src="https://img.shields.io/badge/Tests-126%20Passing-10B981?style=for-the-badge&logo=xunit&logoColor=white" alt="126 xUnit Tests Passing" /></a>
+    <a href="Tests/Deltempo.Tests"><img src="https://img.shields.io/badge/Tests-156%20Passing-10B981?style=for-the-badge&logo=xunit&logoColor=white" alt="156 xUnit Tests Passing" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License MIT" /></a>
     <a href="https://beso1227.github.io/Deltempo/"><img src="https://img.shields.io/badge/Official_Site-Live_Web-8B5CF6?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Official Website" /></a>
   </p>
 
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe">
-      <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DELTEMPO.EXE_(v1.3.2)-3B82F6?style=for-the-badge&logoColor=white" alt="Download Standalone Deltempo.exe" height="42" />
+      <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DELTEMPO.EXE_(v1.3.3)-3B82F6?style=for-the-badge&logoColor=white" alt="Download Standalone Deltempo.exe" height="42" />
     </a>
   </p>
 
@@ -266,7 +266,7 @@ PS C:\> deltempo large --min 500MB
 
 ## 📊 Head-to-Head Comparison
 
-| Feature / Standard | Deltempo (v1.3.2) | Microsoft PC Manager | CCleaner (Avast) | BleachBit | Windows Cleanmgr |
+| Feature / Standard | Deltempo (v1.3.3) | Microsoft PC Manager | CCleaner (Avast) | BleachBit | Windows Cleanmgr |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **License** | **Free &amp; Open Source (MIT)** | Free | Freemium / Adware | Free (GPLv3) | Built-in Windows |
 | **Distribution** | **Single Portable EXE** | Store package | Heavy installer + upsells | Zip archive | Built-in |
@@ -277,14 +277,14 @@ PS C:\> deltempo large --min 500MB
 | **Large File Hunter** | **✅ Safe vs. Protected Heuristics** | ⚠️ Basic | ❌ Paid Pro version only | ❌ No | ❌ No |
 | **Undo / Restore Safety** | **✅ Windows Recycle Bin Undo (`SHFileOperation`)** | ❌ Permanent delete | ❌ Permanent delete | ❌ Permanent delete | ❌ Permanent delete |
 | **1-Click Smart Clean** | **✅ 100% Safe Disposable Preset** | ⚠️ Basic | ❌ Paid Pro version only | ❌ No | ❌ No |
-| **Login Session Protection** | **✅ WhatsApp, Telegram, Teams, Store &amp; Browsers** | ⚠️ Wipes LocalCache | ⚠️ Erases sessions | ⚠️ Erases sessions | ❌ No |
+| **Login Session Protection** | **✅ All Messaging, Meeting &amp; Browser Apps (Zero-Touch)** | ⚠️ Wipes LocalCache | ⚠️ Erases sessions | ⚠️ Erases sessions | ❌ No |
 | **Proactive Low Disk Alerts** | **✅ System Tray Notification Sentinel** | ❌ No | ❌ Paid Pro version only | ❌ No | ❌ No |
 | **Windows Upgrade Residue** | **✅ Deep Purge (`$WINDOWS.~BT`, `ESD`)** | ⚠️ Basic | ❌ Paid Pro version only | ❌ No | ⚠️ Partial |
 | **GPU Shader Cache Purge** | **✅ DirectX DXCache + Vulkan GLCache** | ❌ No | ❌ No | ❌ No | ❌ No |
 | **NVIDIA App Driver OTA** | **✅ Cleans 3–10 GB installer caches** | ⚠️ Partial | ❌ No | ❌ No | ⚠️ Partial |
 | **Media &amp; Creator Scratch** | **✅ Adobe, DaVinci, OBS, Blender** | ❌ No | ❌ No | ❌ No | ❌ No |
 | **CLI Automation** | **✅ Instant global registration** | ❌ No | ⚠️ Limited | ⚠️ Basic | ⚠️ Legacy switches |
-| **Automated Test Coverage** | **✅ 126 xUnit Tests (100% Passing)** | ❌ Proprietary | ❌ Proprietary | ⚠️ Basic | ❌ Proprietary |
+| **Automated Test Coverage** | **✅ 156 xUnit Tests (100% Passing)** | ❌ Proprietary | ❌ Proprietary | ⚠️ Basic | ❌ Proprietary |
 
 ---
 
@@ -328,7 +328,7 @@ The resulting executable will be available at `./Deltempo.exe` along with its SH
 
 Contributions, feature requests, and bug reports are warmly welcomed!
 - Found a bug or want a new cleaning scope? Open an [Issue](https://github.com/Beso1227/Deltempo/issues).
-- Want to contribute code? Fork the repo, make your changes, and submit a [Pull Request](https://github.com/Beso1227/Deltempo/pulls). Please ensure all 79 tests pass:
+- Want to contribute code? Fork the repo, make your changes, and submit a [Pull Request](https://github.com/Beso1227/Deltempo/pulls). Please ensure all 156 tests pass:
   ```powershell
   dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj
   ```

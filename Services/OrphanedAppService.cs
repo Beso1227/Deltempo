@@ -31,6 +31,9 @@ public static class OrphanedAppService
         "npm", "yarn", "NuGet", "Gradle", "Android", "Rust", "Go", "Java", "Oracle", "Steam",
         "Epic Games", "EpicGamesLauncher", "JetBrains", "Unity", "Spotify", "Discord", "Slack",
         "Telegram Desktop", "WhatsApp", "WhatsAppDesktop", "Signal", "Skype", "Viber", "Element", "LINE", "WeChat",
+        "Mattermost", "Rocket.Chat", "RocketChat", "Cisco-Spark", "CiscoSparkLauncher", "Webex", "WebexTeams",
+        "RingCentral", "Thunderbird", "Outlook", "Keybase", "Zulip", "Chime", "Flock", "Kakao", "KakaoTalk",
+        "Messenger", "Session", "Threema", "Wire", "ICQ", "MSTeams", "Teams",
         "Code", "GitHubDesktop", "BraveSoftware", "Mozilla", "Zoom", "Notion",
         "Figma", "Cursor", "Windsurf"
     };

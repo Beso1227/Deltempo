@@ -257,14 +257,6 @@ public static class SystemCacheResolver
             Path.Combine(localAppData, "Spotify", "Data"),
             Path.Combine(localAppData, "Spotify", "Storage"),
             Path.Combine(localAppData, "Spotify", "Browser", "Cache"),
-            Path.Combine(roamingAppData, "discord", "Cache"),
-            Path.Combine(roamingAppData, "discord", "Code Cache"),
-            Path.Combine(roamingAppData, "discord", "GPUCache"),
-            Path.Combine(roamingAppData, "discordcanary", "Cache"),
-            Path.Combine(roamingAppData, "discordptb", "Cache"),
-            Path.Combine(roamingAppData, "Slack", "Cache"),
-            Path.Combine(roamingAppData, "Slack", "GPUCache"),
-            Path.Combine(roamingAppData, "Slack", "Service Worker", "CacheStorage"),
             Path.Combine(roamingAppData, "Code", "Cache"),
             Path.Combine(roamingAppData, "Code", "CachedData"),
             Path.Combine(roamingAppData, "Code", "CachedExtensions"),
@@ -278,12 +270,6 @@ public static class SystemCacheResolver
             Path.Combine(roamingAppData, "Notion", "Cache"),
             Path.Combine(roamingAppData, "Notion", "GPUCache"),
             Path.Combine(roamingAppData, "Notion", "Code Cache"),
-            Path.Combine(localAppData, "Microsoft", "Teams", "Cache"),
-            Path.Combine(roamingAppData, "Microsoft", "Teams", "Cache"),
-            Path.Combine(roamingAppData, "Telegram Desktop", "tdata", "user_data", "cache"),
-            Path.Combine(roamingAppData, "WhatsApp", "Cache"),
-            Path.Combine(roamingAppData, "Zoom", "data"),
-            Path.Combine(localAppData, "Zoom", "temp"),
             Path.Combine(localAppData, "CapCut", "User Data", "Cache")
         };
 

@@ -25,15 +25,23 @@ public static class UpdateService
 {
     private const string RepoOwner = "Beso1227";
     private const string RepoName = "Deltempo";
-    private static readonly HttpClient HttpClient = new()
+
+    private static readonly HttpClient ApiHttpClient = new()
     {
-        Timeout = TimeSpan.FromSeconds(15)
+        Timeout = TimeSpan.FromSeconds(30)
+    };
+
+    private static readonly HttpClient DownloadHttpClient = new()
+    {
+        Timeout = TimeSpan.FromMinutes(15)
     };
 
     static UpdateService()
     {
-        HttpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Deltempo-Updater", "1.0"));
-        HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
+        ApiHttpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Deltempo-Updater", "1.0"));
+        ApiHttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
+
+        DownloadHttpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Deltempo-Downloader", "1.0"));
     }
 
     public static Version CurrentVersion =>
@@ -44,7 +52,7 @@ public static class UpdateService
         try
         {
             string url = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/latest";
-            using var response = await HttpClient.GetAsync(url, ct);
+            using var response = await ApiHttpClient.GetAsync(url, ct);
             if (!response.IsSuccessStatusCode)
             {
                 return new ReleaseInfo { CheckSucceeded = false };
@@ -121,14 +129,14 @@ public static class UpdateService
 
         try
         {
-            using var response = await HttpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, ct);
+            using var response = await DownloadHttpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, ct);
             response.EnsureSuccessStatusCode();
 
             var totalBytes = response.Content.Headers.ContentLength ?? -1L;
             await using var contentStream = await response.Content.ReadAsStreamAsync(ct);
-            await using var fileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+            await using var fileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write, FileShare.None, 65536, true);
 
-            var buffer = new byte[16384];
+            var buffer = new byte[65536];
             long totalRead = 0;
             int read;
 
@@ -142,6 +150,7 @@ public static class UpdateService
                 }
             }
 
+            await fileStream.FlushAsync(ct);
             fileStream.Close();
 
             // Prepare Atomic Hot-Swap Handover via PowerShell (immune to special characters in paths)
