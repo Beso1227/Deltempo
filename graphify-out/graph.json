@@ -1,8 +1,7 @@
 {
-  "generatedAt": "2026-09-05T14:52:08.2402275+03:00",
+  "generatedAt": "2026-09-05T14:56:25.4794355+03:00",
   "version": "1.1.0",
   "statistics": {
-    "totalNodes": 30,
     "totalEdges": 33,
     "godNodes": [
       {
@@ -77,7 +76,8 @@
         "count": 4,
         "cluster": "UI"
       }
-    ]
+    ],
+    "totalNodes": 30
   },
   "nodes": [
     {
