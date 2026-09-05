@@ -365,53 +365,82 @@ public static class UpdateService
             await fileStream.FlushAsync(ct);
             fileStream.Close();
 
-            // Prepare Atomic Hot-Swap Handover via PowerShell (immune to special characters in paths)
+            // Prepare Atomic Hot-Swap Handover via robust cmd.exe swap script
+            // (Immune to PowerShell execution policies, cold-start delays, and syntax quirks)
             string currentExePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "";
             if (string.IsNullOrEmpty(currentExePath) || !File.Exists(currentExePath))
             {
                 currentExePath = Path.Combine(AppContext.BaseDirectory, "Deltempo.exe");
             }
 
-            int currentPid = Process.GetCurrentProcess().Id;
-            string psScript = Path.Combine(Path.GetTempPath(), $"deltempo_swap_{Guid.NewGuid():N}.ps1");
+            int currentPid = Environment.ProcessId;
+            string cmdScript = Path.Combine(Path.GetTempPath(), $"deltempo_swap_{Guid.NewGuid():N}.cmd");
+            string logFile = Path.Combine(Path.GetTempPath(), "deltempo_update.log");
 
-            // PowerShell script: wait for PID to exit, then atomically copy the new EXE over the old one,
-            // launch the updated EXE, and self-delete the script.
-            // NOTE: $$ escapes to a literal $ in a C# interpolated verbatim string ($@"..."),
-            // so each PowerShell variable is written as $$.
-            string psContent = $@"$ErrorActionPreference = 'Stop'
-$$PID = {currentPid}
-$$TARGET = {currentExePath.ToSOSPlate()}
-$$SOURCE = {tempFile.ToSOSPlate()}
+            string scriptContent = $@"@echo off
+setlocal enabledelayedexpansion
 
-# Wait for the current process to terminate
-while ($$true) {{
-    try {{
-        $$proc = Get-Process -Id $$PID -ErrorAction Stop
-        Start-Sleep -Milliseconds 500
-    }} catch {{
-        break
-    }}
-}}
+set ""TARGET_PID={currentPid}""
+set ""TARGET_EXE={currentExePath}""
+set ""SOURCE_EXE={tempFile}""
+set ""LOG_FILE={logFile}""
 
-# Atomic overwrite: copy new EXE over the old one
-Copy-Item -Force -Path $$SOURCE -Destination $$TARGET | Out-Null
-Remove-Item -Force -Path $$SOURCE | Out-Null
+echo [%DATE% %TIME%] Deltempo updater handover started > ""%LOG_FILE%""
+echo Target PID: %TARGET_PID% >> ""%LOG_FILE%""
+echo Target EXE: %TARGET_EXE% >> ""%LOG_FILE%""
+echo Source EXE: %SOURCE_EXE% >> ""%LOG_FILE%""
 
-# Launch the updated executable
-Start-Process -FilePath $$TARGET
+:: 1. Wait for current Deltempo process to terminate (up to 30s)
+set /a WAIT_COUNT=0
+:wait_process
+tasklist /FI ""PID eq %TARGET_PID%"" 2>nul | findstr /i ""%TARGET_PID%"" >nul
+if not errorlevel 1 (
+    set /a WAIT_COUNT+=1
+    if !WAIT_COUNT! geq 30 (
+        echo [%DATE% %TIME%] Timed out waiting for process to exit >> ""%LOG_FILE%""
+        goto perform_copy
+    )
+    timeout /t 1 /nobreak >nul
+    goto wait_process
+)
 
-# Self-delete this script
-$$scriptPath = $$MyInvocation.MyCommand.Path
-Start-Process -FilePath 'cmd.exe' -ArgumentList '/c del /f /q', $$scriptPath -WindowStyle Hidden
+:perform_copy
+:: Extra pause for OS handle and antivirus to release file lock
+timeout /t 1 /nobreak >nul
+
+:: 2. Overwrite target with retry loop (up to 25 attempts, 1 second intervals)
+set /a RETRY=0
+:copy_loop
+copy /y ""%SOURCE_EXE%"" ""%TARGET_EXE%"" >nul 2>&1
+if not errorlevel 1 (
+    echo [%DATE% %TIME%] Copy succeeded on attempt !RETRY! >> ""%LOG_FILE%""
+    goto copy_success
+)
+set /a RETRY+=1
+if !RETRY! geq 25 (
+    echo [%DATE% %TIME%] Copy failed after !RETRY! attempts >> ""%LOG_FILE%""
+    goto finish
+)
+timeout /t 1 /nobreak >nul
+goto copy_loop
+
+:copy_success
+del /f /q ""%SOURCE_EXE%"" >nul 2>&1
+echo [%DATE% %TIME%] Launching updated executable >> ""%LOG_FILE%""
+start """" ""%TARGET_EXE%""
+
+:finish
+echo [%DATE% %TIME%] Updater finished, self-deleting >> ""%LOG_FILE%""
+start /b """" cmd /c ""timeout /t 2 /nobreak >nul & del /f /q """"%~f0"""" >nul 2>&1""
+exit /b 0
 ";
 
-            File.WriteAllText(psScript, psContent);
+            File.WriteAllText(cmdScript, scriptContent);
 
             var psi = new ProcessStartInfo
             {
-                FileName = "powershell.exe",
-                Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{psScript}\"",
+                FileName = "cmd.exe",
+                Arguments = $"/c \"\"{cmdScript}\"\"",
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 WindowStyle = ProcessWindowStyle.Hidden
@@ -419,7 +448,7 @@ Start-Process -FilePath 'cmd.exe' -ArgumentList '/c del /f /q', $$scriptPath -Wi
 
             Process.Start(psi);
 
-            // Clean shutdown
+            // Clean shutdown & immediate exit to release all locks instantly
             if (Application.Current != null)
             {
                 Application.Current.Dispatcher.Invoke(() =>
@@ -427,10 +456,7 @@ Start-Process -FilePath 'cmd.exe' -ArgumentList '/c del /f /q', $$scriptPath -Wi
                     Application.Current.Shutdown();
                 });
             }
-            else
-            {
-                Environment.Exit(0);
-            }
+            Environment.Exit(0);
         }
         catch
         {
@@ -446,8 +472,4 @@ Start-Process -FilePath 'cmd.exe' -ArgumentList '/c del /f /q', $$scriptPath -Wi
             throw;
         }
     }
-
-    // Helper to produce a PowerShell-escaped single-quoted string literal
-    private static string ToSOSPlate(this string s) =>
-        "'" + s.Replace("'", "''") + "'";
 }
