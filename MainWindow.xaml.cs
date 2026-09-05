@@ -166,6 +166,8 @@ public partial class MainWindow : Window
         SettingsTrayCheckBox.IsChecked = SettingsService.Current.MinimizeToTray;
         SettingsNotifyCheckBox.IsChecked = SettingsService.Current.AutoCleanNotify;
         SettingsCheckUpdatesCheckBox.IsChecked = SettingsService.Current.CheckUpdatesOnStartup;
+        SettingsRecycleBinCheckBox.IsChecked = SettingsService.Current.SendToRecycleBin;
+        SettingsLowDiskAlertCheckBox.IsChecked = SettingsService.Current.LowDiskAlertEnabled;
         ManualCheckStatusText.Text = $"Current: v{UpdateService.CurrentVersion}";
 
         // Find matching interval combo box item (no loop needed — just pick by tag)
@@ -240,6 +242,8 @@ public partial class MainWindow : Window
         SettingsService.Current.MinimizeToTray = SettingsTrayCheckBox.IsChecked == true;
         SettingsService.Current.AutoCleanNotify = SettingsNotifyCheckBox.IsChecked == true;
         SettingsService.Current.CheckUpdatesOnStartup = SettingsCheckUpdatesCheckBox.IsChecked == true;
+        SettingsService.Current.SendToRecycleBin = SettingsRecycleBinCheckBox.IsChecked == true;
+        SettingsService.Current.LowDiskAlertEnabled = SettingsLowDiskAlertCheckBox.IsChecked == true;
 
         if (SettingsIntervalComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag && int.TryParse(tag, out int hours))
         {
@@ -345,6 +349,8 @@ public partial class MainWindow : Window
             _sessionTotalFreed += additionalFreedBytes;
             HeroSubtext.Text = $"Reclaimed {TargetFolderInfo.FormatBytes(_sessionTotalFreed)} this session • {telemetry.FormattedFree} currently free";
         }
+
+        TrayService.CheckLowDiskSpaceAndNotify(telemetry);
     }
 
     private void InitializeTargets()
@@ -760,6 +766,13 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void SmartCleanButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isBusy) return;
+        SelectSafeOnlyButton_Click(sender, e);
+        await ExecuteCleanupAsync();
+    }
+
     private void SelectSafeOnlyButton_Click(object sender, RoutedEventArgs e)
     {
         foreach (var target in _targets)
@@ -994,6 +1007,7 @@ public partial class MainWindow : Window
 
         // 3. Toolbar & Buttons
         SelectSafeBtnText.Text = LocalizationService.Get("SelectSafe");
+        SmartCleanBtnText.Text = LocalizationService.Get("SmartClean");
         SelectAllBtn.Content = LocalizationService.Get("SelectAll");
         ClearBtn.Content = LocalizationService.Get("Clear");
         QuickScanBtnText.Text = LocalizationService.Get("Rescan");

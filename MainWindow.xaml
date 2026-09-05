@@ -733,6 +733,30 @@
                                     </StackPanel>
                                 </Border>
 
+                                <!-- 1-Click Smart Clean Action Pill -->
+                                <Button x:Name="SmartCleanBtn"
+                                        Style="{DynamicResource PillButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        ToolTip="1-Click Smart Clean: Selects 100% safe junk targets and cleans immediately"
+                                        Padding="11,4.5"
+                                        FontSize="10.5"
+                                        Margin="0,0,6,0"
+                                        Click="SmartCleanButton_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE945;"
+                                                   FontFamily="{DynamicResource IconFont}"
+                                                   FontSize="10"
+                                                   Foreground="{DynamicResource EmeraldGreenBrush}"
+                                                   Margin="0,0,5,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="SmartCleanBtnText"
+                                                   Text="Smart Clean"
+                                                   FontSize="10.5"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
                                 <!-- Rescan Action Pill -->
                                 <Button x:Name="QuickScanBtn"
                                         Style="{DynamicResource PillButton}"
@@ -1896,7 +1920,60 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Group 3: Updates & Version Sync -->
+                            <!-- Group 4: Safe Deletion & Storage Alerts -->
+                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
+                                    Padding="16,12"
+                                    Margin="0,0,0,10">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Recycle Bin Safe Delete (Undoable)"
+                                                       FontSize="12.5"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextHighBrush}"/>
+                                            <TextBlock Text="Move deleted files to Windows Recycle Bin instead of permanent purge"
+                                                       FontSize="10.5"
+                                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="1"
+                                                  x:Name="SettingsRecycleBinCheckBox"
+                                                  Style="{DynamicResource ModernSwitchCheckBox}"
+                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <Grid Margin="0,4,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Low Disk Space Proactive Alerts"
+                                                       FontSize="12.5"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextHighBrush}"/>
+                                            <TextBlock Text="Alert via tray notification when free disk space falls below 10 GB"
+                                                       FontSize="10.5"
+                                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="1"
+                                                  x:Name="SettingsLowDiskAlertCheckBox"
+                                                  Style="{DynamicResource ModernSwitchCheckBox}"
+                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                  IsChecked="True"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Group 5: Updates & Version Sync -->
                             <Border Background="{DynamicResource SurfaceSubCardBrush}"
                                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                                     BorderThickness="1"

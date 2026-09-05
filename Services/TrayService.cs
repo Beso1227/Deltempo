@@ -441,6 +441,26 @@ public static class TrayService
         Shell_NotifyIconW(NIM_MODIFY, ref nid);
     }
 
+    private static DateTime _lastLowDiskAlertTime = DateTime.MinValue;
+
+    public static void CheckLowDiskSpaceAndNotify(DriveTelemetryInfo telemetry)
+    {
+        if (!SettingsService.Current.LowDiskAlertEnabled) return;
+
+        double freeGb = (double)telemetry.FreeBytes / (1024 * 1024 * 1024);
+        if (freeGb < SettingsService.Current.LowDiskAlertThresholdGb)
+        {
+            if ((DateTime.UtcNow - _lastLowDiskAlertTime).TotalHours >= 2)
+            {
+                _lastLowDiskAlertTime = DateTime.UtcNow;
+                ShowNotification(
+                    "⚠️ Low Disk Space Alert",
+                    $"System drive {telemetry.DriveLetter} has only {freeGb:F1} GB free space remaining (Threshold: {SettingsService.Current.LowDiskAlertThresholdGb:F0} GB). Open Deltempo to clean caches."
+                );
+            }
+        }
+    }
+
     public static void Dispose()
     {
         if (!_isInitialized || _mainWindow == null) return;

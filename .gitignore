@@ -35,3 +35,6 @@ NUL
 *.log
 *.dmp
 *.tmp
+
+# Obsidian local workspace
+.obsidian/

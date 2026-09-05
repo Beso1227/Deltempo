@@ -34,6 +34,27 @@ public static class AiFileSafetyService
         double ageDays = (DateTime.Now - lastModified).TotalDays;
 
         // =========================================================================
+        // 0. CRITICAL: LOGIN SESSIONS, AUTH KEYS, CREDENTIALS & SENSITIVE APP DATA
+        // =========================================================================
+        if (CleanerService.IsProtectedSessionOrCredentialFile(filePath))
+        {
+            return new AiAnalysisResult
+            {
+                SafetyScore = 0,
+                Tier = AiSafetyTier.HighRiskKeep,
+                Verdict = "PROTECTED (Session & Login Data)",
+                VerdictShort = "PROTECTED",
+                BadgeColor = "#EF4444",
+                BadgeBackground = "#2A0E0E",
+                BadgeBorder = "#EF4444",
+                Origin = "User Authentication / Session State",
+                Impact = "Critical Risk — Deleting will log you out of WhatsApp, Telegram, browsers, or other apps.",
+                Explanation = $"Active session, login credential, or cryptographic key file ({FormatBytes(sizeBytes)}). DO NOT DELETE: Preserved to prevent automatic logout.",
+                IsSafeToAutoClean = false
+            };
+        }
+
+        // =========================================================================
         // 1. HARDWARE DRIVER EXTRACTOR LEFTOVERS (NVIDIA, AMD, INTEL) -> 100% SAFE
         // =========================================================================
         if (pathLower.StartsWith(@"c:\nvidia\") || pathLower.Contains(@"\nvidia\displaydriver\") ||
@@ -205,7 +226,7 @@ public static class AiFileSafetyService
             "ota-artifacts", "downloader", "spool", "downloaddiskcache", "$windows.~bt",
             "$windows.~ws", "$windows.~", "$winreagent", "esd", "package cache", "npm-cache",
             "transformed", "transforms-1", "transforms-2", "transforms-3", "daemon",
-            "webcache_4430", "htmlcache", "httpcache", "localcache", "tempstate",
+            "webcache_4430", "htmlcache", "httpcache", "tempstate",
             "panther", "mosetup", "systemtemp", "$patchcache$", "peerdistpub", "peerdistsub"
         };
 
