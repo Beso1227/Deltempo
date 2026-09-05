@@ -8,7 +8,7 @@
   <p>The open-source, zero-bloat disk cleaner and NT kernel memory optimizer for Windows 10 &amp; 11.</p>
 
   <p>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=06B6D4&logo=windows&logoColor=white" alt="Release v1.3.0" /></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=06B6D4&logo=windows&logoColor=white" alt="Release v1.3.2" /></a>
     <a href="https://github.com/Beso1227/Deltempo/actions"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=Build" alt="CI Status" /></a>
     <a href="Tests/Deltempo.Tests"><img src="https://img.shields.io/badge/Tests-126%20Passing-10B981?style=for-the-badge&logo=xunit&logoColor=white" alt="126 xUnit Tests Passing" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License MIT" /></a>
@@ -17,7 +17,7 @@
 
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe">
-      <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DELTEMPO.EXE_(v1.3.0)-3B82F6?style=for-the-badge&logoColor=white" alt="Download Standalone Deltempo.exe" height="42" />
+      <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DELTEMPO.EXE_(v1.3.2)-3B82F6?style=for-the-badge&logoColor=white" alt="Download Standalone Deltempo.exe" height="42" />
     </a>
   </p>
 
@@ -266,7 +266,7 @@ PS C:\> deltempo large --min 500MB
 
 ## 📊 Head-to-Head Comparison
 
-| Feature / Standard | Deltempo (v1.3.0) | Microsoft PC Manager | CCleaner (Avast) | BleachBit | Windows Cleanmgr |
+| Feature / Standard | Deltempo (v1.3.2) | Microsoft PC Manager | CCleaner (Avast) | BleachBit | Windows Cleanmgr |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **License** | **Free &amp; Open Source (MIT)** | Free | Freemium / Adware | Free (GPLv3) | Built-in Windows |
 | **Distribution** | **Single Portable EXE** | Store package | Heavy installer + upsells | Zip archive | Built-in |

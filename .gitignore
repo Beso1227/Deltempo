@@ -3,6 +3,7 @@ bin/
 obj/
 publish/
 publish_*/
+dist/
 *.user
 *.suo
 *.userosscache

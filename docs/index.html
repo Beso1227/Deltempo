@@ -47,8 +47,8 @@
         "url": "https://beso1227.github.io/Deltempo/",
         "applicationCategory": "UtilitiesApplication",
         "operatingSystem": "Windows 10, Windows 11",
-        "softwareVersion": "1.3.0",
-        "description": "Open-source Windows cache cleaner. Cleans 25 cache tiers including Windows Upgrade leftovers, UWP Store apps, driver packages, Steam, GPU shaders, and browser caches with zero telemetry.",
+        "softwareVersion": "1.3.2",
+        "description": "Open-source Windows cache cleaner. Cleans 26 cache tiers including Messaging & Social Apps (WhatsApp, Telegram, Teams, Discord), Windows Upgrade leftovers, UWP Store apps, driver packages, Steam, GPU shaders, and browser caches with zero telemetry.",
         "downloadUrl": "https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe",
         "offers": {
           "@type": "Offer",
@@ -2125,7 +2125,7 @@
             <img src="app_icon.png" alt="Deltempo App Logo" class="hero-logo-img" />
           </div>
           <div class="eyebrow-badge">
-            <span>DELTEMPO <span class="release-version-tag">v1.3.0</span> • 25 CLEANING TARGETS • NT KERNEL MEMORY CLEANER • LARGE FILE HUNTER • STANDALONE</span>
+            <span>DELTEMPO <span class="release-version-tag">v1.3.2</span> • 26 CLEANING TARGETS • NT KERNEL MEMORY CLEANER • LARGE FILE HUNTER • STANDALONE</span>
           </div>
         </div>
         <h1 class="hero-title reveal-on-scroll stagger-1">
@@ -2133,12 +2133,12 @@
           <span class="text-gradient">Zero Telemetry. Zero Ads.</span>
         </h1>
         <p class="hero-subtitle reveal-on-scroll stagger-2">
-          Clean disposable files across 25 targets and free system memory using native Windows NT kernel calls. Portable single executable with Recycle Bin undo safety.
+          Clean disposable files across 26 targets and free system memory using native Windows NT kernel calls. Portable single executable with Recycle Bin undo safety.
         </p>
 
         <div class="hero-ctas reveal-on-scroll stagger-3">
           <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-hero-primary download-link-btn">
-            <span>Download Standalone EXE (<span class="release-version-tag">v1.3.0</span>)</span>
+            <span>Download Standalone EXE (<span class="release-version-tag">v1.3.2</span>)</span>
             <div class="hero-icon-pill">⚡</div>
           </a>
           <a href="https://github.com/Beso1227/Deltempo" class="btn-hero-secondary" target="_blank" rel="noopener">
@@ -2166,7 +2166,7 @@
                 </div>
                 <div class="sim-title">
                   <img src="app_icon.png" alt="Deltempo Logo" class="sim-title-icon" />
-                  <span>Deltempo (v1.3.0)</span>
+                  <span>Deltempo (v1.3.2)</span>
                   <span class="sim-admin-badge">ADMIN ACCESS</span>
                 </div>
                 <div class="sim-controls-right">
@@ -3067,7 +3067,7 @@
             <thead>
               <tr>
                 <th>Feature / Standard</th>
-                <th class="highlight-col">Deltempo (v1.3.0)</th>
+                <th class="highlight-col">Deltempo (v1.3.2)</th>
                 <th>Microsoft PC Manager</th>
                 <th>CCleaner (Avast)</th>
                 <th>Windows Cleanmgr</th>
@@ -3233,7 +3233,7 @@
             No installers, no adware, no account creation. Download the standalone executable and enjoy a clean, fast PC.
           </p>
           <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-hero-primary download-link-btn" style="font-size: 1.15rem; padding: 1.1rem 1.35rem 1.1rem 2.25rem;">
-            <span>Download Deltempo Standalone (<span class="release-version-tag">v1.3.0</span>)</span>
+            <span>Download Deltempo Standalone (<span class="release-version-tag">v1.3.2</span>)</span>
             <div class="hero-icon-pill" style="width: 44px; height: 44px;">⚡</div>
           </a>
         </div>
@@ -3261,7 +3261,7 @@
         const res = await fetch('https://api.github.com/repos/Beso1227/Deltempo/releases/latest');
         if (res.ok) {
           const data = await res.json();
-          const tagName = data.tag_name || 'v1.3.0';
+          const tagName = data.tag_name || 'v1.3.2';
           document.querySelectorAll('.release-version-tag').forEach(el => {
             el.textContent = tagName;
           });
@@ -3785,10 +3785,10 @@
       scan: {
         cmd: 'deltempo scan',
         output: `<div class="term-line-dim">[18:50:12] Initializing Deltempo CLI Subsystem (x64 AVX2)...</div>
-<div class="term-line-cyan">➜ Deltempo v1.3.0</div>
+<div class="term-line-cyan">➜ Deltempo v1.3.2</div>
 <div><span class="term-prompt">$</span> deltempo scan</div>
 <br />
-<div class="term-line-amber">⚡ Scanning 25+ Deep Cache Tiers...</div>
+<div class="term-line-amber">⚡ Scanning 26+ Deep Cache Tiers...</div>
 <div class="term-line-dim">├─ Device Driver Packages (NVIDIA OTA): 3,742 MB</div>
 <div class="term-line-dim">├─ Steam Download & Shader Chunks:     14,680 MB</div>
 <div class="term-line-dim">├─ Media Cache & Peak Proxies:         18,210 MB</div>

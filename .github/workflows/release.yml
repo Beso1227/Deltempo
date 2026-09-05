@@ -31,9 +31,10 @@ jobs:
       - name: Run Tests
         run: dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --verbosity normal
 
-      - name: Build & Publish Standalone Executable
+      - name: Build & Publish Standalone Executables
         run: |
           dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
+          dotnet publish Cli/Deltempo.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
 
       - name: Clean Extra Release Assets
         uses: actions/github-script@v7
@@ -49,7 +50,7 @@ jobs:
               });
               if (release && release.data && release.data.assets) {
                 for (const asset of release.data.assets) {
-                  if (asset.name !== 'Deltempo.exe') {
+                  if (asset.name !== 'Deltempo.exe' && asset.name !== 'deltempo_cli.exe') {
                     console.log(`Deleting extra asset: ${asset.name} (id: ${asset.id})`);
                     await github.rest.repos.deleteReleaseAsset({
                       owner: context.repo.owner,
@@ -67,45 +68,37 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: "Deltempo ${{ github.ref_name }} — NT Kernel Memory Cleaner, Large Files & 25 Scopes"
+          name: "Deltempo ${{ github.ref_name }} — NT Kernel Memory Cleaner, Messaging App Safe Cleaner & 26 Scopes"
           body: |
             ## What's New in ${{ github.ref_name }}
 
-            ### ⚡ Unified 100% Standalone Executable
-            - **Single Portable File (`Deltempo.exe`)** — Zero runtime dependencies, no separate installer, CLI binary, or background service needed.
-            - **Instant Terminal CLI**: Launching the app automatically provides global command-line support (`deltempo scan`, `deltempo clean`, `deltempo boost`, etc.).
+            ### 💬 Messaging & Social Apps Cache Resolver (100% Safe)
+            - **WhatsApp, Telegram, Microsoft Teams & Discord**: Cleans volatile media and GPU shaders without logging users out or touching auth tokens, databases, or keys.
+            - **Strict Credential Protection**: Whitelists and guarantees safety for session states (`Local State`, `IndexedDB`, `Cookies`, `Storage`, `key_datas`, `tdata`, `Tokens`).
 
-            ### 🧠 NT Kernel Memory Cleaner (WinMemoryCleaner Integration)
+            ### ⚡ Standalone & Portable Binaries
+            - **Unified Standalone (`Deltempo.exe`)** — Complete Fluent UI, Tray Guardian, and auto-registering Terminal CLI in a single executable.
+            - **Dedicated CLI (`deltempo_cli.exe`)** — Headless console executable optimized for CI/CD, scripts, and terminal pipelines.
+
+            ### 🧠 NT Kernel Memory Cleaner (WinMemoryCleaner Engine)
             - **Standby List Purge**: Reclaims cached memory left behind by terminated applications via `NtSetSystemInformation` (SystemMemoryListInformation class 80).
             - **Working Set Flush**: Trims memory across all running processes using `SeProfileSingleProcessPrivilege` and `SeDebugPrivilege`.
             - **System File Cache Reset**: Flushes and resets filesystem working sets with `SetSystemFileCacheSize`.
-            - **Modified Page Flush**: Forces dirty memory pages to disk before freeing them from RAM.
-            - **Combined Page List**: Deduplicates identical physical memory pages.
-            - **Process Immunity Protection**: System-critical processes (`csrss`, `dwm`, `explorer`, `lsass`, `services`, `smss`, `svchost`, Windows Defender) are automatically shielded.
+            - **Modified Page Flush & Immunity**: Shields system-critical processes (`csrss`, `dwm`, `explorer`, `lsass`, `services`, `smss`, `svchost`, Windows Defender).
 
-            ### 🔍 Storage Cleanup Across 25 Targets
-            - **Windows System**: User temp, system temp, prefetch files, component store temp, font caches, and update delivery caches.
-            - **Windows Upgrade Residue**: Cleans `$WINDOWS.~BT`, `$WINDOWS.~WS`, `$WinREAgent\Scratch`, and `ESD` folders (freeing 5–30+ GB post-upgrade).
-            - **Device Drivers**: Cleans NVIDIA App OTA installer packages, AMD Software temp folders, and Intel driver extraction caches.
-            - **Gaming & Shaders**: Cleans DirectX DXCache, Vulkan GLCache, Intel D3DSCache, Steam stuck downloads, and Epic Games webcache.
-            - **Media & Creator Scratch**: Cleans Adobe Premiere/After Effects Media Cache, DaVinci Resolve proxy previews, OBS crash logs, and Blender render caches.
-            - **Desktop & Dev Caches**: Cleans Discord, Spotify, Slack, VS Code, and package managers (`npm`, `pip`, `NuGet`, `Cargo`, `Go`).
-            - **Browsers**: Full multi-profile cache cleaning for Google Chrome, Microsoft Edge, Brave, Opera, Vivaldi, Arc, and Firefox.
+            ### 🔍 26 Deep Cleaning Scopes
+            - Cleans temporary files, upgrade leftovers (`$WINDOWS.~BT`, `ESD`), GPU shaders, driver packages, developer caches (`npm`, `pip`, `NuGet`, `Cargo`), gaming launchers, and browser profiles.
 
             ### 📦 Large File Hunter & Undo Safety
-            - Scans across all drives for files over 50 MB with safety heuristics.
             - Reversible cleanup with Windows Recycle Bin undo support (`SHFileOperation`).
-            - Automatic protection for game archives, active binaries, and model weights.
-
-            ### 🚀 Startup Manager
-            - Scans Windows Run keys and startup directories with boot impact ratings.
-            - Safe and reversible disabling backed up to `Run_Deltempo_Disabled`.
+            - 24-hour recent file modification shield.
 
             ### ✅ Quality & Reliability
-            - **79/79 automated xUnit tests passing**.
-            - Built for 64-bit Windows 10 & Windows 11 on .NET 10.0.
+            - **126/126 automated xUnit tests passing**.
+            - Native 64-bit Windows 10 & 11 support on .NET 10.0.
           files: |
             ./dist/Deltempo.exe
+            ./dist/deltempo_cli.exe
           draft: false
           prerelease: false
 
