@@ -89,7 +89,8 @@
                                             <GradientStop Color="#158B5CF6" Offset="1"/>
                                         </LinearGradientBrush>
                                     </Border.Background>
-                                    <TextBlock Text="V1.3.0"
+                                    <TextBlock x:Name="AppVersionHeaderBadge"
+                                               Text="v1.3.3"
                                                FontSize="9"
                                                FontWeight="Bold"
                                                Foreground="#00E5FF"
@@ -2009,7 +2010,7 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                             <TextBlock x:Name="ManualCheckStatusText"
-                                                       Text="Current Version: v1.3.0"
+                                                       Text="Current Version: v1.3.3"
                                                        FontSize="11.5"
                                                        Foreground="{DynamicResource TextMediumBrush}"/>
                                         </StackPanel>

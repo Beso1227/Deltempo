@@ -146,6 +146,7 @@ public partial class MainWindow : Window
             }));
 
         AutoCleanService.Start();
+        AppVersionHeaderBadge.Text = $"v{UpdateService.CurrentVersion.ToString(3)}";
         LoadSettingsIntoUI();
 
         if (SettingsService.Current.CheckUpdatesOnStartup)
@@ -168,7 +169,7 @@ public partial class MainWindow : Window
         SettingsCheckUpdatesCheckBox.IsChecked = SettingsService.Current.CheckUpdatesOnStartup;
         SettingsRecycleBinCheckBox.IsChecked = SettingsService.Current.SendToRecycleBin;
         SettingsLowDiskAlertCheckBox.IsChecked = SettingsService.Current.LowDiskAlertEnabled;
-        ManualCheckStatusText.Text = $"Current: v{UpdateService.CurrentVersion}";
+        ManualCheckStatusText.Text = $"Current: v{UpdateService.CurrentVersion.ToString(3)}";
 
         // Find matching interval combo box item (no loop needed — just pick by tag)
         ComboBoxItem? foundInterval = null;
@@ -1087,9 +1088,9 @@ public partial class MainWindow : Window
             {
                 Dispatcher.Invoke(() =>
                 {
-                    ManualCheckStatusText.Text = $"Up to date! (v{UpdateService.CurrentVersion})";
+                    ManualCheckStatusText.Text = $"Up to date! (v{UpdateService.CurrentVersion.ToString(3)})";
                     MessageBox.Show(
-                        $"You are running the latest version of Deltempo (v{UpdateService.CurrentVersion}).\n\nNo updates are currently available.",
+                        $"You are running the latest version of Deltempo (v{UpdateService.CurrentVersion.ToString(3)}).\n\nNo updates are currently available.",
                         "Deltempo is Up to Date",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);

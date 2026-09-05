@@ -99,7 +99,10 @@ public static class UpdateService
                 }
             }
 
-            bool isNewer = remoteVer > CurrentVersion;
+            static Version Normalize(Version v) =>
+                new Version(v.Major, Math.Max(0, v.Minor), Math.Max(0, v.Build));
+
+            bool isNewer = Normalize(remoteVer) > Normalize(CurrentVersion);
 
             return new ReleaseInfo
             {
