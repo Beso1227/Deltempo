@@ -73,20 +73,52 @@ public static class UpdateService
 
     public static async Task<ReleaseInfo?> CheckForUpdatesAsync(UpdateChannel? channel = null, CancellationToken ct = default)
     {
-        var targetChannel = channel ?? (SettingsService.Current.UpdateChannel?.Equals("stable", StringComparison.OrdinalIgnoreCase) == true
-            ? UpdateChannel.Stable
-            : UpdateChannel.Patch);
-
-        if (targetChannel == UpdateChannel.Patch)
+        if (channel == UpdateChannel.Stable)
         {
-            var patch = await CheckForPatchUpdateAsync(ct);
-            if (patch != null && patch.CheckSucceeded && patch.IsNewer)
+            return await CheckForStableUpdateAsync(ct);
+        }
+
+        if (channel == UpdateChannel.Patch)
+        {
+            var patchOnly = await CheckForPatchUpdateAsync(ct);
+            if (patchOnly != null && patchOnly.CheckSucceeded && patchOnly.IsNewer)
+            {
+                return patchOnly;
+            }
+            return await CheckForStableUpdateAsync(ct);
+        }
+
+        // --- INTELLIGENT SMART AUTO-DETECT MODE (Default) ---
+        // Concurrently query both Stable official releases and Continuous Patches
+        var stableTask = CheckForStableUpdateAsync(ct);
+        var patchTask = CheckForPatchUpdateAsync(ct);
+
+        await Task.WhenAll(stableTask, patchTask);
+
+        var stable = await stableTask;
+        var patch = await patchTask;
+
+        // Arbitration 1: A newer official milestone release exists (e.g. v1.4.0 > v1.3.3)
+        if (stable != null && stable.CheckSucceeded && stable.IsNewer)
+        {
+            // If patch is also newer and was published AFTER or AT the stable release,
+            // patch contains the stable release plus extra fixes.
+            if (patch != null && patch.CheckSucceeded && patch.IsNewer &&
+                patch.Timestamp >= (stable.Timestamp ?? DateTime.MinValue))
             {
                 return patch;
             }
+            return stable;
         }
 
-        return await CheckForStableUpdateAsync(ct);
+        // Arbitration 2: No newer stable milestone, check if a continuous patch exists
+        if (patch != null && patch.CheckSucceeded && patch.IsNewer)
+        {
+            return patch;
+        }
+
+        // Arbitration 3: Neither is newer -> return status info
+        return (stable != null && stable.CheckSucceeded) ? stable : patch;
     }
 
     public static async Task<ReleaseInfo?> CheckForPatchUpdateAsync(CancellationToken ct = default)
@@ -207,6 +239,9 @@ public static class UpdateService
             string releaseName = root.TryGetProperty("name", out var nameEl) ? nameEl.GetString() ?? "" : "";
             string body = root.TryGetProperty("body", out var bodyEl) ? bodyEl.GetString() ?? "" : "";
 
+            string publishedAtStr = root.TryGetProperty("published_at", out var pubEl) ? pubEl.GetString() ?? "" : "";
+            DateTime.TryParse(publishedAtStr, out var publishedAt);
+
             string downloadUrl = "";
             long sizeBytes = 0;
 
@@ -255,7 +290,8 @@ public static class UpdateService
                 DownloadUrl = downloadUrl,
                 FileSizeBytes = sizeBytes,
                 IsNewer = isNewer,
-                VersionString = cleanTag
+                VersionString = cleanTag,
+                Timestamp = publishedAt
             };
         }
         catch

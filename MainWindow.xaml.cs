@@ -172,17 +172,6 @@ public partial class MainWindow : Window
         SettingsLowDiskAlertCheckBox.IsChecked = SettingsService.Current.LowDiskAlertEnabled;
         ManualCheckStatusText.Text = $"Current: {BuildInfo.VersionWithPatchDisplay}";
 
-        // Update channel selection
-        string currentChan = SettingsService.Current.UpdateChannel?.ToLowerInvariant() ?? "patch";
-        foreach (ComboBoxItem item in SettingsUpdateChannelComboBox.Items)
-        {
-            if (item.Tag is string t && t.Equals(currentChan, StringComparison.OrdinalIgnoreCase))
-            {
-                SettingsUpdateChannelComboBox.SelectedItem = item;
-                break;
-            }
-        }
-
         // Find matching interval combo box item (no loop needed — just pick by tag)
         ComboBoxItem? foundInterval = null;
         foreach (ComboBoxItem candidate in SettingsIntervalComboBox.Items)
@@ -258,10 +247,6 @@ public partial class MainWindow : Window
         SettingsService.Current.SendToRecycleBin = SettingsRecycleBinCheckBox.IsChecked == true;
         SettingsService.Current.LowDiskAlertEnabled = SettingsLowDiskAlertCheckBox.IsChecked == true;
 
-        if (SettingsUpdateChannelComboBox.SelectedItem is ComboBoxItem uci && uci.Tag is string uct)
-        {
-            SettingsService.Current.UpdateChannel = uct;
-        }
 
         if (SettingsIntervalComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag && int.TryParse(tag, out int hours))
         {
