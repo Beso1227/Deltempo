@@ -1447,6 +1447,7 @@ public class CleanerService
                             try
                             {
                                 if (IsProtectedSessionOrCredentialFile(subDir.FullName)) continue;
+                                if ((subDir.Attributes & FileAttributes.ReparsePoint) != 0) continue;
 
                                 if (!subDir.EnumerateFileSystemInfos("*", subCheckOptions).Any())
                                 {

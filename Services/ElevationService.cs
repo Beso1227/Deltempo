@@ -25,7 +25,7 @@ public static class ElevationService
         {
             UseShellExecute = true,
             WorkingDirectory = Environment.CurrentDirectory,
-            FileName = Process.GetCurrentProcess().MainModule?.FileName ?? Environment.ProcessPath ?? "Deltempo.exe",
+            FileName = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "Deltempo.exe",
             Verb = "runas",
             Arguments = args ?? string.Empty
         };

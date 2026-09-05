@@ -1251,7 +1251,7 @@ public partial class MainWindow : Window
         try
         {
             AddLog($"Starting atomic in-place update to {_pendingRelease.TagName}...", LogLevel.Info);
-            await UpdateService.DownloadAndApplyUpdateAsync(_pendingRelease.DownloadUrl, progress);
+            await UpdateService.DownloadAndApplyUpdateAsync(_pendingRelease.DownloadUrl, progress, _pendingRelease.ExpectedSha256);
         }
         catch (Exception ex)
         {
@@ -1881,7 +1881,14 @@ public partial class MainWindow : Window
             {
                 if (File.Exists(info.FilePath))
                 {
-                    Process.Start("explorer.exe", $"/select,\"{info.FilePath}\"");
+                    string safePath = info.FilePath.Replace("\"", "");
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "explorer.exe",
+                        Arguments = $"/select,\"{safePath}\"",
+                        UseShellExecute = true
+                    };
+                    Process.Start(psi);
                 }
             }
             catch (Exception ex)

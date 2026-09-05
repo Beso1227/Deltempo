@@ -81,4 +81,47 @@ Automatically compiled on push.
     {
         Assert.Equal("patch", SettingsService.Current.UpdateChannel);
     }
+
+    [Fact]
+    public async Task DownloadAndApplyUpdateAsync_RejectsUntrustedHosts()
+    {
+        var progress = new Progress<double>();
+        
+        // HTTP instead of HTTPS
+        await Assert.ThrowsAsync<System.Security.SecurityException>(async () =>
+        {
+            await UpdateService.DownloadAndApplyUpdateAsync("http://github.com/Beso1227/Deltempo/releases/download/patch/Deltempo.exe", progress);
+        });
+
+        // Untrusted domain
+        await Assert.ThrowsAsync<System.Security.SecurityException>(async () =>
+        {
+            await UpdateService.DownloadAndApplyUpdateAsync("https://evil-site.com/malware.exe", progress);
+        });
+    }
+
+    [Fact]
+    public void SettingsService_SanitizesAndClampsOutOfRangeValues()
+    {
+        int origInterval = SettingsService.Current.AutoCleanIntervalHours;
+        int origDisk = SettingsService.Current.LowDiskAlertThresholdGb;
+
+        try
+        {
+            SettingsService.Current.AutoCleanIntervalHours = -50;
+            SettingsService.Current.LowDiskAlertThresholdGb = 99999;
+            SettingsService.SaveSettings();
+            SettingsService.LoadSettings();
+
+            Assert.InRange(SettingsService.Current.AutoCleanIntervalHours, 1, 168);
+            Assert.InRange(SettingsService.Current.LowDiskAlertThresholdGb, 1, 500);
+        }
+        finally
+        {
+            SettingsService.Current.AutoCleanIntervalHours = origInterval;
+            SettingsService.Current.LowDiskAlertThresholdGb = origDisk;
+            SettingsService.SaveSettings();
+            SettingsService.LoadSettings();
+        }
+    }
 }
