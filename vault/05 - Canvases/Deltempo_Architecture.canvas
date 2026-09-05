@@ -1,86 +1,86 @@
 {
   "edges": [
     {
+      "fromNode": "node_app",
+      "id": "edge1",
       "label": "GUI Mode",
-      "toNode": "node_ui",
-      "fromNode": "node_app",
-      "id": "edge1"
+      "toNode": "node_ui"
     },
     {
+      "fromNode": "node_app",
+      "id": "edge2",
       "label": "CLI Mode",
-      "toNode": "node_cli",
-      "fromNode": "node_app",
-      "id": "edge2"
+      "toNode": "node_cli"
     },
     {
+      "fromNode": "node_ui",
+      "id": "edge3",
       "label": "Clean/Scan",
-      "toNode": "node_cleaner",
-      "fromNode": "node_ui",
-      "id": "edge3"
+      "toNode": "node_cleaner"
     },
     {
+      "fromNode": "node_ui",
+      "id": "edge4",
       "label": "Optimize",
-      "toNode": "node_optimizer",
-      "fromNode": "node_ui",
-      "id": "edge4"
+      "toNode": "node_optimizer"
     },
     {
-      "label": "deltempo clean",
-      "toNode": "node_cleaner",
       "fromNode": "node_cli",
-      "id": "edge5"
+      "id": "edge5",
+      "label": "deltempo clean",
+      "toNode": "node_cleaner"
     }
   ],
   "nodes": [
     {
+      "type": "text",
+      "id": "node_app",
+      "text": "### 🚀 App.xaml.cs\nRoot Entry Point & Mutex Router",
       "x": 100,
       "height": 120,
       "y": 100,
-      "type": "text",
-      "text": "### 🚀 App.xaml.cs\nRoot Entry Point & Mutex Router",
       "width": 280,
-      "color": "1",
-      "id": "node_app"
+      "color": "1"
     },
     {
-      "x": 460,
-      "height": 140,
-      "y": 40,
       "type": "text",
+      "id": "node_ui",
       "text": "### 🖥️ MainWindow.xaml.cs\nWPF Dashboard & Controller",
+      "x": 460,
+      "height": 140,
+      "y": 40,
       "width": 300,
-      "color": "4",
-      "id": "node_ui"
+      "color": "4"
     },
     {
+      "type": "text",
+      "id": "node_cli",
+      "text": "### 💻 deltempo_cli.exe\nSynchronous Console CLI",
       "x": 460,
       "height": 140,
       "y": 220,
-      "type": "text",
-      "text": "### 💻 deltempo_cli.exe\nSynchronous Console CLI",
       "width": 300,
-      "color": "5",
-      "id": "node_cli"
+      "color": "5"
     },
     {
+      "type": "text",
+      "id": "node_cleaner",
+      "text": "### 🧹 CleanerService.cs\n21-Scope Purge Engine",
       "x": 840,
       "height": 140,
       "y": 40,
-      "type": "text",
-      "text": "### 🧹 CleanerService.cs\n21-Scope Purge Engine",
       "width": 280,
-      "color": "2",
-      "id": "node_cleaner"
+      "color": "2"
     },
     {
+      "type": "text",
+      "id": "node_optimizer",
+      "text": "### ⚡ Memory & Startup\nRAM Booster & Boot Tools",
       "x": 840,
       "height": 140,
       "y": 220,
-      "type": "text",
-      "text": "### ⚡ Memory & Startup\nRAM Booster & Boot Tools",
       "width": 280,
-      "color": "3",
-      "id": "node_optimizer"
+      "color": "3"
     }
   ]
 }
