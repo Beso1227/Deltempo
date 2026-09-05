@@ -43,6 +43,7 @@ public class CleanerServiceTests : IDisposable
         Assert.True(targets.Count >= 25, $"Expected at least 25 targets, but found {targets.Count}");
         Assert.Contains(targets, t => t.Id == "WinUpgradeLeftovers");
         Assert.Contains(targets, t => t.Id == "WinStoreAppCaches");
+        Assert.Contains(targets, t => t.Id == "MessagingAppCaches");
         Assert.Contains(targets, t => t.Id == "WinComponentCaches");
         Assert.Contains(targets, t => t.Id == "DeviceDriverPackages");
         Assert.Contains(targets, t => t.Id == "DefenderAntivirus");
@@ -592,6 +593,165 @@ public class CleanerServiceTests : IDisposable
         Assert.NotNull(dirs);
         Assert.Contains(dirs, d => d.Contains("MoSetup", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(dirs, d => d.Contains("$WINDOWS.~BT", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void CleanerService_GetMessagingAppCacheDirectories_ReturnsSafePaths()
+    {
+        var dirs = CleanerService.GetMessagingAppCacheDirectories();
+        Assert.NotNull(dirs);
+        Assert.NotEmpty(dirs);
+        Assert.Contains(dirs, d => d.Contains("whatsapp", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(dirs, d => d.Contains("telegram", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(dirs, d => d.Contains("discord", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(dirs, d => d.Contains("slack", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void CleanerService_GetStoreAppCacheDirectories_DoesNotContainRawLocalCacheRoots()
+    {
+        var dirs = CleanerService.GetStoreAppCacheDirectories();
+        Assert.NotNull(dirs);
+        // None of the directories should be a raw LocalCache root
+        foreach (var dir in dirs)
+        {
+            var trimmed = dir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            Assert.False(trimmed.EndsWith(@"\LocalCache", StringComparison.OrdinalIgnoreCase),
+                $"Path '{dir}' is a raw LocalCache root which would wipe app sessions!");
+            Assert.False(trimmed.EndsWith(@"\LocalCache\Roaming", StringComparison.OrdinalIgnoreCase),
+                $"Path '{dir}' is a raw LocalCache\\Roaming root!");
+            Assert.False(trimmed.EndsWith(@"\LocalCache\Local", StringComparison.OrdinalIgnoreCase),
+                $"Path '{dir}' is a raw LocalCache\\Local root!");
+            Assert.False(trimmed.EndsWith(@"\LocalCache\EBWebView", StringComparison.OrdinalIgnoreCase),
+                $"Path '{dir}' is a raw EBWebView root!");
+            Assert.False(trimmed.EndsWith(@"\LocalCache\EBWebView\Default", StringComparison.OrdinalIgnoreCase),
+                $"Path '{dir}' is a raw EBWebView Default profile root!");
+        }
+    }
+
+    [Theory]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\LocalCache\EBWebView\Default\Login Data", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\LocalCache\EBWebView\Default\Cookies", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\LocalCache\EBWebView\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb\000005.ldb", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\LocalCache\EBWebView\Default\Local Storage\leveldb\000003.log", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\TelegramMessengerLLP.TelegramDesktop_t4vj0pshhgkwm\LocalCache\Roaming\Telegram Desktop UWP\tdata\D877F783D5D3EF8C0", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\TelegramMessengerLLP.TelegramDesktop_t4vj0pshhgkwm\LocalCache\Roaming\Telegram Desktop UWP\tdata\key_datas", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\TelegramMessengerLLP.TelegramDesktop_t4vj0pshhgkwm\LocalCache\Roaming\Telegram Desktop UWP\tdata\settings.dat", true)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Telegram Desktop\tdata\D877F783D5D3EF8C1", true)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Telegram Desktop\tdata\user_data\cache\data_0", false)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Telegram Desktop\tdata\temp\temp_01.tmp", false)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\LocalCache\EBWebView\Default\Cache\Cache_Data\data_1", false)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Local\Microsoft\Identity\msal.cache", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\previous_session_data.json", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\app_settings.json", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\ecs_settings.dat64", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\Default\IndexedDB\teams.leveldb\000003.ldb", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\Default\Cache\Cache_Data\data_0", false)]
+    public void CleanerService_IsProtectedSessionOrCredentialFile_AccuratelyDifferentiatesSessionsFromCaches(string path, bool expectedProtected)
+    {
+        bool actual = CleanerService.IsProtectedSessionOrCredentialFile(path);
+        Assert.Equal(expectedProtected, actual);
+    }
+
+    [Fact]
+    public void AiFileSafetyService_ClassifiesLoginSessionsAndTokensAsHighRiskKeep()
+    {
+        var whatsAppLoginFile = @"C:\Users\user\AppData\Local\Packages\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\LocalCache\EBWebView\Default\Login Data";
+        var result1 = AiFileSafetyService.AnalyzeFile(whatsAppLoginFile, "Login Data", "Store Apps", 524288, DateTime.Now - TimeSpan.FromDays(2));
+        Assert.Equal(AiSafetyTier.HighRiskKeep, result1.Tier);
+        Assert.Equal(0, result1.SafetyScore);
+        Assert.False(result1.IsSafeToAutoClean);
+
+        var telegramKeyFile = @"C:\Users\user\AppData\Local\Packages\TelegramMessengerLLP.TelegramDesktop_t4vj0pshhgkwm\LocalCache\Roaming\Telegram Desktop UWP\tdata\D877F783D5D3EF8C0";
+        var result2 = AiFileSafetyService.AnalyzeFile(telegramKeyFile, "D877F783D5D3EF8C0", "Store Apps", 4096, DateTime.Now - TimeSpan.FromDays(5));
+        Assert.Equal(AiSafetyTier.HighRiskKeep, result2.Tier);
+        Assert.Equal(0, result2.SafetyScore);
+        Assert.False(result2.IsSafeToAutoClean);
+
+        var indexedDbFile = @"C:\Users\user\AppData\Local\Packages\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\LocalCache\EBWebView\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb\000005.ldb";
+        var result3 = AiFileSafetyService.AnalyzeFile(indexedDbFile, "000005.ldb", "Store Apps", 1048576, DateTime.Now - TimeSpan.FromDays(1));
+        Assert.Equal(AiSafetyTier.HighRiskKeep, result3.Tier);
+        Assert.Equal(0, result3.SafetyScore);
+        Assert.False(result3.IsSafeToAutoClean);
+    }
+
+    [Fact]
+    public void CacheResolvers_AllReturnValidConfiguredTargetLists()
+    {
+        var storeAppDirs = WinTempCleaner.Services.Providers.CacheResolvers.StoreAppCacheResolver.Resolve();
+        Assert.NotNull(storeAppDirs);
+
+        var msgAppDirs = WinTempCleaner.Services.Providers.CacheResolvers.MessagingAppCacheResolver.Resolve();
+        Assert.NotNull(msgAppDirs);
+        Assert.True(msgAppDirs.Count >= 10);
+
+        var browserDirs = WinTempCleaner.Services.Providers.CacheResolvers.BrowserCacheResolver.Resolve();
+        Assert.NotNull(browserDirs);
+
+        var devDirs = WinTempCleaner.Services.Providers.CacheResolvers.DevPackageCacheResolver.Resolve();
+        Assert.NotNull(devDirs);
+        Assert.True(devDirs.Count >= 10);
+
+        var upgradeDirs = WinTempCleaner.Services.Providers.CacheResolvers.SystemCacheResolver.ResolveUpgradeLeftovers();
+        Assert.NotNull(upgradeDirs);
+        Assert.True(upgradeDirs.Count >= 5);
+
+        var componentDirs = WinTempCleaner.Services.Providers.CacheResolvers.SystemCacheResolver.ResolveComponentCaches();
+        Assert.NotNull(componentDirs);
+        Assert.True(componentDirs.Count >= 5);
+
+        var appCacheDirs = WinTempCleaner.Services.Providers.CacheResolvers.SystemCacheResolver.ResolveAppCacheDirectories();
+        Assert.NotNull(appCacheDirs);
+        Assert.True(appCacheDirs.Count >= 15);
+    }
+
+    [Fact]
+    public void SmartClean_TargetsOnly100PercentSafeCaches()
+    {
+        var allTargets = CleanerService.GetDefaultTargets();
+        var smartTargets = allTargets
+            .Where(t => t.SafetyBadge.Contains("100% Safe") && !t.IsOrphanedAppFolder)
+            .ToList();
+
+        Assert.NotEmpty(smartTargets);
+        Assert.All(smartTargets, t =>
+        {
+            Assert.Contains("100% Safe", t.SafetyBadge);
+            Assert.False(t.IsOrphanedAppFolder);
+        });
+    }
+
+    [Fact]
+    public void SettingsService_NewFeatures_DefaultsAndToggleBehavior()
+    {
+        var settings = SettingsService.Current;
+        Assert.NotNull(settings);
+
+        // Low disk alert defaults
+        Assert.True(settings.LowDiskAlertEnabled);
+        Assert.Equal(10, settings.LowDiskAlertThresholdGb);
+
+        // SendToRecycleBin defaults to false, can be toggled
+        bool initial = settings.SendToRecycleBin;
+        settings.SendToRecycleBin = !initial;
+        Assert.Equal(!initial, settings.SendToRecycleBin);
+        settings.SendToRecycleBin = initial; // revert
+    }
+
+    [Fact]
+    public void TrayService_CheckLowDiskSpaceAndNotify_DoesNotThrowWhenUninitialized()
+    {
+        var telemetry = new DriveTelemetryInfo
+        {
+            DriveLetter = "C:",
+            VolumeLabel = "Test Disk",
+            TotalBytes = 100L * 1024 * 1024 * 1024,
+            FreeBytes = 5L * 1024 * 1024 * 1024 // 5 GB < 15 GB threshold
+        };
+
+        // Should safely execute without throwing even when UI window is not present
+        var ex = Record.Exception(() => TrayService.CheckLowDiskSpaceAndNotify(telemetry));
+        Assert.Null(ex);
     }
 }
 

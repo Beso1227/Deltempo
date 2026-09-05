@@ -53,6 +53,13 @@ public static class CliRunner
                 exitCode = await HandleCleanAsync(args);
                 break;
 
+            case "smart":
+            case "smart-clean":
+            case "smartclean":
+            case "safe":
+                exitCode = await HandleSmartCleanAsync(args);
+                break;
+
             case "boost":
             case "ram":
             case "b":
@@ -129,6 +136,7 @@ public static class CliRunner
         Console.WriteLine("  CLEANUP & CACHE COMMANDS:");
         Console.ResetColor();
         PrintCmdRow("deep-clean", "Autonomous 1-click full OS cleanup: RAM, DISM, 26 scopes & VSS");
+        PrintCmdRow("smart-clean", "1-click safe cleanup: purges 100% safe disposable caches only");
         PrintCmdRow("restore-points", "Inspect & purge old System Restore Points (--clean, --all)");
         PrintCmdRow("scan [category]", "Scan temporary files and cache targets");
         PrintCmdRow("clean [category]", "Clean safe temporary caches and shaders");
@@ -170,6 +178,8 @@ public static class CliRunner
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("\n  GLOBAL OPTIONS:");
         Console.ResetColor();
+        PrintOptRow("--smart, --safe-only", "Target only 100% safe disposable caches (skip orphaned apps)");
+        PrintOptRow("--recycle-bin, -r", "Send deleted files to the Windows Recycle Bin (undoable)");
         PrintOptRow("--safe / --unsafe", "Toggle 24-hour file modification protection [Default: ON]");
         PrintOptRow("--dry-run, -d", "Simulate clean actions without deleting any files");
         PrintOptRow("--yes, -y", "Bypass interactive confirmation prompts (for scripts/CI)");
@@ -492,6 +502,14 @@ public static class CliRunner
         return 0;
     }
 
+    // ─── SMART CLEAN COMMAND ───────────────────────────────────────────
+
+    private static async Task<int> HandleSmartCleanAsync(string[] args)
+    {
+        var smartArgs = args.Concat(new[] { "--smart" }).ToArray();
+        return await HandleCleanAsync(smartArgs);
+    }
+
     // ─── CLEAN COMMAND ─────────────────────────────────────────────────
 
     private static async Task<int> HandleCleanAsync(string[] args)
@@ -499,9 +517,16 @@ public static class CliRunner
         bool isJson = HasFlag(args, "--json", "-j");
         bool safeMode = !HasFlag(args, "--unsafe");
         bool cleanAll = HasFlag(args, "--all");
+        bool smartOnly = HasFlag(args, "--smart", "--safe-only");
+        bool recycleBin = HasFlag(args, "--recycle-bin", "--recycle", "-r");
         bool dryRun = HasFlag(args, "--dry-run", "-d");
         bool yesPrompt = HasFlag(args, "--yes", "-y");
         bool silent = HasFlag(args, "--silent", "-s");
+
+        if (recycleBin)
+        {
+            SettingsService.Current.SendToRecycleBin = true;
+        }
 
         string? exportPath = GetOptionValue(args, "--export");
         string? filter = GetFilterKeyword(args, 1);
@@ -509,6 +534,7 @@ public static class CliRunner
         var allTargets = CleanerService.GetDefaultTargets();
         var selectedTargets = allTargets
             .Where(t => cleanAll || !t.IsOrphanedAppFolder)
+            .Where(t => !smartOnly || (t.SafetyBadge.Contains("100% Safe") && !t.IsOrphanedAppFolder))
             .Where(t => string.IsNullOrWhiteSpace(filter) || MatchesFilter(t, filter))
             .ToList();
 

@@ -30,7 +30,8 @@ public static class OrphanedAppService
         "Git", "nodejs", "Python", "PowerShell", "Docker", "DockerDesktop", "WSL", "vcpkg", "pip",
         "npm", "yarn", "NuGet", "Gradle", "Android", "Rust", "Go", "Java", "Oracle", "Steam",
         "Epic Games", "EpicGamesLauncher", "JetBrains", "Unity", "Spotify", "Discord", "Slack",
-        "Telegram Desktop", "Code", "GitHubDesktop", "BraveSoftware", "Mozilla", "Zoom", "Notion",
+        "Telegram Desktop", "WhatsApp", "WhatsAppDesktop", "Signal", "Skype", "Viber", "Element", "LINE", "WeChat",
+        "Code", "GitHubDesktop", "BraveSoftware", "Mozilla", "Zoom", "Notion",
         "Figma", "Cursor", "Windsurf"
     };
 

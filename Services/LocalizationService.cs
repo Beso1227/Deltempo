@@ -19,6 +19,7 @@ public static class LocalizationService
             ["DriveFree"] = "Free",
             ["DriveOf"] = "free of",
             ["SelectSafe"] = "Select 100% Safe",
+            ["SmartClean"] = "Smart Clean",
             ["SelectAll"] = "Select All",
             ["Clear"] = "Clear",
             ["Rescan"] = "Rescan (F5)",
@@ -58,6 +59,7 @@ public static class LocalizationService
             ["DriveFree"] = "متاح",
             ["DriveOf"] = "متاح من إجمالي",
             ["SelectSafe"] = "تحديد الآمن 100%",
+            ["SmartClean"] = "تنظيف ذكي",
             ["SelectAll"] = "تحديد الكل",
             ["Clear"] = "إلغاء التحديد",
             ["Rescan"] = "إعادة فحص (F5)",
@@ -97,6 +99,7 @@ public static class LocalizationService
             ["DriveFree"] = "Libre",
             ["DriveOf"] = "libre de",
             ["SelectSafe"] = "🟢 100% Seguro",
+            ["SmartClean"] = "Limpieza Inteligente",
             ["SelectAll"] = "Seleccionar Todo",
             ["Clear"] = "Limpiar",
             ["Rescan"] = "Reescanear (F5)",
@@ -136,6 +139,7 @@ public static class LocalizationService
             ["DriveFree"] = "Libre",
             ["DriveOf"] = "libre sur",
             ["SelectSafe"] = "🟢 100% Sécurisé",
+            ["SmartClean"] = "Nettoyage Intelligent",
             ["SelectAll"] = "Tout Sélectionner",
             ["Clear"] = "Effacer",
             ["Rescan"] = "Re-scanner (F5)",
@@ -175,6 +179,7 @@ public static class LocalizationService
             ["DriveFree"] = "Frei",
             ["DriveOf"] = "frei von",
             ["SelectSafe"] = "🟢 100% Sicher",
+            ["SmartClean"] = "Smart-Bereinigung",
             ["SelectAll"] = "Alles Auswählen",
             ["Clear"] = "Auswahl Aufheben",
             ["Rescan"] = "Neu Scannen (F5)",
@@ -605,7 +610,31 @@ public static class LocalizationService
                     "es" => "LocalCache e INetCache temporales de paquetes Windows Store (Teams, Xbox, etc.)",
                     "fr" => "LocalCache et INetCache temporaires des applications Store (New Teams, Xbox, etc.)",
                     "de" => "Temporärer LocalCache & INetCache über Windows Store-Pakete (New Teams, Xbox, etc.)",
-                    _ => "Temporary LocalCache & INetCache across Windows Store packages (New Teams, Xbox, WhatsApp, etc.)"
+                    _ => "Temporary LocalCache & INetCache across Windows Store packages (New Teams, Xbox, etc.)"
+                };
+                break;
+
+            case "MessagingAppCaches":
+                target.Name = CurrentLanguage switch {
+                    "ar" => "كاش برامج المحادثة والمراسلة",
+                    "es" => "Caché de Apps de Mensajería y Chat",
+                    "fr" => "Cache des Applications de Messagerie",
+                    "de" => "Messenger & Chat-Apps Cache",
+                    _ => "Messaging & Social Apps Caches"
+                };
+                target.Category = CurrentLanguage switch {
+                    "ar" => "المحادثة والتواصل",
+                    "es" => "Comunicación",
+                    "fr" => "Communication",
+                    "de" => "Kommunikation",
+                    _ => "Communication"
+                };
+                target.Description = CurrentLanguage switch {
+                    "ar" => "كاش الصور والفيديو و GPU المؤقتة لتطبيقات WhatsApp و Telegram و Discord و Slack و Teams و Signal (مع حماية تامة لجلسات الدخول)",
+                    "es" => "Caché GPU y multimedia de WhatsApp, Telegram, Discord, Slack, Teams, Signal (sesiones e inicios de sesión preservados)",
+                    "fr" => "Caches GPU et médias de WhatsApp, Telegram, Discord, Slack, Teams, Signal (sessions et connexions préservées)",
+                    "de" => "Sicherer GPU- & Medien-Cache für WhatsApp, Telegram, Discord, Slack, Teams, Signal (Anmeldesitzungen geschützt)",
+                    _ => "Safe media & GPU caches for WhatsApp, Telegram, Discord, Slack, Teams, Signal, Skype, Viber, Zoom (logins strictly preserved)"
                 };
                 break;
 

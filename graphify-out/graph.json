@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-04T01:37:14.9298641+03:00",
+  "generatedAt": "2026-09-05T14:30:11.2766576+03:00",
   "version": "1.1.0",
   "statistics": {
     "totalNodes": 30,
@@ -45,6 +45,7 @@
         "count": 4
       }
     ],
+    "totalEdges": 33,
     "godNodes": [
       {
         "id": "MainWindow",
@@ -76,8 +77,7 @@
         "degree": 3,
         "cluster": "Core"
       }
-    ],
-    "totalEdges": 33
+    ]
   },
   "nodes": [
     {

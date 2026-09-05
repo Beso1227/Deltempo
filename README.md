@@ -10,7 +10,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=06B6D4&logo=windows&logoColor=white" alt="Release v1.3.0" /></a>
     <a href="https://github.com/Beso1227/Deltempo/actions"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=Build" alt="CI Status" /></a>
-    <a href="Tests/Deltempo.Tests"><img src="https://img.shields.io/badge/Tests-79%20Passing-10B981?style=for-the-badge&logo=xunit&logoColor=white" alt="79 xUnit Tests Passing" /></a>
+    <a href="Tests/Deltempo.Tests"><img src="https://img.shields.io/badge/Tests-126%20Passing-10B981?style=for-the-badge&logo=xunit&logoColor=white" alt="126 xUnit Tests Passing" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License MIT" /></a>
     <a href="https://beso1227.github.io/Deltempo/"><img src="https://img.shields.io/badge/Official_Site-Live_Web-8B5CF6?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Official Website" /></a>
   </p>
@@ -25,7 +25,7 @@
     <a href="#-quick-start">Quick Start</a> •
     <a href="#-why-deltempo">Why Deltempo?</a> •
     <a href="#-features-at-a-glance">Features</a> •
-    <a href="#-cleaning-targets">25 Cleaning Scopes</a> •
+    <a href="#-cleaning-targets">26 Cleaning Scopes</a> •
     <a href="#-terminal-cli">CLI Commands</a> •
     <a href="#-comparison">Comparison</a> •
     <a href="https://beso1227.github.io/Deltempo/">Web Simulator ↗</a>
@@ -54,12 +54,12 @@ Most cleaners are bloated, full of ads, or paywall the features you actually nee
   </tr>
   <tr>
     <td width="50%">
-      <h3>🎯 25 Deep Cleanup Targets</h3>
-      <p>Cleans gigabytes of NVIDIA App OTA packages, GPU shader caches, Discord/Spotify media, and upgrade residue that standard cleaners completely miss.</p>
+      <h3>🎯 26 Deep Cleanup Targets</h3>
+      <p>Cleans gigabytes of NVIDIA App OTA packages, GPU shader caches, messaging & social app caches (WhatsApp, Telegram, Teams, Discord), and upgrade residue that standard cleaners completely miss.</p>
     </td>
     <td width="50%">
-      <h3>🛡️ 24-Hour Safety Shield &amp; Undo</h3>
-      <p>Automatically protects files modified in the last 24h. Large files are recycled with <strong>Windows Recycle Bin Undo</strong>, and startup tweaks are backed up to the registry.</p>
+      <h3>🛡️ 24-Hour Safety Shield &amp; Recycle Bin Undo</h3>
+      <p>Automatically protects files modified in the last 24h. File deletions can optionally route to the <strong>Windows Recycle Bin</strong> for instant undo, while active messaging and store logins remain 100% protected.</p>
     </td>
   </tr>
 </table>
@@ -126,9 +126,9 @@ Tired of slow boot times? Deltempo scans your startup programs and calculates re
 
 ---
 
-## 🎯 25 Cleaning Targets
+## 🎯 26 Cleaning Targets
 
-Deltempo inspects 25 specialized cleaning scopes across your system. Your personal documents, browser passwords, and active login sessions are **never** touched.
+Deltempo inspects 26 specialized cleaning scopes across your system. Your personal documents, browser passwords, and active login sessions are **never** touched.
 
 <details open>
 <summary><strong>🪟 1. Windows System &amp; Upgrades (12 Scopes)</strong></summary>
@@ -184,13 +184,14 @@ Deltempo inspects 25 specialized cleaning scopes across your system. Your person
 </details>
 
 <details>
-<summary><strong>💬 5. Desktop Apps &amp; Developer Tools (5 Scopes)</strong></summary>
+<summary><strong>💬 5. Communication, Desktop Apps &amp; Developer Tools (6 Scopes)</strong></summary>
 <br />
 
 | Scope | What It Cleans | Typical Savings |
 | :--- | :--- | :---: |
-| **Desktop &amp; Electron Apps** | Discord, Spotify, Slack, Telegram, and VS Code GPU/media caches | 1 – 5 GB |
-| **Windows Store / UWP Apps** | MSIX `LocalCache` across New Teams, WhatsApp, Xbox App | 500 MB – 3 GB |
+| **Messaging &amp; Social Apps** | WhatsApp, Telegram, Teams, Discord, Slack, Signal, Skype, Zoom media/code caches (100% Login &amp; Session Protected) | 1 – 6 GB |
+| **Desktop &amp; Electron Apps** | Spotify, Notion, VS Code, Cursor, Windsurf, JetBrains IDE caches | 1 – 5 GB |
+| **Windows Store / UWP Apps** | Safe MSIX cache state across Store apps, WebView2 engine caches | 500 MB – 3 GB |
 | **Package Manager Caches** | npm, pip, yarn, pnpm, NuGet v3, Cargo, and Go build caches | 2 – 15 GB |
 | **Development Daemons** | Android Studio emulator cache, Gradle daemons, iTunes sync temp | 2 – 8 GB |
 | **Orphaned AppData Leftovers** | Remnant folders from uninstalled apps verified against Registry | 500 MB – 4 GB |
@@ -219,8 +220,14 @@ The terminal CLI is synchronous, fast, and supports JSON output for scripting an
 # Scan with categorized summary
 deltempo scan
 
-# Safe cleaning with locked-file handling
-deltempo clean --safe
+# 1-Click Smart Clean (100% safe disposable caches only)
+deltempo smart-clean
+
+# Safe cleaning with locked-file handling and optional Recycle Bin routing
+deltempo clean --safe --recycle-bin
+
+# Autonomous full-system deep cleanup: RAM, DISM, 26 scopes & VSS
+deltempo deep-clean
 
 # Flush process working sets and purge standby memory
 deltempo boost
@@ -269,12 +276,15 @@ PS C:\> deltempo large --min 500MB
 | **System File Cache Reset** | **✅ Native (`SetSystemFileCacheSize`)** | ❌ No | ❌ No | ❌ No | ❌ No |
 | **Large File Hunter** | **✅ Safe vs. Protected Heuristics** | ⚠️ Basic | ❌ Paid Pro version only | ❌ No | ❌ No |
 | **Undo / Restore Safety** | **✅ Windows Recycle Bin Undo (`SHFileOperation`)** | ❌ Permanent delete | ❌ Permanent delete | ❌ Permanent delete | ❌ Permanent delete |
+| **1-Click Smart Clean** | **✅ 100% Safe Disposable Preset** | ⚠️ Basic | ❌ Paid Pro version only | ❌ No | ❌ No |
+| **Login Session Protection** | **✅ WhatsApp, Telegram, Teams, Store &amp; Browsers** | ⚠️ Wipes LocalCache | ⚠️ Erases sessions | ⚠️ Erases sessions | ❌ No |
+| **Proactive Low Disk Alerts** | **✅ System Tray Notification Sentinel** | ❌ No | ❌ Paid Pro version only | ❌ No | ❌ No |
 | **Windows Upgrade Residue** | **✅ Deep Purge (`$WINDOWS.~BT`, `ESD`)** | ⚠️ Basic | ❌ Paid Pro version only | ❌ No | ⚠️ Partial |
 | **GPU Shader Cache Purge** | **✅ DirectX DXCache + Vulkan GLCache** | ❌ No | ❌ No | ❌ No | ❌ No |
 | **NVIDIA App Driver OTA** | **✅ Cleans 3–10 GB installer caches** | ⚠️ Partial | ❌ No | ❌ No | ⚠️ Partial |
 | **Media &amp; Creator Scratch** | **✅ Adobe, DaVinci, OBS, Blender** | ❌ No | ❌ No | ❌ No | ❌ No |
 | **CLI Automation** | **✅ Instant global registration** | ❌ No | ⚠️ Limited | ⚠️ Basic | ⚠️ Legacy switches |
-| **Automated Test Coverage** | **✅ 79 xUnit Tests (100% Passing)** | ❌ Proprietary | ❌ Proprietary | ⚠️ Basic | ❌ Proprietary |
+| **Automated Test Coverage** | **✅ 126 xUnit Tests (100% Passing)** | ❌ Proprietary | ❌ Proprietary | ⚠️ Basic | ❌ Proprietary |
 
 ---
 

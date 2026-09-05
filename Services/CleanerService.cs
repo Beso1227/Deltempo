@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using WinTempCleaner.Models;
+using WinTempCleaner.Services.Providers.CacheResolvers;
 
 namespace WinTempCleaner.Services;
 
@@ -411,7 +412,24 @@ public class CleanerService
                 IsSelected = true
             },
 
-            // 18. Web Browser Caches (Multi-Profile Engine)
+            // 18. Messaging & Social Apps Cache Pool
+            new TargetFolderInfo
+            {
+                Id = "MessagingAppCaches",
+                Name = "Messaging & Social Apps Caches",
+                Category = "Communication",
+                CategoryColor = "#06B6D4",
+                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadgeColor = "#10B981",
+                Description = "Safe media & GPU caches for WhatsApp, Telegram, Discord, Slack, Teams, Signal, Skype, Viber, Zoom (logins strictly preserved)",
+                FolderPath = "Messaging Apps Cache Pool",
+                IconGlyph = "\uE8BD",
+                RequiresAdmin = false,
+                HasAccess = true,
+                IsSelected = true
+            },
+
+            // 19. Web Browser Caches (Multi-Profile Engine)
             new TargetFolderInfo
             {
                 Id = "BrowserCaches",
@@ -706,6 +724,13 @@ public class CleanerService
                 return;
             }
 
+            if (folder.Id == "MessagingAppCaches")
+            {
+                ScanMessagingAppCachePools(folder, logAction, ct);
+                folder.IsScanning = false;
+                return;
+            }
+
             if (folder.Id == "BrowserCaches")
             {
                 ScanBrowserCachePools(folder, logAction, ct);
@@ -811,485 +836,41 @@ public class CleanerService
 
     #region Directory Resolvers (Single Source of Truth for Scan & Clean)
 
-    public static List<string> GetUpgradeLeftoverDirectories()
-    {
-        var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-        var rootDrive = Path.GetPathRoot(winDir) ?? @"C:\";
-        var dirs = new List<string>
-        {
-            Path.Combine(rootDrive, "$WINDOWS.~BT"),
-            Path.Combine(rootDrive, "$WINDOWS.~WS"),
-            Path.Combine(rootDrive, "$WinREAgent", "Scratch"),
-            Path.Combine(rootDrive, "ESD"),
-            Path.Combine(rootDrive, "ESD", "Download"),
-            Path.Combine(rootDrive, "Windows.old"),
-            Path.Combine(rootDrive, "$SysReset"),
-            Path.Combine(rootDrive, "$GetCurrent"),
-            Path.Combine(winDir, "Panther"),
-            Path.Combine(winDir, "Logs", "MoSetup"),
-            Path.Combine(winDir, "System32", "Sysprep", "Panther")
-        };
-        return dirs;
-    }
+    public static List<string> GetUpgradeLeftoverDirectories() => SystemCacheResolver.ResolveUpgradeLeftovers();
 
-    public static List<string> GetComponentCacheDirectories()
-    {
-        var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-        var dirs = new List<string>
-        {
-            Path.Combine(winDir, "ServiceProfiles", "LocalService", "AppData", "Local", "FontCache"),
-            Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "FontCache"),
-            Path.Combine(winDir, "SystemTemp"),
-            Path.Combine(winDir, "Downloaded Program Files"),
-            Path.Combine(winDir, "SoftwareDistribution", "ScanFile"),
-            Path.Combine(winDir, "SoftwareDistribution", "DataStore", "Logs"),
-            Path.Combine(winDir, "SoftwareDistribution", "PostRebootEventCache"),
-            Path.Combine(winDir, "SoftwareDistribution", "AuthCabs"),
-            Path.Combine(winDir, "Installer", "$PatchCache$"),
-            Path.Combine(progData, "Package Cache"),
-            Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "PeerDistPub"),
-            Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "PeerDistSub"),
-            Path.Combine(localAppData, "FontCache")
-        };
-        return dirs;
-    }
+    public static List<string> GetComponentCacheDirectories() => SystemCacheResolver.ResolveComponentCaches();
 
-    public static List<string> GetStoreAppCacheDirectories()
-    {
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var packagesRoot = Path.Combine(localAppData, "Packages");
-        var dirs = new List<string>();
+    public static List<string> GetStoreAppCacheDirectories() => StoreAppCacheResolver.Resolve();
 
-        if (Directory.Exists(packagesRoot))
-        {
-            try
-            {
-                foreach (var pkg in Directory.EnumerateDirectories(packagesRoot))
-                {
-                    dirs.Add(Path.Combine(pkg, "LocalCache"));
-                    dirs.Add(Path.Combine(pkg, "LocalState", "Cache"));
-                    dirs.Add(Path.Combine(pkg, "AC", "INetCache"));
-                    dirs.Add(Path.Combine(pkg, "AC", "Temp"));
-                    dirs.Add(Path.Combine(pkg, "TempState"));
-                    dirs.Add(Path.Combine(pkg, "CrashDump"));
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
-            }
-        }
+    private static void AddEbWebViewSafeCaches(string ebRoot, List<string> dirs) => StoreAppCacheResolver.AddEbWebViewSafeCaches(ebRoot, dirs);
 
-        return dirs;
-    }
+    public static List<string> GetDeviceDriverDirectories() => SystemCacheResolver.ResolveDeviceDriverDirectories();
 
-    public static List<string> GetDeviceDriverDirectories()
-    {
-        var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-        var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var rootDrive = Path.GetPathRoot(winDir) ?? @"C:\";
+    public static List<string> GetDefenderDirectories() => SystemCacheResolver.ResolveDefenderDirectories();
 
-        return new List<string>
-        {
-            Path.Combine(progData, "NVIDIA Corporation", "NVIDIA App", "UpdateFramework", "ota-artifacts"),
-            Path.Combine(progData, "NVIDIA Corporation", "Downloader"),
-            Path.Combine(progData, "NVIDIA", "Updates"),
-            Path.Combine(progData, "NVIDIA Corporation", "NetService"),
-            Path.Combine(progData, "AMD"),
-            Path.Combine(progData, "Intel"),
-            Path.Combine(rootDrive, "NVIDIA", "DisplayDriver"),
-            Path.Combine(rootDrive, "AMD", "Packages"),
-            Path.Combine(rootDrive, "Intel", "Logs"),
-            Path.Combine(localAppData, "AMD", "DxCache"),
-            Path.Combine(localAppData, "AMD", "DVR"),
-            Path.Combine(winDir, "System32", "DriverStore", "Temp"),
-            Path.Combine(winDir, "System32", "DriverState")
-        };
-    }
+    public static List<string> GetWinSystemLogDirectories() => SystemCacheResolver.ResolveWinSystemLogDirectories();
 
-    public static List<string> GetDefenderDirectories()
-    {
-        var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-        return new List<string>
-        {
-            Path.Combine(progData, "Microsoft", "Windows Defender", "Support"),
-            Path.Combine(progData, "Microsoft", "Windows Defender", "Definition Updates", "Backup"),
-            Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Results", "Quick"),
-            Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Results", "Resource"),
-            Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Store")
-        };
-    }
+    public static List<string> GetSystemDumpDirectories() => SystemCacheResolver.ResolveSystemDumpDirectories();
 
-    public static List<string> GetWinSystemLogDirectories()
-    {
-        var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-        var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-        return new List<string>
-        {
-            Path.Combine(winDir, "Logs"),
-            Path.Combine(winDir, "Logs", "CBS"),
-            Path.Combine(winDir, "Logs", "DISM"),
-            Path.Combine(winDir, "Logs", "NetSetup"),
-            Path.Combine(winDir, "Logs", "WindowsUpdate"),
-            Path.Combine(winDir, "Logs", "MoSetup"),
-            Path.Combine(winDir, "Panther"),
-            Path.Combine(winDir, "Debug"),
-            Path.Combine(winDir, "System32", "LogFiles"),
-            Path.Combine(winDir, "tracing"),
-            Path.Combine(progData, "Microsoft", "Diagnosis", "ETLLogs"),
-            Path.Combine(progData, "Microsoft", "Diagnosis", "SoftLanding")
-        };
-    }
+    public static List<string> GetTemporaryInternetDirectories() => SystemCacheResolver.ResolveTemporaryInternetDirectories();
 
-    public static List<string> GetSystemDumpDirectories()
-    {
-        var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-        return new List<string>
-        {
-            Path.Combine(winDir, "Minidump"),
-            Path.Combine(winDir, "LiveKernelReports"),
-            Path.Combine(winDir, "System32", "CrashDump"),
-            Path.Combine(localAppData, "CrashDumps"),
-            Path.Combine(progData, "Microsoft", "Windows", "WER", "ReportArchive"),
-            Path.Combine(progData, "Microsoft", "Windows", "WER", "ReportQueue"),
-            Path.Combine(progData, "Microsoft", "Windows", "WER", "Temp"),
-            Path.Combine(localAppData, "Microsoft", "Windows", "WER", "ReportArchive"),
-            Path.Combine(localAppData, "Microsoft", "Windows", "WER", "ReportQueue"),
-            Path.Combine(localAppData, "Microsoft", "Windows", "WER", "Temp")
-        };
-    }
+    public static List<string> GetDeliveryOptimizationDirectories() => SystemCacheResolver.ResolveDeliveryOptimizationDirectories();
 
-    public static List<string> GetTemporaryInternetDirectories()
-    {
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        return new List<string>
-        {
-            Path.Combine(localAppData, "Microsoft", "Windows", "INetCache"),
-            Path.Combine(localAppData, "Microsoft", "Windows", "WebCache"),
-            Path.Combine(localAppData, "Microsoft", "Windows", "Caches"),
-            Path.Combine(userProfile, "AppData", "LocalLow", "Microsoft", "CryptnetUrlCache")
-        };
-    }
+    public static List<string> GetGpuShaderDirectories() => SystemCacheResolver.ResolveGpuShaderDirectories();
 
-    public static List<string> GetDeliveryOptimizationDirectories()
-    {
-        var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        return new List<string>
-        {
-            Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "Microsoft", "Windows", "DeliveryOptimization", "Cache"),
-            Path.Combine(winDir, "SoftwareDistribution", "DeliveryOptimization"),
-            Path.Combine(localAppData, "Microsoft", "Windows", "DeliveryOptimization")
-        };
-    }
+    public static List<string> GetGamingLauncherDirectories() => SystemCacheResolver.ResolveGamingLauncherDirectories();
 
-    public static List<string> GetGpuShaderDirectories()
-    {
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        return new List<string>
-        {
-            Path.Combine(localAppData, "NVIDIA", "DXCache"),
-            Path.Combine(localAppData, "NVIDIA", "GLCache"),
-            Path.Combine(userProfile, "AppData", "LocalLow", "NVIDIA", "PerDriverVersion", "DXCache"),
-            Path.Combine(localAppData, "AMD", "DxCache"),
-            Path.Combine(localAppData, "D3DSCache"),
-            Path.Combine(localAppData, "Intel", "ShaderCache")
-        };
-    }
+    public static List<string> GetMediaCreatorDirectories() => SystemCacheResolver.ResolveMediaCreatorDirectories();
 
-    public static List<string> GetGamingLauncherDirectories()
-    {
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-        var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+    public static List<string> GetMobileDevDirectories() => SystemCacheResolver.ResolveMobileDevDirectories();
 
-        return new List<string>
-        {
-            Path.Combine(progFilesX86, "Steam", "downloading"),
-            Path.Combine(progFilesX86, "Steam", "shadercache"),
-            Path.Combine(progFilesX86, "Steam", "appcache", "httpcache"),
-            Path.Combine(localAppData, "Steam", "htmlcache"),
-            Path.Combine(localAppData, "EpicGamesLauncher", "Saved", "webcache"),
-            Path.Combine(localAppData, "EpicGamesLauncher", "Saved", "webcache_4430"),
-            Path.Combine(localAppData, "EpicGamesLauncher", "Saved", "Logs"),
-            Path.Combine(localAppData, "Battle.net", "Cache"),
-            Path.Combine(localAppData, "Battle.net", "Logs"),
-            Path.Combine(localAppData, "Blizzard Entertainment", "Battle.net", "Cache"),
-            Path.Combine(localAppData, "Electronic Arts", "EA Desktop", "Logs"),
-            Path.Combine(localAppData, "Electronic Arts", "EA Desktop", "cache"),
-            Path.Combine(localAppData, "Origin", "Logs"),
-            Path.Combine(localAppData, "Origin", "ThinSetup"),
-            Path.Combine(localAppData, "Ubisoft Game Launcher", "cache"),
-            Path.Combine(localAppData, "Ubisoft Game Launcher", "spool"),
-            Path.Combine(localAppData, "Riot Games", "Riot Client", "Logs"),
-            Path.Combine(localAppData, "Riot Games", "Riot Client", "Data", "Caches"),
-            Path.Combine(localAppData, "VALORANT", "saved", "crashes"),
-            Path.Combine(localAppData, "VALORANT", "saved", "logs"),
-            Path.Combine(localAppData, "GOG.com", "Galaxy", "webcache"),
-            Path.Combine(localAppData, "GOG.com", "Galaxy", "logs"),
-            Path.Combine(localAppData, "Roblox", "logs"),
-            Path.Combine(localAppData, "Roblox", "Downloads")
-        };
-    }
+    public static List<string> GetAppCacheDirectories() => SystemCacheResolver.ResolveAppCacheDirectories();
 
-    public static List<string> GetMediaCreatorDirectories()
-    {
-        var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+    public static List<string> GetMessagingAppCacheDirectories() => MessagingAppCacheResolver.Resolve();
 
-        var dirs = new List<string>
-        {
-            Path.Combine(roamingAppData, "Adobe", "Common", "Media Cache Files"),
-            Path.Combine(roamingAppData, "Adobe", "Common", "Media Cache"),
-            Path.Combine(roamingAppData, "Adobe", "Common", "Peak Files"),
-            Path.Combine(localAppData, "Adobe", "Photoshop", "AutoRecover"),
-            Path.Combine(roamingAppData, "Blackmagic Design", "DaVinci Resolve", "Support", "logs"),
-            Path.Combine(roamingAppData, "Blackmagic Design", "DaVinci Resolve", "Cache"),
-            Path.Combine(roamingAppData, "obs-studio", "logs"),
-            Path.Combine(roamingAppData, "obs-studio", "crashes"),
-            Path.Combine(roamingAppData, "slobs-client", "cache"),
-            Path.Combine(roamingAppData, "Blender Foundation", "Blender", "temp"),
-            Path.Combine(localAppData, "CapCut", "User Data", "Cache"),
-            Path.Combine(localAppData, "audacity", "SessionData")
-        };
+    public static List<string> GetBrowserCacheDirectories() => BrowserCacheResolver.Resolve();
 
-        // Adobe After Effects disk cache
-        var adobeLocal = Path.Combine(localAppData, "Adobe", "After Effects");
-        if (Directory.Exists(adobeLocal))
-        {
-            try
-            {
-                foreach (var verDir in Directory.EnumerateDirectories(adobeLocal))
-                {
-                    dirs.Add(Path.Combine(verDir, "Disk Cache"));
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
-            }
-        }
-
-        return dirs;
-    }
-
-    public static List<string> GetMobileDevDirectories()
-    {
-        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-
-        return new List<string>
-        {
-            Path.Combine(roamingAppData, "Apple Computer", "MobileDeviceBackup", "Temp"),
-            Path.Combine(roamingAppData, "Apple Computer", "Logs"),
-            Path.Combine(userProfile, ".android", "cache"),
-            Path.Combine(userProfile, ".android", "build-cache"),
-            Path.Combine(userProfile, ".gradle", "daemon"),
-            Path.Combine(userProfile, ".gradle", "caches", "transforms-1"),
-            Path.Combine(userProfile, ".gradle", "caches", "transforms-2"),
-            Path.Combine(userProfile, ".gradle", "caches", "transforms-3"),
-            Path.Combine(userProfile, ".cargo", "registry", "cache")
-        };
-    }
-
-    public static List<string> GetAppCacheDirectories()
-    {
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-
-        var dirs = new List<string>
-        {
-            Path.Combine(localAppData, "Spotify", "Data"),
-            Path.Combine(localAppData, "Spotify", "Storage"),
-            Path.Combine(localAppData, "Spotify", "Browser", "Cache"),
-            Path.Combine(roamingAppData, "discord", "Cache"),
-            Path.Combine(roamingAppData, "discord", "Code Cache"),
-            Path.Combine(roamingAppData, "discord", "GPUCache"),
-            Path.Combine(roamingAppData, "discordcanary", "Cache"),
-            Path.Combine(roamingAppData, "discordptb", "Cache"),
-            Path.Combine(roamingAppData, "Slack", "Cache"),
-            Path.Combine(roamingAppData, "Slack", "GPUCache"),
-            Path.Combine(roamingAppData, "Slack", "Service Worker", "CacheStorage"),
-            Path.Combine(roamingAppData, "Code", "Cache"),
-            Path.Combine(roamingAppData, "Code", "CachedData"),
-            Path.Combine(roamingAppData, "Code", "CachedExtensions"),
-            Path.Combine(roamingAppData, "Code", "GPUCache"),
-            Path.Combine(roamingAppData, "Code", "logs"),
-            Path.Combine(roamingAppData, "Cursor", "Cache"),
-            Path.Combine(roamingAppData, "Cursor", "CachedData"),
-            Path.Combine(roamingAppData, "Cursor", "GPUCache"),
-            Path.Combine(roamingAppData, "Windsurf", "Cache"),
-            Path.Combine(roamingAppData, "Windsurf", "GPUCache"),
-            Path.Combine(roamingAppData, "Notion", "Cache"),
-            Path.Combine(roamingAppData, "Notion", "GPUCache"),
-            Path.Combine(roamingAppData, "Notion", "Code Cache"),
-            Path.Combine(localAppData, "Microsoft", "Teams", "Cache"),
-            Path.Combine(roamingAppData, "Microsoft", "Teams", "Cache"),
-            Path.Combine(roamingAppData, "Telegram Desktop", "tdata", "user_data", "cache"),
-            Path.Combine(roamingAppData, "WhatsApp", "Cache"),
-            Path.Combine(roamingAppData, "Zoom", "data"),
-            Path.Combine(localAppData, "Zoom", "temp"),
-            Path.Combine(localAppData, "CapCut", "User Data", "Cache")
-        };
-
-        // JetBrains IDE caches
-        var jbRoot = Path.Combine(localAppData, "JetBrains");
-        if (Directory.Exists(jbRoot))
-        {
-            try
-            {
-                foreach (var ideDir in Directory.EnumerateDirectories(jbRoot))
-                {
-                    dirs.Add(Path.Combine(ideDir, "caches"));
-                    dirs.Add(Path.Combine(ideDir, "log"));
-                    dirs.Add(Path.Combine(ideDir, "tmp"));
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
-            }
-        }
-
-        return dirs;
-    }
-
-    public static List<string> GetBrowserCacheDirectories()
-    {
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var dirs = new List<string>();
-
-        // Chromium browser User Data roots
-        var chromiumRoots = new (string BaseDir, string FallbackSubDir)[]
-        {
-            (Path.Combine(localAppData, "Google", "Chrome", "User Data"), "Default"),
-            (Path.Combine(localAppData, "Microsoft", "Edge", "User Data"), "Default"),
-            (Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "User Data"), "Default"),
-            (Path.Combine(localAppData, "Vivaldi", "User Data"), "Default"),
-            (Path.Combine(localAppData, "Arc", "User Data"), "Default"),
-            (Path.Combine(localAppData, "Yandex", "YandexBrowser", "User Data"), "Default"),
-            (Path.Combine(localAppData, "Opera Software", "Opera Stable"), ""),
-            (Path.Combine(localAppData, "Opera Software", "Opera GX Stable"), "")
-        };
-
-        foreach (var (baseDir, fallbackSub) in chromiumRoots)
-        {
-            if (!Directory.Exists(baseDir)) continue;
-
-            var profileDirs = new List<string>();
-
-            // Find all profiles (Default, Profile 1, Profile 2, etc.)
-            try
-            {
-                foreach (var subDir in Directory.EnumerateDirectories(baseDir))
-                {
-                    var dirName = Path.GetFileName(subDir);
-                    if (dirName.Equals("Default", StringComparison.OrdinalIgnoreCase) ||
-                        dirName.StartsWith("Profile", StringComparison.OrdinalIgnoreCase) ||
-                        dirName.Equals("Guest Profile", StringComparison.OrdinalIgnoreCase) ||
-                        dirName.Equals("System Profile", StringComparison.OrdinalIgnoreCase))
-                    {
-                        profileDirs.Add(subDir);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
-            }
-
-            // If no profile subdirectories matched, treat baseDir itself as the container (e.g. Opera)
-            if (profileDirs.Count == 0)
-            {
-                profileDirs.Add(baseDir);
-            }
-
-            foreach (var prof in profileDirs)
-            {
-                dirs.Add(Path.Combine(prof, "Cache"));
-                dirs.Add(Path.Combine(prof, "Cache", "Cache_Data"));
-                dirs.Add(Path.Combine(prof, "Code Cache"));
-                dirs.Add(Path.Combine(prof, "GPUCache"));
-                dirs.Add(Path.Combine(prof, "DawnCache"));
-                dirs.Add(Path.Combine(prof, "ShaderCache"));
-                dirs.Add(Path.Combine(prof, "GrShaderCache"));
-                dirs.Add(Path.Combine(prof, "Service Worker", "CacheStorage"));
-                dirs.Add(Path.Combine(prof, "Crashpad", "reports"));
-                dirs.Add(Path.Combine(prof, "blob_storage"));
-            }
-        }
-
-        // Gecko / Firefox-based browsers
-        var geckoRoots = new string[]
-        {
-            Path.Combine(localAppData, "Mozilla", "Firefox", "Profiles"),
-            Path.Combine(localAppData, "Floorp", "Profiles"),
-            Path.Combine(localAppData, "Waterfox", "Profiles"),
-            Path.Combine(localAppData, "LibreWolf", "Profiles"),
-            Path.Combine(localAppData, "zen", "Profiles")
-        };
-
-        foreach (var gRoot in geckoRoots)
-        {
-            if (!Directory.Exists(gRoot)) continue;
-            try
-            {
-                foreach (var prof in Directory.EnumerateDirectories(gRoot))
-                {
-                    dirs.Add(Path.Combine(prof, "cache2"));
-                    dirs.Add(Path.Combine(prof, "startupCache"));
-                    dirs.Add(Path.Combine(prof, "thumbnails"));
-                    dirs.Add(Path.Combine(prof, "jumpListCache"));
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
-            }
-        }
-
-        return dirs;
-    }
-
-    public static List<string> GetDevPackageDirectories()
-    {
-        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-
-        return new List<string>
-        {
-            Path.Combine(localAppData, "pip", "cache"),
-            Path.Combine(localAppData, "npm-cache"),
-            Path.Combine(roamingAppData, "npm-cache"),
-            Path.Combine(localAppData, "Yarn", "Cache"),
-            Path.Combine(localAppData, "pnpm", "store", "v3"),
-            Path.Combine(localAppData, "pnpm-cache"),
-            Path.Combine(localAppData, "NuGet", "v3-cache"),
-            Path.Combine(localAppData, "NuGet", "plugins-cache"),
-            Path.Combine(userProfile, ".cache"),
-            Path.Combine(userProfile, ".gradle", "caches"),
-            Path.Combine(userProfile, ".cargo", "registry", "cache"),
-            Path.Combine(userProfile, ".cargo", "git", "db"),
-            Path.Combine(userProfile, ".rustup", "downloads"),
-            Path.Combine(userProfile, ".rustup", "tmp"),
-            Path.Combine(userProfile, ".bun", "install", "cache"),
-            Path.Combine(localAppData, "deno", "deps"),
-            Path.Combine(localAppData, "go-build"),
-            Path.Combine(localAppData, "Microsoft", "dotnet"),
-            Path.Combine(localAppData, "Temp", ".net"),
-            Path.Combine(userProfile, ".m2", "repository", ".cache"),
-            Path.Combine(userProfile, ".m2", "temp"),
-            Path.Combine(userProfile, ".nuget", "packages", "temp")
-        };
-    }
+    public static List<string> GetDevPackageDirectories() => DevPackageCacheResolver.Resolve();
 
     #endregion
 
@@ -1376,6 +957,12 @@ public class CleanerService
     {
         var dirs = GetAppCacheDirectories();
         ScanDirectoryList(folder, dirs, "Desktop Apps Caches", logAction, ct);
+    }
+
+    private static void ScanMessagingAppCachePools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
+    {
+        var dirs = GetMessagingAppCacheDirectories();
+        ScanDirectoryList(folder, dirs, "Messaging & Social Apps Caches", logAction, ct);
     }
 
     private static void ScanBrowserCachePools(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct)
@@ -1687,6 +1274,10 @@ public class CleanerService
             {
                 directoriesToClean.AddRange(GetAppCacheDirectories());
             }
+            else if (folder.Id == "MessagingAppCaches")
+            {
+                directoriesToClean.AddRange(GetMessagingAppCacheDirectories());
+            }
             else if (folder.Id == "BrowserCaches")
             {
                 directoriesToClean.AddRange(GetBrowserCacheDirectories());
@@ -1765,42 +1356,62 @@ public class CleanerService
                                 try { file.Attributes = FileAttributes.Normal; } catch { }
                             }
 
-                            // 2. Primary native Win32 deletion
-                            if (DeleteFileW(path))
+                            bool deleted = false;
+
+                            // 2. Recycle Bin mode if enabled in user settings
+                            if (SettingsService.Current.SendToRecycleBin)
                             {
-                                freedBytes += fileLen;
-                                filesDeleted++;
-                            }
-                            else
-                            {
-                                // 3. Fallback standard .NET delete
                                 try
                                 {
-                                    file.Delete();
+                                    if (LargeFileHunterService.MoveToRecycleBin(path))
+                                    {
+                                        freedBytes += fileLen;
+                                        filesDeleted++;
+                                        deleted = true;
+                                    }
+                                }
+                                catch { }
+                            }
+
+                            if (!deleted)
+                            {
+                                // 3. Primary native Win32 deletion
+                                if (DeleteFileW(path))
+                                {
                                     freedBytes += fileLen;
                                     filesDeleted++;
                                 }
-                                catch
+                                else
                                 {
-                                    // 4. POSIX delete attempt for files shared with delete permission
-                                    bool sharedDeleted = false;
+                                    // 4. Fallback standard .NET delete
                                     try
                                     {
-                                        using (var fs = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
-                                        {
-                                        }
-                                        if (DeleteFileW(path))
-                                        {
-                                            freedBytes += fileLen;
-                                            filesDeleted++;
-                                            sharedDeleted = true;
-                                        }
+                                        file.Delete();
+                                        freedBytes += fileLen;
+                                        filesDeleted++;
                                     }
-                                    catch { }
-
-                                    if (!sharedDeleted)
+                                    catch
                                     {
-                                        filesSkipped++;
+                                        // 5. POSIX delete attempt for files shared with delete permission
+                                        bool sharedDeleted = false;
+                                        try
+                                        {
+                                            using (var fs = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
+                                            {
+                                            }
+                                            if (DeleteFileW(path))
+                                            {
+                                                freedBytes += fileLen;
+                                                filesDeleted++;
+                                                sharedDeleted = true;
+                                            }
+                                        }
+                                        catch { }
+
+                                        if (!sharedDeleted)
+                                        {
+                                            filesSkipped++;
+                                        }
                                     }
                                 }
                             }
@@ -2120,8 +1731,84 @@ public class CleanerService
         }, ct);
     }
 
+    public static bool IsProtectedSessionOrCredentialFile(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath)) return false;
+
+        var pathLower = filePath.ToLowerInvariant();
+        var fileName = Path.GetFileName(pathLower);
+
+        // 1. Critical session, credential, login and account files
+        if (fileName.StartsWith("login data") ||
+            fileName.StartsWith("cookies") ||
+            fileName.StartsWith("web data") ||
+            fileName.StartsWith("preferences") ||
+            fileName.StartsWith("secure preferences") ||
+            fileName.StartsWith("settings.dat") ||
+            fileName.StartsWith("roaming.lock") ||
+            fileName.StartsWith("key_data") ||
+            fileName.StartsWith("accounts") ||
+            fileName.StartsWith("tokens") ||
+            fileName.StartsWith("credentials") ||
+            fileName.StartsWith("user.dat") ||
+            fileName.StartsWith("userclasses.dat") ||
+            fileName.StartsWith("storage.json") ||
+            fileName.StartsWith("state.vscdb") ||
+            fileName.Contains("session") ||
+            fileName.Contains("token") ||
+            fileName.Contains("identity") ||
+            fileName.Contains("credential") ||
+            fileName.Contains("msal") ||
+            fileName.Contains("app_settings") ||
+            fileName.Contains("cloud_settings") ||
+            fileName.EndsWith(".dat64"))
+        {
+            return true;
+        }
+
+        // 2. Telegram Desktop authentication keys & account maps (inside tdata)
+        // Telegram stores user auth keys as hex files (e.g., D877F783D5D3EF8C0, D877F783D5D3EF8C1, etc.),
+        // map0, map1, configs, settings0, settings1, key_datas, etc.
+        // ONLY user_data\cache, temp, and dumps subfolders in tdata are safe to clean.
+        if (pathLower.Contains(@"\tdata\"))
+        {
+            if (!pathLower.Contains(@"\tdata\user_data\cache\") &&
+                !pathLower.Contains(@"\tdata\temp\") &&
+                !pathLower.Contains(@"\tdata\dumps\"))
+            {
+                return true;
+            }
+        }
+
+        // 3. Database & storage paths holding active user sessions / auth tokens / sync databases / SSO identity
+        if (pathLower.Contains(@"\indexeddb\") ||
+            pathLower.Contains(@"\local storage\") ||
+            pathLower.Contains(@"\session storage\") ||
+            pathLower.Contains(@"\sync data\") ||
+            pathLower.Contains(@"\keytar\") ||
+            pathLower.Contains(@"\keystore\") ||
+            pathLower.Contains(@"\credentials\") ||
+            pathLower.Contains(@"\identity\") ||
+            pathLower.Contains(@"\identitycache\") ||
+            pathLower.Contains(@"\tokenbroker\") ||
+            pathLower.Contains(@"\msal\") ||
+            pathLower.Contains(@"\wam\") ||
+            pathLower.Contains(@"\aad\"))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     private static bool IsProtectedFile(string filePath)
     {
+        // 0. Active session, login credentials, and user auth databases are strictly protected
+        if (IsProtectedSessionOrCredentialFile(filePath))
+        {
+            return true;
+        }
+
         var ext = Path.GetExtension(filePath).ToLowerInvariant();
         string[] dangerousExtensions = { ".exe", ".dll", ".sys", ".drv", ".msc", ".bat", ".cmd", ".vbs", ".ps1", ".docx", ".xlsx", ".pptx", ".pdf", ".psd", ".key", ".kdbx" };
 

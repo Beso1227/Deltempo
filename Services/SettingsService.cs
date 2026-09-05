@@ -16,6 +16,9 @@ public class AppSettings
     public bool SoundEnabled { get; set; } = true;
     public bool CheckUpdatesOnStartup { get; set; } = true;
     public string Language { get; set; } = "en";
+    public bool SendToRecycleBin { get; set; } = false;
+    public bool LowDiskAlertEnabled { get; set; } = true;
+    public int LowDiskAlertThresholdGb { get; set; } = 10;
 
     // ─── Memory Optimizer (WinMemoryCleaner integration) ──────────────────
     public bool MemoryAutoOptimizeEnabled { get; set; } = false;
