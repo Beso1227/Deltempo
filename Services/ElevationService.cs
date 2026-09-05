@@ -5,6 +5,8 @@ namespace WinTempCleaner.Services;
 
 public static class ElevationService
 {
+    public static bool IsAdministrator => IsRunAsAdmin();
+
     public static bool IsRunAsAdmin()
     {
         try

@@ -159,7 +159,7 @@
                                     Style="{DynamicResource HeaderToolButton}"
                                     FocusVisualStyle="{x:Null}"
                                     ToolTip="Memory Hogs &amp; Background App Optimizer"
-                                    Margin="0"
+                                    Margin="0,0,6,0"
                                     Click="OpenProcessModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE9F5;"
@@ -169,6 +169,25 @@
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock Text="Processes"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="ToolSystemRepairBtn"
+                                    Style="{DynamicResource HeaderToolButton}"
+                                    FocusVisualStyle="{x:Null}"
+                                    ToolTip="Windows Integrity &amp; Component Corruption Repair (SFC, DISM, CHKDSK)"
+                                    Margin="0"
+                                    Click="OpenSystemRepairModal_Click">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE74C;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                               Margin="0,0,5,0"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="System Repair"
                                                FontSize="11"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center"/>
@@ -3551,6 +3570,648 @@
                                         FontSize="11"
                                         Click="CloseMemoryCleanerModal_Click"/>
                             </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Border>
+        </Grid>
+
+        <!-- WINDOWS SYSTEM INTEGRITY & CORRUPTION REPAIR WORKSPACE MODAL -->
+        <Grid Grid.RowSpan="6"
+              x:Name="SystemRepairModalOverlay"
+              Visibility="Collapsed"
+              Background="{DynamicResource ModalBackdropBrush}">
+            <Border Width="880" MaxHeight="720"
+                    Background="{DynamicResource DoubleBezelOuterBrush}"
+                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="16"
+                    Padding="2"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <Border Background="{DynamicResource ModalSurfaceBrush}"
+                        CornerRadius="14"
+                        Padding="22,18">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/> <!-- 0: Header -->
+                            <RowDefinition Height="Auto"/> <!-- 1: Elevation Warning Banner -->
+                            <RowDefinition Height="*"/>    <!-- 2: Scrollable Content (Hero + 6 Tools + Terminal) -->
+                            <RowDefinition Height="Auto"/> <!-- 3: Footer Actions -->
+                        </Grid.RowDefinitions>
+
+                        <!-- 0: Header -->
+                        <Grid Grid.Row="0" Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Width="40" Height="40"
+                                        CornerRadius="12"
+                                        Background="{DynamicResource SurfaceSubCardBrush}"
+                                        BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                        BorderThickness="1"
+                                        Margin="0,0,12,0">
+                                    <TextBlock Text="&#xE74C;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="18"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="Windows System Integrity &amp; Component Repair"
+                                                   FontSize="16"
+                                                   FontWeight="Bold"
+                                                   Foreground="{DynamicResource TextHighBrush}"/>
+                                        <!-- Privilege status badge in header -->
+                                        <Border x:Name="SystemRepairAdminBadgeBorder"
+                                                Background="#142B20"
+                                                BorderBrush="#3D10B981"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="7,2"
+                                                Margin="10,0,0,0"
+                                                VerticalAlignment="Center">
+                                            <TextBlock x:Name="SystemRepairAdminBadgeText"
+                                                       Text="Administrator"
+                                                       FontSize="9.5"
+                                                       FontWeight="Bold"
+                                                       Foreground="#10B981"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Autonomous and surgical OS diagnostics: SFC, DISM Component Store, Filesystem, and Servicing Stacks"
+                                               FontSize="11.5"
+                                               Foreground="{DynamicResource TextMediumBrush}"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Style="{DynamicResource WindowCloseButton}"
+                                    Content="&#xE8BB;"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Click="CloseSystemRepairModal_Click"/>
+                        </Grid>
+
+                        <!-- 1: Elevation Warning Banner (Visible when unprivileged) -->
+                        <Border x:Name="SystemRepairElevationBanner"
+                                Grid.Row="1"
+                                Visibility="Collapsed"
+                                Background="#241B12"
+                                BorderBrush="#8CF59E0B"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="12,8"
+                                Margin="0,0,0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           Text="&#xE7BA;"
+                                           FontFamily="{DynamicResource IconFont}"
+                                           FontSize="16"
+                                           Foreground="{DynamicResource AmberWarningBrush}"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,10,0"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="Administrator Privileges Required for System Servicing"
+                                               FontSize="11.5"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource AmberWarningBrush}"/>
+                                    <TextBlock Text="DISM and SFC require elevated NT permissions to scan manifests, repair packages, and commit image changes."
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource TextMediumBrush}"
+                                               Margin="0,1,0,0"/>
+                                </StackPanel>
+                                <Button Grid.Column="2"
+                                        Content="Elevate Privileges"
+                                        Style="{DynamicResource PillButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        Padding="12,5"
+                                        FontSize="10.5"
+                                        FontWeight="SemiBold"
+                                        VerticalAlignment="Center"
+                                        Click="ElevateForSystemRepair_Click"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- 2: Scrollable Content -->
+                        <ScrollViewer Grid.Row="2"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      Margin="0,0,0,12">
+                            <StackPanel Margin="0,0,6,0">
+
+                                <!-- Hero Card: 1-Click Autonomous System Repair -->
+                                <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                        BorderBrush="{DynamicResource AccentBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="12"
+                                        Padding="16,14"
+                                        Margin="0,0,0,12">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <Grid Grid.Row="0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Pulse Icon Pod -->
+                                            <Border Grid.Column="0"
+                                                    Width="38" Height="38"
+                                                    CornerRadius="10"
+                                                    Background="{DynamicResource SurfaceCardBrush}"
+                                                    BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                                    BorderThickness="1"
+                                                    Margin="0,0,12,0"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="&#xE90F;"
+                                                           FontFamily="{DynamicResource IconFont}"
+                                                           FontSize="17"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="1-Click Autonomous Health Check &amp; Repair"
+                                                               FontSize="13.5"
+                                                               FontWeight="Bold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <Border Background="{DynamicResource SurfaceCardBrush}"
+                                                            BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="6"
+                                                            Padding="6,1"
+                                                            Margin="8,0,0,0"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="RECOMMENDED"
+                                                                   FontSize="9"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="Performs DISM ScanHealth verification, automatic RestoreHealth servicing if corrupted, SFC Scannow system file repairs, and online CHKDSK filesystem verification sequentially."
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,3,0,0"/>
+                                            </StackPanel>
+
+                                            <Button Grid.Column="2"
+                                                    x:Name="HeroAutonomousRepairBtn"
+                                                    Content="Run Autonomous Repair"
+                                                    Style="{DynamicResource HeroCTAButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="18,8"
+                                                    FontSize="11.5"
+                                                    VerticalAlignment="Center"
+                                                    Margin="14,0,0,0"
+                                                    Click="RunAutonomousRepair_Click"/>
+                                        </Grid>
+
+                                        <!-- Progress Tracking Strip -->
+                                        <StackPanel Grid.Row="1" Margin="0,12,0,0">
+                                            <ProgressBar x:Name="SystemRepairProgressBar"
+                                                         Height="6"
+                                                         Minimum="0"
+                                                         Maximum="100"
+                                                         Value="0"
+                                                         Background="{DynamicResource TrackBgBrush}"
+                                                         Foreground="{DynamicResource ElectricCyanBrush}"
+                                                         BorderThickness="0"/>
+                                            <Grid Margin="0,5,0,0">
+                                                <TextBlock x:Name="SystemRepairStatusText"
+                                                           Text="System repair suite ready for diagnostics."
+                                                           FontSize="10.5"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           HorizontalAlignment="Left"/>
+                                                <TextBlock x:Name="SystemRepairProgressPercentText"
+                                                           Text="0%"
+                                                           FontSize="10.5"
+                                                           FontWeight="Bold"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                           HorizontalAlignment="Right"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Section Header: Surgical Tools -->
+                                <TextBlock Text="SURGICAL INTEGRITY &amp; SERVICING TOOLS"
+                                           FontSize="10"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource TextMutedBrush}"
+                                           Margin="2,0,0,8"/>
+
+                                <!-- 6 Bento Tool Cards Grid -->
+                                <UniformGrid Columns="2" Margin="0,0,0,14">
+                                    <!-- Tool 1: SFC Scannow -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            Padding="12,10"
+                                            Margin="0,0,4,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0"
+                                                    Width="34" Height="34"
+                                                    CornerRadius="8"
+                                                    Background="{DynamicResource SurfaceCardBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                    BorderThickness="1"
+                                                    Margin="0,0,10,0"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="&#xE74C;"
+                                                           FontFamily="{DynamicResource IconFont}"
+                                                           FontSize="14"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                <TextBlock Text="System File Checker"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextHighBrush}"/>
+                                                <TextBlock Text="Scans and replaces corrupt protected Windows binaries (sfc /scannow)."
+                                                           FontSize="10"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2"
+                                                    x:Name="ToolSfcBtn"
+                                                    Content="Run SFC"
+                                                    Style="{DynamicResource PillButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="12,5"
+                                                    FontSize="10.5"
+                                                    FontWeight="SemiBold"
+                                                    VerticalAlignment="Center"
+                                                    Click="RunSfcScannow_Click"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Tool 2: DISM RestoreHealth -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            Padding="12,10"
+                                            Margin="4,0,0,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0"
+                                                    Width="34" Height="34"
+                                                    CornerRadius="8"
+                                                    Background="{DynamicResource SurfaceCardBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                    BorderThickness="1"
+                                                    Margin="0,0,10,0"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="&#xE90F;"
+                                                           FontFamily="{DynamicResource IconFont}"
+                                                           FontSize="14"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                <TextBlock Text="DISM Component Repair"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextHighBrush}"/>
+                                                <TextBlock Text="Repairs corrupted component store against online servicing manifests."
+                                                           FontSize="10"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2"
+                                                    x:Name="ToolDismRestoreBtn"
+                                                    Content="Run DISM"
+                                                    Style="{DynamicResource PillButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="12,5"
+                                                    FontSize="10.5"
+                                                    FontWeight="SemiBold"
+                                                    VerticalAlignment="Center"
+                                                    Click="RunDismRestoreHealth_Click"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Tool 3: WinSxS Scavenging -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            Padding="12,10"
+                                            Margin="0,0,4,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0"
+                                                    Width="34" Height="34"
+                                                    CornerRadius="8"
+                                                    Background="{DynamicResource SurfaceCardBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                    BorderThickness="1"
+                                                    Margin="0,0,10,0"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="&#xE74D;"
+                                                           FontFamily="{DynamicResource IconFont}"
+                                                           FontSize="14"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                <TextBlock Text="Component Store Scavenger"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextHighBrush}"/>
+                                                <TextBlock Text="Purges superseded package baselines in WinSxS to recover gigabytes."
+                                                           FontSize="10"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2"
+                                                    x:Name="ToolWinSxSBtn"
+                                                    Content="Clean WinSxS"
+                                                    Style="{DynamicResource PillButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="12,5"
+                                                    FontSize="10.5"
+                                                    FontWeight="SemiBold"
+                                                    VerticalAlignment="Center"
+                                                    Click="RunWinSxSCleanup_Click"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Tool 4: CHKDSK Volume Scan -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            Padding="12,10"
+                                            Margin="4,0,0,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0"
+                                                    Width="34" Height="34"
+                                                    CornerRadius="8"
+                                                    Background="{DynamicResource SurfaceCardBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                    BorderThickness="1"
+                                                    Margin="0,0,10,0"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="&#xEDA2;"
+                                                           FontFamily="{DynamicResource IconFont}"
+                                                           FontSize="14"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                <TextBlock Text="Filesystem Integrity"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextHighBrush}"/>
+                                                <TextBlock Text="Online verification of NTFS/ReFS master file table and descriptors on C:."
+                                                           FontSize="10"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2"
+                                                    x:Name="ToolChkdskBtn"
+                                                    Content="Scan Drive C:"
+                                                    Style="{DynamicResource PillButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="12,5"
+                                                    FontSize="10.5"
+                                                    FontWeight="SemiBold"
+                                                    VerticalAlignment="Center"
+                                                    Click="RunChkdskScan_Click"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Tool 5: Windows Update Reset -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            Padding="12,10"
+                                            Margin="0,0,4,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0"
+                                                    Width="34" Height="34"
+                                                    CornerRadius="8"
+                                                    Background="{DynamicResource SurfaceCardBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                    BorderThickness="1"
+                                                    Margin="0,0,10,0"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="&#xE895;"
+                                                           FontFamily="{DynamicResource IconFont}"
+                                                           FontSize="14"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                <TextBlock Text="Windows Update Servicing"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextHighBrush}"/>
+                                                <TextBlock Text="Stops wuauserv/bits, purges SoftwareDistribution cache, and restarts."
+                                                           FontSize="10"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2"
+                                                    x:Name="ToolUpdateResetBtn"
+                                                    Content="Reset Updates"
+                                                    Style="{DynamicResource PillButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="12,5"
+                                                    FontSize="10.5"
+                                                    FontWeight="SemiBold"
+                                                    VerticalAlignment="Center"
+                                                    Click="RunWindowsUpdateReset_Click"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Tool 6: Network Stack Reset -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            Padding="12,10"
+                                            Margin="4,0,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0"
+                                                    Width="34" Height="34"
+                                                    CornerRadius="8"
+                                                    Background="{DynamicResource SurfaceCardBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                    BorderThickness="1"
+                                                    Margin="0,0,10,0"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="&#xEC3B;"
+                                                           FontFamily="{DynamicResource IconFont}"
+                                                           FontSize="14"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                <TextBlock Text="Network &amp; Winsock Stack"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextHighBrush}"/>
+                                                <TextBlock Text="Flushes DNS resolver cache, resets Winsock catalog, and resets IP stack."
+                                                           FontSize="10"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2"
+                                                    x:Name="ToolNetworkResetBtn"
+                                                    Content="Reset Network"
+                                                    Style="{DynamicResource PillButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="12,5"
+                                                    FontSize="10.5"
+                                                    FontWeight="SemiBold"
+                                                    VerticalAlignment="Center"
+                                                    Click="RunNetworkReset_Click"/>
+                                        </Grid>
+                                    </Border>
+                                </UniformGrid>
+
+                                <!-- Live Diagnostic Output Terminal -->
+                                <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="10"
+                                        Padding="12,10"
+                                        Margin="0,4,0,0">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,8">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="&#xE756;"
+                                                           FontFamily="{DynamicResource IconFont}"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                           Margin="0,0,6,0"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Text="Live Diagnostic Output Stream"
+                                                           FontSize="11"
+                                                           FontWeight="Bold"
+                                                           Foreground="{DynamicResource TextHighBrush}"
+                                                           VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                <Button Content="Copy Log"
+                                                        Style="{DynamicResource PillButton}"
+                                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                        Padding="9,3"
+                                                        FontSize="10"
+                                                        Click="CopySystemRepairLog_Click"/>
+                                                <Button Content="Clear Output"
+                                                        Style="{DynamicResource PillButton}"
+                                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                        Padding="9,3"
+                                                        FontSize="10"
+                                                        Margin="6,0,0,0"
+                                                        Click="ClearSystemRepairLog_Click"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <Border Background="#090D14"
+                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="8">
+                                            <TextBox x:Name="SystemRepairTerminalTextBox"
+                                                     FontFamily="Cascadia Code, Consolas, Lucida Console, monospace"
+                                                     FontSize="10.5"
+                                                     Foreground="#00F5D4"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     Height="140"
+                                                     IsReadOnly="True"
+                                                     TextWrapping="Wrap"
+                                                     VerticalScrollBarVisibility="Auto"
+                                                     HorizontalScrollBarVisibility="Disabled"
+                                                     AcceptsReturn="True"
+                                                     Text="[Diagnostic Terminal Initialized] Ready for Windows system integrity scans...&#x0a;"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- 3: Footer Actions -->
+                        <Grid Grid.Row="3">
+                            <Button x:Name="CancelSystemRepairBtn"
+                                    Content="Cancel Operation"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Padding="14,6"
+                                    FontSize="11"
+                                    IsEnabled="False"
+                                    Click="CancelSystemRepair_Click"/>
+
+                            <Button Content="Close"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Padding="18,6"
+                                    FontSize="11"
+                                    Click="CloseSystemRepairModal_Click"/>
                         </Grid>
                     </Grid>
                 </Border>

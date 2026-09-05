@@ -101,6 +101,12 @@ public static class CliRunner
                 exitCode = HandleKill(args);
                 break;
 
+            case "repair":
+            case "integrity":
+            case "fix":
+                exitCode = await HandleRepairAsync(args);
+                break;
+
             case "help":
             case "h":
             case "?":
@@ -158,7 +164,19 @@ public static class CliRunner
         PrintCmdRow("boost --cache", "Flush and reset Windows System File Cache");
 
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("\n  SYSTEM & PROCESS COMMANDS:");
+        Console.WriteLine("\n  SYSTEM INTEGRITY & CORRUPTION REPAIR:");
+        Console.ResetColor();
+        PrintCmdRow("repair [all]", "Autonomous 1-click health check & corruption repair");
+        PrintCmdRow("repair sfc", "Run System File Checker (sfc /scannow)");
+        PrintCmdRow("repair dism", "Restore component store health (dism /restorehealth)");
+        PrintCmdRow("repair scanhealth", "Scan component store for corruption (dism /scanhealth)");
+        PrintCmdRow("repair winsxs", "Scavenge superseded components (WinSxS cleanup)");
+        PrintCmdRow("repair chkdsk [drive]", "Verify volume filesystem integrity (chkdsk /scan)");
+        PrintCmdRow("repair update", "Reset Windows Update & BITS servicing stack");
+        PrintCmdRow("repair network", "Reset Winsock, TCP/IP stack & flush DNS");
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("\n  STARTUP & PROCESS COMMANDS:");
         Console.ResetColor();
         PrintCmdRow("startup", "List Windows startup apps and boot impact ratings");
         PrintCmdRow("startup disable <app>", "Disable a startup application from launching on boot");
@@ -231,7 +249,7 @@ public static class CliRunner
         if (!silent && !isJson)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine(@"  ⚡ [Deltempo 1-Click Deep Clean]");
+            Console.WriteLine(@"  [Deltempo 1-Click Deep Clean]");
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.WriteLine(@"  Autonomous full-system optimization: RAM flush, 26 disk scopes, DISM & VSS.");
             Console.ResetColor();
@@ -757,7 +775,7 @@ public static class CliRunner
         if (!silent && !isJson)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine($"  ⚡ [Deltempo] Executing {boostType}...");
+            Console.WriteLine($"  [Deltempo] Executing {boostType}...");
             Console.WriteLine($"     Before: {beforeMem.FormattedUsed} used / {beforeMem.FormattedTotal} ({beforeMem.UsedPercent:F0}% Used)");
             Console.ResetColor();
         }
@@ -1363,7 +1381,7 @@ public static class CliRunner
 
         double driveUsedPct = 100.0 - drive.FreePercentage;
         Console.WriteLine($"  💾 OS Drive ({drive.DriveLetter}): [{GetProgressBar(driveUsedPct, 20)}] {drive.FormattedFree} free of {drive.FormattedTotal} ({drive.FreePercentage:F1}% Free)");
-        Console.WriteLine($"  ⚡ Memory (RAM):  [{GetProgressBar(mem.UsedPercent, 20)}] {mem.FormattedUsed} used of {mem.FormattedTotal} ({mem.UsedPercent:F0}% Used)");
+        Console.WriteLine($"  • Memory (RAM):  [{GetProgressBar(mem.UsedPercent, 20)}] {mem.FormattedUsed} used of {mem.FormattedTotal} ({mem.UsedPercent:F0}% Used)");
         Console.WriteLine($"  📦 Standby Cache: {mem.FormattedSystemCache} reclaimable from closed programs");
 
         return 0;
@@ -1497,6 +1515,113 @@ public static class CliRunner
         int filled = (int)Math.Round(percentage / 100.0 * width);
         int empty = width - filled;
         return new string('█', filled) + new string('░', empty);
+    }
+
+    private static async Task<int> HandleRepairAsync(string[] args)
+    {
+        string subCmd = args.Length > 1 ? args[1].ToLowerInvariant() : "all";
+        bool isJson = args.Any(a => a.Equals("--json", StringComparison.OrdinalIgnoreCase));
+        bool silent = args.Any(a => a.Equals("--silent", StringComparison.OrdinalIgnoreCase) || a.Equals("-s", StringComparison.OrdinalIgnoreCase));
+
+        if (!ElevationService.IsAdministrator)
+        {
+            if (isJson)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { success = false, error = "Administrator elevation required." }));
+                return 1;
+            }
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("  [Notice] Administrator privileges are required to run Windows system integrity repairs.");
+            Console.WriteLine("           Please run your command prompt or terminal as Administrator.");
+            Console.ResetColor();
+            return 1;
+        }
+
+        if (!silent && !isJson)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine($"  [Deltempo System Integrity] Executing repair target: {subCmd.ToUpperInvariant()}...\n");
+            Console.ResetColor();
+        }
+
+        Action<string>? onOutput = (silent || isJson) ? null : msg =>
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine($"    {msg}");
+            Console.ResetColor();
+        };
+
+        RepairExecutionResult result;
+        switch (subCmd)
+        {
+            case "sfc":
+                result = await SystemRepairService.RunSfcScannowAsync(onOutput);
+                break;
+            case "dism":
+            case "restorehealth":
+                result = await SystemRepairService.RunDismRestoreHealthAsync(onOutput);
+                break;
+            case "scanhealth":
+            case "check":
+                result = await SystemRepairService.RunDismScanHealthAsync(onOutput);
+                break;
+            case "winsxs":
+            case "cleanup":
+                result = await SystemRepairService.RunDismComponentCleanupAsync(onOutput);
+                break;
+            case "chkdsk":
+            case "disk":
+                string drive = args.Length > 2 && !args[2].StartsWith("-") ? args[2] : "C:";
+                result = await SystemRepairService.RunChkdskScanAsync(drive, onOutput);
+                break;
+            case "update":
+            case "windowsupdate":
+                result = await SystemRepairService.ResetWindowsUpdateStackAsync(onOutput);
+                break;
+            case "network":
+            case "net":
+            case "winsock":
+                result = await SystemRepairService.ResetNetworkStackAsync(onOutput);
+                break;
+            case "all":
+            default:
+                result = await SystemRepairService.RunAutonomousHealthCheckAndRepairAsync(onOutput);
+                break;
+        }
+
+        if (isJson)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                tool = result.Tool.ToString(),
+                success = result.Success,
+                exitCode = result.ExitCode,
+                executionTimeMs = result.ExecutionTimeMs,
+                errorMessage = result.ErrorMessage
+            }, new JsonSerializerOptions { WriteIndented = true }));
+            return result.Success ? 0 : 1;
+        }
+
+        Console.WriteLine();
+        if (result.Success)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"  ✓ [{result.Tool}] Completed successfully in {result.ExecutionTimeMs / 1000.0:F1}s.");
+            Console.ResetColor();
+            return 0;
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"  ✗ [{result.Tool}] Finished with warnings or errors (Exit Code: {result.ExitCode}).");
+            if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
+            {
+                Console.WriteLine($"    Details: {result.ErrorMessage}");
+            }
+            Console.ResetColor();
+            return result.ExitCode != 0 ? result.ExitCode : 1;
+        }
     }
 }
 
