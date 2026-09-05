@@ -225,7 +225,7 @@ public partial class MainWindow : Window
             {
                 var res = await MemoryOptimizerService.OptimizeRamAsync();
                 UpdateMemoryTelemetry();
-                AddLog($"⚡ Tray RAM Boost: Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} tasks in {res.ExecutionTimeMs}ms.", LogLevel.Success);
+                AddLog($"[RAM Engine] Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} tasks in {res.ExecutionTimeMs}ms.", LogLevel.Success);
                 return res;
             }));
 
@@ -616,7 +616,7 @@ public partial class MainWindow : Window
         bool safeMode = SafeModeCheckBox.IsChecked == true;
 
         ConfirmModalSizeText.Text = TargetFolderInfo.FormatBytes(totalEstimatedBytes);
-        ConfirmModalShieldText.Text = safeMode ? "🟢 Safety Shield: ON" : "⚠️ Safety Shield: OFF";
+        ConfirmModalShieldText.Text = safeMode ? "Safety Shield: Active" : "Safety Shield: Disabled";
         ConfirmModalShieldBadge.BorderBrush = safeMode ? (Brush)FindResource("EmeraldGreenBrush") : (Brush)FindResource("AmberWarningBrush");
         ConfirmModalShieldBadge.Background = safeMode ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10241B")) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A1E16"));
 
@@ -780,7 +780,7 @@ public partial class MainWindow : Window
         CancelButton.Visibility = Visibility.Visible;
         CancelButton.IsEnabled = true;
 
-        ProgressStatusText.Text = "⚡ Running 1-Click Deep Clean...";
+        ProgressStatusText.Text = "Running 1-Click Deep Clean...";
         HeroSubtext.Text = "Autonomous deep clean in progress...";
 
         try
@@ -789,7 +789,7 @@ public partial class MainWindow : Window
             {
                 Dispatcher.Invoke(() =>
                 {
-                    ProgressStatusText.Text = $"⚡ [{p.CurrentStage}] {p.DetailMessage}";
+                    ProgressStatusText.Text = $"[{p.CurrentStage}] {p.DetailMessage}";
                     HeroSubtext.Text = p.DetailMessage;
                 });
             });
@@ -818,7 +818,7 @@ public partial class MainWindow : Window
             UpdateMemoryTelemetry();
 
             // Display Celebration Modal
-            CelebrationModalTitleText.Text = "⚡ 1-Click Deep Clean Complete!";
+            CelebrationModalTitleText.Text = "1-Click Deep Clean Complete";
             CelebrationReclaimedText.Text = $"Reclaimed {result.FormattedDiskFreed} Disk & {result.FormattedRamFreed} RAM";
             CelebrationFilesText.Text = $"{result.FilesDeleted:N0}";
             CelebrationFoldersText.Text = $"{result.FoldersDeleted:N0}";
@@ -868,7 +868,7 @@ public partial class MainWindow : Window
             target.IsSelected = !target.IsOrphanedAppFolder;
         }
         RecalculateTotals();
-        AddLog("Selected all 🟢 100% Safe Cache categories.", LogLevel.Info);
+        AddLog("Selected all 100% safe cache categories.", LogLevel.Info);
     }
 
     private void SelectAllButton_Click(object sender, RoutedEventArgs e)
@@ -1172,7 +1172,7 @@ public partial class MainWindow : Window
                     }
                     UpdateProgressContainer.Visibility = Visibility.Collapsed;
                     ApplyUpdateBtn.IsEnabled = true;
-                    ApplyUpdateBtn.Content = "Update Now ⚡";
+                    ApplyUpdateBtn.Content = "Update Now";
                     UpdateLaterBtn.IsEnabled = true;
                     UpdateModalOverlay.Visibility = Visibility.Visible;
                     SoundService.PlayClickSound();
@@ -1260,7 +1260,7 @@ public partial class MainWindow : Window
                 UpdateProgressContainer.Visibility = Visibility.Collapsed;
                 ApplyUpdateBtn.IsEnabled = true;
                 UpdateLaterBtn.IsEnabled = true;
-                ApplyUpdateBtn.Content = "Retry Update ⚡";
+                ApplyUpdateBtn.Content = "Retry Update";
                 MessageBox.Show(
                     $"Update failed: {ex.Message}\n\nYou can manually download the latest version from GitHub Releases.",
                     "Update Error",
@@ -1376,7 +1376,7 @@ public partial class MainWindow : Window
     private async void QuickTrimWorkingSets_Click(object sender, RoutedEventArgs e)
     {
         SoundService.PlayClickSound();
-        AddLog("⚡ Quick trimming non-whitelisted process working sets...", LogLevel.Info);
+        AddLog("[Process Optimizer] Trimming non-whitelisted process working sets...", LogLevel.Info);
         var res = await MemoryOptimizerService.OptimizeAreaAsync(MemoryTargetType.WorkingSet);
         if (res.Success)
         {
@@ -1403,13 +1403,13 @@ public partial class MainWindow : Window
         }
 
         PurgeSelectedZonesBtn.IsEnabled = false;
-        PurgeSelectedZonesBtn.Content = "⚡ Purging NT Cache...";
+        PurgeSelectedZonesBtn.Content = "Purging NT Cache...";
         SoundService.PlayClickSound();
 
         try
         {
             var result = await MemoryOptimizerService.OptimizeRamAsync(selected);
-            AddLog($"⚡ NT Kernel Memory Clean Complete: Purged {result.FormattedReclaimed} in {result.ExecutionTimeMs}ms across {result.AreaResults.Count} zones.", LogLevel.Success);
+            AddLog($"[NT Kernel] Memory Clean Complete: Purged {result.FormattedReclaimed} in {result.ExecutionTimeMs}ms across {result.AreaResults.Count} zones.", LogLevel.Success);
             RefreshMemoryModalData();
             UpdateMemoryTelemetry();
         }
@@ -1420,7 +1420,7 @@ public partial class MainWindow : Window
         finally
         {
             PurgeSelectedZonesBtn.IsEnabled = true;
-            PurgeSelectedZonesBtn.Content = "⚡ Purge Selected Zones";
+            PurgeSelectedZonesBtn.Content = "Purge Selected Zones";
         }
     }
 
@@ -1438,13 +1438,13 @@ public partial class MainWindow : Window
             var result = await MemoryOptimizerService.OptimizeAreaAsync(target);
             if (result.Success)
             {
-                AddLog($"⚡ Flushed {target}: reclaimed {result.FormattedFreed}.", LogLevel.Success);
+                AddLog($"Flushed {target}: Reclaimed {result.FormattedFreed}.", LogLevel.Success);
                 RefreshMemoryModalData();
                 UpdateMemoryTelemetry();
             }
             else
             {
-                AddLog($"⚠ Failed to flush {target}: {result.ErrorMessage}", LogLevel.Error);
+                AddLog($"Failed to flush {target}: {result.ErrorMessage}", LogLevel.Error);
             }
         }
         catch (Exception ex)
@@ -1454,21 +1454,21 @@ public partial class MainWindow : Window
         finally
         {
             btn.IsEnabled = true;
-            btn.Content = "⚡ Flush";
+            btn.Content = "Flush";
         }
     }
 
     private async void HeroBoostRamBtn_Click(object sender, RoutedEventArgs e)
     {
         HeroBoostRamBtn.IsEnabled = false;
-        HeroBoostRamBtn.Content = "⚡ Boosting...";
+        HeroBoostRamBtn.Content = "Boosting...";
         SoundService.PlayClickSound();
 
         try
         {
             var res = await MemoryOptimizerService.OptimizeRamAsync();
             UpdateMemoryTelemetry();
-            AddLog($"⚡ RAM Boost Complete: Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} processes in {res.ExecutionTimeMs}ms.", LogLevel.Success);
+            AddLog($"[RAM Engine] Boost Complete: Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} processes in {res.ExecutionTimeMs}ms.", LogLevel.Success);
             HeroBoostRamBtn.Content = $"✓ -{res.FormattedReclaimed}";
             await Task.Delay(1500);
         }
@@ -1479,7 +1479,7 @@ public partial class MainWindow : Window
         finally
         {
             HeroBoostRamBtn.IsEnabled = true;
-            HeroBoostRamBtn.Content = "⚡ Boost";
+            HeroBoostRamBtn.Content = "Quick Boost";
         }
     }
 
@@ -1997,11 +1997,11 @@ public partial class MainWindow : Window
             {
                 if (freed > 0)
                 {
-                    AddLog($"⚡ Trimmed '{proc.DisplayName}': Reclaimed {TargetFolderInfo.FormatBytes(freed)} RAM!", LogLevel.Success);
+                    AddLog($"Trimmed '{proc.DisplayName}': Reclaimed {TargetFolderInfo.FormatBytes(freed)} RAM.", LogLevel.Success);
                 }
                 else
                 {
-                    AddLog($"⚡ Trimmed working memory for '{proc.DisplayName}'.", LogLevel.Success);
+                    AddLog($"Trimmed working memory for '{proc.DisplayName}'.", LogLevel.Success);
                 }
                 UpdateMemoryTelemetry();
                 _ = ReloadProcessesAsync();
@@ -2044,7 +2044,7 @@ public partial class MainWindow : Window
     {
         SoundService.PlayClickSound();
         var res = await MemoryOptimizerService.OptimizeRamAsync();
-        AddLog($"⚡ Trimmed background working sets: Reclaimed {res.FormattedReclaimed}.", LogLevel.Success);
+        AddLog($"[Process Optimizer] Trimmed background working sets: Reclaimed {res.FormattedReclaimed}.", LogLevel.Success);
         UpdateMemoryTelemetry();
         _ = ReloadProcessesAsync();
     }
