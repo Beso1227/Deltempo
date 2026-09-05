@@ -3,6 +3,8 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Security;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -30,6 +32,7 @@ public class ReleaseInfo
     public string CommitSha { get; set; } = string.Empty;
     public string ShortCommitSha => CommitSha.Length >= 7 ? CommitSha[..7] : CommitSha;
     public DateTime? Timestamp { get; set; }
+    public string ExpectedSha256 { get; set; } = string.Empty;
 }
 
 public class PatchManifest
@@ -211,7 +214,8 @@ public static class UpdateService
                 FileSizeBytes = sizeBytes,
                 CommitSha = remoteCommitSha,
                 Timestamp = remoteTimestamp,
-                VersionString = $"{BuildInfo.BaseVersion.ToString(3)}-patch"
+                VersionString = $"{BuildInfo.BaseVersion.ToString(3)}-patch",
+                ExpectedSha256 = manifest?.Sha256 ?? ""
             };
         }
         catch
@@ -335,8 +339,19 @@ public static class UpdateService
         return null;
     }
 
-    public static async Task DownloadAndApplyUpdateAsync(string downloadUrl, IProgress<double> progress, CancellationToken ct = default)
+    public static async Task DownloadAndApplyUpdateAsync(string downloadUrl, IProgress<double> progress, string? expectedSha256 = null, CancellationToken ct = default)
     {
+        // 1. Strict Host & Protocol Security Assertion (Anti-SSRF / Anti-Tamper)
+        if (!Uri.TryCreate(downloadUrl, UriKind.Absolute, out var uri) ||
+            uri.Scheme != Uri.UriSchemeHttps ||
+            (!uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase) &&
+             !uri.Host.EndsWith(".github.com", StringComparison.OrdinalIgnoreCase) &&
+             !uri.Host.Equals("githubusercontent.com", StringComparison.OrdinalIgnoreCase) &&
+             !uri.Host.EndsWith(".githubusercontent.com", StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new SecurityException("Security violation: Update downloads must strictly originate from verified GitHub domains over HTTPS.");
+        }
+
         string tempFile = Path.Combine(Path.GetTempPath(), $"Deltempo_Update_{Guid.NewGuid():N}.exe");
 
         try
@@ -364,6 +379,36 @@ public static class UpdateService
 
             await fileStream.FlushAsync(ct);
             fileStream.Close();
+
+            // 2. Binary Integrity & Minimum Size Verification
+            var fi = new FileInfo(tempFile);
+            if (fi.Length < 10 * 1024 * 1024)
+            {
+                throw new InvalidDataException($"Downloaded update binary is truncated or incomplete ({fi.Length} bytes).");
+            }
+
+            // 3. PE DOS Header Verification ("MZ" signature)
+            using (var fs = new FileStream(tempFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                byte[] header = new byte[2];
+                if (fs.Read(header, 0, 2) != 2 || header[0] != 0x4D || header[1] != 0x5A)
+                {
+                    throw new InvalidDataException("Downloaded update file is not a valid Windows PE executable.");
+                }
+            }
+
+            // 4. Cryptographic SHA-256 Hash Integrity Verification
+            if (!string.IsNullOrWhiteSpace(expectedSha256))
+            {
+                using var sha = SHA256.Create();
+                using var fs = File.OpenRead(tempFile);
+                byte[] hash = sha.ComputeHash(fs);
+                string computed = Convert.ToHexString(hash).ToLowerInvariant();
+                if (!computed.Equals(expectedSha256.Trim().ToLowerInvariant(), StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new SecurityException($"SHA-256 integrity verification failed! Expected: {expectedSha256}, Computed: {computed}");
+                }
+            }
 
             // Prepare Atomic Hot-Swap Handover via robust cmd.exe swap script
             // (Immune to PowerShell execution policies, cold-start delays, and syntax quirks)

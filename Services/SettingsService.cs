@@ -62,6 +62,12 @@ public static class SettingsService
                     var loaded = JsonSerializer.Deserialize<AppSettings>(json);
                     if (loaded != null)
                     {
+                        // Defensive input validation: clamp intervals and thresholds
+                        loaded.AutoCleanIntervalHours = Math.Clamp(loaded.AutoCleanIntervalHours, 1, 168);
+                        loaded.LowDiskAlertThresholdGb = Math.Clamp(loaded.LowDiskAlertThresholdGb, 1, 500);
+                        loaded.MemoryAutoOptimizeIntervalHours = Math.Clamp(loaded.MemoryAutoOptimizeIntervalHours, 1, 72);
+                        loaded.MemoryAutoOptimizeFreeRamThresholdPercent = Math.Clamp(loaded.MemoryAutoOptimizeFreeRamThresholdPercent, 5, 95);
+
                         Current = loaded;
                     }
                 }
