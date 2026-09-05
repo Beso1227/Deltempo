@@ -1581,7 +1581,8 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Deltempo Settings Dialog">
-                <Border Width="560"
+                <Border Width="580"
+                        MaxHeight="650"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5"
@@ -1592,9 +1593,15 @@
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.4"/>
                     </Border.Effect>
-                    <StackPanel>
-                        <!-- Header -->
-                        <Grid Margin="0,0,0,16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header (Fixed Top) -->
+                        <Grid Grid.Row="0" Margin="0,0,0,16">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Border Width="40" Height="40"
                                         CornerRadius="12"
@@ -1628,8 +1635,13 @@
                                     Click="CloseSettings_Click"/>
                         </Grid>
 
-                        <!-- Settings Content Container -->
-                        <StackPanel Margin="0,0,0,20">
+                        <!-- Scrollable Settings Content Container -->
+                        <ScrollViewer Grid.Row="1"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      MaxHeight="460"
+                                      Padding="0,0,8,0">
+                            <StackPanel Margin="0,0,0,10">
                             <!-- Group 1: Background Auto-Pilot Guardian -->
                             <Border Background="{DynamicResource SurfaceSubCardBrush}"
                                     BorderBrush="{DynamicResource HairlineBorderBrush}"
@@ -2026,29 +2038,30 @@
                                 </StackPanel>
                             </Border>
                         </StackPanel>
+                    </ScrollViewer>
 
-                        <!-- Footer Actions -->
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Button Grid.Column="1"
-                                    Content="Cancel"
-                                    Style="{DynamicResource PillButton}"
-                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                    Padding="18,8"
-                                    Margin="0,0,10,0"
-                                    Click="CloseSettings_Click"/>
-                            <Button Grid.Column="2"
-                                    Content="Save &amp; Apply"
-                                    Style="{DynamicResource HeroCTAButton}"
-                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                    Padding="22,8"
-                                    Click="SaveSettings_Click"/>
-                        </Grid>
-                    </StackPanel>
+                    <!-- Footer Actions (Fixed Bottom) -->
+                    <Grid Grid.Row="2" Margin="0,16,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="1"
+                                Content="Cancel"
+                                Style="{DynamicResource PillButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                Padding="18,8"
+                                Margin="0,0,10,0"
+                                Click="CloseSettings_Click"/>
+                        <Button Grid.Column="2"
+                                Content="Save &amp; Apply"
+                                Style="{DynamicResource HeroCTAButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                Padding="22,8"
+                                Click="SaveSettings_Click"/>
+                    </Grid>
+                </Grid>
                 </Border>
             </Grid>
 
