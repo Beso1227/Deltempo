@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WinTempCleaner"
         mc:Ignorable="d"
         Title="Deltempo"
-        Icon="app.ico"
+        Icon="pack://application:,,,/app.ico"
         Height="840" Width="880"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
@@ -17,6 +17,10 @@
         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
         AutomationProperties.Name="Deltempo"
         FontFamily="{DynamicResource AppFont}">
+
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo Description="Deltempo - Elite PC Performance Guardian" />
+    </Window.TaskbarItemInfo>
 
     <!-- Master Shell Container with Deep Ambient Shadow -->
     <Border x:Name="MasterShellBorder"
