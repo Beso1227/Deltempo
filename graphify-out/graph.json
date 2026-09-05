@@ -1,8 +1,51 @@
 {
-  "generatedAt": "2026-09-05T14:56:25.4794355+03:00",
+  "generatedAt": "2026-09-05T15:32:59.2521025+03:00",
   "version": "1.1.0",
   "statistics": {
     "totalEdges": 33,
+    "clusters": [
+      {
+        "cluster": "Cleaner",
+        "count": 2
+      },
+      {
+        "cluster": "CLI",
+        "count": 3
+      },
+      {
+        "cluster": "Core",
+        "count": 1
+      },
+      {
+        "cluster": "DevOps",
+        "count": 1
+      },
+      {
+        "cluster": "Models",
+        "count": 5
+      },
+      {
+        "cluster": "Optimizer",
+        "count": 4
+      },
+      {
+        "cluster": "Providers",
+        "count": 3
+      },
+      {
+        "cluster": "System",
+        "count": 4
+      },
+      {
+        "cluster": "Tests",
+        "count": 3
+      },
+      {
+        "cluster": "UI",
+        "count": 4
+      }
+    ],
+    "totalNodes": 30,
     "godNodes": [
       {
         "id": "MainWindow",
@@ -34,50 +77,7 @@
         "degree": 3,
         "cluster": "Core"
       }
-    ],
-    "clusters": [
-      {
-        "count": 2,
-        "cluster": "Cleaner"
-      },
-      {
-        "count": 3,
-        "cluster": "CLI"
-      },
-      {
-        "count": 1,
-        "cluster": "Core"
-      },
-      {
-        "count": 1,
-        "cluster": "DevOps"
-      },
-      {
-        "count": 5,
-        "cluster": "Models"
-      },
-      {
-        "count": 4,
-        "cluster": "Optimizer"
-      },
-      {
-        "count": 3,
-        "cluster": "Providers"
-      },
-      {
-        "count": 4,
-        "cluster": "System"
-      },
-      {
-        "count": 3,
-        "cluster": "Tests"
-      },
-      {
-        "count": 4,
-        "cluster": "UI"
-      }
-    ],
-    "totalNodes": 30
+    ]
   },
   "nodes": [
     {

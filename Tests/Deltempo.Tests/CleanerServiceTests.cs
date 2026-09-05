@@ -82,7 +82,12 @@ public class CleanerServiceTests : IDisposable
 
         var appDirs = CleanerService.GetAppCacheDirectories();
         Assert.NotEmpty(appDirs);
-        Assert.Contains(appDirs, d => d.Contains("discord", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(appDirs, d => d.Contains("Code", StringComparison.OrdinalIgnoreCase));
+
+        var messagingDirs = CleanerService.GetMessagingAppCacheDirectories();
+        Assert.NotEmpty(messagingDirs);
+        Assert.Contains(messagingDirs, d => d.Contains("discord", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(messagingDirs, d => d.Contains("whatsapp", StringComparison.OrdinalIgnoreCase));
 
         var browserDirs = CleanerService.GetBrowserCacheDirectories();
         Assert.NotNull(browserDirs);
@@ -640,13 +645,43 @@ public class CleanerServiceTests : IDisposable
     [InlineData(@"C:\Users\user\AppData\Roaming\Telegram Desktop\tdata\D877F783D5D3EF8C1", true)]
     [InlineData(@"C:\Users\user\AppData\Roaming\Telegram Desktop\tdata\user_data\cache\data_0", false)]
     [InlineData(@"C:\Users\user\AppData\Roaming\Telegram Desktop\tdata\temp\temp_01.tmp", false)]
-    [InlineData(@"C:\Users\user\AppData\Local\Packages\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\LocalCache\EBWebView\Default\Cache\Cache_Data\data_1", false)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\LocalCache\EBWebView\Default\Cache\Cache_Data\data_1", true)]
     [InlineData(@"C:\Users\user\AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Local\Microsoft\Identity\msal.cache", true)]
     [InlineData(@"C:\Users\user\AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\previous_session_data.json", true)]
     [InlineData(@"C:\Users\user\AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\app_settings.json", true)]
     [InlineData(@"C:\Users\user\AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\ecs_settings.dat64", true)]
     [InlineData(@"C:\Users\user\AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\Default\IndexedDB\teams.leveldb\000003.ldb", true)]
-    [InlineData(@"C:\Users\user\AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\Default\Cache\Cache_Data\data_0", false)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\Default\Cache\Cache_Data\data_0", true)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\discord\Local Storage\leveldb\000005.ldb", true)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\discord\GPUCache\data_0", false)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Slack\Local Storage\leveldb\000003.log", true)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Slack\GPUCache\data_0", false)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Signal\sql\db.sqlite", true)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Signal\GPUCache\data_0", false)]
+    [InlineData(@"C:\Users\user\AppData\Local\Zoom\data\zoom_meeting.db", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Zoom\temp\meeting_log.tmp", false)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Mattermost\GPUCache\data_0", false)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Mattermost\Local Storage\leveldb\000001.ldb", true)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Microsoft\Skype for Desktop\GPUCache\data_0", false)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Microsoft\Skype for Desktop\Local Storage\leveldb\000001.ldb", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\ViberPC\avatars\user_123.jpg", false)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\ViberPC\viber.db", true)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Element\GPUCache\data_0", false)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Element\IndexedDB\matrix.leveldb\000001.ldb", true)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Session\GPUCache\data_0", false)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Session\config.json", true)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Threema\GPUCache\data_0", false)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Threema\threema.db", true)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Wire\GPUCache\data_0", false)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Wire\key_data", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Keybase\cache\file.tmp", false)]
+    [InlineData(@"C:\Users\user\AppData\Local\Keybase\keybase.leveldb\000001.ldb", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Cisco-Spark\temp\call.tmp", false)]
+    [InlineData(@"C:\Users\user\AppData\Local\Cisco-Spark\database.sqlite", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\Microsoft.SkypeApp_kzf8qxf38zg5c\LocalState\live_session.db", true)]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\Facebook.Messenger_8xx8rvfyw5nnt\LocalCache\auth.json", true)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\discord\Local State", true)]
+    [InlineData(@"C:\Users\user\AppData\Roaming\Slack\Local State", true)]
     public void CleanerService_IsProtectedSessionOrCredentialFile_AccuratelyDifferentiatesSessionsFromCaches(string path, bool expectedProtected)
     {
         bool actual = CleanerService.IsProtectedSessionOrCredentialFile(path);
