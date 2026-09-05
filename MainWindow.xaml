@@ -1165,11 +1165,19 @@
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="0,0,0,6">
-                        <TextBlock Text="ACTIVITY LOG STREAM"
-                                   FontSize="10"
-                                   FontWeight="Bold"
-                                   Foreground="{DynamicResource TextMutedBrush}"
-                                   VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="&#xE81C;"
+                                       FontFamily="{DynamicResource IconFont}"
+                                       FontSize="10.5"
+                                       Foreground="{DynamicResource ElectricCyanBrush}"
+                                       Margin="0,0,5,0"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="ACTIVITY LOG STREAM"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextHighBrush}"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Content="Copy"
                                     Style="{DynamicResource PillButton}"
@@ -1199,6 +1207,7 @@
                                     <Grid Margin="0,2">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
 
@@ -1206,16 +1215,47 @@
                                                    Text="{Binding FormattedTime}"
                                                    FontFamily="{DynamicResource MonospaceFont}"
                                                    FontSize="10.5"
-                                                   Foreground="{DynamicResource TextMutedBrush}"
-                                                   Margin="0,0,8,0"/>
+                                                   Foreground="{DynamicResource TextMediumBrush}"
+                                                   Margin="0,0,8,0"
+                                                   VerticalAlignment="Top"/>
 
-                                        <TextBlock Grid.Column="1"
+                                        <TextBlock x:Name="LogGlyphText"
+                                                   Grid.Column="1"
+                                                   Text="{Binding LevelGlyph}"
+                                                   FontFamily="{DynamicResource MonospaceFont}"
+                                                   FontSize="10.5"
+                                                   FontWeight="Bold"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                   Margin="0,0,6,0"
+                                                   VerticalAlignment="Top"/>
+
+                                        <TextBlock x:Name="LogMessageText"
+                                                   Grid.Column="2"
                                                    Text="{Binding Message}"
                                                    FontFamily="{DynamicResource MonospaceFont}"
                                                    FontSize="10.5"
-                                                   Foreground="{Binding BadgeColor}"
-                                                   TextWrapping="Wrap"/>
+                                                   Foreground="{DynamicResource TextHighBrush}"
+                                                   TextWrapping="Wrap"
+                                                   VerticalAlignment="Top"/>
                                     </Grid>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Level}" Value="Success">
+                                            <Setter TargetName="LogGlyphText" Property="Foreground" Value="{DynamicResource EmeraldGreenBrush}"/>
+                                            <Setter TargetName="LogMessageText" Property="Foreground" Value="{DynamicResource EmeraldGreenBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Level}" Value="Warning">
+                                            <Setter TargetName="LogGlyphText" Property="Foreground" Value="{DynamicResource AmberWarningBrush}"/>
+                                            <Setter TargetName="LogMessageText" Property="Foreground" Value="{DynamicResource AmberWarningBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Level}" Value="Error">
+                                            <Setter TargetName="LogGlyphText" Property="Foreground" Value="{DynamicResource RoseErrorBrush}"/>
+                                            <Setter TargetName="LogMessageText" Property="Foreground" Value="{DynamicResource RoseErrorBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Level}" Value="Info">
+                                            <Setter TargetName="LogGlyphText" Property="Foreground" Value="{DynamicResource ElectricCyanBrush}"/>
+                                            <Setter TargetName="LogMessageText" Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>

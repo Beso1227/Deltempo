@@ -1,8 +1,7 @@
 {
-  "generatedAt": "2026-09-05T15:48:34.2026330+03:00",
+  "generatedAt": "2026-09-05T15:52:29.2450811+03:00",
   "version": "1.1.0",
   "statistics": {
-    "totalEdges": 33,
     "totalNodes": 30,
     "clusters": [
       {
@@ -77,7 +76,8 @@
         "degree": 3,
         "cluster": "Core"
       }
-    ]
+    ],
+    "totalEdges": 33
   },
   "nodes": [
     {
