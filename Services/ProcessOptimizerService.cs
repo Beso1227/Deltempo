@@ -16,7 +16,7 @@ public class ProcessMemoryInfo
     public string WindowTitle { get; set; } = string.Empty;
     public string FriendlyName { get; set; } = string.Empty;
     public string CategoryDescription { get; set; } = "Background Application";
-    public string CategoryIcon { get; set; } = "⚙️";
+    public string CategoryIcon { get; set; } = "\uE713";
     public long WorkingSetBytes { get; set; }
     public string FormattedMemory => TargetFolderInfo.FormatBytes(WorkingSetBytes);
     public bool IsSafeToClose { get; set; } = true;
@@ -119,54 +119,54 @@ public static class ProcessOptimizerService
     // Known Friendly Names and Categories
     private static readonly Dictionary<string, (string FriendlyName, string Category, string Icon)> KnownApps = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "chrome", ("Google Chrome", "Web Browser", "🌐") },
-        { "msedge", ("Microsoft Edge", "Web Browser", "🌐") },
-        { "brave", ("Brave Browser", "Web Browser", "🌐") },
-        { "firefox", ("Mozilla Firefox", "Web Browser", "🌐") },
-        { "opera", ("Opera Browser", "Web Browser", "🌐") },
-        { "opera_gx", ("Opera GX Gaming Browser", "Web Browser", "🌐") },
-        { "arc", ("Arc Browser", "Web Browser", "🌐") },
-        { "vivaldi", ("Vivaldi Browser", "Web Browser", "🌐") },
-        { "discord", ("Discord", "Communication & Voice", "💬") },
-        { "discordcanary", ("Discord Canary", "Communication & Voice", "💬") },
-        { "discordptb", ("Discord PTB", "Communication & Voice", "💬") },
-        { "slack", ("Slack", "Team Workspace", "💬") },
-        { "teams", ("Microsoft Teams", "Video & Chat", "💬") },
-        { "ms-teams", ("Microsoft Teams", "Video & Chat", "💬") },
-        { "telegram", ("Telegram Desktop", "Messaging", "💬") },
-        { "whatsapp", ("WhatsApp Desktop", "Messaging", "💬") },
-        { "spotify", ("Spotify Desktop", "Music & Audio", "🎵") },
-        { "steam", ("Steam Client", "Gaming Platform", "🎮") },
-        { "steamwebhelper", ("Steam Web Helper", "Gaming Platform", "🎮") },
-        { "epicgameslauncher", ("Epic Games Launcher", "Gaming Platform", "🎮") },
-        { "battlenet", ("Battle.net Desktop", "Gaming Platform", "🎮") },
-        { "agent", ("Battle.net Agent", "Gaming Platform", "🎮") },
-        { "origin", ("EA Origin", "Gaming Platform", "🎮") },
-        { "eadesktop", ("EA Desktop", "Gaming Platform", "🎮") },
-        { "riotclientservices", ("Riot Client", "Gaming Platform", "🎮") },
-        { "code", ("Visual Studio Code", "Developer Editor", "💻") },
-        { "devenv", ("Visual Studio IDE", "Developer IDE", "💻") },
-        { "rider64", ("JetBrains Rider", "Developer IDE", "💻") },
-        { "idea64", ("IntelliJ IDEA", "Developer IDE", "💻") },
-        { "pycharm64", ("PyCharm IDE", "Developer IDE", "💻") },
-        { "webstorm64", ("WebStorm IDE", "Developer IDE", "💻") },
-        { "clion64", ("CLion IDE", "Developer IDE", "💻") },
-        { "goland64", ("GoLand IDE", "Developer IDE", "💻") },
-        { "datagrip64", ("DataGrip IDE", "Database Tool", "💻") },
-        { "photoshop", ("Adobe Photoshop", "Creative Design", "🎨") },
-        { "premiere", ("Adobe Premiere Pro", "Video Editing", "🎬") },
-        { "afterfx", ("Adobe After Effects", "Motion VFX", "🎬") },
-        { "illustrator", ("Adobe Illustrator", "Vector Graphics", "🎨") },
-        { "resolve", ("DaVinci Resolve", "Video Editing & Color", "🎬") },
-        { "obs64", ("OBS Studio", "Broadcasting & Stream", "📹") },
-        { "blender", ("Blender 3D", "3D Graphics & Animation", "🎨") },
-        { "notion", ("Notion Desktop", "Productivity & Workspace", "📝") },
-        { "docker desktop", ("Docker Desktop", "Containers & Virtualization", "🐳") },
-        { "com.docker.backend", ("Docker Backend Engine", "Containers & Virtualization", "🐳") },
-        { "postman", ("Postman API", "Developer API Tool", "🛠️") },
-        { "gitkraken", ("GitKraken", "Git Client", "🛠️") },
-        { "onedrive", ("Microsoft OneDrive", "Cloud Storage Sync", "☁️") },
-        { "dropbox", ("Dropbox", "Cloud Storage Sync", "☁️") }
+        { "chrome", ("Google Chrome", "Web Browser", "\uE774") },
+        { "msedge", ("Microsoft Edge", "Web Browser", "\uE774") },
+        { "brave", ("Brave Browser", "Web Browser", "\uE774") },
+        { "firefox", ("Mozilla Firefox", "Web Browser", "\uE774") },
+        { "opera", ("Opera Browser", "Web Browser", "\uE774") },
+        { "opera_gx", ("Opera GX Gaming Browser", "Web Browser", "\uE774") },
+        { "arc", ("Arc Browser", "Web Browser", "\uE774") },
+        { "vivaldi", ("Vivaldi Browser", "Web Browser", "\uE774") },
+        { "discord", ("Discord", "Communication & Voice", "\uE8BD") },
+        { "discordcanary", ("Discord Canary", "Communication & Voice", "\uE8BD") },
+        { "discordptb", ("Discord PTB", "Communication & Voice", "\uE8BD") },
+        { "slack", ("Slack", "Team Workspace", "\uE8BD") },
+        { "teams", ("Microsoft Teams", "Video & Chat", "\uE8BD") },
+        { "ms-teams", ("Microsoft Teams", "Video & Chat", "\uE8BD") },
+        { "telegram", ("Telegram Desktop", "Messaging", "\uE8BD") },
+        { "whatsapp", ("WhatsApp Desktop", "Messaging", "\uE8BD") },
+        { "spotify", ("Spotify Desktop", "Music & Audio", "\uE8D6") },
+        { "steam", ("Steam Client", "Gaming Platform", "\uE7FC") },
+        { "steamwebhelper", ("Steam Web Helper", "Gaming Platform", "\uE7FC") },
+        { "epicgameslauncher", ("Epic Games Launcher", "Gaming Platform", "\uE7FC") },
+        { "battlenet", ("Battle.net Desktop", "Gaming Platform", "\uE7FC") },
+        { "agent", ("Battle.net Agent", "Gaming Platform", "\uE7FC") },
+        { "origin", ("EA Origin", "Gaming Platform", "\uE7FC") },
+        { "eadesktop", ("EA Desktop", "Gaming Platform", "\uE7FC") },
+        { "riotclientservices", ("Riot Client", "Gaming Platform", "\uE7FC") },
+        { "code", ("Visual Studio Code", "Developer Editor", "\uE943") },
+        { "devenv", ("Visual Studio IDE", "Developer IDE", "\uE943") },
+        { "rider64", ("JetBrains Rider", "Developer IDE", "\uE943") },
+        { "idea64", ("IntelliJ IDEA", "Developer IDE", "\uE943") },
+        { "pycharm64", ("PyCharm IDE", "Developer IDE", "\uE943") },
+        { "webstorm64", ("WebStorm IDE", "Developer IDE", "\uE943") },
+        { "clion64", ("CLion IDE", "Developer IDE", "\uE943") },
+        { "goland64", ("GoLand IDE", "Developer IDE", "\uE943") },
+        { "datagrip64", ("DataGrip IDE", "Database Tool", "\uE943") },
+        { "photoshop", ("Adobe Photoshop", "Creative Design", "\uE790") },
+        { "premiere", ("Adobe Premiere Pro", "Video Editing", "\uE8B2") },
+        { "afterfx", ("Adobe After Effects", "Motion VFX", "\uE8B2") },
+        { "illustrator", ("Adobe Illustrator", "Vector Graphics", "\uE790") },
+        { "resolve", ("DaVinci Resolve", "Video Editing & Color", "\uE8B2") },
+        { "obs64", ("OBS Studio", "Broadcasting & Stream", "\uE714") },
+        { "blender", ("Blender 3D", "3D Graphics & Animation", "\uE790") },
+        { "notion", ("Notion Desktop", "Productivity & Workspace", "\uE70F") },
+        { "docker desktop", ("Docker Desktop", "Containers & Virtualization", "\uE753") },
+        { "com.docker.backend", ("Docker Backend Engine", "Containers & Virtualization", "\uE753") },
+        { "postman", ("Postman API", "Developer API Tool", "\uE90F") },
+        { "gitkraken", ("GitKraken", "Git Client", "\uE90F") },
+        { "onedrive", ("Microsoft OneDrive", "Cloud Storage Sync", "\uE753") },
+        { "dropbox", ("Dropbox", "Cloud Storage Sync", "\uE753") }
     };
 
     public static bool IsProtectedProcess(string processName)
@@ -268,13 +268,13 @@ public static class ProcessOptimizerService
         {
             if (p.MainModule?.FileVersionInfo?.FileDescription is { Length: > 0 } desc)
             {
-                return (desc, "Background Application", "⚙️");
+                return (desc, "Background Application", "\uE713");
             }
         }
         catch { }
 
         string prettyName = string.IsNullOrWhiteSpace(processName) ? "Unknown" : char.ToUpperInvariant(processName[0]) + processName[1..];
-        return (prettyName, "Background Application", "⚙️");
+        return (prettyName, "Background Application", "\uE713");
     }
 
     public static bool TrimProcessMemory(int pid)

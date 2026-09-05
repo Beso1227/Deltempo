@@ -343,7 +343,7 @@ public static class TrayService
                 if (_onOptimizeRam != null)
                 {
                     var res = await _onOptimizeRam();
-                    ShowNotification("⚡ RAM Booster", $"Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} tasks in {res.ExecutionTimeMs}ms!");
+                    ShowNotification("RAM Engine Optimization", $"Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} tasks in {res.ExecutionTimeMs}ms!");
                     UpdateTooltip();
                 }
             }, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF")));
@@ -454,7 +454,7 @@ public static class TrayService
             {
                 _lastLowDiskAlertTime = DateTime.UtcNow;
                 ShowNotification(
-                    "⚠️ Low Disk Space Alert",
+                    "Low Disk Space Alert",
                     $"System drive {telemetry.DriveLetter} has only {freeGb:F1} GB free space remaining (Threshold: {SettingsService.Current.LowDiskAlertThresholdGb:F0} GB). Open Deltempo to clean caches."
                 );
             }

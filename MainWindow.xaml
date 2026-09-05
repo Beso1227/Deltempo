@@ -250,11 +250,11 @@
                                           AutomationProperties.Name="Select Application Language"
                                           Margin="0"
                                           SelectionChanged="LanguageComboBox_SelectionChanged">
-                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="🇺🇸 EN" IsSelected="True" Tag="en"/>
-                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="🇸🇦 AR" Tag="ar"/>
-                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="🇪🇸 ES" Tag="es"/>
-                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="🇫🇷 FR" Tag="fr"/>
-                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="🇩🇪 DE" Tag="de"/>
+                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="EN" ToolTip="English" IsSelected="True" Tag="en"/>
+                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="AR" ToolTip="العربية" Tag="ar"/>
+                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="ES" ToolTip="Español" Tag="es"/>
+                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="FR" ToolTip="Français" Tag="fr"/>
+                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="DE" ToolTip="Deutsch" Tag="de"/>
                                 </ComboBox>
 
                                 <!-- Subtle Vertical Separator -->
@@ -386,7 +386,7 @@
                                                    Margin="0,0,6,0"
                                                    VerticalAlignment="Center"/>
                                         <TextBlock x:Name="HeroOneClickBtnText"
-                                                   Text="⚡ 1-Click Deep Clean"
+                                                   Text="1-Click Deep Clean"
                                                    FontSize="11.5"
                                                    FontWeight="Bold"
                                                    Foreground="#FFFFFF"
@@ -555,7 +555,7 @@
                                                    Foreground="{DynamicResource TextMediumBrush}"
                                                    VerticalAlignment="Center"/>
                                         <Button x:Name="HeroBoostRamBtn"
-                                                Content="⚡ Quick Boost"
+                                                Content="Quick Boost"
                                                 Style="{DynamicResource PillButton}"
                                                 FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                 Padding="8,2"
@@ -596,11 +596,36 @@
 
                         <!-- Category Filter Chips (Left) -->
                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                            <RadioButton x:Name="FilterAllRadio" Content="🌐 All" Style="{DynamicResource FilterChipRadio}" IsChecked="True" Checked="FilterChip_Checked" Tag="ALL"/>
-                            <RadioButton x:Name="FilterSafeRadio" Content="🟢 Safe" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SAFE"/>
-                            <RadioButton x:Name="FilterDriversRadio" Content="⚙️ Drivers &amp; System" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SYSTEM"/>
-                            <RadioButton x:Name="FilterGamingRadio" Content="🎮 Gaming" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="GAMING"/>
-                            <RadioButton x:Name="FilterMediaRadio" Content="📱 Media &amp; Apps" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="MEDIA"/>
+                            <RadioButton x:Name="FilterAllRadio" Style="{DynamicResource FilterChipRadio}" IsChecked="True" Checked="FilterChip_Checked" Tag="ALL">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE774;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="All Scopes" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="FilterSafeRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SAFE">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE73E;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource EmeraldGreenBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Safe Only" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="FilterDriversRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SYSTEM">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE770;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="System &amp; Drivers" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="FilterGamingRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="GAMING">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE7FC;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Gaming" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="FilterMediaRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="MEDIA">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE714;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Media &amp; Apps" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
                         </StackPanel>
 
                         <!-- Search Input (Right) -->
@@ -1119,7 +1144,7 @@
                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Text="⚡ 1-Click Deep Clean"
+                                    <TextBlock Text="1-Click Deep Clean"
                                                FontSize="11"
                                                FontWeight="Bold"
                                                Foreground="{DynamicResource TextHighBrush}"
@@ -1459,7 +1484,7 @@
                                         Padding="10,6"
                                         VerticalAlignment="Center">
                                     <TextBlock x:Name="ConfirmModalShieldText"
-                                               Text="🟢 Safety Shield: ON"
+                                               Text="Safety Shield: Active"
                                                FontSize="11"
                                                FontWeight="Bold"
                                                Foreground="{DynamicResource AdminBadgeTextBrush}"/>
@@ -2079,7 +2104,7 @@
                                                         Margin="0,0,10,0"
                                                         VerticalAlignment="Center">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <TextBlock Text="⚡" FontSize="9.5" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="&#xE7E8;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,4,0" VerticalAlignment="Center"/>
                                                         <TextBlock Text="Smart Dual-Mode"
                                                                    FontSize="10"
                                                                    FontWeight="Bold"
@@ -2282,7 +2307,7 @@
                                     Click="CloseUpdateModal_Click"/>
                             <Button Grid.Column="2"
                                     x:Name="ApplyUpdateBtn"
-                                    Content="Update Now ⚡"
+                                    Content="Update Now"
                                     Style="{DynamicResource HeroCTAButton}"
                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     Padding="22,8"
@@ -2334,7 +2359,7 @@
                                                VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="🚀 Startup Apps Boot Accelerator"
+                                    <TextBlock Text="Startup Apps Boot Accelerator"
                                                FontSize="15"
                                                FontWeight="Bold"
                                                Foreground="{DynamicResource TextHighBrush}"/>
@@ -3041,7 +3066,7 @@
                                                VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="🛑 Heavy Background Memory Apps"
+                                    <TextBlock Text="Heavy Background Memory Apps"
                                                FontSize="15"
                                                FontWeight="Bold"
                                                Foreground="{DynamicResource TextHighBrush}"/>
@@ -3204,7 +3229,7 @@
 
                                                     <!-- Actions -->
                                                     <Button Grid.Column="3"
-                                                            Content="⚡ Trim RAM"
+                                                            Content="Trim RAM"
                                                             Style="{DynamicResource PillButton}"
                                                             FocusVisualStyle="{x:Null}"
                                                             Padding="8,4"
@@ -3212,7 +3237,7 @@
                                                             Margin="0,0,6,0"
                                                             Click="TrimProcessMemory_Click"/>
                                                     <Button Grid.Column="4"
-                                                            Content="❌ End Task"
+                                                            Content="End Task"
                                                             Style="{DynamicResource PillButton}"
                                                             FocusVisualStyle="{x:Null}"
                                                             Padding="8,4"
@@ -3228,7 +3253,7 @@
 
                         <!-- Footer Actions -->
                         <Grid Grid.Row="3">
-                            <Button Content="⚡ Trim All Background Memory"
+                            <Button Content="Trim All Background Memory"
                                     Style="{DynamicResource PillButton}"
                                     FocusVisualStyle="{x:Null}"
                                     HorizontalAlignment="Left"
@@ -3482,7 +3507,7 @@
 
                                                     <!-- Per-zone surgical flush button -->
                                                     <Button Grid.Column="5"
-                                                            Content="⚡ Flush"
+                                                            Content="Flush"
                                                             Tag="{Binding Target}"
                                                             Style="{DynamicResource PillButton}"
                                                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
@@ -3501,7 +3526,7 @@
 
                         <!-- 4: Footer Actions -->
                         <Grid Grid.Row="4">
-                            <Button Content="⚡ Quick Trim Working Sets"
+                            <Button Content="Quick Trim Working Sets"
                                     Style="{DynamicResource PillButton}"
                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     HorizontalAlignment="Left"
@@ -3512,7 +3537,7 @@
 
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                 <Button x:Name="PurgeSelectedZonesBtn"
-                                        Content="⚡ Purge Selected Zones"
+                                        Content="Purge Selected Zones"
                                         Style="{DynamicResource HeroCTAButton}"
                                         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                         Padding="18,7"
