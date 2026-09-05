@@ -10,6 +10,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
 
@@ -54,36 +55,31 @@ public partial class MainWindow : Window
     [DllImport("user32.dll", CharSet = CharSet.Auto)]
     private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
-    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern IntPtr LoadIcon(IntPtr hInstance, IntPtr lpIconName);
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern int GetSystemMetrics(int nIndex);
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
-    private static extern IntPtr GetModuleHandle(string? lpModuleName);
+    [DllImport("shell32.dll", CharSet = CharSet.Auto)]
+    private static extern uint ExtractIconEx(string szFileName, int nIconIndex, IntPtr[]? phiconLarge, IntPtr[]? phiconSmall, uint nIcons);
 
     private const uint MSGFLT_ADD = 1;
     private const uint WM_SETICON = 0x0080;
     private const IntPtr ICON_SMALL = 0;
     private const IntPtr ICON_BIG = (IntPtr)1;
 
+    private const int SM_CXSMICON = 49;
+    private const int SM_CYSMICON = 50;
+    private const int SM_CXICON = 11;
+    private const int SM_CYICON = 12;
+
+    private System.Drawing.Icon? _nativeIconSmall;
+    private System.Drawing.Icon? _nativeIconBig;
+
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
         if (PresentationSource.FromVisual(this) is HwndSource source)
         {
-            try
-            {
-                IntPtr hModule = GetModuleHandle(null);
-                IntPtr hIcon = LoadIcon(hModule, (IntPtr)1);
-                if (hIcon != IntPtr.Zero)
-                {
-                    SendMessage(source.Handle, WM_SETICON, ICON_SMALL, hIcon);
-                    SendMessage(source.Handle, WM_SETICON, ICON_BIG, hIcon);
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] WM_SETICON suppressed: {ex.Message}");
-            }
+            SetupNativeWindowIcons(source.Handle);
 
             _restoreMsgId = SingleInstanceManager.RegisterWindowMessage(SingleInstanceManager.ShowWindowMessageName);
             if (_restoreMsgId != 0)
@@ -99,6 +95,94 @@ public partial class MainWindow : Window
             }
             source.AddHook(WndProcInstanceHook);
         }
+    }
+
+    private void SetupNativeWindowIcons(IntPtr hWnd)
+    {
+        try
+        {
+            var iconUri = new Uri("pack://application:,,,/app.ico", UriKind.Absolute);
+            Icon = BitmapFrame.Create(iconUri);
+
+            int smallWidth = GetSystemMetrics(SM_CXSMICON);
+            int smallHeight = GetSystemMetrics(SM_CYSMICON);
+            int bigWidth = GetSystemMetrics(SM_CXICON);
+            int bigHeight = GetSystemMetrics(SM_CYICON);
+
+            if (smallWidth <= 0) smallWidth = 16;
+            if (smallHeight <= 0) smallHeight = 16;
+            if (bigWidth <= 0) bigWidth = 32;
+            if (bigHeight <= 0) bigHeight = 32;
+
+            bool iconsApplied = false;
+
+            var resInfo = System.Windows.Application.GetResourceStream(iconUri);
+            if (resInfo != null)
+            {
+                using (var resStream = resInfo.Stream)
+                using (var ms = new MemoryStream())
+                {
+                    resStream.CopyTo(ms);
+
+                    ms.Seek(0, SeekOrigin.Begin);
+                    _nativeIconSmall = new System.Drawing.Icon(ms, new System.Drawing.Size(smallWidth, smallHeight));
+
+                    ms.Seek(0, SeekOrigin.Begin);
+                    _nativeIconBig = new System.Drawing.Icon(ms, new System.Drawing.Size(bigWidth, bigHeight));
+
+                    if (_nativeIconSmall.Handle != IntPtr.Zero && _nativeIconBig.Handle != IntPtr.Zero)
+                    {
+                        SendMessage(hWnd, WM_SETICON, ICON_SMALL, _nativeIconSmall.Handle);
+                        SendMessage(hWnd, WM_SETICON, ICON_BIG, _nativeIconBig.Handle);
+                        iconsApplied = true;
+                    }
+                }
+            }
+
+            if (!iconsApplied)
+            {
+                string exePath = Environment.ProcessPath ?? "";
+                if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
+                {
+                    exePath = Path.Combine(AppContext.BaseDirectory, "Deltempo.exe");
+                }
+
+                if (File.Exists(exePath))
+                {
+                    var largeIcons = new IntPtr[1];
+                    var smallIcons = new IntPtr[1];
+                    uint count = ExtractIconEx(exePath, 0, largeIcons, smallIcons, 1);
+                    if (count > 0)
+                    {
+                        if (smallIcons[0] != IntPtr.Zero)
+                        {
+                            SendMessage(hWnd, WM_SETICON, ICON_SMALL, smallIcons[0]);
+                        }
+                        if (largeIcons[0] != IntPtr.Zero)
+                        {
+                            SendMessage(hWnd, WM_SETICON, ICON_BIG, largeIcons[0]);
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Failed to set native window icons: {ex.Message}");
+        }
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        try
+        {
+            _nativeIconSmall?.Dispose();
+            _nativeIconBig?.Dispose();
+        }
+        catch
+        {
+        }
+        base.OnClosed(e);
     }
 
     private IntPtr WndProcInstanceHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
