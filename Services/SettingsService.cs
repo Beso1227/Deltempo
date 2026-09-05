@@ -15,6 +15,7 @@ public class AppSettings
     public bool IsDarkMode { get; set; } = true;
     public bool SoundEnabled { get; set; } = true;
     public bool CheckUpdatesOnStartup { get; set; } = true;
+    public string UpdateChannel { get; set; } = "patch"; // "patch" (Continuous) or "stable" (Milestones)
     public string Language { get; set; } = "en";
     public bool SendToRecycleBin { get; set; } = false;
     public bool LowDiskAlertEnabled { get; set; } = true;

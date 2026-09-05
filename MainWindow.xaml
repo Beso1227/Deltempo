@@ -2055,6 +2055,28 @@
                                                   VerticalAlignment="Center"/>
                                     </Grid>
 
+                                    <Grid Margin="0,4,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Update Channel"
+                                                       FontSize="11.5"
+                                                       Foreground="{DynamicResource TextMediumBrush}"/>
+                                            <TextBlock Text="Continuous Patches delivers instant fixes on every commit"
+                                                       FontSize="10"
+                                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                                        </StackPanel>
+                                        <ComboBox Grid.Column="1"
+                                                  x:Name="SettingsUpdateChannelComboBox"
+                                                  Style="{DynamicResource ModernComboBox}"
+                                                  Width="160" Height="26">
+                                            <ComboBoxItem Content="⚡ Continuous Patches" Tag="patch" IsSelected="True"/>
+                                            <ComboBoxItem Content="🟢 Stable Releases" Tag="stable"/>
+                                        </ComboBox>
+                                    </Grid>
+
                                     <Grid Margin="0,6,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -2159,7 +2181,8 @@
                                                        Foreground="{DynamicResource ElectricCyanBrush}"/>
                                         </Border>
                                     </StackPanel>
-                                    <TextBlock Text="A new optimized release of Deltempo is ready"
+                                    <TextBlock x:Name="UpdateSubtitleText"
+                                               Text="A new optimized release of Deltempo is ready"
                                                FontSize="11.5"
                                                Foreground="{DynamicResource TextMediumBrush}"/>
                                 </StackPanel>

@@ -6,8 +6,15 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows;
+using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
+
+public enum UpdateChannel
+{
+    Patch,
+    Stable
+}
 
 public class ReleaseInfo
 {
@@ -19,6 +26,23 @@ public class ReleaseInfo
     public bool IsNewer { get; set; }
     public string VersionString { get; set; } = "1.0.0";
     public bool CheckSucceeded { get; set; }
+    public bool IsPatchUpdate { get; set; }
+    public string CommitSha { get; set; } = string.Empty;
+    public string ShortCommitSha => CommitSha.Length >= 7 ? CommitSha[..7] : CommitSha;
+    public DateTime? Timestamp { get; set; }
+}
+
+public class PatchManifest
+{
+    public string Channel { get; set; } = "patch";
+    public string BaseVersion { get; set; } = "1.3.3";
+    public string CommitSha { get; set; } = string.Empty;
+    public string ShortSha { get; set; } = string.Empty;
+    public string CommitMessage { get; set; } = string.Empty;
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public string DownloadUrl { get; set; } = string.Empty;
+    public long FileSizeBytes { get; set; }
+    public string Sha256 { get; set; } = string.Empty;
 }
 
 public static class UpdateService
@@ -47,7 +71,124 @@ public static class UpdateService
     public static Version CurrentVersion =>
         Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 0, 0);
 
-    public static async Task<ReleaseInfo?> CheckForUpdatesAsync(CancellationToken ct = default)
+    public static async Task<ReleaseInfo?> CheckForUpdatesAsync(UpdateChannel? channel = null, CancellationToken ct = default)
+    {
+        var targetChannel = channel ?? (SettingsService.Current.UpdateChannel?.Equals("stable", StringComparison.OrdinalIgnoreCase) == true
+            ? UpdateChannel.Stable
+            : UpdateChannel.Patch);
+
+        if (targetChannel == UpdateChannel.Patch)
+        {
+            var patch = await CheckForPatchUpdateAsync(ct);
+            if (patch != null && patch.CheckSucceeded && patch.IsNewer)
+            {
+                return patch;
+            }
+        }
+
+        return await CheckForStableUpdateAsync(ct);
+    }
+
+    public static async Task<ReleaseInfo?> CheckForPatchUpdateAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            string url = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/tags/patch";
+            using var response = await ApiHttpClient.GetAsync(url, ct);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new ReleaseInfo { CheckSucceeded = false };
+            }
+
+            string json = await response.Content.ReadAsStringAsync(ct);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            string releaseName = root.TryGetProperty("name", out var nameEl) ? nameEl.GetString() ?? "" : "";
+            string body = root.TryGetProperty("body", out var bodyEl) ? bodyEl.GetString() ?? "" : "";
+            string publishedAtStr = root.TryGetProperty("published_at", out var pubEl) ? pubEl.GetString() ?? "" : "";
+            DateTime.TryParse(publishedAtStr, out var publishedAt);
+
+            string downloadUrl = "";
+            long sizeBytes = 0;
+
+            if (root.TryGetProperty("assets", out var assetsEl) && assetsEl.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var asset in assetsEl.EnumerateArray())
+                {
+                    string name = asset.TryGetProperty("name", out var anEl) ? anEl.GetString() ?? "" : "";
+                    if (name.Equals("Deltempo.exe", StringComparison.OrdinalIgnoreCase) ||
+                        name.Equals("WinTempCleaner.exe", StringComparison.OrdinalIgnoreCase))
+                    {
+                        downloadUrl = asset.TryGetProperty("browser_download_url", out var dlEl) ? dlEl.GetString() ?? "" : "";
+                        sizeBytes = asset.TryGetProperty("size", out var sEl) ? sEl.GetInt64() : 0;
+                        break;
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(downloadUrl))
+            {
+                return new ReleaseInfo { CheckSucceeded = false };
+            }
+
+            var manifest = ParsePatchManifest(body);
+            string remoteCommitSha = manifest?.CommitSha ?? "";
+            DateTime remoteTimestamp = manifest?.Timestamp ?? publishedAt;
+            string remoteMessage = manifest?.CommitMessage ?? body;
+
+            if (string.IsNullOrEmpty(remoteCommitSha))
+            {
+                var match = Regex.Match(body, @"Commit:\s*([0-9a-fA-F]{7,40})", RegexOptions.IgnoreCase);
+                if (match.Success)
+                {
+                    remoteCommitSha = match.Groups[1].Value;
+                }
+            }
+
+            string localSha = BuildInfo.CommitSha;
+            bool isNewer = false;
+
+            if (!string.IsNullOrEmpty(remoteCommitSha) && !localSha.Equals("unknown", StringComparison.OrdinalIgnoreCase))
+            {
+                bool isSameCommit = remoteCommitSha.StartsWith(localSha, StringComparison.OrdinalIgnoreCase) ||
+                                    localSha.StartsWith(remoteCommitSha, StringComparison.OrdinalIgnoreCase);
+
+                if (!isSameCommit)
+                {
+                    isNewer = remoteTimestamp >= BuildInfo.BuildDateUtc.AddMinutes(-10);
+                }
+            }
+            else
+            {
+                isNewer = remoteTimestamp > BuildInfo.BuildDateUtc.AddMinutes(2);
+            }
+
+            string shortSha = remoteCommitSha.Length >= 7 ? remoteCommitSha[..7] : remoteCommitSha;
+            string displayTag = string.IsNullOrEmpty(shortSha) ? "Continuous Patch" : $"Patch: {shortSha}";
+
+            return new ReleaseInfo
+            {
+                CheckSucceeded = true,
+                IsPatchUpdate = true,
+                IsNewer = isNewer,
+                TagName = displayTag,
+                ReleaseName = string.IsNullOrWhiteSpace(releaseName) ? displayTag : releaseName,
+                Body = remoteMessage,
+                DownloadUrl = downloadUrl,
+                FileSizeBytes = sizeBytes,
+                CommitSha = remoteCommitSha,
+                Timestamp = remoteTimestamp,
+                VersionString = $"{BuildInfo.BaseVersion.ToString(3)}-patch"
+            };
+        }
+        catch
+        {
+            return new ReleaseInfo { CheckSucceeded = false };
+        }
+    }
+
+    public static async Task<ReleaseInfo?> CheckForStableUpdateAsync(CancellationToken ct = default)
     {
         try
         {
@@ -84,7 +225,7 @@ public static class UpdateService
                 }
             }
 
-            var cleanTag = Regex.Replace(tagName, @"^[^\d]*", ""); // remove 'v' or letters
+            var cleanTag = Regex.Replace(tagName, @"^[^\d]*", "");
             if (!Version.TryParse(cleanTag, out var remoteVer))
             {
                 var parts = cleanTag.Split('.');
@@ -107,6 +248,7 @@ public static class UpdateService
             return new ReleaseInfo
             {
                 CheckSucceeded = true,
+                IsPatchUpdate = false,
                 TagName = tagName,
                 ReleaseName = string.IsNullOrWhiteSpace(releaseName) ? tagName : releaseName,
                 Body = body,
@@ -116,14 +258,45 @@ public static class UpdateService
                 VersionString = cleanTag
             };
         }
-        catch (OperationCanceledException)
-        {
-            return new ReleaseInfo { CheckSucceeded = false };
-        }
         catch
         {
             return new ReleaseInfo { CheckSucceeded = false };
         }
+    }
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    public static PatchManifest? ParsePatchManifest(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+
+        try
+        {
+            var match = Regex.Match(text, @"<!--\s*DELTEMPO_PATCH_MANIFEST\s*(\{.*?\})\s*-->", RegexOptions.Singleline);
+            if (match.Success)
+            {
+                return JsonSerializer.Deserialize<PatchManifest>(match.Groups[1].Value, JsonOptions);
+            }
+
+            var codeBlockMatch = Regex.Match(text, @"```json:manifest\s*(\{.*?\})\s*```", RegexOptions.Singleline);
+            if (codeBlockMatch.Success)
+            {
+                return JsonSerializer.Deserialize<PatchManifest>(codeBlockMatch.Groups[1].Value, JsonOptions);
+            }
+
+            if (text.TrimStart().StartsWith("{") && text.TrimEnd().EndsWith("}"))
+            {
+                return JsonSerializer.Deserialize<PatchManifest>(text, JsonOptions);
+            }
+        }
+        catch
+        {
+        }
+
+        return null;
     }
 
     public static async Task DownloadAndApplyUpdateAsync(string downloadUrl, IProgress<double> progress, CancellationToken ct = default)
