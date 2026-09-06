@@ -350,6 +350,16 @@ public static class LargeFileHunterService
         {
             if (!File.Exists(filePath) && !Directory.Exists(filePath)) return false;
 
+            // Strict TOCTOU pre-deletion revalidation
+            if (File.Exists(filePath))
+            {
+                if (!WinTempCleaner.Core.Cleaning.CleanupExecutor.RevalidateBeforeDeletion(filePath, allowedRoot: string.Empty, expectedSize: -1, out string failureReason))
+                {
+                    Trace.WriteLine($"[Deltempo] MoveToRecycleBin blocked by safety revalidation: {failureReason} for {filePath}");
+                    return false;
+                }
+            }
+
             var shf = new SHFILEOPSTRUCT
             {
                 wFunc = FO_DELETE,

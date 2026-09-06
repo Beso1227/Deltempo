@@ -552,7 +552,7 @@ public static class CliRunner
         var allTargets = CleanerService.GetDefaultTargets();
         var selectedTargets = allTargets
             .Where(t => cleanAll || !t.IsOrphanedAppFolder)
-            .Where(t => !smartOnly || (t.SafetyBadge.Contains("100% Safe") && !t.IsOrphanedAppFolder))
+            .Where(t => !smartOnly || ((t.SafetyBadge.Contains("Verified") || t.SafetyBadge.Contains("100%")) && !t.IsOrphanedAppFolder))
             .Where(t => string.IsNullOrWhiteSpace(filter) || MatchesFilter(t, filter))
             .ToList();
 

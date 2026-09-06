@@ -23,6 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\Core\Safety\*.cs" Link="Core\Safety\%(FileName)%(Extension)" />
+    <Compile Include="..\..\Core\Cleaning\*.cs" Link="Core\Cleaning\%(FileName)%(Extension)" />
     <Compile Include="..\..\Services\*.cs" Link="Services\%(FileName)%(Extension)" />
     <Compile Include="..\..\Services\Providers\*.cs" Link="Services\Providers\%(FileName)%(Extension)" />
     <Compile Include="..\..\Services\Providers\CacheResolvers\*.cs" Link="Services\Providers\CacheResolvers\%(FileName)%(Extension)" />

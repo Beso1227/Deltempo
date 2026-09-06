@@ -18,6 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Core\**\*.cs" Link="Core\%(RecursiveDir)%(FileName)%(Extension)" />
     <Compile Include="..\Services\**\*.cs" Link="Services\%(RecursiveDir)%(FileName)%(Extension)" />
     <Compile Include="..\Models\**\*.cs" Link="Models\%(RecursiveDir)%(FileName)%(Extension)" />
   </ItemGroup>
