@@ -34,6 +34,10 @@ public partial class MainWindow : Window
     private uint _restoreMsgId;
     private bool _isLoaded;
 
+    // ─── Global hotkey engine ─────────────────────────────────────────────
+    private int _hotkeyIdAtom = HOTKEY_ID_MEMORY_BOOST;
+    private bool _isHotkeyRegistered;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -55,6 +59,12 @@ public partial class MainWindow : Window
     [DllImport("user32.dll", CharSet = CharSet.Auto)]
     private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
+    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
     [DllImport("user32.dll", SetLastError = true)]
     private static extern int GetSystemMetrics(int nIndex);
 
@@ -63,6 +73,12 @@ public partial class MainWindow : Window
 
     private const uint MSGFLT_ADD = 1;
     private const uint WM_SETICON = 0x0080;
+    private const int WM_HOTKEY = 0x0312;
+    private const int MOD_CONTROL = 0x0002;
+    private const int MOD_SHIFT = 0x0004;
+    private const int MOD_NOREPEAT = 0x4000;
+    private const int HOTKEY_ID_MEMORY_BOOST = 1;
+    private const int VK_M = 0x4D;
     private const IntPtr ICON_SMALL = 0;
     private const IntPtr ICON_BIG = (IntPtr)1;
 
@@ -94,6 +110,27 @@ public partial class MainWindow : Window
                 }
             }
             source.AddHook(WndProcInstanceHook);
+
+            // Register global hotkey (Ctrl+Shift+M) if not already running minimized
+            if (!SettingsService.Current.MemoryCompactMode)
+            {
+                try
+                {
+                    var hwnd = source.Handle;
+                    if (RegisterHotKey(hwnd, _hotkeyIdAtom, (uint)(MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT), VK_M))
+                    {
+                        _isHotkeyRegistered = true;
+                    }
+                    else
+                    {
+                        System.Diagnostics.Trace.WriteLine($"[Deltempo] Global hotkey registration failed: {Marshal.GetLastWin32Error()}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Global hotkey registration suppressed: {ex.Message}");
+                }
+            }
         }
     }
 
@@ -176,6 +213,11 @@ public partial class MainWindow : Window
     {
         try
         {
+            if (_isHotkeyRegistered && PresentationSource.FromVisual(this) is HwndSource source)
+            {
+                UnregisterHotKey(source.Handle, _hotkeyIdAtom);
+                _isHotkeyRegistered = false;
+            }
             _nativeIconSmall?.Dispose();
             _nativeIconBig?.Dispose();
         }
@@ -201,6 +243,16 @@ public partial class MainWindow : Window
                 Topmost = true;
                 Topmost = false;
                 Focus();
+            });
+            handled = true;
+        }
+        else if (msg == WM_HOTKEY && wParam.ToInt32() == _hotkeyIdAtom)
+        {
+            Dispatcher.Invoke(async () =>
+            {
+                var res = await MemoryOptimizerService.OptimizeRamAsync();
+                UpdateMemoryTelemetry();
+                AddLog($"[Hotkey Ctrl+Shift+M] Instant RAM optimization complete: Purged {res.FormattedReclaimed} in {res.ExecutionTimeMs}ms.", LogLevel.Success);
             });
             handled = true;
         }

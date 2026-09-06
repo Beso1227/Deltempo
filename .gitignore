@@ -39,3 +39,8 @@ NUL
 
 # Obsidian local workspace
 .obsidian/
+
+# Local submission automation
+alt_submit_cdp.py
+cdp_submit.py
+alternativeto_submission.html
