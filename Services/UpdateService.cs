@@ -76,6 +76,20 @@ public static class UpdateService
 
     public static async Task<ReleaseInfo?> CheckForUpdatesAsync(UpdateChannel? channel = null, CancellationToken ct = default)
     {
+        // Resolve channel from user settings if not explicitly specified
+        if (!channel.HasValue)
+        {
+            var userSetting = SettingsService.Current.UpdateChannel?.Trim().ToLowerInvariant();
+            if (userSetting == "stable")
+            {
+                channel = UpdateChannel.Stable;
+            }
+            else if (userSetting == "patch")
+            {
+                channel = UpdateChannel.Patch;
+            }
+        }
+
         if (channel == UpdateChannel.Stable)
         {
             return await CheckForStableUpdateAsync(ct);
@@ -128,46 +142,89 @@ public static class UpdateService
     {
         try
         {
-            string url = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/tags/patch";
-            using var response = await ApiHttpClient.GetAsync(url, ct);
-            if (!response.IsSuccessStatusCode)
-            {
-                return new ReleaseInfo { CheckSucceeded = false };
-            }
-
-            string json = await response.Content.ReadAsStringAsync(ct);
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
-
-            string releaseName = root.TryGetProperty("name", out var nameEl) ? nameEl.GetString() ?? "" : "";
-            string body = root.TryGetProperty("body", out var bodyEl) ? bodyEl.GetString() ?? "" : "";
-            string publishedAtStr = root.TryGetProperty("published_at", out var pubEl) ? pubEl.GetString() ?? "" : "";
-            DateTime.TryParse(publishedAtStr, out var publishedAt);
-
+            PatchManifest? manifest = null;
+            string releaseName = "";
+            string body = "";
+            DateTime publishedAt = DateTime.UtcNow;
             string downloadUrl = "";
             long sizeBytes = 0;
 
-            if (root.TryGetProperty("assets", out var assetsEl) && assetsEl.ValueKind == JsonValueKind.Array)
+            // ─── TIER 1: DIRECT HIGH-AVAILABILITY CDN MANIFEST INGESTION ───
+            // Release downloads are served by CDN and have NO 60 req/hr GitHub API rate limits.
+            try
             {
-                foreach (var asset in assetsEl.EnumerateArray())
+                string manifestCdnUrl = $"https://github.com/{RepoOwner}/{RepoName}/releases/download/patch/patch-manifest.json";
+                using var cdnCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                cdnCts.CancelAfter(TimeSpan.FromSeconds(5));
+
+                using var cdnResponse = await DownloadHttpClient.GetAsync(manifestCdnUrl, cdnCts.Token);
+                if (cdnResponse.IsSuccessStatusCode)
                 {
-                    string name = asset.TryGetProperty("name", out var anEl) ? anEl.GetString() ?? "" : "";
-                    if (name.Equals("Deltempo.exe", StringComparison.OrdinalIgnoreCase) ||
-                        name.Equals("WinTempCleaner.exe", StringComparison.OrdinalIgnoreCase))
+                    string manifestRaw = await cdnResponse.Content.ReadAsStringAsync(cdnCts.Token);
+                    manifest = ParsePatchManifest(manifestRaw);
+                    if (manifest != null && !string.IsNullOrWhiteSpace(manifest.CommitSha))
                     {
-                        downloadUrl = asset.TryGetProperty("browser_download_url", out var dlEl) ? dlEl.GetString() ?? "" : "";
-                        sizeBytes = asset.TryGetProperty("size", out var sEl) ? sEl.GetInt64() : 0;
-                        break;
+                        downloadUrl = manifest.DownloadUrl;
+                        sizeBytes = manifest.FileSizeBytes;
+                        publishedAt = manifest.Timestamp;
+                        body = manifest.CommitMessage;
                     }
                 }
             }
-
-            if (string.IsNullOrEmpty(downloadUrl))
+            catch (Exception ex)
             {
-                return new ReleaseInfo { CheckSucceeded = false };
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Direct CDN patch manifest check fallback: {ex.Message}");
             }
 
-            var manifest = ParsePatchManifest(body);
+            // ─── TIER 2: GITHUB REST API FALLBACK ──────────────────────────
+            // Queried when the direct CDN asset is not yet available or failed.
+            if (manifest == null || string.IsNullOrEmpty(downloadUrl))
+            {
+                string url = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/tags/patch";
+                using var response = await ApiHttpClient.GetAsync(url, ct);
+                if (!response.IsSuccessStatusCode)
+                {
+                    if (manifest == null)
+                    {
+                        return new ReleaseInfo { CheckSucceeded = false };
+                    }
+                }
+                else
+                {
+                    string json = await response.Content.ReadAsStringAsync(ct);
+                    using var doc = JsonDocument.Parse(json);
+                    var root = doc.RootElement;
+
+                    releaseName = root.TryGetProperty("name", out var nameEl) ? nameEl.GetString() ?? "" : "";
+                    body = root.TryGetProperty("body", out var bodyEl) ? bodyEl.GetString() ?? "" : "";
+                    string publishedAtStr = root.TryGetProperty("published_at", out var pubEl) ? pubEl.GetString() ?? "" : "";
+                    DateTime.TryParse(publishedAtStr, out publishedAt);
+
+                    if (root.TryGetProperty("assets", out var assetsEl) && assetsEl.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var asset in assetsEl.EnumerateArray())
+                        {
+                            string name = asset.TryGetProperty("name", out var anEl) ? anEl.GetString() ?? "" : "";
+                            if (name.Equals("Deltempo.exe", StringComparison.OrdinalIgnoreCase) ||
+                                name.Equals("WinTempCleaner.exe", StringComparison.OrdinalIgnoreCase))
+                            {
+                                downloadUrl = asset.TryGetProperty("browser_download_url", out var dlEl) ? dlEl.GetString() ?? "" : "";
+                                sizeBytes = asset.TryGetProperty("size", out var sEl) ? sEl.GetInt64() : 0;
+                                break;
+                            }
+                        }
+                    }
+
+                    manifest ??= ParsePatchManifest(body);
+                }
+            }
+
+            // Ensure download URL is safely defaulted if missing from manifest
+            if (string.IsNullOrEmpty(downloadUrl))
+            {
+                downloadUrl = $"https://github.com/{RepoOwner}/{RepoName}/releases/download/patch/Deltempo.exe";
+            }
+
             string remoteCommitSha = manifest?.CommitSha ?? "";
             DateTime remoteTimestamp = manifest?.Timestamp ?? publishedAt;
             string remoteMessage = manifest?.CommitMessage ?? body;
@@ -189,24 +246,25 @@ public static class UpdateService
 
             bool isNewer = false;
 
-            // 1. If running binary's SHA-256 matches remote patch binary's SHA-256 -> Exactly identical file
+            // 1. Exact Binary SHA-256 Check: If the currently running binary matches the remote binary, we are 100% up to date
             if (!string.IsNullOrEmpty(remoteSha256) && !string.IsNullOrEmpty(currentExeHash) &&
                 remoteSha256.Equals(currentExeHash, StringComparison.OrdinalIgnoreCase))
             {
                 isNewer = false;
             }
-            // 2. If persistent settings record this commit or hash as already installed
+            // 2. Persistent Installed State: Check if this commit was already applied and recorded
             else if (!string.IsNullOrEmpty(remoteCommitSha) && !string.IsNullOrEmpty(lastInstalledSha) &&
                      remoteCommitSha.Equals(lastInstalledSha, StringComparison.OrdinalIgnoreCase))
             {
                 isNewer = false;
             }
+            // 3. Persistent Hash State: Check if this binary hash was already installed
             else if (!string.IsNullOrEmpty(remoteSha256) && !string.IsNullOrEmpty(lastInstalledHash) &&
                      remoteSha256.Equals(lastInstalledHash, StringComparison.OrdinalIgnoreCase))
             {
                 isNewer = false;
             }
-            // 3. If local assembly commit matches remote commit
+            // 4. Git Commit SHA Check from Assembly Metadata
             else if (!string.IsNullOrEmpty(remoteCommitSha) && !localSha.Equals("unknown", StringComparison.OrdinalIgnoreCase))
             {
                 bool isSameCommit = remoteCommitSha.StartsWith(localSha, StringComparison.OrdinalIgnoreCase) ||
@@ -218,10 +276,11 @@ public static class UpdateService
                 }
                 else
                 {
+                    // Different commit SHA: Verify timestamp has a positive 5-minute buffer over local build date
                     isNewer = remoteTimestamp > BuildInfo.BuildDateUtc.AddMinutes(5);
                 }
             }
-            // 4. Fallback timestamp comparison when commit SHA is unavailable
+            // 5. Fallback timestamp comparison when commit SHA is unknown
             else
             {
                 isNewer = remoteTimestamp > BuildInfo.BuildDateUtc.AddMinutes(5);
@@ -450,64 +509,7 @@ public static class UpdateService
             string cmdScript = Path.Combine(Path.GetTempPath(), $"deltempo_swap_{Guid.NewGuid():N}.cmd");
             string logFile = Path.Combine(Path.GetTempPath(), "deltempo_update.log");
 
-            string scriptContent = $@"@echo off
-setlocal enabledelayedexpansion
-
-set ""TARGET_PID={currentPid}""
-set ""TARGET_EXE={currentExePath}""
-set ""SOURCE_EXE={tempFile}""
-set ""LOG_FILE={logFile}""
-
-echo [%DATE% %TIME%] Deltempo updater handover started > ""%LOG_FILE%""
-echo Target PID: %TARGET_PID% >> ""%LOG_FILE%""
-echo Target EXE: %TARGET_EXE% >> ""%LOG_FILE%""
-echo Source EXE: %SOURCE_EXE% >> ""%LOG_FILE%""
-
-:: 1. Wait for current Deltempo process to terminate (up to 30s)
-set /a WAIT_COUNT=0
-:wait_process
-tasklist /FI ""PID eq %TARGET_PID%"" 2>nul | findstr /i ""%TARGET_PID%"" >nul
-if not errorlevel 1 (
-    set /a WAIT_COUNT+=1
-    if !WAIT_COUNT! geq 30 (
-        echo [%DATE% %TIME%] Timed out waiting for process to exit >> ""%LOG_FILE%""
-        goto perform_copy
-    )
-    timeout /t 1 /nobreak >nul
-    goto wait_process
-)
-
-:perform_copy
-:: Extra pause for OS handle and antivirus to release file lock
-timeout /t 1 /nobreak >nul
-
-:: 2. Overwrite target with retry loop (up to 25 attempts, 1 second intervals)
-set /a RETRY=0
-:copy_loop
-copy /y ""%SOURCE_EXE%"" ""%TARGET_EXE%"" >nul 2>&1
-if not errorlevel 1 (
-    echo [%DATE% %TIME%] Copy succeeded on attempt !RETRY! >> ""%LOG_FILE%""
-    goto copy_success
-)
-set /a RETRY+=1
-if !RETRY! geq 25 (
-    echo [%DATE% %TIME%] Copy failed after !RETRY! attempts >> ""%LOG_FILE%""
-    goto finish
-)
-timeout /t 1 /nobreak >nul
-goto copy_loop
-
-:copy_success
-del /f /q ""%SOURCE_EXE%"" >nul 2>&1
-echo [%DATE% %TIME%] Launching updated executable >> ""%LOG_FILE%""
-start """" ""%TARGET_EXE%""
-
-:finish
-echo [%DATE% %TIME%] Updater finished, self-deleting >> ""%LOG_FILE%""
-start /b """" cmd /c ""timeout /t 2 /nobreak >nul & del /f /q """"%~f0"""" >nul 2>&1""
-exit /b 0
-";
-
+            string scriptContent = GenerateSwapScript(currentPid, currentExePath, tempFile, logFile);
             File.WriteAllText(cmdScript, scriptContent);
 
             var psi = new ProcessStartInfo
@@ -562,5 +564,161 @@ exit /b 0
             }
             throw;
         }
+    }
+
+    public static string GenerateSwapScript(int targetPid, string targetExePath, string sourceExePath, string logFilePath)
+    {
+        string backupExePath = $"{targetExePath}.old";
+        return $@"@echo off
+setlocal enabledelayedexpansion
+
+set ""TARGET_PID={targetPid}""
+set ""TARGET_EXE={targetExePath}""
+set ""SOURCE_EXE={sourceExePath}""
+set ""BACKUP_EXE={backupExePath}""
+set ""LOG_FILE={logFilePath}""
+
+echo [%DATE% %TIME%] Deltempo professional updater handover initiated > ""%LOG_FILE%""
+echo Target PID: %TARGET_PID% >> ""%LOG_FILE%""
+echo Target EXE: %TARGET_EXE% >> ""%LOG_FILE%""
+echo Source EXE: %SOURCE_EXE% >> ""%LOG_FILE%""
+
+:: Step 1: Wait up to 30s for the running Deltempo process to exit
+set /a WAIT_COUNT=0
+:wait_process
+tasklist /FI ""PID eq %TARGET_PID%"" 2>nul | findstr /i ""%TARGET_PID%"" >nul
+if not errorlevel 1 (
+    set /a WAIT_COUNT+=1
+    if !WAIT_COUNT! geq 30 (
+        echo [%DATE% %TIME%] Process exit wait timed out, proceeding to swap >> ""%LOG_FILE%""
+        goto perform_swap
+    )
+    timeout /t 1 /nobreak >nul
+    goto wait_process
+)
+
+:perform_swap
+:: Step 2: Extra brief pause for antivirus & OS file handles to release
+timeout /t 1 /nobreak >nul
+
+:: Step 3: Remove any previous backup file if it exists
+if exist ""%BACKUP_EXE%"" del /f /q ""%BACKUP_EXE%"" >nul 2>&1
+
+:: Step 4: Rename current target to .old (succeeds even if locked by read handles)
+set /a RENAME_RETRY=0
+:rename_loop
+if not exist ""%TARGET_EXE%"" goto deploy_new
+move /y ""%TARGET_EXE%"" ""%BACKUP_EXE%"" >nul 2>&1
+if not errorlevel 1 (
+    echo [%DATE% %TIME%] Successfully moved target to backup on attempt !RENAME_RETRY! >> ""%LOG_FILE%""
+    goto deploy_new
+)
+set /a RENAME_RETRY+=1
+if !RENAME_RETRY! geq 20 (
+    echo [%DATE% %TIME%] Direct rename failed, attempting direct copy >> ""%LOG_FILE%""
+    goto direct_copy
+)
+timeout /t 1 /nobreak >nul
+goto rename_loop
+
+:deploy_new
+:: Step 5: Move new binary into target location
+set /a MOVE_RETRY=0
+:move_loop
+move /y ""%SOURCE_EXE%"" ""%TARGET_EXE%"" >nul 2>&1
+if not errorlevel 1 (
+    echo [%DATE% %TIME%] Successfully installed new binary on move attempt !MOVE_RETRY! >> ""%LOG_FILE%""
+    goto swap_success
+)
+set /a MOVE_RETRY+=1
+if !MOVE_RETRY! geq 20 (
+    echo [%DATE% %TIME%] Move failed, attempting copy fallback >> ""%LOG_FILE%""
+    goto direct_copy
+)
+timeout /t 1 /nobreak >nul
+goto move_loop
+
+:direct_copy
+copy /y ""%SOURCE_EXE%"" ""%TARGET_EXE%"" >nul 2>&1
+if not errorlevel 1 (
+    echo [%DATE% %TIME%] Direct copy succeeded >> ""%LOG_FILE%""
+    goto swap_success
+)
+
+:: Step 6: Rollback on total failure - Restore original binary
+echo [%DATE% %TIME%] Update failed! Initiating automatic rollback >> ""%LOG_FILE%""
+if exist ""%BACKUP_EXE%"" (
+    move /y ""%BACKUP_EXE%"" ""%TARGET_EXE%"" >nul 2>&1
+    echo [%DATE% %TIME%] Rollback restored original executable >> ""%LOG_FILE%""
+)
+if exist ""%TARGET_EXE%"" (
+    start """" ""%TARGET_EXE%""
+)
+goto cleanup_self
+
+:swap_success
+echo [%DATE% %TIME%] Update succeeded! Cleaning temporary files >> ""%LOG_FILE%""
+if exist ""%BACKUP_EXE%"" del /f /q ""%BACKUP_EXE%"" >nul 2>&1
+if exist ""%SOURCE_EXE%"" del /f /q ""%SOURCE_EXE%"" >nul 2>&1
+
+:: Launch the updated binary
+start """" ""%TARGET_EXE%""
+
+:cleanup_self
+echo [%DATE% %TIME%] Updater finished. Self-deleting script >> ""%LOG_FILE%""
+start /b """" cmd /c ""timeout /t 2 /nobreak >nul & del /f /q """"%~f0"""" >nul 2>&1""
+exit /b 0
+";
+    }
+
+    public static void CleanupPendingUpdateArtifacts()
+    {
+        Task.Run(() =>
+        {
+            try
+            {
+                // 1. Clean up target backup (.old) in application directory
+                string currentExePath = Environment.ProcessPath ?? "";
+                if (string.IsNullOrEmpty(currentExePath) || !File.Exists(currentExePath))
+                {
+                    currentExePath = Path.Combine(AppContext.BaseDirectory, "Deltempo.exe");
+                }
+
+                string backupPath = $"{currentExePath}.old";
+                if (File.Exists(backupPath))
+                {
+                    try { File.Delete(backupPath); } catch { }
+                }
+
+                // 2. Clean up old updater scripts and downloads in %TEMP% older than 15 minutes
+                string tempDir = Path.GetTempPath();
+                var dirInfo = new DirectoryInfo(tempDir);
+                var threshold = DateTime.UtcNow.AddMinutes(-15);
+
+                foreach (var file in dirInfo.EnumerateFiles("deltempo_swap_*.cmd"))
+                {
+                    try
+                    {
+                        if (file.CreationTimeUtc < threshold)
+                            file.Delete();
+                    }
+                    catch { }
+                }
+
+                foreach (var file in dirInfo.EnumerateFiles("Deltempo_Update_*.exe"))
+                {
+                    try
+                    {
+                        if (file.CreationTimeUtc < threshold)
+                            file.Delete();
+                    }
+                    catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] CleanupPendingUpdateArtifacts suppressed: {ex.Message}");
+            }
+        });
     }
 }

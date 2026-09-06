@@ -1313,7 +1313,16 @@ public partial class MainWindow : Window
             {
                 UpdateProgressBar.Value = val;
                 UpdatePercentText.Text = $"{val:F0}%";
-                UpdateDownloadStatusText.Text = $"Downloading update ({val:F0}%)...";
+                if (_pendingRelease != null && _pendingRelease.FileSizeBytes > 0)
+                {
+                    double currentMb = (val / 100.0 * _pendingRelease.FileSizeBytes) / (1024.0 * 1024.0);
+                    double totalMb = _pendingRelease.FileSizeBytes / (1024.0 * 1024.0);
+                    UpdateDownloadStatusText.Text = $"Downloading update ({currentMb:F1} MB / {totalMb:F1} MB)...";
+                }
+                else
+                {
+                    UpdateDownloadStatusText.Text = $"Downloading update ({val:F0}%)...";
+                }
             });
         });
 

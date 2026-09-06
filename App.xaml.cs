@@ -54,6 +54,9 @@ public partial class App : System.Windows.Application
         // Automatically ensure 'deltempo' is globally accessible in terminal & Win+R
         CliRegistrationService.EnsureCliRegistered();
 
+        // Purge any lingering .old binaries or updater temporary files
+        UpdateService.CleanupPendingUpdateArtifacts();
+
         var args = e.Args;
 
         if (args.Length > 0)
