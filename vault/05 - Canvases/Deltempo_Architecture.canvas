@@ -1,86 +1,86 @@
 {
-  "nodes": [
-    {
-      "height": 120,
-      "text": "### 🚀 App.xaml.cs\nRoot Entry Point & Mutex Router",
-      "y": 100,
-      "x": 100,
-      "color": "1",
-      "width": 280,
-      "type": "text",
-      "id": "node_app"
-    },
-    {
-      "height": 140,
-      "text": "### 🖥️ MainWindow.xaml.cs\nWPF Dashboard & Controller",
-      "y": 40,
-      "x": 460,
-      "color": "4",
-      "width": 300,
-      "type": "text",
-      "id": "node_ui"
-    },
-    {
-      "height": 140,
-      "text": "### 💻 deltempo_cli.exe\nSynchronous Console CLI",
-      "y": 220,
-      "x": 460,
-      "color": "5",
-      "width": 300,
-      "type": "text",
-      "id": "node_cli"
-    },
-    {
-      "height": 140,
-      "text": "### 🧹 CleanerService.cs\n21-Scope Purge Engine",
-      "y": 40,
-      "x": 840,
-      "color": "2",
-      "width": 280,
-      "type": "text",
-      "id": "node_cleaner"
-    },
-    {
-      "height": 140,
-      "text": "### ⚡ Memory & Startup\nRAM Booster & Boot Tools",
-      "y": 220,
-      "x": 840,
-      "color": "3",
-      "width": 280,
-      "type": "text",
-      "id": "node_optimizer"
-    }
-  ],
   "edges": [
     {
-      "fromNode": "node_app",
       "toNode": "node_ui",
-      "label": "GUI Mode",
-      "id": "edge1"
-    },
-    {
+      "id": "edge1",
       "fromNode": "node_app",
+      "label": "GUI Mode"
+    },
+    {
       "toNode": "node_cli",
-      "label": "CLI Mode",
-      "id": "edge2"
+      "id": "edge2",
+      "fromNode": "node_app",
+      "label": "CLI Mode"
     },
     {
-      "fromNode": "node_ui",
       "toNode": "node_cleaner",
-      "label": "Clean/Scan",
-      "id": "edge3"
+      "id": "edge3",
+      "fromNode": "node_ui",
+      "label": "Clean/Scan"
     },
     {
-      "fromNode": "node_ui",
       "toNode": "node_optimizer",
-      "label": "Optimize",
-      "id": "edge4"
+      "id": "edge4",
+      "fromNode": "node_ui",
+      "label": "Optimize"
     },
     {
-      "fromNode": "node_cli",
       "toNode": "node_cleaner",
-      "label": "deltempo clean",
-      "id": "edge5"
+      "id": "edge5",
+      "fromNode": "node_cli",
+      "label": "deltempo clean"
+    }
+  ],
+  "nodes": [
+    {
+      "type": "text",
+      "x": 100,
+      "id": "node_app",
+      "text": "### 🚀 App.xaml.cs\nRoot Entry Point & Mutex Router",
+      "width": 280,
+      "y": 100,
+      "height": 120,
+      "color": "1"
+    },
+    {
+      "type": "text",
+      "x": 460,
+      "id": "node_ui",
+      "text": "### 🖥️ MainWindow.xaml.cs\nWPF Dashboard & Controller",
+      "width": 300,
+      "y": 40,
+      "height": 140,
+      "color": "4"
+    },
+    {
+      "type": "text",
+      "x": 460,
+      "id": "node_cli",
+      "text": "### 💻 deltempo_cli.exe\nSynchronous Console CLI",
+      "width": 300,
+      "y": 220,
+      "height": 140,
+      "color": "5"
+    },
+    {
+      "type": "text",
+      "x": 840,
+      "id": "node_cleaner",
+      "text": "### 🧹 CleanerService.cs\n21-Scope Purge Engine",
+      "width": 280,
+      "y": 40,
+      "height": 140,
+      "color": "2"
+    },
+    {
+      "type": "text",
+      "x": 840,
+      "id": "node_optimizer",
+      "text": "### ⚡ Memory & Startup\nRAM Booster & Boot Tools",
+      "width": 280,
+      "y": 220,
+      "height": 140,
+      "color": "3"
     }
   ]
 }
