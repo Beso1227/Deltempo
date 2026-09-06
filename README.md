@@ -10,7 +10,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=06B6D4&logo=windows&logoColor=white" alt="Release v1.3.3" /></a>
     <a href="https://github.com/Beso1227/Deltempo/actions"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=Build" alt="CI Status" /></a>
-    <a href="Tests/Deltempo.Tests"><img src="https://img.shields.io/badge/Tests-234%20Passing-10B981?style=for-the-badge&logo=xunit&logoColor=white" alt="234 xUnit Tests Passing" /></a>
+    <a href="Tests/Deltempo.Tests"><img src="https://img.shields.io/badge/Tests-266%20Passing-10B981?style=for-the-badge&logo=xunit&logoColor=white" alt="266 xUnit Tests Passing" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License MIT" /></a>
     <a href="https://beso1227.github.io/Deltempo/"><img src="https://img.shields.io/badge/Official_Site-Live_Web-8B5CF6?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Official Website" /></a>
   </p>
@@ -284,7 +284,7 @@ PS C:\> deltempo large --min 500MB
 | **NVIDIA App Driver OTA** | **✅ Cleans 3–10 GB installer caches** | ⚠️ Partial | ❌ No | ❌ No | ⚠️ Partial |
 | **Media &amp; Creator Scratch** | **✅ Adobe, DaVinci, OBS, Blender** | ❌ No | ❌ No | ❌ No | ❌ No |
 | **CLI Automation** | **✅ Instant global registration** | ❌ No | ⚠️ Limited | ⚠️ Basic | ⚠️ Legacy switches |
-| **Automated Test Coverage** | **✅ 234 xUnit Tests (100% Passing)** | ❌ Proprietary | ❌ Proprietary | ⚠️ Basic | ❌ Proprietary |
+| **Automated Test Coverage** | **✅ 266 xUnit Tests (100% Passing)** | ❌ Proprietary | ❌ Proprietary | ⚠️ Basic | ❌ Proprietary |
 
 ---
 
@@ -328,7 +328,7 @@ The resulting executable will be available at `./Deltempo.exe` along with its SH
 
 Contributions, feature requests, and bug reports are warmly welcomed!
 - Found a bug or want a new cleaning scope? Open an [Issue](https://github.com/Beso1227/Deltempo/issues).
-- Want to contribute code? Fork the repo, make your changes, and submit a [Pull Request](https://github.com/Beso1227/Deltempo/pulls). Please ensure all 234 tests pass:
+- Want to contribute code? Fork the repo, make your changes, and submit a [Pull Request](https://github.com/Beso1227/Deltempo/pulls). Please ensure all 266 tests pass:
   ```powershell
   dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj
   ```

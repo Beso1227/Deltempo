@@ -107,6 +107,48 @@ jobs:
           Write-Host "Generated patch manifest for commit: $shortSha"
           Write-Host $json
 
+      - name: Validate Patch Manifest and Binary Consistency
+        shell: pwsh
+        run: |
+          $sha = (git rev-parse HEAD).Trim()
+          $raw = Get-Content ./dist/patch-manifest.json -Raw
+          $manifest = ConvertFrom-Json $raw
+
+          # 1. Commit SHA Match
+          if ($manifest.commitSha -ne $sha) {
+              Write-Error "CI Validation Failed: manifest.commitSha ($($manifest.commitSha)) does not match git HEAD ($sha)"
+              exit 1
+          }
+
+          # 2. Binary SHA-256 Match
+          $actualHash = (Get-FileHash ./dist/Deltempo.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($manifest.sha256.ToLowerInvariant() -ne $actualHash) {
+              Write-Error "CI Validation Failed: manifest.sha256 ($($manifest.sha256)) does not match actual executable hash ($actualHash)"
+              exit 1
+          }
+
+          # 3. File Size Match
+          $actualSize = (Get-Item ./dist/Deltempo.exe).Length
+          if ($manifest.fileSizeBytes -ne $actualSize) {
+              Write-Error "CI Validation Failed: manifest.fileSizeBytes ($($manifest.fileSizeBytes)) does not match actual size ($actualSize)"
+              exit 1
+          }
+
+          # 4. Channel Match
+          if ($manifest.channel -ne "patch") {
+              Write-Error "CI Validation Failed: manifest.channel must be 'patch'"
+              exit 1
+          }
+
+          # 5. PE DOS Header Check
+          $bytes = [System.IO.File]::ReadAllBytes("./dist/Deltempo.exe")
+          if ($bytes.Length -lt 1024 -or $bytes[0] -ne 0x4D -or $bytes[1] -ne 0x5A) {
+              Write-Error "CI Validation Failed: Deltempo.exe is not a valid PE executable"
+              exit 1
+          }
+
+          Write-Host "✓ CI Verification Succeeded: Patch manifest and binary are 100% consistent."
+
       - name: Publish Rolling Patch Release
         uses: softprops/action-gh-release@v2
         with:

@@ -8,15 +8,10 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows;
+using WinTempCleaner.Core.Update;
 using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
-
-public enum UpdateChannel
-{
-    Patch,
-    Stable
-}
 
 public class ReleaseInfo
 {
@@ -33,19 +28,7 @@ public class ReleaseInfo
     public string ShortCommitSha => CommitSha.Length >= 7 ? CommitSha[..7] : CommitSha;
     public DateTime? Timestamp { get; set; }
     public string ExpectedSha256 { get; set; } = string.Empty;
-}
-
-public class PatchManifest
-{
-    public string Channel { get; set; } = "patch";
-    public string BaseVersion { get; set; } = "1.3.3";
-    public string CommitSha { get; set; } = string.Empty;
-    public string ShortSha { get; set; } = string.Empty;
-    public string CommitMessage { get; set; } = string.Empty;
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-    public string DownloadUrl { get; set; } = string.Empty;
-    public long FileSizeBytes { get; set; }
-    public string Sha256 { get; set; } = string.Empty;
+    public string StatusMessage { get; set; } = string.Empty;
 }
 
 public static class UpdateService
@@ -87,6 +70,10 @@ public static class UpdateService
             else if (userSetting == "patch")
             {
                 channel = UpdateChannel.Patch;
+            }
+            else
+            {
+                channel = UpdateChannel.Auto;
             }
         }
 
@@ -150,24 +137,37 @@ public static class UpdateService
             long sizeBytes = 0;
 
             // ─── TIER 1: DIRECT HIGH-AVAILABILITY CDN MANIFEST INGESTION ───
-            // Release downloads are served by CDN and have NO 60 req/hr GitHub API rate limits.
+            // Uses cache-busting query and NoCache headers to ensure fresh CDN delivery.
             try
             {
-                string manifestCdnUrl = $"https://github.com/{RepoOwner}/{RepoName}/releases/download/patch/patch-manifest.json";
+                long cacheBuster = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                string manifestCdnUrl = $"https://github.com/{RepoOwner}/{RepoName}/releases/download/patch/patch-manifest.json?cb={cacheBuster}";
                 using var cdnCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                cdnCts.CancelAfter(TimeSpan.FromSeconds(5));
+                cdnCts.CancelAfter(TimeSpan.FromSeconds(6));
 
-                using var cdnResponse = await DownloadHttpClient.GetAsync(manifestCdnUrl, cdnCts.Token);
+                using var req = new HttpRequestMessage(HttpMethod.Get, manifestCdnUrl);
+                req.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true };
+
+                using var cdnResponse = await DownloadHttpClient.SendAsync(req, cdnCts.Token);
                 if (cdnResponse.IsSuccessStatusCode)
                 {
                     string manifestRaw = await cdnResponse.Content.ReadAsStringAsync(cdnCts.Token);
-                    manifest = ParsePatchManifest(manifestRaw);
-                    if (manifest != null && !string.IsNullOrWhiteSpace(manifest.CommitSha))
+                    var parsed = ParsePatchManifest(manifestRaw);
+                    if (parsed != null)
                     {
-                        downloadUrl = manifest.DownloadUrl;
-                        sizeBytes = manifest.FileSizeBytes;
-                        publishedAt = manifest.Timestamp;
-                        body = manifest.CommitMessage;
+                        var validation = PatchMetadataValidator.Validate(parsed);
+                        if (validation.IsValid)
+                        {
+                            manifest = parsed;
+                            downloadUrl = manifest.DownloadUrl;
+                            sizeBytes = manifest.FileSizeBytes;
+                            publishedAt = manifest.Timestamp;
+                            body = manifest.CommitMessage;
+                        }
+                        else
+                        {
+                            System.Diagnostics.Trace.WriteLine($"[Deltempo] CDN patch manifest failed validation: {validation.ErrorMessage}");
+                        }
                     }
                 }
             }
@@ -186,7 +186,7 @@ public static class UpdateService
                 {
                     if (manifest == null)
                     {
-                        return new ReleaseInfo { CheckSucceeded = false };
+                        return new ReleaseInfo { CheckSucceeded = false, StatusMessage = "Could not reach update server." };
                     }
                 }
                 else
@@ -238,53 +238,18 @@ public static class UpdateService
                 }
             }
 
-            string localSha = BuildInfo.CommitSha;
-            string currentExeHash = BuildInfo.CurrentExecutableSha256;
-            string lastInstalledSha = SettingsService.Current.LastInstalledPatchSha;
-            string lastInstalledHash = SettingsService.Current.LastInstalledPatchHash;
             string remoteSha256 = manifest?.Sha256 ?? "";
 
-            bool isNewer = false;
-
-            // 1. Exact Binary SHA-256 Check: If the currently running binary matches the remote binary, we are 100% up to date
-            if (!string.IsNullOrEmpty(remoteSha256) && !string.IsNullOrEmpty(currentExeHash) &&
-                remoteSha256.Equals(currentExeHash, StringComparison.OrdinalIgnoreCase))
-            {
-                isNewer = false;
-            }
-            // 2. Persistent Installed State: Check if this commit was already applied and recorded
-            else if (!string.IsNullOrEmpty(remoteCommitSha) && !string.IsNullOrEmpty(lastInstalledSha) &&
-                     remoteCommitSha.Equals(lastInstalledSha, StringComparison.OrdinalIgnoreCase))
-            {
-                isNewer = false;
-            }
-            // 3. Persistent Hash State: Check if this binary hash was already installed
-            else if (!string.IsNullOrEmpty(remoteSha256) && !string.IsNullOrEmpty(lastInstalledHash) &&
-                     remoteSha256.Equals(lastInstalledHash, StringComparison.OrdinalIgnoreCase))
-            {
-                isNewer = false;
-            }
-            // 4. Git Commit SHA Check from Assembly Metadata
-            else if (!string.IsNullOrEmpty(remoteCommitSha) && !localSha.Equals("unknown", StringComparison.OrdinalIgnoreCase))
-            {
-                bool isSameCommit = remoteCommitSha.StartsWith(localSha, StringComparison.OrdinalIgnoreCase) ||
-                                    localSha.StartsWith(remoteCommitSha, StringComparison.OrdinalIgnoreCase);
-
-                if (isSameCommit)
-                {
-                    isNewer = false;
-                }
-                else
-                {
-                    // Different commit SHA: Verify timestamp has a positive 5-minute buffer over local build date
-                    isNewer = remoteTimestamp > BuildInfo.BuildDateUtc.AddMinutes(5);
-                }
-            }
-            // 5. Fallback timestamp comparison when commit SHA is unknown
-            else
-            {
-                isNewer = remoteTimestamp > BuildInfo.BuildDateUtc.AddMinutes(5);
-            }
+            // Evaluate patch availability via deterministic PatchDiscoveryEngine
+            var discovery = PatchDiscoveryEngine.EvaluatePatchAvailability(
+                localCommitSha: BuildInfo.CommitSha,
+                localExeSha256: BuildInfo.CurrentExecutableSha256,
+                localBuildDateUtc: BuildInfo.BuildDateUtc,
+                lastInstalledSha: SettingsService.Current.LastInstalledPatchSha,
+                lastInstalledHash: SettingsService.Current.LastInstalledPatchHash,
+                remoteCommitSha: remoteCommitSha,
+                remoteSha256: remoteSha256,
+                remoteTimestampUtc: remoteTimestamp);
 
             string shortSha = remoteCommitSha.Length >= 7 ? remoteCommitSha[..7] : remoteCommitSha;
             string displayTag = string.IsNullOrEmpty(shortSha) ? "Continuous Patch" : $"Patch: {shortSha}";
@@ -293,7 +258,7 @@ public static class UpdateService
             {
                 CheckSucceeded = true,
                 IsPatchUpdate = true,
-                IsNewer = isNewer,
+                IsNewer = discovery.IsNewer,
                 TagName = displayTag,
                 ReleaseName = string.IsNullOrWhiteSpace(releaseName) ? displayTag : releaseName,
                 Body = remoteMessage,
@@ -302,12 +267,13 @@ public static class UpdateService
                 CommitSha = remoteCommitSha,
                 Timestamp = remoteTimestamp,
                 VersionString = $"{BuildInfo.BaseVersion.ToString(3)}-patch",
-                ExpectedSha256 = manifest?.Sha256 ?? ""
+                ExpectedSha256 = remoteSha256,
+                StatusMessage = discovery.Reason
             };
         }
-        catch
+        catch (Exception ex)
         {
-            return new ReleaseInfo { CheckSucceeded = false };
+            return new ReleaseInfo { CheckSucceeded = false, StatusMessage = ex.Message };
         }
     }
 
@@ -319,7 +285,7 @@ public static class UpdateService
             using var response = await ApiHttpClient.GetAsync(url, ct);
             if (!response.IsSuccessStatusCode)
             {
-                return new ReleaseInfo { CheckSucceeded = false };
+                return new ReleaseInfo { CheckSucceeded = false, StatusMessage = "Could not reach stable update server." };
             }
 
             string json = await response.Content.ReadAsStringAsync(ct);
@@ -382,12 +348,13 @@ public static class UpdateService
                 FileSizeBytes = sizeBytes,
                 IsNewer = isNewer,
                 VersionString = cleanTag,
-                Timestamp = publishedAt
+                Timestamp = publishedAt,
+                StatusMessage = isNewer ? $"New stable release {tagName} available." : "Running latest stable release."
             };
         }
-        catch
+        catch (Exception ex)
         {
-            return new ReleaseInfo { CheckSucceeded = false };
+            return new ReleaseInfo { CheckSucceeded = false, StatusMessage = ex.Message };
         }
     }
 
@@ -428,15 +395,17 @@ public static class UpdateService
 
     public static async Task DownloadAndApplyUpdateAsync(string downloadUrl, IProgress<double> progress, string? expectedSha256 = null, string? commitSha = null, CancellationToken ct = default)
     {
-        // 1. Strict Host & Protocol Security Assertion (Anti-SSRF / Anti-Tamper)
-        if (!Uri.TryCreate(downloadUrl, UriKind.Absolute, out var uri) ||
-            uri.Scheme != Uri.UriSchemeHttps ||
-            (!uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase) &&
-             !uri.Host.EndsWith(".github.com", StringComparison.OrdinalIgnoreCase) &&
-             !uri.Host.Equals("githubusercontent.com", StringComparison.OrdinalIgnoreCase) &&
-             !uri.Host.EndsWith(".githubusercontent.com", StringComparison.OrdinalIgnoreCase)))
+        // 0. Mutual Exclusion: Acquire cross-process update lock
+        using var updateLock = PatchInstallationLock.TryAcquire(TimeSpan.FromSeconds(5));
+        if (!updateLock.HasLock)
         {
-            throw new SecurityException("Security violation: Update downloads must strictly originate from verified GitHub domains over HTTPS.");
+            throw new InvalidOperationException("Another Deltempo update operation is currently in progress. Please wait for it to finish.");
+        }
+
+        // 1. Strict Host & Protocol Security Assertion (Anti-SSRF / Anti-Tamper)
+        if (!PatchMetadataValidator.IsValidDownloadUrl(downloadUrl, out string urlReason))
+        {
+            throw new SecurityException($"Security violation: {urlReason}");
         }
 
         string tempFile = Path.Combine(Path.GetTempPath(), $"Deltempo_Update_{Guid.NewGuid():N}.exe");
@@ -467,38 +436,14 @@ public static class UpdateService
             await fileStream.FlushAsync(ct);
             fileStream.Close();
 
-            // 2. Binary Integrity & Minimum Size Verification
+            // 2. Cryptographic Integrity & PE Validation
             var fi = new FileInfo(tempFile);
-            if (fi.Length < 10 * 1024 * 1024)
+            if (!PatchIntegrityVerifier.VerifyStagedArtifact(tempFile, expectedSha256 ?? "", fi.Length, out string integrityError))
             {
-                throw new InvalidDataException($"Downloaded update binary is truncated or incomplete ({fi.Length} bytes).");
-            }
-
-            // 3. PE DOS Header Verification ("MZ" signature)
-            using (var fs = new FileStream(tempFile, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                byte[] header = new byte[2];
-                if (fs.Read(header, 0, 2) != 2 || header[0] != 0x4D || header[1] != 0x5A)
-                {
-                    throw new InvalidDataException("Downloaded update file is not a valid Windows PE executable.");
-                }
-            }
-
-            // 4. Cryptographic SHA-256 Hash Integrity Verification
-            if (!string.IsNullOrWhiteSpace(expectedSha256))
-            {
-                using var sha = SHA256.Create();
-                using var fs = File.OpenRead(tempFile);
-                byte[] hash = sha.ComputeHash(fs);
-                string computed = Convert.ToHexString(hash).ToLowerInvariant();
-                if (!computed.Equals(expectedSha256.Trim().ToLowerInvariant(), StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new SecurityException($"SHA-256 integrity verification failed! Expected: {expectedSha256}, Computed: {computed}");
-                }
+                throw new SecurityException($"Update integrity verification failed: {integrityError}");
             }
 
             // Prepare Atomic Hot-Swap Handover via robust cmd.exe swap script
-            // (Immune to PowerShell execution policies, cold-start delays, and syntax quirks)
             string currentExePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "";
             if (string.IsNullOrEmpty(currentExePath) || !File.Exists(currentExePath))
             {
@@ -677,7 +622,7 @@ exit /b 0
         {
             try
             {
-                // 1. Clean up target backup (.old) in application directory
+                // 1. Startup Recovery: If primary executable is missing or truncated and .old exists, restore it!
                 string currentExePath = Environment.ProcessPath ?? "";
                 if (string.IsNullOrEmpty(currentExePath) || !File.Exists(currentExePath))
                 {
@@ -687,7 +632,20 @@ exit /b 0
                 string backupPath = $"{currentExePath}.old";
                 if (File.Exists(backupPath))
                 {
-                    try { File.Delete(backupPath); } catch { }
+                    if (!File.Exists(currentExePath) || new FileInfo(currentExePath).Length == 0)
+                    {
+                        try
+                        {
+                            File.Move(backupPath, currentExePath, overwrite: true);
+                            System.Diagnostics.Trace.WriteLine("[Deltempo] Recovered main binary from .old backup on startup.");
+                        }
+                        catch { }
+                    }
+                    else
+                    {
+                        // Current binary is healthy; delete the superseded .old backup
+                        try { File.Delete(backupPath); } catch { }
+                    }
                 }
 
                 // 2. Clean up old updater scripts and downloads in %TEMP% older than 15 minutes

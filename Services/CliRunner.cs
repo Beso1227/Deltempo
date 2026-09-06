@@ -1391,26 +1391,117 @@ public static class CliRunner
 
     private static async Task<int> HandleUpdateAsync(string[] args)
     {
+        bool checkOnly = HasFlag(args, "check", "--check", "-c");
+        string? channelArg = GetOptionValue(args, "--channel");
+        
+        WinTempCleaner.Core.Update.UpdateChannel? targetChannel = null;
+        if (!string.IsNullOrEmpty(channelArg))
+        {
+            if (channelArg.Equals("stable", StringComparison.OrdinalIgnoreCase))
+                targetChannel = WinTempCleaner.Core.Update.UpdateChannel.Stable;
+            else if (channelArg.Equals("patch", StringComparison.OrdinalIgnoreCase))
+                targetChannel = WinTempCleaner.Core.Update.UpdateChannel.Patch;
+            else
+                targetChannel = WinTempCleaner.Core.Update.UpdateChannel.Auto;
+        }
+
         Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine("  🔄 [Deltempo] Checking for updates on GitHub...");
+        Console.WriteLine($"  🔄 [Deltempo] Checking for updates (Channel: {targetChannel?.ToString() ?? SettingsService.Current.UpdateChannel ?? "patch"})...");
         Console.ResetColor();
 
-        var release = await UpdateService.CheckForUpdatesAsync();
-        if (release != null && release.IsNewer)
+        var release = await UpdateService.CheckForUpdatesAsync(targetChannel);
+        if (release == null || !release.CheckSucceeded)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("  ⚠️ Could not check for updates. Please check your internet connection or try again later.");
+            if (!string.IsNullOrEmpty(release?.StatusMessage))
+            {
+                Console.WriteLine($"     Details: {release.StatusMessage}");
+            }
+            Console.ResetColor();
+            return 1;
+        }
+
+        if (release.IsNewer)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"  ✓ New version available: {release.TagName} (Current: {BuildInfo.VersionWithPatchDisplay})");
-            Console.WriteLine($"  📥 Download: {release.DownloadUrl}");
+            if (release.IsPatchUpdate)
+            {
+                Console.WriteLine($"  ✨ New Continuous Patch available: {release.TagName}");
+                Console.WriteLine($"     Commit SHA:     {release.CommitSha}");
+                if (release.Timestamp.HasValue)
+                {
+                    Console.WriteLine($"     Build Time:     {release.Timestamp.Value:u}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"  ✨ New Stable Release available: {release.TagName}");
+            }
+
+            Console.WriteLine($"     Currently running: {BuildInfo.VersionWithPatchDisplay}");
+            if (release.FileSizeBytes > 0)
+            {
+                Console.WriteLine($"     Artifact Size:     {TargetFolderInfo.FormatBytes(release.FileSizeBytes)}");
+            }
+            if (!string.IsNullOrWhiteSpace(release.ExpectedSha256))
+            {
+                Console.WriteLine($"     Target SHA-256:    {release.ExpectedSha256}");
+            }
+            if (!string.IsNullOrWhiteSpace(release.Body))
+            {
+                Console.WriteLine($"     Release Notes:     {release.Body.Split('\n')[0].Trim()}");
+            }
             Console.ResetColor();
+
+            if (checkOnly || HasFlag(args, "--dry-run", "-d"))
+            {
+                Console.WriteLine("\n  Run 'deltempo update' to download and install this patch.");
+                return 2; // Exit code 2 indicates update is available in check mode
+            }
+
+            // Perform automatic in-place update installation
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("\n  ⬇️ Downloading verified patch binary...");
+            Console.ResetColor();
+
+            var progress = new Progress<double>(pct =>
+            {
+                Console.Write($"\r  Progress: [{pct,5:F1}%]");
+            });
+
+            try
+            {
+                await UpdateService.DownloadAndApplyUpdateAsync(
+                    release.DownloadUrl,
+                    progress,
+                    release.ExpectedSha256,
+                    release.CommitSha);
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("\n  ✓ Update verified and staged successfully. Deltempo will now restart.");
+                Console.ResetColor();
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"\n  ❌ Update installation failed: {ex.Message}");
+                Console.ResetColor();
+                return 1;
+            }
         }
         else
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"  ✓ You are running the latest version of Deltempo ({BuildInfo.VersionWithPatchDisplay}).");
+            Console.WriteLine($"  ✓ Deltempo is up to date ({BuildInfo.VersionWithPatchDisplay}).");
+            if (!string.IsNullOrEmpty(release.StatusMessage))
+            {
+                Console.WriteLine($"     Status: {release.StatusMessage}");
+            }
             Console.ResetColor();
+            return 0;
         }
-
-        return 0;
     }
 
     // ─── KILL COMMAND ──────────────────────────────────────────────────
