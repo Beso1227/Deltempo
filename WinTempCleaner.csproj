@@ -38,9 +38,6 @@
     <Compile Remove="Tests\**" />
     <EmbeddedResource Remove="Tests\**" />
     <None Remove="Tests\**" />
-    <Compile Remove="Updater\**" />
-    <EmbeddedResource Remove="Updater\**" />
-    <None Remove="Updater\**" />
   </ItemGroup>
 
 </Project>

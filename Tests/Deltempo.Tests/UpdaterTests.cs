@@ -401,7 +401,7 @@ public class PatchMetadataValidatorUrlTests
     [Theory]
     [InlineData("https://github.com/Beso1227/Deltempo/releases/download/v1.3.3/Deltempo.exe", true)]
     [InlineData("https://github.com/Beso1227/Deltempo/releases/download/v1.3.3/deltempo_cli.exe", true)]
-    [InlineData("https://github.com/Beso1227/Deltempo/releases/download/patch/DeltempoUpdater.exe", true)]
+    [InlineData("https://github.com/Beso1227/Deltempo/releases/download/patch/DeltempoUpdater.exe", false)]
     public void IsValidDownloadUrl_ValidGitHubReleaseUrls_ReturnsTrue(string url, bool expected)
     {
         bool result = PatchMetadataValidator.IsValidDownloadUrl(url, out string reason);

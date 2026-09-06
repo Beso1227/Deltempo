@@ -112,10 +112,10 @@ public static class PatchMetadataValidator
 
         // Validate artifact filename
         string fileName = Path.GetFileName(path);
-        string[] allowedFileNames = ["Deltempo.exe", "deltempo_cli.exe", "DeltempoUpdater.exe"];
+        string[] allowedFileNames = ["Deltempo.exe", "deltempo_cli.exe"];
         if (!allowedFileNames.Any(f => f.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
         {
-            reason = $"Unexpected artifact filename '{fileName}'. Expected Deltempo.exe, deltempo_cli.exe, or DeltempoUpdater.exe.";
+            reason = $"Unexpected artifact filename '{fileName}'. Expected Deltempo.exe or deltempo_cli.exe.";
             return false;
         }
 

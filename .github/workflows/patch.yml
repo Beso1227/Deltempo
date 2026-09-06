@@ -43,7 +43,6 @@ jobs:
         run: |
           dotnet restore WinTempCleaner.csproj
           dotnet restore Cli/Deltempo.Cli.csproj
-          dotnet restore Updater/DeltempoUpdater.csproj
           dotnet restore Tests/Deltempo.Tests/Deltempo.Tests.csproj
 
       - name: Run Verification Tests
@@ -55,7 +54,6 @@ jobs:
           $sha = (git rev-parse HEAD).Trim()
           dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true "-p:SourceRevisionId=$sha" -o ./dist
           dotnet publish Cli/Deltempo.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true "-p:SourceRevisionId=$sha" -o ./dist
-          dotnet publish Updater/DeltempoUpdater.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true "-p:SourceRevisionId=$sha" -o ./dist
 
       - name: Generate Patch Manifest
         shell: pwsh
@@ -160,7 +158,6 @@ jobs:
           files: |
             ./dist/Deltempo.exe
             ./dist/deltempo_cli.exe
-            ./dist/DeltempoUpdater.exe
             ./dist/patch-manifest.json
           draft: false
           prerelease: true
