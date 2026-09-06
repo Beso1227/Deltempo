@@ -1,4 +1,5 @@
 using System.IO;
+using WinTempCleaner.Core.Safety;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
 using Xunit;
@@ -500,49 +501,49 @@ public class CleanerServiceTests : IDisposable
     }
 
     [Fact]
-    public void AiFileSafetyService_DownloadsInstaller_ClassifiesAsSafeToClean()
+    public void FileSafetyEngine_DownloadsInstaller_ClassifiesAsSafeToClean()
     {
         string path = @"C:\Users\JohnDoe\Downloads\Win11_23H2_English_x64.iso";
-        var result = AiFileSafetyService.AnalyzeFile(path, "Win11_23H2_English_x64.iso", "Installer / ISO", 5L * 1024 * 1024 * 1024, DateTime.Now.AddDays(-30));
+        var result = FileSafetyEngine.Analyze(path, fileName: "Win11_23H2_English_x64.iso", category: "Installer / ISO", sizeBytes: 5L * 1024 * 1024 * 1024, lastModified: DateTime.Now.AddDays(-30));
 
-        Assert.Equal(AiSafetyTier.SafeToClean, result.Tier);
-        Assert.True(result.IsSafeToAutoClean);
+        Assert.Equal(SafetyRiskTier.Safe, result.Tier);
+        Assert.True(result.IsSafeToClean);
         Assert.True(result.SafetyScore >= 90);
         Assert.Contains("SAFE", result.Verdict);
     }
 
     [Fact]
-    public void AiFileSafetyService_CrashDump_ClassifiesAsSafeToClean()
+    public void FileSafetyEngine_CrashDump_ClassifiesAsSafeToClean()
     {
         string path = @"C:\ProgramData\CrashDumps\app_crash.dmp";
-        var result = AiFileSafetyService.AnalyzeFile(path, "app_crash.dmp", "Dump / Temp / Download", 800L * 1024 * 1024, DateTime.Now.AddDays(-5));
+        var result = FileSafetyEngine.Analyze(path, fileName: "app_crash.dmp", category: "Dump / Temp / Download", sizeBytes: 800L * 1024 * 1024, lastModified: DateTime.Now.AddDays(-5));
 
-        Assert.Equal(AiSafetyTier.SafeToClean, result.Tier);
-        Assert.True(result.IsSafeToAutoClean);
+        Assert.Equal(SafetyRiskTier.Safe, result.Tier);
+        Assert.True(result.IsSafeToClean);
         Assert.True(result.SafetyScore >= 95);
     }
 
     [Fact]
-    public void AiFileSafetyService_SteamGameAsset_ClassifiesAsHighRisk()
+    public void FileSafetyEngine_SteamGameAsset_ClassifiesAsHighRisk()
     {
         string path = @"D:\SteamLibrary\steamapps\common\Palworld\Pal\Content\Paks\Pal-Windows.pak";
-        var result = AiFileSafetyService.AnalyzeFile(path, "Pal-Windows.pak", "Game Asset / Pak", 18L * 1024 * 1024 * 1024, DateTime.Now.AddDays(-10));
+        var result = FileSafetyEngine.Analyze(path, fileName: "Pal-Windows.pak", category: "Game Asset / Pak", sizeBytes: 18L * 1024 * 1024 * 1024, lastModified: DateTime.Now.AddDays(-10));
 
-        Assert.Equal(AiSafetyTier.HighRiskKeep, result.Tier);
-        Assert.False(result.IsSafeToAutoClean);
+        Assert.Equal(SafetyRiskTier.Protected, result.Tier);
+        Assert.False(result.IsSafeToClean);
         Assert.True(result.SafetyScore <= 30);
         Assert.Contains("Steam", result.Origin);
         Assert.Contains("PROTECTED", result.Verdict);
     }
 
     [Fact]
-    public void AiFileSafetyService_ProjectModelWeights_ClassifiesAsHighRisk()
+    public void FileSafetyEngine_ProjectModelWeights_ClassifiesAsHighRisk()
     {
         string path = @"D:\Projects\deltempo\ai_models\weights.safetensors";
-        var result = AiFileSafetyService.AnalyzeFile(path, "weights.safetensors", "AI Model / Weights", 4L * 1024 * 1024 * 1024, DateTime.Now.AddDays(-2));
+        var result = FileSafetyEngine.Analyze(path, fileName: "weights.safetensors", category: "AI Model / Weights", sizeBytes: 4L * 1024 * 1024 * 1024, lastModified: DateTime.Now.AddDays(-2));
 
-        Assert.Equal(AiSafetyTier.HighRiskKeep, result.Tier);
-        Assert.False(result.IsSafeToAutoClean);
+        Assert.Equal(SafetyRiskTier.Protected, result.Tier);
+        Assert.False(result.IsSafeToClean);
         Assert.True(result.SafetyScore <= 20);
         Assert.Contains("PROTECTED", result.Verdict);
     }
@@ -554,12 +555,12 @@ public class CleanerServiceTests : IDisposable
     [InlineData(@"C:\Windows\ServiceProfiles\NetworkService\AppData\Local\Microsoft\Windows\DeliveryOptimization\Cache\f123", "f123")]
     [InlineData(@"C:\Users\username\AppData\Local\D3DSCache\test.bin", "test.bin")]
     [InlineData(@"C:\Users\username\AppData\Local\Google\Chrome\User Data\Default\Cache\Cache_Data\data_0", "data_0")]
-    public void AiFileSafetyService_SystemDisposableFolders_CorrectlyMarkedSafeToClean(string path, string filename)
+    public void FileSafetyEngine_SystemDisposableFolders_CorrectlyMarkedSafeToClean(string path, string filename)
     {
-        var result = AiFileSafetyService.AnalyzeFile(path, filename, "System Cache Chunk", 5 * 1024 * 1024, DateTime.Now.AddDays(-5));
+        var result = FileSafetyEngine.Analyze(path, fileName: filename, category: "System Cache Chunk", sizeBytes: 5 * 1024 * 1024, lastModified: DateTime.Now.AddDays(-5));
 
-        Assert.Equal(AiSafetyTier.SafeToClean, result.Tier);
-        Assert.True(result.IsSafeToAutoClean);
+        Assert.Equal(SafetyRiskTier.Safe, result.Tier);
+        Assert.True(result.IsSafeToClean);
         Assert.True(result.SafetyScore >= 90);
         Assert.Contains("SAFE", result.Verdict);
     }
@@ -689,25 +690,25 @@ public class CleanerServiceTests : IDisposable
     }
 
     [Fact]
-    public void AiFileSafetyService_ClassifiesLoginSessionsAndTokensAsHighRiskKeep()
+    public void FileSafetyEngine_ClassifiesLoginSessionsAndTokensAsHighRiskKeep()
     {
         var whatsAppLoginFile = @"C:\Users\user\AppData\Local\Packages\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\LocalCache\EBWebView\Default\Login Data";
-        var result1 = AiFileSafetyService.AnalyzeFile(whatsAppLoginFile, "Login Data", "Store Apps", 524288, DateTime.Now - TimeSpan.FromDays(2));
-        Assert.Equal(AiSafetyTier.HighRiskKeep, result1.Tier);
+        var result1 = FileSafetyEngine.Analyze(whatsAppLoginFile, fileName: "Login Data", category: "Store Apps", sizeBytes: 524288, lastModified: DateTime.Now - TimeSpan.FromDays(2));
+        Assert.Equal(SafetyRiskTier.Protected, result1.Tier);
         Assert.Equal(0, result1.SafetyScore);
-        Assert.False(result1.IsSafeToAutoClean);
+        Assert.False(result1.IsSafeToClean);
 
         var telegramKeyFile = @"C:\Users\user\AppData\Local\Packages\TelegramMessengerLLP.TelegramDesktop_t4vj0pshhgkwm\LocalCache\Roaming\Telegram Desktop UWP\tdata\D877F783D5D3EF8C0";
-        var result2 = AiFileSafetyService.AnalyzeFile(telegramKeyFile, "D877F783D5D3EF8C0", "Store Apps", 4096, DateTime.Now - TimeSpan.FromDays(5));
-        Assert.Equal(AiSafetyTier.HighRiskKeep, result2.Tier);
+        var result2 = FileSafetyEngine.Analyze(telegramKeyFile, fileName: "D877F783D5D3EF8C0", category: "Store Apps", sizeBytes: 4096, lastModified: DateTime.Now - TimeSpan.FromDays(5));
+        Assert.Equal(SafetyRiskTier.Protected, result2.Tier);
         Assert.Equal(0, result2.SafetyScore);
-        Assert.False(result2.IsSafeToAutoClean);
+        Assert.False(result2.IsSafeToClean);
 
         var indexedDbFile = @"C:\Users\user\AppData\Local\Packages\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\LocalCache\EBWebView\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb\000005.ldb";
-        var result3 = AiFileSafetyService.AnalyzeFile(indexedDbFile, "000005.ldb", "Store Apps", 1048576, DateTime.Now - TimeSpan.FromDays(1));
-        Assert.Equal(AiSafetyTier.HighRiskKeep, result3.Tier);
+        var result3 = FileSafetyEngine.Analyze(indexedDbFile, fileName: "000005.ldb", category: "Store Apps", sizeBytes: 1048576, lastModified: DateTime.Now - TimeSpan.FromDays(1));
+        Assert.Equal(SafetyRiskTier.Protected, result3.Tier);
         Assert.Equal(0, result3.SafetyScore);
-        Assert.False(result3.IsSafeToAutoClean);
+        Assert.False(result3.IsSafeToClean);
     }
 
     [Fact]

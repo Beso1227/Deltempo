@@ -54,7 +54,6 @@ dotnet publish Cli/Deltempo.Cli.csproj `
     -o "$projectRoot\publish_cli"
 
 Safe-CopyExecutable "$projectRoot\publish_cli\deltempo_cli.exe" "$projectRoot\deltempo_cli.exe"
-Safe-CopyExecutable "$projectRoot\publish_cli\deltempo_cli.exe" "$projectRoot\deltempo.com"
 
 # Verify generated executables
 $guiItem = Get-Item "$projectRoot\Deltempo.exe"

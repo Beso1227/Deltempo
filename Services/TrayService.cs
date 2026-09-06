@@ -84,13 +84,13 @@ public static class TrayService
 
         try
         {
-            var iconUri = new Uri("pack://application:,,,/app_icon.png", UriKind.Absolute);
+            var iconUri = new Uri("pack://application:,,,/app.ico", UriKind.Absolute);
             var streamInfo = Application.GetResourceStream(iconUri);
             if (streamInfo != null)
             {
                 using var stream = streamInfo.Stream;
-                using var bmp = new System.Drawing.Bitmap(stream);
-                _hIcon = bmp.GetHicon();
+                using var icon = new System.Drawing.Icon(stream);
+                _hIcon = icon.Handle;
             }
         }
         catch (Exception ex)

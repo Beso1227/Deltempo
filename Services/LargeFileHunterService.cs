@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using WinTempCleaner.Core.Safety;
 using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
@@ -37,18 +38,25 @@ public class LargeFileInfo : INotifyPropertyChanged
     public string DirectoryPath => Path.GetDirectoryName(FilePath) ?? "";
     public string DriveLetter => !string.IsNullOrEmpty(FilePath) && FilePath.Length >= 2 && FilePath[1] == ':' ? FilePath[..2].ToUpperInvariant() : "C:";
 
-    // AI Safety Properties
-    public int AiSafetyScore { get; set; } = 0;
-    public AiSafetyTier AiSafetyTier { get; set; } = AiSafetyTier.HighRiskKeep;
-    public string AiVerdict { get; set; } = "PROTECTED";
+    // Deterministic Safety Properties (Core.Safety Engine)
+    public int SafetyScore { get; set; } = 0;
+    public int AiSafetyScore { get => SafetyScore; set => SafetyScore = value; }
+    public SafetyRiskTier SafetyTier { get; set; } = SafetyRiskTier.Protected;
+    public string Verdict { get; set; } = "PROTECTED";
+    public string AiVerdict { get => Verdict; set => Verdict = value; }
     public string VerdictShort { get; set; } = "PROTECTED";
-    public string AiBadgeColor { get; set; } = "#EF4444";
+    public string BadgeColor { get; set; } = "#EF4444";
+    public string AiBadgeColor { get => BadgeColor; set => BadgeColor = value; }
     public string BadgeBackground { get; set; } = "#2A0E0E";
     public string BadgeBorder { get; set; } = "#EF4444";
-    public string AiOrigin { get; set; } = string.Empty;
-    public string AiImpact { get; set; } = string.Empty;
-    public string AiExplanation { get; set; } = string.Empty;
-    public bool IsAiSafe { get; set; }
+    public string Origin { get; set; } = string.Empty;
+    public string AiOrigin { get => Origin; set => Origin = value; }
+    public string Impact { get; set; } = string.Empty;
+    public string AiImpact { get => Impact; set => Impact = value; }
+    public string Explanation { get; set; } = string.Empty;
+    public string AiExplanation { get => Explanation; set => Explanation = value; }
+    public bool IsSafe { get; set; }
+    public bool IsAiSafe { get => IsSafe; set => IsSafe = value; }
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
@@ -193,7 +201,7 @@ public static class LargeFileHunterService
                                 if (length >= minSizeBytes)
                                 {
                                     var (cat, icon) = ClassifyFileCategory(file.Extension);
-                                    var aiResult = AiFileSafetyService.AnalyzeFile(file.FullName, file.Name, cat, length, file.LastWriteTime);
+                                    var safety = FileSafetyEngine.Analyze(file.FullName, fileName: file.Name, category: cat, sizeBytes: length, lastModified: file.LastWriteTime);
 
                                     results.Add(new LargeFileInfo
                                     {
@@ -203,17 +211,17 @@ public static class LargeFileHunterService
                                         LastModified = file.LastWriteTime,
                                         Category = cat,
                                         CategoryIcon = icon,
-                                        AiSafetyScore = aiResult.SafetyScore,
-                                        AiSafetyTier = aiResult.Tier,
-                                        AiVerdict = aiResult.Verdict,
-                                        VerdictShort = aiResult.VerdictShort,
-                                        AiBadgeColor = aiResult.BadgeColor,
-                                        BadgeBackground = aiResult.BadgeBackground,
-                                        BadgeBorder = aiResult.BadgeBorder,
-                                        AiOrigin = aiResult.Origin,
-                                        AiImpact = aiResult.Impact,
-                                        AiExplanation = aiResult.Explanation,
-                                        IsAiSafe = aiResult.IsSafeToAutoClean,
+                                        SafetyScore = safety.SafetyScore,
+                                        SafetyTier = safety.Tier,
+                                        Verdict = safety.Verdict,
+                                        VerdictShort = safety.VerdictShort,
+                                        BadgeColor = safety.BadgeColor,
+                                        BadgeBackground = safety.BadgeBackground,
+                                        BadgeBorder = safety.BadgeBorder,
+                                        Origin = safety.Origin,
+                                        Impact = safety.Impact,
+                                        Explanation = safety.Explanation,
+                                        IsSafe = safety.IsSafeToClean,
                                         IsSelected = false
                                     });
                                 }
