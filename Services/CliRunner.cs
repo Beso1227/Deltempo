@@ -1399,14 +1399,14 @@ public static class CliRunner
         if (release != null && release.IsNewer)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"  ✓ New version available: {release.TagName} (Current: v{UpdateService.CurrentVersion.ToString(3)})");
+            Console.WriteLine($"  ✓ New version available: {release.TagName} (Current: {BuildInfo.VersionWithPatchDisplay})");
             Console.WriteLine($"  📥 Download: {release.DownloadUrl}");
             Console.ResetColor();
         }
         else
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"  ✓ You are running the latest version of Deltempo (v{UpdateService.CurrentVersion.ToString(3)}).");
+            Console.WriteLine($"  ✓ You are running the latest version of Deltempo ({BuildInfo.VersionWithPatchDisplay}).");
             Console.ResetColor();
         }
 

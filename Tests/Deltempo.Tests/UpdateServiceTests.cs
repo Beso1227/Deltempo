@@ -124,4 +124,74 @@ Automatically compiled on push.
             SettingsService.LoadSettings();
         }
     }
+
+    [Fact]
+    public void ParsePatchManifest_ParsesDirectJsonWithSha256()
+    {
+        string directJson = @"{
+            ""channel"": ""patch"",
+            ""baseVersion"": ""1.3.3"",
+            ""commitSha"": ""e77637c385b2a0ef88cf788874bb7c76"",
+            ""shortSha"": ""e77637c"",
+            ""commitMessage"": ""fix(updater): eliminate repeated patch update prompt loop"",
+            ""timestamp"": ""2026-09-06T20:31:00Z"",
+            ""downloadUrl"": ""https://github.com/Beso1227/Deltempo/releases/download/patch/Deltempo.exe"",
+            ""fileSizeBytes"": 67200000,
+            ""sha256"": ""a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0""
+        }";
+
+        var manifest = UpdateService.ParsePatchManifest(directJson);
+        Assert.NotNull(manifest);
+        Assert.Equal("e77637c385b2a0ef88cf788874bb7c76", manifest.CommitSha);
+        Assert.Equal("e77637c", manifest.ShortSha);
+        Assert.Equal("a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0", manifest.Sha256);
+        Assert.Equal(67200000, manifest.FileSizeBytes);
+        Assert.Equal("https://github.com/Beso1227/Deltempo/releases/download/patch/Deltempo.exe", manifest.DownloadUrl);
+    }
+
+    [Fact]
+    public void GenerateSwapScript_IncludesRollbackAndTargetInformation()
+    {
+        int testPid = 12345;
+        string targetExe = @"C:\Apps\Deltempo\Deltempo.exe";
+        string sourceExe = @"C:\Temp\update.exe";
+        string logFile = @"C:\Temp\log.txt";
+
+        string script = UpdateService.GenerateSwapScript(testPid, targetExe, sourceExe, logFile);
+
+        Assert.Contains("set \"TARGET_PID=12345\"", script);
+        Assert.Contains(@"set ""TARGET_EXE=C:\Apps\Deltempo\Deltempo.exe""", script);
+        Assert.Contains(@"set ""SOURCE_EXE=C:\Temp\update.exe""", script);
+        Assert.Contains(@"set ""BACKUP_EXE=C:\Apps\Deltempo\Deltempo.exe.old""", script);
+        Assert.Contains("move /y \"%BACKUP_EXE%\" \"%TARGET_EXE%\"", script); // Rollback command
+        Assert.Contains("Deltempo professional updater handover initiated", script);
+    }
+
+    [Fact]
+    public void SettingsService_PersistsPatchUpdateTrackingFields()
+    {
+        string origSha = SettingsService.Current.LastInstalledPatchSha;
+        string origHash = SettingsService.Current.LastInstalledPatchHash;
+        string origDismissed = SettingsService.Current.DismissedPatchSha;
+
+        try
+        {
+            SettingsService.Current.LastInstalledPatchSha = "commit_test_123";
+            SettingsService.Current.LastInstalledPatchHash = "hash_test_456";
+            SettingsService.Current.DismissedPatchSha = "dismissed_test_789";
+            SettingsService.SaveSettings();
+            SettingsService.LoadSettings();
+
+            Assert.Equal("commit_test_123", SettingsService.Current.LastInstalledPatchSha);
+            Assert.Equal("hash_test_456", SettingsService.Current.LastInstalledPatchHash);
+            Assert.Equal("dismissed_test_789", SettingsService.Current.DismissedPatchSha);
+        }
+        finally
+        {
+            SettingsService.Current.LastInstalledPatchSha = origSha;
+            SettingsService.Current.LastInstalledPatchHash = origHash;
+            SettingsService.Current.DismissedPatchSha = origDismissed;
+            SettingsService.SaveSettings();
+        }
+    }
 }
