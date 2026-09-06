@@ -1,343 +1,450 @@
 <div align="center">
 
-  <img src="docs/app_icon.png" alt="Deltempo Logo" width="120" height="120" style="border-radius: 24px; box-shadow: 0 10px 30px rgba(6, 182, 212, 0.35);" />
+  <img src="docs/app_icon.png" alt="Deltempo Logo" width="96" height="96" />
 
-  <h1>Deltempo</h1>
+  # Deltempo
 
-  <p><strong>Your Windows PC, lighter and faster than the day you bought it.</strong></p>
-  <p>The open-source, zero-bloat disk cleaner and NT kernel memory optimizer for Windows 10 &amp; 11.</p>
+  <p><strong>Open-source, privacy-first Windows cleaner and memory optimizer.</strong></p>
 
   <p>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&color=06B6D4&logo=windows&logoColor=white" alt="Release v1.3.3" /></a>
-    <a href="https://github.com/Beso1227/Deltempo/actions"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=Build" alt="CI Status" /></a>
-    <a href="Tests/Deltempo.Tests"><img src="https://img.shields.io/badge/Tests-266%20Passing-10B981?style=for-the-badge&logo=xunit&logoColor=white" alt="266 xUnit Tests Passing" /></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License MIT" /></a>
-    <a href="https://beso1227.github.io/Deltempo/"><img src="https://img.shields.io/badge/Official_Site-Live_Web-8B5CF6?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Official Website" /></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?label=Release&color=06B6D4" alt="Latest Release" /></a>
+    <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&label=CI%20Build" alt="CI Status" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/Beso1227/Deltempo?color=10B981" alt="License: MIT" /></a>
+    <a href="https://beso1227.github.io/Deltempo/"><img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20(x64)-0078D4" alt="Platform Support" /></a>
+    <a href="https://beso1227.github.io/Deltempo/"><img src="https://img.shields.io/badge/Website-Live-8B5CF6" alt="Official Website" /></a>
   </p>
 
   <p>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe">
-      <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DELTEMPO.EXE_(v1.3.3)-3B82F6?style=for-the-badge&logoColor=white" alt="Download Standalone Deltempo.exe" height="42" />
-    </a>
-  </p>
-
-  <p>
-    <a href="#-quick-start">Quick Start</a> •
-    <a href="#-why-deltempo">Why Deltempo?</a> •
-    <a href="#-features-at-a-glance">Features</a> •
-    <a href="#-cleaning-targets">26 Cleaning Scopes</a> •
-    <a href="#-terminal-cli">CLI Commands</a> •
-    <a href="#-comparison">Comparison</a> •
-    <a href="https://beso1227.github.io/Deltempo/">Web Simulator ↗</a>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest">Download Latest Release</a> •
+    <a href="https://beso1227.github.io/Deltempo/">Official Website</a> •
+    <a href="https://beso1227.github.io/Deltempo/docs/">Documentation</a> •
+    <a href="SECURITY.md">Security Policy</a> •
+    <a href="#quick-start">Quick Start</a>
   </p>
 
 </div>
 
 ---
 
-## 🌟 Why Deltempo?
+## What is Deltempo?
 
-Over time, Windows collects gigabytes of forgotten clutter: old graphics driver packages, DirectX shader caches, unfinished game downloads, and massive Windows upgrade leftovers (`$WINDOWS.~BT`, `ESD`). Simultaneously, closed programs leave unpurged memory cached in system standby lists, causing random micro-stutters when gaming or multitasking.
+**Deltempo** is a transparent, open-source utility designed to help Windows users recover disk space and optimize system memory safely. It targets disposable application caches, orphaned installer artifacts, temporary build output, and stale system diagnostics without endangering personal documents, browser sessions, or core operating system files.
 
-Most cleaners are bloated, full of ads, or paywall the features you actually need. **Deltempo was built to be different**:
+Unlike traditional system cleaners that treat cleanup as an opaque black box, Deltempo operates on an explicit **safety-first architecture**. Every candidate target is classified into a structured risk tier, simulated before execution, bounded within strict root paths, and revalidated immediately before deletion to eliminate time-of-check to time-of-use (TOCTOU) race conditions.
 
-<table>
-  <tr>
-    <td width="50%">
-      <h3>⚡ 100% Standalone &amp; Portable</h3>
-      <p>Single <strong>64 MB</strong> executable. No installer, no background telemetry, no registry junk, and no administrator reboot required. Just download and run.</p>
-    </td>
-    <td width="50%">
-      <h3>🧠 Smart NT Kernel Memory Boost</h3>
-      <p>Integrates the proven engine from <strong>WinMemoryCleaner</strong> to flush standby lists and working sets safely without closing your active tabs or games.</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <h3>🎯 26 Deep Cleanup Targets</h3>
-      <p>Cleans gigabytes of NVIDIA App OTA packages, GPU shader caches, messaging & social app caches (WhatsApp, Telegram, Teams, Discord), and upgrade residue that standard cleaners completely miss.</p>
-    </td>
-    <td width="50%">
-      <h3>🛡️ 5-Tier Safety Model &amp; TOCTOU Revalidation</h3>
-      <p>Categorizes every candidate file into <strong>Protected</strong>, <strong>Safe</strong>, <strong>LowRisk</strong>, <strong>ReviewRequired</strong>, or <strong>Unknown</strong>. Enforces two-phase TOCTOU revalidation right before deletion, with optional <strong>Windows Recycle Bin</strong> routing for zero data loss.</p>
-    </td>
-  </tr>
-</table>
+In addition to disk cleaning, Deltempo incorporates native Windows NT kernel memory management routines. It allows users and system administrators to purge standby memory lists and trim inactive process working sets through official Win32 and NT system calls, all packaged into a single, portable executable with both graphical and command-line interfaces.
 
 ---
 
-## 🚀 Quick Start
+## Why Deltempo?
 
-You can use Deltempo in three intuitive ways:
-
-### 1. The Desktop App (Default)
-Just double-click **`Deltempo.exe`**! You'll get a clean Windows 11 Fluent interface:
-- **Scan & Clean**: Choose from 25 categorized cleaning targets with one click.
-- **Live Memory Meter**: Monitor RAM usage and flush standby memory on demand.
-- **Large Files Explorer**: Identify space hogs with safe vs. protected badges.
-- **Startup Accelerator**: See startup boot impact and toggle entries with full registry rollback.
-
-### 2. The Command Line (CLI)
-Launching `Deltempo.exe` once automatically registers the `deltempo` command across PowerShell, CMD, and Windows Terminal:
-
-```powershell
-# Quick dry run to see reclaimable space
-deltempo scan
-
-# Safe cleanup (preserves recent files and credentials)
-deltempo clean --safe
-
-# Instant 1-click RAM boost across process working sets
-deltempo boost
-
-# Find large files (>500 MB) with safety verdicts
-deltempo large --min 500MB
-```
-
-### 3. The System Tray Guardian
-Minimize Deltempo to run unobtrusively in your system notification area. Right-click the tray icon anytime for instant 1-click cleaning, RAM optimization, or quick status telemetry.
+* **Open Source & Auditable**: Distributed under the permissive MIT license. All cleanup rules, safety checks, and native API invocations are fully inspectable in C#.
+* **Safety-First Architecture**: Built on a deterministic two-phase model (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) with path boundary enforcement, reparse point rejection, and protected system folder exclusion.
+* **Native Windows NT Memory Management**: Purges standby memory lists and trims background process working sets via native `NtSetSystemInformation` and `EmptyWorkingSet` system calls.
+* **Dual Interface (GUI & CLI)**: Use a modern Windows desktop interface for visual analysis or automate routines via a headless CLI with structured JSON output.
+* **Zero Telemetry & Local Operation**: Operates 100% offline. Contains no analytics tracking, no third-party advertisements, and no cloud dependencies.
+* **Single Portable Binary**: Shipped as a self-contained, single-file Windows executable. No installer, background service, or extra runtime installation is required.
 
 ---
 
-## ✨ Features at a Glance
+## Features
 
-### 🧠 Dual-Engine NT Kernel Memory Cleaner
-Built with low-level Win32 and Windows NT kernel APIs, bringing the best memory optimization techniques into a modern workflow:
-- **Standby List Purging**: Clears cached memory left behind by terminated apps via `NtSetSystemInformation` (`SystemMemoryListInformation` class 80).
-- **Process Working Sets Flush**: Reclaims inactive RAM across all user applications via `SeProfileSingleProcessPrivilege` and `SeDebugPrivilege`.
-- **System File Cache Reset**: Flushes and resets OS filesystem cache boundaries with `SetSystemFileCacheSize`.
-- **Modified Pages Flush**: Writes dirty pages to disk before freeing RAM.
-- **Combined Page List**: Deduplicates identical physical memory blocks across running applications.
-- **Process Immunity Protection**: System-critical processes (`csrss`, `dwm`, `explorer`, `lsass`, `services`, `smss`, `svchost`, and Windows Defender) are automatically shielded.
+### 1. Disk Cleanup Engine
+* **31+ Targeted Scopes**: Scans disposable caches across Windows servicing, graphics drivers, developer toolchains, gaming platforms, creator applications, desktop software, and web browsers.
+* **Deterministic Simulation**: Supports dry-run execution (`--dry-run`) across both the GUI and CLI, showing exactly what would be removed without touching disk state.
+* **Orphaned Application Detection**: Discovers leftover directories in `%AppData%` from applications that have already been uninstalled from the system registry.
 
----
+### 2. NT Kernel Memory Optimization
+* **Standby List Purge**: Reclaims cached memory pages from closed programs using native NT kernel calls.
+* **Process Working Set Trimming**: Safely trims unreferenced physical memory across inactive user applications.
+* **System File Cache Reset**: Flushes operating system filesystem cache working set limits.
+* **System Process Shielding**: Automatically excludes protected Windows processes (`csrss.exe`, `dwm.exe`, `lsass.exe`, `services.exe`, `smss.exe`, `svchost.exe`, and Windows Defender) from memory operations.
 
-### 📦 Large File Hunter (With Recycle Bin Undo!)
-Running out of storage? Deltempo scans all connected drives for space-wasting files over 50 MB:
-- **Safety Heuristics**: Intelligently identifies disposable files (driver installers, setup extracts, post-mortem crash dumps) while shielding protected assets (game archives, `.pak` files, machine learning weights).
-- **Recycle Bin Undo**: Files are sent to the Windows Recycle Bin using native shell APIs (`SHFileOperation`), meaning you can restore anything with Ctrl+Z or right-click Restore.
-
----
-
-### 🚀 Reversible Startup Accelerator
-Tired of slow boot times? Deltempo scans your startup programs and calculates real boot delay impact:
-- **Impact Ratings**: Highlights high-impact launchers (Discord Canary, Spotify, Steam, Epic Games).
-- **100% Reversible**: Rather than deleting registry keys, Deltempo moves disabled entries to `Run_Deltempo_Disabled`. You can re-enable any app instantly with a single toggle.
+### 3. System Inspection & Control
+* **Large File Hunter**: Locates space-consuming files with entropy analysis, safety classification, and optional Windows Recycle Bin deletion.
+* **Startup Accelerator**: Audits registry and startup folder launch items, calculates boot impact, and provides 100% reversible disabling via registry backup keys.
+* **System Servicing & Repair**: Convenient CLI access to Windows integrity tools including SFC, DISM, WinSxS cleanup, and CHKDSK.
 
 ---
 
-## 🎯 26 Cleaning Targets
+## Safety First
 
-Deltempo inspects 26 specialized cleaning scopes across your system. Your personal documents, browser passwords, and active login sessions are **never** touched.
+The primary design principle of Deltempo is:
 
-<details open>
-<summary><strong>🪟 1. Windows System &amp; Upgrades (12 Scopes)</strong></summary>
-<br />
+> **Never optimize for deleting more files. Optimize for proving that every deletion is safe.**
 
-| Scope | What It Cleans | Typical Savings |
-| :--- | :--- | :---: |
-| **User Temporary Files** | `%TEMP%` application scratch files and installer extracts | 1 – 5 GB |
-| **Windows System Temp** | `C:\Windows\Temp` OS servicing logs and update staging | 500 MB – 2 GB |
-| **Windows Prefetch Cache** | `C:\Windows\Prefetch` execution headers for uninstalled apps | 50 – 200 MB |
-| **Update Delivery Packages** | `SoftwareDistribution\Download` superseded update files | 2 – 10 GB |
-| **Windows Upgrade Residue** | `$WINDOWS.~BT`, `$WINDOWS.~WS`, `ESD` post-upgrade archives | 5 – 30+ GB |
-| **Delivery Optimization (WUDO)** | `NetworkService\...\DeliveryOptimization\Cache` P2P update chunks | 2 – 8 GB |
-| **Component &amp; Font Caches** | `WinSxS\Temp`, font caches, downloaded program files | 300 MB – 1 GB |
-| **Microsoft Defender Logs** | `ProgramData\Microsoft\Windows Defender\Support` MPLogs | 200 MB – 1 GB |
-| **System Diagnostic Logs** | CBS servicing logs, DISM component logs, SetupAPI traces | 500 MB – 3 GB |
-| **Crash Dumps &amp; BSOD** | Kernel crash dumps (`*.dmp`, `MEMORY.DMP`), LiveKernelReports | 1 – 15 GB |
-| **Explorer Thumbnails &amp; Usage** | `thumbcache_*.db`, Jump Lists, and recent file histories | 200 – 800 MB |
-| **Windows Recycle Bin** | Empties `$Recycle.Bin` across all mounted physical drives | Varies |
-
-</details>
-
-<details>
-<summary><strong>🚗 2. Display Drivers &amp; Hardware (2 Scopes)</strong></summary>
-<br />
-
-| Scope | What It Cleans | Typical Savings |
-| :--- | :--- | :---: |
-| **NVIDIA App OTA Packages** | `AppData\Local\NVIDIA Corporation\ota-artifacts` leftover driver bundles | 3 – 10 GB |
-| **AMD &amp; Intel Driver Temp** | `DriverStore\Temp`, `C:\AMD\Temp`, `C:\Intel\Logs` package extractors | 1 – 4 GB |
-
-</details>
-
-<details>
-<summary><strong>🎮 3. Gaming &amp; GPU Shaders (2 Scopes)</strong></summary>
-<br />
-
-| Scope | What It Cleans | Typical Savings |
-| :--- | :--- | :---: |
-| **Game Launchers &amp; Chunks** | Steam downloading chunks, Epic Games webcache, Battle.net, Riot | 2 – 15 GB |
-| **DirectX &amp; GPU Shader Pools** | DirectX DXCache, Vulkan GLCache, Intel D3DSCache (fixes micro-stuttering) | 1 – 6 GB |
-
-</details>
-
-<details>
-<summary><strong>🎬 4. Media &amp; Creator Scratch (1 Scope)</strong></summary>
-<br />
-
-| Scope | What It Cleans | Typical Savings |
-| :--- | :--- | :---: |
-| **Render &amp; Preview Scratch** | Adobe Premiere/AE Media Cache, DaVinci Resolve proxy previews, OBS, Blender | 5 – 40+ GB |
-
-</details>
-
-<details>
-<summary><strong>💬 5. Communication, Desktop Apps &amp; Developer Tools (6 Scopes)</strong></summary>
-<br />
-
-| Scope | What It Cleans | Typical Savings |
-| :--- | :--- | :---: |
-| **Messaging &amp; Social Apps** | WhatsApp, Telegram, Teams, Discord, Slack, Signal, Skype, Zoom media/code caches (100% Login &amp; Session Protected) | 1 – 6 GB |
-| **Desktop &amp; Electron Apps** | Spotify, Notion, VS Code, Cursor, Windsurf, JetBrains IDE caches | 1 – 5 GB |
-| **Windows Store / UWP Apps** | Safe MSIX cache state across Store apps, WebView2 engine caches | 500 MB – 3 GB |
-| **Package Manager Caches** | npm, pip, yarn, pnpm, NuGet v3, Cargo, and Go build caches | 2 – 15 GB |
-| **Development Daemons** | Android Studio emulator cache, Gradle daemons, iTunes sync temp | 2 – 8 GB |
-| **Orphaned AppData Leftovers** | Remnant folders from uninstalled apps verified against Registry | 500 MB – 4 GB |
-
-</details>
-
-<details>
-<summary><strong>🌐 6. Multi-Profile Browsers &amp; Web (3 Scopes)</strong></summary>
-<br />
-
-| Scope | What It Cleans | Typical Savings |
-| :--- | :--- | :---: |
-| **Chromium Browser Profiles** | Google Chrome, Edge, Brave, Opera, Vivaldi, Arc disk &amp; code caches | 1 – 8 GB |
-| **Gecko Firefox Profiles** | Mozilla Firefox, Floorp, Waterfox, LibreWolf, Zen cache directories | 500 MB – 4 GB |
-| **Temporary Internet Files** | Windows `INetCache` and `CryptnetUrlCache` SSL revocation caches | 200 MB – 1 GB |
-
-</details>
-
----
-
-## 💻 Terminal CLI in Action
-
-The terminal CLI is synchronous, fast, and supports JSON output for scripting and automation.
-
-```powershell
-# Scan with categorized summary
-deltempo scan
-
-# 1-Click Smart Clean (100% safe disposable caches only)
-deltempo smart-clean
-
-# Safe cleaning with locked-file handling and optional Recycle Bin routing
-deltempo clean --safe --recycle-bin
-
-# Autonomous full-system deep cleanup: RAM, DISM, 26 scopes & VSS
-deltempo deep-clean
-
-# Flush process working sets and purge standby memory
-deltempo boost
-
-# Deep purge across all 8 NT kernel memory zones
-deltempo boost --all
-
-# Large files inspection with formatted table
-deltempo large --min 500MB
-
-# Output system telemetry in structured JSON
-deltempo status --format json
-
-# Manage startup programs
-deltempo startup
-deltempo startup disable "Cortana"
-```
-
-### Formatted CLI Output Example
+Deltempo replaces opaque deletion scripts with a disciplined 5-stage pipeline:
 
 ```text
-PS C:\> deltempo large --min 500MB
-┌──────────┬──────────────────────────┬──────────────────────┬──────────────────────────────────┐
-│ SIZE     │ SAFETY VERDICT           │ CATEGORY             │ FILE NAME                        │
-├──────────┼──────────────────────────┼──────────────────────┼──────────────────────────────────┤
-│ 25.4 GB  │ PROTECTED (Game Asset)   │ Game Asset / Pak     │ BendGame-WindowsNoEditor.pak     │
-│  7.4 GB  │ SAFE TO DELETE           │ Game Shader Cache    │ Steam_Shader_Cache_chunk0.bin    │
-│  6.8 GB  │ SAFE TO DELETE           │ Installer / ISO      │ NVIDIA_Driver_560.70_Extract.exe │
-│  4.2 GB  │ SAFE TO DELETE           │ Crash / Dump         │ MEMORY.DMP                       │
-│  4.0 GB  │ PROTECTED (Model Weight) │ Model Weights        │ weights.bin                      │
-└──────────┴──────────────────────────┴──────────────────────┴──────────────────────────────────┘
-✔ Scanned 47.8 GB • Identified 18.4 GB safe to recycle with full Undo support.
+┌────────┐     ┌────────┐     ┌─────────┐     ┌────────────┐     ┌─────────┐
+│  SCAN  │ ──► │  PLAN  │ ──► │ PROTECT │ ──► │ REVALIDATE │ ──► │  CLEAN  │
+└────────┘     └────────┘     └─────────┘     └────────────┘     └─────────┘
 ```
 
+### Safety Pipeline Stages
+
+1. **Scan**: Discovers candidate items in authorized target scopes while collecting metadata (size, age, attributes, and path hierarchy).
+2. **Plan**: Assembles a `CleanupPlan` containing candidate actions. Identical planning logic is executed during both simulation (`--dry-run`) and live cleanup.
+3. **Protect**: Evaluates candidate files against global protection policies, strictly shielding user profiles, personal documents, desktop files, git repositories, and credentials.
+4. **Revalidate**: Immediately before invoking destructive APIs, paths are canonicalized, verified against subpath boundaries, checked for NTFS junctions/reparse points, and checked against system file attributes.
+5. **Clean**: Executes authorized deletions while maintaining a structured audit trail of processed, deleted, recycled, and skipped bytes.
+
+### 5-Tier Safety Classification
+
+Every candidate file is evaluated by `FileSafetyEngine` and assigned to one of five risk tiers:
+
+| Tier | Classification | Policy & Runtime Behavior |
+| :--- | :--- | :--- |
+| **Protected** | System & User Files | Critical operating system binaries, personal user directories (Documents, Pictures, Desktop), source repositories, SSH keys, active credentials, and session databases. **Strictly immutable — deletion is blocked.** |
+| **Safe** | Verified Caches | Deterministically verified disposable cache or temporary data located strictly within an authorized scope and matching known transient patterns. **Eligible for deletion.** |
+| **LowRisk** | Aged Temp Files | Temporary files meeting conservative age thresholds (e.g. older than 24 hours), inactive crash reports, or compiler artifacts in designated build output directories. **Eligible for deletion.** |
+| **ReviewRequired** | Ambiguous / Code | Files residing within disposable locations that have non-standard extensions, executable headers, or active lock state. **Action defaults to KEEP unless explicitly confirmed.** |
+| **Unknown** | Unverified Context | Any file or directory where safety cannot be proven conclusively from trusted rules. **Strictly preserved.** |
+
+### Additional Defensive Controls
+* **Reparse Point & Symlink Defense**: Deltempo detects and rejects NTFS junctions, directory symbolic links, and volume reparse points to prevent link-traversal attacks outside designated target roots.
+* **UNC & Remote Path Rejection**: Operations are confined to local fixed physical drives; remote network shares and UNC paths are rejected.
+* **Windows Recycle Bin Integration**: Deletions can be routed through the Windows Shell Recycle Bin (`SHFileOperation`), preserving the ability to restore files.
+
 ---
 
-## 📊 Head-to-Head Comparison
+## Quick Start
 
-| Feature / Standard | Deltempo (v1.3.3) | Microsoft PC Manager | CCleaner (Avast) | BleachBit | Windows Cleanmgr |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **License** | **Free &amp; Open Source (MIT)** | Free | Freemium / Adware | Free (GPLv3) | Built-in Windows |
-| **Distribution** | **Single Portable EXE** | Store package | Heavy installer + upsells | Zip archive | Built-in |
-| **Telemetry &amp; Tracking** | **Zero Telemetry (100% Offline)** | Microsoft telemetry | User tracking &amp; analytics | None | Diagnostic telemetry |
-| **Standby List Purge** | **✅ Native NT Kernel (`NtSetSystemInformation`)** | ❌ No | ❌ Paid Pro version only | ❌ No | ❌ No |
-| **Working Sets Trim** | **✅ Dual-Engine Win32 (`EmptyWorkingSet`)** | ✅ Supported | ❌ Paid Pro version only | ❌ No | ❌ No |
-| **System File Cache Reset** | **✅ Native (`SetSystemFileCacheSize`)** | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Large File Hunter** | **✅ Safe vs. Protected Heuristics** | ⚠️ Basic | ❌ Paid Pro version only | ❌ No | ❌ No |
-| **Undo / Restore Safety** | **✅ Windows Recycle Bin Undo (`SHFileOperation`)** | ❌ Permanent delete | ❌ Permanent delete | ❌ Permanent delete | ❌ Permanent delete |
-| **1-Click Smart Clean** | **✅ 100% Safe Disposable Preset** | ⚠️ Basic | ❌ Paid Pro version only | ❌ No | ❌ No |
-| **Login Session Protection** | **✅ All Messaging, Meeting &amp; Browser Apps (Zero-Touch)** | ⚠️ Wipes LocalCache | ⚠️ Erases sessions | ⚠️ Erases sessions | ❌ No |
-| **Proactive Low Disk Alerts** | **✅ System Tray Notification Sentinel** | ❌ No | ❌ Paid Pro version only | ❌ No | ❌ No |
-| **Windows Upgrade Residue** | **✅ Deep Purge (`$WINDOWS.~BT`, `ESD`)** | ⚠️ Basic | ❌ Paid Pro version only | ❌ No | ⚠️ Partial |
-| **GPU Shader Cache Purge** | **✅ DirectX DXCache + Vulkan GLCache** | ❌ No | ❌ No | ❌ No | ❌ No |
-| **NVIDIA App Driver OTA** | **✅ Cleans 3–10 GB installer caches** | ⚠️ Partial | ❌ No | ❌ No | ⚠️ Partial |
-| **Media &amp; Creator Scratch** | **✅ Adobe, DaVinci, OBS, Blender** | ❌ No | ❌ No | ❌ No | ❌ No |
-| **CLI Automation** | **✅ Instant global registration** | ❌ No | ⚠️ Limited | ⚠️ Basic | ⚠️ Legacy switches |
-| **Automated Test Coverage** | **✅ 266 xUnit Tests (100% Passing)** | ❌ Proprietary | ❌ Proprietary | ⚠️ Basic | ❌ Proprietary |
+### Running the Desktop Application (GUI)
 
----
+1. Download **`Deltempo.exe`** from the [Latest Release](https://github.com/Beso1227/Deltempo/releases/latest) page.
+2. Launch `Deltempo.exe` (no installation required).
+3. Click **Scan** to analyze cleanable data across selected categories.
+4. Review the candidate list and click **Clean** to perform cleanup.
 
-## 🔒 Security, Trust &amp; Privacy
-
-- **Zero Telemetry**: Deltempo has no analytics, no phone-home servers, and no advertisements. It operates completely offline.
-- **Safety First**: Your photos, documents, desktop files, browser passwords, and active login sessions are never touched.
-- **Authenticode Verified**: Every release is built with automated SHA-256 hash manifests:
+### Installing via WinGet
 
 ```powershell
-# Verify executable signature in PowerShell
-Get-AuthenticodeSignature Deltempo.exe
+winget install Beso1227.Deltempo
+```
+
+### Running via Command Line (CLI)
+
+Launching `Deltempo.exe` once registers the global `deltempo` command across PowerShell and Windows Terminal:
+
+```powershell
+# Perform a simulation scan across all scopes
+deltempo scan --dry-run
+
+# Run safe cleanup routing disposable files to the Recycle Bin
+deltempo clean --safe --recycle-bin
+
+# Flush standby memory lists and trim inactive working sets
+deltempo boost
+
+# Inspect system status and memory distribution in JSON format
+deltempo status --json
 ```
 
 ---
 
-## 🛠️ Building from Source
+## CLI Reference
+
+Deltempo provides a synchronous, scriptable command-line interface suitable for automation and scheduled maintenance.
+
+### Command Overview
+
+| Command | Purpose | Key Flags & Options |
+| :--- | :--- | :--- |
+| `deltempo scan [category]` | Scan targets for disposable data | `--dry-run`, `--json`, `--safe` |
+| `deltempo clean [category]` | Clean disposable caches | `--dry-run`, `--recycle-bin`, `--safe`, `--json` |
+| `deltempo smart-clean` | Quick purge of verified safe caches | `--dry-run`, `--json` |
+| `deltempo deep-clean` | Autonomous full cleanup (RAM, DISM, scopes) | `--dry-run`, `--json` |
+| `deltempo boost` | Optimize system memory | `--all`, `--standby`, `--cache`, `--json` |
+| `deltempo large [path]` | Scan drives for space-consuming files | `--min <size>`, `--type <cat>`, `--safe`, `--top <n>` |
+| `deltempo large inspect <file>` | Inspect file risk tier and safety verdict | N/A |
+| `deltempo large clean` | Recycle disposable large files | `--dry-run`, `--yes` |
+| `deltempo startup` | Inspect startup applications and boot impact | `--json` |
+| `deltempo startup disable <app>` | Reversibly disable a startup program | N/A |
+| `deltempo startup enable <app>` | Restore a disabled startup program | N/A |
+| `deltempo repair [subcommand]` | Windows integrity check & servicing repair | `sfc`, `dism`, `winsxs`, `chkdsk`, `update` |
+| `deltempo status` | Display system telemetry and memory info | `--json` |
+| `deltempo update [subcommand]` | Check for releases or continuous patches | `check`, `patch`, `channel` |
+
+### Practical CLI Examples
+
+```powershell
+# 1. Preview cleanable cache size without modifying disk state
+deltempo scan --dry-run
+
+# 2. Target only temporary files older than 24 hours with JSON output
+deltempo clean temp --safe --json
+
+# 3. Purge the Windows standby memory page list specifically
+deltempo boost --standby
+
+# 4. Find all files larger than 1 GB on drive D:
+deltempo large D:\ --min 1GB --top 20
+
+# 5. Check whether a specific file is safe to delete
+deltempo large inspect "C:\Users\username\AppData\Local\Temp\installer.exe"
+
+# 6. Reversibly disable an unnecessary startup launcher
+deltempo startup disable "Spotify"
+
+# 7. Check for continuous rolling patches
+deltempo update patch
+```
+
+---
+
+## Cleaning Targets
+
+Deltempo organizes its cleanup scopes across distinct system and application domains. Scopes marked with an asterisk require administrative elevation.
+
+| Domain | Target Scope | Examples of Cleaned Data |
+| :--- | :--- | :--- |
+| **Windows System** | User Temp | Application scratchpads and installer extractions (`%TEMP%`) |
+| | Windows System Temp* | Servicing logs and update staging (`C:\Windows\Temp`) |
+| | Windows Prefetch* | Stale application execution headers (`C:\Windows\Prefetch`) |
+| | Windows Update Cache* | Superseded package downloads (`SoftwareDistribution\Download`) |
+| | Upgrade Residue* | Post-upgrade archives (`$WINDOWS.~BT`, `$WINDOWS.~WS`, `ESD`) |
+| | Delivery Optimization* | Peer-to-peer Windows Update delivery cache chunks |
+| | Component Caches* | Font caches, WinSxS temp scratchpads, DISM staging |
+| | Diagnostic Logs* | CBS servicing logs, DISM logs, Panther, SetupAPI traces |
+| | Crash Dumps* | Memory crash dumps (`MEMORY.DMP`), LiveKernelReports, minidumps |
+| | Explorer Thumbnails | Cached thumbnail databases (`thumbcache_*.db`) |
+| **Hardware & Drivers** | Driver Packages* | NVIDIA App/GeForce OTA packages, AMD/Intel temp installers |
+| | GPU Shader Pools | Compiled DirectX (`D3DSCache`), Vulkan (`GLCache`), and Intel shaders |
+| **Gaming & Media** | Game Launchers | Steam download chunks, Epic Games webcache, Battle.net cache |
+| | Creator Render Caches | Adobe Media Cache, DaVinci proxy files, CapCut, Blender temp |
+| **Apps & Social** | Desktop Apps | Discord, Spotify, Slack, VS Code, Notion GPU & code caches |
+| | Messaging Apps | WhatsApp, Telegram, Teams media caches (credentials preserved) |
+| | Windows Store Apps | Safe `LocalCache` and `INetCache` across packaged Store apps |
+| | Orphaned AppData | Residual folders from uninstalled applications verified against registry |
+| **Developer Tools** | Package Caches | NuGet v3, npm, pip, yarn, pnpm, Cargo, and Go build caches |
+| | Dev Daemons | Android Studio emulator cache, Gradle daemons, iTunes sync temp |
+| **Web Browsers** | Chromium Profiles | Chrome, Edge, Brave, Opera, Vivaldi disk & shader caches |
+| | Gecko Profiles | Firefox, LibreWolf, Floorp cache pools (logins preserved) |
+| | Temporary Internet | Windows `INetCache` and `CryptnetUrlCache` revocation caches |
+| **Recovery** | Windows Recycle Bin | Empties `$Recycle.Bin` across all mounted physical drives |
+| | VSS Restore Points* | Prunes older shadow copies while strictly retaining the latest |
+
+> [!NOTE]
+> Personal documents, browser cookies, saved passwords, active authentication sessions, and source code repositories are strictly excluded from cleanup.
+
+---
+
+## Memory Optimization
+
+Windows uses unallocated RAM to cache recently accessed files and program state in the **Standby Page List**. While this generally improves responsiveness, heavily fragmented standby lists or unreleased process working sets can contribute to micro-stuttering during resource-intensive tasks or gaming.
+
+Deltempo interfaces directly with Windows memory management APIs:
+
+* **Standby List Invalidation**: Calls `NtSetSystemInformation` with the `SystemMemoryListInformation` command class (`80`) to purge standby pages and return them to the free memory pool.
+* **Process Working Set Trimming**: Requests `SeProfileSingleProcessPrivilege` and `SeDebugPrivilege` to call `EmptyWorkingSet` across inactive user processes, releasing non-essential physical pages.
+* **System File Cache Boundary Reset**: Calls `SetSystemFileCacheSize` to reset filesystem cache boundaries when system cache consumption becomes excessive.
+* **Modified Page Flush**: Issues flush requests to ensure dirty memory pages are committed to storage before memory is freed.
+* **Protected Process Shielding**: Deltempo maintains an immutable exclusion list preventing memory operations on critical system processes (`csrss.exe`, `dwm.exe`, `explorer.exe`, `lsass.exe`, `services.exe`, `smss.exe`, `svchost.exe`, and Windows Defender).
+
+> [!IMPORTANT]
+> Memory optimization reclaims inactive physical RAM and flushes stale cache lists. It does not alter CPU clock speeds, GPU hardware limits, or claim artificial benchmark gains.
+
+---
+
+## Large File Hunter
+
+The **Large File Hunter** audits storage volumes to identify space-consuming files with built-in safety guidance:
+
+* **Configurable Scans**: Filters files above a size threshold (50 MB by default, configurable via `--min` in the CLI).
+* **Automated Safety Classification**: Evaluates discovered items using `FileSafetyEngine`, labeling files as `Safe`, `Protected`, `LowRisk`, or `ReviewRequired`.
+* **Asset Recognition**: Differentiates disposable clutter (driver installers, setup extracts, post-mortem memory dumps) from critical assets (virtual machine disks, database stores, game archives, model weights).
+* **Recycle Bin Routing**: Deletions are sent to the Windows Shell Recycle Bin by default, allowing file restoration via standard Windows undo shortcuts.
+
+---
+
+## Startup Manager
+
+The **Startup Manager** provides inspection and control over programs configured to start automatically on user logon:
+
+* **Inspected Locations**:
+  * `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`
+  * `HKLM\Software\Microsoft\Windows\CurrentVersion\Run`
+  * Startup folder shortcuts (`shell:startup`)
+* **Boot Impact Analysis**: Estimates startup delay using binary metadata, publisher identity, and known background launcher signatures.
+* **100% Reversible Modifications**: Rather than deleting registry values, disabled entries are moved to a designated backup key (`Run_Deltempo_Disabled`). Any disabled item can be re-enabled at any time.
+
+---
+
+## Automatic Updates
+
+Deltempo features a dual-channel update system designed for reliability and cryptographic integrity:
+
+### Update Channels
+* **Stable Channel**: Delivers formal milestone releases (e.g. `v1.3.3`, `v1.3.4`) verified and tagged on GitHub Releases.
+* **Continuous Patch Channel**: Delivers rolling builds generated directly from qualifying commits on the `main` branch, allowing users to receive targeted fixes without waiting for milestone releases.
+
+### Verification & Security Controls
+* **Host & Protocol Enforcement**: Manifests and payloads must originate from authorized HTTPS endpoints (`github.com`, `raw.githubusercontent.com`).
+* **Metadata Schema Validation**: Enforced by `PatchMetadataValidator`, validating commit hashes, file size bounds (10 MB – 500 MB), and 64-character hex SHA-256 signatures.
+* **Cryptographic Hash Verification**: The downloaded binary is validated against its expected SHA-256 hash by `PatchIntegrityVerifier` before any staging operation occurs.
+* **Cross-Process Installation Locks**: Managed via `PatchInstallationLock` using global named mutexes to prevent concurrent installation conflicts.
+* **Atomic Swap & Rollback**: New builds are staged and swapped atomically. If the updated executable fails initial verification, the previous binary is restored automatically.
+
+---
+
+## Supported Platforms
+
+| Operating System | Architecture | Support Status | Notes |
+| :--- | :--- | :--- | :--- |
+| **Windows 11** | `x64` (AMD64) | **Supported** | Version 21H2 or newer (64-bit) |
+| **Windows 10** | `x64` (AMD64) | **Supported** | Version 1809 or newer (64-bit) |
+| **Windows ARM64** | `ARM64` | **Experimental** | Supported via Windows 11 x64 emulation |
+| **Windows 7 / 8.1** | Any | **Unsupported** | Target framework requires Windows 10+ |
+
+Deltempo is compiled as a self-contained single-file binary (`win-x64`). No separate .NET runtime installation is required on supported systems.
+
+---
+
+## Project Architecture
+
+```text
+Deltempo/
+├── Cli/                     # Headless command-line interface (Deltempo.Cli.csproj)
+│   └── Program.cs           # CLI entry point, argument parsing, output formatters
+├── Core/                    # Domain logic, safety rules, and update infrastructure
+│   ├── Cleaning/            # CleanupPlan, CleanupPlanner, CleanupExecutor
+│   ├── Safety/              # FileSafetyEngine, ProtectionPolicy, PathSecurity, SafetyRiskTier
+│   └── Update/              # PatchManifest, PatchMetadataValidator, PatchIntegrityVerifier
+├── Services/                # System integrations and subsystem engines
+│   ├── CleanerService.cs    # Multi-scope target scanning and cleanup dispatch
+│   ├── MemoryOptimizer.cs   # Win32 & NT kernel memory APIs (Standby list, Working sets)
+│   ├── LargeFileHunter.cs   # Drive auditing, entropy scoring, Recycle Bin operations
+│   ├── StartupService.cs    # Registry & startup shortcut management
+│   ├── UpdateService.cs     # GitHub API release checker and patch installer
+│   └── ElevationService.cs  # UAC detection and administrative elevation helpers
+├── Models/                  # Data structures, telemetry models, target folder definitions
+├── Views/ & ViewModels/     # WPF UI presentation layer (Fluent dark and light themes)
+├── Tests/                   # Automated verification suite (xUnit on .NET 10)
+│   └── Deltempo.Tests/      # Unit and integration tests covering safety, cleanup & updates
+├── scripts/                 # Build, test, and release packaging automation
+└── docs/                    # GitHub Pages website and technical documentation
+```
+
+### Key Architectural Boundaries
+* **Separation of Planning and Execution**: The `Core.Cleaning` namespace cleanly separates scan analysis (`CleanupPlanner`) from disk operations (`CleanupExecutor`).
+* **Autonomous Safety Engine**: `Core.Safety` has no dependencies on the UI and can be tested and verified independently.
+* **Shared Engine**: Both the WPF GUI and the CLI call the exact same underlying service layers, ensuring identical behavior across interfaces.
+
+---
+
+## Development
 
 ### Prerequisites
-- 64-bit Windows 10 or 11
-- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+* Windows 10 or 11 (64-bit)
+* [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+* PowerShell 7+ or Windows PowerShell 5.1
 
-### Commands
+### Clone the Repository
 ```powershell
-# 1. Clone the repository
 git clone https://github.com/Beso1227/Deltempo.git
 cd Deltempo
-
-# 2. Run the automated test suite
-dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
-
-# 3. Build the single-file standalone executable
-pwsh -ExecutionPolicy Bypass -File scripts/build_release_exe.ps1
 ```
 
-The resulting executable will be available at `./Deltempo.exe` along with its SHA-256 manifest.
+### Build the Project
+```powershell
+# Restore dependencies
+dotnet restore
+
+# Build GUI and CLI in Release configuration
+dotnet build WinTempCleaner.csproj -c Release
+dotnet build Cli/Deltempo.Cli.csproj -c Release
+```
+
+### Run the Application
+```powershell
+# Run the GUI application
+dotnet run --project WinTempCleaner.csproj -c Release
+
+# Run the CLI application
+dotnet run --project Cli/Deltempo.Cli.csproj -c Release -- status
+```
+
+### Package Single-File Release Executable
+```powershell
+pwsh -ExecutionPolicy Bypass -File scripts/build_release_exe.ps1
+```
+The compiled, self-contained single-file executable will be generated at `publish/Deltempo.exe`.
 
 ---
 
-## 🤝 Community &amp; Contributing
+## Testing
 
-Contributions, feature requests, and bug reports are warmly welcomed!
-- Found a bug or want a new cleaning scope? Open an [Issue](https://github.com/Beso1227/Deltempo/issues).
-- Want to contribute code? Fork the repo, make your changes, and submit a [Pull Request](https://github.com/Beso1227/Deltempo/pulls). Please ensure all 266 tests pass:
-  ```powershell
-  dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj
-  ```
+Deltempo maintains an automated test suite built on **xUnit** for .NET 10. The test suite verifies safety invariants, path protection policies, update validation, cleanup planning, and memory optimization logic.
 
-If Deltempo saved you disk space and sped up your PC, please give the repo a ⭐ **Star** on GitHub &mdash; it helps more Windows users discover the project!
+### Running Tests
+```powershell
+dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+```
+
+### Test Coverage Areas
+* **Path Security & Containment**: Verifies path canonicalization, prefix boundary containment, traversal attack prevention, junction detection, and network UNC path rejection.
+* **Safety Risk Classification**: Validates that personal directories, credentials, repositories, and system files are reliably classified as `Protected`.
+* **Two-Phase Cleanup Planning**: Confirms that dry-run simulations and live cleanup plans produce identical candidate sets and that pre-deletion revalidation catches altered disk state.
+* **Update Verification**: Tests manifest schema validation, host allowlisting, HTTPS enforcement, SHA-256 digest validation, and corrupted payload detection.
+* **Service Integrations**: Tests memory metric queries, startup registry key transformations, and large file classification heuristics.
 
 ---
 
-## 📜 License
+## Security
 
-Deltempo is open-source software licensed under the **[MIT License](LICENSE)**.  
-Crafted and maintained with care by **[Beso1227](https://github.com/Beso1227)** and open-source contributors.
+Security and data integrity are central to Deltempo. The project maintains an active security policy and welcomes vulnerability reports.
+
+* **Reporting Security Issues**: Please review our [SECURITY.md](SECURITY.md) for responsible disclosure guidelines. To report a security vulnerability or bypass in the safety engine, open a private security advisory on GitHub or contact the maintainers.
+* **Local Processing Guarantee**: Deltempo processes all filesystem and system data locally on your device. It makes no external network requests other than querying GitHub for application updates when requested.
+* **Non-Destructive Defaults**: Ambiguous files default to `KEEP`, and large file deletions default to the Windows Recycle Bin.
+
+---
+
+## Contributing
+
+Contributions from the open-source community are welcome. To contribute:
+
+1. **Fork** the repository on GitHub.
+2. **Create a Branch** for your feature or bugfix (`git checkout -b feature/new-scope`).
+3. **Make Changes** adhering to established C# coding conventions and architectural boundaries.
+4. **Run Tests** to ensure all verification gates pass:
+   ```powershell
+   dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+   ```
+5. **Open a Pull Request** with a detailed explanation of your changes.
+
+For further guidelines on code style, UI standards, and issue triage, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## License
+
+Deltempo is open-source software licensed under the **[MIT License](LICENSE)**.
+
+```text
+Copyright (c) 2026 Beso1227 / Deltempo Project
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+...
+```
+
+---
+
+## Links
+
+| Resource | Description | Location |
+| :--- | :--- | :--- |
+| **Official Website** | Product overview, simulation, and showcase | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
+| **Documentation** | In-depth user and developer guides | [beso1227.github.io/Deltempo/docs/](https://beso1227.github.io/Deltempo/docs/) |
+| **Latest Releases** | Standalone binaries and release notes | [GitHub Releases](https://github.com/Beso1227/Deltempo/releases) |
+| **Changelog** | Complete history of changes and milestones | [docs/changelog/](https://beso1227.github.io/Deltempo/changelog/) |
+| **FAQ** | Frequently asked questions | [docs/faq/](https://beso1227.github.io/Deltempo/faq/) |
+| **Security Policy** | Vulnerability reporting and safety details | [SECURITY.md](SECURITY.md) |
+| **Contributing** | Contribution workflow and coding rules | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| **Issue Tracker** | Bug reports, feature requests, and discussions | [GitHub Issues](https://github.com/Beso1227/Deltempo/issues) |
