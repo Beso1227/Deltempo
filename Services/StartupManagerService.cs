@@ -366,6 +366,15 @@ public static class StartupManagerService
                     return false;
                 }
 
+                // Post-change verification: confirm StartupApproved state actually changed
+                bool verifiedState = IsDisabledInStartupApproved(rootKey, StartupApprovedRunPath, item.Name) != enable;
+                if (!verifiedState)
+                {
+                    Trace.WriteLine($"[Deltempo] Post-change verification failed for {item.Name}: StartupApproved state did not update. Rolling back.");
+                    SetStartupApprovedState(rootKey, StartupApprovedRunPath, item.Name, !enable);
+                    return false;
+                }
+
                 item.IsEnabled = enable;
                 return true;
             }
