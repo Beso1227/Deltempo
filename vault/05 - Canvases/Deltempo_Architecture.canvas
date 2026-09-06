@@ -1,86 +1,86 @@
 {
-  "edges": [
-    {
-      "label": "GUI Mode",
-      "id": "edge1",
-      "fromNode": "node_app",
-      "toNode": "node_ui"
-    },
-    {
-      "label": "CLI Mode",
-      "id": "edge2",
-      "fromNode": "node_app",
-      "toNode": "node_cli"
-    },
-    {
-      "label": "Clean/Scan",
-      "id": "edge3",
-      "fromNode": "node_ui",
-      "toNode": "node_cleaner"
-    },
-    {
-      "label": "Optimize",
-      "id": "edge4",
-      "fromNode": "node_ui",
-      "toNode": "node_optimizer"
-    },
-    {
-      "label": "deltempo clean",
-      "id": "edge5",
-      "fromNode": "node_cli",
-      "toNode": "node_cleaner"
-    }
-  ],
   "nodes": [
     {
-      "x": 100,
-      "id": "node_app",
       "height": 120,
-      "width": 280,
-      "color": "1",
       "text": "### 🚀 App.xaml.cs\nRoot Entry Point & Mutex Router",
       "y": 100,
-      "type": "text"
+      "x": 100,
+      "color": "1",
+      "width": 280,
+      "type": "text",
+      "id": "node_app"
     },
     {
-      "x": 460,
-      "id": "node_ui",
       "height": 140,
-      "width": 300,
-      "color": "4",
       "text": "### 🖥️ MainWindow.xaml.cs\nWPF Dashboard & Controller",
       "y": 40,
-      "type": "text"
+      "x": 460,
+      "color": "4",
+      "width": 300,
+      "type": "text",
+      "id": "node_ui"
     },
     {
-      "x": 460,
-      "id": "node_cli",
       "height": 140,
-      "width": 300,
-      "color": "5",
       "text": "### 💻 deltempo_cli.exe\nSynchronous Console CLI",
       "y": 220,
-      "type": "text"
+      "x": 460,
+      "color": "5",
+      "width": 300,
+      "type": "text",
+      "id": "node_cli"
     },
     {
-      "x": 840,
-      "id": "node_cleaner",
       "height": 140,
-      "width": 280,
-      "color": "2",
       "text": "### 🧹 CleanerService.cs\n21-Scope Purge Engine",
       "y": 40,
-      "type": "text"
+      "x": 840,
+      "color": "2",
+      "width": 280,
+      "type": "text",
+      "id": "node_cleaner"
     },
     {
-      "x": 840,
-      "id": "node_optimizer",
       "height": 140,
-      "width": 280,
-      "color": "3",
       "text": "### ⚡ Memory & Startup\nRAM Booster & Boot Tools",
       "y": 220,
-      "type": "text"
+      "x": 840,
+      "color": "3",
+      "width": 280,
+      "type": "text",
+      "id": "node_optimizer"
+    }
+  ],
+  "edges": [
+    {
+      "fromNode": "node_app",
+      "toNode": "node_ui",
+      "label": "GUI Mode",
+      "id": "edge1"
+    },
+    {
+      "fromNode": "node_app",
+      "toNode": "node_cli",
+      "label": "CLI Mode",
+      "id": "edge2"
+    },
+    {
+      "fromNode": "node_ui",
+      "toNode": "node_cleaner",
+      "label": "Clean/Scan",
+      "id": "edge3"
+    },
+    {
+      "fromNode": "node_ui",
+      "toNode": "node_optimizer",
+      "label": "Optimize",
+      "id": "edge4"
+    },
+    {
+      "fromNode": "node_cli",
+      "toNode": "node_cleaner",
+      "label": "deltempo clean",
+      "id": "edge5"
     }
   ]
 }
