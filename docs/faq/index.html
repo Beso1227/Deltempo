@@ -96,6 +96,14 @@
 </head>
 <body>
 
+  <!-- Ambient Cybernetic Aurora System -->
+  <div class="ambient-aurora" aria-hidden="true">
+    <div class="aurora-orb aurora-orb-1"></div>
+    <div class="aurora-orb aurora-orb-2"></div>
+    <div class="aurora-orb aurora-orb-3"></div>
+    <div class="aurora-grid"></div>
+  </div>
+
   <!-- Floating Island Navigation -->
   <header class="nav-wrapper">
     <nav class="nav-island" aria-label="Main Navigation">
@@ -127,13 +135,13 @@
   </header>
 
   <main class="container" style="padding-top: 2rem; padding-bottom: 5rem;">
-    <div class="section-header">
+    <div class="section-header reveal-on-scroll">
       <div class="section-tag">FAQ</div>
       <h1 class="section-title">Frequently Asked Questions</h1>
       <p class="section-subtitle">Clear, technical, and honest answers about how Deltempo cleans and protects your system.</p>
     </div>
 
-    <div class="faq-grid">
+    <div class="faq-grid reveal-on-scroll stagger-1">
       <div class="faq-item open">
         <button class="faq-question" aria-expanded="true">
           <span>What is Deltempo?</span>
@@ -279,5 +287,7 @@
       });
     })();
   </script>
+  <!-- Cybernetic Motion Engine -->
+  <script src="../motion.js" defer></script>
 </body>
 </html>

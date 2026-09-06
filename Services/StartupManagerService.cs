@@ -49,6 +49,9 @@ public class StartupItem
         BootImpact.Medium => "#F59E0B",
         _ => "#10B981"
     };
+    public bool IsProtected => StartupManagerService.IsProtectedStartupItem(this);
+    public System.Windows.Visibility ProtectedBadgeVisibility => IsProtected ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+    public bool CanToggle => !IsProtected;
 }
 
 public static class StartupManagerService

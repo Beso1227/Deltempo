@@ -236,6 +236,7 @@
 
         <!-- Primary Action Button (Sleek Tech CTA) -->
         <Style x:Key="HeroCTAButton" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccessibleFocusVisualStyle}"/>
             <Setter Property="Background" Value="{StaticResource HeroActionBtnBrush}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
@@ -301,6 +302,7 @@
 
         <!-- Secondary Ghost / Pill Button -->
         <Style x:Key="PillButton" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccessibleFocusVisualStyle}"/>
             <Setter Property="Background" Value="{DynamicResource PillButtonBgBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
             <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
@@ -353,6 +355,7 @@
 
         <!-- Header Quick Tool Button Style (Segmented Capsule) -->
         <Style x:Key="HeaderToolButton" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccessibleFocusVisualStyle}"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
             <Setter Property="FontFamily" Value="{DynamicResource AppFont}"/>
@@ -402,6 +405,7 @@
 
         <!-- Modern Toggle Switch Checkbox -->
         <Style x:Key="ModernSwitchCheckBox" TargetType="CheckBox">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccessibleFocusVisualStyle}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
@@ -449,6 +453,7 @@
 
         <!-- Window Control Button (Min/Close) -->
         <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccessibleFocusVisualStyle}"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource TextMediumBrush}"/>
             <Setter Property="Width" Value="36"/>
@@ -634,6 +639,7 @@
 
         <!-- Modern Luxury Filter Chip Radio Button Style -->
         <Style x:Key="FilterChipRadio" TargetType="RadioButton">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccessibleFocusVisualStyle}"/>
             <Setter Property="Background" Value="{DynamicResource SurfaceSubCardBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextMediumBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource HairlineBorderBrush}"/>

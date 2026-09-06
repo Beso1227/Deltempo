@@ -15,7 +15,7 @@ public class TargetFolderInfo : INotifyPropertyChanged
     private bool _requiresAdmin;
     private bool _hasAccess = true;
     private List<JunkFileItem> _topFiles = new();
-    private string _safetyBadge = "🟢 100% Safe Cache";
+    private string _safetyBadge = "✓ SAFE • Cache";
     private string _safetyBadgeColor = "#10B981";
     private string _name = string.Empty;
     private string _category = "General";

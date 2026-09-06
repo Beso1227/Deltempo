@@ -746,13 +746,13 @@ public class CleanerServiceTests : IDisposable
     {
         var allTargets = CleanerService.GetDefaultTargets();
         var smartTargets = allTargets
-            .Where(t => (t.SafetyBadge.Contains("Verified") || t.SafetyBadge.Contains("100% Safe")) && !t.IsOrphanedAppFolder)
+            .Where(t => (t.SafetyBadge.Contains("Verified") || t.SafetyBadge.Contains("100% Safe") || t.SafetyBadge.Contains("SAFE")) && !t.IsOrphanedAppFolder)
             .ToList();
 
         Assert.NotEmpty(smartTargets);
         Assert.All(smartTargets, t =>
         {
-            Assert.True(t.SafetyBadge.Contains("Verified") || t.SafetyBadge.Contains("100% Safe"));
+            Assert.True(t.SafetyBadge.Contains("Verified") || t.SafetyBadge.Contains("100% Safe") || t.SafetyBadge.Contains("SAFE"));
             Assert.False(t.IsOrphanedAppFolder);
         });
     }
