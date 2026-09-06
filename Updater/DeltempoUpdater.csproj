@@ -17,4 +17,8 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Core\Update\*.cs" Link="Core\Update\%(FileName)%(Extension)" />
+  </ItemGroup>
 </Project>

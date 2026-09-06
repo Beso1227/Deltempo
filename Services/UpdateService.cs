@@ -393,7 +393,7 @@ public static class UpdateService
         return null;
     }
 
-    public static async Task DownloadAndApplyUpdateAsync(string downloadUrl, IProgress<double> progress, string? expectedSha256 = null, string? commitSha = null, CancellationToken ct = default)
+    public static async Task DownloadAndApplyUpdateAsync(string downloadUrl, IProgress<double> progress, string? expectedSha256 = null, string? commitSha = null, bool isPatchUpdate = false, CancellationToken ct = default)
     {
         // 0. Mutual Exclusion: Acquire cross-process update lock
         using var updateLock = PatchInstallationLock.TryAcquire(TimeSpan.FromSeconds(5));
@@ -424,7 +424,7 @@ public static class UpdateService
         var journal = new TransactionJournal
         {
             TransactionId = txId,
-            Channel = IsPatchUpdate ? "patch" : "stable",
+            Channel = isPatchUpdate ? "patch" : "stable",
             Version = CurrentVersion.ToString(3),
             CommitSha = commitSha ?? "",
             TargetPath = currentExePath,

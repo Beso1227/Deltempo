@@ -26,6 +26,7 @@ jobs:
         run: |
           dotnet restore WinTempCleaner.csproj
           dotnet restore Cli/Deltempo.Cli.csproj
+          dotnet restore Updater/DeltempoUpdater.csproj
           dotnet restore Tests/Deltempo.Tests/Deltempo.Tests.csproj
 
       - name: Run Tests
@@ -35,6 +36,7 @@ jobs:
         run: |
           dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
           dotnet publish Cli/Deltempo.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
+          dotnet publish Updater/DeltempoUpdater.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
 
       - name: Clean Extra Release Assets
         uses: actions/github-script@v7
@@ -50,7 +52,7 @@ jobs:
               });
               if (release && release.data && release.data.assets) {
                 for (const asset of release.data.assets) {
-                  if (asset.name !== 'Deltempo.exe' && asset.name !== 'deltempo_cli.exe') {
+                  if (asset.name !== 'Deltempo.exe' && asset.name !== 'deltempo_cli.exe' && asset.name !== 'DeltempoUpdater.exe') {
                     console.log(`Deleting extra asset: ${asset.name} (id: ${asset.id})`);
                     await github.rest.repos.deleteReleaseAsset({
                       owner: context.repo.owner,
@@ -99,6 +101,7 @@ jobs:
           files: |
             ./dist/Deltempo.exe
             ./dist/deltempo_cli.exe
+            ./dist/DeltempoUpdater.exe
           draft: false
           prerelease: false
 

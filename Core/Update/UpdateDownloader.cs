@@ -4,7 +4,7 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using WinTempCleaner.Core.Update;
 
-namespace WinTempCleaner.Updater;
+namespace WinTempCleaner.Core.Update;
 
 /// <summary>
 /// Streaming download engine with bounded retries, exponential backoff,
