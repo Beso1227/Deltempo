@@ -73,6 +73,14 @@
 </head>
 <body>
 
+  <!-- Ambient Cybernetic Aurora System -->
+  <div class="ambient-aurora" aria-hidden="true">
+    <div class="aurora-orb aurora-orb-1"></div>
+    <div class="aurora-orb aurora-orb-2"></div>
+    <div class="aurora-orb aurora-orb-3"></div>
+    <div class="aurora-grid"></div>
+  </div>
+
   <!-- Floating Island Navigation -->
   <header class="nav-wrapper">
     <nav class="nav-island" aria-label="Main Navigation">
@@ -104,14 +112,14 @@
   </header>
 
   <main class="container" style="padding-top: 2rem; padding-bottom: 5rem; max-width: 900px;">
-    <div class="section-header">
+    <div class="section-header reveal-on-scroll">
       <div class="section-tag">Technical Manual</div>
       <h1 class="section-title">Deltempo Architecture &amp; Reference</h1>
       <p class="section-subtitle">Comprehensive reference guide covering the 25+ cleaning scopes, 5-tier safety classification, NT memory APIs, and command-line automation.</p>
     </div>
 
     <!-- Section 1: Shader Caches -->
-    <div class="double-bezel" style="margin-bottom: 2rem;">
+    <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
       <div class="card-inner">
         <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem;">1. GPU Shader Cache Cleaning</h2>
         <p style="color: var(--text-med); margin-bottom: 1rem;">Modern DirectX, Vulkan, and OpenGL games pre-compile shaders to reduce in-game compilation stalls. Graphics driver updates frequently leave obsolete bytecode caches on disk that are never reclaimed by standard Windows tools.</p>
@@ -255,5 +263,7 @@
       });
     })();
   </script>
+  <!-- Cybernetic Motion Engine -->
+  <script src="../motion.js" defer></script>
 </body>
 </html>

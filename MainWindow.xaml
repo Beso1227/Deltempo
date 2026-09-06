@@ -7,13 +7,15 @@
         mc:Ignorable="d"
         Title="Deltempo"
         Icon="pack://application:,,,/app.ico"
-        Height="840" Width="880"
+        Height="760" Width="940"
+        MinWidth="900" MinHeight="660"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-        ResizeMode="CanMinimize"
+        ResizeMode="CanResize"
         KeyDown="Window_KeyDown"
+        StateChanged="Window_StateChanged"
         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
         AutomationProperties.Name="Deltempo"
         FontFamily="{DynamicResource AppFont}">
@@ -118,29 +120,12 @@
                             BorderThickness="1"
                             CornerRadius="8"
                             Padding="2">
-                        <StackPanel Orientation="Horizontal">
-                            <Button x:Name="ToolStartupBtn"
-                                    Style="{DynamicResource HeaderToolButton}"
-                                    FocusVisualStyle="{x:Null}"
-                                    ToolTip="Startup Apps Boot Accelerator"
-                                    Click="OpenStartupModal_Click">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="&#xE7B5;"
-                                               FontFamily="{DynamicResource IconFont}"
-                                               FontSize="10.5"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"
-                                               Margin="0,0,5,0"
-                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="Startup"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <!-- Tools Group: Storage & Startup -->
                             <Button x:Name="ToolLargeFilesBtn"
                                     Style="{DynamicResource HeaderToolButton}"
-                                    FocusVisualStyle="{x:Null}"
-                                    ToolTip="Large File &amp; Storage Hog Hunter"
+                                    ToolTip="Scan and locate large space-consuming files across your drives safely"
+                                    AutomationProperties.Name="Large Files Tool"
                                     Click="OpenLargeFilesModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE8B7;"
@@ -155,11 +140,35 @@
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
+                            <Button x:Name="ToolStartupBtn"
+                                    Style="{DynamicResource HeaderToolButton}"
+                                    ToolTip="Inspect and manage applications configured to launch on Windows boot"
+                                    AutomationProperties.Name="Startup Applications Tool"
+                                    Click="OpenStartupModal_Click">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE7B5;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                               Margin="0,0,5,0"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="Startup"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Subtle Vertical Separator -->
+                            <Border Width="1" Height="14"
+                                    Background="{DynamicResource HairlineBorderBrush}"
+                                    Margin="3,0"/>
+
+                            <!-- Optimize Group: Processes & Memory -->
                             <Button x:Name="ToolProcessesBtn"
                                     Style="{DynamicResource HeaderToolButton}"
-                                    FocusVisualStyle="{x:Null}"
-                                    ToolTip="Memory Hogs &amp; Background App Optimizer"
-                                    Margin="0,0,6,0"
+                                    ToolTip="Inspect memory-heavy applications and optimize inactive background working sets"
+                                    AutomationProperties.Name="Process Manager Tool"
                                     Click="OpenProcessModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE9F5;"
@@ -174,10 +183,35 @@
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
+                            <Button x:Name="ToolMemoryBtn"
+                                    Style="{DynamicResource HeaderToolButton}"
+                                    ToolTip="Purge standby memory and trim inactive process working sets using native Windows APIs"
+                                    AutomationProperties.Name="Memory Optimization Tool"
+                                    Click="OpenMemoryCleanerModal_Click">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE950;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                               Margin="0,0,5,0"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="Memory"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Subtle Vertical Separator -->
+                            <Border Width="1" Height="14"
+                                    Background="{DynamicResource HairlineBorderBrush}"
+                                    Margin="3,0"/>
+
+                            <!-- Advanced Group: System Repair -->
                             <Button x:Name="ToolSystemRepairBtn"
                                     Style="{DynamicResource HeaderToolButton}"
-                                    FocusVisualStyle="{x:Null}"
-                                    ToolTip="Windows Integrity &amp; Component Corruption Repair (SFC, DISM, CHKDSK)"
+                                    ToolTip="Diagnose and repair Windows system file corruption (SFC, DISM, and CHKDSK)"
+                                    AutomationProperties.Name="System Repair Tool"
                                     Margin="0"
                                     Click="OpenSystemRepairModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -200,7 +234,6 @@
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <!-- Dedicated Admin Elevation Status Capsule -->
                         <Button x:Name="AdminElevationButton"
-                                FocusVisualStyle="{x:Null}"
                                 Cursor="Hand"
                                 Background="Transparent"
                                 BorderThickness="0"
@@ -265,7 +298,6 @@
                                 <ComboBox x:Name="LanguageComboBox"
                                           Style="{DynamicResource ModernComboBox}"
                                           Width="72" Height="24"
-                                          FocusVisualStyle="{x:Null}"
                                           AutomationProperties.Name="Select Application Language"
                                           Margin="0"
                                           SelectionChanged="LanguageComboBox_SelectionChanged">
@@ -285,7 +317,6 @@
                                 <Button x:Name="SoundToggleBtn"
                                         Style="{DynamicResource WindowControlButton}"
                                         Width="25" Height="24"
-                                        FocusVisualStyle="{x:Null}"
                                         AutomationProperties.Name="Toggle Haptic Sound Effects"
                                         ToolTip="Toggle Haptic Audio Feedback"
                                         Margin="0,0,1,0"
@@ -301,7 +332,6 @@
                                 <Button x:Name="ThemeToggleBtn"
                                         Style="{DynamicResource WindowControlButton}"
                                         Width="25" Height="24"
-                                        FocusVisualStyle="{x:Null}"
                                         AutomationProperties.Name="Toggle Dark / Light Theme"
                                         ToolTip="Toggle Light / Dark Mode"
                                         Margin="0,0,1,0"
@@ -317,7 +347,6 @@
                                 <Button x:Name="SettingsBtn"
                                         Style="{DynamicResource WindowControlButton}"
                                         Width="25" Height="24"
-                                        FocusVisualStyle="{x:Null}"
                                         AutomationProperties.Name="Open Application Settings"
                                         ToolTip="Deltempo Preferences &amp; Guardian Settings"
                                         Margin="0"
@@ -330,19 +359,27 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Window Min / Close Controls -->
+                        <!-- Window Min / Max / Close Controls -->
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Button Style="{DynamicResource WindowControlButton}"
                                     Content="&#xE921;"
                                     Width="28" Height="26"
                                     Margin="0,0,2,0"
-                                    FocusVisualStyle="{x:Null}"
+                                    ToolTip="Minimize Window"
                                     AutomationProperties.Name="Minimize Window"
                                     Click="MinimizeButton_Click"/>
+                            <Button x:Name="MaximizeButton"
+                                    Style="{DynamicResource WindowControlButton}"
+                                    Content="&#xE922;"
+                                    Width="28" Height="26"
+                                    Margin="0,0,2,0"
+                                    ToolTip="Maximize Window"
+                                    AutomationProperties.Name="Maximize Window"
+                                    Click="MaximizeButton_Click"/>
                             <Button Style="{DynamicResource WindowCloseButton}"
                                     Content="&#xE8BB;"
                                     Width="28" Height="26"
-                                    FocusVisualStyle="{x:Null}"
+                                    ToolTip="Close Application"
                                     AutomationProperties.Name="Close Application"
                                     Click="CloseButton_Click"/>
                         </StackPanel>
@@ -389,48 +426,52 @@
                                        FontSize="11"
                                        Foreground="{DynamicResource TextMediumBrush}"/>
 
-                            <!-- 1-Click Autonomous Deep Clean Action Bar -->
+                            <!-- Primary Workflow Action Bar -->
                             <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                <Button x:Name="HeroOneClickDeepCleanBtn"
+                                <Button x:Name="HeroScanBtn"
                                         Style="{DynamicResource HeroCTAButton}"
                                         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                        Padding="15,6.5"
-                                        ToolTip="Autonomous 1-Click Deep Clean: purges all safe disk caches, superseded Windows updates, old restore points &amp; flushes RAM in 1 click"
-                                        Click="HeroOneClickDeepCleanBtn_Click">
+                                        Padding="18,7.5"
+                                        ToolTip="Scan all temporary scopes, caches, and storage locations (Shortcut: F5)"
+                                        AutomationProperties.Name="Scan PC for Reclaimable Files"
+                                        Click="ScanButton_Click">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="&#xE7E8;"
+                                        <TextBlock x:Name="HeroScanBtnIcon"
+                                                   Text="&#xE721;"
                                                    FontFamily="{DynamicResource IconFont}"
-                                                   FontSize="12"
+                                                   FontSize="12.5"
                                                    Foreground="#FFFFFF"
-                                                   Margin="0,0,6,0"
+                                                   Margin="0,0,7,0"
                                                    VerticalAlignment="Center"/>
-                                        <TextBlock x:Name="HeroOneClickBtnText"
-                                                   Text="1-Click Deep Clean"
-                                                   FontSize="11.5"
+                                        <TextBlock x:Name="HeroScanBtnText"
+                                                   Text="Scan Now"
+                                                   FontSize="12"
                                                    FontWeight="Bold"
                                                    Foreground="#FFFFFF"
                                                    VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
 
-                                <Button x:Name="HeroRescanBtn"
+                                <Button x:Name="HeroOneClickDeepCleanBtn"
                                         Style="{DynamicResource PillButton}"
                                         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                        Padding="12,6"
+                                        Padding="14,6.5"
                                         Margin="8,0,0,0"
-                                        ToolTip="Rescan all categories and update storage metrics (F5)"
-                                        Click="ScanButton_Click">
+                                        ToolTip="Autonomous 1-Click Deep Clean: purges all safe disk caches, superseded Windows updates, old restore points &amp; flushes RAM in 1 click"
+                                        AutomationProperties.Name="Autonomous 1-Click Deep Clean"
+                                        Click="HeroOneClickDeepCleanBtn_Click">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="&#xE72C;"
+                                        <TextBlock Text="&#xE7E8;"
                                                    FontFamily="{DynamicResource IconFont}"
-                                                   FontSize="10.5"
+                                                   FontSize="11.5"
                                                    Foreground="{DynamicResource ElectricCyanBrush}"
-                                                   Margin="0,0,5,0"
+                                                   Margin="0,0,6,0"
                                                    VerticalAlignment="Center"/>
-                                        <TextBlock x:Name="HeroRescanBtnText"
-                                                   Text="Quick Rescan"
+                                        <TextBlock x:Name="HeroOneClickBtnText"
+                                                   Text="1-Click Deep Clean"
                                                    FontSize="11"
                                                    FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextHighBrush}"
                                                    VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
@@ -1318,7 +1359,7 @@
                   Visibility="Collapsed"
                   AutomationProperties.Name="Large Files Inspector Dialog">
                 <Border Style="{DynamicResource ModernCard}"
-                        Width="660" Height="500"
+                        MaxWidth="660" MaxHeight="520" Margin="16"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Background="{DynamicResource ModalSurfaceBrush}"
@@ -1429,7 +1470,7 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Confirm Cleanup Dialog">
-                <Border Width="540"
+                <Border MaxWidth="560" MaxHeight="640" Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5"
@@ -1475,7 +1516,7 @@
                                 BorderThickness="1"
                                 CornerRadius="12"
                                 Padding="18,14"
-                                Margin="0,0,0,16">
+                                Margin="0,0,0,14">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -1511,12 +1552,48 @@
                             </Grid>
                         </Border>
 
+                        <!-- Deletion Routing Mode Callout -->
+                        <Border x:Name="ConfirmModalDeletionModeBorder"
+                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="12,10"
+                                Margin="0,0,0,14">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="ConfirmModalDeletionModeIcon"
+                                           Grid.Column="0"
+                                           Text="&#xE74D;"
+                                           FontFamily="{DynamicResource IconFont}"
+                                           FontSize="15"
+                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,10,0"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock x:Name="ConfirmModalDeletionModeTitle"
+                                               Text="Recycle Bin Protection: Active"
+                                               FontSize="11.5"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                    <TextBlock x:Name="ConfirmModalDeletionModeDesc"
+                                               Text="Files will be moved to the Windows Recycle Bin and can be restored if needed."
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource TextMediumBrush}"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
                         <TextBlock x:Name="ConfirmModalSummaryText"
                                    Text="Cleaning 7 selected categories. User configs and personal files remain 100% protected."
-                                   FontSize="12"
+                                   FontSize="11.5"
                                    Foreground="{DynamicResource TextMediumBrush}"
                                    TextWrapping="Wrap"
-                                   Margin="0,0,0,24"/>
+                                   Margin="0,0,0,20"/>
 
                         <!-- Action Buttons -->
                         <Grid>
@@ -1546,7 +1623,7 @@
                                                Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ConfirmModalProceedBtnText"
-                                               Text="Start Cleanup"
+                                               Text="Clean Selected Items"
                                                FontSize="13"
                                                FontWeight="Bold"
                                                VerticalAlignment="Center"/>
@@ -1563,7 +1640,7 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Cleanup Completed Celebration Dialog">
-                <Border Width="500"
+                <Border MaxWidth="500" Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource EmeraldGreenBrush}"
                         BorderThickness="1.5"
@@ -1669,8 +1746,9 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Deltempo Settings Dialog">
-                <Border Width="580"
+                <Border MaxWidth="580"
                         MaxHeight="650"
+                        Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5"
@@ -2197,7 +2275,8 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Deltempo Update Available Dialog">
-                <Border Width="520"
+                <Border MaxWidth="520"
+                        Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5"
@@ -2342,7 +2421,7 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Startup Apps Accelerator Dialog">
-                <Border Width="600" MaxHeight="620"
+                <Border MaxWidth="640" MaxHeight="620" Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5"
@@ -2389,7 +2468,6 @@
                             </StackPanel>
                             <Button Style="{DynamicResource WindowCloseButton}"
                                     Content="&#xE8BB;"
-                                    FocusVisualStyle="{x:Null}"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
                                     Click="CloseStartupModal_Click"/>
@@ -2440,7 +2518,6 @@
                             <Button Grid.Column="1"
                                     x:Name="RefreshStartupBtn"
                                     Style="{DynamicResource HeaderToolButton}"
-                                    FocusVisualStyle="{x:Null}"
                                     ToolTip="Refresh Startup List"
                                     Margin="8,0,0,0"
                                     Height="28"
@@ -2517,11 +2594,26 @@
                                                                    FontWeight="Bold"
                                                                    Foreground="{Binding ImpactColor}"/>
                                                     </Border>
-                                                    <CheckBox Grid.Column="2"
-                                                              Style="{DynamicResource ModernSwitchCheckBox}"
-                                                              IsChecked="{Binding IsEnabled}"
-                                                              VerticalAlignment="Center"
-                                                              Click="StartupSwitch_Click"/>
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Border Visibility="{Binding ProtectedBadgeVisibility}"
+                                                                Background="#142B20"
+                                                                BorderBrush="#3D10B981"
+                                                                BorderThickness="1"
+                                                                CornerRadius="6"
+                                                                Padding="6,2"
+                                                                Margin="0,0,8,0"
+                                                                ToolTip="Essential Windows system component. Modifying this entry may affect system stability.">
+                                                            <TextBlock Text="⊘ Protected"
+                                                                       FontSize="9.5"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="#34D399"/>
+                                                        </Border>
+                                                        <CheckBox Style="{DynamicResource ModernSwitchCheckBox}"
+                                                                  IsChecked="{Binding IsEnabled}"
+                                                                  IsEnabled="{Binding CanToggle}"
+                                                                  VerticalAlignment="Center"
+                                                                  Click="StartupSwitch_Click"/>
+                                                    </StackPanel>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
@@ -2539,7 +2631,6 @@
                                        VerticalAlignment="Center"/>
                             <Button Content="Done"
                                     Style="{DynamicResource HeroCTAButton}"
-                                    FocusVisualStyle="{x:Null}"
                                     HorizontalAlignment="Right"
                                     Padding="22,7"
                                     FontSize="12"
@@ -2555,7 +2646,7 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Large Files Hunter Dialog">
-                <Border Width="820" MaxHeight="680"
+                <Border MaxWidth="840" MaxHeight="660" Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5"
@@ -2734,6 +2825,21 @@
                                             <ComboBoxItem Content="Game Assets" Tag="Game Asset / Pak"/>
                                             <ComboBoxItem Content="Media &amp; Videos" Tag="Video / Media"/>
                                             <ComboBoxItem Content="Archives" Tag="Archive"/>
+                                        </ComboBox>
+                                    </StackPanel>
+
+                                    <!-- Sort Selector -->
+                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,10,0">
+                                        <TextBlock Text="Sort:" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextMediumBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <ComboBox x:Name="LargeFileSortComboBox"
+                                                  Style="{DynamicResource ModernComboBox}"
+                                                  Width="120" Height="26"
+                                                  SelectionChanged="LargeFileSort_Changed">
+                                            <ComboBoxItem Content="Largest First" Tag="SIZE_DESC" IsSelected="True"/>
+                                            <ComboBoxItem Content="Smallest First" Tag="SIZE_ASC"/>
+                                            <ComboBoxItem Content="Safety Verdict" Tag="SAFETY"/>
+                                            <ComboBoxItem Content="File Name" Tag="NAME"/>
                                         </ComboBox>
                                     </StackPanel>
 
@@ -3049,7 +3155,7 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Memory Hogs Dialog">
-                <Border Width="600" MaxHeight="620"
+                <Border MaxWidth="640" MaxHeight="620" Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5"
@@ -3096,7 +3202,6 @@
                             </StackPanel>
                             <Button Style="{DynamicResource WindowCloseButton}"
                                     Content="&#xE8BB;"
-                                    FocusVisualStyle="{x:Null}"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
                                     Click="CloseProcessModal_Click"/>
@@ -3147,7 +3252,6 @@
                             <Button Grid.Column="1"
                                     x:Name="RefreshProcessBtn"
                                     Style="{DynamicResource HeaderToolButton}"
-                                    FocusVisualStyle="{x:Null}"
                                     ToolTip="Refresh Active Processes"
                                     Margin="8,0,0,0"
                                     Height="28"
@@ -3250,7 +3354,6 @@
                                                     <Button Grid.Column="3"
                                                             Content="Trim RAM"
                                                             Style="{DynamicResource PillButton}"
-                                                            FocusVisualStyle="{x:Null}"
                                                             Padding="8,4"
                                                             FontSize="10"
                                                             Margin="0,0,6,0"
@@ -3258,7 +3361,6 @@
                                                     <Button Grid.Column="4"
                                                             Content="End Task"
                                                             Style="{DynamicResource PillButton}"
-                                                            FocusVisualStyle="{x:Null}"
                                                             Padding="8,4"
                                                             FontSize="10"
                                                             Click="TerminateProcess_Click"/>
@@ -3274,7 +3376,6 @@
                         <Grid Grid.Row="3">
                             <Button Content="Trim All Background Memory"
                                     Style="{DynamicResource PillButton}"
-                                    FocusVisualStyle="{x:Null}"
                                     HorizontalAlignment="Left"
                                     Padding="14,6"
                                     FontSize="11"
@@ -3287,7 +3388,6 @@
                                        VerticalAlignment="Center"/>
                             <Button Content="Done"
                                     Style="{DynamicResource HeroCTAButton}"
-                                    FocusVisualStyle="{x:Null}"
                                     HorizontalAlignment="Right"
                                     Padding="22,7"
                                     FontSize="12"
@@ -3302,7 +3402,7 @@
                   x:Name="MemoryModalOverlay"
                   Visibility="Collapsed"
                   Background="{DynamicResource ModalBackdropBrush}">
-            <Border Width="820" MaxHeight="680"
+            <Border MaxWidth="840" MaxHeight="660" Margin="16"
                     Background="{DynamicResource DoubleBezelOuterBrush}"
                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                     BorderThickness="1"
@@ -3346,6 +3446,10 @@
                                     <TextBlock Text="Kernel-level Standby List, System File Cache &amp; Working Set Optimizer"
                                                FontSize="11.5"
                                                Foreground="{DynamicResource TextMediumBrush}"/>
+                                    <TextBlock Text="Note: Windows automatically reclaims and reallocates cached memory as needed by active applications."
+                                               FontSize="10"
+                                               Foreground="{DynamicResource TextMutedBrush}"
+                                               Margin="0,2,0,0"/>
                                 </StackPanel>
                             </StackPanel>
                             <Button Style="{DynamicResource WindowCloseButton}"
@@ -3581,7 +3685,7 @@
               x:Name="SystemRepairModalOverlay"
               Visibility="Collapsed"
               Background="{DynamicResource ModalBackdropBrush}">
-            <Border Width="880" MaxHeight="720"
+            <Border MaxWidth="840" MaxHeight="660" Margin="16"
                     Background="{DynamicResource DoubleBezelOuterBrush}"
                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                     BorderThickness="1"
@@ -3760,7 +3864,7 @@
                                                                    Foreground="{DynamicResource ElectricCyanBrush}"/>
                                                     </Border>
                                                 </StackPanel>
-                                                <TextBlock Text="Performs DISM ScanHealth verification, automatic RestoreHealth servicing if corrupted, SFC Scannow system file repairs, and online CHKDSK filesystem verification sequentially."
+                                                <TextBlock Text="Performs DISM ScanHealth verification, automatic RestoreHealth servicing if corrupted, SFC Scannow system file repairs, and online CHKDSK filesystem verification sequentially. • Est: 15-25 min total • Zero downtime"
                                                            FontSize="11"
                                                            Foreground="{DynamicResource TextMediumBrush}"
                                                            TextWrapping="Wrap"
@@ -3853,6 +3957,10 @@
                                                            Foreground="{DynamicResource TextMediumBrush}"
                                                            TextWrapping="Wrap"
                                                            Margin="0,2,0,0"/>
+                                                <TextBlock Text="Est: ~5-10 min • No restart required"
+                                                           FontSize="9"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                           Margin="0,2,0,0"/>
                                             </StackPanel>
                                             <Button Grid.Column="2"
                                                     x:Name="ToolSfcBtn"
@@ -3904,6 +4012,10 @@
                                                            FontSize="10"
                                                            Foreground="{DynamicResource TextMediumBrush}"
                                                            TextWrapping="Wrap"
+                                                           Margin="0,2,0,0"/>
+                                                <TextBlock Text="Est: ~10-15 min • No restart required"
+                                                           FontSize="9"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
                                                            Margin="0,2,0,0"/>
                                             </StackPanel>
                                             <Button Grid.Column="2"
@@ -3957,6 +4069,10 @@
                                                            Foreground="{DynamicResource TextMediumBrush}"
                                                            TextWrapping="Wrap"
                                                            Margin="0,2,0,0"/>
+                                                <TextBlock Text="Est: ~5-10 min • No restart required"
+                                                           FontSize="9"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                           Margin="0,2,0,0"/>
                                             </StackPanel>
                                             <Button Grid.Column="2"
                                                     x:Name="ToolWinSxSBtn"
@@ -4008,6 +4124,10 @@
                                                            FontSize="10"
                                                            Foreground="{DynamicResource TextMediumBrush}"
                                                            TextWrapping="Wrap"
+                                                           Margin="0,2,0,0"/>
+                                                <TextBlock Text="Est: ~2-5 min • Online scan (No restart)"
+                                                           FontSize="9"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
                                                            Margin="0,2,0,0"/>
                                             </StackPanel>
                                             <Button Grid.Column="2"
@@ -4061,6 +4181,10 @@
                                                            Foreground="{DynamicResource TextMediumBrush}"
                                                            TextWrapping="Wrap"
                                                            Margin="0,2,0,0"/>
+                                                <TextBlock Text="Est: ~1-2 min • No restart required"
+                                                           FontSize="9"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                           Margin="0,2,0,0"/>
                                             </StackPanel>
                                             <Button Grid.Column="2"
                                                     x:Name="ToolUpdateResetBtn"
@@ -4112,6 +4236,10 @@
                                                            FontSize="10"
                                                            Foreground="{DynamicResource TextMediumBrush}"
                                                            TextWrapping="Wrap"
+                                                           Margin="0,2,0,0"/>
+                                                <TextBlock Text="Est: ~30 sec • Auto-reconnects"
+                                                           FontSize="9"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
                                                            Margin="0,2,0,0"/>
                                             </StackPanel>
                                             <Button Grid.Column="2"

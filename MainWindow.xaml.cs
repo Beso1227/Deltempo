@@ -87,6 +87,16 @@ public partial class MainWindow : Window
     private const int SM_CXICON = 11;
     private const int SM_CYICON = 12;
 
+    private const int WM_NCHITTEST = 0x0084;
+    private const int HTLEFT = 10;
+    private const int HTRIGHT = 11;
+    private const int HTTOP = 12;
+    private const int HTTOPLEFT = 13;
+    private const int HTTOPRIGHT = 14;
+    private const int HTBOTTOM = 15;
+    private const int HTBOTTOMLEFT = 16;
+    private const int HTBOTTOMRIGHT = 17;
+
     private System.Drawing.Icon? _nativeIconSmall;
     private System.Drawing.Icon? _nativeIconBig;
 
@@ -255,6 +265,33 @@ public partial class MainWindow : Window
                 AddLog($"[Hotkey Ctrl+Shift+M] Instant RAM optimization complete: Purged {res.FormattedReclaimed} in {res.ExecutionTimeMs}ms.", LogLevel.Success);
             });
             handled = true;
+        }
+        else if (_isLoaded && msg == WM_NCHITTEST && WindowState == WindowState.Normal)
+        {
+            try
+            {
+                int x = (short)(lParam.ToInt32() & 0xFFFF);
+                int y = (short)((lParam.ToInt32() >> 16) & 0xFFFF);
+                Point pt = PointFromScreen(new Point(x, y));
+
+                int border = 8;
+                bool left = pt.X <= border;
+                bool right = pt.X >= ActualWidth - border;
+                bool top = pt.Y <= border;
+                bool bottom = pt.Y >= ActualHeight - border;
+
+                if (top && left) { handled = true; return (IntPtr)HTTOPLEFT; }
+                if (top && right) { handled = true; return (IntPtr)HTTOPRIGHT; }
+                if (bottom && left) { handled = true; return (IntPtr)HTBOTTOMLEFT; }
+                if (bottom && right) { handled = true; return (IntPtr)HTBOTTOMRIGHT; }
+                if (left) { handled = true; return (IntPtr)HTLEFT; }
+                if (right) { handled = true; return (IntPtr)HTRIGHT; }
+                if (top) { handled = true; return (IntPtr)HTTOP; }
+                if (bottom) { handled = true; return (IntPtr)HTBOTTOM; }
+            }
+            catch
+            {
+            }
         }
         return IntPtr.Zero;
     }
@@ -436,24 +473,24 @@ public partial class MainWindow : Window
         _isAdmin = ElevationService.IsRunAsAdmin();
         if (_isAdmin)
         {
-            AdminBadgeText.Text = "Admin";
+            AdminBadgeText.Text = "Elevated";
             AdminBadgeText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#34D399"));
             AdminBadgeIcon.Text = "\uE73E";
             AdminBadgeIcon.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981"));
             AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#142B20"));
             AdminBadgeBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3D10B981"));
-            AdminElevationButton.ToolTip = "Running with full Administrator privileges (Full access to all system locations).";
+            AdminElevationButton.ToolTip = "Administrator privileges are active. Full system cleanup and optimization enabled.";
             AddLog("Running with Administrator privileges (Full access to all system locations)", LogLevel.Success);
         }
         else
         {
-            AdminBadgeText.Text = "Elevate";
+            AdminBadgeText.Text = "Standard User";
             AdminBadgeText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FBBF24"));
             AdminBadgeIcon.Text = "\uE7EF";
             AdminBadgeIcon.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B"));
             AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#281C0E"));
             AdminBadgeBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4DF59E0B"));
-            AdminElevationButton.ToolTip = "Running as Standard User. Click to relaunch as Administrator to clean system-level caches.";
+            AdminElevationButton.ToolTip = "Running as Standard User. Click to relaunch as Administrator for full system access.";
             AddLog("Running as Standard User. Windows system caches require Administrator rights.", LogLevel.Warning);
         }
     }
@@ -504,9 +541,55 @@ public partial class MainWindow : Window
 
     private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
     {
+        if (e.ClickCount == 2)
+        {
+            ToggleMaximize();
+            return;
+        }
+
         if (e.LeftButton == MouseButtonState.Pressed)
         {
             DragMove();
+        }
+    }
+
+    private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+    {
+        ToggleMaximize();
+    }
+
+    private void ToggleMaximize()
+    {
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    }
+
+    private void Window_StateChanged(object sender, EventArgs e)
+    {
+        if (WindowState == WindowState.Maximized)
+        {
+            if (MaximizeButton != null)
+            {
+                MaximizeButton.Content = "\uE923"; // Restore icon
+                MaximizeButton.ToolTip = "Restore Window";
+            }
+            if (MasterShellBorder != null)
+            {
+                MasterShellBorder.Margin = new Thickness(0);
+                MasterShellBorder.CornerRadius = new CornerRadius(0);
+            }
+        }
+        else
+        {
+            if (MaximizeButton != null)
+            {
+                MaximizeButton.Content = "\uE922"; // Maximize icon
+                MaximizeButton.ToolTip = "Maximize Window";
+            }
+            if (MasterShellBorder != null)
+            {
+                MasterShellBorder.Margin = new Thickness(12);
+                MasterShellBorder.CornerRadius = new CornerRadius(20);
+            }
         }
     }
 
@@ -675,6 +758,7 @@ public partial class MainWindow : Window
         }
 
         long totalEstimatedBytes = selectedTargets.Sum(t => t.SizeBytes);
+        long totalEstimatedFiles = selectedTargets.Sum(t => (long)t.FileCount);
         bool safeMode = SafeModeCheckBox.IsChecked == true;
 
         ConfirmModalSizeText.Text = TargetFolderInfo.FormatBytes(totalEstimatedBytes);
@@ -682,7 +766,25 @@ public partial class MainWindow : Window
         ConfirmModalShieldBadge.BorderBrush = safeMode ? (Brush)FindResource("EmeraldGreenBrush") : (Brush)FindResource("AmberWarningBrush");
         ConfirmModalShieldBadge.Background = safeMode ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10241B")) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A1E16"));
 
-        ConfirmModalSummaryText.Text = $"Purging {selectedTargets.Count} selected categories. System integrity, active accounts, and work documents are strictly protected.";
+        bool recycleBin = SettingsService.Current.SendToRecycleBin;
+        if (recycleBin)
+        {
+            ConfirmModalDeletionModeTitle.Text = "Recycle Bin Protection: Active";
+            ConfirmModalDeletionModeDesc.Text = "Files will be moved to the Windows Recycle Bin and can be restored if needed.";
+            ConfirmModalDeletionModeIcon.Text = "\uE74D";
+            ConfirmModalDeletionModeIcon.Foreground = (Brush)FindResource("ElectricCyanBrush");
+            ConfirmModalDeletionModeBorder.BorderBrush = (Brush)FindResource("HairlineBorderBrush");
+        }
+        else
+        {
+            ConfirmModalDeletionModeTitle.Text = "Permanent Deletion: Active";
+            ConfirmModalDeletionModeDesc.Text = "Files will be permanently deleted from disk to maximize free space and cannot be restored.";
+            ConfirmModalDeletionModeIcon.Text = "\uE7BA";
+            ConfirmModalDeletionModeIcon.Foreground = (Brush)FindResource("AmberWarningBrush");
+            ConfirmModalDeletionModeBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4DF59E0B"));
+        }
+
+        ConfirmModalSummaryText.Text = $"Cleaning {selectedTargets.Count} selected categories ({totalEstimatedFiles:N0} estimated files). System integrity, user credentials, and personal files remain 100% protected.";
         ConfirmModalOverlay.Visibility = Visibility.Visible;
     }
 
@@ -787,8 +889,16 @@ public partial class MainWindow : Window
             AddLog($"Cleanup Finished: Freed {_lastSummary.FormattedFreedSize} ({totalFilesDeleted:N0} deleted, {totalFilesSkipped:N0} protected) in {stopwatch.Elapsed.TotalSeconds:N1}s", LogLevel.Success);
 
             // Show Animated Celebration Modal Dialog
-            CelebrationModalTitleText.Text = "Cleanup Completed!";
-            CelebrationReclaimedText.Text = $"Successfully Reclaimed {_lastSummary.FormattedFreedSize}";
+            if (totalFilesSkipped > 0)
+            {
+                CelebrationModalTitleText.Text = "Cleanup Completed with Exceptions";
+                CelebrationReclaimedText.Text = $"Reclaimed {_lastSummary.FormattedFreedSize} ({totalFilesSkipped:N0} in-use/protected files safely skipped)";
+            }
+            else
+            {
+                CelebrationModalTitleText.Text = "Cleanup Completed!";
+                CelebrationReclaimedText.Text = $"Successfully Reclaimed {_lastSummary.FormattedFreedSize}";
+            }
             CelebrationFilesText.Text = $"{totalFilesDeleted:N0}";
             CelebrationFoldersText.Text = $"{totalFoldersDeleted:N0}";
             CelebrationRamText.Text = "-- MB";
@@ -1018,11 +1128,17 @@ public partial class MainWindow : Window
     {
         long selectedBytes = 0;
         int selectedFiles = 0;
+        int safeCount = 0;
+        int reviewCount = 0;
 
         foreach (var target in _targets.Where(t => t.IsSelected))
         {
             selectedBytes += target.SizeBytes;
             selectedFiles += target.FileCount;
+            if (target.SafetyBadge.Contains("REVIEW", StringComparison.OrdinalIgnoreCase))
+                reviewCount++;
+            else
+                safeCount++;
         }
 
         var formattedSize = TargetFolderInfo.FormatBytes(selectedBytes);
@@ -1035,16 +1151,16 @@ public partial class MainWindow : Window
         }
         else
         {
-            HeroSubtext.Text = $"{selectedFiles:N0} junk items selected for precision removal";
+            string breakdown = reviewCount > 0 ? $" ({safeCount} safe, {reviewCount} review required)" : " (100% verified safe)";
+            HeroSubtext.Text = $"{selectedFiles:N0} junk items selected across {_targets.Count(t => t.IsSelected)} categories{breakdown}";
         }
     }
 
     private void SetControlsEnabled(bool enabled)
     {
-        QuickScanBtn.IsEnabled = enabled;
-        CleanButton.IsEnabled = enabled;
+        if (HeroScanBtn != null) HeroScanBtn.IsEnabled = enabled;
+        if (CleanButton != null) CleanButton.IsEnabled = enabled;
         if (HeroOneClickDeepCleanBtn != null) HeroOneClickDeepCleanBtn.IsEnabled = enabled;
-        if (HeroRescanBtn != null) HeroRescanBtn.IsEnabled = enabled;
         if (FooterOneClickBtn != null) FooterOneClickBtn.IsEnabled = enabled;
     }
 
@@ -1845,6 +1961,34 @@ public partial class MainWindow : Window
             view.Refresh();
         }
         UpdateLargeFileSelectionSummary();
+    }
+
+    private void LargeFileSort_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_isLoaded || _largeFiles == null || LargeFileSortComboBox == null) return;
+        var view = CollectionViewSource.GetDefaultView(_largeFiles);
+        if (view == null) return;
+
+        view.SortDescriptions.Clear();
+        string tag = (LargeFileSortComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "SIZE_DESC";
+        switch (tag)
+        {
+            case "SIZE_ASC":
+                view.SortDescriptions.Add(new System.ComponentModel.SortDescription("SizeBytes", System.ComponentModel.ListSortDirection.Ascending));
+                break;
+            case "SAFETY":
+                view.SortDescriptions.Add(new System.ComponentModel.SortDescription("SafetyScore", System.ComponentModel.ListSortDirection.Descending));
+                view.SortDescriptions.Add(new System.ComponentModel.SortDescription("SizeBytes", System.ComponentModel.ListSortDirection.Descending));
+                break;
+            case "NAME":
+                view.SortDescriptions.Add(new System.ComponentModel.SortDescription("FileName", System.ComponentModel.ListSortDirection.Ascending));
+                break;
+            case "SIZE_DESC":
+            default:
+                view.SortDescriptions.Add(new System.ComponentModel.SortDescription("SizeBytes", System.ComponentModel.ListSortDirection.Descending));
+                break;
+        }
+        view.Refresh();
     }
 
     private bool FilterLargeFileItem(object obj)

@@ -78,6 +78,14 @@
 </head>
 <body>
 
+  <!-- Ambient Cybernetic Aurora System -->
+  <div class="ambient-aurora" aria-hidden="true">
+    <div class="aurora-orb aurora-orb-1"></div>
+    <div class="aurora-orb aurora-orb-2"></div>
+    <div class="aurora-orb aurora-orb-3"></div>
+    <div class="aurora-grid"></div>
+  </div>
+
   <!-- Floating Island Navigation -->
   <header class="nav-wrapper">
     <nav class="nav-island" aria-label="Main Navigation">
@@ -109,7 +117,7 @@
   </header>
 
   <main class="container" style="padding-top: 2rem; padding-bottom: 5rem;">
-    <div class="section-header">
+    <div class="section-header reveal-on-scroll">
       <div class="section-tag">Download Center</div>
       <h1 class="section-title">Official Standalone Binaries</h1>
       <p class="section-subtitle">Deltempo requires zero installation. Download the standalone executable and run it immediately from any folder.</p>
@@ -118,7 +126,7 @@
     <!-- Download Cards Grid -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
       <!-- GUI Card -->
-      <div class="double-bezel">
+      <div class="double-bezel reveal-on-scroll stagger-1">
         <div class="card-inner" style="display: flex; flex-direction: column; justify-content: space-between;">
           <div>
             <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 0.5rem;">PRIMARY DESKTOP APP</div>
@@ -138,7 +146,7 @@
       </div>
 
       <!-- CLI Card -->
-      <div class="double-bezel">
+      <div class="double-bezel reveal-on-scroll stagger-2">
         <div class="card-inner" style="display: flex; flex-direction: column; justify-content: space-between;">
           <div>
             <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent-emerald); text-transform: uppercase; margin-bottom: 0.5rem;">HEADLESS TERMINAL TOOL</div>
@@ -263,5 +271,7 @@
       });
     })();
   </script>
+  <!-- Cybernetic Motion Engine -->
+  <script src="../motion.js" defer></script>
 </body>
 </html>

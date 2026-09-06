@@ -147,6 +147,14 @@
 </head>
 <body>
 
+  <!-- Ambient Cybernetic Aurora System -->
+  <div class="ambient-aurora" aria-hidden="true">
+    <div class="aurora-orb aurora-orb-1"></div>
+    <div class="aurora-orb aurora-orb-2"></div>
+    <div class="aurora-orb aurora-orb-3"></div>
+    <div class="aurora-grid"></div>
+  </div>
+
   <!-- Floating Island Navigation -->
   <header class="nav-wrapper">
     <nav class="nav-island" aria-label="Main Navigation">
@@ -204,16 +212,17 @@
     <!-- HERO SECTION -->
     <section class="hero">
       <div class="container">
-        <div class="hero-eyebrow">
+        <div class="hero-eyebrow reveal-on-scroll">
           <span>Open Source • Windows 10 / 11 • Local Execution</span>
         </div>
-        <h1 class="hero-headline">
-          A lighter, cleaner Windows PC.
+        <h1 class="hero-headline reveal-on-scroll stagger-1">
+          <span class="hero-title-main">A lighter, cleaner Windows PC.</span><br />
+          <span class="text-gradient">Pure NT Memory &amp; Cache Reclaim.</span>
         </h1>
-        <p class="hero-subtext">
+        <p class="hero-subtext reveal-on-scroll stagger-2">
           Deltempo is a portable, open-source Windows cleaner and NT memory optimizer. Designed to clean disposable caches without touching personal data — zero telemetry, no background daemons, and full source code transparency.
         </p>
-        <div class="hero-ctas">
+        <div class="hero-ctas reveal-on-scroll stagger-3">
           <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-pill btn-pill-primary" style="padding: 0.75rem 1.75rem; font-size: 1rem;">
             <span>Download Deltempo</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -224,14 +233,14 @@
         </div>
 
         <!-- WinGet Command Copy -->
-        <button class="hero-winget" id="wingetBtn" title="Click to copy WinGet command" aria-label="Copy WinGet install command">
+        <button class="hero-winget reveal-on-scroll stagger-4" id="wingetBtn" title="Click to copy WinGet command" aria-label="Copy WinGet install command">
           <span style="color: var(--accent-cyan);">$</span>
           <span>winget install Beso1227.Deltempo</span>
           <span class="hero-winget-copy" id="wingetBadge">Copy</span>
         </button>
 
         <!-- Proof Row -->
-        <div class="hero-proof-row">
+        <div class="hero-proof-row reveal-on-scroll stagger-4">
           <div class="hero-proof-item">
             <span class="hero-proof-icon">✓</span>
             <span>5-Tier Safety Engine</span>
@@ -251,7 +260,7 @@
         </div>
 
         <!-- REAL APP UI SHOWCASE -->
-        <div class="showcase-wrapper" id="showcase">
+        <div class="showcase-wrapper reveal-on-scroll stagger-2" id="showcase">
           <div class="double-bezel">
             <div class="app-window">
               <!-- Titlebar -->
@@ -434,14 +443,14 @@
     <!-- WHY DELTEMPO (CORE VALUE PROPOSITION) -->
     <section class="section-py" id="why" style="border-top: 1px solid var(--border-subtle);">
       <div class="container">
-        <div class="section-header">
+        <div class="section-header reveal-on-scroll">
           <div class="section-tag">Core Principles</div>
           <h2 class="section-title">Built for trust, speed, and safety.</h2>
           <p class="section-subtitle">Deltempo is built for users who want to clean disposable Windows data without worrying about broken apps, deleted passwords, or intrusive telemetry.</p>
         </div>
 
         <div class="features-grid">
-          <div class="double-bezel">
+          <div class="double-bezel reveal-on-scroll stagger-1">
             <div class="card-inner feature-card">
               <div class="feature-icon-wrapper">🧹</div>
               <h3 class="feature-title">Clean What Matters</h3>
@@ -449,7 +458,7 @@
             </div>
           </div>
 
-          <div class="double-bezel">
+          <div class="double-bezel reveal-on-scroll stagger-2">
             <div class="card-inner feature-card">
               <div class="feature-icon-wrapper">⚡</div>
               <h3 class="feature-title">NT Kernel Memory Optimization</h3>
@@ -457,7 +466,7 @@
             </div>
           </div>
 
-          <div class="double-bezel">
+          <div class="double-bezel reveal-on-scroll stagger-3">
             <div class="card-inner feature-card">
               <div class="feature-icon-wrapper">🔒</div>
               <h3 class="feature-title">No Telemetry &amp; Local Operation</h3>
@@ -465,7 +474,7 @@
             </div>
           </div>
 
-          <div class="double-bezel">
+          <div class="double-bezel reveal-on-scroll stagger-4">
             <div class="card-inner feature-card">
               <div class="feature-icon-wrapper">🛡️</div>
               <h3 class="feature-title">Deterministic Safety Architecture</h3>
@@ -495,14 +504,14 @@
     <!-- SAFETY ARCHITECTURE (MAJOR DIFFERENTIATOR) -->
     <section class="section-py" id="safety" style="background: var(--bg-surface); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);">
       <div class="container">
-        <div class="section-header">
+        <div class="section-header reveal-on-scroll">
           <div class="section-tag">Safety First</div>
           <h2 class="section-title">Designed to clean aggressively — without being reckless.</h2>
           <p class="section-subtitle">Most PC cleaners operate as black boxes. Deltempo uses an explicit two-phase planning architecture to verify every single file before touching disk.</p>
         </div>
 
         <!-- 5-Step Pipeline -->
-        <div class="safety-pipeline">
+        <div class="safety-pipeline reveal-on-scroll stagger-1">
           <div class="pipeline-step">
             <div class="pipeline-step-num">STEP 01</div>
             <div class="pipeline-step-name">Scan</div>
@@ -577,13 +586,13 @@
     <!-- CAPABILITIES MATRIX -->
     <section class="section-py" id="features">
       <div class="container">
-        <div class="section-header">
+        <div class="section-header reveal-on-scroll">
           <div class="section-tag">Capabilities</div>
           <h2 class="section-title">Complete suite of Windows maintenance tools.</h2>
           <p class="section-subtitle">Organized cleanly into three functional pillars: Clean, Optimize, and Control.</p>
         </div>
 
-        <div class="cap-columns">
+        <div class="cap-columns reveal-on-scroll stagger-1">
           <!-- COLUMN 1: CLEAN -->
           <div class="cap-column">
             <div class="cap-col-header">
@@ -692,14 +701,14 @@
     <!-- HOW IT WORKS (3 SIMPLE STEPS) -->
     <section class="section-py" id="how-it-works" style="background: var(--bg-surface); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);">
       <div class="container">
-        <div class="section-header">
+        <div class="section-header reveal-on-scroll">
           <div class="section-tag">Workflow</div>
           <h2 class="section-title">How Deltempo Works</h2>
           <p class="section-subtitle">Three simple steps give you complete confidence in what gets cleaned.</p>
         </div>
 
         <div class="features-grid">
-          <div class="double-bezel">
+          <div class="double-bezel reveal-on-scroll stagger-1">
             <div class="card-inner feature-card">
               <div style="font-family: var(--font-mono); font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan); margin-bottom: 1rem;">01</div>
               <h3 class="feature-title">Scan</h3>
@@ -804,13 +813,13 @@
     <!-- FREQUENTLY ASKED QUESTIONS -->
     <section class="section-py" id="faq">
       <div class="container">
-        <div class="section-header">
+        <div class="section-header reveal-on-scroll">
           <div class="section-tag">FAQ</div>
           <h2 class="section-title">Frequently Asked Questions</h2>
           <p class="section-subtitle">Straight answers to practical questions about Deltempo's architecture and safety.</p>
         </div>
 
-        <div class="faq-grid">
+        <div class="faq-grid reveal-on-scroll stagger-1">
           <div class="faq-item">
             <button class="faq-question" aria-expanded="false">
               <span>Is Deltempo free and open source?</span>
@@ -1068,5 +1077,7 @@
       }
     })();
   </script>
+  <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals) -->
+  <script src="motion.js" defer></script>
 </body>
 </html>
