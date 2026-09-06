@@ -741,17 +741,17 @@ public class CleanerServiceTests : IDisposable
     }
 
     [Fact]
-    public void SmartClean_TargetsOnly100PercentSafeCaches()
+    public void SmartClean_TargetsOnlyVerifiedSafeCaches()
     {
         var allTargets = CleanerService.GetDefaultTargets();
         var smartTargets = allTargets
-            .Where(t => t.SafetyBadge.Contains("100% Safe") && !t.IsOrphanedAppFolder)
+            .Where(t => (t.SafetyBadge.Contains("Verified") || t.SafetyBadge.Contains("100% Safe")) && !t.IsOrphanedAppFolder)
             .ToList();
 
         Assert.NotEmpty(smartTargets);
         Assert.All(smartTargets, t =>
         {
-            Assert.Contains("100% Safe", t.SafetyBadge);
+            Assert.True(t.SafetyBadge.Contains("Verified") || t.SafetyBadge.Contains("100% Safe"));
             Assert.False(t.IsOrphanedAppFolder);
         });
     }

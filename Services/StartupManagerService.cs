@@ -241,10 +241,43 @@ public static class StartupManagerService
         }
     }
 
+    private static readonly HashSet<string> ProtectedStartupNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "SecurityHealth",
+        "WindowsDefender",
+        "MSPresenceing",
+        "ctfmon",
+        "cmd",
+        "explorer"
+    };
+
+    public static bool IsProtectedStartupItem(StartupItem item)
+    {
+        if (ProtectedStartupNames.Contains(item.Name)) return true;
+
+        var cmdLower = (item.Command + " " + item.ExePath).ToLowerInvariant();
+        if (cmdLower.Contains("securityhealthsystray") ||
+            cmdLower.Contains("smartscreen") ||
+            cmdLower.Contains("msmpeng") ||
+            cmdLower.Contains("windefend"))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public static bool ToggleStartupItem(StartupItem item, bool enable)
     {
         try
         {
+            // Protect essential OS security and boot components from being disabled
+            if (!enable && IsProtectedStartupItem(item))
+            {
+                Trace.WriteLine($"[Deltempo] Prevented disabling protected startup item: {item.Name}");
+                return false;
+            }
+
             if (item.Location.StartsWith("HKCU", StringComparison.OrdinalIgnoreCase) || 
                 item.Location.StartsWith("HKLM", StringComparison.OrdinalIgnoreCase) ||
                 item.Location.Contains("WOW64", StringComparison.OrdinalIgnoreCase))

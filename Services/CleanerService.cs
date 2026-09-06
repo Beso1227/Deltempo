@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using WinTempCleaner.Core.Cleaning;
+using WinTempCleaner.Core.Safety;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services.Providers.CacheResolvers;
 
@@ -130,7 +132,7 @@ public class CleanerService
                 Name = "User Temp & Scratchpad",
                 Category = "User Cache",
                 CategoryColor = "#3B82F6",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Application cache, temporary setup extracts, downloads (%TEMP%)",
                 FolderPath = userTemp,
@@ -147,7 +149,7 @@ public class CleanerService
                 Name = "Windows System Temp",
                 Category = "System & GPU",
                 CategoryColor = "#6366F1",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "OS diagnostic traces, system update scratchpad (C:\\Windows\\Temp)",
                 FolderPath = winTemp,
@@ -164,7 +166,7 @@ public class CleanerService
                 Name = "Windows Prefetch Cache",
                 Category = "System & GPU",
                 CategoryColor = "#8B5CF6",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Stale execution traces & cached startup headers (C:\\Windows\\Prefetch)",
                 FolderPath = winPrefetch,
@@ -181,7 +183,7 @@ public class CleanerService
                 Name = "Windows Update Cache",
                 Category = "System & GPU",
                 CategoryColor = "#EC4899",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Downloaded update installers & delivery cache (SoftwareDistribution\\Download)",
                 FolderPath = winUpdateDownload,
@@ -198,7 +200,7 @@ public class CleanerService
                 Name = "Windows Upgrade & Setup Leftovers",
                 Category = "System & OS",
                 CategoryColor = "#F43F5E",
-                SafetyBadge = "🟢 100% Safe Leftovers",
+                SafetyBadge = "🟢 Verified Leftovers",
                 SafetyBadgeColor = "#10B981",
                 Description = "Old OS installation leftovers, $WINDOWS.~BT, $WINDOWS.~WS, ESD, and Setup scratchpads",
                 FolderPath = "Windows Upgrade Leftovers Pool",
@@ -215,7 +217,7 @@ public class CleanerService
                 Name = "Windows Delivery Optimization",
                 Category = "System & OS",
                 CategoryColor = "#3B82F6",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "P2P Windows update delivery chunks and background bits cache (DeliveryOptimization)",
                 FolderPath = Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "Microsoft", "Windows", "DeliveryOptimization", "Cache"),
@@ -232,7 +234,7 @@ public class CleanerService
                 Name = "Windows Component & Font Caches",
                 Category = "System & OS",
                 CategoryColor = "#06B6D4",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Windows FontCache, Downloaded Program Files, WinSxS temp, DISM scratch & BranchCache",
                 FolderPath = "Windows Components Pool",
@@ -249,7 +251,7 @@ public class CleanerService
                 Name = "Device Driver Packages & GPU Updates",
                 Category = "System & Drivers",
                 CategoryColor = "#10B981",
-                SafetyBadge = "🟢 100% Safe Drivers",
+                SafetyBadge = "🟢 Verified Drivers",
                 SafetyBadgeColor = "#10B981",
                 Description = "NVIDIA App/GeForce OTA driver packages, AMD & Intel installer caches, DriverStore temp",
                 FolderPath = "Device Driver Packages Pool",
@@ -266,7 +268,7 @@ public class CleanerService
                 Name = "Microsoft Defender Support & Scans",
                 Category = "Security & Logs",
                 CategoryColor = "#06B6D4",
-                SafetyBadge = "🟢 100% Safe Logs",
+                SafetyBadge = "🟢 Verified Logs",
                 SafetyBadgeColor = "#10B981",
                 Description = "Defender support diagnostic logs (MPLog), definition update backups & scan history cache",
                 FolderPath = "Defender Support Pool",
@@ -283,7 +285,7 @@ public class CleanerService
                 Name = "Windows System Diagnostic Logs",
                 Category = "Diagnostics",
                 CategoryColor = "#8B5CF6",
-                SafetyBadge = "🟢 100% Safe Logs",
+                SafetyBadge = "🟢 Verified Logs",
                 SafetyBadgeColor = "#10B981",
                 Description = "CBS, DISM, Panther, SetupAPI, LogFiles (WMI/HTTPERR), and tracing logs",
                 FolderPath = "Windows Logs Pool",
@@ -300,7 +302,7 @@ public class CleanerService
                 Name = "BSOD Minidumps & Kernel Reports",
                 Category = "Diagnostics",
                 CategoryColor = "#EF4444",
-                SafetyBadge = "🟢 100% Safe Dumps",
+                SafetyBadge = "🟢 Verified Dumps",
                 SafetyBadgeColor = "#10B981",
                 Description = "Windows crash minidumps (*.dmp), MEMORY.DMP, and LiveKernelReports",
                 FolderPath = Path.Combine(winDir, "Minidump"),
@@ -317,7 +319,7 @@ public class CleanerService
                 Name = "Temporary Internet Files & WebCache",
                 Category = "Internet Cache",
                 CategoryColor = "#F59E0B",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Windows INetCache, WebCache, and CryptnetUrlCache certificate content",
                 FolderPath = "Temporary Internet Files Pool",
@@ -334,7 +336,7 @@ public class CleanerService
                 Name = "DirectX & GPU Shader Caches",
                 Category = "System & GPU",
                 CategoryColor = "#8B5CF6",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Compiled graphics shaders from NVIDIA, AMD, D3DSCache & Intel",
                 FolderPath = Path.Combine(localAppData, "D3DSCache"),
@@ -351,7 +353,7 @@ public class CleanerService
                 Name = "Game Launchers & Shaders",
                 Category = "Gaming & Media",
                 CategoryColor = "#EC4899",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Steam downloads & shaders, Epic Games webcache, Battle.net, EA App, Riot Games, Roblox",
                 FolderPath = "Gaming Launchers Pool",
@@ -368,7 +370,7 @@ public class CleanerService
                 Name = "Media & Creator Render Caches",
                 Category = "Creator & Media",
                 CategoryColor = "#F59E0B",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Adobe Premiere/After Effects/Photoshop scratch, CapCut cache, DaVinci proxy, OBS logs, Blender temp",
                 FolderPath = "Media Creator Caches Pool",
@@ -385,7 +387,7 @@ public class CleanerService
                 Name = "Desktop Apps Cache Sweeper",
                 Category = "User Cache",
                 CategoryColor = "#10B981",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Disposable GPU & Code Cache in Discord, Spotify, Slack, VS Code, Cursor, Teams, WhatsApp, Notion",
                 FolderPath = "App Caches Pool",
@@ -402,7 +404,7 @@ public class CleanerService
                 Name = "Windows Store Apps & UWP Caches",
                 Category = "Store Apps",
                 CategoryColor = "#10B981",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Temporary LocalCache & INetCache across Windows Store packages (New Teams, Xbox, WhatsApp, etc.)",
                 FolderPath = "Windows Store App Packages Pool",
@@ -419,7 +421,7 @@ public class CleanerService
                 Name = "Messaging & Social Apps Caches",
                 Category = "Communication",
                 CategoryColor = "#06B6D4",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Safe media & GPU caches for WhatsApp, Telegram, Discord, Slack, Teams, Signal, Skype, Viber, Zoom (logins strictly preserved)",
                 FolderPath = "Messaging Apps Cache Pool",
@@ -436,7 +438,7 @@ public class CleanerService
                 Name = "Web Browsers Cache Pool",
                 Category = "User Cache",
                 CategoryColor = "#F97316",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Chrome, Edge, Brave, Opera, Firefox, Arc, Vivaldi multi-profile web & shader cache (logins preserved)",
                 FolderPath = "Browser Web Caches",
@@ -453,7 +455,7 @@ public class CleanerService
                 Name = "Developer & Package Caches",
                 Category = "Dev Caches",
                 CategoryColor = "#06B6D4",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "pip, npm, yarn, pnpm, NuGet, .gradle, Cargo, Go build, Bun, Deno, and .NET temp caches",
                 FolderPath = Path.Combine(localAppData, "pip", "cache"),
@@ -470,7 +472,7 @@ public class CleanerService
                 Name = "Mobile Sync & Dev Daemons",
                 Category = "Dev & Mobile",
                 CategoryColor = "#06B6D4",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Apple iTunes temp sync cache, Android Studio emulator cache, Gradle & Cargo caches",
                 FolderPath = "Mobile & Dev Residuals Pool",
@@ -487,7 +489,7 @@ public class CleanerService
                 Name = "Windows Error Reports (WER)",
                 Category = "Diagnostics",
                 CategoryColor = "#F59E0B",
-                SafetyBadge = "🟢 100% Safe Logs",
+                SafetyBadge = "🟢 Verified Logs",
                 SafetyBadgeColor = "#10B981",
                 Description = "Windows Error Reporting logs & diagnostic queues (WER ReportArchive/ReportQueue)",
                 FolderPath = werPath,
@@ -504,7 +506,7 @@ public class CleanerService
                 Name = "Explorer Thumbnail Cache",
                 Category = "Diagnostics",
                 CategoryColor = "#06B6D4",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "Cached image & video thumbnail databases (thumbcache_*.db)",
                 FolderPath = explorerThumbnails,
@@ -521,7 +523,7 @@ public class CleanerService
                 Name = "System & Explorer Usage Traces",
                 Category = "Privacy Traces",
                 CategoryColor = "#3B82F6",
-                SafetyBadge = "🟢 100% Safe Privacy",
+                SafetyBadge = "🟢 Verified Privacy",
                 SafetyBadgeColor = "#10B981",
                 Description = "Recent items shortcuts, AutomaticDestinations, and CustomDestinations Jump Lists",
                 FolderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Recent"),
@@ -555,7 +557,7 @@ public class CleanerService
                 Name = "Windows Recycle Bin",
                 Category = "Storage",
                 CategoryColor = "#EF4444",
-                SafetyBadge = "🟢 100% Safe Cache",
+                SafetyBadge = "🟢 Verified Cache",
                 SafetyBadgeColor = "#10B981",
                 Description = "All physical drive Recycle Bins via Windows Shell API (SHEmptyRecycleBin)",
                 FolderPath = "Recycle Bin (All Drives)",
@@ -1337,16 +1339,8 @@ public class CleanerService
                             continue;
                         }
 
-                        // Essential session and credential guard: NEVER delete protected files
-                        if (IsProtectedFile(file.FullName))
-                        {
-                            filesSkipped++;
-                            continue;
-                        }
-
-                        // AI safety gate: protect files the heuristic engine flags as high-risk
-                        var aiResult = AiFileSafetyService.AnalyzeFile(file.FullName, file.Name, "File", file.Length, file.LastWriteTime);
-                        if (aiResult.Tier == AiSafetyTier.HighRiskKeep)
+                        // Pre-deletion TOCTOU revalidation guard
+                        if (!CleanupExecutor.RevalidateBeforeDeletion(file.FullName, targetPath, file.Length, out string revalReason))
                         {
                             filesSkipped++;
                             continue;
@@ -1357,10 +1351,10 @@ public class CleanerService
                             long fileLen = file.Length;
                             string path = file.FullName;
 
-                            // 1. Clear ReadOnly / Hidden / System attributes to prevent deletion failures
-                            if ((file.Attributes & (FileAttributes.ReadOnly | FileAttributes.Hidden | FileAttributes.System)) != 0)
+                            // 1. Clear ReadOnly attribute safely if needed (NEVER strip System attribute)
+                            if ((file.Attributes & FileAttributes.ReadOnly) != 0)
                             {
-                                try { file.Attributes = FileAttributes.Normal; } catch { }
+                                try { file.Attributes &= ~FileAttributes.ReadOnly; } catch { }
                             }
 
                             bool deleted = false;
@@ -1752,158 +1746,12 @@ public class CleanerService
 
     public static bool IsProtectedSessionOrCredentialFile(string filePath)
     {
-        if (string.IsNullOrWhiteSpace(filePath)) return false;
-
-        var pathLower = filePath.ToLowerInvariant();
-        var fileName = Path.GetFileName(pathLower);
-
-        // 1. Zero-touch sandbox protection for ALL messaging, communication, meeting, and auth Store packages
-        if (pathLower.Contains(@"\packages\"))
-        {
-            foreach (var kw in CommunicationAppKeywords)
-            {
-                if (pathLower.Contains(kw)) return true;
-            }
-        }
-
-        // 2. Critical session, credential, login, encryption master key, and account files
-        if (fileName == "local state" ||
-            fileName.StartsWith("local state") ||
-            fileName.StartsWith("login data") ||
-            fileName.StartsWith("cookies") ||
-            fileName.StartsWith("web data") ||
-            fileName.StartsWith("preferences") ||
-            fileName.StartsWith("secure preferences") ||
-            fileName.StartsWith("settings.dat") ||
-            fileName.StartsWith("roaming.lock") ||
-            fileName.StartsWith("key_data") ||
-            fileName.StartsWith("accounts") ||
-            fileName.StartsWith("tokens") ||
-            fileName.StartsWith("credentials") ||
-            fileName.StartsWith("user.dat") ||
-            fileName.StartsWith("userclasses.dat") ||
-            fileName.StartsWith("storage.json") ||
-            fileName.StartsWith("state.vscdb") ||
-            fileName.StartsWith("persistent.conf") ||
-            fileName.StartsWith("cs_shared.conf") ||
-            fileName.StartsWith("ecs.conf") ||
-            fileName.StartsWith("sadrecord.dat") ||
-            fileName.StartsWith("session.db") ||
-            fileName.Contains("session") ||
-            fileName.Contains("token") ||
-            fileName.Contains("identity") ||
-            fileName.Contains("credential") ||
-            fileName.Contains("msal") ||
-            fileName.Contains("app_settings") ||
-            fileName.Contains("cloud_settings") ||
-            fileName.EndsWith(".dat64"))
-        {
-            return true;
-        }
-
-        // 3. Telegram Desktop authentication keys & account maps (inside tdata)
-        // Telegram stores user auth keys as hex files (e.g., D877F783D5D3EF8C0, D877F783D5D3EF8C1, etc.),
-        // map0, map1, configs, settings0, settings1, key_datas, etc.
-        // ONLY user_data\cache, temp, and dumps subfolders in tdata are safe to clean.
-        if (pathLower.Contains(@"\tdata\"))
-        {
-            if (!pathLower.Contains(@"\tdata\user_data\cache\") &&
-                !pathLower.Contains(@"\tdata\temp\") &&
-                !pathLower.Contains(@"\tdata\dumps\"))
-            {
-                return true;
-            }
-        }
-
-        // 4. Database & storage paths holding active user sessions / auth tokens / sync databases / SSO identity
-        if (pathLower.Contains(@"\indexeddb\") ||
-            pathLower.Contains(@"\local storage\") ||
-            pathLower.Contains(@"\session storage\") ||
-            pathLower.Contains(@"\sharedstorage\") ||
-            pathLower.Contains(@"\service worker\") ||
-            pathLower.Contains(@"\sync data\") ||
-            pathLower.Contains(@"\keytar\") ||
-            pathLower.Contains(@"\keystore\") ||
-            pathLower.Contains(@"\credentials\") ||
-            pathLower.Contains(@"\identity\") ||
-            pathLower.Contains(@"\identitycache\") ||
-            pathLower.Contains(@"\tokenbroker\") ||
-            pathLower.Contains(@"\msal\") ||
-            pathLower.Contains(@"\wam\") ||
-            pathLower.Contains(@"\aad\") ||
-            pathLower.Contains(@"\sessions\") ||
-            pathLower.Contains(@"\edgesessions\"))
-        {
-            return true;
-        }
-
-        // 5. If the file/dir is inside any communication app's AppData tree, strictly protect non-cache folders & files
-        if (pathLower.Contains(@"\appdata\"))
-        {
-            foreach (var kw in CommunicationAppKeywords)
-            {
-                if (pathLower.Contains(kw))
-                {
-                    // Never delete database, configuration, state, or key files inside a communication app
-                    if (fileName.EndsWith(".db") || fileName.EndsWith(".db-wal") || fileName.EndsWith(".db-shm") ||
-                        fileName.EndsWith(".sqlite") || fileName.EndsWith(".sqlite-wal") || fileName.EndsWith(".sqlite-shm") ||
-                        fileName.EndsWith(".ldb") || fileName.EndsWith(".log") || fileName.EndsWith(".json") ||
-                        fileName.EndsWith(".conf") || fileName.EndsWith(".cfg") || fileName.EndsWith(".ini") ||
-                        fileName.EndsWith(".key") || fileName.EndsWith(".crt") || fileName.EndsWith(".pem"))
-                    {
-                        return true;
-                    }
-
-                    // If it's not inside an explicitly safe temporary/cache folder, protect it!
-                    if (!pathLower.Contains(@"\gpucache\") &&
-                        !pathLower.Contains(@"\dawncache\") &&
-                        !pathLower.Contains(@"\crashpad\") &&
-                        !pathLower.Contains(@"\temp\") &&
-                        !pathLower.Contains(@"\dumps\") &&
-                        !pathLower.Contains(@"\avatars\") &&
-                        !pathLower.Contains(@"\all users\cache\") &&
-                        !pathLower.Contains(@"\cache\") &&
-                        !pathLower.Contains(@"\cache2\entries\") &&
-                        !pathLower.Contains(@"\logs\"))
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
+        return ProtectionPolicy.IsProtected(filePath, out _);
     }
 
-    private static bool IsProtectedFile(string filePath)
+    public static bool IsProtectedFile(string filePath)
     {
-        // 0. Active session, login credentials, and user auth databases are strictly protected
-        if (IsProtectedSessionOrCredentialFile(filePath))
-        {
-            return true;
-        }
-
-        var ext = Path.GetExtension(filePath).ToLowerInvariant();
-        string[] dangerousExtensions = { ".exe", ".dll", ".sys", ".drv", ".msc", ".bat", ".cmd", ".vbs", ".ps1", ".docx", ".xlsx", ".pptx", ".pdf", ".psd", ".key", ".kdbx" };
-
-        if (dangerousExtensions.Contains(ext))
-        {
-            var fileName = Path.GetFileName(filePath).ToLowerInvariant();
-            if (filePath.Contains("temp", StringComparison.OrdinalIgnoreCase) ||
-                filePath.Contains("cache", StringComparison.OrdinalIgnoreCase) ||
-                filePath.Contains("download", StringComparison.OrdinalIgnoreCase) ||
-                filePath.Contains("ota-artifacts", StringComparison.OrdinalIgnoreCase) ||
-                filePath.Contains("wer", StringComparison.OrdinalIgnoreCase) ||
-                filePath.Contains("logs", StringComparison.OrdinalIgnoreCase) ||
-                filePath.Contains("$windows.~", StringComparison.OrdinalIgnoreCase) ||
-                filePath.Contains("esd", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-            return true;
-        }
-
-        return false;
+        return ProtectionPolicy.IsProtected(filePath, out _);
     }
 
     public static string GenerateAuditReport(IEnumerable<TargetFolderInfo> targets, CleanSummary summary, bool safeMode)
