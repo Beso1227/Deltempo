@@ -1211,6 +1211,13 @@ public partial class MainWindow : Window
             var release = await UpdateService.CheckForUpdatesAsync();
             if (release != null && release.IsNewer && !string.IsNullOrEmpty(release.DownloadUrl))
             {
+                // Suppress repeated nagging on startup if user previously dismissed this exact patch
+                if (silent && release.IsPatchUpdate && !string.IsNullOrEmpty(release.CommitSha) &&
+                    release.CommitSha.Equals(SettingsService.Current.DismissedPatchSha, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
                 _pendingRelease = release;
                 Dispatcher.Invoke(() =>
                 {
@@ -1313,7 +1320,11 @@ public partial class MainWindow : Window
         try
         {
             AddLog($"Starting atomic in-place update to {_pendingRelease.TagName}...", LogLevel.Info);
-            await UpdateService.DownloadAndApplyUpdateAsync(_pendingRelease.DownloadUrl, progress, _pendingRelease.ExpectedSha256);
+            await UpdateService.DownloadAndApplyUpdateAsync(
+                _pendingRelease.DownloadUrl,
+                progress,
+                _pendingRelease.ExpectedSha256,
+                _pendingRelease.CommitSha);
         }
         catch (Exception ex)
         {
@@ -1335,6 +1346,11 @@ public partial class MainWindow : Window
 
     private void CloseUpdateModal_Click(object sender, RoutedEventArgs e)
     {
+        if (_pendingRelease != null && !string.IsNullOrEmpty(_pendingRelease.CommitSha))
+        {
+            SettingsService.Current.DismissedPatchSha = _pendingRelease.CommitSha;
+            SettingsService.SaveSettings();
+        }
         UpdateModalOverlay.Visibility = Visibility.Collapsed;
         SoundService.PlayClickSound();
     }

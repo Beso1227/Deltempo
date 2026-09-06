@@ -182,21 +182,49 @@ public static class UpdateService
             }
 
             string localSha = BuildInfo.CommitSha;
+            string currentExeHash = BuildInfo.CurrentExecutableSha256;
+            string lastInstalledSha = SettingsService.Current.LastInstalledPatchSha;
+            string lastInstalledHash = SettingsService.Current.LastInstalledPatchHash;
+            string remoteSha256 = manifest?.Sha256 ?? "";
+
             bool isNewer = false;
 
-            if (!string.IsNullOrEmpty(remoteCommitSha) && !localSha.Equals("unknown", StringComparison.OrdinalIgnoreCase))
+            // 1. If running binary's SHA-256 matches remote patch binary's SHA-256 -> Exactly identical file
+            if (!string.IsNullOrEmpty(remoteSha256) && !string.IsNullOrEmpty(currentExeHash) &&
+                remoteSha256.Equals(currentExeHash, StringComparison.OrdinalIgnoreCase))
+            {
+                isNewer = false;
+            }
+            // 2. If persistent settings record this commit or hash as already installed
+            else if (!string.IsNullOrEmpty(remoteCommitSha) && !string.IsNullOrEmpty(lastInstalledSha) &&
+                     remoteCommitSha.Equals(lastInstalledSha, StringComparison.OrdinalIgnoreCase))
+            {
+                isNewer = false;
+            }
+            else if (!string.IsNullOrEmpty(remoteSha256) && !string.IsNullOrEmpty(lastInstalledHash) &&
+                     remoteSha256.Equals(lastInstalledHash, StringComparison.OrdinalIgnoreCase))
+            {
+                isNewer = false;
+            }
+            // 3. If local assembly commit matches remote commit
+            else if (!string.IsNullOrEmpty(remoteCommitSha) && !localSha.Equals("unknown", StringComparison.OrdinalIgnoreCase))
             {
                 bool isSameCommit = remoteCommitSha.StartsWith(localSha, StringComparison.OrdinalIgnoreCase) ||
                                     localSha.StartsWith(remoteCommitSha, StringComparison.OrdinalIgnoreCase);
 
-                if (!isSameCommit)
+                if (isSameCommit)
                 {
-                    isNewer = remoteTimestamp >= BuildInfo.BuildDateUtc.AddMinutes(-10);
+                    isNewer = false;
+                }
+                else
+                {
+                    isNewer = remoteTimestamp > BuildInfo.BuildDateUtc.AddMinutes(5);
                 }
             }
+            // 4. Fallback timestamp comparison when commit SHA is unavailable
             else
             {
-                isNewer = remoteTimestamp > BuildInfo.BuildDateUtc.AddMinutes(2);
+                isNewer = remoteTimestamp > BuildInfo.BuildDateUtc.AddMinutes(5);
             }
 
             string shortSha = remoteCommitSha.Length >= 7 ? remoteCommitSha[..7] : remoteCommitSha;
@@ -339,7 +367,7 @@ public static class UpdateService
         return null;
     }
 
-    public static async Task DownloadAndApplyUpdateAsync(string downloadUrl, IProgress<double> progress, string? expectedSha256 = null, CancellationToken ct = default)
+    public static async Task DownloadAndApplyUpdateAsync(string downloadUrl, IProgress<double> progress, string? expectedSha256 = null, string? commitSha = null, CancellationToken ct = default)
     {
         // 1. Strict Host & Protocol Security Assertion (Anti-SSRF / Anti-Tamper)
         if (!Uri.TryCreate(downloadUrl, UriKind.Absolute, out var uri) ||
@@ -490,6 +518,24 @@ exit /b 0
                 UseShellExecute = false,
                 WindowStyle = ProcessWindowStyle.Hidden
             };
+
+            // Persist installed patch metadata to settings before handover
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(commitSha))
+                {
+                    SettingsService.Current.LastInstalledPatchSha = commitSha;
+                }
+                if (!string.IsNullOrWhiteSpace(expectedSha256))
+                {
+                    SettingsService.Current.LastInstalledPatchHash = expectedSha256;
+                }
+                SettingsService.SaveSettings();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Failed to persist patch update metadata: {ex.Message}");
+            }
 
             Process.Start(psi);
 

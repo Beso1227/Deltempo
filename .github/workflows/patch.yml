@@ -48,9 +48,11 @@ jobs:
         run: dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --verbosity normal
 
       - name: Build & Publish Standalone Executables
+        shell: pwsh
         run: |
-          dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
-          dotnet publish Cli/Deltempo.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
+          $sha = (git rev-parse HEAD).Trim()
+          dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true "-p:SourceRevisionId=$sha" -o ./dist
+          dotnet publish Cli/Deltempo.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true "-p:SourceRevisionId=$sha" -o ./dist
 
       - name: Generate Patch Manifest
         shell: pwsh

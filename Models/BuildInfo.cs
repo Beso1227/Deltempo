@@ -75,6 +75,38 @@ public static class BuildInfo
         }
     }
 
+    private static string? _exeSha256;
+
+    public static string CurrentExecutableSha256
+    {
+        get
+        {
+            if (_exeSha256 == null)
+            {
+                try
+                {
+                    var path = Environment.ProcessPath;
+                    if (string.IsNullOrEmpty(path) || !File.Exists(path))
+                    {
+                        path = Path.Combine(AppContext.BaseDirectory, "Deltempo.exe");
+                    }
+                    if (File.Exists(path))
+                    {
+                        using var sha = System.Security.Cryptography.SHA256.Create();
+                        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                        byte[] hash = sha.ComputeHash(fs);
+                        _exeSha256 = Convert.ToHexString(hash).ToLowerInvariant();
+                    }
+                }
+                catch
+                {
+                }
+                _exeSha256 ??= string.Empty;
+            }
+            return _exeSha256;
+        }
+    }
+
     public static string VersionWithPatchDisplay =>
         $"v{BaseVersion.ToString(3)} ({ShortCommitSha})";
 
