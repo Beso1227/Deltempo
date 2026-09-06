@@ -297,7 +297,7 @@ public class CleanerServiceTests : IDisposable
         var result = await MemoryOptimizerService.OptimizeAreaAsync(MemoryTargetType.WorkingSet);
         Assert.NotNull(result);
         Assert.Equal(MemoryTargetType.WorkingSet, result.Target);
-        Assert.True(result.BytesFreed >= 0);
+        Assert.True(result.MeasuredBytesFreed >= 0);
     }
 
     [Fact]
@@ -306,7 +306,7 @@ public class CleanerServiceTests : IDisposable
         var result = await MemoryOptimizerService.OptimizeRamAsync();
         Assert.NotNull(result);
         Assert.True(result.ExecutionTimeMs >= 0);
-        Assert.True(result.ReclaimedBytes >= 0);
+        Assert.True(result.MeasuredBytesFreed >= 0);
         Assert.NotEmpty(result.AreaResults);
         Assert.Equal(7, result.AreaResults.Count);
     }
@@ -356,6 +356,30 @@ public class CleanerServiceTests : IDisposable
         var (success, freed) = ProcessOptimizerService.TrimProcessMemoryEx(new[] { 99999999 });
         Assert.False(success);
         Assert.Equal(0, freed);
+    }
+
+    [Fact]
+    public void ProcessOptimizer_SafeTerminateProcess_NonExistentPid_ReturnsFalse()
+    {
+        bool result = ProcessOptimizerService.SafeTerminateProcess(99999999);
+        Assert.False(result, "Terminating non-existent PID should return false.");
+    }
+
+    [Fact]
+    public void ProcessOptimizer_SafeTerminateProcess_EmptyPids_ReturnsFalse()
+    {
+        bool result = ProcessOptimizerService.SafeTerminateProcess(new List<int>());
+        Assert.False(result, "Empty PID list should return false.");
+    }
+
+    [Fact]
+    public void ProcessOptimizer_IsProtectedProcess_ReturnsTrueForCriticalSystemProcesses()
+    {
+        Assert.True(ProcessOptimizerService.IsProtectedProcess("svchost"));
+        Assert.True(ProcessOptimizerService.IsProtectedProcess("csrss"));
+        Assert.True(ProcessOptimizerService.IsProtectedProcess("smss"));
+        Assert.True(ProcessOptimizerService.IsProtectedProcess("wininit"));
+        Assert.True(ProcessOptimizerService.IsProtectedProcess("lsass"));
     }
 
     [Fact]
@@ -456,15 +480,15 @@ public class CleanerServiceTests : IDisposable
         try
         {
             // Act
-            var results = await LargeFileHunterService.ScanLargeFilesAsync(
+            var scanResult = await LargeFileHunterService.ScanLargeFilesAsync(
                 minSizeBytes: 50L * 1024 * 1024,
                 targetScope: _testSandboxDir);
 
             // Assert
-            Assert.Contains(results, f => f.FileName == "big_test_asset.pak");
-            Assert.DoesNotContain(results, f => f.FileName == "small_test_asset.txt");
+            Assert.Contains(scanResult.Files, f => f.FileName == "big_test_asset.pak");
+            Assert.DoesNotContain(scanResult.Files, f => f.FileName == "small_test_asset.txt");
 
-            var match = results.First(f => f.FileName == "big_test_asset.pak");
+            var match = scanResult.Files.First(f => f.FileName == "big_test_asset.pak");
             Assert.Equal("Game Asset / Pak", match.Category);
             Assert.Equal("\uE7FC", match.CategoryIcon);
             Assert.Equal(targetSize, match.SizeBytes);

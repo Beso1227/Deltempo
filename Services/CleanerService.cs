@@ -1112,7 +1112,7 @@ public class CleanerService
         int foldersDeleted = 0;
         int filesSkipped = 0;
 
-        await Task.Run(() =>
+        await Task.Run(async () =>
         {
             EnableFileManagementPrivileges();
 
@@ -1218,89 +1218,38 @@ public class CleanerService
                 return;
             }
 
-            var directoriesToClean = new List<string>();
+            var directoriesToClean = ResolveDirectoriesForFolder(folder);
 
-            if (folder.Id == "WinUpgradeLeftovers")
-            {
-                directoriesToClean.AddRange(GetUpgradeLeftoverDirectories());
-            }
-            else if (folder.Id == "WinComponentCaches")
-            {
-                directoriesToClean.AddRange(GetComponentCacheDirectories());
-            }
-            else if (folder.Id == "WinStoreAppCaches")
-            {
-                directoriesToClean.AddRange(GetStoreAppCacheDirectories());
-            }
-            else if (folder.Id == "DeviceDriverPackages")
-            {
-                directoriesToClean.AddRange(GetDeviceDriverDirectories());
-            }
-            else if (folder.Id == "DefenderAntivirus")
-            {
-                directoriesToClean.AddRange(GetDefenderDirectories());
-            }
-            else if (folder.Id == "WinSystemLogs")
-            {
-                directoriesToClean.AddRange(GetWinSystemLogDirectories());
-            }
-            else if (folder.Id == "SystemDumps")
-            {
-                directoriesToClean.AddRange(GetSystemDumpDirectories());
-            }
-            else if (folder.Id == "TemporaryInternetFiles")
-            {
-                directoriesToClean.AddRange(GetTemporaryInternetDirectories());
-            }
-            else if (folder.Id == "SystemUsageTraces")
-            {
-                directoriesToClean.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Recent"));
-            }
-            else if (folder.Id == "GpuShaderCaches")
-            {
-                directoriesToClean.AddRange(GetGpuShaderDirectories());
-            }
-            else if (folder.Id == "GamingLaunchers")
-            {
-                directoriesToClean.AddRange(GetGamingLauncherDirectories());
-            }
-            else if (folder.Id == "MediaCreatorCaches")
-            {
-                directoriesToClean.AddRange(GetMediaCreatorDirectories());
-            }
-            else if (folder.Id == "MobileDevResiduals")
-            {
-                directoriesToClean.AddRange(GetMobileDevDirectories());
-            }
-            else if (folder.Id == "AppCacheSweeper")
-            {
-                directoriesToClean.AddRange(GetAppCacheDirectories());
-            }
-            else if (folder.Id == "MessagingAppCaches")
-            {
-                directoriesToClean.AddRange(GetMessagingAppCacheDirectories());
-            }
-            else if (folder.Id == "BrowserCaches")
-            {
-                directoriesToClean.AddRange(GetBrowserCacheDirectories());
-            }
-            else if (folder.Id == "DevPackageCaches")
-            {
-                directoriesToClean.AddRange(GetDevPackageDirectories());
-            }
-            else if (folder.Id == "WinDeliveryOpt")
-            {
-                directoriesToClean.AddRange(GetDeliveryOptimizationDirectories());
-            }
-            else
-            {
-                directoriesToClean.Add(folder.FolderPath);
-            }
+            // Use the authoritative CleanupPlanner → CleanupExecutor path
+            bool applyShield = safeMode24Hours && folder.IsSafeModeEligible;
+            bool sendToRecycle = SettingsService.Current.SendToRecycleBin;
 
-            bool applySafeTimeCheck = safeMode24Hours && (folder.Id is "UserTemp" or "WinTemp" or "SandboxTest");
-            var cutoffTime = DateTime.Now - TimeSpan.FromHours(24);
-            long lastProgressTime = 0;
+            var plan = CleanupPlanner.CreatePlan(
+                scopeId: folder.Id,
+                scopeName: folder.Name,
+                directories: directoriesToClean,
+                category: folder.Category,
+                apply24HourShield: applyShield,
+                sendToRecycleBin: sendToRecycle,
+                ct: ct);
 
+            // Execute via the authoritative executor with verification
+            string allowedRoot = directoriesToClean.Count == 1
+                ? directoriesToClean[0]
+                : string.Empty;
+
+            var txResult = await CleanupExecutor.ExecutePlanAsync(
+                plan,
+                allowedRoot,
+                logAction,
+                null,
+                ct).ConfigureAwait(false);
+
+            freedBytes = txResult.TotalFreedBytes;
+            filesDeleted = txResult.TotalItemsFreed;
+            filesSkipped = txResult.SkippedCount + txResult.ReviewRequiredCount + txResult.UnknownCount + txResult.FailedCount;
+
+            // Clean empty subdirectories safely
             foreach (var targetPath in directoriesToClean)
             {
                 if (ct.IsCancellationRequested) break;
@@ -1315,156 +1264,33 @@ public class CleanerService
                         RecurseSubdirectories = true,
                         AttributesToSkip = FileAttributes.ReparsePoint
                     };
-
-                    var fileList = new List<FileInfo>();
-                    try
-                    {
-                        fileList = dirInfo.EnumerateFiles("*", enumOptions).ToList();
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
-                    }
-
-                    int totalFileCount = fileList.Count;
-                    int processedFiles = 0;
-
-                    foreach (var file in fileList)
+                    var subCheckOptions = new EnumerationOptions { IgnoreInaccessible = true };
+                    foreach (var subDir in dirInfo.EnumerateDirectories("*", enumOptions).OrderByDescending(d => d.FullName.Length))
                     {
                         if (ct.IsCancellationRequested) break;
-
-                        if (applySafeTimeCheck && file.LastWriteTime > cutoffTime)
-                        {
-                            filesSkipped++;
-                            continue;
-                        }
-
-                        // Pre-deletion TOCTOU revalidation guard
-                        if (!CleanupExecutor.RevalidateBeforeDeletion(file.FullName, targetPath, file.Length, out string revalReason))
-                        {
-                            filesSkipped++;
-                            continue;
-                        }
-
                         try
                         {
-                            long fileLen = file.Length;
-                            string path = file.FullName;
+                            if (ProtectionPolicy.IsProtected(subDir.FullName, out _)) continue;
+                            if ((subDir.Attributes & FileAttributes.ReparsePoint) != 0) continue;
+                            if (PathSecurity.IsReparsePointOrLink(subDir.FullName)) continue;
 
-                            // 1. Clear ReadOnly attribute safely if needed (NEVER strip System attribute)
-                            if ((file.Attributes & FileAttributes.ReadOnly) != 0)
+                            if (!subDir.EnumerateFileSystemInfos("*", subCheckOptions).Any())
                             {
-                                try { file.Attributes &= ~FileAttributes.ReadOnly; } catch { }
-                            }
-
-                            bool deleted = false;
-
-                            // 2. Recycle Bin mode if enabled in user settings
-                            if (SettingsService.Current.SendToRecycleBin)
-                            {
-                                try
+                                if ((subDir.Attributes & FileAttributes.ReadOnly) != 0)
                                 {
-                                    if (LargeFileHunterService.MoveToRecycleBin(path))
-                                    {
-                                        freedBytes += fileLen;
-                                        filesDeleted++;
-                                        deleted = true;
-                                    }
+                                    try { subDir.Attributes = FileAttributes.Normal; } catch { }
                                 }
-                                catch { }
-                            }
 
-                            if (!deleted)
-                            {
-                                // 3. Primary native Win32 deletion
-                                if (DeleteFileW(path))
+                                if (RemoveDirectoryW(subDir.FullName) || !Directory.Exists(subDir.FullName))
                                 {
-                                    freedBytes += fileLen;
-                                    filesDeleted++;
-                                }
-                                else
-                                {
-                                    // 4. Fallback standard .NET delete
-                                    try
-                                    {
-                                        file.Delete();
-                                        freedBytes += fileLen;
-                                        filesDeleted++;
-                                    }
-                                    catch
-                                    {
-                                        // 5. POSIX delete attempt for files shared with delete permission
-                                        bool sharedDeleted = false;
-                                        try
-                                        {
-                                            using (var fs = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
-                                            {
-                                            }
-                                            if (DeleteFileW(path))
-                                            {
-                                                freedBytes += fileLen;
-                                                filesDeleted++;
-                                                sharedDeleted = true;
-                                            }
-                                        }
-                                        catch { }
-
-                                        if (!sharedDeleted)
-                                        {
-                                            filesSkipped++;
-                                        }
-                                    }
+                                    foldersDeleted++;
                                 }
                             }
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            filesSkipped++;
+                            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
                         }
-
-                        processedFiles++;
-                        var now = Environment.TickCount64;
-                        if (now - lastProgressTime > 150 && totalFileCount > 0)
-                        {
-                            lastProgressTime = now;
-                            progressReport((double)processedFiles / totalFileCount);
-                        }
-                    }
-
-                    // Delete empty subdirectories safely
-                    try
-                    {
-                        var subCheckOptions = new EnumerationOptions { IgnoreInaccessible = true };
-                        foreach (var subDir in dirInfo.EnumerateDirectories("*", enumOptions).OrderByDescending(d => d.FullName.Length))
-                        {
-                            if (ct.IsCancellationRequested) break;
-                            try
-                            {
-                                if (IsProtectedSessionOrCredentialFile(subDir.FullName)) continue;
-                                if ((subDir.Attributes & FileAttributes.ReparsePoint) != 0) continue;
-
-                                if (!subDir.EnumerateFileSystemInfos("*", subCheckOptions).Any())
-                                {
-                                    if ((subDir.Attributes & FileAttributes.ReadOnly) != 0)
-                                    {
-                                        try { subDir.Attributes = FileAttributes.Normal; } catch { }
-                                    }
-
-                                    if (RemoveDirectoryW(subDir.FullName) || !Directory.Exists(subDir.FullName))
-                                    {
-                                        foldersDeleted++;
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
                     }
                 }
                 catch (Exception ex)
@@ -1503,12 +1329,12 @@ public class CleanerService
             if (freedBytes > 0)
             {
                 folder.StatusMessage = $"Reclaimed: {TargetFolderInfo.FormatBytes(freedBytes)}";
-                logAction($"Cleaned {folder.Name}: {TargetFolderInfo.FormatBytes(freedBytes)} reclaimed ({filesDeleted:N0} files deleted, {filesSkipped:N0} in use/protected)", LogLevel.Success);
+                logAction($"Cleaned {folder.Name}: {TargetFolderInfo.FormatBytes(freedBytes)} reclaimed ({filesDeleted:N0} files deleted, {filesSkipped:N0} skipped/protected/failed)", LogLevel.Success);
             }
             else if (filesSkipped > 0)
             {
-                folder.StatusMessage = $"Protected ({filesSkipped:N0} in use)";
-                logAction($"Protected {folder.Name}: {filesSkipped:N0} files in active use by running apps or protected by Safety Shield", LogLevel.Info);
+                folder.StatusMessage = $"Protected ({filesSkipped:N0} items)";
+                logAction($"Protected {folder.Name}: {filesSkipped:N0} files skipped by safety engine, protection policy, or verification", LogLevel.Info);
             }
             else
             {
@@ -1520,6 +1346,33 @@ public class CleanerService
         }, ct);
 
         return (freedBytes, filesDeleted, foldersDeleted, filesSkipped);
+    }
+
+    private static List<string> ResolveDirectoriesForFolder(TargetFolderInfo folder)
+    {
+        var dirs = new List<string>();
+
+        if (folder.Id == "WinUpgradeLeftovers") dirs.AddRange(GetUpgradeLeftoverDirectories());
+        else if (folder.Id == "WinComponentCaches") dirs.AddRange(GetComponentCacheDirectories());
+        else if (folder.Id == "WinStoreAppCaches") dirs.AddRange(GetStoreAppCacheDirectories());
+        else if (folder.Id == "DeviceDriverPackages") dirs.AddRange(GetDeviceDriverDirectories());
+        else if (folder.Id == "DefenderAntivirus") dirs.AddRange(GetDefenderDirectories());
+        else if (folder.Id == "WinSystemLogs") dirs.AddRange(GetWinSystemLogDirectories());
+        else if (folder.Id == "SystemDumps") dirs.AddRange(GetSystemDumpDirectories());
+        else if (folder.Id == "TemporaryInternetFiles") dirs.AddRange(GetTemporaryInternetDirectories());
+        else if (folder.Id == "SystemUsageTraces") dirs.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Recent"));
+        else if (folder.Id == "GpuShaderCaches") dirs.AddRange(GetGpuShaderDirectories());
+        else if (folder.Id == "GamingLaunchers") dirs.AddRange(GetGamingLauncherDirectories());
+        else if (folder.Id == "MediaCreatorCaches") dirs.AddRange(GetMediaCreatorDirectories());
+        else if (folder.Id == "MobileDevResiduals") dirs.AddRange(GetMobileDevDirectories());
+        else if (folder.Id == "AppCacheSweeper") dirs.AddRange(GetAppCacheDirectories());
+        else if (folder.Id == "MessagingAppCaches") dirs.AddRange(GetMessagingAppCacheDirectories());
+        else if (folder.Id == "BrowserCaches") dirs.AddRange(GetBrowserCacheDirectories());
+        else if (folder.Id == "DevPackageCaches") dirs.AddRange(GetDevPackageDirectories());
+        else if (folder.Id == "WinDeliveryOpt") dirs.AddRange(GetDeliveryOptimizationDirectories());
+        else if (!string.IsNullOrWhiteSpace(folder.FolderPath)) dirs.Add(folder.FolderPath);
+
+        return dirs;
     }
 
     public static async Task<(bool Success, string Message)> RunDismComponentCleanupAsync(Action<string, LogLevel>? logAction = null, CancellationToken ct = default)
@@ -1560,8 +1413,8 @@ public class CleanerService
                 }
                 else
                 {
-                    logAction?.Invoke($"DISM Component cleanup completed with exit code {proc.ExitCode}.", LogLevel.Info);
-                    return (true, $"DISM exit code: {proc.ExitCode}");
+                    logAction?.Invoke($"DISM Component cleanup completed with exit code {proc.ExitCode}.", LogLevel.Warning);
+                    return (false, $"DISM exit code: {proc.ExitCode}");
                 }
             }
             catch (Exception ex)

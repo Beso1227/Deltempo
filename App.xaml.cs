@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
+using WinTempCleaner.Core.Update;
 using WinTempCleaner.Services;
 
 namespace WinTempCleaner;
@@ -54,12 +56,18 @@ public partial class App : System.Windows.Application
         // Automatically ensure 'deltempo' is globally accessible in terminal & Win+R
         CliRegistrationService.EnsureCliRegistered();
 
-        // Purge any lingering .old binaries or updater temporary files
-        UpdateService.CleanupPendingUpdateArtifacts();
-
         var args = e.Args;
 
-        if (args.Length > 0)
+        // Handle update health handshake from DeltempoUpdater
+        if (args.Length >= 2 && args[0] == "--update-handshake")
+        {
+            HandleUpdateHandshake(args[1]);
+        }
+
+        // Transaction-aware cleanup (preserves active update journals)
+        UpdateService.CleanupPendingUpdateArtifacts();
+
+        if (args.Length > 0 && args[0] != "--update-handshake")
         {
             SetupConsoleStream();
             int exitCode = CliRunner.RunAsync(args).GetAwaiter().GetResult();
@@ -101,6 +109,47 @@ public partial class App : System.Windows.Application
         catch (Exception ex)
         {
             System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Handles the --update-handshake argument from DeltempoUpdater.
+    /// Signals health to the updater via EventWaitHandle and health.signal file.
+    /// </summary>
+    private void HandleUpdateHandshake(string txId)
+    {
+        try
+        {
+            string updatesDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                "Deltempo", "Updates", txId);
+
+            string healthSignalPath = Path.Combine(updatesDir, "health.signal");
+
+            // Wait for essential initialization (MainWindow loaded, tray icon ready)
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(() =>
+            {
+                try
+                {
+                    // Write health signal file
+                    File.WriteAllText(healthSignalPath, $"OK:{DateTime.UtcNow:O}");
+
+                    // Signal the EventWaitHandle
+                    string eventName = $"Local\\Deltempo_Health_{txId}";
+                    using var evt = System.Threading.EventWaitHandle.OpenExisting(eventName);
+                    evt.Set();
+
+                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Update health handshake signaled for transaction {txId}.");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Health handshake signal failed: {ex.Message}");
+                }
+            }));
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Update handshake setup failed: {ex.Message}");
         }
     }
 

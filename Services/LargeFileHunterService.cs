@@ -64,6 +64,18 @@ public class LargeFileInfo : INotifyPropertyChanged
     }
 }
 
+public class LargeFileScanResult
+{
+    public List<LargeFileInfo> Files { get; set; } = new();
+    public int TotalDiscovered { get; set; }
+    public int DisplayLimit { get; set; }
+    public bool WasTruncated => TotalDiscovered > DisplayLimit;
+    public long TotalBytesScanned { get; set; }
+    public int DirectoriesScanned { get; set; }
+    public List<string> InaccessibleDirectories { get; set; } = new();
+    public bool ScanCompleted { get; set; } = true;
+}
+
 public static class LargeFileHunterService
 {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
@@ -111,28 +123,32 @@ public static class LargeFileHunterService
         "bootmgr"
     };
 
-    public static async Task<List<LargeFileInfo>> ScanLargeFilesAsync(
+    public static async Task<LargeFileScanResult> ScanLargeFilesAsync(
         long minSizeBytes = 50L * 1024 * 1024,
         string targetScope = "ALL",
+        int maxResults = 250,
         IProgress<int>? progress = null,
         CancellationToken ct = default)
     {
         return await Task.Run(() =>
         {
-            var results = new List<LargeFileInfo>();
+            var allResults = new List<LargeFileInfo>();
+            var inaccessibleDirs = new List<string>();
             var rootsToScan = ResolveRoots(targetScope);
 
             int totalRoots = rootsToScan.Count;
             int currentRootIndex = 0;
+            int dirsScanned = 0;
+            long totalBytesScanned = 0;
+            bool scanCompleted = true;
 
             foreach (var root in rootsToScan)
             {
-                if (ct.IsCancellationRequested) break;
+                if (ct.IsCancellationRequested) { scanCompleted = false; break; }
                 currentRootIndex++;
 
                 if (!Directory.Exists(root)) continue;
 
-                // Stack-based iterative DFS up to MaxRecursionDepth = 12
                 var dirStack = new Stack<(string Path, int Depth)>();
                 dirStack.Push((root, 0));
 
@@ -140,7 +156,7 @@ public static class LargeFileHunterService
 
                 while (dirStack.Count > 0)
                 {
-                    if (ct.IsCancellationRequested) break;
+                    if (ct.IsCancellationRequested) { scanCompleted = false; break; }
 
                     var (currentDir, depth) = dirStack.Pop();
                     DirectoryInfo dirInfo;
@@ -156,7 +172,8 @@ public static class LargeFileHunterService
                         continue;
                     }
 
-                    // Enumerate subdirectories safely
+                    dirsScanned++;
+
                     if (depth < maxDepth)
                     {
                         try
@@ -176,11 +193,11 @@ public static class LargeFileHunterService
                         }
                         catch (Exception ex)
                         {
+                            inaccessibleDirs.Add(currentDir);
                             System.Diagnostics.Trace.WriteLine($"[Deltempo] Subdir enumeration suppressed: {ex.Message}");
                         }
                     }
 
-                    // Enumerate files safely
                     try
                     {
                         var files = dirInfo.EnumerateFiles("*", new EnumerationOptions
@@ -192,18 +209,19 @@ public static class LargeFileHunterService
 
                         foreach (var file in files)
                         {
-                            if (ct.IsCancellationRequested) break;
+                            if (ct.IsCancellationRequested) { scanCompleted = false; break; }
                             if (ExcludedFileNames.Contains(file.Name)) continue;
 
                             try
                             {
                                 long length = file.Length;
+                                totalBytesScanned += length;
                                 if (length >= minSizeBytes)
                                 {
                                     var (cat, icon) = ClassifyFileCategory(file.Extension);
                                     var safety = FileSafetyEngine.Analyze(file.FullName, fileName: file.Name, category: cat, sizeBytes: length, lastModified: file.LastWriteTime);
 
-                                    results.Add(new LargeFileInfo
+                                    allResults.Add(new LargeFileInfo
                                     {
                                         FilePath = file.FullName,
                                         FileName = file.Name,
@@ -234,6 +252,7 @@ public static class LargeFileHunterService
                     }
                     catch (Exception ex)
                     {
+                        inaccessibleDirs.Add(currentDir);
                         System.Diagnostics.Trace.WriteLine($"[Deltempo] File enumeration suppressed: {ex.Message}");
                     }
                 }
@@ -241,7 +260,20 @@ public static class LargeFileHunterService
                 progress?.Report((int)((double)currentRootIndex / totalRoots * 100));
             }
 
-            return results.OrderByDescending(f => f.SizeBytes).Take(250).ToList();
+            var sorted = allResults.OrderByDescending(f => f.SizeBytes).ToList();
+            int totalCount = sorted.Count;
+            var displayFiles = sorted.Take(maxResults).ToList();
+
+            return new LargeFileScanResult
+            {
+                Files = displayFiles,
+                TotalDiscovered = totalCount,
+                DisplayLimit = maxResults,
+                TotalBytesScanned = totalBytesScanned,
+                DirectoriesScanned = dirsScanned,
+                InaccessibleDirectories = inaccessibleDirs,
+                ScanCompleted = scanCompleted
+            };
         }, ct);
     }
 

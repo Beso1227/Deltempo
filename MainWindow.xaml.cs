@@ -1868,7 +1868,8 @@ public partial class MainWindow : Window
                 LargeFilesStatusText.Text = $"Scanning {readableScope}... ({pct}%)";
             });
 
-            var files = await LargeFileHunterService.ScanLargeFilesAsync(minBytes, scope, progress, ct);
+            var scanResult = await LargeFileHunterService.ScanLargeFilesAsync(minBytes, scope, maxResults: 250, progress: progress, ct: ct);
+            var files = scanResult.Files;
 
             _largeFiles.Clear();
             foreach (var f in files)

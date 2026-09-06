@@ -99,12 +99,12 @@ public class CliRunnerTests : IDisposable
             fs.SetLength(55L * 1024 * 1024);
         }
 
-        var results = await LargeFileHunterService.ScanLargeFilesAsync(
+        var scanResult = await LargeFileHunterService.ScanLargeFilesAsync(
             minSizeBytes: 50L * 1024 * 1024,
             targetScope: _testSandboxDir);
 
-        Assert.NotEmpty(results);
-        Assert.Contains(results, f => f.FileName == "big_archive.zip");
-        Assert.DoesNotContain(results, f => f.FileName == "small.txt");
+        Assert.NotEmpty(scanResult.Files);
+        Assert.Contains(scanResult.Files, f => f.FileName == "big_archive.zip");
+        Assert.DoesNotContain(scanResult.Files, f => f.FileName == "small.txt");
     }
 }

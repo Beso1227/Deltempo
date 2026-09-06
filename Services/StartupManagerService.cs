@@ -289,10 +289,33 @@ public static class StartupManagerService
                 RegistryKey rootKey = isHkcu ? Registry.CurrentUser : Registry.LocalMachine;
                 string subKey = item.Location.Contains("WOW64") ? Wow64RunKeyPath : RunKeyPath;
 
+                // Save original values for rollback
+                string backupValue = string.Empty;
+                bool hadBackup = false;
+                try
+                {
+                    using var backupKey = rootKey.OpenSubKey(enable ? RunDisabledKeyPath : subKey, false);
+                    if (backupKey != null)
+                    {
+                        var val = backupKey.GetValue(item.Name);
+                        if (val != null)
+                        {
+                            backupValue = val.ToString() ?? string.Empty;
+                            hadBackup = true;
+                        }
+                    }
+                }
+                catch { }
+
                 // 1. Set Windows Native Task Manager state in StartupApproved\Run
-                SetStartupApprovedState(rootKey, StartupApprovedRunPath, item.Name, enable);
+                if (!SetStartupApprovedState(rootKey, StartupApprovedRunPath, item.Name, enable))
+                {
+                    Trace.WriteLine($"[Deltempo] Could not set StartupApproved state for {item.Name}");
+                    return false;
+                }
 
                 // 2. Synchronize with Deltempo backup registry key
+                bool syncOk = false;
                 if (!enable)
                 {
                     using var runKey = rootKey.OpenSubKey(subKey, true);
@@ -303,6 +326,7 @@ public static class StartupManagerService
                         if (val != null)
                         {
                             disKey.SetValue(item.Name, val);
+                            syncOk = true;
                         }
                     }
                 }
@@ -317,8 +341,29 @@ public static class StartupManagerService
                         {
                             runKey.SetValue(item.Name, val);
                             disKey.DeleteValue(item.Name, false);
+                            syncOk = true;
                         }
                     }
+                }
+
+                // Rollback if sync failed
+                if (!syncOk)
+                {
+                    Trace.WriteLine($"[Deltempo] Registry sync failed for {item.Name}, rolling back StartupApproved state.");
+                    SetStartupApprovedState(rootKey, StartupApprovedRunPath, item.Name, !enable);
+
+                    // Restore backup value if available
+                    if (hadBackup)
+                    {
+                        try
+                        {
+                            string restoreKey = enable ? RunDisabledKeyPath : subKey;
+                            using var rk = rootKey.OpenSubKey(restoreKey, true);
+                            if (rk != null) rk.SetValue(item.Name, backupValue);
+                        }
+                        catch { }
+                    }
+                    return false;
                 }
 
                 item.IsEnabled = enable;
@@ -326,26 +371,34 @@ public static class StartupManagerService
             }
             else if (item.Location.Contains("Startup"))
             {
+                // Save original filename for rollback
+                string originalPath = item.Command;
+                string targetPath = item.Command;
+                bool fileRenamed = false;
+
                 // Update StartupApproved\StartupFolder
                 SetStartupApprovedState(Registry.CurrentUser, StartupApprovedFolderPath, Path.GetFileName(item.Command), enable);
 
                 if (!enable && File.Exists(item.Command) && !item.Command.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase))
                 {
-                    string target = item.Command + ".disabled";
-                    File.Move(item.Command, target, true);
-                    item.Command = target;
-                    item.IsEnabled = false;
-                    return true;
+                    targetPath = item.Command + ".disabled";
+                    File.Move(item.Command, targetPath, true);
+                    fileRenamed = true;
                 }
                 else if (enable && item.Command.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase) && File.Exists(item.Command))
                 {
-                    string target = item.Command[..^9];
-                    File.Move(item.Command, target, true);
-                    item.Command = target;
-                    item.IsEnabled = true;
-                    return true;
+                    targetPath = item.Command[..^9];
+                    File.Move(item.Command, targetPath, true);
+                    fileRenamed = true;
                 }
 
+                // Rollback if file rename succeeded but StartupApproved write may have failed
+                if (!fileRenamed)
+                {
+                    SetStartupApprovedState(Registry.CurrentUser, StartupApprovedFolderPath, Path.GetFileName(originalPath), !enable);
+                }
+
+                item.Command = targetPath;
                 item.IsEnabled = enable;
                 return true;
             }

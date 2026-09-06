@@ -3,6 +3,18 @@ using WinTempCleaner.Models;
 namespace WinTempCleaner.Core.Cleaning;
 
 /// <summary>
+/// Outcome of the cleanup operation for reporting and auditing.
+/// </summary>
+public enum CleanupCompletionStatus
+{
+    Clean,
+    CompletedWithWarnings,
+    PartiallyCompleted,
+    Failed,
+    Cancelled
+}
+
+/// <summary>
 /// Structured verification transaction summarizing the precise outcome of a cleanup operation.
 /// Enforces the rule: "Do not report '18 GB cleaned' unless the application actually verified what happened."
 /// </summary>
@@ -19,6 +31,12 @@ public class CleanupTransactionResult
 
     public int ProtectedCount { get; set; }
     public long ProtectedBytes { get; set; }
+
+    public int ReviewRequiredCount { get; set; }
+    public long ReviewRequiredBytes { get; set; }
+
+    public int UnknownCount { get; set; }
+    public long UnknownBytes { get; set; }
 
     public int SkippedCount { get; set; }
     public long SkippedBytes { get; set; }
@@ -41,10 +59,24 @@ public class CleanupTransactionResult
 
     public long TotalFreedBytes => DeletedBytes + RecycledBytes;
     public int TotalItemsFreed => DeletedCount + RecycledCount;
+    public bool WasCancelled { get; set; }
 
     public string FormattedFreed => TargetFolderInfo.FormatBytes(TotalFreedBytes);
     public string FormattedEligible => TargetFolderInfo.FormatBytes(EligibleBytes);
     public string FormattedDiscovered => TargetFolderInfo.FormatBytes(DiscoveredBytes);
 
-    public bool Success => FailedCount == 0 && ErrorMessages.Count == 0;
+    public CleanupCompletionStatus CompletionStatus
+    {
+        get
+        {
+            if (WasCancelled && TotalItemsFreed == 0) return CleanupCompletionStatus.Cancelled;
+            if (FailedCount == 0 && ErrorMessages.Count == 0) return CleanupCompletionStatus.Clean;
+            if (TotalItemsFreed > 0 && FailedCount > 0) return CleanupCompletionStatus.CompletedWithWarnings;
+            if (TotalItemsFreed > 0 && FailedCount == 0) return CleanupCompletionStatus.Clean;
+            if (FailedCount > 0 && TotalItemsFreed == 0) return CleanupCompletionStatus.Failed;
+            return CleanupCompletionStatus.CompletedWithWarnings;
+        }
+    }
+
+    public bool Success => CompletionStatus is CleanupCompletionStatus.Clean or CleanupCompletionStatus.CompletedWithWarnings;
 }
