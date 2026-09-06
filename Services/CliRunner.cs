@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using WinTempCleaner.Core.Safety;
 using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
@@ -1023,7 +1024,7 @@ public static class CliRunner
 
         var fi = new FileInfo(filePath);
         var (category, _) = LargeFileHunterService.ClassifyFileCategory(fi.Extension);
-        var ai = AiFileSafetyService.AnalyzeFile(fi.FullName, fi.Name, category, fi.Length, fi.LastWriteTime);
+        var safety = FileSafetyEngine.Analyze(fi.FullName, fileName: fi.Name, category: category, sizeBytes: fi.Length, lastModified: fi.LastWriteTime);
 
         if (isJson)
         {
@@ -1036,13 +1037,14 @@ public static class CliRunner
                 created = fi.CreationTime,
                 lastModified = fi.LastWriteTime,
                 category = category,
-                ai = ai
+                safety = safety,
+                ai = safety
             }, new JsonSerializerOptions { WriteIndented = true }));
             return 0;
         }
 
         Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine($"  🔍 [AI Large File Inspection] {fi.Name}\n");
+        Console.WriteLine($"  🔍 [Deterministic Safety Inspection] {fi.Name}\n");
         Console.ResetColor();
 
         Console.WriteLine($"  • Full Path:      {fi.FullName}");
@@ -1050,22 +1052,22 @@ public static class CliRunner
         Console.WriteLine($"  • Category:       {category}");
         Console.WriteLine($"  • Last Modified:  {fi.LastWriteTime:yyyy-MM-dd HH:mm:ss}");
 
-        Console.Write("  • AI Verdict:     ");
-        if (ai.IsSafeToAutoClean)
+        Console.Write("  • Safety Verdict: ");
+        if (safety.IsSafeToClean)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"SAFE TO DELETE (Score: {ai.SafetyScore}/100)");
+            Console.WriteLine($"SAFE TO DELETE (Score: {safety.SafetyScore}/100)");
         }
         else
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"PROTECTED / KEEP (Score: {ai.SafetyScore}/100)");
+            Console.WriteLine($"PROTECTED / KEEP (Score: {safety.SafetyScore}/100)");
         }
         Console.ResetColor();
 
-        Console.WriteLine($"  • Inferred Origin: {ai.Origin}");
-        Console.WriteLine($"  • System Impact:   {ai.Impact}");
-        Console.WriteLine($"  • AI Explanation:  {ai.Explanation}");
+        Console.WriteLine($"  • Inferred Origin: {safety.Origin}");
+        Console.WriteLine($"  • System Impact:   {safety.Impact}");
+        Console.WriteLine($"  • Safety Rationale: {safety.Explanation}");
 
         return 0;
     }

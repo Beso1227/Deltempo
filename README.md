@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="app_icon.png" alt="Deltempo Logo" width="120" height="120" style="border-radius: 24px; box-shadow: 0 10px 30px rgba(6, 182, 212, 0.35);" />
+  <img src="docs/app_icon.png" alt="Deltempo Logo" width="120" height="120" style="border-radius: 24px; box-shadow: 0 10px 30px rgba(6, 182, 212, 0.35);" />
 
   <h1>Deltempo</h1>
 

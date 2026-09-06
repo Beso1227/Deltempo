@@ -31,21 +31,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="app_icon.png" />
     <Resource Include="app.ico" />
     <Compile Remove="Cli\**" />
     <EmbeddedResource Remove="Cli\**" />
     <None Remove="Cli\**" />
-    <Compile Remove="tests\**" />
-    <EmbeddedResource Remove="tests\**" />
-    <None Remove="tests\**" />
     <Compile Remove="Tests\**" />
     <EmbeddedResource Remove="Tests\**" />
     <None Remove="Tests\**" />
   </ItemGroup>
-
-  <Target Name="AutoUpdateGraphify" AfterTargets="Build">
-    <Exec Command="pwsh -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\scripts\generate_graphify.ps1&quot; -RootPath &quot;$(MSBuildProjectDirectory)&quot;" ContinueOnError="true" />
-  </Target>
 
 </Project>

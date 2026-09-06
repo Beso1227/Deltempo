@@ -11,7 +11,13 @@ dist/
 
 # Compiled Binaries & Certificates
 *.exe
+*.com
 *.cer
+
+# Developer Visualizations & Generated Artifacts
+graphify-out/
+GRAPHIFY.md
+vault/
 
 # Secrets
 .env

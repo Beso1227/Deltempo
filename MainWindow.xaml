@@ -70,7 +70,7 @@
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="12" ShadowDepth="0" Color="#00E5FF" Opacity="0.4"/>
                             </Border.Effect>
-                            <Image Source="app_icon.png"
+                            <Image Source="app.ico"
                                    RenderOptions.BitmapScalingMode="HighQuality"
                                    Margin="2"
                                    AutomationProperties.Name="Deltempo Logo"/>
