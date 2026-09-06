@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deltempo Changelog — Windows Cleaner Release Notes &amp; Updates</title>
+  <meta name="description" content="Official release history for Deltempo Windows Cleaner: new cleaning scopes, NT kernel memory optimizations, CLI features, and performance enhancements." />
+  <meta name="keywords" content="deltempo changelog, deltempo release notes, windows shader cache cleaner update, user profile cleaner releases, deltempo v1.3.3" />
+  <meta name="author" content="Beso1227" />
+  <meta name="theme-color" content="#06080F" />
+
+  <link rel="canonical" href="https://beso1227.github.io/Deltempo/changelog/" />
+
+  <!-- Open Graph / Social Meta -->
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://beso1227.github.io/Deltempo/changelog/" />
+  <meta property="og:site_name" content="Deltempo" />
+  <meta property="og:title" content="Deltempo Changelog — Release Notes &amp; Updates" />
+  <meta property="og:description" content="View what's new in Deltempo: 26 cleaning scopes, NT kernel memory cleaner, and standalone binary updates." />
+  <meta property="og:image" content="https://beso1227.github.io/Deltempo/app_icon.png" />
+
+  <link rel="icon" type="image/png" href="../app_icon.png" />
+  <link rel="apple-touch-icon" href="../app_icon.png" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ItemPage",
+        "@id": "https://beso1227.github.io/Deltempo/changelog/#page",
+        "name": "Deltempo Release Notes and Changelog",
+        "description": "Version history and changelog of Deltempo Windows Cleaner and Memory Optimizer.",
+        "publisher": {
+          "@type": "Organization",
+          "name": "Deltempo Open Source Project",
+          "url": "https://beso1227.github.io/Deltempo/"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://beso1227.github.io/Deltempo/changelog/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://beso1227.github.io/Deltempo/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Changelog",
+            "item": "https://beso1227.github.io/Deltempo/changelog/"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --bg-canvas: #06080F;
+      --bg-surface: #0B0F19;
+      --bg-card: #101626;
+      --border-outer: rgba(255, 255, 255, 0.08);
+      --border-inner: rgba(255, 255, 255, 0.05);
+      --text-high: #FFFFFF;
+      --text-med: #94A3B8;
+      --text-low: #64748B;
+      --cyan-glow: #06B6D4;
+      --emerald-glow: #10B981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg-canvas); color: var(--text-high); font-family: var(--font-body); line-height: 1.6; padding: 0 1.5rem 4rem; }
+    .nav-island {
+      max-width: 1040px;
+      margin: 1.5rem auto 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-outer);
+      padding: 0.85rem 1.5rem;
+      border-radius: 9999px;
+    }
+    .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: #fff; font-weight: 700; }
+    .brand img { width: 28px; height: 28px; border-radius: 6px; }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a { color: var(--text-med); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--cyan-glow); }
+    .container { max-width: 860px; margin: 0 auto; }
+    .hero { text-align: center; margin-bottom: 3rem; }
+    .badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--cyan-glow);
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      margin-bottom: 1.25rem;
+    }
+    h1 { font-family: var(--font-display); font-size: 2.3rem; font-weight: 800; line-height: 1.2; margin-bottom: 1rem; }
+    .subtitle { color: var(--text-med); font-size: 1.1rem; max-width: 650px; margin: 0 auto 2.5rem; }
+    .release-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-outer);
+      border-radius: 1.25rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    .release-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+    .release-title { font-family: var(--font-display); font-size: 1.4rem; color: #fff; }
+    .release-tag {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--emerald-glow);
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+    }
+    ul { list-style: square; padding-left: 1.5rem; color: var(--text-med); margin-bottom: 1rem; font-size: 0.95rem; }
+    li { margin-bottom: 0.35rem; }
+    footer { text-align: center; margin-top: 4rem; color: var(--text-low); font-size: 0.85rem; }
+    footer a { color: var(--text-med); text-decoration: none; }
+    @media (max-width: 640px) {
+      .nav-island { flex-direction: column; gap: 1rem; border-radius: 1.5rem; }
+      .nav-links { flex-wrap: wrap; justify-content: center; gap: 1rem; }
+      h1 { font-size: 1.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-island" aria-label="Main Navigation">
+    <a href="../" class="brand">
+      <img src="../app_icon.png" alt="Deltempo Logo" width="28" height="28" />
+      <span>Deltempo</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="../">Home</a></li>
+      <li><a href="../#simulator">Simulator</a></li>
+      <li><a href="../download/">Download</a></li>
+      <li><a href="../docs/">Docs &amp; Scopes</a></li>
+      <li><a href="../faq/">FAQ</a></li>
+      <li><a href="../changelog/" class="active">Changelog</a></li>
+      <li><a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener">GitHub ↗</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <div class="hero">
+      <div class="badge">RELEASE HISTORY • CONTINUOUS INNOVATION</div>
+      <h1>Deltempo Release Changelog</h1>
+      <p class="subtitle">Complete update log of Deltempo Windows Cleaner: new cleaning scopes, performance optimizations, and NT memory enhancements.</p>
+    </div>
+
+    <div class="release-card">
+      <div class="release-header">
+        <h2 class="release-title">v1.3.3 (Latest Stable)</h2>
+        <span class="release-tag">Current Release</span>
+      </div>
+      <ul>
+        <li><strong>Messaging &amp; Social App Cleaners:</strong> Added dedicated scopes for WhatsApp, Telegram, Microsoft Teams, and Discord media cache pruning.</li>
+        <li><strong>Expanded Shader Cache Targets:</strong> Comprehensive coverage for NVIDIA DXCache/GLCache, AMD DxCache, and DirectX 12 pipeline registries.</li>
+        <li><strong>NT Kernel Memory Engine:</strong> Integration of WinMemoryCleaner engine for safe standby list flushing and process working set trimming.</li>
+        <li><strong>Large File Hunter:</strong> Fast recursive scanner identifying monolithic obsolete files exceeding user-configurable thresholds.</li>
+        <li><strong>Multi-Language Support:</strong> Added localized UI for 5 languages (English, Arabic, Spanish, French, German).</li>
+      </ul>
+    </div>
+
+    <div class="release-card">
+      <div class="release-header">
+        <h2 class="release-title">v1.2.0</h2>
+        <span class="release-tag">Previous Release</span>
+      </div>
+      <ul>
+        <li><strong>24-Hour Safety Shield:</strong> Automatic exclusion for actively locked installer setups and recently modified temp files.</li>
+        <li><strong>Recycle Bin Undo Safety:</strong> Cleaned files default to Windows Recycle Bin routing for instantaneous restoration.</li>
+        <li><strong>Terminal CLI:</strong> Headless execution flags (<code>--dry-run</code>, <code>--silent</code>, <code>--clean</code>) for script automation.</li>
+      </ul>
+    </div>
+  </main>
+
+  <footer>
+    <p>Deltempo Open Source Project • <a href="../">Back to Home</a> • <a href="https://github.com/Beso1227/Deltempo">GitHub Repository</a></p>
+  </footer>
+</body>
+</html>
