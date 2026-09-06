@@ -459,25 +459,19 @@ public static class UpdateService
             journal.TransitionTo(TransactionState.Staged);
             journal.TransitionTo(TransactionState.StageVerified);
 
-            // 5. Persist journal and launch DeltempoUpdater.exe
+            // 5. Persist journal and launch embedded updater mode of the same Deltempo.exe
             journal.Save();
 
-            string updaterPath = Path.Combine(AppContext.BaseDirectory, "DeltempoUpdater.exe");
+            string updaterPath = currentExePath;
             if (!File.Exists(updaterPath))
             {
-                // Try to find it relative to the running process
-                updaterPath = Path.Combine(Path.GetDirectoryName(currentExePath) ?? "", "DeltempoUpdater.exe");
-            }
-
-            if (!File.Exists(updaterPath))
-            {
-                throw new FileNotFoundException("DeltempoUpdater.exe not found. Cannot proceed with update.");
+                throw new FileNotFoundException("Deltempo.exe not found. Cannot proceed with update.");
             }
 
             var psi = new ProcessStartInfo
             {
                 FileName = updaterPath,
-                Arguments = $"--transaction {txId} --caller-pid {Environment.ProcessId}",
+                Arguments = $"--update {txId}",
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 WindowStyle = ProcessWindowStyle.Hidden

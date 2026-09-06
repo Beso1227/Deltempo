@@ -28,13 +28,30 @@ public partial class App : System.Windows.Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        var args = e.Args;
+
+        // ═══════════════════════════════════════════════════════════════════
+        // MODE 1: EMBEDDED UPDATER MODE — --update <transactionId>
+        // Minimal mode: runs update transaction, returns exit code, no GUI.
+        // Must be checked BEFORE any WPF initialization.
+        // ═══════════════════════════════════════════════════════════════════
+        if (args.Length >= 2 && args[0] == "--update")
+        {
+            int exitCode = RunEmbeddedUpdater(args[1]);
+            Shutdown(exitCode);
+            return;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // MODE 2: NORMAL STARTUP — recover incomplete transactions first
+        // ═══════════════════════════════════════════════════════════════════
         try
         {
             SetCurrentProcessExplicitAppUserModelID("Deltempo.Guardian.WindowsCleaner");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine($"[Deltempo] SetAppUserModelID suppressed: {ex.Message}");
+            Trace.WriteLine($"[Deltempo] SetAppUserModelID suppressed: {ex.Message}");
         }
 
         base.OnStartup(e);
@@ -49,16 +66,28 @@ public partial class App : System.Windows.Application
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
             }
         };
+
+        // Crash/power-loss recovery: attempt recovery of incomplete update transactions
+        // BEFORE any GUI initialization.
+        try
+        {
+            UpdateRecoveryHelper.RecoverIncompleteTransactionsAsync(msg => Trace.WriteLine(msg))
+                .GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] Update recovery suppressed: {ex.Message}");
+        }
 
         // Automatically ensure 'deltempo' is globally accessible in terminal & Win+R
         CliRegistrationService.EnsureCliRegistered();
 
-        var args = e.Args;
-
-        // Handle update health handshake from DeltempoUpdater
+        // ═══════════════════════════════════════════════════════════════════
+        // MODE 3: HEALTH HANDSHAKE — signal health after update
+        // ═══════════════════════════════════════════════════════════════════
         if (args.Length >= 2 && args[0] == "--update-handshake")
         {
             HandleUpdateHandshake(args[1]);
@@ -67,6 +96,9 @@ public partial class App : System.Windows.Application
         // Transaction-aware cleanup (preserves active update journals)
         UpdateService.CleanupPendingUpdateArtifacts();
 
+        // ═══════════════════════════════════════════════════════════════════
+        // MODE 4: CLI — any other arguments go to CLI runner
+        // ═══════════════════════════════════════════════════════════════════
         if (args.Length > 0 && args[0] != "--update-handshake")
         {
             SetupConsoleStream();
@@ -76,7 +108,9 @@ public partial class App : System.Windows.Application
             return;
         }
 
-        // GUI Single-Instance enforcement to prevent duplicate tray icons
+        // ═══════════════════════════════════════════════════════════════════
+        // MODE 5: GUI — normal WPF application
+        // ═══════════════════════════════════════════════════════════════════
         if (!SingleInstanceManager.TryAcquire())
         {
             SingleInstanceManager.NotifyExistingInstance();
@@ -87,6 +121,41 @@ public partial class App : System.Windows.Application
         var mainWindow = new MainWindow();
         MainWindow = mainWindow;
         mainWindow.Show();
+    }
+
+    /// <summary>
+    /// Embedded updater mode. Runs the update transaction without starting the WPF UI.
+    /// This allows Deltempo to update itself while shipping as a single executable.
+    /// </summary>
+    private static int RunEmbeddedUpdater(string transactionId)
+    {
+        Console.WriteLine("Deltempo Embedded Updater v1.0.0");
+
+        var journal = TransactionJournal.Load(transactionId);
+        if (journal == null)
+        {
+            Console.Error.WriteLine($"Error: Transaction journal not found for '{transactionId}'.");
+            return 1;
+        }
+
+        if (journal.CallerPid <= 0)
+        {
+            Console.Error.WriteLine("Error: No caller PID recorded in transaction journal.");
+            return 1;
+        }
+
+        Console.WriteLine($"Executing transaction {transactionId} (state: {journal.State})");
+
+        var coordinator = new UpdateTransactionCoordinator(journal, msg =>
+        {
+            Console.WriteLine(msg);
+            Trace.WriteLine(msg);
+        });
+
+        bool success = coordinator.ExecuteAsync().GetAwaiter().GetResult();
+
+        Console.WriteLine(success ? "Transaction completed successfully." : "Transaction failed.");
+        return success ? 0 : 1;
     }
 
     private static void SetupConsoleStream()
@@ -108,12 +177,12 @@ public partial class App : System.Windows.Application
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
         }
     }
 
     /// <summary>
-    /// Handles the --update-handshake argument from DeltempoUpdater.
+    /// Handles the --update-handshake argument from the embedded updater.
     /// Signals health to the updater via EventWaitHandle and health.signal file.
     /// </summary>
     private void HandleUpdateHandshake(string txId)
@@ -139,17 +208,17 @@ public partial class App : System.Windows.Application
                     using var evt = System.Threading.EventWaitHandle.OpenExisting(eventName);
                     evt.Set();
 
-                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Update health handshake signaled for transaction {txId}.");
+                    Trace.WriteLine($"[Deltempo] Update health handshake signaled for transaction {txId}.");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Health handshake signal failed: {ex.Message}");
+                    Trace.WriteLine($"[Deltempo] Health handshake signal failed: {ex.Message}");
                 }
             }));
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine($"[Deltempo] Update handshake setup failed: {ex.Message}");
+            Trace.WriteLine($"[Deltempo] Update handshake setup failed: {ex.Message}");
         }
     }
 
@@ -162,7 +231,7 @@ public partial class App : System.Windows.Application
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
         }
 
         base.OnExit(e);

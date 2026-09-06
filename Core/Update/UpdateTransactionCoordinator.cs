@@ -3,7 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using WinTempCleaner.Core.Update;
 
-namespace WinTempCleaner.Updater;
+namespace WinTempCleaner.Core.Update;
 
 /// <summary>
 /// 13-stage update transaction coordinator with fail-closed behavior,
@@ -32,8 +32,8 @@ public class UpdateTransactionCoordinator
 
     private void Log(string msg)
     {
-        _logAction?.Invoke($"[DeltempoUpdater] {msg}");
-        Trace.WriteLine($"[DeltempoUpdater] {msg}");
+        _logAction?.Invoke($"[Deltempo:updater] {msg}");
+        Trace.WriteLine($"[Deltempo:updater] {msg}");
     }
 
     /// <summary>
