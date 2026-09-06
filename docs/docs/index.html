@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Deltempo Documentation — Scopes, Safety &amp; CLI Architecture</title>
-  <meta name="description" content="Technical documentation of Deltempo: 31+ cleanup scopes, 5-tier safety engine, NT kernel memory optimization, and command-line automation." />
-  <meta name="keywords" content="deltempo documentation, windows shader cache cleaner, user profile cleaner, 31 cleaning scopes, windows 11 temp cleaner, open source disk cleaner" />
+  <meta name="description" content="Technical documentation of Deltempo: 25+ cleanup scopes, 5-tier safety engine, NT kernel memory optimization, and command-line automation." />
+  <meta name="keywords" content="deltempo documentation, windows shader cache cleaner, user profile cleaner, cleaning scopes, windows 11 temp cleaner, open source disk cleaner" />
   <meta name="author" content="Beso1227" />
   <meta name="theme-color" content="#07090E" />
 
@@ -16,7 +16,7 @@
   <meta property="og:url" content="https://beso1227.github.io/Deltempo/docs/" />
   <meta property="og:site_name" content="Deltempo" />
   <meta property="og:title" content="Deltempo Documentation — Scopes, Safety &amp; CLI Architecture" />
-  <meta property="og:description" content="Complete reference for Deltempo's 31+ cleanup scopes, Windows NT memory optimization, and CLI commands." />
+  <meta property="og:description" content="Complete reference for Deltempo's 25+ cleanup scopes, Windows NT memory optimization, and CLI commands." />
   <meta property="og:image" content="https://beso1227.github.io/Deltempo/app_icon.png" />
 
   <!-- Favicon -->
@@ -26,7 +26,7 @@
   <!-- Fonts & Shared Style -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../style.css" />
 
   <!-- Schema.org JSON-LD -->
@@ -37,7 +37,7 @@
       {
         "@type": "TechArticle",
         "@id": "https://beso1227.github.io/Deltempo/docs/#article",
-        "headline": "Deltempo Documentation: 31+ Cleaning Scopes, 5-Tier Safety Engine, and NT Kernel Memory Architecture",
+        "headline": "Deltempo Documentation: 25+ Cleaning Scopes, 5-Tier Safety Engine, and NT Kernel Memory Architecture",
         "description": "Comprehensive reference covering all cleanup scopes, GPU shader cache handling, safety architecture, and CLI automation in Deltempo.",
         "author": {
           "@type": "Person",
@@ -92,7 +92,7 @@
         <li><a href="../faq/" class="nav-link">FAQ</a></li>
       </ul>
       <div class="nav-actions">
-        <button id="themeToggleBtn" class="btn-icon" aria-label="Toggle Dark/Light Theme">
+        <button id="themeToggleBtn" class="btn-icon" aria-label="Toggle Dark or Light Theme" title="Toggle Theme">
           <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
           <svg class="theme-icon-light" style="display: none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
@@ -107,14 +107,14 @@
     <div class="section-header">
       <div class="section-tag">Technical Manual</div>
       <h1 class="section-title">Deltempo Architecture &amp; Reference</h1>
-      <p class="section-subtitle">Comprehensive reference guide covering the 31+ cleaning scopes, 5-tier safety classification, NT memory APIs, and command-line automation.</p>
+      <p class="section-subtitle">Comprehensive reference guide covering the 25+ cleaning scopes, 5-tier safety classification, NT memory APIs, and command-line automation.</p>
     </div>
 
     <!-- Section 1: Shader Caches -->
     <div class="double-bezel" style="margin-bottom: 2rem;">
       <div class="card-inner">
         <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem;">1. GPU Shader Cache Cleaning</h2>
-        <p style="color: var(--text-med); margin-bottom: 1rem;">Modern DirectX, Vulkan, and OpenGL games pre-compile shaders to eliminate in-game micro-stutters. Graphics driver updates frequently leave obsolete bytecode caches on disk that are never reclaimed by Windows Disk Cleanup.</p>
+        <p style="color: var(--text-med); margin-bottom: 1rem;">Modern DirectX, Vulkan, and OpenGL games pre-compile shaders to reduce in-game compilation stalls. Graphics driver updates frequently leave obsolete bytecode caches on disk that are never reclaimed by standard Windows tools.</p>
         <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem;">
           <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
             <li><code>%LOCALAPPDATA%\D3DSCache</code> — DirectX 11 &amp; 12 unified shader bytecode</li>
@@ -123,7 +123,7 @@
             <li><code>%LOCALAPPDATA%\Intel\ShaderCache</code> — Intel Arc &amp; Iris Xe shader cache</li>
           </ul>
         </div>
-        <p style="font-size: 0.875rem; color: var(--text-low);"><strong style="color: var(--accent-cyan);">Safety Mechanism:</strong> The 24-Hour Safety Shield protects active shader pipelines written within the past 24 hours to prevent in-game recompilation hitches.</p>
+        <p style="font-size: 0.875rem; color: var(--text-low);"><strong style="color: var(--accent-cyan);">Safety Mechanism:</strong> The recent file safety shield protects active shader pipelines written within the past 24 hours to prevent in-game recompilation hitches.</p>
       </div>
     </div>
 
@@ -131,7 +131,7 @@
     <div class="double-bezel" style="margin-bottom: 2rem;">
       <div class="card-inner">
         <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem;">2. The 5-Tier Safety Classification Engine</h2>
-        <p style="color: var(--text-med); margin-bottom: 1.25rem;">Every discovered path is evaluated against immutable protection policies, canonicalized to eliminate directory traversal, and classified into a deterministic safety tier before touching disk:</p>
+        <p style="color: var(--text-med); margin-bottom: 1.25rem;">Every discovered path is evaluated against protection policies, canonicalized to eliminate directory traversal, and classified into a deterministic safety tier before touching disk:</p>
 
         <div style="display: flex; flex-direction: column; gap: 0.75rem;">
           <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
@@ -140,7 +140,7 @@
           </div>
           <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
             <div style="font-weight: 700; color: var(--accent-emerald); margin-bottom: 0.25rem;">Tier 1: Safe (Score 90–100)</div>
-            <div style="font-size: 0.875rem; color: var(--text-med);">DirectX/GPU shaders, Delivery Optimization cached chunks, Windows Update downloads, driver installation leftovers, and crash dumps. Safe for automated routine cleanup.</div>
+            <div style="font-size: 0.875rem; color: var(--text-med);">DirectX/GPU shaders, Delivery Optimization cached chunks, Windows Update downloads, driver installation leftovers, and crash dumps. Safe for routine cleanup.</div>
           </div>
           <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
             <div style="font-weight: 700; color: var(--accent-cyan); margin-bottom: 0.25rem;">Tier 2: Low Risk (Score 70–89)</div>
@@ -233,12 +233,14 @@
           htmlEl.classList.add('light');
           iconDark.style.display = 'none';
           iconLight.style.display = 'block';
+          themeToggleBtn.setAttribute('aria-label', 'Switch to dark theme');
           localStorage.setItem('deltempo-theme', 'light');
         } else {
           htmlEl.classList.remove('light');
           htmlEl.classList.add('dark');
           iconDark.style.display = 'block';
           iconLight.style.display = 'none';
+          themeToggleBtn.setAttribute('aria-label', 'Switch to light theme');
           localStorage.setItem('deltempo-theme', 'dark');
         }
       }
