@@ -1,14 +1,13 @@
-# Created using wingetcreate 1.6.0.0
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
 
 PackageIdentifier: Beso1227.Deltempo
-PackageVersion: 1.2.0
+PackageVersion: 1.3.3
 InstallerType: portable
 Commands:
   - Deltempo
 Installers:
   - Architecture: x64
-    InstallerUrl: https://github.com/Beso1227/Deltempo/releases/download/v1.2.0/Deltempo.exe
-    InstallerSha256: 8311A174E09D3B9044A1276E1103248FFA5D061B032D7168AE7DA1B09F04B29A
+    InstallerUrl: https://github.com/Beso1227/Deltempo/releases/download/v1.3.3/Deltempo.exe
+    InstallerSha256: D02418DA477187F25266D2CFCEE089BD976AF2FA020ABB75AE8A60A66A11B960
 ManifestType: installer
 ManifestVersion: 1.6.0
