@@ -297,7 +297,7 @@ public static class SystemRepairService
         return new RepairExecutionResult
         {
             Success = success,
-            ExitCode = success ? 0 : -1,
+            ExitCode = success ? 0 : failures,
             Output = sb.ToString(),
             ExecutionTimeMs = sw.ElapsedMilliseconds,
             Tool = RepairToolType.WindowsUpdateReset
@@ -349,7 +349,7 @@ public static class SystemRepairService
         return new RepairExecutionResult
         {
             Success = success,
-            ExitCode = success ? 0 : -1,
+            ExitCode = success ? 0 : failures,
             Output = sb.ToString(),
             ExecutionTimeMs = sw.ElapsedMilliseconds,
             Tool = RepairToolType.NetworkStackReset
@@ -426,10 +426,17 @@ public static class SystemRepairService
 
         Log($"[Autonomous Repair] System integrity check & repair pipeline completed in {sw.Elapsed.TotalMinutes:F1} min.");
 
+        // Determine overall exit code: prefer the most meaningful failure code
+        int overallExitCode = 0;
+        if (!dismRestore.Success) overallExitCode = dismRestore.ExitCode;
+        else if (!sfcResult.Success) overallExitCode = sfcResult.ExitCode;
+        else if (!chkdskResult.Success) overallExitCode = chkdskResult.ExitCode;
+        else if (!dismScan.Success) overallExitCode = dismScan.ExitCode;
+
         return new RepairExecutionResult
         {
             Success = dismRestore.Success && sfcResult.Success,
-            ExitCode = sfcResult.ExitCode,
+            ExitCode = overallExitCode,
             Output = sb.ToString(),
             ExecutionTimeMs = sw.ElapsedMilliseconds,
             Tool = RepairToolType.AutonomousFullRepair
@@ -504,8 +511,8 @@ public static class SystemRepairService
             {
                 if (e.Data != null)
                 {
-                    outputBuilder.AppendLine(e.Data);
-                    onOutput?.Invoke(e.Data);
+                    outputBuilder.AppendLine($"[STDERR] {e.Data}");
+                    onOutput?.Invoke($"[STDERR] {e.Data}");
                 }
             };
 
@@ -519,8 +526,10 @@ public static class SystemRepairService
             {
                 if (ct.IsCancellationRequested || DateTime.UtcNow >= deadline)
                 {
+                    int actualExitCode = -1;
                     try
                     {
+                        actualExitCode = proc.ExitCode;
                         proc.Kill(true);
                     }
                     catch { }
@@ -530,7 +539,7 @@ public static class SystemRepairService
                     return new RepairExecutionResult
                     {
                         Success = false,
-                        ExitCode = -1,
+                        ExitCode = actualExitCode,
                         Output = outputBuilder.ToString(),
                         ErrorMessage = reason,
                         ExecutionTimeMs = sw.ElapsedMilliseconds,

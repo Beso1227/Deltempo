@@ -131,7 +131,23 @@ public class TransactionJournal
         string dir = GetDirectoryPath();
         Directory.CreateDirectory(dir);
         string json = JsonSerializer.Serialize(this, JsonOptions);
-        File.WriteAllText(GetJournalPath(), json);
+        string path = GetJournalPath();
+
+        // Retry with backoff to handle concurrent access from multiple processes
+        for (int attempt = 0; attempt < 5; attempt++)
+        {
+            try
+            {
+                using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read);
+                using var writer = new StreamWriter(fs);
+                writer.Write(json);
+                return;
+            }
+            catch (IOException) when (attempt < 4)
+            {
+                Thread.Sleep(50 * (attempt + 1));
+            }
+        }
     }
 
     public static TransactionJournal? Load(string transactionId)
