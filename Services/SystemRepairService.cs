@@ -64,7 +64,8 @@ public static class SystemRepairService
             RepairToolType.SfcScan,
             onOutput,
             onProgress,
-            ct);
+            ct,
+            timeout: TimeSpan.FromMinutes(45));
     }
 
     /// <summary>
@@ -94,7 +95,8 @@ public static class SystemRepairService
             RepairToolType.DismScanHealth,
             onOutput,
             onProgress,
-            ct);
+            ct,
+            timeout: TimeSpan.FromMinutes(60));
     }
 
     /// <summary>
@@ -124,7 +126,8 @@ public static class SystemRepairService
             RepairToolType.DismRestoreHealth,
             onOutput,
             onProgress,
-            ct);
+            ct,
+            timeout: TimeSpan.FromMinutes(60));
     }
 
     /// <summary>
@@ -154,7 +157,8 @@ public static class SystemRepairService
             RepairToolType.DismComponentCleanup,
             onOutput,
             onProgress,
-            ct);
+            ct,
+            timeout: TimeSpan.FromMinutes(60));
     }
 
     /// <summary>
@@ -188,7 +192,8 @@ public static class SystemRepairService
             RepairToolType.ChkdskScan,
             onOutput,
             onProgress,
-            ct);
+            ct,
+            timeout: TimeSpan.FromMinutes(30));
     }
 
     /// <summary>
@@ -201,6 +206,7 @@ public static class SystemRepairService
     {
         var sw = Stopwatch.StartNew();
         var sb = new StringBuilder();
+        int failures = 0;
 
         void Log(string msg)
         {
@@ -220,11 +226,17 @@ public static class SystemRepairService
             try
             {
                 Log($"[Servicing Stack] Stopping service: {svcName}...");
-                await ExecuteProcessWithTelemetryAsync("net.exe", $"stop {svcName} /y", RepairToolType.WindowsUpdateReset, onOutput, null, ct);
+                var result = await ExecuteProcessWithTelemetryAsync("net.exe", $"stop {svcName} /y", RepairToolType.WindowsUpdateReset, onOutput, null, ct);
+                if (!result.Success)
+                {
+                    Log($"[Servicing Stack] Warning: could not stop {svcName} (exit {result.ExitCode}).");
+                    failures++;
+                }
             }
             catch (Exception ex)
             {
                 Log($"[Servicing Stack] Warning stopping {svcName}: {ex.Message}");
+                failures++;
             }
         }
 
@@ -259,23 +271,33 @@ public static class SystemRepairService
             try
             {
                 Log($"[Servicing Stack] Starting service: {svcName}...");
-                await ExecuteProcessWithTelemetryAsync("net.exe", $"start {svcName}", RepairToolType.WindowsUpdateReset, onOutput, null, ct);
+                var result = await ExecuteProcessWithTelemetryAsync("net.exe", $"start {svcName}", RepairToolType.WindowsUpdateReset, onOutput, null, ct);
+                if (!result.Success)
+                {
+                    Log($"[Servicing Stack] Warning: could not start {svcName} (exit {result.ExitCode}).");
+                    failures++;
+                }
             }
             catch (Exception ex)
             {
                 Log($"[Servicing Stack] Warning starting {svcName}: {ex.Message}");
+                failures++;
             }
         }
 
         onProgress?.Invoke(1.0);
         sw.Stop();
 
-        Log("[Servicing Stack] Windows Update servicing stack reset completed successfully.");
+        bool success = failures == 0;
+        string summary = success
+            ? "[Servicing Stack] Windows Update servicing stack reset completed successfully."
+            : $"[Servicing Stack] Windows Update reset completed with {failures} warning(s).";
+        Log(summary);
 
         return new RepairExecutionResult
         {
-            Success = true,
-            ExitCode = 0,
+            Success = success,
+            ExitCode = success ? 0 : -1,
             Output = sb.ToString(),
             ExecutionTimeMs = sw.ElapsedMilliseconds,
             Tool = RepairToolType.WindowsUpdateReset
@@ -292,6 +314,7 @@ public static class SystemRepairService
     {
         var sw = Stopwatch.StartNew();
         var sb = new StringBuilder();
+        int failures = 0;
 
         void Log(string msg)
         {
@@ -301,25 +324,32 @@ public static class SystemRepairService
 
         Log("[Network Engine] Resetting Winsock catalog...");
         onProgress?.Invoke(0.20);
-        await ExecuteProcessWithTelemetryAsync("netsh.exe", "winsock reset", RepairToolType.NetworkStackReset, onOutput, null, ct);
+        var winsockResult = await ExecuteProcessWithTelemetryAsync("netsh.exe", "winsock reset", RepairToolType.NetworkStackReset, onOutput, null, ct);
+        if (!winsockResult.Success) failures++;
 
         Log("[Network Engine] Resetting TCP/IP protocol stack...");
         onProgress?.Invoke(0.50);
-        await ExecuteProcessWithTelemetryAsync("netsh.exe", "int ip reset", RepairToolType.NetworkStackReset, onOutput, null, ct);
+        var tcpResult = await ExecuteProcessWithTelemetryAsync("netsh.exe", "int ip reset", RepairToolType.NetworkStackReset, onOutput, null, ct);
+        if (!tcpResult.Success) failures++;
 
         Log("[Network Engine] Purging and refreshing DNS resolver cache...");
         onProgress?.Invoke(0.80);
-        await ExecuteProcessWithTelemetryAsync("ipconfig.exe", "/flushdns", RepairToolType.NetworkStackReset, onOutput, null, ct);
+        var dnsResult = await ExecuteProcessWithTelemetryAsync("ipconfig.exe", "/flushdns", RepairToolType.NetworkStackReset, onOutput, null, ct);
+        if (!dnsResult.Success) failures++;
 
         onProgress?.Invoke(1.0);
         sw.Stop();
 
-        Log("[Network Engine] Network stack reinitialized successfully.");
+        bool success = failures == 0;
+        string summary = success
+            ? "[Network Engine] Network stack reinitialized successfully."
+            : $"[Network Engine] Network stack reset completed with {failures} warning(s).";
+        Log(summary);
 
         return new RepairExecutionResult
         {
-            Success = true,
-            ExitCode = 0,
+            Success = success,
+            ExitCode = success ? 0 : -1,
             Output = sb.ToString(),
             ExecutionTimeMs = sw.ElapsedMilliseconds,
             Tool = RepairToolType.NetworkStackReset
@@ -433,7 +463,8 @@ public static class SystemRepairService
         RepairToolType tool,
         Action<string>? onOutput,
         Action<double>? onProgress,
-        CancellationToken ct)
+        CancellationToken ct,
+        TimeSpan? timeout = null)
     {
         var sw = Stopwatch.StartNew();
         var outputBuilder = new StringBuilder();
@@ -482,10 +513,11 @@ public static class SystemRepairService
             proc.BeginOutputReadLine();
             proc.BeginErrorReadLine();
 
-            // Wait for exit with cancellation check
+            // Wait for exit with cancellation and timeout check
+            var deadline = timeout.HasValue ? DateTime.UtcNow + timeout.Value : DateTime.MaxValue;
             while (!proc.HasExited)
             {
-                if (ct.IsCancellationRequested)
+                if (ct.IsCancellationRequested || DateTime.UtcNow >= deadline)
                 {
                     try
                     {
@@ -494,12 +526,13 @@ public static class SystemRepairService
                     catch { }
 
                     sw.Stop();
+                    string reason = ct.IsCancellationRequested ? "Operation cancelled by user." : $"Operation timed out after {timeout?.TotalMinutes ?? 0:F0} minutes.";
                     return new RepairExecutionResult
                     {
                         Success = false,
                         ExitCode = -1,
                         Output = outputBuilder.ToString(),
-                        ErrorMessage = "Operation cancelled by user.",
+                        ErrorMessage = reason,
                         ExecutionTimeMs = sw.ElapsedMilliseconds,
                         Tool = tool
                     };

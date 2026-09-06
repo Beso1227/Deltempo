@@ -101,6 +101,23 @@ public static class PatchMetadataValidator
             return false;
         }
 
+        // Strict path validation: must be under Beso1227/Deltempo/releases/download/
+        string path = uri.AbsolutePath;
+        if (!path.StartsWith("/Beso1227/Deltempo/releases/download/", StringComparison.OrdinalIgnoreCase))
+        {
+            reason = $"Untrusted download path '{path}'. Must originate from Beso1227/Deltempo releases.";
+            return false;
+        }
+
+        // Validate artifact filename
+        string fileName = Path.GetFileName(path);
+        string[] allowedFileNames = ["Deltempo.exe", "deltempo_cli.exe", "DeltempoUpdater.exe"];
+        if (!allowedFileNames.Any(f => f.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
+        {
+            reason = $"Unexpected artifact filename '{fileName}'. Expected Deltempo.exe, deltempo_cli.exe, or DeltempoUpdater.exe.";
+            return false;
+        }
+
         return true;
     }
 }

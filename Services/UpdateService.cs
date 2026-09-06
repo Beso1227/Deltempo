@@ -408,85 +408,84 @@ public static class UpdateService
             throw new SecurityException($"Security violation: {urlReason}");
         }
 
-        string tempFile = Path.Combine(Path.GetTempPath(), $"Deltempo_Update_{Guid.NewGuid():N}.exe");
+        // 2. Create transaction journal
+        string txId = Guid.NewGuid().ToString("N");
+        string currentExePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "";
+        if (string.IsNullOrEmpty(currentExePath) || !File.Exists(currentExePath))
+        {
+            currentExePath = Path.Combine(AppContext.BaseDirectory, "Deltempo.exe");
+        }
+
+        string updatesDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "Deltempo", "Updates", txId);
+        string stagedDir = Path.Combine(updatesDir, "staged");
+
+        var journal = new TransactionJournal
+        {
+            TransactionId = txId,
+            Channel = IsPatchUpdate ? "patch" : "stable",
+            Version = CurrentVersion.ToString(3),
+            CommitSha = commitSha ?? "",
+            TargetPath = currentExePath,
+            BackupPath = Path.Combine(updatesDir, "Deltempo.previous.exe"),
+            ExpectedSha256 = expectedSha256 ?? "",
+            ExpectedSizeBytes = 0,
+            CallerPid = Environment.ProcessId
+        };
+        journal.TransitionTo(TransactionState.Discovered);
 
         try
         {
-            using var response = await DownloadHttpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, ct);
-            response.EnsureSuccessStatusCode();
+            // 3. Download to transaction staging directory
+            string artifactName = Path.GetFileName(currentExePath);
+            var (stagedPath, actualSha, fileSize) = await UpdateDownloader.DownloadAsync(
+                downloadUrl, stagedDir, artifactName,
+                expectedSha256 ?? "", 0, progress, ct);
 
-            var totalBytes = response.Content.Headers.ContentLength ?? -1L;
-            await using var contentStream = await response.Content.ReadAsStreamAsync(ct);
-            await using var fileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write, FileShare.None, 65536, true);
+            journal.StagedPath = stagedPath;
+            journal.ExpectedSha256 = actualSha;
+            journal.ExpectedSizeBytes = fileSize;
+            journal.TransitionTo(TransactionState.Downloaded);
 
-            var buffer = new byte[65536];
-            long totalRead = 0;
-            int read;
-
-            while ((read = await contentStream.ReadAsync(buffer, 0, buffer.Length, ct)) > 0)
-            {
-                await fileStream.WriteAsync(buffer, 0, read, ct);
-                totalRead += read;
-                if (totalBytes > 0)
-                {
-                    progress.Report((double)totalRead / totalBytes * 100.0);
-                }
-            }
-
-            await fileStream.FlushAsync(ct);
-            fileStream.Close();
-
-            // 2. Cryptographic Integrity & PE Validation
-            var fi = new FileInfo(tempFile);
-            if (!PatchIntegrityVerifier.VerifyStagedArtifact(tempFile, expectedSha256 ?? "", fi.Length, out string integrityError))
+            // 4. Verify staged binary (SHA-256, Size, PE header, Authenticode, version)
+            var fi = new FileInfo(stagedPath);
+            if (!PatchIntegrityVerifier.VerifyStagedArtifact(stagedPath, actualSha, fi.Length, out string integrityError))
             {
                 throw new SecurityException($"Update integrity verification failed: {integrityError}");
             }
 
-            // Prepare Atomic Hot-Swap Handover via robust cmd.exe swap script
-            string currentExePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "";
-            if (string.IsNullOrEmpty(currentExePath) || !File.Exists(currentExePath))
+            journal.TransitionTo(TransactionState.DownloadVerified);
+            journal.TransitionTo(TransactionState.Staged);
+            journal.TransitionTo(TransactionState.StageVerified);
+
+            // 5. Persist journal and launch DeltempoUpdater.exe
+            journal.Save();
+
+            string updaterPath = Path.Combine(AppContext.BaseDirectory, "DeltempoUpdater.exe");
+            if (!File.Exists(updaterPath))
             {
-                currentExePath = Path.Combine(AppContext.BaseDirectory, "Deltempo.exe");
+                // Try to find it relative to the running process
+                updaterPath = Path.Combine(Path.GetDirectoryName(currentExePath) ?? "", "DeltempoUpdater.exe");
             }
 
-            int currentPid = Environment.ProcessId;
-            string cmdScript = Path.Combine(Path.GetTempPath(), $"deltempo_swap_{Guid.NewGuid():N}.cmd");
-            string logFile = Path.Combine(Path.GetTempPath(), "deltempo_update.log");
-
-            string scriptContent = GenerateSwapScript(currentPid, currentExePath, tempFile, logFile);
-            File.WriteAllText(cmdScript, scriptContent);
+            if (!File.Exists(updaterPath))
+            {
+                throw new FileNotFoundException("DeltempoUpdater.exe not found. Cannot proceed with update.");
+            }
 
             var psi = new ProcessStartInfo
             {
-                FileName = "cmd.exe",
-                Arguments = $"/c \"\"{cmdScript}\"\"",
+                FileName = updaterPath,
+                Arguments = $"--transaction {txId} --caller-pid {Environment.ProcessId}",
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 WindowStyle = ProcessWindowStyle.Hidden
             };
 
-            // Persist installed patch metadata to settings before handover
-            try
-            {
-                if (!string.IsNullOrWhiteSpace(commitSha))
-                {
-                    SettingsService.Current.LastInstalledPatchSha = commitSha;
-                }
-                if (!string.IsNullOrWhiteSpace(expectedSha256))
-                {
-                    SettingsService.Current.LastInstalledPatchHash = expectedSha256;
-                }
-                SettingsService.SaveSettings();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Failed to persist patch update metadata: {ex.Message}");
-            }
-
+            // 6. Clean shutdown & exit to release file locks
             Process.Start(psi);
 
-            // Clean shutdown & immediate exit to release all locks instantly
             if (Application.Current != null)
             {
                 Application.Current.Dispatcher.Invoke(() =>
@@ -498,15 +497,13 @@ public static class UpdateService
         }
         catch
         {
+            journal.TransitionTo(TransactionState.Failed);
             try
             {
-                if (File.Exists(tempFile))
-                    File.Delete(tempFile);
+                if (Directory.Exists(stagedDir))
+                    Directory.Delete(stagedDir, true);
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
-            }
+            catch { }
             throw;
         }
     }

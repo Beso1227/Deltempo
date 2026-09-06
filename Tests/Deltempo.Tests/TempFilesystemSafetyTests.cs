@@ -113,7 +113,7 @@ public class TempFilesystemSafetyTests : IDisposable
             "Test Scope",
             new[] { _sandboxDir },
             "Temp",
-            safeMode24Hours: false);
+            apply24HourShield: false);
 
         Assert.NotNull(plan);
         Assert.Equal(2, plan.DiscoveredCount);
@@ -136,7 +136,7 @@ public class TempFilesystemSafetyTests : IDisposable
                 "Locked Scope",
                 new[] { _sandboxDir },
                 "Temp",
-                safeMode24Hours: false);
+                apply24HourShield: false);
 
             var result = await CleanupExecutor.ExecutePlanAsync(plan, _sandboxDir);
 
@@ -145,5 +145,136 @@ public class TempFilesystemSafetyTests : IDisposable
             Assert.Equal(1, result.FailedCount);
             Assert.NotEmpty(result.ErrorMessages);
         }
+    }
+
+    [Fact]
+    public void RevalidateBeforeDeletion_SizeChanged_ReturnsFalse()
+    {
+        string file = Path.Combine(_sandboxDir, "size_change_test.tmp");
+        File.WriteAllText(file, "original content");
+
+        bool valid = CleanupExecutor.RevalidateBeforeDeletion(file, _sandboxDir, 999, out string reason);
+        Assert.False(valid, "Size mismatch must reject deletion to prevent TOCTOU race.");
+
+        File.Delete(file);
+    }
+
+    [Fact]
+    public void RevalidateBeforeDeletion_TimestampChanged_ReturnsFalse()
+    {
+        string file = Path.Combine(_sandboxDir, "timestamp_test.tmp");
+        File.WriteAllText(file, "timestamp content");
+
+        bool valid = CleanupExecutor.RevalidateBeforeDeletion(file, _sandboxDir, 0, DateTime.UtcNow.AddHours(-10), out string reason, out FileCleanupFailureReason code);
+        Assert.False(valid, "Timestamp drift beyond tolerance must reject deletion.");
+
+        File.Delete(file);
+    }
+
+    [Fact]
+    public void ExecutePlanAsync_SkipsReviewRequiredFiles()
+    {
+        string safeFile = Path.Combine(_sandboxDir, "safe_old.tmp");
+        File.WriteAllText(safeFile, "safe data");
+        File.SetLastWriteTime(safeFile, DateTime.Now - TimeSpan.FromHours(48));
+
+        string reviewFile = Path.Combine(_sandboxDir, "review_recent.tmp");
+        File.WriteAllText(reviewFile, "recent data");
+        File.SetLastWriteTime(reviewFile, DateTime.Now - TimeSpan.FromMinutes(5));
+
+        var plan = CleanupPlanner.CreatePlan(
+            "mixed_scope", "Mixed Scope", new[] { _sandboxDir }, "Temp",
+            apply24HourShield: true);
+
+        var safeAction = plan.Actions.First(a => a.FileName == "safe_old.tmp");
+        var reviewAction = plan.Actions.First(a => a.FileName == "review_recent.tmp");
+
+        Assert.Equal(IntendedCleanupAction.DeletePermanently, safeAction.Action);
+        Assert.Equal(IntendedCleanupAction.SkipReviewRequired, reviewAction.Action);
+    }
+
+    [Fact]
+    public void ExecutePlanAsync_PureCacheScope_BypassesShieldForUnknownFiles()
+    {
+        string unknownFile = Path.Combine(_sandboxDir, "mystery_data.xyz");
+        File.WriteAllText(unknownFile, "unknown data");
+        File.SetLastWriteTime(unknownFile, DateTime.Now - TimeSpan.FromMinutes(2));
+
+        var plan = CleanupPlanner.CreatePlan(
+            "cache_scope", "Cache Scope", new[] { _sandboxDir }, "Cache",
+            apply24HourShield: false);
+
+        var action = plan.Actions.First(a => a.FileName == "mystery_data.xyz");
+        Assert.Equal(IntendedCleanupAction.DeletePermanently, action.Action);
+    }
+
+    [Fact]
+    public async Task ExecutePlanAsync_SafeFilesAreDeleted()
+    {
+        string file = Path.Combine(_sandboxDir, "deletable.tmp");
+        File.WriteAllText(file, "delete me");
+
+        var plan = CleanupPlanner.CreatePlan(
+            "delete_scope", "Delete Scope", new[] { _sandboxDir }, "Temp",
+            apply24HourShield: false);
+
+        var result = await CleanupExecutor.ExecutePlanAsync(plan, _sandboxDir);
+
+        Assert.Equal(1, result.DeletedCount);
+        Assert.False(File.Exists(file), "Safe file should be deleted by executor.");
+    }
+
+    [Fact]
+    public void CleanupPlan_ComputedPropertiesReflectCorrectCounts()
+    {
+        string safeFile = Path.Combine(_sandboxDir, "safe_plan.tmp");
+        string protectedFile = Path.Combine(_sandboxDir, "protected_plan.kdbx");
+        File.WriteAllText(safeFile, "safe");
+        File.WriteAllText(protectedFile, "passwords");
+
+        var plan = CleanupPlanner.CreatePlan(
+            "count_scope", "Count Scope", new[] { _sandboxDir }, "Temp",
+            apply24HourShield: false);
+
+        Assert.Equal(2, plan.DiscoveredCount);
+        Assert.Equal(1, plan.ProtectedCount);
+        Assert.Equal(1, plan.EligibleCount);
+    }
+
+    [Fact]
+    public void CleanupTransactionResult_CompletionStatus_WhenClean_ReturnsClean()
+    {
+        var result = new CleanupTransactionResult { DeletedCount = 5, FailedCount = 0 };
+        Assert.Equal(CleanupCompletionStatus.Clean, result.CompletionStatus);
+    }
+
+    [Fact]
+    public void CleanupTransactionResult_CompletionStatus_WhenFailed_ReturnsFailed()
+    {
+        var result = new CleanupTransactionResult { DeletedCount = 0, FailedCount = 3 };
+        Assert.Equal(CleanupCompletionStatus.Failed, result.CompletionStatus);
+    }
+
+    [Fact]
+    public void CleanupTransactionResult_CompletionStatus_WhenPartial_ReturnsCompletedWithWarnings()
+    {
+        var result = new CleanupTransactionResult { DeletedCount = 3, FailedCount = 1 };
+        Assert.Equal(CleanupCompletionStatus.CompletedWithWarnings, result.CompletionStatus);
+    }
+
+    [Fact]
+    public void CleanupTransactionResult_CompletionStatus_WhenCancelled_ReturnsCancelled()
+    {
+        var result = new CleanupTransactionResult { WasCancelled = true, DeletedCount = 0 };
+        Assert.Equal(CleanupCompletionStatus.Cancelled, result.CompletionStatus);
+    }
+
+    [Fact]
+    public void CleanupTransactionResult_Success_TrueWhenCleanOrWarnings()
+    {
+        Assert.True(new CleanupTransactionResult { DeletedCount = 1, FailedCount = 0 }.Success);
+        Assert.True(new CleanupTransactionResult { DeletedCount = 1, FailedCount = 1 }.Success);
+        Assert.False(new CleanupTransactionResult { DeletedCount = 0, FailedCount = 1 }.Success);
+        Assert.False(new CleanupTransactionResult { WasCancelled = true, DeletedCount = 0 }.Success);
     }
 }

@@ -6,9 +6,27 @@ using WinTempCleaner.Models;
 namespace WinTempCleaner.Core.Cleaning;
 
 /// <summary>
+/// Reasons a file was rejected during pre-deletion revalidation.
+/// </summary>
+public enum FileCleanupFailureReason
+{
+    Unknown,
+    FileMissing,
+    SizeChanged,
+    TimestampChanged,
+    PathEscapedRoot,
+    ReparsePointDetected,
+    ProtectedByPolicy,
+    SafetyTierChanged,
+    AccessDenied,
+    FileChanged,
+    SystemAttributeSet
+}
+
+/// <summary>
 /// Two-phase execution engine with strict pre-deletion TOCTOU revalidation.
 /// Verifies path canonicalization, reparse-point absence, attribute consistency,
-/// and protection policy right before every destructive action.
+/// size consistency, and protection policy right before every destructive action.
 /// </summary>
 public static class CleanupExecutor
 {
@@ -62,8 +80,6 @@ public static class CleanupExecutor
             DiscoveredBytes = plan.DiscoveredBytes,
             EligibleCount = plan.EligibleCount,
             EligibleBytes = plan.EligibleBytes,
-            ProtectedCount = plan.ProtectedCount,
-            ProtectedBytes = plan.ProtectedBytes,
             StartTimeUtc = DateTime.UtcNow
         };
 
@@ -76,6 +92,7 @@ public static class CleanupExecutor
             {
                 if (ct.IsCancellationRequested)
                 {
+                    result.WasCancelled = true;
                     result.SkippedReasons.Add("Cleanup cancelled by user.");
                     break;
                 }
@@ -86,9 +103,7 @@ public static class CleanupExecutor
                     progressReport?.Invoke((double)processed / total);
                 }
 
-                // If plan already marked it to skip
                 if (action.Action is IntendedCleanupAction.SkipProtected or
-                    IntendedCleanupAction.SkipReviewRequired or
                     IntendedCleanupAction.SkipRecent or
                     IntendedCleanupAction.SkipError)
                 {
@@ -97,10 +112,16 @@ public static class CleanupExecutor
                     continue;
                 }
 
-                // =========================================================================
+                if (action.Action == IntendedCleanupAction.SkipReviewRequired)
+                {
+                    result.ReviewRequiredCount++;
+                    result.ReviewRequiredBytes += action.SizeBytes;
+                    result.SkippedReasons.Add($"{action.FileName}: ReviewRequired - not auto-deleted");
+                    continue;
+                }
+
                 // PHASE 2: PRE-DELETION REVALIDATION (TOCTOU Defense)
-                // =========================================================================
-                if (!RevalidateBeforeDeletion(action.FilePath, allowedRoot, action.SizeBytes, out string revalidationReason))
+                if (!RevalidateBeforeDeletion(action.FilePath, allowedRoot, action.SizeBytes, action.LastModified, out string revalidationReason, out _))
                 {
                     result.SkippedCount++;
                     result.SkippedBytes += action.SizeBytes;
@@ -109,9 +130,7 @@ public static class CleanupExecutor
                     continue;
                 }
 
-                // =========================================================================
                 // DESTRUCTIVE EXECUTION
-                // =========================================================================
                 try
                 {
                     long actualBytes = action.SizeBytes;
@@ -122,33 +141,53 @@ public static class CleanupExecutor
                     }
                     catch { }
 
+                    bool success = false;
+
                     if (action.Action == IntendedCleanupAction.MoveToRecycleBin)
                     {
-                        if (SendFileToRecycleBin(action.FilePath))
+                        success = SendFileToRecycleBin(action.FilePath);
+                        if (success)
                         {
                             result.RecycledCount++;
                             result.RecycledBytes += actualBytes;
                         }
-                        else
-                        {
-                            result.FailedCount++;
-                            result.FailedBytes += actualBytes;
-                            result.ErrorMessages.Add($"Could not move to Recycle Bin: {action.FilePath}");
-                        }
                     }
-                    else // DeletePermanently
+                    else
                     {
-                        if (DeletePermanently(action.FilePath))
+                        success = DeletePermanently(action.FilePath);
+                        if (success)
                         {
                             result.DeletedCount++;
                             result.DeletedBytes += actualBytes;
                         }
-                        else
+                    }
+
+                    if (success)
+                    {
+                        // PHASE 3: POST-DELETION VERIFICATION
+                        if (!VerifyDeletion(action.FilePath, action.Action == IntendedCleanupAction.MoveToRecycleBin))
                         {
+                            if (action.Action == IntendedCleanupAction.MoveToRecycleBin)
+                            {
+                                result.RecycledCount--;
+                                result.RecycledBytes -= actualBytes;
+                            }
+                            else
+                            {
+                                result.DeletedCount--;
+                                result.DeletedBytes -= actualBytes;
+                            }
                             result.FailedCount++;
                             result.FailedBytes += actualBytes;
-                            result.ErrorMessages.Add($"Permanent deletion failed: {action.FilePath}");
+                            result.ErrorMessages.Add($"Post-deletion verification failed: {action.FilePath} still exists (ExecutionReportedSuccessButVerificationFailed)");
+                            logAction?.Invoke($"Post-deletion verification failed for '{action.FileName}': file still exists after {action.Action}", LogLevel.Warning);
                         }
+                    }
+                    else
+                    {
+                        result.FailedCount++;
+                        result.FailedBytes += actualBytes;
+                        result.ErrorMessages.Add($"Deletion failed ({action.Action}): {action.FilePath}");
                     }
                 }
                 catch (Exception ex)
@@ -167,92 +206,158 @@ public static class CleanupExecutor
     }
 
     public static bool RevalidateBeforeDeletion(string filePath, string allowedRoot = "") =>
-        RevalidateBeforeDeletion(filePath, allowedRoot, 0, out _);
+        RevalidateBeforeDeletion(filePath, allowedRoot, 0, null, out _, out _);
 
     public static bool RevalidateBeforeDeletion(string filePath, string allowedRoot, out string failureReason) =>
-        RevalidateBeforeDeletion(filePath, allowedRoot, 0, out failureReason);
+        RevalidateBeforeDeletion(filePath, allowedRoot, 0, null, out failureReason, out _);
+
+    public static bool RevalidateBeforeDeletion(string filePath, string allowedRoot, long expectedSize, out string failureReason) =>
+        RevalidateBeforeDeletion(filePath, allowedRoot, expectedSize, null, out failureReason, out _);
 
     /// <summary>
-    /// Immediate pre-deletion revalidation check.
-    /// Re-evaluates file identity, attributes, root containment, reparse-points, and protection rules.
-    /// If ANY condition fails or changed since planning, returns false to abort deletion.
+    /// Pre-deletion TOCTOU-resistant revalidation.
+    /// Re-evaluates file identity, attributes, root containment, reparse-points, size consistency,
+    /// timestamp consistency, and protection rules immediately before destructive action.
     /// </summary>
-    public static bool RevalidateBeforeDeletion(string filePath, string allowedRoot, long expectedSize, out string failureReason)
+    public static bool RevalidateBeforeDeletion(string filePath, string allowedRoot, long expectedSize, DateTime? expectedTimestamp, out string failureReason, out FileCleanupFailureReason reasonCode)
     {
         failureReason = string.Empty;
+        reasonCode = FileCleanupFailureReason.Unknown;
 
-        // 1. Re-check null or empty
         if (string.IsNullOrWhiteSpace(filePath))
         {
             failureReason = "Path is null or whitespace.";
+            reasonCode = FileCleanupFailureReason.FileMissing;
             return false;
         }
 
-        // 2. Re-canonicalize path
+        // Re-canonicalize path
         string canonicalPath = PathSecurity.NormalizeCanonicalPath(filePath);
         if (string.IsNullOrEmpty(canonicalPath))
         {
             failureReason = "Could not verify canonical path.";
+            reasonCode = FileCleanupFailureReason.FileMissing;
             return false;
         }
 
-        // 3. Verify file still strictly resides inside allowedRoot
+        // Verify file still strictly resides inside allowedRoot
         if (!string.IsNullOrEmpty(allowedRoot) && !PathSecurity.IsSubpathOf(canonicalPath, allowedRoot))
         {
             failureReason = "Path is not inside designated cleanup root.";
+            reasonCode = FileCleanupFailureReason.PathEscapedRoot;
             return false;
         }
 
-        // 4. Check file existence
-        var fi = new FileInfo(canonicalPath);
+        // Check file existence
+        FileInfo fi;
+        try
+        {
+            fi = new FileInfo(canonicalPath);
+        }
+        catch
+        {
+            failureReason = "File inaccessible.";
+            reasonCode = FileCleanupFailureReason.AccessDenied;
+            return false;
+        }
+
         if (!fi.Exists)
         {
             failureReason = "File no longer exists on disk.";
+            reasonCode = FileCleanupFailureReason.FileMissing;
             return false;
         }
 
-        // 5. Detect newly created reparse points, symlinks, or junctions
+        // Detect newly created reparse points, symlinks, or junctions
         if ((fi.Attributes & FileAttributes.ReparsePoint) != 0 || fi.LinkTarget != null)
         {
             failureReason = "File is or became an NTFS Reparse Point / Link.";
+            reasonCode = FileCleanupFailureReason.ReparsePointDetected;
             return false;
         }
 
-        // 6. Enforce that System files are NEVER deleted
+        // Enforce that System files are NEVER deleted
         if ((fi.Attributes & FileAttributes.System) != 0)
         {
             failureReason = "File has System attribute set.";
+            reasonCode = FileCleanupFailureReason.SystemAttributeSet;
             return false;
         }
 
-        // 7. Re-evaluate Protection Policy immediately before deletion
+        // Size consistency check (if planned size was known)
+        if (expectedSize > 0)
+        {
+            long currentSize = fi.Length;
+            if (currentSize != expectedSize)
+            {
+                failureReason = $"File size changed: expected {expectedSize}, found {currentSize}.";
+                reasonCode = FileCleanupFailureReason.SizeChanged;
+                return false;
+            }
+        }
+
+        // Timestamp consistency check (if planned timestamp was known)
+        if (expectedTimestamp.HasValue)
+        {
+            TimeSpan drift = fi.LastWriteTimeUtc - expectedTimestamp.Value;
+            if (Math.Abs(drift.TotalSeconds) > 5)
+            {
+                failureReason = $"File timestamp changed: expected {expectedTimestamp.Value:O}, found {fi.LastWriteTimeUtc:O}.";
+                reasonCode = FileCleanupFailureReason.TimestampChanged;
+                return false;
+            }
+        }
+
+        // Re-evaluate Protection Policy immediately before deletion
         if (ProtectionPolicy.IsProtected(canonicalPath, out string protectedReason))
         {
             failureReason = $"Protected by policy: {protectedReason}";
+            reasonCode = FileCleanupFailureReason.ProtectedByPolicy;
             return false;
         }
 
         return true;
     }
 
+    /// <summary>
+    /// Verifies that a deletion actually occurred after the operation was reported as successful.
+    /// For Recycle Bin operations, verifies the original location no longer contains the object.
+    /// </summary>
+    private static bool VerifyDeletion(string path, bool wasRecycleBinOperation)
+    {
+        try
+        {
+            if (wasRecycleBinOperation)
+            {
+                return !File.Exists(path) && !Directory.Exists(path);
+            }
+            else
+            {
+                return !File.Exists(path);
+            }
+        }
+        catch
+        {
+            // If we cannot verify, assume failure (conservative)
+            return false;
+        }
+    }
+
     public static bool DeletePermanently(string path)
     {
         try
         {
-            // Clear ReadOnly attribute if set (DO NOT touch System attribute)
             var fi = new FileInfo(path);
             if (fi.Exists && (fi.Attributes & FileAttributes.ReadOnly) != 0)
             {
                 fi.Attributes &= ~FileAttributes.ReadOnly;
             }
 
-            // Primary native Win32 delete
             if (DeleteFileW(path))
             {
                 return true;
             }
 
-            // Fallback .NET delete
             if (File.Exists(path))
             {
                 File.Delete(path);

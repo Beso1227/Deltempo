@@ -47,4 +47,37 @@ public class SystemRepairServiceTests
         Assert.False(res.Success);
         Assert.Contains("cancelled", res.ErrorMessage, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public async Task RunSfcScannowAsync_CancelledToken_ReturnsCancelledResult()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var res = await SystemRepairService.RunSfcScannowAsync(null, null, cts.Token);
+
+        Assert.False(res.Success);
+        Assert.Equal(-1, res.ExitCode);
+        Assert.Contains("cancelled", res.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task RunDismScanHealthAsync_CancelledToken_ReturnsCancelledResult()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var res = await SystemRepairService.RunDismScanHealthAsync(null, null, cts.Token);
+
+        Assert.False(res.Success);
+        Assert.Equal(-1, res.ExitCode);
+    }
+
+    [Fact]
+    public void ParseProgressFromLine_PercentWithBrackets_NormalizesCorrectly()
+    {
+        Assert.Equal(0.5, SystemRepairService.ParseProgressFromLine("[ 50.0% ]"));
+        Assert.Equal(1.0, SystemRepairService.ParseProgressFromLine("[100%]"));
+        Assert.Equal(0.0, SystemRepairService.ParseProgressFromLine("[0%]"));
+    }
 }

@@ -159,9 +159,9 @@ public static class CliRunner
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("\n  PERFORMANCE & RAM COMMANDS:");
         Console.ResetColor();
-        PrintCmdRow("boost", "Purge background process working sets & standby cache");
+        PrintCmdRow("boost", "Purge background process working sets, standby list & system cache (default)");
         PrintCmdRow("boost --all", "Deep purge all 8 Windows NT Kernel memory zones");
-        PrintCmdRow("boost --standby", "Purge closed application standby page list");
+        PrintCmdRow("boost --standby", "Purge closed application standby page list (normal + low priority)");
         PrintCmdRow("boost --cache", "Flush and reset Windows System File Cache");
 
         Console.ForegroundColor = ConsoleColor.Yellow;
@@ -199,7 +199,7 @@ public static class CliRunner
         Console.ResetColor();
         PrintOptRow("--smart, --safe-only", "Target only 100% safe disposable caches (skip orphaned apps)");
         PrintOptRow("--recycle-bin, -r", "Send deleted files to the Windows Recycle Bin (undoable)");
-        PrintOptRow("--safe / --unsafe", "Toggle 24-hour file modification protection [Default: ON]");
+        PrintOptRow("--unsafe", "Disable 24-hour file modification protection (default: ON)");
         PrintOptRow("--dry-run, -d", "Simulate clean actions without deleting any files");
         PrintOptRow("--yes, -y", "Bypass interactive confirmation prompts (for scripts/CI)");
         PrintOptRow("--json, -j", "Output results in structured machine-readable JSON");
@@ -288,7 +288,7 @@ public static class CliRunner
             logAction: (msg, lvl) => { },
             progress: progress,
             purgeAllRestorePoints: purgeAllVss,
-            ct: cts.Token);
+            ct: cts.Token).ConfigureAwait(false);
 
         if (!silent && !isJson)
         {
@@ -783,7 +783,7 @@ public static class CliRunner
 
         var res = await MemoryOptimizerService.OptimizeRamAsync(selectedTargets?.ToArray());
         var afterMem = MemoryOptimizerService.GetMemoryInfo();
-        long actualFreed = Math.Max(res.ReclaimedBytes, Math.Max(0, afterMem.AvailablePhysicalBytes - beforeMem.AvailablePhysicalBytes));
+        long actualFreed = Math.Max(res.MeasuredBytesFreed, Math.Max(0, afterMem.AvailablePhysicalBytes - beforeMem.AvailablePhysicalBytes));
 
         if (isJson)
         {
@@ -812,7 +812,7 @@ public static class CliRunner
             Console.ResetColor();
         }
 
-        return 0;
+        return res.Success ? 0 : 1;
     }
 
     // ─── LARGE FILES (BIG FILES) COMMAND ───────────────────────────────
@@ -880,11 +880,12 @@ public static class CliRunner
         if (!isJson)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine($"  🐘 [Deltempo] AI Large File Hunter (>{TargetFolderInfo.FormatBytes(minBytes)}) on '{scope}'...\n");
+            Console.WriteLine($"  [Deltempo] Large File Hunter (>{TargetFolderInfo.FormatBytes(minBytes)}) on '{scope}'...\n");
             Console.ResetColor();
         }
 
-        var files = await LargeFileHunterService.ScanLargeFilesAsync(minBytes, scope);
+        var scanResult = await LargeFileHunterService.ScanLargeFilesAsync(minBytes, scope);
+        var files = scanResult.Files;
 
         // Apply filters
         if (!string.IsNullOrWhiteSpace(extFilter))
@@ -918,7 +919,17 @@ public static class CliRunner
 
         if (isJson)
         {
-            Console.WriteLine(JsonSerializer.Serialize(files, new JsonSerializerOptions { WriteIndented = true }));
+            Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                files = files,
+                totalDiscovered = scanResult.TotalDiscovered,
+                displayLimit = scanResult.DisplayLimit,
+                wasTruncated = scanResult.WasTruncated,
+                totalBytesScanned = scanResult.TotalBytesScanned,
+                directoriesScanned = scanResult.DirectoriesScanned,
+                inaccessibleDirectories = scanResult.InaccessibleDirectories.Count,
+                scanCompleted = scanResult.ScanCompleted
+            }, new JsonSerializerOptions { WriteIndented = true }));
             return 0;
         }
 
@@ -957,8 +968,16 @@ public static class CliRunner
 
         Console.WriteLine();
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"  ✓ Discovered {files.Count} large files ({TargetFolderInfo.FormatBytes(totalBytes)}).");
-        Console.WriteLine($"  ✓ AI Identified {safeFiles.Count} safe to clean ({TargetFolderInfo.FormatBytes(safeBytes)}): Stale installers, dumps, temp.");
+        string truncationNote = scanResult.WasTruncated ? $" (showing top {files.Count} of {scanResult.TotalDiscovered})" : "";
+        Console.WriteLine($"  Discovered {scanResult.TotalDiscovered} large files ({TargetFolderInfo.FormatBytes(totalBytes)}){truncationNote}.");
+        Console.WriteLine($"  Scanned {scanResult.DirectoriesScanned:N0} directories ({TargetFolderInfo.FormatBytes(scanResult.TotalBytesScanned)} total).");
+        if (scanResult.InaccessibleDirectories.Count > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"  Warning: {scanResult.InaccessibleDirectories.Count} directories were inaccessible.");
+        }
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"  Safety-classified {safeFiles.Count} files as safe to clean ({TargetFolderInfo.FormatBytes(safeBytes)}): Stale installers, dumps, temp.");
         Console.ResetColor();
 
         // If Clean / Purge action requested
@@ -1037,8 +1056,17 @@ public static class CliRunner
                 created = fi.CreationTime,
                 lastModified = fi.LastWriteTime,
                 category = category,
-                safety = safety,
-                ai = safety
+                safety = new
+                {
+                    safety.Tier,
+                    safety.SafetyScore,
+                    safety.Verdict,
+                    safety.VerdictShort,
+                    safety.Explanation,
+                    safety.MatchedRule,
+                    safety.Origin,
+                    safety.Impact
+                }
             }, new JsonSerializerOptions { WriteIndented = true }));
             return 0;
         }
@@ -1159,7 +1187,21 @@ public static class CliRunner
 
         if (isJson)
         {
-            Console.WriteLine(JsonSerializer.Serialize(items, new JsonSerializerOptions { WriteIndented = true }));
+            Console.WriteLine(JsonSerializer.Serialize(items.Select(i => new
+            {
+                i.Name,
+                i.FriendlyName,
+                i.Command,
+                i.ExePath,
+                i.Location,
+                i.LocationDisplay,
+                i.IsEnabled,
+                i.IsFileMissing,
+                i.Impact,
+                i.ImpactText,
+                i.Publisher,
+                i.IsProtected
+            }), new JsonSerializerOptions { WriteIndented = true }));
             return 0;
         }
 
@@ -1269,7 +1311,17 @@ public static class CliRunner
 
         if (isJson)
         {
-            Console.WriteLine(JsonSerializer.Serialize(procs.Take(topLimit), new JsonSerializerOptions { WriteIndented = true }));
+            Console.WriteLine(JsonSerializer.Serialize(procs.Take(topLimit).Select(p => new
+            {
+                p.ProcessName,
+                p.ProcessId,
+                p.WorkingSetBytes,
+                p.FormattedMemory,
+                p.CategoryDescription,
+                p.IsSafeToClose,
+                p.ProcessCount,
+                p.DisplayName
+            }), new JsonSerializerOptions { WriteIndented = true }));
             return 0;
         }
 
@@ -1536,9 +1588,9 @@ public static class CliRunner
         }
 
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"  ✓ Terminated {killed} running Deltempo process(es).");
+        Console.WriteLine($"  Terminated {killed} running Deltempo process(es).");
         Console.ResetColor();
-        return 0;
+        return procs.Count == 0 ? 1 : 0;
     }
 
     // ─── HELPER FUNCTIONS ──────────────────────────────────────────────

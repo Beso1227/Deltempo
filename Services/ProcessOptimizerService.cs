@@ -353,11 +353,37 @@ public static class ProcessOptimizerService
         {
             try
             {
-                using var p = Process.GetProcessById(pid);
-                if (p != null && !IsProtectedProcess(p.ProcessName))
+                // Verify PID still exists and matches intended identity before killing
+                Process p;
+                try
                 {
+                    p = Process.GetProcessById(pid);
+                }
+                catch
+                {
+                    // PID no longer exists or inaccessible
+                    continue;
+                }
+
+                using (p)
+                {
+                    if (p.Id <= 4) continue;
+                    if (IsProtectedProcess(p.ProcessName))
+                    {
+                        Trace.WriteLine($"[Deltempo] Refusing to terminate protected process: {p.ProcessName} (PID {pid})");
+                        continue;
+                    }
+
                     p.Kill(true);
-                    anySuccess = true;
+                    bool exited = p.WaitForExit(2000);
+                    if (exited)
+                    {
+                        anySuccess = true;
+                    }
+                    else
+                    {
+                        Trace.WriteLine($"[Deltempo] Process {p.ProcessName} (PID {pid}) did not exit within timeout after Kill");
+                    }
                 }
             }
             catch (Exception ex)

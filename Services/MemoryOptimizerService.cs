@@ -68,21 +68,38 @@ public class MemoryAreaSnapshot
     };
 }
 
+public enum MemoryOperationStatus
+{
+    Success,
+    PartialSuccess,
+    NoApplicableTargets,
+    AccessDenied,
+    Unsupported,
+    Failed
+}
+
 public class MemoryOptimizationResult
 {
-    public long ReclaimedBytes { get; set; }
+    public long MeasuredBytesFreed { get; set; }
+    public MemoryOperationStatus Status { get; set; } = MemoryOperationStatus.Failed;
     public int ProcessesOptimized { get; set; }
     public long ExecutionTimeMs { get; set; }
-    public string FormattedReclaimed => TargetFolderInfo.FormatBytes(ReclaimedBytes);
+    public long MeasuredAvailableBefore { get; set; }
+    public long MeasuredAvailableAfter { get; set; }
+    public long MeasuredDelta => Math.Max(0, MeasuredAvailableAfter - MeasuredAvailableBefore);
+    public string FormattedReclaimed => TargetFolderInfo.FormatBytes(MeasuredBytesFreed);
+    public string FormattedMeasuredDelta => TargetFolderInfo.FormatBytes(MeasuredDelta);
     public List<MemoryAreaResult> AreaResults { get; set; } = new();
+    public bool Success => Status is MemoryOperationStatus.Success or MemoryOperationStatus.PartialSuccess;
 }
 
 public class MemoryAreaResult
 {
     public MemoryTargetType Target { get; set; }
-    public bool Success { get; set; }
-    public long BytesFreed { get; set; }
-    public string FormattedFreed => TargetFolderInfo.FormatBytes(BytesFreed);
+    public MemoryOperationStatus Status { get; set; } = MemoryOperationStatus.Failed;
+    public bool Success => Status is MemoryOperationStatus.Success or MemoryOperationStatus.PartialSuccess;
+    public long MeasuredBytesFreed { get; set; }
+    public string FormattedFreed => TargetFolderInfo.FormatBytes(MeasuredBytesFreed);
     public string ErrorMessage { get; set; } = "";
     public int? ProcessesOptimized { get; set; }
 }
@@ -407,7 +424,6 @@ public static class MemoryOptimizerService
     {
         var memInfo = GetMemoryInfo();
         long totalPhys = memInfo.TotalPhysicalBytes;
-        long usedPhys = memInfo.UsedPhysicalBytes;
         long sysCache = memInfo.SystemCacheBytes;
 
         var snapshots = new List<MemoryAreaSnapshot>();
@@ -418,18 +434,18 @@ public static class MemoryOptimizerService
 
             long currentBytes = target switch
             {
-                MemoryTargetType.WorkingSet             => (long)(usedPhys * 0.48),
-                MemoryTargetType.StandbyList             => Math.Max(sysCache, (long)(totalPhys * 0.22)),
-                MemoryTargetType.StandbyListLowPriority  => (long)(totalPhys * 0.08),
-                MemoryTargetType.ModifiedPageList       => (long)(totalPhys * 0.04),
-                MemoryTargetType.CombinedPageList       => (long)(totalPhys * 0.03),
-                MemoryTargetType.SystemFileCache        => (long)(sysCache * 0.45),
-                MemoryTargetType.ModifiedFileCache      => (long)(totalPhys * 0.02),
-                MemoryTargetType.RegistryCache          => 64L * 1024 * 1024,
-                _                                       => 0
+                MemoryTargetType.StandbyList             => sysCache,
+                MemoryTargetType.SystemFileCache         => sysCache,
+                MemoryTargetType.ModifiedPageList        => 0,
+                MemoryTargetType.CombinedPageList        => 0,
+                MemoryTargetType.WorkingSet              => 0,
+                MemoryTargetType.StandbyListLowPriority  => 0,
+                MemoryTargetType.ModifiedFileCache       => 0,
+                MemoryTargetType.RegistryCache           => 0,
+                _                                        => 0
             };
 
-            double pct = totalPhys > 0 ? ((double)currentBytes / totalPhys) * 100.0 : 0;
+            double pct = totalPhys > 0 && currentBytes > 0 ? ((double)currentBytes / totalPhys) * 100.0 : 0;
 
             snapshots.Add(new MemoryAreaSnapshot
             {
@@ -464,7 +480,6 @@ public static class MemoryOptimizerService
             var results = new List<MemoryAreaResult>();
             int totalProcessesTrimmed = 0;
 
-            // Default: WinMemoryCleaner default active areas (all 7 zones)
             var targetTypes = targets ?? DefaultActiveTargetTypes();
 
             foreach (var t in targetTypes)
@@ -479,23 +494,30 @@ public static class MemoryOptimizerService
                 results.Add(areaRes);
             }
 
-            // Post-Optimization: Garbage collection & self-trimming (WinMemoryCleaner specification)
             ReleaseAppMemory();
 
             sw.Stop();
             var afterMem = GetMemoryInfo();
             long measured = Math.Max(0, afterMem.AvailablePhysicalBytes - beforeMem.AvailablePhysicalBytes);
 
-            if (measured <= 0 && results.Any(r => r.Success))
-            {
-                measured = results.Where(r => r.Success).Sum(r => r.BytesFreed);
-            }
+            var succeededCount = results.Count(r => r.Success);
+            var failedCount = results.Count(r => !r.Success);
+            MemoryOperationStatus overallStatus;
+            if (failedCount == 0)
+                overallStatus = MemoryOperationStatus.Success;
+            else if (succeededCount > 0)
+                overallStatus = MemoryOperationStatus.PartialSuccess;
+            else
+                overallStatus = MemoryOperationStatus.Failed;
 
             return new MemoryOptimizationResult
             {
-                ReclaimedBytes = measured,
+                MeasuredBytesFreed = measured,
+                Status = overallStatus,
                 ProcessesOptimized = totalProcessesTrimmed,
                 ExecutionTimeMs = Math.Max(15, sw.ElapsedMilliseconds),
+                MeasuredAvailableBefore = beforeMem.AvailablePhysicalBytes,
+                MeasuredAvailableAfter = afterMem.AvailablePhysicalBytes,
                 AreaResults = results
             };
         }, ct);
@@ -520,8 +542,7 @@ public static class MemoryOptimizerService
 
         if (!desc.IsAvailableOnThisOs)
         {
-            result.Success = false;
-            result.BytesFreed = 0;
+            result.Status = MemoryOperationStatus.Unsupported;
             result.ErrorMessage = "Not supported on this OS";
             return result;
         }
@@ -537,7 +558,7 @@ public static class MemoryOptimizerService
             {
                 case MemoryTargetType.WorkingSet:
                     procs = OptimizeWorkingSet();
-                    success = procs > 0 || true;
+                    success = procs > 0;
                     result.ProcessesOptimized = procs;
                     break;
 
@@ -571,22 +592,17 @@ public static class MemoryOptimizerService
             }
 
             var afterMem = GetMemoryInfo();
-            long freed = Math.Max(0, afterMem.AvailablePhysicalBytes - beforeMem.AvailablePhysicalBytes);
+            long measured = Math.Max(0, afterMem.AvailablePhysicalBytes - beforeMem.AvailablePhysicalBytes);
 
-            if (freed <= 0 && success)
-            {
-                freed = EstimateReclaimForArea(target);
-            }
-
-            result.Success = success;
-            result.BytesFreed = freed;
+            result.Status = success ? MemoryOperationStatus.Success : MemoryOperationStatus.Failed;
+            result.MeasuredBytesFreed = measured;
             result.ErrorMessage = success ? "" : "Operation rejected or privilege denied";
             return result;
         }
         catch (Exception ex)
         {
-            result.Success = false;
-            result.BytesFreed = 0;
+            result.Status = MemoryOperationStatus.Failed;
+            result.MeasuredBytesFreed = 0;
             result.ErrorMessage = ex.Message;
             return result;
         }
@@ -904,26 +920,6 @@ public static class MemoryOptimizerService
     #endregion
 
     #region Helpers & Area Metadata
-
-    private static long EstimateReclaimForArea(MemoryTargetType area)
-    {
-        var mem = GetMemoryInfo();
-        var totalPhysGB = mem.TotalPhysicalBytes / (1024L * 1024L * 1024L);
-
-        return area switch
-        {
-            MemoryTargetType.StandbyList             => Math.Min(500L * 1024 * 1024, totalPhysGB * 120L * 1024 * 1024),
-            MemoryTargetType.StandbyListLowPriority  => Math.Min(200L * 1024 * 1024, totalPhysGB * 50L * 1024 * 1024),
-            MemoryTargetType.WorkingSet             => Math.Min(800L * 1024 * 1024, totalPhysGB * 150L * 1024 * 1024),
-            MemoryTargetType.SystemFileCache        => Math.Min(300L * 1024 * 1024, totalPhysGB * 60L * 1024 * 1024),
-            MemoryTargetType.ModifiedPageList       => Math.Min(120L * 1024 * 1024, totalPhysGB * 20L * 1024 * 1024),
-            MemoryTargetType.CombinedPageList       => Math.Min(80L * 1024 * 1024, totalPhysGB * 15L * 1024 * 1024),
-            MemoryTargetType.ModifiedFileCache      => Math.Min(120L * 1024 * 1024, totalPhysGB * 30L * 1024 * 1024),
-            MemoryTargetType.RegistryCache          => Math.Min(30L * 1024 * 1024, totalPhysGB * 5L * 1024 * 1024),
-            _                                       => 0
-        };
-    }
-
     private static readonly Dictionary<MemoryTargetType, (string DisplayName, string Description, bool IsAvailableOnThisOs, string SafetyBadge)>
         _targetDescriptions = new()
         {

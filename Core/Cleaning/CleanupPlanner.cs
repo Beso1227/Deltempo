@@ -14,7 +14,7 @@ public static class CleanupPlanner
         string scopeName,
         IEnumerable<string> directories,
         string category,
-        bool safeMode24Hours = true,
+        bool apply24HourShield = true,
         bool sendToRecycleBin = false,
         CancellationToken ct = default)
     {
@@ -39,7 +39,6 @@ public static class CleanupPlanner
             string canonicalDir = PathSecurity.NormalizeCanonicalPath(dir);
             if (string.IsNullOrEmpty(canonicalDir)) continue;
 
-            // Guard against starting inside a reparse point or link
             if (PathSecurity.IsReparsePointOrLink(canonicalDir)) continue;
 
             try
@@ -52,17 +51,15 @@ public static class CleanupPlanner
 
                     try
                     {
-                        // 1. Skip if file itself is a reparse point
                         if (PathSecurity.IsReparsePointOrLink(file)) continue;
 
-                        // 2. Multi-signal safety analysis
                         var safetyResult = FileSafetyEngine.Analyze(
                             file.FullName,
                             category,
                             allowedRoot: canonicalDir,
-                            apply24HourThreshold: safeMode24Hours);
+                            apply24HourThreshold: apply24HourShield);
 
-                        var intendedAction = DetermineAction(safetyResult.Tier, sendToRecycleBin);
+                        var intendedAction = DetermineAction(safetyResult.Tier, sendToRecycleBin, apply24HourShield);
 
                         plan.Actions.Add(new PlannedFileAction
                         {
@@ -72,8 +69,10 @@ public static class CleanupPlanner
                             Category = category,
                             SafetyTier = safetyResult.Tier,
                             Reason = safetyResult.Explanation,
+                            MatchedRule = safetyResult.MatchedRule,
                             Action = intendedAction,
-                            LastModified = file.LastWriteTimeUtc
+                            LastModified = file.LastWriteTimeUtc,
+                            PlannedSizeBytes = file.Length
                         });
                     }
                     catch (Exception ex)
@@ -91,7 +90,7 @@ public static class CleanupPlanner
         return plan;
     }
 
-    private static IntendedCleanupAction DetermineAction(SafetyRiskTier tier, bool sendToRecycleBin) => tier switch
+    private static IntendedCleanupAction DetermineAction(SafetyRiskTier tier, bool sendToRecycleBin, bool apply24HourShield) => tier switch
     {
         SafetyRiskTier.Safe => sendToRecycleBin
             ? IntendedCleanupAction.MoveToRecycleBin
@@ -103,6 +102,10 @@ public static class CleanupPlanner
 
         SafetyRiskTier.ReviewRequired => IntendedCleanupAction.SkipReviewRequired,
 
-        _ => IntendedCleanupAction.SkipProtected // Protected or Unknown -> Always Skip
+        SafetyRiskTier.Unknown when !apply24HourShield => sendToRecycleBin
+            ? IntendedCleanupAction.MoveToRecycleBin
+            : IntendedCleanupAction.DeletePermanently,
+
+        _ => IntendedCleanupAction.SkipProtected
     };
 }

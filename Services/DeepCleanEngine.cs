@@ -64,11 +64,16 @@ public static class DeepCleanEngine
         try
         {
             var ramRes = await MemoryOptimizerService.OptimizeRamAsync(null, ct);
-            result.RamFreedBytes = ramRes.ReclaimedBytes;
-            if (ramRes.ReclaimedBytes > 0)
+            result.RamFreedBytes = ramRes.MeasuredBytesFreed;
+            if (ramRes.MeasuredBytesFreed > 0)
             {
-                result.SummaryHighlights.Add($"🧠 RAM Memory Freed: {ramRes.FormattedReclaimed}");
-                logAction?.Invoke($"RAM Optimization completed: {ramRes.FormattedReclaimed} reclaimed across system memory pools.", LogLevel.Success);
+                result.SummaryHighlights.Add($"RAM Memory Freed: {ramRes.FormattedReclaimed}");
+                logAction?.Invoke($"RAM Optimization: measured available memory increased by {ramRes.FormattedMeasuredDelta}", LogLevel.Success);
+            }
+            else if (ramRes.Success)
+            {
+                result.SummaryHighlights.Add($"RAM Optimization completed (rearranged pages, measured delta: {ramRes.FormattedMeasuredDelta})");
+                logAction?.Invoke($"RAM Optimization completed. Measured available memory change: {ramRes.FormattedMeasuredDelta}", LogLevel.Info);
             }
         }
         catch (Exception ex)
@@ -91,7 +96,7 @@ public static class DeepCleanEngine
             t.IsSelected = t.HasAccess;
         }
 
-        var activeTargets = allTargets.Where(t => t.IsSelected).ToList();
+        var activeTargets = allTargets.Where(t => t.IsSelected && !t.IsSpecialShellTarget && t.Id != "SystemRestorePoints").ToList();
         result.CategoriesProcessed = activeTargets.Count;
 
         // =========================================================================

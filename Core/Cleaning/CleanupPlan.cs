@@ -25,8 +25,10 @@ public class PlannedFileAction
     public string Category { get; set; } = string.Empty;
     public SafetyRiskTier SafetyTier { get; set; } = SafetyRiskTier.Unknown;
     public string Reason { get; set; } = string.Empty;
+    public string MatchedRule { get; set; } = string.Empty;
     public IntendedCleanupAction Action { get; set; } = IntendedCleanupAction.SkipProtected;
     public DateTime LastModified { get; set; }
+    public long PlannedSizeBytes { get; set; }
 }
 
 /// <summary>
@@ -62,4 +64,18 @@ public class CleanupPlan
 
     public int ReviewRequiredCount => Actions
         .Count(a => a.SafetyTier == SafetyRiskTier.ReviewRequired);
+
+    public long UnknownBytes => Actions
+        .Where(a => a.SafetyTier == SafetyRiskTier.Unknown)
+        .Sum(a => a.SizeBytes);
+
+    public int UnknownCount => Actions
+        .Count(a => a.SafetyTier == SafetyRiskTier.Unknown);
+
+    public long SkippedBytes => Actions
+        .Where(a => a.Action is IntendedCleanupAction.SkipProtected or IntendedCleanupAction.SkipReviewRequired or IntendedCleanupAction.SkipRecent or IntendedCleanupAction.SkipError)
+        .Sum(a => a.SizeBytes);
+
+    public int SkippedCount => Actions
+        .Count(a => a.Action is IntendedCleanupAction.SkipProtected or IntendedCleanupAction.SkipReviewRequired or IntendedCleanupAction.SkipRecent or IntendedCleanupAction.SkipError);
 }
