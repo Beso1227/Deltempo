@@ -31,6 +31,11 @@ public class AppSettings
     public string MemoryGlobalHotkey { get; set; } = "CTRL+SHIFT+M";
     public bool MemoryCloseToTray { get; set; } = true;
     public bool MemoryShowNotifications { get; set; } = true;
+
+    // ─── Continuous Patch Tracking ────────────────────────────────────────
+    public string LastInstalledPatchSha { get; set; } = string.Empty;
+    public string LastInstalledPatchHash { get; set; } = string.Empty;
+    public string DismissedPatchSha { get; set; } = string.Empty;
 }
 
 public static class SettingsService
