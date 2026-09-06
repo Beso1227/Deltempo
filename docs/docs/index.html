@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deltempo Documentation — 26 Cleaning Targets &amp; Architecture</title>
+  <meta name="description" content="Complete documentation of Deltempo's 26 cleaning scopes: Windows shader cache cleaner, user profile temp cleaner, NT kernel memory engine, and safety shield." />
+  <meta name="keywords" content="deltempo documentation, windows shader cache cleaner, user profile cleaner, 26 cleaning scopes, windows 11 temp cleaner, open source disk cleaner" />
+  <meta name="author" content="Beso1227" />
+  <meta name="theme-color" content="#06080F" />
+
+  <link rel="canonical" href="https://beso1227.github.io/Deltempo/docs/" />
+
+  <!-- Open Graph / Social Meta -->
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://beso1227.github.io/Deltempo/docs/" />
+  <meta property="og:site_name" content="Deltempo" />
+  <meta property="og:title" content="Deltempo Documentation — 26 Cleaning Targets &amp; Architecture" />
+  <meta property="og:description" content="In-depth guide to Deltempo's 26 cleaning scopes, Windows NT memory optimization, and CLI flags." />
+  <meta property="og:image" content="https://beso1227.github.io/Deltempo/app_icon.png" />
+
+  <link rel="icon" type="image/png" href="../app_icon.png" />
+  <link rel="apple-touch-icon" href="../app_icon.png" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "TechArticle",
+        "@id": "https://beso1227.github.io/Deltempo/docs/#article",
+        "headline": "Deltempo Documentation: 26 Windows Cleaning Scopes and NT Kernel Memory Architecture",
+        "description": "Comprehensive reference of all 26 cache targets, GPU shader cache handling, user profile temp cleanup, and command-line automation in Deltempo.",
+        "author": {
+          "@type": "Person",
+          "name": "Beso1227"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Deltempo Open Source Project",
+          "url": "https://beso1227.github.io/Deltempo/"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://beso1227.github.io/Deltempo/docs/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://beso1227.github.io/Deltempo/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Documentation",
+            "item": "https://beso1227.github.io/Deltempo/docs/"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --bg-canvas: #06080F;
+      --bg-surface: #0B0F19;
+      --bg-card: #101626;
+      --border-outer: rgba(255, 255, 255, 0.08);
+      --border-inner: rgba(255, 255, 255, 0.05);
+      --text-high: #FFFFFF;
+      --text-med: #94A3B8;
+      --text-low: #64748B;
+      --cyan-glow: #06B6D4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg-canvas); color: var(--text-high); font-family: var(--font-body); line-height: 1.6; padding: 0 1.5rem 4rem; }
+    .nav-island {
+      max-width: 1040px;
+      margin: 1.5rem auto 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-outer);
+      padding: 0.85rem 1.5rem;
+      border-radius: 9999px;
+    }
+    .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: #fff; font-weight: 700; }
+    .brand img { width: 28px; height: 28px; border-radius: 6px; }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a { color: var(--text-med); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--cyan-glow); }
+    .container { max-width: 900px; margin: 0 auto; }
+    .hero { text-align: center; margin-bottom: 3rem; }
+    .badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--cyan-glow);
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      margin-bottom: 1.25rem;
+    }
+    h1 { font-family: var(--font-display); font-size: 2.3rem; font-weight: 800; line-height: 1.2; margin-bottom: 1rem; }
+    .subtitle { color: var(--text-med); font-size: 1.1rem; max-width: 650px; margin: 0 auto 2.5rem; }
+    .section-block { background: var(--bg-card); border: 1px solid var(--border-outer); border-radius: 1.25rem; padding: 2rem; margin-bottom: 2rem; }
+    h2 { font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 1rem; }
+    h3 { font-family: var(--font-display); font-size: 1.15rem; color: var(--cyan-glow); margin: 1.25rem 0 0.5rem; }
+    p { color: var(--text-med); font-size: 0.96rem; margin-bottom: 0.75rem; }
+    ul { list-style: square; padding-left: 1.5rem; color: var(--text-med); margin-bottom: 1rem; font-size: 0.95rem; }
+    li { margin-bottom: 0.35rem; }
+    .cli-box { background: #000; border: 1px solid var(--border-outer); border-radius: 0.75rem; padding: 1rem; font-family: var(--font-mono); font-size: 0.88rem; color: #a5f3fc; overflow-x: auto; margin-top: 0.5rem; }
+    footer { text-align: center; margin-top: 4rem; color: var(--text-low); font-size: 0.85rem; }
+    footer a { color: var(--text-med); text-decoration: none; }
+    @media (max-width: 640px) {
+      .nav-island { flex-direction: column; gap: 1rem; border-radius: 1.5rem; }
+      .nav-links { flex-wrap: wrap; justify-content: center; gap: 1rem; }
+      h1 { font-size: 1.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-island" aria-label="Main Navigation">
+    <a href="../" class="brand">
+      <img src="../app_icon.png" alt="Deltempo Logo" width="28" height="28" />
+      <span>Deltempo</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="../">Home</a></li>
+      <li><a href="../#simulator">Simulator</a></li>
+      <li><a href="../download/">Download</a></li>
+      <li><a href="../docs/" class="active">Docs &amp; Scopes</a></li>
+      <li><a href="../faq/">FAQ</a></li>
+      <li><a href="../changelog/">Changelog</a></li>
+      <li><a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener">GitHub ↗</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <div class="hero">
+      <div class="badge">TECHNICAL DOCUMENTATION • 26 CLEANING SCOPES</div>
+      <h1>Deltempo Technical Documentation</h1>
+      <p class="subtitle">Complete reference manual covering Windows shader cache cleaner targets, user profile temp cleanup, and NT kernel memory architecture.</p>
+    </div>
+
+    <div class="section-block">
+      <h2>1. Windows Shader Cache Cleaner Architecture</h2>
+      <p>Modern DirectX 11, DirectX 12, and Vulkan games pre-compile shaders to prevent stuttering. Over time, graphics driver updates and removed titles leave dozens of gigabytes of stale bytecode that never get purged automatically.</p>
+      <h3>Targets Covered:</h3>
+      <ul>
+        <li><strong>DirectX Shader Cache:</strong> <code>%LOCALAPPDATA%\D3DSCache</code></li>
+        <li><strong>NVIDIA Shader Cache:</strong> <code>%LOCALAPPDATA%\NVIDIA\DXCache</code> and <code>%LOCALAPPDATA%\NVIDIA\GLCache</code></li>
+        <li><strong>AMD Radeon Shader Cache:</strong> <code>%LOCALAPPDATA%\AMD\DxCache</code></li>
+        <li><strong>Vulkan Pipelines:</strong> Active and legacy Vulkan runtime cache registries</li>
+      </ul>
+      <p><em>Safety Protocol:</em> Deltempo's 24-Hour Safety Shield guards active pipeline files modified within the past 24 hours to ensure seamless gaming performance.</p>
+    </div>
+
+    <div class="section-block">
+      <h2>2. User Profile Cleaner Targets</h2>
+      <p>Temporary files created during application extraction, crash reports, and user profile sessions often stay stranded permanently on disk.</p>
+      <h3>Targets Covered:</h3>
+      <ul>
+        <li><strong>User Temp:</strong> <code>%USERPROFILE%\AppData\Local\Temp</code></li>
+        <li><strong>Crash Dumps:</strong> <code>%LOCALAPPDATA%\CrashDumps</code> and Minidump directories</li>
+        <li><strong>Package Installers:</strong> Staged MSI and setup bootstrap extractions</li>
+        <li><strong>Messaging &amp; Social Apps:</strong> WhatsApp, Telegram, Microsoft Teams, and Discord media caches</li>
+      </ul>
+    </div>
+
+    <div class="section-block">
+      <h2>3. Windows NT Kernel Memory Optimization</h2>
+      <p>Deltempo implements native NT kernel memory clean functions (powered by the WinMemoryCleaner engine):</p>
+      <ul>
+        <li><strong>Standby List Flush:</strong> Frees pages in system standby cache to eliminate micro-stutters under heavy workloads.</li>
+        <li><strong>Working Sets Reduction:</strong> Safely trims memory working sets for background processes without terminating them.</li>
+        <li><strong>System Working Set:</strong> Flushes kernel paged and non-paged buffers safely.</li>
+      </ul>
+    </div>
+
+    <div class="section-block">
+      <h2>4. Terminal CLI Automation &amp; Flags</h2>
+      <p>Deltempo can be fully automated in CI/CD pipelines, scheduled tasks, and headless Windows setups:</p>
+      <div class="cli-box"># Analyze system clutter without deleting anything
+deltempo --dry-run
+
+# Clean user profile and GPU shader caches automatically
+deltempo --clean --shader-cache --user-temp --silent
+
+# Flush NT kernel standby memory and working sets
+deltempo --memory-boost</div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Deltempo Open Source Project • <a href="../">Back to Home</a> • <a href="https://github.com/Beso1227/Deltempo">GitHub Repository</a></p>
+  </footer>
+</body>
+</html>
