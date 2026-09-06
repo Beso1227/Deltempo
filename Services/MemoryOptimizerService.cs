@@ -111,6 +111,7 @@ public class MemoryInfo
     public long SystemCacheBytes { get; set; }
     public long CommitTotalBytes { get; set; }
     public long CommitLimitBytes { get; set; }
+    public bool MeasurementSucceeded { get; set; }
     public long UsedPhysicalBytes => Math.Max(0, TotalPhysicalBytes - AvailablePhysicalBytes);
     public double UsedPercent => TotalPhysicalBytes > 0 ? (double)UsedPhysicalBytes / TotalPhysicalBytes * 100.0 : 0.0;
     public string FormattedUsed => TargetFolderInfo.FormatBytes(UsedPhysicalBytes);
@@ -383,8 +384,8 @@ public static class MemoryOptimizerService
 
     public static MemoryInfo GetMemoryInfo()
     {
-        long totalPhys = 16L * 1024 * 1024 * 1024;
-        long availPhys = 8L * 1024 * 1024 * 1024;
+        long totalPhys = 0;
+        long availPhys = 0;
         long sysCache = 0;
         long commitTotal = 0;
         long commitLimit = 0;
@@ -416,7 +417,8 @@ public static class MemoryOptimizerService
             AvailablePhysicalBytes = availPhys,
             SystemCacheBytes = sysCache,
             CommitTotalBytes = commitTotal,
-            CommitLimitBytes = commitLimit
+            CommitLimitBytes = commitLimit,
+            MeasurementSucceeded = totalPhys > 0
         };
     }
 
@@ -515,7 +517,7 @@ public static class MemoryOptimizerService
                 MeasuredBytesFreed = measured,
                 Status = overallStatus,
                 ProcessesOptimized = totalProcessesTrimmed,
-                ExecutionTimeMs = Math.Max(15, sw.ElapsedMilliseconds),
+                ExecutionTimeMs = sw.ElapsedMilliseconds,
                 MeasuredAvailableBefore = beforeMem.AvailablePhysicalBytes,
                 MeasuredAvailableAfter = afterMem.AvailablePhysicalBytes,
                 AreaResults = results
