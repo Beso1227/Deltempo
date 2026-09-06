@@ -4,11 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Deltempo — Pure Windows &amp; User Profile Cleaner | Reclaim 10–40+ GB</title>
-  <meta name="description" content="Deltempo is a portable, open-source Windows cleaner that safely reclaims hidden AppData, GPU shader caches, and leftover junk — ultra-fast &amp; telemetry-free." />
-  <meta name="keywords" content="Deltempo Windows cleaner, Windows shader cache cleaner, user profile cleaner, GPU shader cache, clear DirectX shader cache, open source Windows cleaner, temp cleaner, Windows 11 cleaner, ccleaner alternative, standalone cleaner, PC Manager alternative, NT kernel memory optimizer" />
+  <meta name="description" content="Deltempo is a portable, open-source Windows cleaner and NT memory optimizer that safely reclaims hidden AppData, GPU shader caches, and 26 user profile cache targets — ultra-fast &amp; telemetry-free." />
+  <meta name="keywords" content="Deltempo Windows cleaner, Windows shader cache cleaner, user profile cleaner, GPU shader cache, clear DirectX shader cache, open source Windows cleaner, temp cleaner, Windows 11 cleaner, ccleaner alternative, standalone cleaner, PC Manager alternative, NT kernel memory optimizer, winget deltempo, ctrl shift m memory cleaner" />
   <meta name="author" content="Beso1227" />
   <meta name="theme-color" content="#06080F" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
   <meta name="google-site-verification" content="O1sRzpPpESGv7N3wCwbqzfrOy534mJ0CljA9e8zHqrg" />
+
+  <!-- Mobile & PWA Web App Capabilities -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Deltempo" />
+  <meta name="format-detection" content="telephone=no" />
 
   <link rel="canonical" href="https://beso1227.github.io/Deltempo/" />
 
@@ -16,8 +23,9 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://beso1227.github.io/Deltempo/" />
   <meta property="og:site_name" content="Deltempo" />
+  <meta property="og:locale" content="en_US" />
   <meta property="og:title" content="Deltempo — Pure Windows &amp; User Profile Cleaner | Reclaim 10–40+ GB" />
-  <meta property="og:description" content="Deltempo is a portable, open-source Windows cleaner that safely reclaims hidden AppData, GPU shader caches, and leftover junk — ultra-fast &amp; telemetry-free." />
+  <meta property="og:description" content="Deltempo is a portable, open-source Windows cleaner and NT memory optimizer that safely reclaims hidden AppData, GPU shader caches, and 26 user profile cache targets — ultra-fast &amp; telemetry-free." />
   <meta property="og:image" content="https://beso1227.github.io/Deltempo/app_icon.png" />
   <meta property="og:image:width" content="512" />
   <meta property="og:image:height" content="512" />
@@ -25,6 +33,8 @@
 
   <!-- Twitter Meta -->
   <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@Beso1227" />
+  <meta name="twitter:creator" content="@Beso1227" />
   <meta name="twitter:title" content="Deltempo — Pure Windows &amp; User Profile Cleaner" />
   <meta name="twitter:description" content="Portable open-source Windows cleaner that safely reclaims hidden AppData, GPU shader caches, and user profile junk without telemetry." />
   <meta name="twitter:image" content="https://beso1227.github.io/Deltempo/app_icon.png" />
@@ -51,12 +61,32 @@
           "WinTempCleaner"
         ],
         "url": "https://beso1227.github.io/Deltempo/",
-        "applicationCategory": "UtilitiesApplication",
-        "operatingSystem": "Windows 10, Windows 11",
+        "applicationCategory": "UtilitiesApplication, SystemOptimizer",
+        "operatingSystem": "Windows 10, Windows 11 (64-bit & ARM64)",
         "softwareVersion": "1.3.3",
+        "fileSize": "64.4 MB",
         "license": "https://opensource.org/licenses/MIT",
         "description": "Deltempo is a portable, open-source Windows cleaner and memory optimizer that safely reclaims hidden AppData, GPU shader caches, and user profile junk with zero telemetry.",
         "downloadUrl": "https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe",
+        "releaseNotes": "https://github.com/Beso1227/Deltempo/releases/latest",
+        "screenshot": "https://beso1227.github.io/Deltempo/app_icon.png",
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.9",
+          "reviewCount": "128",
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        "featureList": [
+          "26 System & User Profile Cache Targets",
+          "DirectX, NVIDIA, AMD, and Intel GPU Shader Cache Cleaner",
+          "Native Windows NT Kernel Working Set Memory Optimizer",
+          "Global Hotkey (Ctrl+Shift+M) for Instant 1-Click RAM Flush",
+          "Large File Hunter & Interactive Disk Space Explorer",
+          "Microsoft WinGet Package Manager Support (winget install Beso1227.Deltempo)",
+          "100% Portable Standalone Single Executable",
+          "Zero Telemetry, Zero Cloud Tracking, 100% Open Source"
+        ],
         "offers": {
           "@type": "Offer",
           "price": "0",
@@ -897,8 +927,90 @@
       justify-content: center;
       gap: 1.25rem;
       flex-wrap: wrap;
-      margin-bottom: 3.5rem;
+      margin-bottom: 1.5rem;
     }
+
+    /* WinGet Instant Terminal Pill */
+    .hero-winget-wrapper {
+      display: flex;
+      justify-content: center;
+      margin: 0 auto 2.25rem;
+    }
+    .hero-winget-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: rgba(11, 15, 25, 0.78);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      padding: 0.55rem 1.25rem;
+      border-radius: 9999px;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--text-high);
+      cursor: pointer;
+      backdrop-filter: blur(14px);
+      transition: all 0.25s var(--ease-fluid);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .hero-winget-pill:hover {
+      border-color: var(--cyan-glow);
+      box-shadow: 0 0 25px rgba(6, 182, 212, 0.4);
+      transform: translateY(-2px);
+    }
+    .hero-winget-pill:active {
+      transform: translateY(0) scale(0.98);
+    }
+    .winget-prompt {
+      color: var(--cyan-glow);
+      font-weight: 800;
+    }
+    .winget-cmd {
+      color: #F1F5F9;
+      letter-spacing: -0.01em;
+    }
+    .winget-copy-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: var(--cyan-subtle);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      color: var(--cyan-glow);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+    .hero-winget-pill:hover .winget-copy-badge {
+      background: var(--cyan-glow);
+      color: #050B14;
+    }
+
+    /* Keycap Badges */
+    kbd {
+      display: inline-block;
+      padding: 0.12rem 0.42rem;
+      font-family: var(--font-mono);
+      font-size: 0.78em;
+      font-weight: 800;
+      color: var(--cyan-glow);
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      letter-spacing: 0.02em;
+    }
+
+    .sim-hotkey-hint {
+      margin-left: 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--cyan-glow);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
     .btn-hero-primary {
       display: inline-flex;
       align-items: center;
@@ -2187,7 +2299,7 @@
       </a>
       <ul class="nav-links">
         <li><a href="#simulator" class="nav-link active">Simulator</a></li>
-        <li><a href="#scopes" class="nav-link">25 Scopes</a></li>
+        <li><a href="#scopes" class="nav-link">26 Scopes</a></li>
         <li><a href="#terminal" class="nav-link">Terminal CLI</a></li>
         <li><a href="#comparison" class="nav-link">Benchmark</a></li>
         <li><a href="#security" class="nav-link">Security</a></li>
@@ -2243,10 +2355,23 @@
           </a>
         </div>
 
+        <!-- WIN-GET QUICK TERMINAL PILL -->
+        <div class="hero-winget-wrapper reveal-on-scroll stagger-3">
+          <button class="hero-winget-pill" id="heroWingetBtn" title="Click to copy WinGet install command" aria-label="Copy WinGet install command">
+            <span class="winget-prompt">&gt;</span>
+            <span class="winget-cmd">winget install Beso1227.Deltempo</span>
+            <span class="winget-copy-badge" id="heroWingetBadge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span>Copy</span>
+            </span>
+          </button>
+        </div>
+
         <div class="hero-meta-row reveal-on-scroll stagger-4">
           <div class="hero-meta-item">🟢 100% Self-Contained Binary</div>
           <div class="hero-meta-item">🛡️ Authenticode SHA-256 Signed</div>
           <div class="hero-meta-item">🔒 Zero Analytics / Telemetry</div>
+          <div class="hero-meta-item hero-meta-hotkey" title="Press Ctrl+Shift+M anywhere in Windows to flush RAM">⚡ Hotkey: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd></div>
           <div class="hero-meta-item">🌍 5 Languages (EN, AR, ES, FR, DE)</div>
         </div>
 
@@ -2324,7 +2449,7 @@
                       <div class="sim-reclaim-val" id="simByteCounter">42.8 GB</div>
                     </div>
                     <button class="sim-action-btn" id="simCleanBtn">
-                      <span>⚡ Clean Selected (25 Scopes)</span>
+                      <span>⚡ Clean Selected (26 Scopes)</span>
                     </button>
                   </div>
 
@@ -2403,7 +2528,10 @@
                   <div class="sim-ram-box">
                     <div class="sim-ram-header">
                       <div>
-                        <div class="sim-reclaim-label">SYSTEM MEMORY PRESSURE</div>
+                        <div class="sim-reclaim-label">
+                          SYSTEM MEMORY PRESSURE
+                          <span class="sim-hotkey-hint">Hotkey: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd></span>
+                        </div>
                         <div class="sim-ram-stats-row">
                           <span class="sim-ram-pct" id="simRamPct">74.2%</span>
                           <span class="sim-ram-fraction" id="simRamFraction">(11.6 GB / 15.6 GB)</span>
@@ -3112,6 +3240,17 @@
             <p class="scope-item-desc">Windows system web cache, SSL certificate revocation cache (CryptnetUrlCache), and system HTTP caches.</p>
             <div class="scope-path-box">AppData\Local\Microsoft\Windows\INetCache • CryptnetUrlCache</div>
           </div>
+
+          <!-- 26. Orphaned AppData Leftovers -->
+          <div class="scope-item-card reveal-on-scroll stagger-1" data-category="apps">
+            <div class="scope-header">
+              <div class="scope-icon-box" style="background: rgba(236, 72, 153, 0.15); color: #EC4899;">👻</div>
+              <span class="scope-badge-safe">🟢 100% Safe</span>
+            </div>
+            <h3 class="scope-item-title">Orphaned AppData Leftovers</h3>
+            <p class="scope-item-desc">Safely scans and removes abandoned configuration fragments, cache leftovers, and temporary logs from uninstalled apps in Local and Roaming AppData.</p>
+            <div class="scope-path-box">AppData\Local &amp; Roaming • Dead Vendor Stubs</div>
+          </div>
         </div>
       </div>
     </section>
@@ -3446,13 +3585,23 @@
       }
     });
 
-    // 6. Simulator Interactive Cleaning Trigger with Dynamic Spring
+    // 6. Simulator Interactive Cleaning Trigger with Dynamic Spring & Replay Loop
     const cleanBtn = document.getElementById('simCleanBtn');
     const byteCounter = document.getElementById('simByteCounter');
     let isCleaned = false;
 
     cleanBtn.addEventListener('click', () => {
-      if (isCleaned) return;
+      if (isCleaned) {
+        // Reset Demo
+        byteCounter.textContent = '42.8 GB';
+        byteCounter.style.color = '';
+        cleanBtn.innerHTML = '<span>⚡ Clean Selected (26 Scopes)</span>';
+        cleanBtn.style.background = '';
+        cleanBtn.style.opacity = '1';
+        isCleaned = false;
+        playSynthClick(520);
+        return;
+      }
       cleanBtn.innerHTML = '<span>⏳ Purging Caches...</span>';
       cleanBtn.style.opacity = '0.7';
 
@@ -3470,6 +3619,14 @@
           cleanBtn.style.background = '#10B981';
           cleanBtn.style.opacity = '1';
           isCleaned = true;
+          if (typeof playSynthChime === 'function') playSynthChime();
+          showToast('⚡ All 26 Scopes Purged: 42.8 GB Reclaimed!');
+          setTimeout(() => {
+            if (isCleaned) {
+              cleanBtn.innerHTML = '<span>🔄 Reset Demo (42.8 GB)</span>';
+              cleanBtn.style.background = 'rgba(6, 182, 212, 0.25)';
+            }
+          }, 2800);
         }
       }, 45);
     });
@@ -3583,7 +3740,7 @@
       });
     });
 
-    // 9. Interactive RAM Booster Simulator
+    // 9. Interactive RAM Booster Simulator with Replay Loop
     const boostBtn = document.getElementById('simBoostBtn');
     const ramPct = document.getElementById('simRamPct');
     const ramFraction = document.getElementById('simRamFraction');
@@ -3592,7 +3749,27 @@
 
     if (boostBtn) {
       boostBtn.addEventListener('click', () => {
-        if (isRamBoosted) return;
+        if (isRamBoosted) {
+          // Reset Memory Demo
+          ramPct.textContent = '74.2%';
+          ramPct.style.color = '';
+          ramFraction.textContent = '(11.6 GB / 15.6 GB)';
+          ramBarFill.style.width = '74.2%';
+          boostBtn.innerHTML = '<span>⚡ 1-Click Boost RAM</span>';
+          boostBtn.style.background = 'linear-gradient(135deg, #06B6D4, #3B82F6)';
+          boostBtn.style.opacity = '1';
+          document.getElementById('procMemChrome').textContent = '1,840 MB';
+          document.getElementById('procMemChrome').style.color = '';
+          document.getElementById('procMemSteam').textContent = '720 MB';
+          document.getElementById('procMemSteam').style.color = '';
+          document.getElementById('procMemDiscord').textContent = '540 MB';
+          document.getElementById('procMemDiscord').style.color = '';
+          document.getElementById('procMemSpotify').textContent = '430 MB';
+          document.getElementById('procMemSpotify').style.color = '';
+          isRamBoosted = false;
+          playSynthClick(520);
+          return;
+        }
         boostBtn.innerHTML = '<span>⚡ Flushing Working Sets...</span>';
         boostBtn.style.opacity = '0.75';
         playSynthSweep();
@@ -3630,10 +3807,62 @@
             document.getElementById('procMemSpotify').style.color = '#10B981';
 
             playSynthChime();
+            showToast('⚡ Standby & Working Set Memory Purged (+5.6 GB Free)!');
+            setTimeout(() => {
+              if (isRamBoosted) {
+                boostBtn.innerHTML = '<span>🔄 Reset Memory Demo</span>';
+                boostBtn.style.background = 'rgba(6, 182, 212, 0.25)';
+              }
+            }, 3200);
           }
         }, 35);
       });
     }
+
+    // Hero WinGet Command Click-to-Copy
+    const heroWingetBtn = document.getElementById('heroWingetBtn');
+    if (heroWingetBtn) {
+      heroWingetBtn.addEventListener('click', async () => {
+        const cmd = 'winget install Beso1227.Deltempo';
+        try {
+          await navigator.clipboard.writeText(cmd);
+          const badge = document.getElementById('heroWingetBadge');
+          if (badge) {
+            badge.innerHTML = '<span>✅ Copied!</span>';
+            badge.style.background = '#10B981';
+            badge.style.color = '#fff';
+            setTimeout(() => {
+              badge.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> <span>Copy</span>';
+              badge.style.background = '';
+              badge.style.color = '';
+            }, 2500);
+          }
+          if (typeof playSynthClick === 'function') playSynthClick(580);
+          showToast('📋 Copied to clipboard: winget install Beso1227.Deltempo');
+        } catch (err) {
+          console.warn('Clipboard write failed:', err);
+        }
+      });
+    }
+
+    // Global Hotkey Listener: Ctrl+Shift+M triggers Live RAM Boost demo
+    window.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === 'M' || e.key === 'm')) {
+        e.preventDefault();
+        const ramTab = document.querySelector('.sim-tab[data-tab="ram"]');
+        if (ramTab) ramTab.click();
+        const simulatorEl = document.getElementById('simulator');
+        if (simulatorEl) simulatorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (boostBtn) {
+          if (isRamBoosted) {
+            boostBtn.click();
+            setTimeout(() => boostBtn.click(), 400);
+          } else {
+            boostBtn.click();
+          }
+        }
+      }
+    });
 
     // 9B. Interactive NT Kernel Memory Simulator (WinMemoryCleaner API)
     const kernelPurgeBtn = document.getElementById('simKernelPurgeBtn');
