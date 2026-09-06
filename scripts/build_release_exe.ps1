@@ -25,8 +25,10 @@ function Safe-CopyExecutable($src, $dst) {
     Remove-Item -Path "$dst.old" -Force -ErrorAction SilentlyContinue
 }
 
+$sha = (git rev-parse HEAD).Trim()
+
 # 1. Publish self-contained single-file GUI binary
-Write-Host ">>> Publishing GUI Standalone (Deltempo.exe)..." -ForegroundColor Cyan
+Write-Host ">>> Publishing GUI Standalone (Deltempo.exe) with SourceRevisionId $sha..." -ForegroundColor Cyan
 dotnet publish WinTempCleaner.csproj `
     -c Release `
     -r win-x64 `
@@ -34,6 +36,7 @@ dotnet publish WinTempCleaner.csproj `
     /p:PublishSingleFile=true `
     /p:IncludeNativeLibrariesForSelfExtract=true `
     /p:EnableCompressionInSingleFile=true `
+    "-p:SourceRevisionId=$sha" `
     -o "$projectRoot\publish"
 
 Safe-CopyExecutable "$projectRoot\publish\Deltempo.exe" "$projectRoot\Deltempo.exe"
@@ -47,6 +50,7 @@ dotnet publish Cli/Deltempo.Cli.csproj `
     /p:PublishSingleFile=true `
     /p:IncludeNativeLibrariesForSelfExtract=true `
     /p:EnableCompressionInSingleFile=true `
+    "-p:SourceRevisionId=$sha" `
     -o "$projectRoot\publish_cli"
 
 Safe-CopyExecutable "$projectRoot\publish_cli\deltempo_cli.exe" "$projectRoot\deltempo_cli.exe"
