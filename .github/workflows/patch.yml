@@ -4,6 +4,19 @@ on:
   push:
     branches:
       - main
+    paths:
+      - '**.cs'
+      - '**.xaml'
+      - '**.csproj'
+      - '**.sln'
+      - 'app.manifest'
+      - 'app.ico'
+      - 'app_icon.png'
+      - 'Cli/**'
+      - 'Models/**'
+      - 'Services/**'
+      - 'Tests/**'
+      - '.github/workflows/patch.yml'
   workflow_dispatch:
 
 permissions:
