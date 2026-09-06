@@ -23,7 +23,7 @@
     <image:image>
       <image:loc>https://beso1227.github.io/Deltempo/app_icon.png</image:loc>
       <image:title>Download Deltempo Standalone Windows Cleaner</image:title>
-      <image:caption>Download official Deltempo.exe portable binary with SHA-256 Authenticode signature and WinGet support</image:caption>
+      <image:caption>Download official Deltempo.exe portable binary with SHA-256 verification and WinGet support</image:caption>
     </image:image>
   </url>
 
@@ -35,7 +35,7 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- Documentation & 26 Scopes Page -->
+  <!-- Technical Documentation -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/docs/</loc>
     <lastmod>2026-09-07</lastmod>

@@ -39,7 +39,7 @@
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- Core Design System -->
   <link rel="stylesheet" href="style.css" />
@@ -60,24 +60,21 @@
         "url": "https://beso1227.github.io/Deltempo/",
         "applicationCategory": "UtilitiesApplication, SystemOptimizer",
         "operatingSystem": "Windows 10, Windows 11 (64-bit)",
-        "softwareVersion": "1.3.3",
-        "fileSize": "64.4 MB",
         "license": "https://opensource.org/licenses/MIT",
         "description": "Deltempo is a portable, open-source Windows cleaner and memory optimizer that safely reclaims disposable caches, GPU shader caches, and temporary data with zero telemetry.",
         "downloadUrl": "https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe",
         "releaseNotes": "https://github.com/Beso1227/Deltempo/releases/latest",
-        "screenshot": "https://beso1227.github.io/Deltempo/app_icon.png",
         "featureList": [
-          "31+ Verified System and User Profile Cache Scopes",
+          "25+ Verified System, Developer, and User Profile Cache Scopes",
           "DirectX, NVIDIA, AMD, and Intel GPU Shader Cache Cleaner",
           "Native Windows NT Kernel Working Set and Standby List Memory Optimizer",
           "Global Hotkey (Ctrl+Shift+M) for 1-Click Working Set Trim",
           "Large File Hunter with Windows Recycle Bin Undo Safety",
           "Startup Process Manager with Windows Core Process Immunity",
           "Microsoft WinGet Package Manager Support (winget install Beso1227.Deltempo)",
-          "100% Portable Standalone Single Executable",
+          "Portable Standalone Single-File Executable",
           "Deterministic 5-Tier Safety Engine with Pre-Deletion Revalidation",
-          "Zero Telemetry, Zero Cloud Tracking, 100% Open Source"
+          "Zero Telemetry, Local Operation, Open Source (MIT)"
         ],
         "offers": {
           "@type": "Offer",
@@ -123,7 +120,7 @@
             "name": "Does Deltempo delete personal files or browser passwords?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "No. Deltempo's 5-tier safety engine strictly protects personal folders, documents, browser login databases, and credentials. It only targets disposable caches and temporary files."
+              "text": "Deltempo's protection policies are designed to exclude personal files, documents, code repositories, browser login databases, and messaging app credentials from cleanup."
             }
           },
           {
@@ -131,7 +128,7 @@
             "name": "Is installation required?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "No. Deltempo is a 100% portable, self-contained single-file executable. It does not require installation or leave background services running."
+              "text": "No. Deltempo is a portable, self-contained single-file executable. It does not require an installer. When run, it registers a user-level App Path so you can invoke deltempo from the command line."
             }
           },
           {
@@ -139,7 +136,7 @@
             "name": "Does Deltempo collect telemetry?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Zero telemetry. Deltempo runs entirely locally on your machine with no tracking scripts, analytics beacons, or remote data collection."
+              "text": "Deltempo does not collect analytics or user telemetry. Routine scan, clean, and memory actions execute entirely on local drives. Update checks query GitHub releases only when invoked."
             }
           }
         ]
@@ -165,6 +162,7 @@
         <li><a href="#safety" class="nav-link">Safety Architecture</a></li>
         <li><a href="#features" class="nav-link">Capabilities</a></li>
         <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="#limitations" class="nav-link">Limitations</a></li>
         <li><a href="#faq" class="nav-link">FAQ</a></li>
         <li><a href="docs/" class="nav-link">Docs</a></li>
       </ul>
@@ -172,7 +170,7 @@
         <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="btn-icon" title="View Source on GitHub" aria-label="View Source on GitHub">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
         </a>
-        <button id="themeToggleBtn" class="btn-icon" aria-label="Toggle Dark/Light Theme" title="Toggle Theme">
+        <button id="themeToggleBtn" class="btn-icon" aria-label="Toggle Dark or Light Theme" title="Toggle Theme">
           <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
           <svg class="theme-icon-light" style="display: none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
@@ -180,7 +178,7 @@
           <span>Download</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         </a>
-        <button class="nav-mobile-toggle" id="mobileToggle" aria-label="Open Navigation Menu">
+        <button class="nav-mobile-toggle" id="mobileToggle" aria-label="Open Navigation Menu" aria-expanded="false" aria-controls="mobileMenu">
           <span></span>
           <span></span>
           <span></span>
@@ -195,6 +193,7 @@
     <a href="#safety" class="mobile-nav-link">Safety Architecture</a>
     <a href="#features" class="mobile-nav-link">Capabilities</a>
     <a href="#how-it-works" class="mobile-nav-link">How It Works</a>
+    <a href="#limitations" class="mobile-nav-link">Limitations</a>
     <a href="#faq" class="mobile-nav-link">FAQ</a>
     <a href="docs/" class="mobile-nav-link">Documentation</a>
     <a href="download/" class="mobile-nav-link">Download Center</a>
@@ -206,17 +205,17 @@
     <section class="hero">
       <div class="container">
         <div class="hero-eyebrow">
-          <span>Open Source • Windows 10 / 11 • Zero Telemetry</span>
+          <span>Open Source • Windows 10 / 11 • Local Execution</span>
         </div>
         <h1 class="hero-headline">
           A lighter, cleaner Windows PC.
         </h1>
         <p class="hero-subtext">
-          Deltempo is a portable, open-source Windows cleaner and NT memory optimizer. Designed to clean aggressively without being reckless — zero telemetry, zero background bloat, and full transparency.
+          Deltempo is a portable, open-source Windows cleaner and NT memory optimizer. Designed to clean disposable caches without touching personal data — zero telemetry, no background daemons, and full source code transparency.
         </p>
         <div class="hero-ctas">
           <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-pill btn-pill-primary" style="padding: 0.75rem 1.75rem; font-size: 1rem;">
-            <span>Download Deltempo (v1.3.3)</span>
+            <span>Download Deltempo</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </a>
           <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="btn-pill btn-pill-secondary" style="padding: 0.75rem 1.75rem; font-size: 1rem;">
@@ -243,11 +242,11 @@
           </div>
           <div class="hero-proof-item">
             <span class="hero-proof-icon">✓</span>
-            <span>100% Portable Standalone</span>
+            <span>Portable Single-File Binary</span>
           </div>
           <div class="hero-proof-item">
             <span class="hero-proof-icon">✓</span>
-            <span>Zero Telemetry / Local Only</span>
+            <span>Local Execution / No Telemetry</span>
           </div>
         </div>
 
@@ -267,7 +266,7 @@
                     <source srcset="app_icon.webp" type="image/webp" />
                     <img src="app_icon.png" alt="App Icon" width="16" height="16" />
                   </picture>
-                  <span>Deltempo v1.3.3</span>
+                  <span>Deltempo</span>
                   <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">STANDALONE</span>
                 </div>
                 <div style="font-size: 0.75rem; color: var(--text-low); font-family: var(--font-mono);">
@@ -278,7 +277,7 @@
               <!-- Tabs Strip -->
               <div class="app-tabs" role="tablist">
                 <button class="app-tab active" data-tab="cleaner" role="tab" aria-selected="true">
-                  <span>🧹 System Cleaner (31+ Scopes)</span>
+                  <span>🧹 System Cleaner (25+ Scopes)</span>
                 </button>
                 <button class="app-tab" data-tab="memory" role="tab" aria-selected="false">
                   <span>⚡ NT Kernel Memory</span>
@@ -461,8 +460,8 @@
           <div class="double-bezel">
             <div class="card-inner feature-card">
               <div class="feature-icon-wrapper">🔒</div>
-              <h3 class="feature-title">Zero Telemetry &amp; Offline</h3>
-              <p class="feature-body">Runs 100% locally on your computer. Zero analytics tracking, zero data collection, and zero network calls unless you explicitly initiate an update check.</p>
+              <h3 class="feature-title">No Telemetry &amp; Local Operation</h3>
+              <p class="feature-body">Runs locally on your computer. Contains no analytics tracking, advertisements, or background telemetry. Routine scan and clean operations run entirely offline; update checks query GitHub only when invoked.</p>
             </div>
           </div>
 
@@ -470,7 +469,7 @@
             <div class="card-inner feature-card">
               <div class="feature-icon-wrapper">🛡️</div>
               <h3 class="feature-title">Deterministic Safety Architecture</h3>
-              <p class="feature-body">Files are evaluated against an immutable protection policy, path canonicalization rules, and a 24-hour recent modification shield before anything is deleted.</p>
+              <p class="feature-body">Files are evaluated against an immutable protection policy, path boundary rules, and a recent modification shield before anything is deleted.</p>
             </div>
           </div>
 
@@ -478,15 +477,15 @@
             <div class="card-inner feature-card">
               <div class="feature-icon-wrapper">📦</div>
               <h3 class="feature-title">Portable Single-File Binary</h3>
-              <p class="feature-body">Self-contained executable. No installer required, no background services lingering in Windows, and no leftover registry entries upon deletion.</p>
+              <p class="feature-body">Self-contained executable. No installer required, no background services lingering in Windows, and no leftover background daemons.</p>
             </div>
           </div>
 
           <div class="double-bezel">
             <div class="card-inner feature-card">
               <div class="feature-icon-wrapper">📖</div>
-              <h3 class="feature-title">100% Open Source</h3>
-              <p class="feature-body">Every single line of C#, XAML, and build scripts is open for inspection on GitHub under the permissive MIT license. Verified by 266 automated tests.</p>
+              <h3 class="feature-title">Open Source (MIT)</h3>
+              <p class="feature-body">Every single line of C#, XAML, and build scripts is open for inspection on GitHub under the permissive MIT license. Backed by 266 automated verification tests.</p>
             </div>
           </div>
         </div>
@@ -499,7 +498,7 @@
         <div class="section-header">
           <div class="section-tag">Safety First</div>
           <h2 class="section-title">Designed to clean aggressively — without being reckless.</h2>
-          <p class="section-subtitle">Most PC cleaners operate as black boxes. Deltempo uses a formal two-phase planning architecture to verify every single file before touching disk.</p>
+          <p class="section-subtitle">Most PC cleaners operate as black boxes. Deltempo uses an explicit two-phase planning architecture to verify every single file before touching disk.</p>
         </div>
 
         <!-- 5-Step Pipeline -->
@@ -507,7 +506,7 @@
           <div class="pipeline-step">
             <div class="pipeline-step-num">STEP 01</div>
             <div class="pipeline-step-name">Scan</div>
-            <div class="pipeline-step-desc">Identifies candidate disposable files across 31+ scopes</div>
+            <div class="pipeline-step-desc">Identifies candidate disposable files across 25+ scopes</div>
           </div>
           <div class="pipeline-arrow">→</div>
           <div class="pipeline-step">
@@ -519,13 +518,13 @@
           <div class="pipeline-step">
             <div class="pipeline-step-num">STEP 03</div>
             <div class="pipeline-step-name">Protect</div>
-            <div class="pipeline-step-desc">Enforces immutable protection policy &amp; 24h shield</div>
+            <div class="pipeline-step-desc">Enforces protection policy &amp; recent file safety shield</div>
           </div>
           <div class="pipeline-arrow">→</div>
           <div class="pipeline-step">
             <div class="pipeline-step-num">STEP 04</div>
             <div class="pipeline-step-name">Revalidate</div>
-            <div class="pipeline-step-desc">Re-checks canonical path &amp; attributes immediately before delete</div>
+            <div class="pipeline-step-desc">Mitigates TOCTOU risk by re-checking canonical path, bounds, and attributes immediately before delete</div>
           </div>
           <div class="pipeline-arrow">→</div>
           <div class="pipeline-step">
@@ -544,7 +543,7 @@
         <div class="tier-cards">
           <div class="tier-card">
             <span class="tier-badge protected">PROTECTED (Score: 0)</span>
-            <div class="tier-title">Never Deleted</div>
+            <div class="tier-title">Immutable</div>
             <p class="tier-desc">System32, WinSxS, bootmgr, user documents, SSH keys, cloud credentials, browser password databases, and active messaging session tokens.</p>
           </div>
 
@@ -568,7 +567,7 @@
 
           <div class="tier-card">
             <span class="tier-badge unknown">UNKNOWN (Score: &lt; 30)</span>
-            <div class="tier-title">Default Fallback</div>
+            <div class="tier-title">Preserved</div>
             <p class="tier-desc">Conservative default fallback: unclassified files are permanently preserved without modification.</p>
           </div>
         </div>
@@ -727,12 +726,49 @@
       </div>
     </section>
 
+    <!-- LIMITATIONS SECTION -->
+    <section class="section-py" id="limitations">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-tag">Transparency</div>
+          <h2 class="section-title">System Requirements &amp; Limitations</h2>
+          <p class="section-subtitle">Clear facts about what Deltempo requires, what it modifies, and its operational boundaries.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+          <div style="padding: 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 0.25rem;">PLATFORM SUPPORT</div>
+            <div style="font-weight: 800; margin-bottom: 0.5rem;">64-bit Windows 10 &amp; 11 Only</div>
+            <p style="font-size: 0.875rem; color: var(--text-med); line-height: 1.5;">Deltempo is built for <code>win-x64</code> architecture. Legacy 32-bit Windows and older releases (Windows 7/8.1) are not supported.</p>
+          </div>
+
+          <div style="padding: 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-emerald); margin-bottom: 0.25rem;">ADMIN ELEVATION</div>
+            <div style="font-weight: 800; margin-bottom: 0.5rem;">System Scopes Require UAC</div>
+            <p style="font-size: 0.875rem; color: var(--text-med); line-height: 1.5;">User temp and caches clean without elevation. OS-level scopes (Windows Temp, Prefetch, Servicing logs) require running as Administrator.</p>
+          </div>
+
+          <div style="padding: 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-amber); margin-bottom: 0.25rem;">FILE LOCKS</div>
+            <div style="font-weight: 800; margin-bottom: 0.5rem;">Active In-Use Files Preserved</div>
+            <p style="font-size: 0.875rem; color: var(--text-med); line-height: 1.5;">Files with exclusive open handles held by active programs cannot be removed and are skipped gracefully without crashing.</p>
+          </div>
+
+          <div style="padding: 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-purple); margin-bottom: 0.25rem;">MEMORY REALISM</div>
+            <div style="font-weight: 800; margin-bottom: 0.5rem;">Cache Recovery, Not Magic Hardware</div>
+            <p style="font-size: 0.875rem; color: var(--text-med); line-height: 1.5;">Memory trimming flushes standby and working set pages to free pools; it does not expand physical RAM or guarantee higher frame rates.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- TRUST & OPEN SOURCE SECTION -->
-    <section class="section-py" id="trust">
+    <section class="section-py" id="trust" style="background: var(--bg-surface); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);">
       <div class="container">
         <div class="trust-banner">
           <h2 class="trust-title">Built in the open. Fully verifiable.</h2>
-          <p class="trust-subtext">Inspect the source code. Review the cleanup logic. Verify every release artifact. Deltempo requires no accounts, collects no telemetry, and operates transparently.</p>
+          <p class="trust-subtext">Inspect the source code. Review the cleanup rules. Verify every release checksum. Deltempo requires no account, collects no telemetry, and operates transparently.</p>
           
           <div class="trust-badges">
             <div class="trust-badge-item">
@@ -741,7 +777,7 @@
             </div>
             <div class="trust-badge-item">
               <span>🔒</span>
-              <span>Zero Telemetry</span>
+              <span>No Telemetry</span>
             </div>
             <div class="trust-badge-item">
               <span>🛡️</span>
@@ -766,7 +802,7 @@
     </section>
 
     <!-- FREQUENTLY ASKED QUESTIONS -->
-    <section class="section-py" id="faq" style="background: var(--bg-surface); border-top: 1px solid var(--border-subtle);">
+    <section class="section-py" id="faq">
       <div class="container">
         <div class="section-header">
           <div class="section-tag">FAQ</div>
@@ -781,7 +817,7 @@
               <span class="faq-icon">+</span>
             </button>
             <div class="faq-answer">
-              Yes. Deltempo is 100% free and open source under the permissive MIT license. There are no paid tiers, no ads, and no premium upsells.
+              Yes. Deltempo is free and open source under the permissive MIT license. There are no paid tiers, no ads, and no premium upsells.
             </div>
           </div>
 
@@ -791,7 +827,7 @@
               <span class="faq-icon">+</span>
             </button>
             <div class="faq-answer">
-              No. Deltempo's centralized protection policy strictly locks out Documents, Desktop, Pictures, Videos, code repositories, browser login databases (passwords/cookies), and messaging app credentials. It only touches verified disposable caches and temporary files.
+              Deltempo's protection policies are designed to exclude personal files, documents, code repositories, browser login databases, and messaging app credentials from cleanup.
             </div>
           </div>
 
@@ -821,7 +857,7 @@
               <span class="faq-icon">+</span>
             </button>
             <div class="faq-answer">
-              No. Deltempo is completely portable. You can run <code>Deltempo.exe</code> from anywhere (such as a USB drive or your Downloads folder). It does not write to the registry or install background services unless you explicitly configure the startup monitor.
+              No. Deltempo is a portable single-file executable. When run, it registers a user-level App Path so you can invoke <code>deltempo</code> from terminal sessions without modifying Windows system directories.
             </div>
           </div>
 
@@ -856,7 +892,7 @@
           </div>
 
           <div class="download-meta">
-            <p><strong>Version:</strong> v1.3.3 • <strong>Architecture:</strong> Windows 10/11 (64-bit) • <strong>Size:</strong> ~64 MB (Self-Contained)</p>
+            <p><strong>Platform:</strong> Windows 10 / 11 (64-bit) • <strong>Type:</strong> Portable Single-File Binary • <strong>Latest Release:</strong> GitHub Releases</p>
             <p style="margin-top: 0.5rem;">Or install via Microsoft WinGet: <code>winget install Beso1227.Deltempo</code></p>
             <p style="margin-top: 0.5rem;"><a href="download/" style="color: var(--accent-cyan); text-decoration: underline;">View Checksums &amp; Verification Guide →</a></p>
           </div>
@@ -910,12 +946,14 @@
           htmlEl.classList.add('light');
           iconDark.style.display = 'none';
           iconLight.style.display = 'block';
+          themeToggleBtn.setAttribute('aria-label', 'Switch to dark theme');
           localStorage.setItem('deltempo-theme', 'light');
         } else {
           htmlEl.classList.remove('light');
           htmlEl.classList.add('dark');
           iconDark.style.display = 'block';
           iconLight.style.display = 'none';
+          themeToggleBtn.setAttribute('aria-label', 'Switch to light theme');
           localStorage.setItem('deltempo-theme', 'dark');
         }
       }
@@ -988,27 +1026,44 @@
         });
       }
 
-      // 5. Mobile Menu Toggle
+      // 5. Mobile Menu Toggle with Accessibility & Scroll Lock
       const mobileToggle = document.getElementById('mobileToggle');
       const mobileMenu = document.getElementById('mobileMenu');
       if (mobileToggle && mobileMenu) {
-        mobileToggle.addEventListener('click', function () {
-          const isOpen = mobileMenu.classList.contains('open');
-          if (isOpen) {
-            mobileMenu.classList.remove('open');
-            mobileMenu.setAttribute('aria-hidden', 'true');
-          } else {
+        function toggleMobileMenu(open) {
+          if (open) {
             mobileMenu.classList.add('open');
             mobileMenu.setAttribute('aria-hidden', 'false');
+            mobileToggle.setAttribute('aria-expanded', 'true');
+            mobileToggle.setAttribute('aria-label', 'Close Navigation Menu');
+            document.body.style.overflow = 'hidden';
+          } else {
+            mobileMenu.classList.remove('open');
+            mobileMenu.setAttribute('aria-hidden', 'true');
+            mobileToggle.setAttribute('aria-expanded', 'false');
+            mobileToggle.setAttribute('aria-label', 'Open Navigation Menu');
+            document.body.style.overflow = '';
           }
+        }
+
+        mobileToggle.addEventListener('click', function () {
+          const isOpen = mobileMenu.classList.contains('open');
+          toggleMobileMenu(!isOpen);
         });
 
         // Close menu when clicking any nav link
         document.querySelectorAll('.mobile-nav-link').forEach(function (link) {
           link.addEventListener('click', function () {
-            mobileMenu.classList.remove('open');
-            mobileMenu.setAttribute('aria-hidden', 'true');
+            toggleMobileMenu(false);
           });
+        });
+
+        // Close menu on Escape key
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && mobileMenu.classList.contains('open')) {
+            toggleMobileMenu(false);
+            mobileToggle.focus();
+          }
         });
       }
     })();
