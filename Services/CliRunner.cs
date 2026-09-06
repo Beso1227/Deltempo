@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using WinTempCleaner.Core.Cleaning;
 using WinTempCleaner.Core.Safety;
 using WinTempCleaner.Models;
 
@@ -182,7 +183,7 @@ public static class CliRunner
         PrintCmdRow("startup", "List Windows startup apps and boot impact ratings");
         PrintCmdRow("startup disable <app>", "Disable a startup application from launching on boot");
         PrintCmdRow("startup enable <app>", "Re-enable a previously disabled startup application");
-        PrintCmdRow("procs", "List heavy background memory apps (>80 MB)");
+        PrintCmdRow("procs", "List heavy background memory apps (>20 MB)");
         PrintCmdRow("procs trim <pid|name>", "Trim working set memory of a specific process");
         PrintCmdRow("procs kill <pid|name>", "Terminate a heavy runaway background process");
 
@@ -199,7 +200,7 @@ public static class CliRunner
         Console.ResetColor();
         PrintOptRow("--smart, --safe-only", "Target only 100% safe disposable caches (skip orphaned apps)");
         PrintOptRow("--recycle-bin, -r", "Send deleted files to the Windows Recycle Bin (undoable)");
-        PrintOptRow("--unsafe", "Disable 24-hour file modification protection (default: ON)");
+        PrintOptRow("--unsafe", "Disable 24-hour file modification protection (enabled by default)");
         PrintOptRow("--dry-run, -d", "Simulate clean actions without deleting any files");
         PrintOptRow("--yes, -y", "Bypass interactive confirmation prompts (for scripts/CI)");
         PrintOptRow("--json, -j", "Output results in structured machine-readable JSON");
@@ -572,33 +573,60 @@ public static class CliRunner
                 Console.ResetColor();
             }
 
-            using var dryCts = new CancellationTokenSource();
-            var dryScanner = new CleanerService();
-            await Task.WhenAll(selectedTargets.Select(t => dryScanner.ScanFolderAsync(t, (msg, lvl) => { }, dryCts.Token)));
+            // Use the same CleanupPlanner path as live cleanup for accurate dry-run
+            bool applyShield = safeMode;
+            bool sendToRecycle = SettingsService.Current.SendToRecycleBin;
+            long dryTotal = 0;
+            int dryFiles = 0;
+            var dryResults = new List<(string Name, long PlannedBytes, string Formatted, int PlannedFiles, int Protected, int ReviewRequired)>();
 
-            long dryTotal = selectedTargets.Sum(t => t.SizeBytes);
-            int dryFiles = selectedTargets.Sum(t => t.FileCount);
+            foreach (var t in selectedTargets)
+            {
+                var directories = CleanerService.ResolveDirectoriesForFolderPublic(t);
+                if (directories.Count == 0) continue;
+
+                var plan = CleanupPlanner.CreatePlan(
+                    scopeId: t.Id,
+                    scopeName: t.Name,
+                    directories: directories,
+                    category: t.Category,
+                    apply24HourShield: applyShield,
+                    sendToRecycleBin: sendToRecycle);
+
+                long scopePlanned = plan.Actions.Where(a => a.Action != IntendedCleanupAction.SkipProtected &&
+                    a.Action != IntendedCleanupAction.SkipReviewRequired).Sum(a => a.SizeBytes);
+                int scopeFiles = plan.Actions.Count(a => a.Action != IntendedCleanupAction.SkipProtected &&
+                    a.Action != IntendedCleanupAction.SkipReviewRequired);
+
+                dryTotal += scopePlanned;
+                dryFiles += scopeFiles;
+
+                dryResults.Add((t.Name, scopePlanned, TargetFolderInfo.FormatBytes(scopePlanned), scopeFiles,
+                    plan.Actions.Count(a => a.Action == IntendedCleanupAction.SkipProtected),
+                    plan.Actions.Count(a => a.Action == IntendedCleanupAction.SkipReviewRequired)));
+            }
 
             if (isJson)
             {
                 Console.WriteLine(JsonSerializer.Serialize(new
                 {
                     dryRun = true,
+                    safetyShieldActive = safeMode,
                     totalReclaimableBytes = dryTotal,
                     formattedTotal = TargetFolderInfo.FormatBytes(dryTotal),
                     totalFiles = dryFiles,
-                    categories = selectedTargets.Select(t => new { t.Name, t.FormattedSize, t.FileCount })
+                    categories = dryResults.Select(r => new { r.Name, plannedBytes = r.PlannedBytes, r.Formatted, plannedFiles = r.PlannedFiles, protectedCount = r.Protected, reviewRequiredCount = r.ReviewRequired })
                 }, new JsonSerializerOptions { WriteIndented = true }));
                 return 0;
             }
 
-            foreach (var t in selectedTargets.Where(t => t.SizeBytes > 0))
+            foreach (var r in dryResults.Where(r => r.PlannedBytes > 0))
             {
-                Console.WriteLine($"    • Would purge {t.Name}: {t.FormattedSize} ({t.FileCount} files)");
+                Console.WriteLine($"    • Would purge {r.Name}: {r.Formatted} ({r.PlannedFiles} files)");
             }
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"  ✓ Dry Run Complete: Estimated {TargetFolderInfo.FormatBytes(dryTotal)} in {dryFiles:N0} files will be reclaimed.");
+            Console.WriteLine($"  ✓ Dry Run Complete: {TargetFolderInfo.FormatBytes(dryTotal)} in {dryFiles:N0} files would be reclaimed (after safety filtering).");
             Console.ResetColor();
             return 0;
         }

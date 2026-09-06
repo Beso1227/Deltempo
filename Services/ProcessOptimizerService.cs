@@ -344,7 +344,12 @@ public static class ProcessOptimizerService
         return SafeTerminateProcess(new List<int> { pid });
     }
 
-    public static bool SafeTerminateProcess(IEnumerable<int> pids)
+    /// <summary>
+    /// Terminates processes by PID with PID-reuse defense.
+    /// When expectedNames are provided, verifies the process name matches before killing
+    /// to prevent killing a different process that reused the PID.
+    /// </summary>
+    public static bool SafeTerminateProcess(IEnumerable<int> pids, IReadOnlyDictionary<int, string>? expectedNames = null)
     {
         SetIncreasePrivilege(SeDebugName);
 
@@ -353,7 +358,6 @@ public static class ProcessOptimizerService
         {
             try
             {
-                // Verify PID still exists and matches intended identity before killing
                 Process p;
                 try
                 {
@@ -368,6 +372,17 @@ public static class ProcessOptimizerService
                 using (p)
                 {
                     if (p.Id <= 4) continue;
+
+                    // PID reuse defense: if caller provided expected name, verify it matches
+                    if (expectedNames != null && expectedNames.TryGetValue(pid, out string? expectedName))
+                    {
+                        if (!string.Equals(p.ProcessName, expectedName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            Trace.WriteLine($"[Deltempo] PID reuse detected: PID {pid} was '{expectedName}' but is now '{p.ProcessName}'. Aborting.");
+                            continue;
+                        }
+                    }
+
                     if (IsProtectedProcess(p.ProcessName))
                     {
                         Trace.WriteLine($"[Deltempo] Refusing to terminate protected process: {p.ProcessName} (PID {pid})");

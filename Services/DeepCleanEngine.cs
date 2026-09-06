@@ -120,7 +120,7 @@ public static class DeepCleanEngine
 
             var (freed, files, folders, skipped) = await cleaner.CleanFolderAsync(
                 target,
-                safeMode24Hours: false,
+                safeMode24Hours: true,
                 logAction: (msg, lvl) => logAction?.Invoke(msg, lvl),
                 progressReport: _ => { },
                 ct: ct);

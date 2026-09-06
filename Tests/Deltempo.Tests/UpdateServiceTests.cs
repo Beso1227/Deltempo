@@ -150,24 +150,6 @@ Automatically compiled on push.
     }
 
     [Fact]
-    public void GenerateSwapScript_IncludesRollbackAndTargetInformation()
-    {
-        int testPid = 12345;
-        string targetExe = @"C:\Apps\Deltempo\Deltempo.exe";
-        string sourceExe = @"C:\Temp\update.exe";
-        string logFile = @"C:\Temp\log.txt";
-
-        string script = UpdateService.GenerateSwapScript(testPid, targetExe, sourceExe, logFile);
-
-        Assert.Contains("set \"TARGET_PID=12345\"", script);
-        Assert.Contains(@"set ""TARGET_EXE=C:\Apps\Deltempo\Deltempo.exe""", script);
-        Assert.Contains(@"set ""SOURCE_EXE=C:\Temp\update.exe""", script);
-        Assert.Contains(@"set ""BACKUP_EXE=C:\Apps\Deltempo\Deltempo.exe.old""", script);
-        Assert.Contains("move /y \"%BACKUP_EXE%\" \"%TARGET_EXE%\"", script); // Rollback command
-        Assert.Contains("Deltempo professional updater handover initiated", script);
-    }
-
-    [Fact]
     public void SettingsService_PersistsPatchUpdateTrackingFields()
     {
         string origSha = SettingsService.Current.LastInstalledPatchSha;

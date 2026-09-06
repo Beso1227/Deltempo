@@ -237,6 +237,12 @@ public class UpdateTransactionCoordinator
                 Log($"Caller process {_journal.CallerPid} no longer exists (exited).");
                 return true;
             }
+            catch (InvalidOperationException)
+            {
+                // Process has exited but PID slot still transitioning
+                Log($"Caller process {_journal.CallerPid} no longer accessible (exited).");
+                return true;
+            }
 
             await Task.Delay(500, ct);
         }
@@ -286,19 +292,44 @@ public class UpdateTransactionCoordinator
                 File.Move(_journal.BackupPath, _journal.TargetPath, overwrite: true);
             }
 
-            Log("Rollback completed. Previous binary restored.");
+            // Verify restored binary is valid before launching
+            if (!File.Exists(_journal.TargetPath))
+            {
+                Log("CRITICAL: Restored binary does not exist after rollback move.");
+                _journal.TransitionTo(TransactionState.Failed, "Restored binary missing after rollback.");
+                return;
+            }
+
+            var fi = new FileInfo(_journal.TargetPath);
+            if (fi.Length == 0)
+            {
+                Log("CRITICAL: Restored binary is empty (0 bytes) after rollback.");
+                _journal.TransitionTo(TransactionState.Failed, "Restored binary is empty after rollback.");
+                return;
+            }
+
+            // Verify PE header of restored binary
+            using (var fs = new FileStream(_journal.TargetPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                byte[] mz = new byte[2];
+                if (fs.Read(mz, 0, 2) != 2 || mz[0] != 0x4D || mz[1] != 0x5A)
+                {
+                    Log("CRITICAL: Restored binary is not a valid PE executable after rollback.");
+                    _journal.TransitionTo(TransactionState.Failed, "Restored binary is not a valid PE after rollback.");
+                    return;
+                }
+            }
+
+            Log($"Rollback verified. Previous binary restored ({fi.Length} bytes).");
 
             // Launch previous binary
-            if (File.Exists(_journal.TargetPath))
+            var psi = new ProcessStartInfo
             {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = _journal.TargetPath,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                Process.Start(psi);
-            }
+                FileName = _journal.TargetPath,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            Process.Start(psi);
         }
         catch (Exception ex)
         {
