@@ -52,18 +52,16 @@ public static class PatchIntegrityVerifier
                 return false;
             }
 
-            // Verify DOS MZ header
             byte[] dosHeader = new byte[2];
-            if (fs.Read(dosHeader, 0, 2) != 2 || dosHeader[0] != 0x4D || dosHeader[1] != 0x5A)
+            if (ReadExact(fs, dosHeader, 2) != 2 || dosHeader[0] != 0x4D || dosHeader[1] != 0x5A)
             {
                 error = "Invalid DOS header: MZ signature not found.";
                 return false;
             }
 
-            // Read e_lfanew offset (offset 0x3C in DOS header)
             fs.Seek(0x3C, SeekOrigin.Begin);
             byte[] lfanewBytes = new byte[4];
-            if (fs.Read(lfanewBytes, 0, 4) != 4)
+            if (ReadExact(fs, lfanewBytes, 4) != 4)
             {
                 error = "Could not read e_lfanew offset.";
                 return false;
@@ -76,10 +74,9 @@ public static class PatchIntegrityVerifier
                 return false;
             }
 
-            // Verify PE signature ("PE\0\0")
             fs.Seek(peOffset, SeekOrigin.Begin);
             byte[] peSignature = new byte[4];
-            if (fs.Read(peSignature, 0, 4) != 4 ||
+            if (ReadExact(fs, peSignature, 4) != 4 ||
                 peSignature[0] != 0x50 || peSignature[1] != 0x45 ||
                 peSignature[2] != 0x00 || peSignature[3] != 0x00)
             {
@@ -96,9 +93,21 @@ public static class PatchIntegrityVerifier
         }
     }
 
+    private static int ReadExact(FileStream fs, byte[] buffer, int count)
+    {
+        int totalRead = 0;
+        while (totalRead < count)
+        {
+            int read = fs.Read(buffer, totalRead, count - totalRead);
+            if (read == 0) break;
+            totalRead += read;
+        }
+        return totalRead;
+    }
+
     /// <summary>
-    /// Verifies Authenticode signature using WinVerifyTrust API.
-    /// Checks certificate chain trust, revocation, and PE signature integrity.
+    /// Verifies Authenticode signature using X509Certificate2 chain validation.
+    /// Returns true only if the file is signed AND the certificate chain is trusted.
     /// </summary>
     public static bool TryVerifyAuthenticode(string filePath, out string publisherSubject)
     {
@@ -107,25 +116,24 @@ public static class PatchIntegrityVerifier
 
         try
         {
-            // Use X509Certificate2 for chain validation as a reliable cross-platform fallback
-            using var cert = System.Security.Cryptography.X509Certificates.X509Certificate2.CreateFromSignedFile(filePath);
-            var chain = new System.Security.Cryptography.X509Certificates.X509Chain();
-            chain.ChainPolicy.RevocationMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.Online;
-            chain.ChainPolicy.RevocationFlag = System.Security.Cryptography.X509Certificates.X509RevocationFlag.EntireChain;
-            chain.ChainPolicy.VerificationFlags = System.Security.Cryptography.X509Certificates.X509VerificationFlags.NoFlag;
+            // Try loading as a signed assembly (Authenticode PKCS#7)
+            // X509CertificateLoader handles certificate extraction from signed PE files
+            using var signedCert = X509CertificateLoader.LoadCertificateFromFile(filePath);
+            if (signedCert == null) return false;
 
-            bool chainValid = chain.Build(cert);
+            using var cert = new X509Certificate2(signedCert);
             publisherSubject = cert.Subject;
 
-            if (chainValid)
-                return true;
+            using var chain = new X509Chain();
+            chain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+            chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
+            chain.ChainPolicy.VerificationFlags = X509VerificationFlags.NoFlag;
 
-            // Chain failed but certificate exists - check if it's a valid self-signed or embedded cert
-            return cert.Subject == cert.Issuer || cert.Verify();
+            return chain.Build(cert);
         }
-        catch (System.Security.Cryptography.CryptographicException)
+        catch (CryptographicException)
         {
-            // File is unsigned (no embedded signature)
+            // File is unsigned or certificate cannot be extracted
             return false;
         }
         catch
