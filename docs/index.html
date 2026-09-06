@@ -803,13 +803,85 @@
       max-width: 980px;
       margin: 0 auto 1.5rem;
       color: var(--text-high);
+      position: relative;
     }
-    .text-gradient {
-      background: linear-gradient(135deg, #06B6D4 10%, #3B82F6 45%, #A855F7 85%);
+    .hero-title-main {
+      display: inline-block;
+      background: linear-gradient(
+        110deg,
+        #FFFFFF 0%,
+        #FFFFFF 38%,
+        #A5F3FC 50%,
+        #FFFFFF 62%,
+        #FFFFFF 100%
+      );
+      background-size: 240% 100%;
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 4px 20px rgba(6, 182, 212, 0.3));
+      animation: hero-title-sheen 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes hero-title-sheen {
+      0%, 20% {
+        background-position: 180% 0;
+      }
+      60%, 100% {
+        background-position: -120% 0;
+      }
+    }
+    .text-gradient {
+      display: inline;
+      background: linear-gradient(
+        125deg,
+        #00E5FF 0%,
+        #06B6D4 18%,
+        #3B82F6 38%,
+        #8B5CF6 58%,
+        #D946EF 78%,
+        #06B6D4 92%,
+        #00E5FF 100%
+      );
+      background-size: 260% 260%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      animation:
+        aurora-flow 8s ease-in-out infinite alternate,
+        aurora-glow 4.5s ease-in-out infinite alternate;
+      will-change: background-position, filter;
+    }
+    @keyframes aurora-flow {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+    @keyframes aurora-glow {
+      0% {
+        filter: drop-shadow(0 4px 18px rgba(6, 182, 212, 0.4))
+                drop-shadow(0 0 35px rgba(59, 130, 246, 0.2));
+      }
+      50% {
+        filter: drop-shadow(0 6px 26px rgba(139, 92, 246, 0.55))
+                drop-shadow(0 0 50px rgba(217, 70, 239, 0.3));
+      }
+      100% {
+        filter: drop-shadow(0 4px 22px rgba(0, 229, 255, 0.45))
+                drop-shadow(0 0 40px rgba(6, 182, 212, 0.25));
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hero-title-main,
+      .text-gradient {
+        animation: none !important;
+      }
     }
     .hero-subtitle {
       font-size: clamp(1.1rem, 1.85vw, 1.28rem);
@@ -2154,7 +2226,7 @@
           </div>
         </div>
         <h1 class="hero-title reveal-on-scroll stagger-1">
-          Deltempo Windows Cleaner.<br />
+          <span class="hero-title-main">Deltempo Windows Cleaner.</span><br />
           <span class="text-gradient">Pure Shader Cache &amp; User Profile Optimizer.</span>
         </h1>
         <p class="hero-subtitle reveal-on-scroll stagger-2">
