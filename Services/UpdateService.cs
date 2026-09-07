@@ -23,11 +23,7 @@ public class ReleaseInfo
     public bool IsNewer { get; set; }
     public string VersionString { get; set; } = "1.0.0";
     public bool CheckSucceeded { get; set; }
-    public bool IsPatchUpdate { get; set; }
-    public string CommitSha { get; set; } = string.Empty;
-    public string ShortCommitSha => CommitSha.Length >= 7 ? CommitSha[..7] : CommitSha;
-    public DateTime? Timestamp { get; set; }
-    public string ExpectedSha256 { get; set; } = string.Empty;
+    public DateTime? PublishedAt { get; set; }
     public string StatusMessage { get; set; } = string.Empty;
 }
 
@@ -57,241 +53,32 @@ public static class UpdateService
     public static Version CurrentVersion =>
         Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 0, 0);
 
-    public static async Task<ReleaseInfo?> CheckForUpdatesAsync(UpdateChannel? channel = null, CancellationToken ct = default)
+    public static Version NormalizeVersion(Version v) =>
+        new Version(v.Major, Math.Max(0, v.Minor), Math.Max(0, v.Build));
+
+    public static Version ParseReleaseVersion(string tagName)
     {
-        // Resolve channel from user settings if not explicitly specified
-        if (!channel.HasValue)
+        var cleanTag = Regex.Replace(tagName, @"^[^\d]*", "");
+        if (Version.TryParse(cleanTag, out var parsedVer))
         {
-            var userSetting = SettingsService.Current.UpdateChannel?.Trim().ToLowerInvariant();
-            if (userSetting == "stable")
-            {
-                channel = UpdateChannel.Stable;
-            }
-            else if (userSetting == "patch")
-            {
-                channel = UpdateChannel.Patch;
-            }
-            else
-            {
-                channel = UpdateChannel.Auto;
-            }
+            return NormalizeVersion(parsedVer);
         }
 
-        if (channel == UpdateChannel.Stable)
+        var parts = cleanTag.Split('.');
+        if (parts.Length >= 2 && int.TryParse(parts[0], out var maj) && int.TryParse(parts[1], out var min))
         {
-            return await CheckForStableUpdateAsync(ct);
+            int build = parts.Length >= 3 && int.TryParse(parts[2], out var b) ? b : 0;
+            return new Version(maj, min, build);
         }
 
-        if (channel == UpdateChannel.Patch)
-        {
-            var patchOnly = await CheckForPatchUpdateAsync(ct);
-            if (patchOnly != null && patchOnly.CheckSucceeded && patchOnly.IsNewer)
-            {
-                return patchOnly;
-            }
-            return await CheckForStableUpdateAsync(ct);
-        }
-
-        // --- INTELLIGENT SMART AUTO-DETECT MODE (Default) ---
-        // Concurrently query both Stable official releases and Continuous Patches
-        var stableTask = CheckForStableUpdateAsync(ct);
-        var patchTask = CheckForPatchUpdateAsync(ct);
-
-        await Task.WhenAll(stableTask, patchTask);
-
-        var stable = await stableTask;
-        var patch = await patchTask;
-
-        // Arbitration 1: A newer official milestone release exists (e.g. v1.4.0 > v1.3.3)
-        if (stable != null && stable.CheckSucceeded && stable.IsNewer)
-        {
-            // If patch is also newer and was published AFTER or AT the stable release,
-            // patch contains the stable release plus extra fixes.
-            if (patch != null && patch.CheckSucceeded && patch.IsNewer &&
-                patch.Timestamp >= (stable.Timestamp ?? DateTime.MinValue))
-            {
-                return patch;
-            }
-            return stable;
-        }
-
-        // Arbitration 2: No newer stable milestone, check if a continuous patch exists
-        if (patch != null && patch.CheckSucceeded && patch.IsNewer)
-        {
-            return patch;
-        }
-
-        // Arbitration 3: Neither is newer -> return status info
-        return (stable != null && stable.CheckSucceeded) ? stable : patch;
+        return new Version(1, 0, 0);
     }
 
-    public static async Task<ReleaseInfo?> CheckForPatchUpdateAsync(CancellationToken ct = default)
-    {
-        try
-        {
-            PatchManifest? manifest = null;
-            string releaseName = "";
-            string body = "";
-            DateTime publishedAt = DateTime.UtcNow;
-            string downloadUrl = "";
-            long sizeBytes = 0;
-
-            // ─── TIER 1: DIRECT HIGH-AVAILABILITY CDN MANIFEST INGESTION ───
-            // Uses cache-busting query and NoCache headers to ensure fresh CDN delivery.
-            try
-            {
-                long cacheBuster = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                string manifestCdnUrl = $"https://github.com/{RepoOwner}/{RepoName}/releases/download/v-patch/patch-manifest.json?cb={cacheBuster}";
-                using var cdnCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                cdnCts.CancelAfter(TimeSpan.FromSeconds(6));
-
-                using var req = new HttpRequestMessage(HttpMethod.Get, manifestCdnUrl);
-                req.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true };
-
-                using var cdnResponse = await DownloadHttpClient.SendAsync(req, cdnCts.Token);
-                if (cdnResponse.IsSuccessStatusCode)
-                {
-                    string manifestRaw = await cdnResponse.Content.ReadAsStringAsync(cdnCts.Token);
-                    var parsed = ParsePatchManifest(manifestRaw);
-                    if (parsed != null)
-                    {
-                        var validation = PatchMetadataValidator.Validate(parsed);
-                        if (validation.IsValid)
-                        {
-                            manifest = parsed;
-                            downloadUrl = manifest.DownloadUrl;
-                            sizeBytes = manifest.FileSizeBytes;
-                            publishedAt = manifest.Timestamp;
-                            body = manifest.CommitMessage;
-                        }
-                        else
-                        {
-                            System.Diagnostics.Trace.WriteLine($"[Deltempo] CDN patch manifest failed validation: {validation.ErrorMessage}");
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Direct CDN patch manifest check fallback: {ex.Message}");
-            }
-
-            // ─── TIER 2: GITHUB REST API FALLBACK ──────────────────────────
-            // Queried when the direct CDN asset is not yet available or failed.
-            if (manifest == null || string.IsNullOrEmpty(downloadUrl))
-            {
-                string url = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/tags/v-patch";
-                using var response = await ApiHttpClient.GetAsync(url, ct);
-                HttpResponseMessage actualResponse = response;
-                HttpResponseMessage? legacyResponse = null;
-                if (!response.IsSuccessStatusCode)
-                {
-                    string legacyUrl = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/tags/patch";
-                    legacyResponse = await ApiHttpClient.GetAsync(legacyUrl, ct);
-                    if (legacyResponse.IsSuccessStatusCode)
-                    {
-                        actualResponse = legacyResponse;
-                    }
-                }
-
-                if (!actualResponse.IsSuccessStatusCode)
-                {
-                    legacyResponse?.Dispose();
-                    if (manifest == null)
-                    {
-                        return new ReleaseInfo { CheckSucceeded = false, StatusMessage = "Could not reach update server." };
-                    }
-                }
-                else
-                {
-                    string json = await actualResponse.Content.ReadAsStringAsync(ct);
-                    legacyResponse?.Dispose();
-                    using var doc = JsonDocument.Parse(json);
-                    var root = doc.RootElement;
-
-                    releaseName = root.TryGetProperty("name", out var nameEl) ? nameEl.GetString() ?? "" : "";
-                    body = root.TryGetProperty("body", out var bodyEl) ? bodyEl.GetString() ?? "" : "";
-                    string publishedAtStr = root.TryGetProperty("published_at", out var pubEl) ? pubEl.GetString() ?? "" : "";
-                    DateTime.TryParse(publishedAtStr, out publishedAt);
-
-                    if (root.TryGetProperty("assets", out var assetsEl) && assetsEl.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var asset in assetsEl.EnumerateArray())
-                        {
-                            string name = asset.TryGetProperty("name", out var anEl) ? anEl.GetString() ?? "" : "";
-                            if (name.Equals("Deltempo.exe", StringComparison.OrdinalIgnoreCase) ||
-                                name.Equals("WinTempCleaner.exe", StringComparison.OrdinalIgnoreCase))
-                            {
-                                downloadUrl = asset.TryGetProperty("browser_download_url", out var dlEl) ? dlEl.GetString() ?? "" : "";
-                                sizeBytes = asset.TryGetProperty("size", out var sEl) ? sEl.GetInt64() : 0;
-                                break;
-                            }
-                        }
-                    }
-
-                    manifest ??= ParsePatchManifest(body);
-                }
-            }
-
-            // Ensure download URL is safely defaulted if missing from manifest
-            if (string.IsNullOrEmpty(downloadUrl))
-            {
-                downloadUrl = $"https://github.com/{RepoOwner}/{RepoName}/releases/download/v-patch/Deltempo.exe";
-            }
-
-            string remoteCommitSha = manifest?.CommitSha ?? "";
-            DateTime remoteTimestamp = manifest?.Timestamp ?? publishedAt;
-            string remoteMessage = manifest?.CommitMessage ?? body;
-
-            if (string.IsNullOrEmpty(remoteCommitSha))
-            {
-                var match = Regex.Match(body, @"Commit:\s*([0-9a-fA-F]{7,40})", RegexOptions.IgnoreCase);
-                if (match.Success)
-                {
-                    remoteCommitSha = match.Groups[1].Value;
-                }
-            }
-
-            string remoteSha256 = manifest?.Sha256 ?? "";
-
-            // Evaluate patch availability via deterministic PatchDiscoveryEngine
-            var discovery = PatchDiscoveryEngine.EvaluatePatchAvailability(
-                localCommitSha: BuildInfo.CommitSha,
-                localExeSha256: BuildInfo.CurrentExecutableSha256,
-                localBuildDateUtc: BuildInfo.BuildDateUtc,
-                lastInstalledSha: SettingsService.Current.LastInstalledPatchSha,
-                lastInstalledHash: SettingsService.Current.LastInstalledPatchHash,
-                remoteCommitSha: remoteCommitSha,
-                remoteSha256: remoteSha256,
-                remoteTimestampUtc: remoteTimestamp);
-
-            string shortSha = remoteCommitSha.Length >= 7 ? remoteCommitSha[..7] : remoteCommitSha;
-            string displayTag = string.IsNullOrEmpty(shortSha) ? "Continuous Patch" : $"Patch: {shortSha}";
-
-            return new ReleaseInfo
-            {
-                CheckSucceeded = true,
-                IsPatchUpdate = true,
-                IsNewer = discovery.IsNewer,
-                TagName = displayTag,
-                ReleaseName = string.IsNullOrWhiteSpace(releaseName) ? displayTag : releaseName,
-                Body = remoteMessage,
-                DownloadUrl = downloadUrl,
-                FileSizeBytes = sizeBytes,
-                CommitSha = remoteCommitSha,
-                Timestamp = remoteTimestamp,
-                VersionString = $"{BuildInfo.BaseVersion.ToString(3)}-patch",
-                ExpectedSha256 = remoteSha256,
-                StatusMessage = discovery.Reason
-            };
-        }
-        catch (Exception ex)
-        {
-            return new ReleaseInfo { CheckSucceeded = false, StatusMessage = ex.Message };
-        }
-    }
-
-    public static async Task<ReleaseInfo?> CheckForStableUpdateAsync(CancellationToken ct = default)
+    /// <summary>
+    /// Checks for a new official release on GitHub Releases (releases/latest).
+    /// Updates only trigger when a formal release is published on the repository.
+    /// </summary>
+    public static async Task<ReleaseInfo?> CheckForUpdatesAsync(CancellationToken ct = default)
     {
         try
         {
@@ -299,7 +86,7 @@ public static class UpdateService
             using var response = await ApiHttpClient.GetAsync(url, ct);
             if (!response.IsSuccessStatusCode)
             {
-                return new ReleaseInfo { CheckSucceeded = false, StatusMessage = "Could not reach stable update server." };
+                return new ReleaseInfo { CheckSucceeded = false, StatusMessage = "Could not reach GitHub Releases server." };
             }
 
             string json = await response.Content.ReadAsStringAsync(ct);
@@ -331,30 +118,13 @@ public static class UpdateService
                 }
             }
 
+            var remoteVer = ParseReleaseVersion(tagName);
+            bool isNewer = remoteVer > NormalizeVersion(CurrentVersion);
             var cleanTag = Regex.Replace(tagName, @"^[^\d]*", "");
-            if (!Version.TryParse(cleanTag, out var remoteVer))
-            {
-                var parts = cleanTag.Split('.');
-                if (parts.Length >= 2 && int.TryParse(parts[0], out var maj) && int.TryParse(parts[1], out var min))
-                {
-                    int build = parts.Length >= 3 && int.TryParse(parts[2], out var b) ? b : 0;
-                    remoteVer = new Version(maj, min, build);
-                }
-                else
-                {
-                    remoteVer = new Version(1, 0, 0);
-                }
-            }
-
-            static Version Normalize(Version v) =>
-                new Version(v.Major, Math.Max(0, v.Minor), Math.Max(0, v.Build));
-
-            bool isNewer = Normalize(remoteVer) > Normalize(CurrentVersion);
 
             return new ReleaseInfo
             {
                 CheckSucceeded = true,
-                IsPatchUpdate = false,
                 TagName = tagName,
                 ReleaseName = string.IsNullOrWhiteSpace(releaseName) ? tagName : releaseName,
                 Body = body,
@@ -362,8 +132,8 @@ public static class UpdateService
                 FileSizeBytes = sizeBytes,
                 IsNewer = isNewer,
                 VersionString = cleanTag,
-                Timestamp = publishedAt,
-                StatusMessage = isNewer ? $"New stable release {tagName} available." : "Running latest stable release."
+                PublishedAt = publishedAt,
+                StatusMessage = isNewer ? $"New release {tagName} available." : "Running the latest release."
             };
         }
         catch (Exception ex)
@@ -372,42 +142,10 @@ public static class UpdateService
         }
     }
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
-
-    public static PatchManifest? ParsePatchManifest(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text)) return null;
-
-        try
-        {
-            var match = Regex.Match(text, @"<!--\s*DELTEMPO_PATCH_MANIFEST\s*(\{.*?\})\s*-->", RegexOptions.Singleline);
-            if (match.Success)
-            {
-                return JsonSerializer.Deserialize<PatchManifest>(match.Groups[1].Value, JsonOptions);
-            }
-
-            var codeBlockMatch = Regex.Match(text, @"```json:manifest\s*(\{.*?\})\s*```", RegexOptions.Singleline);
-            if (codeBlockMatch.Success)
-            {
-                return JsonSerializer.Deserialize<PatchManifest>(codeBlockMatch.Groups[1].Value, JsonOptions);
-            }
-
-            if (text.TrimStart().StartsWith("{") && text.TrimEnd().EndsWith("}"))
-            {
-                return JsonSerializer.Deserialize<PatchManifest>(text, JsonOptions);
-            }
-        }
-        catch
-        {
-        }
-
-        return null;
-    }
-
-    public static async Task DownloadAndApplyUpdateAsync(string downloadUrl, IProgress<double> progress, string? expectedSha256 = null, string? commitSha = null, bool isPatchUpdate = false, CancellationToken ct = default)
+    /// <summary>
+    /// Downloads and applies the new official release using atomic staging and hot-swap replacement.
+    /// </summary>
+    public static async Task DownloadAndApplyUpdateAsync(string downloadUrl, IProgress<double> progress, string? expectedSha256 = null, CancellationToken ct = default)
     {
         // 0. Mutual Exclusion: Acquire cross-process update lock
         using var updateLock = PatchInstallationLock.TryAcquire(TimeSpan.FromSeconds(5));
@@ -417,7 +155,7 @@ public static class UpdateService
         }
 
         // 1. Strict Host & Protocol Security Assertion (Anti-SSRF / Anti-Tamper)
-        if (!PatchMetadataValidator.IsValidDownloadUrl(downloadUrl, out string urlReason))
+        if (!UpdateSecurityValidator.IsValidDownloadUrl(downloadUrl, out string urlReason))
         {
             throw new SecurityException($"Security violation: {urlReason}");
         }
@@ -438,9 +176,8 @@ public static class UpdateService
         var journal = new TransactionJournal
         {
             TransactionId = txId,
-            Channel = isPatchUpdate ? "patch" : "stable",
+            Channel = "release",
             Version = CurrentVersion.ToString(3),
-            CommitSha = commitSha ?? "",
             TargetPath = currentExePath,
             BackupPath = Path.Combine(updatesDir, "Deltempo.previous.exe"),
             ExpectedSha256 = expectedSha256 ?? "",
@@ -462,7 +199,7 @@ public static class UpdateService
             journal.ExpectedSizeBytes = fileSize;
             journal.TransitionTo(TransactionState.Downloaded);
 
-            // 4. Verify staged binary (SHA-256, Size, PE header, Authenticode, version)
+            // 4. Verify staged binary (SHA-256, Size, PE header, version)
             var fi = new FileInfo(stagedPath);
             if (!PatchIntegrityVerifier.VerifyStagedArtifact(stagedPath, actualSha, fi.Length, out string integrityError))
             {

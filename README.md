@@ -154,7 +154,7 @@ Deltempo includes a synchronous, scriptable CLI designed for terminal users and 
 | `deltempo startup enable <app>` | Restore a disabled startup program | N/A |
 | `deltempo repair [subcommand]` | Windows integrity check & servicing repair | `sfc`, `dism`, `winsxs`, `chkdsk`, `update`, `network` |
 | `deltempo status` | Display system telemetry and memory info | `--json` |
-| `deltempo update [check]` | Check for releases or apply patch builds | `check`, `--channel <stable\|patch\|auto>` |
+| `deltempo update [check]` | Check for official releases or apply update | `check`, `--dry-run` |
 
 ### Practical Examples
 
@@ -177,8 +177,8 @@ deltempo large inspect "C:\Users\username\AppData\Local\Temp\installer.exe"
 # 6. Reversibly disable an unnecessary startup program
 deltempo startup disable "Spotify"
 
-# 7. Check for updates on the continuous patch channel
-deltempo update check --channel patch
+# 7. Check for updates on GitHub Releases
+deltempo update check
 ```
 
 ---
@@ -242,12 +242,11 @@ The **Startup Manager** inspects programs configured to launch on Windows logon:
 
 ## Automatic Updates
 
-Deltempo provides a dual-channel update mechanism focused on cryptographic integrity:
+Deltempo auto-updates exclusively when a formal release is published to GitHub Releases:
 
-* **Stable Channel**: Delivers formal semantic milestone releases tagged on GitHub Releases.
-* **Continuous Patch Channel**: Delivers rolling builds generated directly from qualifying commits on `main`.
+* **Official GitHub Releases**: Queries GitHub Releases API (`releases/latest`) to discover verified new versions.
 * **Cryptographic Hash Validation**: Downloads are verified against expected SHA-256 digests by `PatchIntegrityVerifier` before any staging operation.
-* **Manifest Security**: `PatchMetadataValidator` validates HTTPS origin, host allowlists, commit hashes, and file size bounds (10 MB – 500 MB).
+* **Host & Protocol Security**: `UpdateSecurityValidator` enforces strict HTTPS protocol and verified GitHub domain origin controls.
 * **Atomic Swap & Rollback**: Staged updates are installed using cross-process mutex locks (`PatchInstallationLock`). If the new binary fails verification, the previous build is restored.
 
 ---
@@ -256,7 +255,7 @@ Deltempo provides a dual-channel update mechanism focused on cryptographic integ
 
 * **Does Deltempo collect telemetry?** No. Deltempo contains no telemetry, user tracking, or analytics libraries.
 * **Does cleanup data leave your machine?** No. All scanning, classification, and deletion routines execute entirely on local drives.
-* **What network communication occurs?** Network requests are strictly limited to HTTPS queries to GitHub (`api.github.com`, `github.com`, `raw.githubusercontent.com`) to check for application releases or download signed patch manifests.
+* **What network communication occurs?** Network requests are strictly limited to HTTPS queries to GitHub (`api.github.com`, `github.com`) to check for application releases and download verified executables.
 * **When does Deltempo contact GitHub?** Only when update checks are performed (via `deltempo update` or GUI settings).
 
 ---
@@ -292,7 +291,7 @@ Deltempo/
 ├── Core/                    # Core domain logic, safety rules, and update verification
 │   ├── Cleaning/            # CleanupPlan, CleanupPlanner, CleanupExecutor
 │   ├── Safety/              # FileSafetyEngine, ProtectionPolicy, PathSecurity, SafetyRiskTier
-│   └── Update/              # PatchManifest, PatchMetadataValidator, PatchIntegrityVerifier
+│   └── Update/              # UpdateSecurityValidator, PatchIntegrityVerifier, TransactionJournal
 ├── Services/                # System integrations (CleanerService, MemoryOptimizer, LargeFileHunter)
 ├── Models/                  # Telemetry models, target folder definitions, and data structures
 ├── Views/ & ViewModels/     # WPF UI presentation layer (Fluent dark and light themes)
