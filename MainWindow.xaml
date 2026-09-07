@@ -2526,6 +2526,155 @@
                                             </Grid>
                                         </StackPanel>
                                     </Border>
+
+                                    <!-- AI & Online Safety Intelligence -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="16,12"
+                                            Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="AI &amp; Online File Intelligence"
+                                                               FontSize="12.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Connect to internet / AI to fetch real-world info on large &amp; unknown files"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="SettingsEnableAiCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          IsChecked="True"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+
+                                            <!-- Provider Selection -->
+                                            <Grid Margin="0,6,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0"
+                                                           Text="AI Intelligence Provider"
+                                                           FontSize="11.5"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <ComboBox Grid.Column="1"
+                                                          x:Name="SettingsAiProviderComboBox"
+                                                          Style="{DynamicResource ModernComboBox}"
+                                                          Width="220" Height="26"
+                                                          SelectionChanged="SettingsAiProviderComboBox_SelectionChanged">
+                                                    <ComboBoxItem Content="Built-in Web Knowledge (Free, No Key)" Tag="BuiltIn" IsSelected="True"/>
+                                                    <ComboBoxItem Content="OpenRouter (Universal / Multi-Model)" Tag="OpenRouter"/>
+                                                    <ComboBoxItem Content="Google Gemini (Free API Key)" Tag="Gemini"/>
+                                                    <ComboBoxItem Content="Groq (Ultra-Fast Free Tier)" Tag="Groq"/>
+                                                    <ComboBoxItem Content="OpenAI (GPT-4o-mini)" Tag="OpenAI"/>
+                                                    <ComboBoxItem Content="Ollama (Local &amp; Private)" Tag="Ollama"/>
+                                                </ComboBox>
+                                            </Grid>
+
+                                            <!-- API Key Row (for Gemini, OpenAI, Groq) -->
+                                            <Grid x:Name="SettingsAiApiKeyRow" Margin="0,4,0,6" Visibility="Collapsed">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0"
+                                                           Text="API Key"
+                                                           FontSize="11.5"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <PasswordBox Grid.Column="1"
+                                                             x:Name="SettingsAiApiKeyPasswordBox"
+                                                             Width="220" Height="26"
+                                                             Background="{DynamicResource SurfaceCardBrush}"
+                                                             Foreground="{DynamicResource TextHighBrush}"
+                                                             BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                             Padding="6,3"/>
+                                            </Grid>
+
+                                            <!-- Ollama Endpoint Row -->
+                                            <Grid x:Name="SettingsAiOllamaRow" Margin="0,4,0,6" Visibility="Collapsed">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0"
+                                                           Text="Ollama Endpoint"
+                                                           FontSize="11.5"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBox Grid.Column="1"
+                                                         x:Name="SettingsAiOllamaEndpointBox"
+                                                         Text="http://localhost:11434"
+                                                         Width="220" Height="26"
+                                                         Background="{DynamicResource SurfaceCardBrush}"
+                                                         Foreground="{DynamicResource TextHighBrush}"
+                                                         BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                         Padding="6,3"/>
+                                            </Grid>
+
+                                            <!-- Model Override Row -->
+                                            <Grid x:Name="SettingsAiModelRow" Margin="0,4,0,8" Visibility="Collapsed">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0"
+                                                           Text="Custom Model Name (Optional)"
+                                                           FontSize="11.5"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBox Grid.Column="1"
+                                                         x:Name="SettingsAiModelBox"
+                                                         Width="220" Height="26"
+                                                         Background="{DynamicResource SurfaceCardBrush}"
+                                                         Foreground="{DynamicResource TextHighBrush}"
+                                                         BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                         Padding="6,3"/>
+                                            </Grid>
+
+                                            <!-- Test & Cache Actions -->
+                                            <Grid Margin="0,4,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock x:Name="SettingsAiTestStatusText"
+                                                           Grid.Column="0"
+                                                           Text="Built-in Knowledge Engine active."
+                                                           FontSize="10.5"
+                                                           Foreground="{DynamicResource TextMutedBrush}"
+                                                           VerticalAlignment="Center"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <Button Grid.Column="1"
+                                                        x:Name="SettingsTestAiBtn"
+                                                        Content="Test Connection"
+                                                        Style="{DynamicResource PillButton}"
+                                                        Padding="10,4"
+                                                        FontSize="10.5"
+                                                        Margin="0,0,6,0"
+                                                        Click="SettingsTestAi_Click"/>
+                                                <Button Grid.Column="2"
+                                                        x:Name="SettingsClearAiCacheBtn"
+                                                        Content="Clear Cache"
+                                                        Style="{DynamicResource PillButton}"
+                                                        Padding="10,4"
+                                                        FontSize="10.5"
+                                                        Click="SettingsClearAiCache_Click"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
                             </StackPanel>
                         </ScrollViewer>
@@ -3174,7 +3323,20 @@
                                                     Style="{DynamicResource PillButton}"
                                                     Padding="8,3"
                                                     FontSize="10.5"
+                                                    Margin="0,0,4,0"
                                                     Click="ClearLargeFilesSelection_Click"/>
+                                            <Button x:Name="AskAiSelectedLargeFilesBtn"
+                                                    Style="{DynamicResource PillButton}"
+                                                    Padding="10,3"
+                                                    FontSize="10.5"
+                                                    FontWeight="SemiBold"
+                                                    Click="AskAiSelectedLargeFiles_Click"
+                                                    ToolTip="Connect to AI / Internet to fetch real-world info on selected large files">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="&#xE943;" FontFamily="{DynamicResource IconFont}" FontSize="11" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="✨ Analyze with AI" Foreground="{DynamicResource ElectricCyanBrush}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
                                         </StackPanel>
                                         <TextBlock x:Name="LargeFilesSelectedSummaryText"
                                                    Text="Selected: 0 files (0 B)"
@@ -3211,154 +3373,187 @@
                                                         Padding="12,10"
                                                         Margin="0,0,0,8">
                                                     <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/> <!-- Selection CheckBox -->
-                                                            <ColumnDefinition Width="Auto"/> <!-- Category Icon Pod -->
-                                                            <ColumnDefinition Width="*"/>    <!-- File Details & AI Reasoning -->
-                                                            <ColumnDefinition Width="Auto"/> <!-- Formatted Size -->
-                                                            <ColumnDefinition Width="Auto"/> <!-- Reveal Button -->
-                                                            <ColumnDefinition Width="Auto"/> <!-- Recycle Button -->
-                                                        </Grid.ColumnDefinitions>
+                                                         <Grid.ColumnDefinitions>
+                                                             <ColumnDefinition Width="Auto"/> <!-- 0: Selection CheckBox -->
+                                                             <ColumnDefinition Width="Auto"/> <!-- 1: Category Icon Pod -->
+                                                             <ColumnDefinition Width="*"/>    <!-- 2: File Details & AI Reasoning -->
+                                                             <ColumnDefinition Width="Auto"/> <!-- 3: Formatted Size -->
+                                                             <ColumnDefinition Width="Auto"/> <!-- 4: Ask AI Button -->
+                                                             <ColumnDefinition Width="Auto"/> <!-- 5: Reveal Button -->
+                                                             <ColumnDefinition Width="Auto"/> <!-- 6: Recycle Button -->
+                                                         </Grid.ColumnDefinitions>
 
-                                                        <!-- CheckBox -->
-                                                        <CheckBox Grid.Column="0"
-                                                                  Style="{DynamicResource ModernSwitchCheckBox}"
-                                                                  IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                                  VerticalAlignment="Center"
-                                                                  Margin="0,0,12,0"
-                                                                  Checked="LargeFileItem_CheckChanged"
-                                                                  Unchecked="LargeFileItem_CheckChanged"/>
+                                                         <!-- CheckBox -->
+                                                         <CheckBox Grid.Column="0"
+                                                                   Style="{DynamicResource ModernSwitchCheckBox}"
+                                                                   IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                                   VerticalAlignment="Center"
+                                                                   Margin="0,0,12,0"
+                                                                   Checked="LargeFileItem_CheckChanged"
+                                                                   Unchecked="LargeFileItem_CheckChanged"/>
 
-                                                        <!-- Category Icon Pod (Machined rounded square with vector icon) -->
-                                                        <Border Grid.Column="1"
-                                                                Width="38" Height="38"
-                                                                CornerRadius="9"
-                                                                Background="{DynamicResource SurfaceSubCardBrush}"
-                                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                                BorderThickness="1"
-                                                                VerticalAlignment="Center"
-                                                                Margin="0,0,12,0">
-                                                            <TextBlock Text="{Binding CategoryIcon}"
-                                                                       FontFamily="{DynamicResource IconFont}"
-                                                                       FontSize="16"
-                                                                       Foreground="{DynamicResource ElectricCyanBrush}"
-                                                                       HorizontalAlignment="Center"
-                                                                       VerticalAlignment="Center"/>
-                                                        </Border>
+                                                         <!-- Category Icon Pod (Machined rounded square with vector icon) -->
+                                                         <Border Grid.Column="1"
+                                                                 Width="38" Height="38"
+                                                                 CornerRadius="9"
+                                                                 Background="{DynamicResource SurfaceSubCardBrush}"
+                                                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                                 BorderThickness="1"
+                                                                 VerticalAlignment="Center"
+                                                                 Margin="0,0,12,0">
+                                                             <TextBlock Text="{Binding CategoryIcon}"
+                                                                        FontFamily="{DynamicResource IconFont}"
+                                                                        FontSize="16"
+                                                                        Foreground="{DynamicResource ElectricCyanBrush}"
+                                                                        HorizontalAlignment="Center"
+                                                                        VerticalAlignment="Center"/>
+                                                         </Border>
 
-                                                        <!-- File Details & AI Reasoning -->
-                                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,12,0">
-                                                            <!-- Row 1: File Name + Category Badge + AI Safety Badge -->
-                                                            <WrapPanel VerticalAlignment="Center" Margin="0,0,0,2">
-                                                                <TextBlock Text="{Binding FileName}"
-                                                                           FontSize="12.5"
-                                                                           FontWeight="Bold"
-                                                                           Foreground="{DynamicResource TextHighBrush}"
-                                                                           TextTrimming="CharacterEllipsis"
-                                                                           MaxWidth="380"
-                                                                           VerticalAlignment="Center"/>
+                                                         <!-- File Details & AI Reasoning -->
+                                                         <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                             <!-- Row 1: File Name + Category Badge + AI Safety Badge + Source Badge -->
+                                                             <WrapPanel VerticalAlignment="Center" Margin="0,0,0,2">
+                                                                 <TextBlock Text="{Binding FileName}"
+                                                                            FontSize="12.5"
+                                                                            FontWeight="Bold"
+                                                                            Foreground="{DynamicResource TextHighBrush}"
+                                                                            TextTrimming="CharacterEllipsis"
+                                                                            MaxWidth="340"
+                                                                            VerticalAlignment="Center"/>
 
-                                                                <!-- Category Badge -->
-                                                                <Border Margin="8,0,0,0"
-                                                                        Background="{DynamicResource SurfaceSubCardBrush}"
-                                                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                                        BorderThickness="1"
-                                                                        CornerRadius="5"
-                                                                        Padding="6,2"
-                                                                        VerticalAlignment="Center">
-                                                                    <TextBlock Text="{Binding Category}" FontSize="9" FontWeight="SemiBold"
-                                                                               Foreground="{DynamicResource TextMediumBrush}"/>
-                                                                </Border>
+                                                                 <!-- Category Badge -->
+                                                                 <Border Margin="8,0,0,0"
+                                                                         Background="{DynamicResource SurfaceSubCardBrush}"
+                                                                         BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                                         BorderThickness="1"
+                                                                         CornerRadius="5"
+                                                                         Padding="6,2"
+                                                                         VerticalAlignment="Center">
+                                                                     <TextBlock Text="{Binding Category}" FontSize="9" FontWeight="SemiBold"
+                                                                                Foreground="{DynamicResource TextMediumBrush}"/>
+                                                                 </Border>
 
-                                                                <!-- AI Safety Verdict Badge with dynamic dot & border -->
-                                                                <Border Margin="6,0,0,0"
-                                                                        Background="{Binding BadgeBackground}"
-                                                                        BorderBrush="{Binding BadgeBorder}"
-                                                                        BorderThickness="1"
-                                                                        CornerRadius="5"
-                                                                        Padding="7,2"
-                                                                        VerticalAlignment="Center">
-                                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                        <Ellipse Width="6" Height="6" Fill="{Binding AiBadgeColor}" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                                                        <TextBlock Text="{Binding AiVerdict}" FontSize="9" FontWeight="Bold"
-                                                                                   Foreground="{Binding AiBadgeColor}" VerticalAlignment="Center"/>
-                                                                    </StackPanel>
-                                                                </Border>
-                                                            </WrapPanel>
+                                                                 <!-- AI Safety Verdict Badge with dynamic dot & border -->
+                                                                 <Border Margin="6,0,0,0"
+                                                                         Background="{Binding BadgeBackground}"
+                                                                         BorderBrush="{Binding BadgeBorder}"
+                                                                         BorderThickness="1"
+                                                                         CornerRadius="5"
+                                                                         Padding="7,2"
+                                                                         VerticalAlignment="Center">
+                                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                         <Ellipse Width="6" Height="6" Fill="{Binding AiBadgeColor}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                                         <TextBlock Text="{Binding AiVerdict}" FontSize="9" FontWeight="Bold"
+                                                                                    Foreground="{Binding AiBadgeColor}" VerticalAlignment="Center"/>
+                                                                     </StackPanel>
+                                                                 </Border>
 
-                                                            <!-- Row 2: File Path in clean Monospace -->
-                                                            <TextBlock Text="{Binding FilePath}"
-                                                                       FontSize="9.5"
-                                                                       FontFamily="{DynamicResource MonospaceFont}"
-                                                                       Foreground="{DynamicResource TextMutedBrush}"
-                                                                       TextTrimming="CharacterEllipsis"
-                                                                       MaxWidth="500"
-                                                                       Margin="0,1,0,3"/>
+                                                                 <!-- AI Provider / Source Badge -->
+                                                                 <Border Margin="6,0,0,0"
+                                                                         Background="{DynamicResource SurfaceSubCardBrush}"
+                                                                         BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                                         BorderThickness="1"
+                                                                         CornerRadius="5"
+                                                                         Padding="6,2"
+                                                                         VerticalAlignment="Center">
+                                                                     <TextBlock Text="{Binding AiProviderLabel}" FontSize="8.5" FontWeight="SemiBold"
+                                                                                Foreground="{DynamicResource ElectricCyanBrush}" VerticalAlignment="Center"/>
+                                                                 </Border>
+                                                             </WrapPanel>
 
-                                                            <!-- Row 3: AI Explanation & Origin Capsule -->
-                                                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
-                                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                                    BorderThickness="1"
-                                                                    CornerRadius="6"
-                                                                    Padding="8,5"
-                                                                    HorizontalAlignment="Left"
-                                                                    MaxWidth="510">
-                                                                <StackPanel>
-                                                                    <TextBlock Text="{Binding AiOrigin}"
-                                                                               FontSize="9.5"
-                                                                               FontWeight="SemiBold"
-                                                                               Foreground="{DynamicResource ElectricCyanBrush}"
-                                                                               Margin="0,0,0,2"/>
-                                                                    <TextBlock Text="{Binding AiExplanation}"
-                                                                               FontSize="9.5"
-                                                                               Foreground="{DynamicResource TextMediumBrush}"
-                                                                               TextWrapping="Wrap"/>
-                                                                </StackPanel>
-                                                            </Border>
-                                                        </StackPanel>
+                                                             <!-- Row 2: File Path in clean Monospace -->
+                                                             <TextBlock Text="{Binding FilePath}"
+                                                                        FontSize="9.5"
+                                                                        FontFamily="{DynamicResource MonospaceFont}"
+                                                                        Foreground="{DynamicResource TextMutedBrush}"
+                                                                        TextTrimming="CharacterEllipsis"
+                                                                        MaxWidth="500"
+                                                                        Margin="0,1,0,3"/>
 
-                                                        <!-- Formatted Size -->
-                                                        <Border Grid.Column="3"
-                                                                Background="{DynamicResource SurfaceSubCardBrush}"
-                                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                                BorderThickness="1"
-                                                                CornerRadius="8"
-                                                                Padding="10,4"
-                                                                Margin="0,0,8,0"
-                                                                VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding FormattedSize}"
-                                                                       FontSize="11.5"
-                                                                       FontWeight="Bold"
-                                                                       Foreground="{DynamicResource ElectricCyanBrush}"/>
-                                                        </Border>
+                                                             <!-- Row 3: AI Explanation & Origin Capsule -->
+                                                             <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                                                     BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                                     BorderThickness="1"
+                                                                     CornerRadius="6"
+                                                                     Padding="8,5"
+                                                                     HorizontalAlignment="Left"
+                                                                     MaxWidth="510">
+                                                                 <StackPanel>
+                                                                     <TextBlock Text="{Binding AiOrigin}"
+                                                                                FontSize="9.5"
+                                                                                FontWeight="SemiBold"
+                                                                                Foreground="{DynamicResource ElectricCyanBrush}"
+                                                                                Margin="0,0,0,2"/>
+                                                                     <TextBlock Text="{Binding AiExplanation}"
+                                                                                FontSize="9.5"
+                                                                                Foreground="{DynamicResource TextMediumBrush}"
+                                                                                TextWrapping="Wrap"/>
+                                                                     <!-- AI Actionable Recommendation -->
+                                                                     <TextBlock Text="{Binding AiRecommendation}"
+                                                                                FontSize="9"
+                                                                                Foreground="{DynamicResource EmeraldGreenBrush}"
+                                                                                Margin="0,3,0,0"
+                                                                                TextWrapping="Wrap"/>
+                                                                 </StackPanel>
+                                                             </Border>
+                                                         </StackPanel>
 
-                                                        <!-- Reveal in Explorer -->
-                                                        <Button Grid.Column="4"
-                                                                Style="{DynamicResource PillButton}"
-                                                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                                Padding="9,5"
-                                                                Margin="0,0,6,0"
-                                                                Click="RevealLargeFile_Click"
-                                                                ToolTip="Show in File Explorer">
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <TextBlock Text="&#xED25;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                                                <TextBlock Text="Reveal" FontSize="10.5" VerticalAlignment="Center"/>
-                                                            </StackPanel>
-                                                        </Button>
+                                                         <!-- Formatted Size -->
+                                                         <Border Grid.Column="3"
+                                                                 Background="{DynamicResource SurfaceSubCardBrush}"
+                                                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                                 BorderThickness="1"
+                                                                 CornerRadius="8"
+                                                                 Padding="10,4"
+                                                                 Margin="0,0,8,0"
+                                                                 VerticalAlignment="Center">
+                                                             <TextBlock Text="{Binding FormattedSize}"
+                                                                        FontSize="11.5"
+                                                                        FontWeight="Bold"
+                                                                        Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                         </Border>
 
-                                                        <!-- Single Recycle -->
-                                                        <Button Grid.Column="5"
-                                                                Style="{DynamicResource PillButton}"
-                                                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                                Padding="9,5"
-                                                                Click="RecycleLargeFile_Click"
-                                                                ToolTip="Move to Windows Recycle Bin">
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <TextBlock Text="&#xE74D;" FontFamily="{DynamicResource IconFont}" FontSize="11" Foreground="{DynamicResource DestructiveRedBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                                                <TextBlock Text="Recycle" FontSize="10.5" VerticalAlignment="Center"/>
-                                                            </StackPanel>
-                                                        </Button>
-                                                    </Grid>
+                                                         <!-- Ask AI Button -->
+                                                         <Button Grid.Column="4"
+                                                                 Style="{DynamicResource PillButton}"
+                                                                 FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                                 Padding="9,5"
+                                                                 Margin="0,0,6,0"
+                                                                 Click="AskAiLargeFile_Click"
+                                                                 ToolTip="Connect to AI / Internet to fetch real-world info on this file">
+                                                             <StackPanel Orientation="Horizontal">
+                                                                 <TextBlock Text="&#xE943;" FontFamily="{DynamicResource IconFont}" FontSize="11" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                                 <TextBlock Text="✨ Ask AI" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource ElectricCyanBrush}" VerticalAlignment="Center"/>
+                                                             </StackPanel>
+                                                         </Button>
+
+                                                         <!-- Reveal in Explorer -->
+                                                         <Button Grid.Column="5"
+                                                                 Style="{DynamicResource PillButton}"
+                                                                 FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                                 Padding="9,5"
+                                                                 Margin="0,0,6,0"
+                                                                 Click="RevealLargeFile_Click"
+                                                                 ToolTip="Show in File Explorer">
+                                                             <StackPanel Orientation="Horizontal">
+                                                                 <TextBlock Text="&#xED25;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                                 <TextBlock Text="Reveal" FontSize="10.5" VerticalAlignment="Center"/>
+                                                             </StackPanel>
+                                                         </Button>
+
+                                                         <!-- Single Recycle -->
+                                                         <Button Grid.Column="6"
+                                                                 Style="{DynamicResource PillButton}"
+                                                                 FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                                 Padding="9,5"
+                                                                 Click="RecycleLargeFile_Click"
+                                                                 ToolTip="Move to Windows Recycle Bin">
+                                                             <StackPanel Orientation="Horizontal">
+                                                                 <TextBlock Text="&#xE74D;" FontFamily="{DynamicResource IconFont}" FontSize="11" Foreground="{DynamicResource DestructiveRedBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                                 <TextBlock Text="Recycle" FontSize="10.5" VerticalAlignment="Center"/>
+                                                             </StackPanel>
+                                                         </Button>
+                                                     </Grid>
                                                 </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>

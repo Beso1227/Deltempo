@@ -38,25 +38,118 @@ public class LargeFileInfo : INotifyPropertyChanged
     public string DirectoryPath => Path.GetDirectoryName(FilePath) ?? "";
     public string DriveLetter => !string.IsNullOrEmpty(FilePath) && FilePath.Length >= 2 && FilePath[1] == ':' ? FilePath[..2].ToUpperInvariant() : "C:";
 
-    // Deterministic Safety Properties (Core.Safety Engine)
-    public int SafetyScore { get; set; } = 0;
+    // Deterministic & AI Safety Properties
+    private int _safetyScore = 0;
+    public int SafetyScore { get => _safetyScore; set { _safetyScore = value; OnPropertyChanged(); } }
     public int AiSafetyScore { get => SafetyScore; set => SafetyScore = value; }
     public SafetyRiskTier SafetyTier { get; set; } = SafetyRiskTier.Protected;
-    public string Verdict { get; set; } = "PROTECTED";
+
+    private string _verdict = "PROTECTED";
+    public string Verdict { get => _verdict; set { _verdict = value; OnPropertyChanged(); } }
     public string AiVerdict { get => Verdict; set => Verdict = value; }
     public string VerdictShort { get; set; } = "PROTECTED";
-    public string BadgeColor { get; set; } = "#EF4444";
+
+    private string _badgeColor = "#EF4444";
+    public string BadgeColor { get => _badgeColor; set { _badgeColor = value; OnPropertyChanged(); } }
     public string AiBadgeColor { get => BadgeColor; set => BadgeColor = value; }
-    public string BadgeBackground { get; set; } = "#2A0E0E";
-    public string BadgeBorder { get; set; } = "#EF4444";
-    public string Origin { get; set; } = string.Empty;
+
+    private string _badgeBackground = "#2A0E0E";
+    public string BadgeBackground { get => _badgeBackground; set { _badgeBackground = value; OnPropertyChanged(); } }
+
+    private string _badgeBorder = "#EF4444";
+    public string BadgeBorder { get => _badgeBorder; set { _badgeBorder = value; OnPropertyChanged(); } }
+
+    private string _origin = string.Empty;
+    public string Origin { get => _origin; set { _origin = value; OnPropertyChanged(); } }
     public string AiOrigin { get => Origin; set => Origin = value; }
-    public string Impact { get; set; } = string.Empty;
+
+    private string _impact = string.Empty;
+    public string Impact { get => _impact; set { _impact = value; OnPropertyChanged(); } }
     public string AiImpact { get => Impact; set => Impact = value; }
-    public string Explanation { get; set; } = string.Empty;
+
+    private string _explanation = string.Empty;
+    public string Explanation { get => _explanation; set { _explanation = value; OnPropertyChanged(); } }
     public string AiExplanation { get => Explanation; set => Explanation = value; }
-    public bool IsSafe { get; set; }
+
+    private bool _isSafe;
+    public bool IsSafe { get => _isSafe; set { _isSafe = value; OnPropertyChanged(); } }
     public bool IsAiSafe { get => IsSafe; set => IsSafe = value; }
+
+    // Online AI Intelligence & Deep Forensics
+    private bool _isAiAnalyzing;
+    public bool IsAiAnalyzing
+    {
+        get => _isAiAnalyzing;
+        set { if (_isAiAnalyzing != value) { _isAiAnalyzing = value; OnPropertyChanged(); } }
+    }
+
+    private bool _isAiOnlineVerified;
+    public bool IsAiOnlineVerified
+    {
+        get => _isAiOnlineVerified;
+        set { if (_isAiOnlineVerified != value) { _isAiOnlineVerified = value; OnPropertyChanged(); } }
+    }
+
+    private string _aiRecommendation = string.Empty;
+    public string AiRecommendation
+    {
+        get => _aiRecommendation;
+        set { if (_aiRecommendation != value) { _aiRecommendation = value; OnPropertyChanged(); } }
+    }
+
+    private string _aiProviderLabel = "Deterministic Rules";
+    public string AiProviderLabel
+    {
+        get => _aiProviderLabel;
+        set { if (_aiProviderLabel != value) { _aiProviderLabel = value; OnPropertyChanged(); } }
+    }
+
+    private OnlineSafetyReport? _onlineReport;
+    public OnlineSafetyReport? OnlineReport
+    {
+        get => _onlineReport;
+        set { if (_onlineReport != value) { _onlineReport = value; OnPropertyChanged(); } }
+    }
+
+    public void ApplyOnlineReport(OnlineSafetyReport report)
+    {
+        OnlineReport = report;
+        AiVerdict = report.VerdictDisplay;
+        VerdictShort = report.VerdictDisplay;
+        SafetyScore = report.SafetyScore;
+        BadgeColor = report.BadgeColor;
+        BadgeBackground = report.BadgeBackground;
+        BadgeBorder = report.BadgeBorder;
+        Origin = report.Origin;
+        Impact = report.ImpactIfDeleted;
+        Explanation = report.WhatIsIt;
+        AiRecommendation = report.Recommendation;
+        IsSafe = report.Verdict is OnlineSafetyVerdict.SafeToDelete;
+        IsAiOnlineVerified = true;
+        IsAiAnalyzing = false;
+        AiProviderLabel = report.ProviderUsed;
+
+        OnPropertyChanged(nameof(AiVerdict));
+        OnPropertyChanged(nameof(VerdictShort));
+        OnPropertyChanged(nameof(SafetyScore));
+        OnPropertyChanged(nameof(BadgeColor));
+        OnPropertyChanged(nameof(BadgeBackground));
+        OnPropertyChanged(nameof(BadgeBorder));
+        OnPropertyChanged(nameof(AiBadgeColor));
+        OnPropertyChanged(nameof(Origin));
+        OnPropertyChanged(nameof(AiOrigin));
+        OnPropertyChanged(nameof(Impact));
+        OnPropertyChanged(nameof(AiImpact));
+        OnPropertyChanged(nameof(Explanation));
+        OnPropertyChanged(nameof(AiExplanation));
+        OnPropertyChanged(nameof(AiRecommendation));
+        OnPropertyChanged(nameof(IsSafe));
+        OnPropertyChanged(nameof(IsAiSafe));
+        OnPropertyChanged(nameof(IsAiOnlineVerified));
+        OnPropertyChanged(nameof(IsAiAnalyzing));
+        OnPropertyChanged(nameof(AiProviderLabel));
+        OnPropertyChanged(nameof(OnlineReport));
+    }
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
@@ -450,5 +543,41 @@ public static class LargeFileHunterService
             });
         }
         catch { }
+    }
+
+    public static async Task AnalyzeItemWithAiAsync(LargeFileInfo item, CancellationToken ct = default)
+    {
+        if (item == null || string.IsNullOrWhiteSpace(item.FilePath)) return;
+
+        item.IsAiAnalyzing = true;
+        try
+        {
+            var report = await OnlineFileIntelligenceService.AnalyzeFileAsync(item.FilePath, ct);
+            item.ApplyOnlineReport(report);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo AI] Item analysis error: {ex.Message}");
+            item.IsAiAnalyzing = false;
+        }
+    }
+
+    public static async Task BatchAnalyzeWithAiAsync(
+        IEnumerable<LargeFileInfo> items,
+        IProgress<int>? progress = null,
+        CancellationToken ct = default)
+    {
+        var list = items.ToList();
+        int total = list.Count;
+        if (total == 0) return;
+
+        int processed = 0;
+        foreach (var item in list)
+        {
+            if (ct.IsCancellationRequested) break;
+            await AnalyzeItemWithAiAsync(item, ct);
+            processed++;
+            progress?.Report((int)((double)processed / total * 100));
+        }
     }
 }

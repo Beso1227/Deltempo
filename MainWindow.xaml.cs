@@ -432,6 +432,24 @@ public partial class MainWindow : Window
             }
         }
 
+        // AI & Online Intelligence
+        SettingsEnableAiCheckBox.IsChecked = SettingsService.Current.EnableOnlineAiSafety;
+        foreach (ComboBoxItem pItem in SettingsAiProviderComboBox.Items)
+        {
+            if (pItem.Tag is string pTag && string.Equals(pTag, SettingsService.Current.AiProvider, StringComparison.OrdinalIgnoreCase))
+            {
+                SettingsAiProviderComboBox.SelectedItem = pItem;
+                break;
+            }
+        }
+        SettingsAiApiKeyPasswordBox.Password = SettingsService.Current.AiApiKey;
+        SettingsAiModelBox.Text = SettingsService.Current.AiModelName;
+        SettingsAiOllamaEndpointBox.Text = string.IsNullOrWhiteSpace(SettingsService.Current.AiOllamaEndpoint)
+            ? "http://localhost:11434"
+            : SettingsService.Current.AiOllamaEndpoint;
+        UpdateAiSettingsUiVisibility();
+        SettingsAiTestStatusText.Text = $"Ready. Cached local AI reports: {OnlineFileIntelligenceService.GetCacheCount()} files.";
+
         ApplyMemorySettingsToWindow();
     }
 
@@ -542,6 +560,21 @@ public partial class MainWindow : Window
             SettingsService.Current.MemoryAutoOptimizeFreeRamThresholdPercent = tval;
         }
 
+        // AI & Online Intelligence
+        SettingsService.Current.EnableOnlineAiSafety = SettingsEnableAiCheckBox.IsChecked == true;
+        if (SettingsAiProviderComboBox.SelectedItem is ComboBoxItem provItem && provItem.Tag is string provTag)
+        {
+            SettingsService.Current.AiProvider = provTag;
+        }
+        if (!string.IsNullOrEmpty(SettingsAiApiKeyPasswordBox.Password))
+        {
+            SettingsService.Current.AiApiKey = SettingsAiApiKeyPasswordBox.Password;
+        }
+        SettingsService.Current.AiModelName = SettingsAiModelBox.Text.Trim();
+        SettingsService.Current.AiOllamaEndpoint = string.IsNullOrWhiteSpace(SettingsAiOllamaEndpointBox.Text)
+            ? "http://localhost:11434"
+            : SettingsAiOllamaEndpointBox.Text.Trim();
+
         SettingsService.SaveSettings();
         AutoCleanService.Start();
         ApplyMemorySettingsToWindow();
@@ -549,6 +582,103 @@ public partial class MainWindow : Window
         SettingsModalOverlay.Visibility = Visibility.Collapsed;
         SoundService.PlayClickSound();
         AddLog("Preferences & Auto-Pilot Guardian settings saved.", LogLevel.Success);
+    }
+
+    private void SettingsAiProviderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        UpdateAiSettingsUiVisibility();
+    }
+
+    private void UpdateAiSettingsUiVisibility()
+    {
+        if (SettingsAiProviderComboBox == null || SettingsAiApiKeyRow == null || SettingsAiOllamaRow == null || SettingsAiModelRow == null) return;
+
+        string prov = (SettingsAiProviderComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "BuiltIn";
+        bool needsKey = prov is "Gemini" or "Groq" or "OpenAI" or "OpenRouter";
+        bool isOllama = prov == "Ollama";
+
+        SettingsAiApiKeyRow.Visibility = needsKey ? Visibility.Visible : Visibility.Collapsed;
+        SettingsAiOllamaRow.Visibility = isOllama ? Visibility.Visible : Visibility.Collapsed;
+        SettingsAiModelRow.Visibility = (needsKey || isOllama) ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private async void SettingsTestAi_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsTestAiBtn.IsEnabled = false;
+        SettingsAiTestStatusText.Text = "Connecting & verifying provider...";
+        try
+        {
+            string prov = (SettingsAiProviderComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "BuiltIn";
+            string key = SettingsAiApiKeyPasswordBox.Password;
+            string end = SettingsAiOllamaEndpointBox.Text;
+            string model = SettingsAiModelBox.Text;
+
+            var (ok, msg) = await OnlineFileIntelligenceService.TestConnectionAsync(prov, key, end, model);
+            SettingsAiTestStatusText.Text = ok ? $"✅ {msg}" : $"❌ {msg}";
+        }
+        finally
+        {
+            SettingsTestAiBtn.IsEnabled = true;
+        }
+    }
+
+    private void SettingsClearAiCache_Click(object sender, RoutedEventArgs e)
+    {
+        OnlineFileIntelligenceService.ClearCache();
+        SettingsAiTestStatusText.Text = "AI reports cache cleared (0 items).";
+    }
+
+    private async void AskAiLargeFile_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.DataContext is LargeFileInfo info)
+        {
+            btn.IsEnabled = false;
+            info.AiProviderLabel = "⚡ Analyzing...";
+            try
+            {
+                await LargeFileHunterService.AnalyzeItemWithAiAsync(info);
+                RefreshLargeFileHeroStats();
+                AddLog($"AI Intelligence analyzed '{info.FileName}': {info.AiVerdict}", LogLevel.Info);
+            }
+            finally
+            {
+                btn.IsEnabled = true;
+            }
+        }
+    }
+
+    private async void AskAiSelectedLargeFiles_Click(object sender, RoutedEventArgs e)
+    {
+        var selected = _largeFiles.Where(f => f.IsSelected).ToList();
+        if (selected.Count == 0)
+        {
+            selected = _largeFiles.Where(f => !f.IsAiOnlineVerified).Take(25).ToList();
+        }
+
+        if (selected.Count == 0)
+        {
+            MessageBox.Show("No files need AI analysis. Select files or scan a folder.", "AI Intelligence", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        AskAiSelectedLargeFilesBtn.IsEnabled = false;
+        try
+        {
+            AddLog($"Starting online AI analysis for {selected.Count} large files...", LogLevel.Info);
+            var progress = new Progress<int>(pct =>
+            {
+                LargeFilesSelectedSummaryText.Text = $"AI Analyzing {selected.Count} files: {pct}%";
+            });
+
+            await LargeFileHunterService.BatchAnalyzeWithAiAsync(selected, progress);
+            AddLog($"Completed AI intelligence analysis for {selected.Count} files.", LogLevel.Success);
+            RefreshLargeFileHeroStats();
+            UpdateLargeFileSelectionSummary();
+        }
+        finally
+        {
+            AskAiSelectedLargeFilesBtn.IsEnabled = true;
+        }
     }
 
     /// <summary>
