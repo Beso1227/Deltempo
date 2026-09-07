@@ -36,6 +36,7 @@ public class DeepCleanEngineTests
             logAction: (msg, lvl) => { },
             progress: progress,
             purgeAllRestorePoints: false,
+            skipDism: true,
             ct: cts.Token);
 
         Assert.NotNull(result);
