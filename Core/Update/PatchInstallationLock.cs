@@ -24,11 +24,17 @@ public sealed class PatchInstallationLock : IDisposable
     /// Returns a disposable lock instance. If HasLock is false, another update is active.
     /// </summary>
     public static PatchInstallationLock TryAcquire(TimeSpan timeout)
+        => TryAcquire(MutexName, timeout);
+
+    /// <summary>
+    /// Attempts to acquire a named lock with a custom mutex name (for testing).
+    /// </summary>
+    public static PatchInstallationLock TryAcquire(string mutexName, TimeSpan timeout)
     {
         Mutex? mutex = null;
         try
         {
-            mutex = new Mutex(false, MutexName);
+            mutex = new Mutex(false, mutexName);
             bool acquired;
             try
             {
