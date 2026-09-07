@@ -129,12 +129,29 @@
       <p class="section-subtitle">Complete version history, feature additions, and security improvements.</p>
     </div>
 
-    <!-- v1.3.4 -->
+    <!-- v1.3.5 -->
     <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
       <div class="card-inner">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.3.4 (Latest Milestone)</h2>
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.3.5 (Latest Milestone)</h2>
           <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+        </div>
+        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <li><strong>Categorized Preferences &amp; Settings Hub:</strong> Redesigned settings modal with modern segmented navigation tabs (<em>Updates</em>, <em>General</em>, <em>Memory</em>, <em>Storage &amp; Safe</em>) and customizable free disk alert thresholds (5&ndash;50 GB).</li>
+          <li><strong>Advanced Release Management &amp; Update Channels:</strong> Comprehensive update engine supporting configurable frequency checks (Daily, 3 Days, Weekly, Manual), Stable vs Beta/Pre-release channel selection, silent pre-fetching, and direct GitHub release notes integration.</li>
+          <li><strong>Crisp High-DPI System Tray Engine:</strong> Native Win32 icon extraction (<code>LoadCrispTrayIcon</code>) from <code>app.ico</code> preserving 32-bit alpha transparency across all display scaling tiers (100% to 200%), with explorer restart resilience and dynamic RAM telemetry.</li>
+          <li><strong>Streamlined Official GitHub Release Updating:</strong> Simplified auto-updater to trigger exclusively from verified official repository releases with atomic staging and hot-swap replacement.</li>
+          <li><strong>Linear/Apple Standard Top Navigation Bar:</strong> Clean floating island header with strict single-line text layout, subtle pill hover backdrops, visual divider line, and responsive 960px breakpoint.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- v1.3.4 -->
+    <div class="double-bezel" style="margin-bottom: 2rem;">
+      <div class="card-inner">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.3.4</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-low);">MILESTONE</span>
         </div>
         <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
           <li><strong>Embedded Single-Executable Updater:</strong> Merged updater engine directly into <code>Deltempo.exe</code> with atomic staged replacement, eliminated secondary updater binary dependencies.</li>
