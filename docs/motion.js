@@ -1,9 +1,9 @@
 /**
- * Deltempo Cybernetic Motion Engine
+ * Deltempo Cybernetic Motion Engine v2.1.2
  * High-performance interactive visual systems:
  * - Cybernetic Interactive Constellation & Quantum Particle Canvas
  * - Fluid spring-interpolated precision dual-ring cursor with magnetic snap & click ripple
- * - Complete suppression of OS cursor via .has-custom-cursor
+ * - Complete, universal suppression of Windows OS cursor across all DOM elements
  * - Card surface reactive radial lighting & micro-tilt
  * - IntersectionObserver scroll reveals
  * - Full prefers-reduced-motion & touch-device compliance
@@ -15,14 +15,7 @@
   // 1. Feature & Preference Checks
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const isFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-
-  // If reduced motion is requested, reveal all scroll elements immediately
-  if (prefersReducedMotion.matches) {
-    document.querySelectorAll('.reveal-on-scroll').forEach(function (el) {
-      el.classList.add('revealed');
-    });
-    return;
-  }
+  const isReducedMotion = prefersReducedMotion.matches;
 
   /* ==========================================================================
      2. IntersectionObserver Scroll Reveal System
@@ -31,7 +24,7 @@
     const revealElements = document.querySelectorAll('.reveal-on-scroll');
     if (!revealElements.length) return;
 
-    if (!('IntersectionObserver' in window)) {
+    if (isReducedMotion || !('IntersectionObserver' in window)) {
       revealElements.forEach(function (el) {
         el.classList.add('revealed');
       });
@@ -65,15 +58,15 @@
   function initInteractiveBackground() {
     let canvas = document.getElementById('ambientCanvas');
     if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'ambientCanvas';
+      canvas.className = 'ambient-canvas';
+      canvas.setAttribute('aria-hidden', 'true');
       const aurora = document.querySelector('.ambient-aurora');
-      if (aurora) {
-        canvas = document.createElement('canvas');
-        canvas.id = 'ambientCanvas';
-        canvas.className = 'ambient-canvas';
-        canvas.setAttribute('aria-hidden', 'true');
-        aurora.insertBefore(canvas, aurora.firstChild);
+      if (aurora && aurora.parentNode) {
+        aurora.parentNode.insertBefore(canvas, aurora.nextSibling);
       } else {
-        return;
+        document.body.insertBefore(canvas, document.body.firstChild);
       }
     }
 
@@ -84,21 +77,23 @@
     let height = 0;
     let dpr = 1;
     let animationFrameId = null;
-    let isTabVisible = !document.hidden;
 
-    // Mouse coordinates for particle attraction & proximity connection
+    // Interactive mouse coordinates and shockwave state
     const mouse = {
       x: -1000,
       y: -1000,
-      radius: 150,
+      radius: 180,
+      active: false,
     };
+
+    const shockwaves = [];
 
     function resize() {
       width = window.innerWidth;
       height = window.innerHeight;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
       canvas.style.width = width + 'px';
       canvas.style.height = height + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -108,11 +103,24 @@
     window.addEventListener('resize', resize, { passive: true });
 
     // Track pointer position across entire viewport
+    function updatePointer(x, y) {
+      mouse.x = x;
+      mouse.y = y;
+      mouse.active = true;
+    }
+
     window.addEventListener(
       'pointermove',
       function (e) {
-        mouse.x = e.clientX;
-        mouse.y = e.clientY;
+        updatePointer(e.clientX, e.clientY);
+      },
+      { passive: true }
+    );
+
+    window.addEventListener(
+      'mousemove',
+      function (e) {
+        updatePointer(e.clientX, e.clientY);
       },
       { passive: true }
     );
@@ -120,25 +128,28 @@
     document.addEventListener('mouseleave', function () {
       mouse.x = -1000;
       mouse.y = -1000;
+      mouse.active = false;
     });
 
     // Particle pool setup
     const isMobile = window.innerWidth < 768;
-    const particleCount = isMobile ? 35 : 65;
+    const particleCount = isMobile ? 48 : 100;
     const particles = [];
 
     const colorsDark = [
-      { r: 0, g: 229, b: 255 },   // Cyan #00E5FF
-      { r: 139, g: 92, b: 246 },  // Violet #8B5CF6
+      { r: 0, g: 229, b: 255 },   // Electric Cyan #00E5FF
+      { r: 168, g: 85, b: 247 },  // Neon Violet #A855F7
       { r: 56, g: 189, b: 248 },  // Sky Blue #38BDF8
-      { r: 16, g: 185, b: 129 }   // Emerald #10B981
+      { r: 16, g: 185, b: 129 },  // Cyber Emerald #10B981
+      { r: 255, g: 255, b: 255 }, // Star White
     ];
 
     const colorsLight = [
       { r: 2, g: 132, b: 199 },   // Azure #0284C7
       { r: 124, g: 58, b: 237 },  // Royal Purple #7C3AED
       { r: 14, g: 165, b: 233 },  // Deep Sky #0EA5E9
-      { r: 5, g: 150, b: 105 }    // Deep Emerald #059669
+      { r: 5, g: 150, b: 105 },   // Deep Emerald #059669
+      { r: 71, g: 85, b: 105 },   // Slate
     ];
 
     class Particle {
@@ -149,31 +160,53 @@
       reset(initRandom) {
         this.x = initRandom ? Math.random() * width : (Math.random() > 0.5 ? 0 : width);
         this.y = initRandom ? Math.random() * height : Math.random() * height;
-        this.vx = (Math.random() - 0.5) * 0.6;
-        this.vy = (Math.random() - 0.5) * 0.6;
-        this.baseRadius = Math.random() * 1.8 + 1.2;
+        const speedScale = isReducedMotion ? 0.15 : 0.65;
+        this.vx = (Math.random() - 0.5) * speedScale;
+        this.vy = (Math.random() - 0.5) * speedScale;
+        
+        // 15% are larger Star Nexus nodes with luminous aura
+        this.isNexus = Math.random() < 0.15;
+        this.baseRadius = this.isNexus ? Math.random() * 1.5 + 3.2 : Math.random() * 1.4 + 1.8;
         this.radius = this.baseRadius;
         this.colorIdx = Math.floor(Math.random() * colorsDark.length);
-        this.pulseSpeed = Math.random() * 0.02 + 0.01;
+        this.pulseSpeed = Math.random() * 0.03 + 0.015;
         this.pulseAngle = Math.random() * Math.PI * 2;
-        this.alpha = Math.random() * 0.35 + 0.25;
+        this.alpha = this.isNexus ? Math.random() * 0.2 + 0.75 : Math.random() * 0.3 + 0.55;
       }
 
       update() {
         this.pulseAngle += this.pulseSpeed;
-        this.radius = this.baseRadius + Math.sin(this.pulseAngle) * 0.4;
+        this.radius = this.baseRadius + Math.sin(this.pulseAngle) * (this.isNexus ? 0.8 : 0.4);
 
         // Interaction with mouse proximity
-        const dx = mouse.x - this.x;
-        const dy = mouse.y - this.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (mouse.active && mouse.x > 0 && mouse.y > 0) {
+          const dx = mouse.x - this.x;
+          const dy = mouse.y - this.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
 
-        if (dist < mouse.radius && dist > 0) {
-          const force = (1 - dist / mouse.radius) * 1.4;
-          const angle = Math.atan2(dy, dx);
-          this.x -= Math.cos(angle) * force;
-          this.y -= Math.sin(angle) * force;
-          this.radius = this.baseRadius * 1.5;
+          if (dist < mouse.radius && dist > 0) {
+            // Gentle elastic repulsion when very close, light magnetic attraction when at perimeter
+            const force = (1 - dist / mouse.radius);
+            const angle = Math.atan2(dy, dx);
+            const push = dist < 70 ? force * 2.2 : -force * 0.6;
+            this.x -= Math.cos(angle) * push;
+            this.y -= Math.sin(angle) * push;
+          }
+        }
+
+        // Apply shockwave impulses
+        for (let i = shockwaves.length - 1; i >= 0; i--) {
+          const sw = shockwaves[i];
+          const sdx = this.x - sw.x;
+          const sdy = this.y - sw.y;
+          const sDist = Math.sqrt(sdx * sdx + sdy * sdy);
+          const diff = Math.abs(sDist - sw.radius);
+          if (diff < 40) {
+            const push = (1 - diff / 40) * (sw.maxRadius - sw.radius) * 0.08;
+            const angle = Math.atan2(sdy, sdx);
+            this.x += Math.cos(angle) * push;
+            this.y += Math.sin(angle) * push;
+          }
         }
 
         this.x += this.vx;
@@ -188,11 +221,26 @@
 
       draw(isLight) {
         const c = (isLight ? colorsLight : colorsDark)[this.colorIdx];
+        const effAlpha = this.alpha * (isLight ? 0.75 : 1);
+
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${this.alpha * (isLight ? 0.75 : 1)})`;
-        ctx.shadowColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${isLight ? 0.4 : 0.8})`;
-        ctx.shadowBlur = isLight ? 4 : 8;
+
+        if (this.isNexus) {
+          // Radiant glowing halo for Star Nexus nodes
+          const haloRadius = this.radius * 3.5;
+          const grad = ctx.createRadialGradient(this.x, this.y, this.radius * 0.5, this.x, this.y, haloRadius);
+          grad.addColorStop(0, `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.6})`);
+          grad.addColorStop(1, `rgba(${c.r}, ${c.g}, ${c.b}, 0)`);
+          ctx.fillStyle = grad;
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha})`;
+        ctx.shadowColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${isLight ? 0.5 : 0.9})`;
+        ctx.shadowBlur = this.isNexus ? 12 : 6;
         ctx.fill();
         ctx.shadowBlur = 0;
       }
@@ -202,23 +250,59 @@
       particles.push(new Particle());
     }
 
-    const maxConnectionDistance = isMobile ? 85 : 115;
-    const maxMouseConnectionDistance = 145;
+    // Trigger shockwave impulse on click
+    window.addEventListener(
+      'pointerdown',
+      function (e) {
+        shockwaves.push({
+          x: e.clientX,
+          y: e.clientY,
+          radius: 10,
+          maxRadius: 220,
+          speed: 8,
+          alpha: 0.7,
+        });
+      },
+      { passive: true }
+    );
+
+    const maxConnectionDistance = isMobile ? 95 : 140;
+    const maxMouseDistance = isMobile ? 120 : 180;
 
     function render() {
-      if (!isTabVisible) return;
+      animationFrameId = requestAnimationFrame(render);
+
+      if (document.hidden) return;
 
       ctx.clearRect(0, 0, width, height);
 
       const isLight = document.documentElement.classList.contains('light');
 
-      // 1. Update and render particles
+      // 1. Update and render shockwaves
+      for (let i = shockwaves.length - 1; i >= 0; i--) {
+        const sw = shockwaves[i];
+        sw.radius += sw.speed;
+        sw.alpha = Math.max(0, 0.7 * (1 - sw.radius / sw.maxRadius));
+
+        if (sw.radius >= sw.maxRadius || sw.alpha <= 0) {
+          shockwaves.splice(i, 1);
+          continue;
+        }
+
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${isLight ? '2, 132, 199' : '0, 229, 255'}, ${sw.alpha * 0.6})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      // 2. Update and render particles
       for (let i = 0; i < particles.length; i++) {
         particles[i].update();
         particles[i].draw(isLight);
       }
 
-      // 2. Draw connections between nearby particles
+      // 3. Draw constellation filament lines between nearby particles
       for (let i = 0; i < particles.length; i++) {
         const p1 = particles[i];
 
@@ -229,47 +313,47 @@
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < maxConnectionDistance) {
-            const alpha = (1 - dist / maxConnectionDistance) * (isLight ? 0.12 : 0.22);
+            const alpha = (1 - dist / maxConnectionDistance) * (isLight ? 0.22 : 0.38);
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
             const strokeColor = isLight ? '124, 58, 237' : '0, 229, 255';
             ctx.strokeStyle = `rgba(${strokeColor}, ${alpha})`;
-            ctx.lineWidth = 0.85;
+            ctx.lineWidth = 1.0;
             ctx.stroke();
           }
         }
 
-        // Connection from nearby particles to mouse cursor
-        if (mouse.x > 0 && mouse.y > 0) {
+        // 4. Interactive energetic laser filaments connecting to mouse cursor
+        if (mouse.active && mouse.x > 0 && mouse.y > 0) {
           const mdx = p1.x - mouse.x;
           const mdy = p1.y - mouse.y;
           const mDist = Math.sqrt(mdx * mdx + mdy * mdy);
 
-          if (mDist < maxMouseConnectionDistance) {
-            const mAlpha = (1 - mDist / maxMouseConnectionDistance) * (isLight ? 0.28 : 0.45);
+          if (mDist < maxMouseDistance) {
+            const mAlpha = (1 - mDist / maxMouseDistance) * (isLight ? 0.45 : 0.75);
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(mouse.x, mouse.y);
-            const mColor = isLight ? '2, 132, 199' : '139, 92, 246';
+            const mColor = isLight ? '2, 132, 199' : '168, 85, 247';
             ctx.strokeStyle = `rgba(${mColor}, ${mAlpha})`;
-            ctx.lineWidth = 1.2;
+            ctx.lineWidth = 1.35;
             ctx.stroke();
           }
         }
       }
 
-      animationFrameId = requestAnimationFrame(render);
-    }
-
-    // Freeze animation when tab is not active to conserve CPU & battery
-    document.addEventListener('visibilitychange', function () {
-      isTabVisible = !document.hidden;
-      if (isTabVisible) {
-        cancelAnimationFrame(animationFrameId);
-        render();
+      // 5. Ambient glowing energy aura at mouse cursor coordinates
+      if (mouse.active && mouse.x > 0 && mouse.y > 0) {
+        const mouseGrad = ctx.createRadialGradient(mouse.x, mouse.y, 2, mouse.x, mouse.y, 50);
+        mouseGrad.addColorStop(0, `rgba(${isLight ? '2, 132, 199' : '0, 229, 255'}, ${isLight ? 0.25 : 0.4})`);
+        mouseGrad.addColorStop(1, 'rgba(0, 229, 255, 0)');
+        ctx.beginPath();
+        ctx.arc(mouse.x, mouse.y, 50, 0, Math.PI * 2);
+        ctx.fillStyle = mouseGrad;
+        ctx.fill();
       }
-    });
+    }
 
     render();
   }
@@ -300,9 +384,10 @@
           card.style.setProperty('--mouse-y', y + 'px');
 
           if (
-            card.classList.contains('double-bezel') ||
-            card.classList.contains('showcase-wrapper') ||
-            card.classList.contains('feature-card')
+            !isReducedMotion &&
+            (card.classList.contains('double-bezel') ||
+              card.classList.contains('showcase-wrapper') ||
+              card.classList.contains('feature-card'))
           ) {
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
@@ -333,9 +418,11 @@
   function initPrecisionCursor() {
     if (!isFinePointer.matches) return;
 
-    // Suppress default Windows cursor
+    // Enforce full OS cursor suppression on document and body
     document.documentElement.classList.add('has-custom-cursor');
     document.body.classList.add('has-custom-cursor');
+    document.documentElement.style.cursor = 'none';
+    document.body.style.cursor = 'none';
 
     // Create cursor DOM elements if not already present
     let dot = document.querySelector('.precision-cursor-dot');
@@ -368,42 +455,39 @@
     let ringX = -100;
     let ringY = -100;
     let isVisible = false;
-    let isHovered = false;
     let currentMagneticEl = null;
 
-    // Pointer move listener
-    window.addEventListener(
-      'pointermove',
-      function (e) {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
+    function onPointerMove(e) {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
 
-        if (!isVisible) {
-          isVisible = true;
-          ringX = mouseX;
-          ringY = mouseY;
-          dot.style.opacity = '1';
-          ring.style.opacity = '1';
-        }
+      if (!isVisible) {
+        isVisible = true;
+        ringX = mouseX;
+        ringY = mouseY;
+        dot.style.opacity = '1';
+        ring.style.opacity = '1';
+      }
 
-        // Direct hardware-accelerated tracking for instantaneous dot response (zero lag)
-        dot.style.transform = 'translate3d(' + mouseX + 'px, ' + mouseY + 'px, 0) translate(-50%, -50%)';
-      },
-      { passive: true }
-    );
+      // Direct hardware-accelerated tracking for instantaneous dot response (zero lag)
+      dot.style.transform = 'translate3d(' + mouseX + 'px, ' + mouseY + 'px, 0) translate(-50%, -50%)';
+    }
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener('mousemove', onPointerMove, { passive: true });
 
     // Window enter / leave handling
     document.addEventListener('mouseleave', function () {
       isVisible = false;
       dot.style.opacity = '0';
       ring.style.opacity = '0';
-      document.documentElement.classList.remove('has-custom-cursor');
-      document.body.classList.remove('has-custom-cursor');
+      document.documentElement.style.cursor = '';
+      document.body.style.cursor = '';
     });
 
     document.addEventListener('mouseenter', function (e) {
-      document.documentElement.classList.add('has-custom-cursor');
-      document.body.classList.add('has-custom-cursor');
+      document.documentElement.style.cursor = 'none';
+      document.body.style.cursor = 'none';
       mouseX = e.clientX;
       mouseY = e.clientY;
       ringX = mouseX;
@@ -449,7 +533,6 @@
       function (e) {
         const target = e.target.closest(interactiveQuery);
         if (target) {
-          isHovered = true;
           dot.classList.add('cursor-hover');
           ring.classList.add('cursor-hover');
 
@@ -475,7 +558,6 @@
       function (e) {
         const target = e.target.closest(interactiveQuery);
         if (target) {
-          isHovered = false;
           dot.classList.remove('cursor-hover');
           ring.classList.remove('cursor-hover');
           ring.classList.remove('cursor-text');
@@ -490,7 +572,7 @@
       { passive: true }
     );
 
-    // 60-120fps fluid spring lerp interpolation for trailing ring & magnetic snap
+    // 60-144fps fluid spring lerp interpolation for trailing ring & magnetic snap
     function renderLoop() {
       if (isVisible) {
         let targetX = mouseX;
@@ -514,9 +596,9 @@
             'translate3d(' + transX.toFixed(2) + 'px, ' + transY.toFixed(2) + 'px, 0)';
         }
 
-        // Fluid spring lerp
-        ringX += (targetX - ringX) * 0.18;
-        ringY += (targetY - ringY) * 0.18;
+        // Fluid spring lerp (0.28 factor for snappy yet silky tracking)
+        ringX += (targetX - ringX) * 0.28;
+        ringY += (targetY - ringY) * 0.28;
 
         ring.style.transform =
           'translate3d(' + ringX.toFixed(2) + 'px, ' + ringY.toFixed(2) + 'px, 0) translate(-50%, -50%)';
