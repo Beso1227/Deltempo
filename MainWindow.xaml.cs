@@ -348,13 +348,51 @@ public partial class MainWindow : Window
 
     private void LoadSettingsIntoUI()
     {
+        // General & Audio
         SettingsAutoPilotCheckBox.IsChecked = SettingsService.Current.EnableAutoPilot;
         SettingsTrayCheckBox.IsChecked = SettingsService.Current.MinimizeToTray;
         SettingsNotifyCheckBox.IsChecked = SettingsService.Current.AutoCleanNotify;
-        SettingsCheckUpdatesCheckBox.IsChecked = SettingsService.Current.CheckUpdatesOnStartup;
+        SettingsSoundCheckBox.IsChecked = SettingsService.Current.SoundEnabled;
+
+        // Safety & Disk
         SettingsRecycleBinCheckBox.IsChecked = SettingsService.Current.SendToRecycleBin;
         SettingsLowDiskAlertCheckBox.IsChecked = SettingsService.Current.LowDiskAlertEnabled;
-        ManualCheckStatusText.Text = $"Current: {BuildInfo.VersionWithPatchDisplay}";
+
+        foreach (ComboBoxItem candidate in SettingsDiskThresholdComboBox.Items)
+        {
+            if (candidate.Tag is string dtag && int.TryParse(dtag, out int dval) && dval == SettingsService.Current.LowDiskAlertThresholdGb)
+            {
+                SettingsDiskThresholdComboBox.SelectedItem = candidate;
+                break;
+            }
+        }
+
+        // Updates & Release Engine
+        SettingsCheckUpdatesCheckBox.IsChecked = SettingsService.Current.CheckUpdatesOnStartup;
+        SettingsAutoDownloadCheckBox.IsChecked = SettingsService.Current.AutoDownloadUpdates;
+        SettingsVersionText.Text = BuildInfo.VersionWithPatchDisplay;
+        ManualCheckStatusText.Text = $"Official Release: {BuildInfo.VersionWithPatchDisplay}";
+        SettingsLastCheckedText.Text = string.IsNullOrEmpty(SettingsService.Current.LastUpdateCheckTimestamp)
+            ? "Last checked: Never"
+            : $"Last checked: {SettingsService.Current.LastUpdateCheckTimestamp}";
+
+        foreach (ComboBoxItem uc in SettingsUpdateChannelComboBox.Items)
+        {
+            if (uc.Tag is string uct && string.Equals(uct, SettingsService.Current.UpdateChannel, StringComparison.OrdinalIgnoreCase))
+            {
+                SettingsUpdateChannelComboBox.SelectedItem = uc;
+                break;
+            }
+        }
+
+        foreach (ComboBoxItem uf in SettingsUpdateFrequencyComboBox.Items)
+        {
+            if (uf.Tag is string uft && int.TryParse(uft, out int ufval) && ufval == SettingsService.Current.UpdateCheckFrequencyDays)
+            {
+                SettingsUpdateFrequencyComboBox.SelectedItem = uf;
+                break;
+            }
+        }
 
         // Find matching interval combo box item (no loop needed — just pick by tag)
         ComboBoxItem? foundInterval = null;
@@ -397,6 +435,35 @@ public partial class MainWindow : Window
         ApplyMemorySettingsToWindow();
     }
 
+    private void SettingsTab_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton rb && rb.Tag is string tag)
+        {
+            if (SettingsUpdatesPanel != null) SettingsUpdatesPanel.Visibility = tag == "UPDATES" ? Visibility.Visible : Visibility.Collapsed;
+            if (SettingsGeneralPanel != null) SettingsGeneralPanel.Visibility = tag == "GENERAL" ? Visibility.Visible : Visibility.Collapsed;
+            if (SettingsMemoryPanel != null) SettingsMemoryPanel.Visibility = tag == "MEMORY" ? Visibility.Visible : Visibility.Collapsed;
+            if (SettingsSafetyPanel != null) SettingsSafetyPanel.Visibility = tag == "SAFETY" ? Visibility.Visible : Visibility.Collapsed;
+            SoundService.PlayClickSound();
+        }
+    }
+
+    private void SettingsViewReleaseNotes_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/Beso1227/Deltempo/releases",
+                UseShellExecute = true
+            });
+            SoundService.PlayClickSound();
+        }
+        catch (Exception ex)
+        {
+            AddLog($"Unable to open release notes: {ex.Message}", LogLevel.Warning);
+        }
+    }
+
     private async Task CleanSafeFromTrayAsync()
     {
         if (_isBusy) return;
@@ -427,10 +494,30 @@ public partial class MainWindow : Window
         SettingsService.Current.EnableAutoPilot = SettingsAutoPilotCheckBox.IsChecked == true;
         SettingsService.Current.MinimizeToTray = SettingsTrayCheckBox.IsChecked == true;
         SettingsService.Current.AutoCleanNotify = SettingsNotifyCheckBox.IsChecked == true;
-        SettingsService.Current.CheckUpdatesOnStartup = SettingsCheckUpdatesCheckBox.IsChecked == true;
+        SettingsService.Current.SoundEnabled = SettingsSoundCheckBox.IsChecked == true;
+        SoundService.IsSoundEnabled = SettingsService.Current.SoundEnabled;
+
         SettingsService.Current.SendToRecycleBin = SettingsRecycleBinCheckBox.IsChecked == true;
         SettingsService.Current.LowDiskAlertEnabled = SettingsLowDiskAlertCheckBox.IsChecked == true;
 
+        if (SettingsDiskThresholdComboBox.SelectedItem is ComboBoxItem dItem && dItem.Tag is string dTag && int.TryParse(dTag, out int dGb))
+        {
+            SettingsService.Current.LowDiskAlertThresholdGb = dGb;
+        }
+
+        // Updates
+        SettingsService.Current.CheckUpdatesOnStartup = SettingsCheckUpdatesCheckBox.IsChecked == true;
+        SettingsService.Current.AutoDownloadUpdates = SettingsAutoDownloadCheckBox.IsChecked == true;
+
+        if (SettingsUpdateChannelComboBox.SelectedItem is ComboBoxItem cItem && cItem.Tag is string cTag)
+        {
+            SettingsService.Current.UpdateChannel = cTag;
+        }
+
+        if (SettingsUpdateFrequencyComboBox.SelectedItem is ComboBoxItem fItem && fItem.Tag is string fTag && int.TryParse(fTag, out int fDays))
+        {
+            SettingsService.Current.UpdateCheckFrequencyDays = fDays;
+        }
 
         if (SettingsIntervalComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag && int.TryParse(tag, out int hours))
         {
@@ -1335,7 +1422,17 @@ public partial class MainWindow : Window
     {
         try
         {
-            var release = await UpdateService.CheckForUpdatesAsync();
+            bool includePrereleases = string.Equals(SettingsService.Current.UpdateChannel, "PreRelease", StringComparison.OrdinalIgnoreCase);
+            var release = await UpdateService.CheckForUpdatesAsync(includePrereleases: includePrereleases);
+
+            SettingsService.Current.LastUpdateCheckTimestamp = DateTime.Now.ToString("g");
+            SettingsService.SaveSettings();
+
+            Dispatcher.Invoke(() =>
+            {
+                SettingsLastCheckedText.Text = $"Last checked: {SettingsService.Current.LastUpdateCheckTimestamp}";
+            });
+
             if (release != null && release.IsNewer && !string.IsNullOrEmpty(release.DownloadUrl))
             {
                 // Suppress repeated prompt on startup if user previously dismissed this exact release version
@@ -1348,6 +1445,9 @@ public partial class MainWindow : Window
                 _pendingRelease = release;
                 Dispatcher.Invoke(() =>
                 {
+                    ManualCheckStatusText.Text = $"New release ready: {release.TagName}";
+                    ManualCheckStatusText.Foreground = (Brush)FindResource("ElectricCyanBrush");
+
                     UpdateVersionTagText.Text = release.TagName;
                     UpdateSubtitleText.Text = "A new official release of Deltempo is ready";
 
@@ -1372,9 +1472,10 @@ public partial class MainWindow : Window
             {
                 Dispatcher.Invoke(() =>
                 {
-                    ManualCheckStatusText.Text = $"Up to date! ({BuildInfo.VersionWithPatchDisplay})";
+                    ManualCheckStatusText.Text = $"Official Release (Up to date)";
+                    ManualCheckStatusText.Foreground = (Brush)FindResource("EmeraldGreenBrush");
                     MessageBox.Show(
-                        $"You are running the latest build of Deltempo ({BuildInfo.VersionWithPatchDisplay}).\n\nNo updates are currently available.",
+                        $"You are running the latest build of Deltempo ({BuildInfo.VersionWithPatchDisplay}).\n\nChannel: {(includePrereleases ? "Beta / Pre-Release" : "Stable Official")}\nNo newer updates are currently available.",
                         "Deltempo is Up to Date",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
@@ -1388,6 +1489,7 @@ public partial class MainWindow : Window
                 Dispatcher.Invoke(() =>
                 {
                     ManualCheckStatusText.Text = "Update check failed";
+                    ManualCheckStatusText.Foreground = (Brush)FindResource("RoseErrorBrush");
                     MessageBox.Show(
                         $"Unable to check for updates: {ex.Message}",
                         "Update Check Error",
@@ -1401,6 +1503,8 @@ public partial class MainWindow : Window
     private async void ManualCheckUpdate_Click(object sender, RoutedEventArgs e)
     {
         ManualCheckStatusText.Text = "Checking GitHub Releases...";
+        ManualCheckStatusText.Foreground = (Brush)FindResource("TextMediumBrush");
+        ManualCheckBtnText.Text = "Checking...";
         ManualCheckUpdateBtn.IsEnabled = false;
         try
         {
@@ -1408,6 +1512,7 @@ public partial class MainWindow : Window
         }
         finally
         {
+            ManualCheckBtnText.Text = "Check for Updates";
             ManualCheckUpdateBtn.IsEnabled = true;
         }
     }
