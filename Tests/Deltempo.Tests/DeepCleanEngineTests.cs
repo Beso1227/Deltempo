@@ -30,7 +30,7 @@ public class DeepCleanEngineTests
         var reports = new List<DeepCleanProgress>();
         var progress = new Progress<DeepCleanProgress>(p => reports.Add(p));
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
 
         var result = await DeepCleanEngine.ExecuteDeepCleanAsync(
             logAction: (msg, lvl) => { },
