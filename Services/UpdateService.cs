@@ -141,7 +141,7 @@ public static class UpdateService
             try
             {
                 long cacheBuster = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                string manifestCdnUrl = $"https://github.com/{RepoOwner}/{RepoName}/releases/download/patch/patch-manifest.json?cb={cacheBuster}";
+                string manifestCdnUrl = $"https://github.com/{RepoOwner}/{RepoName}/releases/download/v-patch/patch-manifest.json?cb={cacheBuster}";
                 using var cdnCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 cdnCts.CancelAfter(TimeSpan.FromSeconds(6));
 
@@ -180,10 +180,23 @@ public static class UpdateService
             // Queried when the direct CDN asset is not yet available or failed.
             if (manifest == null || string.IsNullOrEmpty(downloadUrl))
             {
-                string url = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/tags/patch";
+                string url = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/tags/v-patch";
                 using var response = await ApiHttpClient.GetAsync(url, ct);
+                HttpResponseMessage actualResponse = response;
+                HttpResponseMessage? legacyResponse = null;
                 if (!response.IsSuccessStatusCode)
                 {
+                    string legacyUrl = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/tags/patch";
+                    legacyResponse = await ApiHttpClient.GetAsync(legacyUrl, ct);
+                    if (legacyResponse.IsSuccessStatusCode)
+                    {
+                        actualResponse = legacyResponse;
+                    }
+                }
+
+                if (!actualResponse.IsSuccessStatusCode)
+                {
+                    legacyResponse?.Dispose();
                     if (manifest == null)
                     {
                         return new ReleaseInfo { CheckSucceeded = false, StatusMessage = "Could not reach update server." };
@@ -191,7 +204,8 @@ public static class UpdateService
                 }
                 else
                 {
-                    string json = await response.Content.ReadAsStringAsync(ct);
+                    string json = await actualResponse.Content.ReadAsStringAsync(ct);
+                    legacyResponse?.Dispose();
                     using var doc = JsonDocument.Parse(json);
                     var root = doc.RootElement;
 
@@ -222,7 +236,7 @@ public static class UpdateService
             // Ensure download URL is safely defaulted if missing from manifest
             if (string.IsNullOrEmpty(downloadUrl))
             {
-                downloadUrl = $"https://github.com/{RepoOwner}/{RepoName}/releases/download/patch/Deltempo.exe";
+                downloadUrl = $"https://github.com/{RepoOwner}/{RepoName}/releases/download/v-patch/Deltempo.exe";
             }
 
             string remoteCommitSha = manifest?.CommitSha ?? "";

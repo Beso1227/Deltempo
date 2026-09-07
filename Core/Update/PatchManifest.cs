@@ -33,10 +33,10 @@ public class PatchManifest
     public string Channel { get; set; } = "patch";
 
     [JsonPropertyName("baseVersion")]
-    public string BaseVersion { get; set; } = "1.3.3";
+    public string BaseVersion { get; set; } = "1.3.4";
 
     [JsonPropertyName("targetVersion")]
-    public string TargetVersion { get; set; } = "1.3.3";
+    public string TargetVersion { get; set; } = "1.3.4";
 
     [JsonPropertyName("commitSha")]
     public string CommitSha { get; set; } = string.Empty;
