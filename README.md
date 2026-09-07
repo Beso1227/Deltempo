@@ -31,12 +31,14 @@
 | :--- | :--- |
 | **Platform** | Windows 10 & 11 (64-bit / x64) |
 | **License** | Open Source ([MIT](LICENSE)) |
-| **Interfaces** | Modern Desktop GUI (WPF) and Headless Terminal CLI |
+| **Interfaces** | Modern Desktop GUI (WPF Fluent) and Headless Terminal CLI |
 | **Distribution** | Portable single-file executable (self-contained, no installer required) |
 | **Telemetry** | None. Routine scan, clean, and memory actions execute entirely offline |
 | **Safety Engine** | Two-phase planning (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) with 5 risk tiers |
 | **Memory Engine** | Native Windows NT kernel calls (`NtSetSystemInformation`, `EmptyWorkingSet`) |
-| **Updates** | Cryptographically verified (SHA-256) stable milestones and rolling patch channel |
+| **Preferences Hub** | Categorized 4-tab control center (*Updates*, *General*, *Memory*, *Storage & Safety*) |
+| **Tray Guardian** | High-DPI native Win32 icon (`LoadCrispTrayIcon`) with live RAM telemetry & 1-click Boost |
+| **Updates** | Cryptographically verified (SHA-256) Stable & Beta release channels with scheduled background polling |
 
 ---
 
@@ -55,6 +57,8 @@ In addition to disk cleanup, Deltempo includes low-level Windows NT kernel memor
 * **Open Source & Auditable**: Permissively licensed under MIT. Every cleanup rule, safety check, and native API call is transparent C# code.
 * **Safety-First Architecture**: Features a deterministic two-phase model (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) with path boundary enforcement, reparse point rejection, and protected folder shields.
 * **Native Windows NT Memory Management**: Purges standby memory lists and trims process working sets via `NtSetSystemInformation` and `EmptyWorkingSet`.
+* **Crisp High-DPI Tray Guardian**: Renders pixel-perfect 32-bit alpha icons across 100% to 200%+ DPI, displays real-time RAM usage in the tooltip, and recovers automatically on `explorer.exe` restarts.
+* **Preferences & Update Hub**: Features a tabbed control center organizing update schedules, release channels (*Stable* vs *Beta*), low disk alerts, and memory auto-trimming.
 * **Dual Interface (GUI & CLI)**: Use the desktop interface for interactive analysis or automate scheduled maintenance via the scriptable CLI with structured JSON support.
 * **Zero Telemetry & Local Execution**: Routine operations run entirely offline. Contains no analytics tracking, advertisements, or third-party telemetry libraries.
 * **Portable Operation**: Shipped as a self-contained single-file executable. No background daemons or separate runtime installations are required.
@@ -240,13 +244,48 @@ The **Startup Manager** inspects programs configured to launch on Windows logon:
 
 ---
 
+## Preferences & Update Hub
+
+Deltempo features a categorized, segmented preferences center organized into four dedicated operational tabs:
+
+* **Updates Tab**:
+  * **Release Channels**: Switch between **Stable** (verified milestone releases recommended for all users) and **Beta / Pre-Release** (early access to cutting-edge features and experimental scopes).
+  * **Automated Schedule**: Configure background update polling frequency: `Daily`, `Every 3 Days`, `Weekly`, or `Manual Only`.
+  * **Silent Pre-Fetching**: Optionally stage verified update packages in the background so updates apply instantly upon confirmation.
+  * **Version Telemetry Card**: Real-time status badge showing current installed version (`v1.3.5`), last checked timestamp, update check button, and 1-click link to official GitHub Release Notes.
+* **General Tab**:
+  * **System Startup**: Reversibly configure Deltempo to launch on Windows logon with optional auto-minimize to tray.
+  * **Recycle Bin Routing**: Global toggle to route candidate files to the Windows Recycle Bin for safety and reversible recovery.
+* **Memory Tab**:
+  * **Background Auto-Boost**: Automatically purge standby lists and trim inactive working sets when system memory usage crosses user-defined pressure thresholds (e.g., 85%).
+* **Storage & Safety Tab**:
+  * **Low Disk Alerts**: Custom threshold alerts (`5 GB`, `10 GB`, `15 GB`, `20 GB`, `50 GB`) to warn operators before drive capacity exhaustion induces system instability or paging crashes.
+  * **Safety Shields**: Enforce immutable directory locks on personal folders, repositories, and credentials.
+
+---
+
+## High-DPI System Tray Guardian
+
+For background monitoring and fast access, Deltempo integrates a lightweight system tray daemon:
+
+* **Native Win32 Scaling (`LoadCrispTrayIcon`)**: Employs direct Win32 GDI icon creation (`CreateIconIndirect`) with 32-bit ARGB alpha transparency, delivering pixel-perfect crispness on standard (100%), medium (125%, 150%), and high-density (175%, 200%+) Windows displays without blurring.
+* **Real-Time RAM Telemetry**: Hovering over the tray icon displays live physical memory consumption directly in the tooltip:
+  ```text
+  Deltempo v1.3.5
+  RAM: 42% (13.4 GB / 31.9 GB)
+  ```
+* **Instant Context Actions**: Right-click the tray icon to trigger **1-Click Boost Memory** or **Quick Smart Clean** immediately without bringing the main application window into focus.
+* **Explorer Restart Resilience**: Automatically registers for the Win32 `TaskbarCreated` broadcast message, ensuring the tray icon seamlessly re-attaches if `explorer.exe` restarts or crashes.
+
+---
+
 ## Automatic Updates
 
-Deltempo auto-updates exclusively when a formal release is published to GitHub Releases:
+Deltempo auto-updates exclusively when a verified release is published to GitHub Releases:
 
-* **Official GitHub Releases**: Queries GitHub Releases API (`releases/latest`) to discover verified new versions.
-* **Cryptographic Hash Validation**: Downloads are verified against expected SHA-256 digests by `PatchIntegrityVerifier` before any staging operation.
-* **Host & Protocol Security**: `UpdateSecurityValidator` enforces strict HTTPS protocol and verified GitHub domain origin controls.
+* **Official GitHub Releases**: Queries the GitHub Releases API to discover verified builds matching the configured channel (*Stable* or *Beta*).
+* **Cryptographic Hash Validation**: Every downloaded update is verified against expected SHA-256 digests by `PatchIntegrityVerifier` before any staging operation.
+* **Host & Protocol Security**: `UpdateSecurityValidator` enforces strict HTTPS protocol and verified GitHub domain origin controls (`api.github.com`, `github.com`).
 * **Atomic Swap & Rollback**: Staged updates are installed using cross-process mutex locks (`PatchInstallationLock`). If the new binary fails verification, the previous build is restored.
 
 ---

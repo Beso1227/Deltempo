@@ -68,17 +68,24 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: "Deltempo ${{ github.ref_name }} — NT Kernel Memory Cleaner, Messaging App Safe Cleaner & 26 Scopes"
+          name: "Deltempo ${{ github.ref_name }} — Settings & Update Hub, Crisp High-DPI Tray & NT Kernel Memory Optimizer"
           body: |
             ## What's New in ${{ github.ref_name }}
 
-            ### 💬 Messaging & Social Apps Cache Resolver (100% Safe)
-            - **WhatsApp, Telegram, Microsoft Teams & Discord**: Cleans volatile media and GPU shaders without logging users out or touching auth tokens, databases, or keys.
-            - **Strict Credential Protection**: Whitelists and guarantees safety for session states (`Local State`, `IndexedDB`, `Cookies`, `Storage`, `key_datas`, `tdata`, `Tokens`).
+            ### ⚙️ Revamped Categorized Settings & Preferences Hub
+            - **Segmented 4-Tab Navigation**: Clean, accessible layout organizing settings into *Updates*, *General*, *Memory*, and *Storage & Safe*.
+            - **Advanced Release Management**: Choose your release channel (*Stable* vs *Beta/Pre-Release*), schedule background update check frequency (*Daily*, *3 Days*, *Weekly*, *Manual*), and toggle silent pre-fetching.
+            - **Interactive Version Telemetry Card**: Live update status badge, exact last checked timestamp, and 1-click GitHub Release Notes shortcut.
+            - **Proactive Free Disk Alert Customization**: User-selectable low disk space thresholds from 5 GB to 50 GB.
 
-            ### ⚡ Standalone & Portable Binaries
-            - **Unified Standalone (`Deltempo.exe`)** — Complete Fluent UI, Tray Guardian, and auto-registering Terminal CLI in a single executable.
-            - **Dedicated CLI (`deltempo_cli.exe`)** — Headless console executable optimized for CI/CD, scripts, and terminal pipelines.
+            ### 🖥️ Crisp High-DPI System Tray Engine
+            - **Native Win32 Icon Scaling (`LoadCrispTrayIcon`)**: Crisp 32-bit alpha transparency rendering across all Windows DPI scale tiers (100%, 125%, 150%, 200%).
+            - **Explorer Restart Resilience**: Re-registers tray icon seamlessly when `explorer.exe` restarts.
+            - **Real-Time RAM Telemetry & Quick Boost**: Live RAM usage in tray tooltip and 1-click memory flush.
+
+            ### ⚡ Unified Standalone Portable Binaries
+            - **Complete Standalone (`Deltempo.exe`)** — Fluent UI, Tray Guardian, NT Kernel memory optimizer, and embedded CLI in a single executable (zero installer).
+            - **Headless CLI (`deltempo_cli.exe`)** — Dedicated console executable for scripts, CI/CD, and automated pipelines.
 
             ### 🧠 NT Kernel Memory Cleaner (WinMemoryCleaner Engine)
             - **Standby List Purge**: Reclaims cached memory left behind by terminated applications via `NtSetSystemInformation` (SystemMemoryListInformation class 80).
