@@ -16,6 +16,8 @@ public static class Program
             System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
         }
 
+        CliRegistrationService.EnsureCliRegistered();
+
         // If no args passed in console, print help
         if (args.Length == 0)
         {
