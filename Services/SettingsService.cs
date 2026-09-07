@@ -37,6 +37,14 @@ public class AppSettings
     public int UpdateCheckFrequencyDays { get; set; } = 1;
     public bool AutoDownloadUpdates { get; set; } = false;
     public string LastUpdateCheckTimestamp { get; set; } = string.Empty;
+
+    // ─── AI & Online File Intelligence ──────────────────────────────────
+    public bool EnableOnlineAiSafety { get; set; } = true;
+    public string AiProvider { get; set; } = "BuiltIn"; // "BuiltIn", "Gemini", "OpenAI", "Groq", "Ollama"
+    public string AiApiKey { get; set; } = string.Empty;
+    public string AiModelName { get; set; } = string.Empty;
+    public string AiOllamaEndpoint { get; set; } = "http://localhost:11434";
+    public bool AutoQueryAiForLargeFiles { get; set; } = false;
 }
 
 public static class SettingsService

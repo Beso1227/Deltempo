@@ -859,7 +859,7 @@ public static class CliRunner
                 return 1;
             }
             string targetFile = args[2].Trim('"', '\'');
-            return HandleInspectLargeFile(targetFile, isJson);
+            return await HandleInspectLargeFileAsync(targetFile, isJson);
         }
 
         // Subcommand: delete / rm <file>
@@ -1059,7 +1059,7 @@ public static class CliRunner
         return 0;
     }
 
-    private static int HandleInspectLargeFile(string filePath, bool isJson)
+    private static async Task<int> HandleInspectLargeFileAsync(string filePath, bool isJson)
     {
         if (!File.Exists(filePath))
         {
@@ -1073,6 +1073,13 @@ public static class CliRunner
         var (category, _) = LargeFileHunterService.ClassifyFileCategory(fi.Extension);
         var safety = FileSafetyEngine.Analyze(fi.FullName, fileName: fi.Name, category: category, sizeBytes: fi.Length, lastModified: fi.LastWriteTime);
 
+        OnlineSafetyReport? aiReport = null;
+        try
+        {
+            aiReport = await OnlineFileIntelligenceService.AnalyzeFileAsync(fi.FullName);
+        }
+        catch { }
+
         if (isJson)
         {
             Console.WriteLine(JsonSerializer.Serialize(new
@@ -1084,7 +1091,7 @@ public static class CliRunner
                 created = fi.CreationTime,
                 lastModified = fi.LastWriteTime,
                 category = category,
-                safety = new
+                deterministicSafety = new
                 {
                     safety.Tier,
                     safety.SafetyScore,
@@ -1094,36 +1101,53 @@ public static class CliRunner
                     safety.MatchedRule,
                     safety.Origin,
                     safety.Impact
+                },
+                onlineAiSafety = aiReport == null ? null : new
+                {
+                    aiReport.VerdictDisplay,
+                    aiReport.SafetyScore,
+                    aiReport.Origin,
+                    aiReport.WhatIsIt,
+                    aiReport.ImpactIfDeleted,
+                    aiReport.Recommendation,
+                    aiReport.ProviderUsed
                 }
             }, new JsonSerializerOptions { WriteIndented = true }));
             return 0;
         }
 
         Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine($"  🔍 [Deterministic Safety Inspection] {fi.Name}\n");
+        Console.WriteLine($"  🔍 [File Safety Inspection] {fi.Name}\n");
         Console.ResetColor();
 
-        Console.WriteLine($"  • Full Path:      {fi.FullName}");
-        Console.WriteLine($"  • File Size:      {TargetFolderInfo.FormatBytes(fi.Length)} ({fi.Length:N0} bytes)");
-        Console.WriteLine($"  • Category:       {category}");
-        Console.WriteLine($"  • Last Modified:  {fi.LastWriteTime:yyyy-MM-dd HH:mm:ss}");
+        Console.WriteLine($"  • Full Path:       {fi.FullName}");
+        Console.WriteLine($"  • File Size:       {TargetFolderInfo.FormatBytes(fi.Length)} ({fi.Length:N0} bytes)");
+        Console.WriteLine($"  • Category:        {category}");
+        Console.WriteLine($"  • Last Modified:   {fi.LastWriteTime:yyyy-MM-dd HH:mm:ss}");
 
-        Console.Write("  • Safety Verdict: ");
-        if (safety.IsSafeToClean)
+        if (aiReport != null)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"SAFE TO DELETE (Score: {safety.SafetyScore}/100)");
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine($"\n  🤖 [AI & Online Intelligence ({aiReport.ProviderUsed})]");
+            Console.ResetColor();
+            Console.WriteLine($"  • What is it:      {aiReport.WhatIsIt}");
+            Console.WriteLine($"  • Parent Origin:   {aiReport.Origin}");
+            Console.Write("  • AI Verdict:      ");
+            Console.ForegroundColor = aiReport.Verdict == OnlineSafetyVerdict.SafeToDelete ? ConsoleColor.Green : (aiReport.Verdict == OnlineSafetyVerdict.CriticalDoNotDelete ? ConsoleColor.Red : ConsoleColor.Yellow);
+            Console.WriteLine($"{aiReport.VerdictDisplay} (Score: {aiReport.SafetyScore}/100)");
+            Console.ResetColor();
+            Console.WriteLine($"  • Deletion Impact: {aiReport.ImpactIfDeleted}");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine($"  • Recommendation:  {aiReport.Recommendation}");
+            Console.ResetColor();
         }
-        else
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"PROTECTED / KEEP (Score: {safety.SafetyScore}/100)");
-        }
-        Console.ResetColor();
 
-        Console.WriteLine($"  • Inferred Origin: {safety.Origin}");
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine($"\n  🛡️ [Deterministic Rule: {safety.MatchedRule}]");
+        Console.WriteLine($"  • Rule Verdict:    {safety.Verdict} (Score: {safety.SafetyScore}/100)");
         Console.WriteLine($"  • System Impact:   {safety.Impact}");
-        Console.WriteLine($"  • Safety Rationale: {safety.Explanation}");
+        Console.WriteLine($"  • Rationale:       {safety.Explanation}");
+        Console.ResetColor();
 
         return 0;
     }
