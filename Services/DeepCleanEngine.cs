@@ -34,6 +34,7 @@ public static class DeepCleanEngine
         IProgress<DeepCleanProgress>? progress = null,
         bool purgeAllRestorePoints = false,
         bool skipDism = false,
+        IEnumerable<TargetFolderInfo>? targets = null,
         CancellationToken ct = default)
     {
         var sw = Stopwatch.StartNew();
@@ -89,7 +90,7 @@ public static class DeepCleanEngine
         // =========================================================================
         Report("Target Analysis", 0.30, "Selecting all 26 system & application junk pools for deep purge...");
         var cleaner = new CleanerService();
-        var allTargets = CleanerService.GetDefaultTargets();
+        var allTargets = targets?.ToList() ?? CleanerService.GetDefaultTargets();
 
         // Select all accessible targets
         foreach (var t in allTargets)
