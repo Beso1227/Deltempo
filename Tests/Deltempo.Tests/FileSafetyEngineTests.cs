@@ -86,4 +86,56 @@ public class FileSafetyEngineTests
         Assert.Contains("Preserved", result.Verdict);
         Assert.Contains("Preserved by default", result.Explanation);
     }
+
+    [Fact]
+    public void Analyze_FileInDesignatedTempDirectory_ReturnsSafe()
+    {
+        string filePath = @"C:\Users\JohnDoe\AppData\Local\Temp\scoped_dir123\cache.dat";
+        var result = FileSafetyEngine.Analyze(
+            filePath,
+            fileName: "cache.dat",
+            category: "User Cache",
+            sizeBytes: 8192,
+            lastModified: DateTime.UtcNow.AddDays(-2),
+            apply24HourThreshold: true);
+
+        Assert.Equal(SafetyRiskTier.Safe, result.Tier);
+        Assert.True(result.SafetyScore >= 90);
+        Assert.Equal("DesignatedCacheFileRule", result.MatchedRule);
+    }
+
+    [Fact]
+    public void Analyze_WithMultipleAllowedRoots_AcceptsValidSubpath()
+    {
+        string filePath = @"D:\PackageCaches\npm\chunk.bin";
+        var roots = new[] { @"C:\Temp", @"D:\PackageCaches\npm" };
+
+        var result = FileSafetyEngine.Analyze(
+            filePath,
+            fileName: "chunk.bin",
+            category: "Dev Cache",
+            sizeBytes: 16384,
+            lastModified: DateTime.UtcNow.AddDays(-5),
+            allowedRoots: roots);
+
+        Assert.Equal(SafetyRiskTier.Safe, result.Tier);
+    }
+
+    [Fact]
+    public void Analyze_WithMultipleAllowedRoots_RejectsOutOfScope()
+    {
+        string filePath = @"D:\OtherFolder\Sensitive.doc";
+        var roots = new[] { @"C:\Temp", @"D:\PackageCaches\npm" };
+
+        var result = FileSafetyEngine.Analyze(
+            filePath,
+            fileName: "Sensitive.doc",
+            category: "Dev Cache",
+            sizeBytes: 16384,
+            lastModified: DateTime.UtcNow.AddDays(-5),
+            allowedRoots: roots);
+
+        Assert.Equal(SafetyRiskTier.Protected, result.Tier);
+        Assert.Contains("Out of Scope", result.Verdict);
+    }
 }

@@ -1233,31 +1233,11 @@ public class CleanerService
                 sendToRecycleBin: sendToRecycle,
                 ct: ct);
 
-            // Execute via the authoritative executor with verification
-            // Compute common ancestor as allowedRoot for path containment check
-            string allowedRoot = string.Empty;
-            if (directoriesToClean.Count == 1)
-            {
-                allowedRoot = directoriesToClean[0];
-            }
-            else if (directoriesToClean.Count > 1)
-            {
-                // Find common ancestor of all directories
-                allowedRoot = directoriesToClean[0];
-                foreach (var dir in directoriesToClean.Skip(1))
-                {
-                    while (!string.IsNullOrEmpty(allowedRoot) && !dir.StartsWith(allowedRoot, StringComparison.OrdinalIgnoreCase))
-                    {
-                        allowedRoot = Path.GetDirectoryName(allowedRoot) ?? string.Empty;
-                    }
-                }
-            }
-
             var txResult = await CleanupExecutor.ExecutePlanAsync(
                 plan,
-                allowedRoot ?? string.Empty,
+                directoriesToClean,
                 logAction,
-                null,
+                progressReport,
                 ct).ConfigureAwait(false);
 
             freedBytes = txResult.TotalFreedBytes;
@@ -1322,20 +1302,6 @@ public class CleanerService
                     SHChangeNotify(0x08000000 /* SHCNE_ASSOCCHANGED */, 0x0000 /* SHCNF_IDLIST */, IntPtr.Zero, IntPtr.Zero);
                 }
                 catch { }
-            }
-
-            // Deep Windows Component Store / WinSxS scavenger cleanup (DISM)
-            if ((folder.Id == "WinComponentCaches" || folder.Id == "WinUpdateCache") && ElevationService.IsRunAsAdmin())
-            {
-                try
-                {
-                    var dismTask = RunDismComponentCleanupAsync(logAction, ct);
-                    dismTask.GetAwaiter().GetResult();
-                }
-                catch (Exception ex)
-                {
-                    logAction($"DISM Component Store note: {ex.Message}", LogLevel.Info);
-                }
             }
 
             folder.SizeBytes = Math.Max(0, folder.SizeBytes - freedBytes);

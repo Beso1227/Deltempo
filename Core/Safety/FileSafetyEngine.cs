@@ -17,7 +17,8 @@ public static class FileSafetyEngine
         long sizeBytes = 0,
         DateTime? lastModified = null,
         string? allowedRoot = null,
-        bool apply24HourThreshold = false)
+        bool apply24HourThreshold = false,
+        IEnumerable<string>? allowedRoots = null)
     {
         if (string.IsNullOrWhiteSpace(filePath))
         {
@@ -31,8 +32,15 @@ public static class FileSafetyEngine
             return CreateResult(SafetyRiskTier.Protected, 0, "PROTECTED (Illegal Path)", "PROTECTED", "Path contains directory traversal or malformed characters.", "PathTraversalRule");
         }
 
-        // 2. Root containment verification (if an allowed root is specified)
-        if (!string.IsNullOrEmpty(allowedRoot) && !PathSecurity.IsSubpathOf(canonicalPath, allowedRoot))
+        // 2. Root containment verification (if allowed roots are specified)
+        if (allowedRoots != null && allowedRoots.Any())
+        {
+            if (!allowedRoots.Any(root => !string.IsNullOrEmpty(root) && PathSecurity.IsSubpathOf(canonicalPath, root)))
+            {
+                return CreateResult(SafetyRiskTier.Protected, 0, "PROTECTED (Out of Scope)", "PROTECTED", "File is outside the designated cleanup roots.", "BoundaryContainmentRule");
+            }
+        }
+        else if (!string.IsNullOrEmpty(allowedRoot) && !PathSecurity.IsSubpathOf(canonicalPath, allowedRoot))
         {
             return CreateResult(SafetyRiskTier.Protected, 0, "PROTECTED (Out of Scope)", "PROTECTED", $"File is outside the designated cleanup root '{allowedRoot}'.", "BoundaryContainmentRule");
         }
@@ -168,6 +176,34 @@ public static class FileSafetyEngine
                     origin: "Disposable Application Log / Scratch File",
                     impact: "Zero permanent impact.");
             }
+        }
+
+        // 9b. Non-executable files in designated temporary and cache directories
+        // Files in verified temp/cache directories (subject to 24h shield, protection policy, and executable gates)
+        // are disposable scratch and cache items.
+        bool isDesignatedTempOrCacheLocation =
+            pathLower.Contains(@"\appdata\local\temp\") ||
+            pathLower.Contains(@"\windows\temp\") ||
+            pathLower.Contains(@"\inetcache\") ||
+            pathLower.Contains(@"\local\temp\") ||
+            pathLower.Contains(@"\logs\") ||
+            pathLower.Contains(@"\crashdumps\") ||
+            pathLower.Contains(@"\crashpad\") ||
+            pathLower.Contains(@"\softwaredistribution\download\") ||
+            (allowedRoots != null && allowedRoots.Any(r => !string.IsNullOrEmpty(r) && PathSecurity.IsSubpathOf(canonicalPath, r))) ||
+            (!string.IsNullOrEmpty(allowedRoot) && PathSecurity.IsSubpathOf(canonicalPath, allowedRoot));
+
+        if (isDesignatedTempOrCacheLocation)
+        {
+            return CreateResult(
+                SafetyRiskTier.Safe,
+                90,
+                "SAFE (Designated Cache / Temp File)",
+                "VERIFIED CACHE",
+                $"Disposable cache or temporary file residing in verified cleanup location ({FormatBytes(fileSizeBytes)}).",
+                "DesignatedCacheFileRule",
+                origin: "Designated Cache / Temporary Storage",
+                impact: "Zero permanent impact.");
         }
 
         // 10. Default Conservative Fallback -> UNKNOWN (Always Keep)

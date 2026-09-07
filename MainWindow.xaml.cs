@@ -928,14 +928,20 @@ public partial class MainWindow : Window
 
                 ProgressStatusText.Text = $"Cleaning {target.Name}...";
 
+                long lastDispatchTicks = 0;
                 var progressHandler = new Action<double>(val =>
                 {
-                    Dispatcher.Invoke(() =>
+                    long now = Stopwatch.GetTimestamp();
+                    if (val >= 1.0 || Stopwatch.GetElapsedTime(Interlocked.Read(ref lastDispatchTicks)).TotalMilliseconds >= 50)
                     {
-                        double currentPct = targetBaseProgress + (val * targetSpan);
-                        AppProgressBar.Value = Math.Min(100, currentPct);
-                        ProgressPercentageText.Text = $"{(int)AppProgressBar.Value}%";
-                    });
+                        Interlocked.Exchange(ref lastDispatchTicks, now);
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            double currentPct = targetBaseProgress + (val * targetSpan);
+                            AppProgressBar.Value = Math.Min(100, currentPct);
+                            ProgressPercentageText.Text = $"{(int)AppProgressBar.Value}%";
+                        }));
+                    }
                 });
 
                 var (freed, filesDel, foldersDel, filesSkip) = await _cleanerService.CleanFolderAsync(
