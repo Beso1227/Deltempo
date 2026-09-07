@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Deltempo FAQ — Frequently Asked Questions</title>
-  <meta name="description" content="Frequently asked questions about Deltempo Windows cleaner: safety architecture, NT kernel memory optimization, GPU shader caches, and privacy." />
-  <meta name="keywords" content="deltempo faq, is deltempo safe, windows shader cache cleaner, user profile cleaner, clear shader cache windows 11, open source windows cleaner" />
+  <title>Deltempo FAQ — Windows Cleaner &amp; Memory Optimizer Guide (Official)</title>
+  <meta name="description" content="Frequently asked questions about Deltempo: deterministic safety architecture, NT kernel memory optimization, GPU shader caches, privacy, and zero telemetry." />
+  <meta name="keywords" content="deltempo faq, is deltempo safe, deltempo cleaner, deltempo memory optimizer, deltempo vs ccleaner, clear shader cache windows 11, open source windows cleaner" />
   <meta name="author" content="Beso1227" />
+  <meta name="application-name" content="Deltempo" />
   <meta name="theme-color" content="#07090E" />
 
   <link rel="canonical" href="https://beso1227.github.io/Deltempo/faq/" />
@@ -15,9 +16,16 @@
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://beso1227.github.io/Deltempo/faq/" />
   <meta property="og:site_name" content="Deltempo" />
-  <meta property="og:title" content="Deltempo FAQ — Frequently Asked Questions" />
-  <meta property="og:description" content="Answers about safety tiers, GPU shader caches, user profile cleaning, and privacy." />
+  <meta property="og:title" content="Deltempo FAQ — Windows Cleaner &amp; Memory Optimizer Guide (Official)" />
+  <meta property="og:description" content="Official answers about safety tiers, NT memory optimization, GPU shader caches, and privacy." />
   <meta property="og:image" content="https://beso1227.github.io/Deltempo/app_icon.png" />
+
+  <!-- Twitter Meta -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@Beso1227" />
+  <meta name="twitter:title" content="Deltempo FAQ — Windows Cleaner &amp; Memory Optimizer Guide (Official)" />
+  <meta name="twitter:description" content="Official answers about safety tiers, NT memory optimization, GPU shader caches, and privacy." />
+  <meta name="twitter:image" content="https://beso1227.github.io/Deltempo/app_icon.png" />
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="../favicon-64.png" />
@@ -27,7 +35,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../style.css?v=2.2.0" />
+  <link rel="stylesheet" href="../style.css?v=2.3.0" />
 
   <!-- Schema.org FAQPage JSON-LD -->
   <script type="application/ld+json">
@@ -43,7 +51,15 @@
             "name": "What is Deltempo Windows Cleaner?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Deltempo is a portable, open-source Windows cleaner and NT memory optimizer. It safely cleans 25+ disposable cache targets including GPU shader caches, user profile temporary files, and system junk without analytics tracking."
+              "text": "Deltempo is a portable, open-source Windows cleaner and NT memory optimizer application. It safely cleans 25+ disposable cache targets including GPU shader caches, user profile temporary files, and system junk without analytics tracking."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is Deltempo safe to use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Deltempo incorporates a deterministic 5-tier safety engine with pre-deletion revalidation (TOCTOU protection). Critical OS files, user documents, and browser passwords are mathematically protected by an immutable exclusion policy."
             }
           },
           {
@@ -59,15 +75,15 @@
             "name": "Does Deltempo delete personal files or passwords?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Deltempo's protection policies are designed to exclude personal folders (Documents, Desktop, Pictures), source repositories, browser password databases, and messaging credentials from cleanup."
+              "text": "No. Deltempo never touches personal folders (Documents, Desktop, Pictures), browser saved credentials, cookies, or session databases."
             }
           },
           {
             "@type": "Question",
-            "name": "Is installation required?",
+            "name": "How does the NT kernel memory optimizer work?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "No. Deltempo is a portable single executable that runs immediately without an installer or background services."
+              "text": "It calls native Windows NT APIs (NtSetSystemInformation and EmptyWorkingSet) to safely release standby memory and private working set pages back to the free pool without terminating running programs."
             }
           }
         ]
@@ -120,6 +136,7 @@
       <ul class="nav-links">
         <li><a href="../" class="nav-link">Home</a></li>
         <li><a href="../#why" class="nav-link">Why Deltempo</a></li>
+        <li><a href="../#compare" class="nav-link">Comparison</a></li>
         <li><a href="../#safety" class="nav-link">Safety Architecture</a></li>
         <li><a href="../#features" class="nav-link">Capabilities</a></li>
         <li><a href="../download/" class="nav-link">Download</a></li>
@@ -140,7 +157,7 @@
   <main class="container" style="padding-top: 2rem; padding-bottom: 5rem;">
     <div class="section-header reveal-on-scroll">
       <div class="section-tag">FAQ</div>
-      <h1 class="section-title">Frequently Asked Questions</h1>
+      <h1 class="section-title">Deltempo Frequently Asked Questions</h1>
       <p class="section-subtitle">Clear, technical, and honest answers about how Deltempo cleans and protects your system.</p>
     </div>
 

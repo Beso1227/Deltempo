@@ -9,8 +9,8 @@
     <priority>1.0</priority>
     <image:image>
       <image:loc>https://beso1227.github.io/Deltempo/app_icon.png</image:loc>
-      <image:title>Deltempo Windows Cleaner App Icon</image:title>
-      <image:caption>Deltempo - Open Source Windows Cleaner and Memory Optimizer</image:caption>
+      <image:title>Deltempo Official Site - Free Windows Cleaner &amp; Memory Optimizer</image:title>
+      <image:caption>Deltempo - Pure Open Source Windows Cleaner and NT Memory Optimizer</image:caption>
     </image:image>
   </url>
 
@@ -19,11 +19,11 @@
     <loc>https://beso1227.github.io/Deltempo/download/</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.95</priority>
     <image:image>
       <image:loc>https://beso1227.github.io/Deltempo/app_icon.png</image:loc>
       <image:title>Download Deltempo Standalone Windows Cleaner</image:title>
-      <image:caption>Download official Deltempo.exe portable binary with SHA-256 verification and WinGet support</image:caption>
+      <image:caption>Download official Deltempo portable binary with SHA-256 verification and WinGet support</image:caption>
     </image:image>
   </url>
 
@@ -31,8 +31,8 @@
   <url>
     <loc>https://beso1227.github.io/Deltempo/faq/</loc>
     <lastmod>2026-09-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
   </url>
 
   <!-- Technical Documentation -->
@@ -40,7 +40,7 @@
     <loc>https://beso1227.github.io/Deltempo/docs/</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.85</priority>
   </url>
 
   <!-- Changelog & Release Notes -->
@@ -48,6 +48,7 @@
     <loc>https://beso1227.github.io/Deltempo/changelog/</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
 </urlset>
+
