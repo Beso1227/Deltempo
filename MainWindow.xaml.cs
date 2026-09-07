@@ -316,6 +316,17 @@ public partial class MainWindow : Window
                 UpdateMemoryTelemetry();
                 AddLog($"[RAM Engine] Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} tasks in {res.ExecutionTimeMs}ms.", LogLevel.Success);
                 return res;
+            }),
+            () => Dispatcher.Invoke(async () =>
+            {
+                var res = await MemoryOptimizerService.OptimizeRamAsync(new[] { MemoryTargetType.StandbyList, MemoryTargetType.StandbyListLowPriority });
+                UpdateMemoryTelemetry();
+                AddLog($"[RAM Engine] Purged standby list: reclaimed {res.FormattedReclaimed} in {res.ExecutionTimeMs}ms.", LogLevel.Success);
+                return res;
+            }),
+            () => Dispatcher.Invoke(async () =>
+            {
+                await CheckForUpdatesInternalAsync(silent: false);
             }));
 
         AutoCleanService.Start();
