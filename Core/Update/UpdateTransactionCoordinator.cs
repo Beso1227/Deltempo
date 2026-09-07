@@ -86,18 +86,38 @@ public class UpdateTransactionCoordinator
                 return false;
             }
 
-            // Stage 10: Backup current executable
+            // Stage 10: Backup current executable and free target path
             _journal.TransitionTo(TransactionState.BackupCreated);
             Log($"Backing up current executable to {_journal.BackupPath}");
+
+            string localOldPath = $"{_journal.TargetPath}.old";
+            try
+            {
+                if (File.Exists(localOldPath))
+                    File.Delete(localOldPath);
+            }
+            catch { }
 
             try
             {
                 if (File.Exists(_journal.TargetPath))
                 {
+                    // Copy to BackupPath in updatesDir for persistent disaster recovery
                     if (File.Exists(_journal.BackupPath))
                         File.Delete(_journal.BackupPath);
 
-                    File.Copy(_journal.TargetPath, _journal.BackupPath, false);
+                    File.Copy(_journal.TargetPath, _journal.BackupPath, true);
+
+                    // Rename TargetPath to TargetPath.old in same directory (frees TargetPath name immediately)
+                    try
+                    {
+                        File.Move(_journal.TargetPath, localOldPath, overwrite: true);
+                        Log($"Renamed current executable to {localOldPath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log($"Rename to local .old fallback: {ex.Message}");
+                    }
                 }
             }
             catch (Exception ex)
@@ -107,22 +127,30 @@ public class UpdateTransactionCoordinator
                 return false;
             }
 
-            // Stage 11: Replace executable using atomic MoveFileEx
+            // Stage 11: Install new executable
             _journal.TransitionTo(TransactionState.InstallStarted);
-            Log($"Replacing {_journal.TargetPath} with {_journal.StagedPath}");
+            Log($"Installing {_journal.StagedPath} to {_journal.TargetPath}");
 
-            bool moveOk = MoveFileExW(_journal.StagedPath, _journal.TargetPath, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
-            if (!moveOk)
+            bool moveOk = false;
+            try
             {
-                Log("MoveFileEx failed. Attempting File.Move fallback.");
+                File.Copy(_journal.StagedPath, _journal.TargetPath, overwrite: true);
+                moveOk = true;
+                Log("File.Copy to TargetPath succeeded.");
+            }
+            catch (Exception copyEx)
+            {
+                Log($"File.Copy failed: {copyEx.Message}. Attempting File.Move fallback.");
                 try
                 {
                     File.Move(_journal.StagedPath, _journal.TargetPath, overwrite: true);
                     moveOk = true;
+                    Log("File.Move to TargetPath succeeded.");
                 }
-                catch (Exception ex)
+                catch (Exception moveEx)
                 {
-                    Log($"File.Move fallback failed: {ex.Message}");
+                    Log($"File.Move failed: {moveEx.Message}. Attempting MoveFileEx fallback.");
+                    moveOk = MoveFileExW(_journal.StagedPath, _journal.TargetPath, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
                 }
             }
 
@@ -158,8 +186,8 @@ public class UpdateTransactionCoordinator
             {
                 FileName = _journal.TargetPath,
                 Arguments = $"--update-handshake {_journal.TransactionId}",
-                UseShellExecute = false,
-                CreateNoWindow = true
+                UseShellExecute = true,
+                WorkingDirectory = Path.GetDirectoryName(_journal.TargetPath) ?? ""
             };
 
             try
@@ -192,7 +220,13 @@ public class UpdateTransactionCoordinator
             // Schedule backup cleanup (delayed to avoid locking)
             _ = Task.Run(async () =>
             {
-                await Task.Delay(TimeSpan.FromSeconds(10));
+                await Task.Delay(TimeSpan.FromSeconds(5));
+                try
+                {
+                    if (File.Exists(localOldPath))
+                        File.Delete(localOldPath);
+                }
+                catch { }
                 try
                 {
                     if (File.Exists(_journal.BackupPath))
@@ -278,7 +312,11 @@ public class UpdateTransactionCoordinator
         Log("Initiating rollback.");
         _journal.TransitionTo(TransactionState.RolledBack);
 
-        if (string.IsNullOrEmpty(_journal.BackupPath) || !File.Exists(_journal.BackupPath))
+        string localOldPath = $"{_journal.TargetPath}.old";
+        string? sourceBackup = File.Exists(localOldPath) ? localOldPath :
+                               (File.Exists(_journal.BackupPath) ? _journal.BackupPath : null);
+
+        if (string.IsNullOrEmpty(sourceBackup))
         {
             Log("No backup available for rollback.");
             return;
@@ -286,10 +324,17 @@ public class UpdateTransactionCoordinator
 
         try
         {
-            bool ok = MoveFileExW(_journal.BackupPath, _journal.TargetPath, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
-            if (!ok)
+            try
             {
-                File.Move(_journal.BackupPath, _journal.TargetPath, overwrite: true);
+                File.Copy(sourceBackup, _journal.TargetPath, overwrite: true);
+            }
+            catch
+            {
+                bool ok = MoveFileExW(sourceBackup, _journal.TargetPath, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
+                if (!ok)
+                {
+                    File.Move(sourceBackup, _journal.TargetPath, overwrite: true);
+                }
             }
 
             // Verify restored binary is valid before launching
@@ -326,8 +371,8 @@ public class UpdateTransactionCoordinator
             var psi = new ProcessStartInfo
             {
                 FileName = _journal.TargetPath,
-                UseShellExecute = false,
-                CreateNoWindow = true
+                UseShellExecute = true,
+                WorkingDirectory = Path.GetDirectoryName(_journal.TargetPath) ?? ""
             };
             Process.Start(psi);
         }

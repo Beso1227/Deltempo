@@ -100,6 +100,8 @@ public class TransactionJournal
             TransactionState.Launched when desired == TransactionState.HealthCheckPassed => desired,
             TransactionState.HealthCheckPassed when desired == TransactionState.Committed => desired,
             // Rollback can be initiated from most active states
+            TransactionState.StageVerified when desired == TransactionState.RolledBack => desired,
+            TransactionState.BackupCreated when desired == TransactionState.RolledBack => desired,
             TransactionState.InstallStarted when desired == TransactionState.RolledBack => desired,
             TransactionState.Installed when desired == TransactionState.RolledBack => desired,
             TransactionState.Launched when desired == TransactionState.RolledBack => desired,

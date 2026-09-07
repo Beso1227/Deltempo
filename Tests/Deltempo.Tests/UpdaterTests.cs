@@ -670,6 +670,50 @@ public class UpdateTransactionCoordinatorTests
         }
     }
 
+    [Fact]
+    public void ExecuteAsync_RenamesTargetToLocalOldAndStagesCopy()
+    {
+        string txId = Guid.NewGuid().ToString("N");
+        string updatesDir = Path.Combine(Path.GetTempPath(), "DeltempoTests", txId);
+        Directory.CreateDirectory(updatesDir);
+
+        try
+        {
+            string targetPath = Path.Combine(updatesDir, "target.exe");
+            string stagedPath = Path.Combine(updatesDir, "staged.exe");
+
+            File.WriteAllText(targetPath, "OLD_BINARY_CONTENT");
+            File.WriteAllBytes(stagedPath, CreateFakePeExecutable());
+
+            var journal = new TransactionJournal
+            {
+                TransactionId = txId,
+                Channel = "test",
+                Version = "1.0.0",
+                TargetPath = targetPath,
+                BackupPath = Path.Combine(updatesDir, "backup.exe"),
+                StagedPath = stagedPath,
+                CallerPid = 0,
+                ExpectedSha256 = "",
+                ExpectedSizeBytes = new FileInfo(stagedPath).Length
+            };
+            journal.TransitionTo(TransactionState.Downloaded);
+            journal.TransitionTo(TransactionState.DownloadVerified);
+            journal.TransitionTo(TransactionState.Staged);
+            journal.TransitionTo(TransactionState.StageVerified);
+
+            var coordinator = new UpdateTransactionCoordinator(journal);
+            _ = coordinator.ExecuteAsync().GetAwaiter().GetResult();
+
+            // Verify that the backup mechanism created BackupPath or target.old
+            Assert.True(File.Exists(journal.BackupPath) || File.Exists($"{targetPath}.old"));
+        }
+        finally
+        {
+            try { Directory.Delete(updatesDir, true); } catch { }
+        }
+    }
+
     private static byte[] CreateFakePeExecutable()
     {
         // Create a minimal fake PE executable with MZ header

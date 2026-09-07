@@ -106,10 +106,11 @@ public partial class App : System.Windows.Application
         };
 
         // Crash/power-loss recovery: attempt recovery of incomplete update transactions
-        // BEFORE any GUI initialization.
+        // BEFORE any GUI initialization. Skip the active handshake transaction if present.
+        string? handshakeTxId = (args.Length >= 2 && args[0] == "--update-handshake") ? args[1] : null;
         try
         {
-            UpdateRecoveryHelper.RecoverIncompleteTransactionsAsync(msg => Trace.WriteLine(msg))
+            UpdateRecoveryHelper.RecoverIncompleteTransactionsAsync(msg => Trace.WriteLine(msg), handshakeTxId)
                 .GetAwaiter().GetResult();
         }
         catch (Exception ex)
@@ -123,9 +124,9 @@ public partial class App : System.Windows.Application
         // ═══════════════════════════════════════════════════════════════════
         // MODE 3: HEALTH HANDSHAKE — signal health after update
         // ═══════════════════════════════════════════════════════════════════
-        if (args.Length >= 2 && args[0] == "--update-handshake")
+        if (handshakeTxId != null)
         {
-            HandleUpdateHandshake(args[1]);
+            HandleUpdateHandshake(handshakeTxId);
         }
 
         // Transaction-aware cleanup (preserves active update journals)
@@ -168,32 +169,35 @@ public partial class App : System.Windows.Application
     /// </summary>
     private static int RunEmbeddedUpdater(string transactionId)
     {
-        Console.WriteLine("Deltempo Embedded Updater v1.0.0");
+        string logDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "Deltempo", "Updates", transactionId);
+        Directory.CreateDirectory(logDir);
+        string logFile = Path.Combine(logDir, "updater.log");
+
+        void Log(string msg)
+        {
+            string line = $"[{DateTime.UtcNow:O}] {msg}";
+            Console.WriteLine(line);
+            Trace.WriteLine(line);
+            try { File.AppendAllText(logFile, line + Environment.NewLine); } catch { }
+        }
+
+        Log("Deltempo Embedded Updater starting...");
 
         var journal = TransactionJournal.Load(transactionId);
         if (journal == null)
         {
-            Console.Error.WriteLine($"Error: Transaction journal not found for '{transactionId}'.");
+            Log($"Error: Transaction journal not found for '{transactionId}'.");
             return 1;
         }
 
-        if (journal.CallerPid <= 0)
-        {
-            Console.Error.WriteLine("Error: No caller PID recorded in transaction journal.");
-            return 1;
-        }
+        Log($"Executing transaction {transactionId} (state: {journal.State}, target: {journal.TargetPath})");
 
-        Console.WriteLine($"Executing transaction {transactionId} (state: {journal.State})");
-
-        var coordinator = new UpdateTransactionCoordinator(journal, msg =>
-        {
-            Console.WriteLine(msg);
-            Trace.WriteLine(msg);
-        });
-
+        var coordinator = new UpdateTransactionCoordinator(journal, Log);
         bool success = coordinator.ExecuteAsync().GetAwaiter().GetResult();
 
-        Console.WriteLine(success ? "Transaction completed successfully." : "Transaction failed.");
+        Log(success ? "Transaction completed successfully." : $"Transaction failed: {journal.ErrorMessage}");
         return success ? 0 : 1;
     }
 

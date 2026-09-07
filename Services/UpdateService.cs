@@ -293,25 +293,22 @@ public static class UpdateService
             journal.TransitionTo(TransactionState.Staged);
             journal.TransitionTo(TransactionState.StageVerified);
 
-            // 5. Persist journal and launch embedded updater mode of the same Deltempo.exe
+            // 5. Persist journal and launch isolated updater helper outside of target binary
             journal.Save();
 
-            string updaterPath = currentExePath;
-            if (!File.Exists(updaterPath))
-            {
-                throw new FileNotFoundException("Deltempo.exe not found. Cannot proceed with update.");
-            }
+            string updaterPath = Path.Combine(updatesDir, "DeltempoUpdater.exe");
+            File.Copy(currentExePath, updaterPath, overwrite: true);
 
             var psi = new ProcessStartInfo
             {
                 FileName = updaterPath,
                 Arguments = $"--update {txId}",
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                WindowStyle = ProcessWindowStyle.Hidden
+                UseShellExecute = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                WorkingDirectory = updatesDir
             };
 
-            // 6. Clean shutdown & exit to release file locks
+            // 6. Clean shutdown & exit to release file locks on currentExePath
             Process.Start(psi);
 
             if (Application.Current != null)
@@ -368,16 +365,37 @@ public static class UpdateService
                     }
                 }
 
-                // 2. Clean up old updater scripts and downloads in %TEMP% older than 15 minutes
+                // 2. Clean up stale update transactions older than 30 minutes in CommonApplicationData
+                string baseUpdatesDir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                    "Deltempo", "Updates");
+                if (Directory.Exists(baseUpdatesDir))
+                {
+                    var threshold = DateTime.UtcNow.AddMinutes(-30);
+                    foreach (var d in Directory.GetDirectories(baseUpdatesDir))
+                    {
+                        try
+                        {
+                            var di = new DirectoryInfo(d);
+                            if (di.LastWriteTimeUtc < threshold)
+                            {
+                                Directory.Delete(d, true);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+
+                // 3. Clean up old updater scripts and downloads in %TEMP% older than 15 minutes
                 string tempDir = Path.GetTempPath();
                 var dirInfo = new DirectoryInfo(tempDir);
-                var threshold = DateTime.UtcNow.AddMinutes(-15);
+                var tempThreshold = DateTime.UtcNow.AddMinutes(-15);
 
                 foreach (var file in dirInfo.EnumerateFiles("deltempo_swap_*.cmd"))
                 {
                     try
                     {
-                        if (file.CreationTimeUtc < threshold)
+                        if (file.CreationTimeUtc < tempThreshold)
                             file.Delete();
                     }
                     catch { }
@@ -387,7 +405,7 @@ public static class UpdateService
                 {
                     try
                     {
-                        if (file.CreationTimeUtc < threshold)
+                        if (file.CreationTimeUtc < tempThreshold)
                             file.Delete();
                     }
                     catch { }
