@@ -1327,9 +1327,9 @@ public partial class MainWindow : Window
             var release = await UpdateService.CheckForUpdatesAsync();
             if (release != null && release.IsNewer && !string.IsNullOrEmpty(release.DownloadUrl))
             {
-                // Suppress repeated nagging on startup if user previously dismissed this exact patch
-                if (silent && release.IsPatchUpdate && !string.IsNullOrEmpty(release.CommitSha) &&
-                    release.CommitSha.Equals(SettingsService.Current.DismissedPatchSha, StringComparison.OrdinalIgnoreCase))
+                // Suppress repeated prompt on startup if user previously dismissed this exact release version
+                if (silent && !string.IsNullOrEmpty(release.VersionString) &&
+                    release.VersionString.Equals(SettingsService.Current.DismissedVersion, StringComparison.OrdinalIgnoreCase))
                 {
                     return;
                 }
@@ -1338,14 +1338,7 @@ public partial class MainWindow : Window
                 Dispatcher.Invoke(() =>
                 {
                     UpdateVersionTagText.Text = release.TagName;
-                    if (release.IsPatchUpdate)
-                    {
-                        UpdateSubtitleText.Text = $"Instant Patch update ready (Commit {release.ShortCommitSha})";
-                    }
-                    else
-                    {
-                        UpdateSubtitleText.Text = "A new official release of Deltempo is ready";
-                    }
+                    UpdateSubtitleText.Text = "A new official release of Deltempo is ready";
 
                     if (!string.IsNullOrWhiteSpace(release.Body))
                     {
@@ -1361,9 +1354,7 @@ public partial class MainWindow : Window
                     UpdateLaterBtn.IsEnabled = true;
                     UpdateModalOverlay.Visibility = Visibility.Visible;
                     SoundService.PlayClickSound();
-                    AddLog(release.IsPatchUpdate 
-                        ? $"Continuous patch available: {release.TagName}" 
-                        : $"New version available: {release.TagName}", LogLevel.Info);
+                    AddLog($"New version available: {release.TagName}", LogLevel.Info);
                 });
             }
             else if (!silent)
@@ -1372,7 +1363,7 @@ public partial class MainWindow : Window
                 {
                     ManualCheckStatusText.Text = $"Up to date! ({BuildInfo.VersionWithPatchDisplay})";
                     MessageBox.Show(
-                        $"You are running the latest build of Deltempo ({BuildInfo.VersionWithPatchDisplay}).\n\nNo updates or patches are currently available.",
+                        $"You are running the latest build of Deltempo ({BuildInfo.VersionWithPatchDisplay}).\n\nNo updates are currently available.",
                         "Deltempo is Up to Date",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
@@ -1447,9 +1438,7 @@ public partial class MainWindow : Window
             AddLog($"Starting atomic in-place update to {_pendingRelease.TagName}...", LogLevel.Info);
             await UpdateService.DownloadAndApplyUpdateAsync(
                 _pendingRelease.DownloadUrl,
-                progress,
-                _pendingRelease.ExpectedSha256,
-                _pendingRelease.CommitSha);
+                progress);
         }
         catch (Exception ex)
         {
@@ -1471,9 +1460,9 @@ public partial class MainWindow : Window
 
     private void CloseUpdateModal_Click(object sender, RoutedEventArgs e)
     {
-        if (_pendingRelease != null && !string.IsNullOrEmpty(_pendingRelease.CommitSha))
+        if (_pendingRelease != null && !string.IsNullOrEmpty(_pendingRelease.VersionString))
         {
-            SettingsService.Current.DismissedPatchSha = _pendingRelease.CommitSha;
+            SettingsService.Current.DismissedVersion = _pendingRelease.VersionString;
             SettingsService.SaveSettings();
         }
         UpdateModalOverlay.Visibility = Visibility.Collapsed;

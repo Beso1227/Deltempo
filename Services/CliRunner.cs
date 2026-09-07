@@ -1474,24 +1474,12 @@ public static class CliRunner
     private static async Task<int> HandleUpdateAsync(string[] args)
     {
         bool checkOnly = HasFlag(args, "check", "--check", "-c");
-        string? channelArg = GetOptionValue(args, "--channel");
-        
-        WinTempCleaner.Core.Update.UpdateChannel? targetChannel = null;
-        if (!string.IsNullOrEmpty(channelArg))
-        {
-            if (channelArg.Equals("stable", StringComparison.OrdinalIgnoreCase))
-                targetChannel = WinTempCleaner.Core.Update.UpdateChannel.Stable;
-            else if (channelArg.Equals("patch", StringComparison.OrdinalIgnoreCase))
-                targetChannel = WinTempCleaner.Core.Update.UpdateChannel.Patch;
-            else
-                targetChannel = WinTempCleaner.Core.Update.UpdateChannel.Auto;
-        }
 
         Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine($"  🔄 [Deltempo] Checking for updates (Channel: {targetChannel?.ToString() ?? SettingsService.Current.UpdateChannel ?? "patch"})...");
+        Console.WriteLine("  🔄 [Deltempo] Checking for updates from GitHub Releases...");
         Console.ResetColor();
 
-        var release = await UpdateService.CheckForUpdatesAsync(targetChannel);
+        var release = await UpdateService.CheckForUpdatesAsync();
         if (release == null || !release.CheckSucceeded)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -1507,28 +1495,11 @@ public static class CliRunner
         if (release.IsNewer)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            if (release.IsPatchUpdate)
-            {
-                Console.WriteLine($"  ✨ New Continuous Patch available: {release.TagName}");
-                Console.WriteLine($"     Commit SHA:     {release.CommitSha}");
-                if (release.Timestamp.HasValue)
-                {
-                    Console.WriteLine($"     Build Time:     {release.Timestamp.Value:u}");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"  ✨ New Stable Release available: {release.TagName}");
-            }
-
+            Console.WriteLine($"  ✨ New Release available: {release.TagName}");
             Console.WriteLine($"     Currently running: {BuildInfo.VersionWithPatchDisplay}");
             if (release.FileSizeBytes > 0)
             {
                 Console.WriteLine($"     Artifact Size:     {TargetFolderInfo.FormatBytes(release.FileSizeBytes)}");
-            }
-            if (!string.IsNullOrWhiteSpace(release.ExpectedSha256))
-            {
-                Console.WriteLine($"     Target SHA-256:    {release.ExpectedSha256}");
             }
             if (!string.IsNullOrWhiteSpace(release.Body))
             {
@@ -1538,13 +1509,13 @@ public static class CliRunner
 
             if (checkOnly || HasFlag(args, "--dry-run", "-d"))
             {
-                Console.WriteLine("\n  Run 'deltempo update' to download and install this patch.");
+                Console.WriteLine("\n  Run 'deltempo update' to download and install this release.");
                 return 2; // Exit code 2 indicates update is available in check mode
             }
 
             // Perform automatic in-place update installation
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("\n  ⬇️ Downloading verified patch binary...");
+            Console.WriteLine("\n  ⬇️ Downloading verified release binary...");
             Console.ResetColor();
 
             var progress = new Progress<double>(pct =>
@@ -1556,9 +1527,7 @@ public static class CliRunner
             {
                 await UpdateService.DownloadAndApplyUpdateAsync(
                     release.DownloadUrl,
-                    progress,
-                    release.ExpectedSha256,
-                    release.CommitSha);
+                    progress);
 
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("\n  ✓ Update verified and staged successfully. Deltempo will now restart.");

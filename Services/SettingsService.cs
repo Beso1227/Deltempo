@@ -15,7 +15,6 @@ public class AppSettings
     public bool IsDarkMode { get; set; } = true;
     public bool SoundEnabled { get; set; } = true;
     public bool CheckUpdatesOnStartup { get; set; } = true;
-    public string UpdateChannel { get; set; } = "patch"; // "patch" (Continuous) or "stable" (Milestones)
     public string Language { get; set; } = "en";
     public bool SendToRecycleBin { get; set; } = false;
     public bool LowDiskAlertEnabled { get; set; } = true;
@@ -32,10 +31,8 @@ public class AppSettings
     public bool MemoryCloseToTray { get; set; } = true;
     public bool MemoryShowNotifications { get; set; } = true;
 
-    // ─── Continuous Patch Tracking ────────────────────────────────────────
-    public string LastInstalledPatchSha { get; set; } = string.Empty;
-    public string LastInstalledPatchHash { get; set; } = string.Empty;
-    public string DismissedPatchSha { get; set; } = string.Empty;
+    // ─── Update Tracking ──────────────────────────────────────────────────
+    public string DismissedVersion { get; set; } = string.Empty;
 }
 
 public static class SettingsService

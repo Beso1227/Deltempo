@@ -107,8 +107,8 @@ public static class BuildInfo
         }
     }
 
-    public static string VersionWithPatchDisplay =>
-        $"v{BaseVersion.ToString(3)} ({ShortCommitSha})";
+    public static string VersionDisplay => $"v{BaseVersion.ToString(3)}";
+    public static string VersionWithPatchDisplay => VersionDisplay;
 
     private static void ExtractVersionInfo()
     {

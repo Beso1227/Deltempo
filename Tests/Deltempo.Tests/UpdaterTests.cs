@@ -398,7 +398,7 @@ public class TransactionJournalTests : IDisposable
     }
 }
 
-public class PatchMetadataValidatorUrlTests
+public class UpdateSecurityValidatorUrlTests
 {
     [Theory]
     [InlineData("https://github.com/Beso1227/Deltempo/releases/download/v1.3.3/Deltempo.exe", true)]
@@ -406,7 +406,7 @@ public class PatchMetadataValidatorUrlTests
     [InlineData("https://github.com/Beso1227/Deltempo/releases/download/patch/DeltempoUpdater.exe", false)]
     public void IsValidDownloadUrl_ValidGitHubReleaseUrls_ReturnsTrue(string url, bool expected)
     {
-        bool result = PatchMetadataValidator.IsValidDownloadUrl(url, out string reason);
+        bool result = UpdateSecurityValidator.IsValidDownloadUrl(url, out string reason);
         Assert.Equal(expected, result);
         if (!expected) Assert.NotEmpty(reason);
     }
@@ -419,7 +419,7 @@ public class PatchMetadataValidatorUrlTests
     [InlineData("ftp://github.com/Beso1227/Deltempo/releases/download/v1.3.3/Deltempo.exe", false)]
     public void IsValidDownloadUrl_InvalidUrls_ReturnsFalse(string url, bool expected)
     {
-        bool result = PatchMetadataValidator.IsValidDownloadUrl(url, out string reason);
+        bool result = UpdateSecurityValidator.IsValidDownloadUrl(url, out string reason);
         Assert.Equal(expected, result);
         Assert.NotEmpty(reason);
     }
@@ -430,7 +430,7 @@ public class PatchMetadataValidatorUrlTests
     [InlineData("   ")]
     public void IsValidDownloadUrl_EmptyOrMalformed_ReturnsFalse(string url)
     {
-        bool result = PatchMetadataValidator.IsValidDownloadUrl(url, out string reason);
+        bool result = UpdateSecurityValidator.IsValidDownloadUrl(url, out string reason);
         Assert.False(result);
         Assert.NotEmpty(reason);
     }
