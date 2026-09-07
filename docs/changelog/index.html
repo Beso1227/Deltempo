@@ -129,12 +129,27 @@
       <p class="section-subtitle">Complete version history, feature additions, and security improvements.</p>
     </div>
 
-    <!-- v1.3.6 -->
+    <!-- v1.3.7 -->
     <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
       <div class="card-inner">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.3.6 (Latest Stable)</h2>
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.3.7 (Latest Stable)</h2>
           <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+        </div>
+        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <li><strong>CLI Terminal Prompt Redraw Fix:</strong> Resolved overlapping console cursor when executing commands. Added native Win32 input signaling (<code>ReleaseConsoleAndSignalPrompt</code>) and synchronous profile function routing so subsequent commands always render cleanly on a fresh new prompt line.</li>
+          <li><strong>Enhanced Dual CLI Discovery:</strong> Automatically locates and binds <code>deltempo_cli.exe</code> in development and published distributions, eliminating GUI process detach artifacts in terminal sessions.</li>
+          <li><strong>Full Test Suite Verification:</strong> 311 automated unit and integration tests passing with 100% pass rate.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- v1.3.6 -->
+    <div class="double-bezel" style="margin-bottom: 2rem;">
+      <div class="card-inner">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.3.6</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-low);">MILESTONE</span>
         </div>
         <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
           <li><strong>In-Place Update State Machine Fix:</strong> Resolved <code>Invalid state transition: Discovered -> Discovered</code> exception when triggering updates from the desktop UI. Added idempotent self-transition support to <code>TransactionJournal</code> and <code>NextState</code>.</li>
