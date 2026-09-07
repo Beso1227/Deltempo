@@ -75,66 +75,149 @@ public static class UpdateService
     }
 
     /// <summary>
-    /// Checks for a new official release on GitHub Releases (releases/latest).
-    /// Updates only trigger when a formal release is published on the repository.
+    /// Checks for a new official release on GitHub Releases.
+    /// Supports both Stable (releases/latest) and Pre-Release (releases) channels.
     /// </summary>
-    public static async Task<ReleaseInfo?> CheckForUpdatesAsync(CancellationToken ct = default)
+    public static async Task<ReleaseInfo?> CheckForUpdatesAsync(bool includePrereleases = false, CancellationToken ct = default)
     {
         try
         {
-            string url = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/latest";
-            using var response = await ApiHttpClient.GetAsync(url, ct);
-            if (!response.IsSuccessStatusCode)
+            if (includePrereleases)
             {
-                return new ReleaseInfo { CheckSucceeded = false, StatusMessage = "Could not reach GitHub Releases server." };
-            }
-
-            string json = await response.Content.ReadAsStringAsync(ct);
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
-
-            string tagName = root.TryGetProperty("tag_name", out var tagEl) ? tagEl.GetString() ?? "" : "";
-            string releaseName = root.TryGetProperty("name", out var nameEl) ? nameEl.GetString() ?? "" : "";
-            string body = root.TryGetProperty("body", out var bodyEl) ? bodyEl.GetString() ?? "" : "";
-
-            string publishedAtStr = root.TryGetProperty("published_at", out var pubEl) ? pubEl.GetString() ?? "" : "";
-            DateTime.TryParse(publishedAtStr, out var publishedAt);
-
-            string downloadUrl = "";
-            long sizeBytes = 0;
-
-            if (root.TryGetProperty("assets", out var assetsEl) && assetsEl.ValueKind == JsonValueKind.Array)
-            {
-                foreach (var asset in assetsEl.EnumerateArray())
+                string url = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases?per_page=10";
+                using var response = await ApiHttpClient.GetAsync(url, ct);
+                if (!response.IsSuccessStatusCode)
                 {
-                    string name = asset.TryGetProperty("name", out var anEl) ? anEl.GetString() ?? "" : "";
-                    if (name.Equals("Deltempo.exe", StringComparison.OrdinalIgnoreCase) ||
-                        name.Equals("WinTempCleaner.exe", StringComparison.OrdinalIgnoreCase))
+                    return new ReleaseInfo { CheckSucceeded = false, StatusMessage = "Could not reach GitHub Releases server." };
+                }
+
+                string json = await response.Content.ReadAsStringAsync(ct);
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.ValueKind != JsonValueKind.Array || doc.RootElement.GetArrayLength() == 0)
+                {
+                    return new ReleaseInfo { CheckSucceeded = true, IsNewer = false, StatusMessage = "No releases found on repository." };
+                }
+
+                ReleaseInfo? bestRelease = null;
+                Version currentVer = NormalizeVersion(CurrentVersion);
+                Version bestVersion = currentVer;
+
+                foreach (var rel in doc.RootElement.EnumerateArray())
+                {
+                    if (rel.TryGetProperty("draft", out var draftEl) && draftEl.GetBoolean())
+                        continue;
+
+                    string tag = rel.TryGetProperty("tag_name", out var tEl) ? tEl.GetString() ?? "" : "";
+                    var ver = ParseReleaseVersion(tag);
+                    if (ver > bestVersion)
                     {
-                        downloadUrl = asset.TryGetProperty("browser_download_url", out var dlEl) ? dlEl.GetString() ?? "" : "";
-                        sizeBytes = asset.TryGetProperty("size", out var sEl) ? sEl.GetInt64() : 0;
-                        break;
+                        string rName = rel.TryGetProperty("name", out var nEl) ? nEl.GetString() ?? "" : "";
+                        string body = rel.TryGetProperty("body", out var bEl) ? bEl.GetString() ?? "" : "";
+                        string pubStr = rel.TryGetProperty("published_at", out var pEl) ? pEl.GetString() ?? "" : "";
+                        DateTime.TryParse(pubStr, out var pubDate);
+
+                        string dlUrl = "";
+                        long sBytes = 0;
+                        if (rel.TryGetProperty("assets", out var aEl) && aEl.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var asset in aEl.EnumerateArray())
+                            {
+                                string aName = asset.TryGetProperty("name", out var anEl) ? anEl.GetString() ?? "" : "";
+                                if (aName.Equals("Deltempo.exe", StringComparison.OrdinalIgnoreCase) ||
+                                    aName.Equals("WinTempCleaner.exe", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    dlUrl = asset.TryGetProperty("browser_download_url", out var dlEl) ? dlEl.GetString() ?? "" : "";
+                                    sBytes = asset.TryGetProperty("size", out var sSizeEl) ? sSizeEl.GetInt64() : 0;
+                                    break;
+                                }
+                            }
+                        }
+
+                        bestVersion = ver;
+                        bestRelease = new ReleaseInfo
+                        {
+                            CheckSucceeded = true,
+                            TagName = tag,
+                            ReleaseName = string.IsNullOrWhiteSpace(rName) ? tag : rName,
+                            Body = body,
+                            DownloadUrl = dlUrl,
+                            FileSizeBytes = sBytes,
+                            IsNewer = true,
+                            VersionString = Regex.Replace(tag, @"^[^\d]*", ""),
+                            PublishedAt = pubDate,
+                            StatusMessage = $"New release {tag} available."
+                        };
                     }
                 }
+
+                if (bestRelease != null)
+                {
+                    return bestRelease;
+                }
+
+                return new ReleaseInfo
+                {
+                    CheckSucceeded = true,
+                    IsNewer = false,
+                    StatusMessage = "Running the latest release."
+                };
             }
-
-            var remoteVer = ParseReleaseVersion(tagName);
-            bool isNewer = remoteVer > NormalizeVersion(CurrentVersion);
-            var cleanTag = Regex.Replace(tagName, @"^[^\d]*", "");
-
-            return new ReleaseInfo
+            else
             {
-                CheckSucceeded = true,
-                TagName = tagName,
-                ReleaseName = string.IsNullOrWhiteSpace(releaseName) ? tagName : releaseName,
-                Body = body,
-                DownloadUrl = downloadUrl,
-                FileSizeBytes = sizeBytes,
-                IsNewer = isNewer,
-                VersionString = cleanTag,
-                PublishedAt = publishedAt,
-                StatusMessage = isNewer ? $"New release {tagName} available." : "Running the latest release."
-            };
+                string url = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/latest";
+                using var response = await ApiHttpClient.GetAsync(url, ct);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new ReleaseInfo { CheckSucceeded = false, StatusMessage = "Could not reach GitHub Releases server." };
+                }
+
+                string json = await response.Content.ReadAsStringAsync(ct);
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                string tagName = root.TryGetProperty("tag_name", out var tagEl) ? tagEl.GetString() ?? "" : "";
+                string releaseName = root.TryGetProperty("name", out var nameEl) ? nameEl.GetString() ?? "" : "";
+                string body = root.TryGetProperty("body", out var bodyEl) ? bodyEl.GetString() ?? "" : "";
+
+                string publishedAtStr = root.TryGetProperty("published_at", out var pubEl) ? pubEl.GetString() ?? "" : "";
+                DateTime.TryParse(publishedAtStr, out var publishedAt);
+
+                string downloadUrl = "";
+                long sizeBytes = 0;
+
+                if (root.TryGetProperty("assets", out var assetsEl) && assetsEl.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var asset in assetsEl.EnumerateArray())
+                    {
+                        string name = asset.TryGetProperty("name", out var anEl) ? anEl.GetString() ?? "" : "";
+                        if (name.Equals("Deltempo.exe", StringComparison.OrdinalIgnoreCase) ||
+                            name.Equals("WinTempCleaner.exe", StringComparison.OrdinalIgnoreCase))
+                        {
+                            downloadUrl = asset.TryGetProperty("browser_download_url", out var dlEl) ? dlEl.GetString() ?? "" : "";
+                            sizeBytes = asset.TryGetProperty("size", out var sEl) ? sEl.GetInt64() : 0;
+                            break;
+                        }
+                    }
+                }
+
+                var remoteVer = ParseReleaseVersion(tagName);
+                bool isNewer = remoteVer > NormalizeVersion(CurrentVersion);
+                var cleanTag = Regex.Replace(tagName, @"^[^\d]*", "");
+
+                return new ReleaseInfo
+                {
+                    CheckSucceeded = true,
+                    TagName = tagName,
+                    ReleaseName = string.IsNullOrWhiteSpace(releaseName) ? tagName : releaseName,
+                    Body = body,
+                    DownloadUrl = downloadUrl,
+                    FileSizeBytes = sizeBytes,
+                    IsNewer = isNewer,
+                    VersionString = cleanTag,
+                    PublishedAt = publishedAt,
+                    StatusMessage = isNewer ? $"New release {tagName} available." : "Running the latest release."
+                };
+            }
         }
         catch (Exception ex)
         {

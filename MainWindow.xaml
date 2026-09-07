@@ -1746,8 +1746,8 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Deltempo Settings Dialog">
-                <Border MaxWidth="580"
-                        MaxHeight="650"
+                <Border MaxWidth="600"
+                        MaxHeight="680"
                         Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
@@ -1755,517 +1755,803 @@
                         CornerRadius="18"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Padding="26,22">
+                        Padding="24,20">
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.4"/>
+                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.45"/>
                     </Border.Effect>
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/> <!-- 0: Header -->
+                            <RowDefinition Height="Auto"/> <!-- 1: Category Tab Bar -->
+                            <RowDefinition Height="*"/>    <!-- 2: Content View -->
+                            <RowDefinition Height="Auto"/> <!-- 3: Footer Actions -->
                         </Grid.RowDefinitions>
 
-                        <!-- Header (Fixed Top) -->
-                        <Grid Grid.Row="0" Margin="0,0,0,16">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Width="40" Height="40"
-                                        CornerRadius="12"
+                        <!-- 0. Header -->
+                        <Grid Grid.Row="0" Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Width="38" Height="38"
+                                        CornerRadius="10"
                                         Background="{DynamicResource SurfaceSubCardBrush}"
                                         BorderBrush="{DynamicResource ElectricCyanBrush}"
                                         BorderThickness="1"
                                         Margin="0,0,12,0">
                                     <TextBlock Text="&#xE713;"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="18"
+                                               FontSize="16"
                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="Deltempo Preferences &amp; Guardian"
-                                               FontSize="16"
+                                    <TextBlock Text="Preferences &amp; Engine Guardian"
+                                               FontSize="15"
                                                FontWeight="Bold"
                                                Foreground="{DynamicResource TextHighBrush}"/>
-                                    <TextBlock Text="Configure background auto-clean, tray behavior &amp; audio"
-                                               FontSize="11.5"
-                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                    <TextBlock Text="Configure updates, background cleaner, memory &amp; safety rules"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextMutedBrush}"/>
                                 </StackPanel>
                             </StackPanel>
-                            <Button Style="{DynamicResource WindowCloseButton}"
+                            <Button Grid.Column="1"
+                                    Style="{DynamicResource WindowCloseButton}"
                                     Content="&#xE8BB;"
                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     AutomationProperties.Name="Close Settings Dialog"
                                     HorizontalAlignment="Right"
-                                    VerticalAlignment="Top"
+                                    VerticalAlignment="Center"
                                     Click="CloseSettings_Click"/>
                         </Grid>
 
-                        <!-- Scrollable Settings Content Container -->
-                        <ScrollViewer Grid.Row="1"
+                        <!-- 1. Category Tab Navigation Bar -->
+                        <Border Grid.Row="1"
+                                Background="{DynamicResource SurfaceCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="3"
+                                Margin="0,0,0,14">
+                            <UniformGrid Columns="4">
+                                <RadioButton x:Name="SettingsTabUpdatesRadio"
+                                             Style="{DynamicResource SettingsTabRadio}"
+                                             GroupName="SettingsCategoryGroup"
+                                             Tag="UPDATES"
+                                             IsChecked="True"
+                                             Checked="SettingsTab_Checked">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE895;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Updates" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="SettingsTabGeneralRadio"
+                                             Style="{DynamicResource SettingsTabRadio}"
+                                             GroupName="SettingsCategoryGroup"
+                                             Tag="GENERAL"
+                                             Checked="SettingsTab_Checked">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE7F4;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="General" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="SettingsTabMemoryRadio"
+                                             Style="{DynamicResource SettingsTabRadio}"
+                                             GroupName="SettingsCategoryGroup"
+                                             Tag="MEMORY"
+                                             Checked="SettingsTab_Checked">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE7E8;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Memory" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="SettingsTabSafetyRadio"
+                                             Style="{DynamicResource SettingsTabRadio}"
+                                             GroupName="SettingsCategoryGroup"
+                                             Tag="SAFETY"
+                                             Checked="SettingsTab_Checked">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE72E;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Storage &amp; Safe" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </RadioButton>
+                            </UniformGrid>
+                        </Border>
+
+                        <!-- 2. Scrollable Settings Content Container -->
+                        <ScrollViewer Grid.Row="2"
                                       VerticalScrollBarVisibility="Auto"
                                       HorizontalScrollBarVisibility="Disabled"
-                                      MaxHeight="460"
+                                      MaxHeight="450"
                                       Padding="0,0,8,0">
-                            <StackPanel Margin="0,0,0,10">
-                            <!-- Group 1: Background Auto-Pilot Guardian -->
-                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
-                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="12"
-                                    Padding="16,12"
-                                    Margin="0,0,0,10">
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Background Auto-Pilot Guardian"
-                                                       FontSize="12.5"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextHighBrush}"/>
-                                            <TextBlock Text="Periodically purges safe caches silently in background"
-                                                       FontSize="10.5"
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <CheckBox Grid.Column="1"
-                                                  x:Name="SettingsAutoPilotCheckBox"
-                                                  Style="{DynamicResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                  IsChecked="True"
-                                                  VerticalAlignment="Center"/>
-                                    </Grid>
+                            <StackPanel Margin="0,0,0,6">
 
-                                    <Grid Margin="0,4,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0"
-                                                   Text="Auto-Cleaning Interval"
-                                                   FontSize="11.5"
-                                                   Foreground="{DynamicResource TextMediumBrush}"
-                                                   VerticalAlignment="Center"/>
-                                        <ComboBox Grid.Column="1"
-                                                  x:Name="SettingsIntervalComboBox"
-                                                  Style="{DynamicResource ModernComboBox}"
-                                                  Width="140" Height="26">
-                                            <ComboBoxItem Content="Every 6 Hours" Tag="6"/>
-                                            <ComboBoxItem Content="Every 12 Hours" Tag="12" IsSelected="True"/>
-                                            <ComboBoxItem Content="Every 24 Hours" Tag="24"/>
-                                        </ComboBox>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
+                                <!-- PANEL 1: UPDATES & VERSION CONTROL -->
+                                <StackPanel x:Name="SettingsUpdatesPanel" Visibility="Visible">
+                                    <!-- Version Telemetry & Status Card -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="16,14"
+                                            Margin="0,0,0,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
 
-                            <!-- Group 2.5: Memory Optimizer (WinMemoryCleaner Integration) -->
-                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
-                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="12"
-                                    Padding="16,12"
-                                    Margin="0,0,0,10">
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Memory Optimizer"
-                                                       FontSize="12.5"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextHighBrush}"/>
-                                            <TextBlock Text="Win32 RAM cleaning: Working Set, Standby List, System Cache &amp; more"
-                                                       FontSize="10.5"
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <CheckBox Grid.Column="1"
-                                                  x:Name="MemoryAutoOptCheckBox"
-                                                  Style="{DynamicResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                  VerticalAlignment="Center"/>
-                                    </Grid>
+                                            <!-- Brand Icon with Specular Glow -->
+                                            <Border Grid.Column="0"
+                                                    Width="42" Height="42"
+                                                    CornerRadius="10"
+                                                    Background="{DynamicResource CanvasDarkBrush}"
+                                                    BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                                    BorderThickness="1"
+                                                    Margin="0,0,12,0"
+                                                    VerticalAlignment="Center">
+                                                <Border.Effect>
+                                                    <DropShadowEffect BlurRadius="12" ShadowDepth="0" Color="#00E5FF" Opacity="0.3"/>
+                                                </Border.Effect>
+                                                <Image Source="app.ico" Margin="4" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                            </Border>
 
-                                    <Grid Margin="0,6,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Auto-Optimization Interval"
-                                                       FontSize="11.5"
-                                                       Foreground="{DynamicResource TextMediumBrush}"/>
-                                            <TextBlock Text="Run memory optimization automatically every N hours (0 = disabled)"
-                                                       FontSize="10"
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <ComboBox Grid.Column="1"
-                                                  x:Name="MemoryAutoOptIntervalComboBox"
-                                                  Style="{DynamicResource ModernComboBox}"
-                                                  Width="140" Height="26">
-                                            <ComboBoxItem Content="Every 1 Hour"   Tag="1"/>
-                                            <ComboBoxItem Content="Every 2 Hours"  Tag="2"/>
-                                            <ComboBoxItem Content="Every 4 Hours"  Tag="4" IsSelected="True"/>
-                                            <ComboBoxItem Content="Every 8 Hours"  Tag="8"/>
-                                            <ComboBoxItem Content="Every 12 Hours" Tag="12"/>
-                                            <ComboBoxItem Content="Every 24 Hours" Tag="24"/>
-                                            <ComboBoxItem Content="Disabled"       Tag="0"/>
-                                        </ComboBox>
-                                    </Grid>
-
-                                    <Grid Margin="0,6,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Free RAM Threshold Trigger"
-                                                       FontSize="11.5"
-                                                       Foreground="{DynamicResource TextMediumBrush}"/>
-                                            <TextBlock Text="Also trigger optimization when free RAM drops below this %"
-                                                       FontSize="10"
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <ComboBox Grid.Column="1"
-                                                  x:Name="MemoryThresholdComboBox"
-                                                  Style="{DynamicResource ModernComboBox}"
-                                                  Width="120" Height="26">
-                                            <ComboBoxItem Content="Below 10%" Tag="10"/>
-                                            <ComboBoxItem Content="Below 20%" Tag="20"/>
-                                            <ComboBoxItem Content="Below 30%" Tag="30" IsSelected="True"/>
-                                            <ComboBoxItem Content="Below 40%" Tag="40"/>
-                                            <ComboBoxItem Content="Below 50%" Tag="50"/>
-                                            <ComboBoxItem Content="Disabled"   Tag="0"/>
-                                        </ComboBox>
-                                    </Grid>
-
-                                    <Separator Margin="0,8,0,8" Style="{DynamicResource HairlineSeparator}"/>
-
-                                    <Grid Margin="0,0,0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Show Memory in System Tray"
-                                                       FontSize="11.5"
-                                                       Foreground="{DynamicResource TextMediumBrush}"/>
-                                            <TextBlock Text="Display live RAM % in tray tooltip"
-                                                       FontSize="10"
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <CheckBox Grid.Column="1"
-                                                  x:Name="MemoryShowInTrayCheckBox"
-                                                  Style="{DynamicResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                  VerticalAlignment="Center"/>
-                                    </Grid>
-
-                                    <Grid Margin="0,4,0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Always on Top"
-                                                       FontSize="11.5"
-                                                       Foreground="{DynamicResource TextMediumBrush}"/>
-                                            <TextBlock Text="Pin the main window above all others"
-                                                       FontSize="10"
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <CheckBox Grid.Column="1"
-                                                  x:Name="MemoryAlwaysOnTopCheckBox"
-                                                  Style="{DynamicResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                  VerticalAlignment="Center"/>
-                                    </Grid>
-
-                                    <Grid Margin="0,4,0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Compact Mode"
-                                                       FontSize="11.5"
-                                                       Foreground="{DynamicResource TextMediumBrush}"/>
-                                            <TextBlock Text="Collapse to minimal RAM monitoring view"
-                                                       FontSize="10"
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <CheckBox Grid.Column="1"
-                                                  x:Name="MemoryCompactModeCheckBox"
-                                                  Style="{DynamicResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                  VerticalAlignment="Center"/>
-                                    </Grid>
-
-                                    <Grid Margin="0,4,0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Close to Notification Area"
-                                                       FontSize="11.5"
-                                                       Foreground="{DynamicResource TextMediumBrush}"/>
-                                            <TextBlock Text="Minimize to tray instead of closing on X"
-                                                       FontSize="10"
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <CheckBox Grid.Column="1"
-                                                  x:Name="MemoryCloseToTrayCheckBox"
-                                                  Style="{DynamicResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                  VerticalAlignment="Center"/>
-                                    </Grid>
-
-                                    <Grid Margin="0,4,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Show Optimization Notifications"
-                                                       FontSize="11.5"
-                                                       Foreground="{DynamicResource TextMediumBrush}"/>
-                                            <TextBlock Text="Balloon alert after each memory optimization"
-                                                       FontSize="10"
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <CheckBox Grid.Column="1"
-                                                  x:Name="MemoryShowNotifyCheckBox"
-                                                  Style="{DynamicResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                  VerticalAlignment="Center"/>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Group 3: System Tray & Behavior -->
-                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
-                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="12"
-                                    Padding="16,12"
-                                    Margin="0,0,0,10">
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Minimize to System Tray"
-                                                       FontSize="12.5"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextHighBrush}"/>
-                                            <TextBlock Text="Keeps Deltempo standing guard in Windows taskbar"
-                                                       FontSize="10.5"
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <CheckBox Grid.Column="1"
-                                                  x:Name="SettingsTrayCheckBox"
-                                                  Style="{DynamicResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                  IsChecked="True"
-                                                  VerticalAlignment="Center"/>
-                                    </Grid>
-                                    <Grid Margin="0,4,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Show Desktop Balloon Alerts"
-                                                        FontSize="12.5"
-                                                        FontWeight="SemiBold"
-                                                        Foreground="{DynamicResource TextHighBrush}"/>
-                                            <TextBlock Text="Notify when space is reclaimed automatically"
-                                                        FontSize="10.5"
-                                                        Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <CheckBox Grid.Column="1"
-                                                  x:Name="SettingsNotifyCheckBox"
-                                                  Style="{DynamicResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                  IsChecked="True"
-                                                  VerticalAlignment="Center"/>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Group 4: Safe Deletion & Storage Alerts -->
-                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
-                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="12"
-                                    Padding="16,12"
-                                    Margin="0,0,0,10">
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Recycle Bin Safe Delete (Undoable)"
-                                                       FontSize="12.5"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextHighBrush}"/>
-                                            <TextBlock Text="Move deleted files to Windows Recycle Bin instead of permanent purge"
-                                                       FontSize="10.5"
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <CheckBox Grid.Column="1"
-                                                  x:Name="SettingsRecycleBinCheckBox"
-                                                  Style="{DynamicResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                  VerticalAlignment="Center"/>
-                                    </Grid>
-
-                                    <Grid Margin="0,4,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Low Disk Space Proactive Alerts"
-                                                       FontSize="12.5"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextHighBrush}"/>
-                                            <TextBlock Text="Alert via tray notification when free disk space falls below 10 GB"
-                                                       FontSize="10.5"
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <CheckBox Grid.Column="1"
-                                                  x:Name="SettingsLowDiskAlertCheckBox"
-                                                  Style="{DynamicResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                  IsChecked="True"
-                                                  VerticalAlignment="Center"/>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Group 5: Updates & Version Sync -->
-                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
-                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="12"
-                                    Padding="16,12">
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Check for Updates on Startup"
-                                                       FontSize="12.5"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextHighBrush}"/>
-                                            <TextBlock Text="Automatically check GitHub Releases for newer builds"
-                                                       FontSize="10.5"
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                        </StackPanel>
-                                        <CheckBox Grid.Column="1"
-                                                  x:Name="SettingsCheckUpdatesCheckBox"
-                                                  Style="{DynamicResource ModernSwitchCheckBox}"
-                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                  IsChecked="True"
-                                                  VerticalAlignment="Center"/>
-                                    </Grid>
-
-                                    <Grid Margin="0,4,0,8">
-                                        <Border Background="{DynamicResource SurfaceCardHoverBrush}"
-                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                BorderThickness="1"
-                                                CornerRadius="8"
-                                                Padding="10,7">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-                                                <Border Grid.Column="0"
-                                                        Background="{DynamicResource SurfaceSubCardBrush}"
-                                                        BorderBrush="{DynamicResource ElectricCyanBrush}"
-                                                        BorderThickness="1"
-                                                        CornerRadius="6"
-                                                        Padding="6,2"
-                                                        Margin="0,0,10,0"
-                                                        VerticalAlignment="Center">
-                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <TextBlock Text="&#xE7E8;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,4,0" VerticalAlignment="Center"/>
-                                                        <TextBlock Text="Smart Dual-Mode"
-                                                                   FontSize="10"
+                                            <!-- Version Details -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="Deltempo Standalone"
+                                                               FontSize="13.5"
+                                                               FontWeight="Bold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <Border Background="{DynamicResource SurfaceCardHoverBrush}"
+                                                            BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="5"
+                                                            Padding="6,1.5"
+                                                            Margin="8,0,0,0"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock x:Name="SettingsVersionText"
+                                                                   Text="v1.0.1"
+                                                                   FontSize="10.5"
                                                                    FontWeight="Bold"
-                                                                   Foreground="{DynamicResource ElectricCyanBrush}"
-                                                                   VerticalAlignment="Center"/>
+                                                                   Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock x:Name="ManualCheckStatusText"
+                                                           Text="Official Release (Up to date)"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource EmeraldGreenBrush}"
+                                                           Margin="0,2,0,0"/>
+                                                <TextBlock x:Name="SettingsLastCheckedText"
+                                                           Text="Last checked: Never"
+                                                           FontSize="10"
+                                                           Foreground="{DynamicResource TextMutedBrush}"
+                                                           Margin="0,2,0,0"/>
+                                            </StackPanel>
+
+                                            <!-- Actions: Check Now & Release Notes -->
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <Button x:Name="ManualCheckUpdateBtn"
+                                                        Style="{DynamicResource HeroCTAButton}"
+                                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                        Padding="14,6"
+                                                        FontSize="11"
+                                                        Click="ManualCheckUpdate_Click">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="&#xE895;" FontFamily="{DynamicResource IconFont}" FontSize="10.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                        <TextBlock x:Name="ManualCheckBtnText" Text="Check for Updates" VerticalAlignment="Center"/>
                                                     </StackPanel>
-                                                </Border>
-                                                <TextBlock Grid.Column="1"
-                                                           Text="Intelligently checks and installs both official milestone releases and instant continuous patches."
-                                                           FontSize="10.5"
-                                                           Foreground="{DynamicResource TextMediumBrush}"
-                                                           VerticalAlignment="Center"
-                                                           TextWrapping="Wrap"/>
+                                                </Button>
+                                                <Button Style="{DynamicResource PillButton}"
+                                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                        Padding="10,4"
+                                                        FontSize="10"
+                                                        Margin="0,6,0,0"
+                                                        HorizontalAlignment="Right"
+                                                        ToolTip="Open GitHub Releases in your default browser"
+                                                        Click="SettingsViewReleaseNotes_Click">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="&#xE8A7;" FontFamily="{DynamicResource IconFont}" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Release Notes" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Update Schedule & Frequency Card -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="16,12"
+                                            Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <TextBlock Text="AUTOMATIC UPDATE SCHEDULE &amp; TRIGGERS"
+                                                       FontSize="9.5"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource ElectricCyanBrush}"
+                                                       Margin="0,0,0,10"/>
+
+                                            <!-- Check on Startup -->
+                                            <Grid Margin="0,0,0,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Check for Updates on Application Launch"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Silently check GitHub Releases when Deltempo starts up"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="SettingsCheckUpdatesCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          IsChecked="True"
+                                                          VerticalAlignment="Center"/>
                                             </Grid>
-                                        </Border>
-                                    </Grid>
 
-                                    <Grid Margin="0,6,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                            <TextBlock x:Name="ManualCheckStatusText"
-                                                       Text="Current Version: v1.3.4"
-                                                       FontSize="11.5"
-                                                       Foreground="{DynamicResource TextMediumBrush}"/>
+                                            <!-- Background Frequency -->
+                                            <Grid Margin="0,0,0,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Periodic Background Check Frequency"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="How often Deltempo queries GitHub when standing guard in tray"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <ComboBox Grid.Column="1"
+                                                          x:Name="SettingsUpdateFrequencyComboBox"
+                                                          Style="{DynamicResource ModernComboBox}"
+                                                          Width="170" Height="26">
+                                                    <ComboBoxItem Content="Every 24 Hours (Daily)" Tag="1" IsSelected="True"/>
+                                                    <ComboBoxItem Content="Every 3 Days" Tag="3"/>
+                                                    <ComboBoxItem Content="Every 7 Days (Weekly)" Tag="7"/>
+                                                    <ComboBoxItem Content="Manual Only" Tag="0"/>
+                                                </ComboBox>
+                                            </Grid>
+
+                                            <!-- Release Distribution Channel -->
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Release Distribution Channel"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Choose between rock-solid milestone releases or experimental previews"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <ComboBox Grid.Column="1"
+                                                          x:Name="SettingsUpdateChannelComboBox"
+                                                          Style="{DynamicResource ModernComboBox}"
+                                                          Width="170" Height="26">
+                                                    <ComboBoxItem Content="Stable (Recommended)" Tag="Stable" IsSelected="True"/>
+                                                    <ComboBoxItem Content="Beta / Pre-Release" Tag="PreRelease"/>
+                                                </ComboBox>
+                                            </Grid>
                                         </StackPanel>
-                                        <Button Grid.Column="1"
-                                                x:Name="ManualCheckUpdateBtn"
-                                                Content="Check for Updates"
-                                                Style="{DynamicResource PillButton}"
-                                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                Padding="12,5"
-                                                FontSize="11.5"
-                                                Click="ManualCheckUpdate_Click"/>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </ScrollViewer>
+                                    </Border>
 
-                    <!-- Footer Actions (Fixed Bottom) -->
-                    <Grid Grid.Row="2" Margin="0,16,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Button Grid.Column="1"
-                                Content="Cancel"
-                                Style="{DynamicResource PillButton}"
-                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                Padding="18,8"
-                                Margin="0,0,10,0"
-                                Click="CloseSettings_Click"/>
-                        <Button Grid.Column="2"
-                                Content="Save &amp; Apply"
-                                Style="{DynamicResource HeroCTAButton}"
-                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                Padding="22,8"
-                                Click="SaveSettings_Click"/>
+                                    <!-- Download Flow & Verification Card -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="16,12"
+                                            Margin="0,0,0,6">
+                                        <StackPanel>
+                                            <TextBlock Text="DOWNLOAD &amp; INTEGRITY PREFERENCES"
+                                                       FontSize="9.5"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource ElectricCyanBrush}"
+                                                       Margin="0,0,0,10"/>
+
+                                            <!-- Silent Pre-fetch -->
+                                            <Grid Margin="0,0,0,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Silent Background Pre-fetch"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Pre-download update binary silently and prompt only when ready to restart"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="SettingsAutoDownloadCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+
+                                            <!-- Official Releases Guarantee Badge -->
+                                            <Border Background="{DynamicResource SurfaceCardHoverBrush}"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="8"
+                                                    Padding="10,8">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="&#xE72E;"
+                                                               FontFamily="{DynamicResource IconFont}"
+                                                               FontSize="14"
+                                                               Foreground="{DynamicResource EmeraldGreenBrush}"
+                                                               Margin="0,0,10,0"
+                                                               VerticalAlignment="Center"/>
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="Official GitHub Releases Guarantee"
+                                                                   FontSize="11"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource TextHighBrush}"/>
+                                                        <TextBlock Text="Updates are pulled strictly from github.com/Beso1227/Deltempo with atomic replacement, zero third-party telemetry, and instant rollback protection."
+                                                                   FontSize="10"
+                                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                                   TextWrapping="Wrap"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- PANEL 2: GENERAL & TRAY BEHAVIOR -->
+                                <StackPanel x:Name="SettingsGeneralPanel" Visibility="Collapsed">
+                                    <!-- Auto-Pilot Guardian -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="16,12"
+                                            Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Background Auto-Pilot Guardian"
+                                                               FontSize="12.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Periodically purges safe temporary caches silently in background"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="SettingsAutoPilotCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          IsChecked="True"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+
+                                            <Grid Margin="0,4,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0"
+                                                           Text="Auto-Cleaning Interval"
+                                                           FontSize="11.5"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <ComboBox Grid.Column="1"
+                                                          x:Name="SettingsIntervalComboBox"
+                                                          Style="{DynamicResource ModernComboBox}"
+                                                          Width="140" Height="26">
+                                                    <ComboBoxItem Content="Every 6 Hours" Tag="6"/>
+                                                    <ComboBoxItem Content="Every 12 Hours" Tag="12" IsSelected="True"/>
+                                                    <ComboBoxItem Content="Every 24 Hours" Tag="24"/>
+                                                </ComboBox>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- System Tray Behavior -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="16,12"
+                                            Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Minimize to System Tray"
+                                                               FontSize="12.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Keeps Deltempo active in the Windows notification area"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="SettingsTrayCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          IsChecked="True"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+
+                                            <Grid Margin="0,4,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Show Desktop Balloon Alerts"
+                                                               FontSize="12.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Notify via Windows toast when storage is reclaimed automatically"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="SettingsNotifyCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          IsChecked="True"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+
+                                            <Grid Margin="0,4,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Sound Effects &amp; Audio Feedback"
+                                                               FontSize="12.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Play subtle audio cues on click and upon cleanup completion"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="SettingsSoundCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          IsChecked="True"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- PANEL 3: MEMORY OPTIMIZER (WinMemoryCleaner Integration) -->
+                                <StackPanel x:Name="SettingsMemoryPanel" Visibility="Collapsed">
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="16,12"
+                                            Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Memory Optimizer Engine"
+                                                               FontSize="12.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Automated Win32 RAM cleaning: Working Set, Standby List &amp; System Cache"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="MemoryAutoOptCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+
+                                            <Grid Margin="0,6,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Auto-Optimization Interval"
+                                                               FontSize="11.5"
+                                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                                    <TextBlock Text="Run memory optimization automatically every N hours (0 = disabled)"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <ComboBox Grid.Column="1"
+                                                          x:Name="MemoryAutoOptIntervalComboBox"
+                                                          Style="{DynamicResource ModernComboBox}"
+                                                          Width="140" Height="26">
+                                                    <ComboBoxItem Content="Every 1 Hour"   Tag="1"/>
+                                                    <ComboBoxItem Content="Every 2 Hours"  Tag="2"/>
+                                                    <ComboBoxItem Content="Every 4 Hours"  Tag="4" IsSelected="True"/>
+                                                    <ComboBoxItem Content="Every 8 Hours"  Tag="8"/>
+                                                    <ComboBoxItem Content="Every 12 Hours" Tag="12"/>
+                                                    <ComboBoxItem Content="Every 24 Hours" Tag="24"/>
+                                                    <ComboBoxItem Content="Disabled"       Tag="0"/>
+                                                </ComboBox>
+                                            </Grid>
+
+                                            <Grid Margin="0,6,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Free RAM Threshold Trigger"
+                                                               FontSize="11.5"
+                                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                                    <TextBlock Text="Also trigger optimization when free RAM drops below this %"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <ComboBox Grid.Column="1"
+                                                          x:Name="MemoryThresholdComboBox"
+                                                          Style="{DynamicResource ModernComboBox}"
+                                                          Width="120" Height="26">
+                                                    <ComboBoxItem Content="Below 10%" Tag="10"/>
+                                                    <ComboBoxItem Content="Below 20%" Tag="20"/>
+                                                    <ComboBoxItem Content="Below 30%" Tag="30" IsSelected="True"/>
+                                                    <ComboBoxItem Content="Below 40%" Tag="40"/>
+                                                    <ComboBoxItem Content="Below 50%" Tag="50"/>
+                                                    <ComboBoxItem Content="Disabled"   Tag="0"/>
+                                                </ComboBox>
+                                            </Grid>
+
+                                            <Separator Margin="0,8,0,8" Style="{DynamicResource HairlineSeparator}"/>
+
+                                            <Grid Margin="0,0,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Show Memory in System Tray"
+                                                               FontSize="11.5"
+                                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                                    <TextBlock Text="Display live RAM % in tray tooltip"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="MemoryShowInTrayCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+
+                                            <Grid Margin="0,4,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Always on Top"
+                                                               FontSize="11.5"
+                                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                                    <TextBlock Text="Pin the main window above all others"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="MemoryAlwaysOnTopCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+
+                                            <Grid Margin="0,4,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Compact Mode"
+                                                               FontSize="11.5"
+                                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                                    <TextBlock Text="Collapse to minimal RAM monitoring view"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="MemoryCompactModeCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+
+                                            <Grid Margin="0,4,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Close to Notification Area"
+                                                               FontSize="11.5"
+                                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                                    <TextBlock Text="Minimize to tray instead of closing on X button"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="MemoryCloseToTrayCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+
+                                            <Grid Margin="0,4,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Show Optimization Notifications"
+                                                               FontSize="11.5"
+                                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                                    <TextBlock Text="Balloon alert after each memory optimization"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="MemoryShowNotifyCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- PANEL 4: STORAGE & SAFE DELETION -->
+                                <StackPanel x:Name="SettingsSafetyPanel" Visibility="Collapsed">
+                                    <!-- Safe Deletion -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="16,12"
+                                            Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Recycle Bin Safe Delete (Undoable)"
+                                                               FontSize="12.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Move deleted files to Windows Recycle Bin instead of permanent purge"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="SettingsRecycleBinCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Low Disk Space Proactive Alerts -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="16,12"
+                                            Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Low Disk Space Proactive Alerts"
+                                                               FontSize="12.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Alert via tray notification when free C: drive space falls below threshold"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="SettingsLowDiskAlertCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          IsChecked="True"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+
+                                            <Grid Margin="0,4,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0"
+                                                           Text="Free Space Alert Threshold"
+                                                           FontSize="11.5"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <ComboBox Grid.Column="1"
+                                                          x:Name="SettingsDiskThresholdComboBox"
+                                                          Style="{DynamicResource ModernComboBox}"
+                                                          Width="140" Height="26">
+                                                    <ComboBoxItem Content="Below 5 GB" Tag="5"/>
+                                                    <ComboBoxItem Content="Below 10 GB" Tag="10" IsSelected="True"/>
+                                                    <ComboBoxItem Content="Below 15 GB" Tag="15"/>
+                                                    <ComboBoxItem Content="Below 20 GB" Tag="20"/>
+                                                    <ComboBoxItem Content="Below 30 GB" Tag="30"/>
+                                                    <ComboBoxItem Content="Below 50 GB" Tag="50"/>
+                                                </ComboBox>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- 3. Footer Actions (Fixed Bottom) -->
+                        <Grid Grid.Row="3" Margin="0,14,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="1"
+                                    Content="Cancel"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    Padding="18,7.5"
+                                    Margin="0,0,10,0"
+                                    Click="CloseSettings_Click"/>
+                            <Button Grid.Column="2"
+                                    Content="Save &amp; Apply"
+                                    Style="{DynamicResource HeroCTAButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    Padding="22,7.5"
+                                    Click="SaveSettings_Click"/>
+                        </Grid>
                     </Grid>
-                </Grid>
                 </Border>
             </Grid>
 

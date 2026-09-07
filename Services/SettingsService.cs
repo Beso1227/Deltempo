@@ -31,8 +31,12 @@ public class AppSettings
     public bool MemoryCloseToTray { get; set; } = true;
     public bool MemoryShowNotifications { get; set; } = true;
 
-    // ─── Update Tracking ──────────────────────────────────────────────────
+    // ─── Update Tracking & Configuration ──────────────────────────────────
     public string DismissedVersion { get; set; } = string.Empty;
+    public string UpdateChannel { get; set; } = "Stable";
+    public int UpdateCheckFrequencyDays { get; set; } = 1;
+    public bool AutoDownloadUpdates { get; set; } = false;
+    public string LastUpdateCheckTimestamp { get; set; } = string.Empty;
 }
 
 public static class SettingsService
