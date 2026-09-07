@@ -13,7 +13,7 @@ public static class UpdateRecoveryHelper
     /// Finds and attempts recovery of any incomplete update transactions.
     /// Call this BEFORE GUI initialization on normal startup.
     /// </summary>
-    public static async Task<int> RecoverIncompleteTransactionsAsync(Action<string>? logAction = null)
+    public static async Task<int> RecoverIncompleteTransactionsAsync(Action<string>? logAction = null, string? activeHandshakeTxId = null)
     {
         var incomplete = TransactionJournal.FindIncompleteTransactions();
 
@@ -27,6 +27,12 @@ public static class UpdateRecoveryHelper
 
         foreach (var tx in incomplete)
         {
+            if (!string.IsNullOrEmpty(activeHandshakeTxId) && string.Equals(tx.TransactionId, activeHandshakeTxId, StringComparison.OrdinalIgnoreCase))
+            {
+                Log(logAction, $"  Skipping active handshake transaction {tx.TransactionId}.");
+                continue;
+            }
+
             try
             {
                 Log(logAction, $"--- Transaction {tx.TransactionId} (state: {tx.State}, version {tx.Version}) ---");

@@ -38,12 +38,16 @@ public static class SingleInstanceManager
                 .Where(p => p.Id != currentPid)
                 .ToList();
 
-            // Automatically purge any orphaned / headless ghost instances (MainWindowHandle == 0)
+            // Automatically purge any orphaned / headless ghost instances (MainWindowHandle == 0),
+            // but NEVER terminate an active updater process.
             var ghosts = otherInstances.Where(p => p.MainWindowHandle == IntPtr.Zero).ToList();
             foreach (var ghost in ghosts)
             {
                 try
                 {
+                    if (ghost.ProcessName.Contains("updater", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
                     ghost.Kill();
                     ghost.WaitForExit(500);
                 }
