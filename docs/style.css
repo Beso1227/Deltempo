@@ -127,7 +127,32 @@ body {
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  z-index: -1;
+  z-index: 0;
+}
+
+.ambient-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.nav-wrapper,
+.mobile-menu-overlay,
+main,
+section,
+.hero,
+.section,
+footer,
+.footer,
+.showcase-wrapper,
+.faq-wrapper,
+.docs-layout {
+  position: relative;
+  z-index: 2;
 }
 
 .aurora-orb {
@@ -1245,6 +1270,29 @@ html.light .mobile-menu-overlay {
    PRECISION CYBERNETIC CURSOR (Desktop Fine Pointer Only)
    ========================================================================== */
 @media (hover: hover) and (pointer: fine) {
+  /* Complete suppression of default Windows OS cursor when custom cybernetic cursor is active */
+  html.has-custom-cursor,
+  html.has-custom-cursor body,
+  html.has-custom-cursor a,
+  html.has-custom-cursor button,
+  html.has-custom-cursor [role="button"],
+  html.has-custom-cursor .btn-pill,
+  html.has-custom-cursor .btn-icon,
+  html.has-custom-cursor input,
+  html.has-custom-cursor textarea,
+  html.has-custom-cursor select,
+  html.has-custom-cursor label,
+  html.has-custom-cursor summary,
+  html.has-custom-cursor code,
+  html.has-custom-cursor span,
+  html.has-custom-cursor p,
+  html.has-custom-cursor h1,
+  html.has-custom-cursor h2,
+  html.has-custom-cursor h3,
+  html.has-custom-cursor h4 {
+    cursor: none !important;
+  }
+
   .precision-cursor-dot {
     position: fixed;
     top: 0;
@@ -1253,111 +1301,127 @@ html.light .mobile-menu-overlay {
     height: 6px;
     border-radius: 50%;
     background: #00E5FF;
-    box-shadow: 0 0 8px #00E5FF, 0 0 16px rgba(0, 229, 255, 0.6);
-    pointer-events: none;
+    box-shadow: 0 0 10px #00E5FF, 0 0 20px rgba(0, 229, 255, 0.7);
+    pointer-events: none !important;
     z-index: 999999;
-    margin: -3px 0 0 -3px;
-    transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease, opacity 0.25s ease, box-shadow 0.2s ease;
-    will-change: transform, opacity;
+    opacity: 0;
+    will-change: transform;
+    transition: opacity 0.2s ease, width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   .precision-cursor-ring {
     position: fixed;
     top: 0;
     left: 0;
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     border: 1.5px solid rgba(0, 229, 255, 0.55);
-    background: radial-gradient(circle, rgba(0, 229, 255, 0.08) 0%, transparent 70%);
-    pointer-events: none;
+    background: radial-gradient(circle, rgba(0, 229, 255, 0.09) 0%, transparent 70%);
+    pointer-events: none !important;
     z-index: 999998;
-    margin: -17px 0 0 -17px;
-    transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-                height 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-                margin 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-                border-color 0.2s ease,
-                background-color 0.2s ease,
-                box-shadow 0.2s ease,
-                opacity 0.25s ease;
-    will-change: transform, opacity;
+    opacity: 0;
+    will-change: transform;
+    transition: opacity 0.2s ease, width 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
   }
 
+  .precision-cursor-ripple {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid #00E5FF;
+    pointer-events: none !important;
+    z-index: 999997;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease-out;
+  }
+
+  .precision-cursor-ripple.ripple-active {
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(2.4);
+  }
+
+  /* Hover State (Links, Buttons, Interactive Cards) */
   .precision-cursor-ring.cursor-hover {
     width: 52px;
     height: 52px;
-    margin: -26px 0 0 -26px;
     border-color: rgba(139, 92, 246, 0.85);
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.14) 0%, rgba(6, 182, 212, 0.06) 65%, transparent 80%);
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.35);
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.16) 0%, rgba(6, 182, 212, 0.08) 65%, transparent 80%);
+    box-shadow: 0 0 24px rgba(139, 92, 246, 0.4);
   }
 
   .precision-cursor-dot.cursor-hover {
     width: 8px;
     height: 8px;
-    margin: -4px 0 0 -4px;
     background: #A855F7;
-    box-shadow: 0 0 10px #A855F7, 0 0 20px rgba(168, 85, 247, 0.7);
+    box-shadow: 0 0 12px #A855F7, 0 0 24px rgba(168, 85, 247, 0.8);
   }
 
+  /* Active / Pressed State */
   .precision-cursor-ring.cursor-active {
-    width: 24px;
-    height: 24px;
-    margin: -12px 0 0 -12px;
+    width: 26px;
+    height: 26px;
     border-color: #10B981;
-    background: rgba(16, 185, 129, 0.22);
-    box-shadow: 0 0 16px rgba(16, 185, 129, 0.5);
+    background: rgba(16, 185, 129, 0.25);
+    box-shadow: 0 0 18px rgba(16, 185, 129, 0.6);
   }
 
   .precision-cursor-dot.cursor-active {
+    width: 6px;
+    height: 6px;
     background: #10B981;
-    box-shadow: 0 0 10px #10B981;
+    box-shadow: 0 0 12px #10B981;
   }
 
+  /* Text Input State */
   .precision-cursor-ring.cursor-text {
-    width: 4px;
-    height: 24px;
+    width: 3px;
+    height: 22px;
     border-radius: 2px;
-    margin: -12px 0 0 -2px;
-    border-color: var(--accent-cyan);
-    background: var(--accent-cyan);
-    box-shadow: 0 0 10px var(--accent-cyan);
+    border: none;
+    background: #00E5FF;
+    box-shadow: 0 0 10px #00E5FF;
   }
 
   .precision-cursor-dot.cursor-text {
-    opacity: 0;
-  }
-
-  .cursor-hidden {
     opacity: 0 !important;
   }
 
-  /* Light Theme Cursor Tuning */
+  /* Light Theme Tuning */
   html.light .precision-cursor-dot {
     background: #0284C7;
-    box-shadow: 0 0 8px rgba(2, 132, 199, 0.8);
+    box-shadow: 0 0 10px rgba(2, 132, 199, 0.85);
   }
 
   html.light .precision-cursor-ring {
-    border-color: rgba(2, 132, 199, 0.6);
-    background: radial-gradient(circle, rgba(2, 132, 199, 0.08) 0%, transparent 70%);
+    border-color: rgba(2, 132, 199, 0.65);
+    background: radial-gradient(circle, rgba(2, 132, 199, 0.1) 0%, transparent 70%);
+  }
+
+  html.light .precision-cursor-ripple {
+    border-color: #0284C7;
   }
 
   html.light .precision-cursor-ring.cursor-hover {
-    border-color: rgba(124, 58, 237, 0.8);
-    background: radial-gradient(circle, rgba(124, 58, 237, 0.12) 0%, transparent 70%);
-    box-shadow: 0 0 16px rgba(124, 58, 237, 0.25);
+    border-color: rgba(124, 58, 237, 0.85);
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, transparent 70%);
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.35);
   }
 
   html.light .precision-cursor-dot.cursor-hover {
     background: #7C3AED;
-    box-shadow: 0 0 10px rgba(124, 58, 237, 0.7);
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.8);
   }
 }
 
 @media (hover: none) or (pointer: coarse) {
   .precision-cursor-dot,
-  .precision-cursor-ring {
+  .precision-cursor-ring,
+  .precision-cursor-ripple {
     display: none !important;
   }
 }
