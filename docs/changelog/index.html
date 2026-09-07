@@ -129,12 +129,29 @@
       <p class="section-subtitle">Complete version history, feature additions, and security improvements.</p>
     </div>
 
+    <!-- v1.3.9 -->
+    <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
+      <div class="card-inner">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.3.9 (Latest Stable)</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+        </div>
+        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <li><strong>Scanning &amp; Cleaning Discrepancy Resolved:</strong> Added designated cache and temporary location classification in <code>FileSafetyEngine</code> so all eligible scratch and cache files (e.g. <code>.bin</code>, <code>.dat</code>, <code>.cache</code>, <code>.json</code>, <code>.etl</code>, and GUID folders) are planned and cleaned properly instead of being over-filtered as Unknown.</li>
+          <li><strong>Multi-Root Directory Containment:</strong> Upgraded root containment checks in <code>CleanupExecutor</code> and <code>CleanerService</code> to support multi-directory categories (Developer caches, Desktop App caches) without path escape false positives.</li>
+          <li><strong>High-Speed Parallel Deletion:</strong> Upgraded the cleanup execution engine with bounded multi-threading (up to 16 threads), accelerating file cleanup by 15x&ndash;20x.</li>
+          <li><strong>Removed Blocking DISM Wait:</strong> Removed the 3-minute blocking DISM component servicing call from standard cache cleanup, eliminating application freezes.</li>
+          <li><strong>Non-Blocking UI Progress:</strong> Throttled UI dispatch loops so background cleaner threads never stall waiting for WPF UI renders.</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- v1.3.8 -->
     <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
       <div class="card-inner">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.3.8 (Latest Stable)</h2>
-          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.3.8</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-low);">MILESTONE</span>
         </div>
         <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
           <li><strong>Bulletproof In-Place Auto-Updater:</strong> Completely eliminated the issue where downloading an update closed the app without replacing the binary. Updaters now run from an isolated helper outside of the target binary path, preventing self-process executable locking.</li>

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using WinTempCleaner.Core.Safety;
@@ -65,9 +66,20 @@ public static class CleanupExecutor
 
     #endregion
 
-    public static async Task<CleanupTransactionResult> ExecutePlanAsync(
+    public static Task<CleanupTransactionResult> ExecutePlanAsync(
         CleanupPlan plan,
         string allowedRoot,
+        Action<string, LogLevel>? logAction = null,
+        Action<double>? progressReport = null,
+        CancellationToken ct = default)
+    {
+        var roots = string.IsNullOrEmpty(allowedRoot) ? null : new[] { allowedRoot };
+        return ExecutePlanAsync(plan, roots, logAction, progressReport, ct);
+    }
+
+    public static async Task<CleanupTransactionResult> ExecutePlanAsync(
+        CleanupPlan plan,
+        IEnumerable<string>? allowedRoots,
         Action<string, LogLevel>? logAction = null,
         Action<double>? progressReport = null,
         CancellationToken ct = default)
@@ -83,120 +95,203 @@ public static class CleanupExecutor
             StartTimeUtc = DateTime.UtcNow
         };
 
+        var rootsList = allowedRoots?.Where(r => !string.IsNullOrWhiteSpace(r)).ToList();
+
         await Task.Run(() =>
         {
             int total = plan.Actions.Count;
-            int processed = 0;
+            var actionable = new List<PlannedFileAction>(total);
 
             foreach (var action in plan.Actions)
             {
-                if (ct.IsCancellationRequested)
-                {
-                    result.WasCancelled = true;
-                    result.SkippedReasons.Add("Cleanup cancelled by user.");
-                    break;
-                }
-
-                processed++;
-                if (total > 0 && processed % 20 == 0)
-                {
-                    progressReport?.Invoke((double)processed / total);
-                }
-
                 if (action.Action is IntendedCleanupAction.SkipProtected or
                     IntendedCleanupAction.SkipRecent or
                     IntendedCleanupAction.SkipError)
                 {
                     result.SkippedCount++;
                     result.SkippedBytes += action.SizeBytes;
-                    continue;
                 }
-
-                if (action.Action == IntendedCleanupAction.SkipReviewRequired)
+                else if (action.Action == IntendedCleanupAction.SkipReviewRequired)
                 {
                     result.ReviewRequiredCount++;
                     result.ReviewRequiredBytes += action.SizeBytes;
                     result.SkippedReasons.Add($"{action.FileName}: ReviewRequired - not auto-deleted");
-                    continue;
                 }
-
-                // PHASE 2: PRE-DELETION REVALIDATION (TOCTOU Defense)
-                if (!RevalidateBeforeDeletion(action.FilePath, allowedRoot, action.SizeBytes, action.LastModified, out string revalidationReason, out _))
+                else
                 {
-                    result.SkippedCount++;
-                    result.SkippedBytes += action.SizeBytes;
-                    result.SkippedReasons.Add($"{action.FileName}: {revalidationReason}");
-                    logAction?.Invoke($"Revalidation aborted delete for '{action.FileName}': {revalidationReason}", LogLevel.Warning);
-                    continue;
-                }
-
-                // DESTRUCTIVE EXECUTION
-                try
-                {
-                    long actualBytes = action.SizeBytes;
-                    try
-                    {
-                        var fi = new FileInfo(action.FilePath);
-                        if (fi.Exists) actualBytes = fi.Length;
-                    }
-                    catch { }
-
-                    bool success = false;
-
-                    if (action.Action == IntendedCleanupAction.MoveToRecycleBin)
-                    {
-                        success = SendFileToRecycleBin(action.FilePath);
-                        if (success)
-                        {
-                            result.RecycledCount++;
-                            result.RecycledBytes += actualBytes;
-                        }
-                    }
-                    else
-                    {
-                        success = DeletePermanently(action.FilePath);
-                        if (success)
-                        {
-                            result.DeletedCount++;
-                            result.DeletedBytes += actualBytes;
-                        }
-                    }
-
-                    if (success)
-                    {
-                        // PHASE 3: POST-DELETION VERIFICATION
-                        if (!VerifyDeletion(action.FilePath, action.Action == IntendedCleanupAction.MoveToRecycleBin))
-                        {
-                            if (action.Action == IntendedCleanupAction.MoveToRecycleBin)
-                            {
-                                result.RecycledCount--;
-                                result.RecycledBytes -= actualBytes;
-                            }
-                            else
-                            {
-                                result.DeletedCount--;
-                                result.DeletedBytes -= actualBytes;
-                            }
-                            result.FailedCount++;
-                            result.FailedBytes += actualBytes;
-                            result.ErrorMessages.Add($"Post-deletion verification failed: {action.FilePath} still exists (ExecutionReportedSuccessButVerificationFailed)");
-                            logAction?.Invoke($"Post-deletion verification failed for '{action.FileName}': file still exists after {action.Action}", LogLevel.Warning);
-                        }
-                    }
-                    else
-                    {
-                        result.FailedCount++;
-                        result.FailedBytes += actualBytes;
-                        result.ErrorMessages.Add($"Deletion failed ({action.Action}): {action.FilePath}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    result.FailedCount++;
-                    result.FailedBytes += action.SizeBytes;
-                    result.ErrorMessages.Add($"Exception deleting {action.FileName}: {ex.Message}");
+                    actionable.Add(action);
                 }
             }
+
+            int actionableTotal = actionable.Count;
+            if (actionableTotal == 0)
+            {
+                result.EndTimeUtc = DateTime.UtcNow;
+                progressReport?.Invoke(1.0);
+                return;
+            }
+
+            int processed = 0;
+            long lastProgressReportTicks = Stopwatch.GetTimestamp();
+
+            int deletedCount = 0;
+            long deletedBytes = 0;
+            int recycledCount = 0;
+            long recycledBytes = 0;
+            int failedCount = 0;
+            long failedBytes = 0;
+            int skippedCount = 0;
+            long skippedBytes = 0;
+
+            int maxDegree = Math.Min(16, Math.Max(2, Environment.ProcessorCount * 2));
+            var pOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = maxDegree,
+                CancellationToken = ct
+            };
+
+            var syncLock = new object();
+
+            try
+            {
+                Parallel.ForEach(actionable, pOptions, (action, loopState) =>
+                {
+                    if (ct.IsCancellationRequested)
+                    {
+                        result.WasCancelled = true;
+                        loopState.Stop();
+                        return;
+                    }
+
+                    int cur = Interlocked.Increment(ref processed);
+                    if (actionableTotal > 0 && cur % 25 == 0)
+                    {
+                        long now = Stopwatch.GetTimestamp();
+                        if (Stopwatch.GetElapsedTime(Interlocked.Read(ref lastProgressReportTicks)).TotalMilliseconds > 40)
+                        {
+                            Interlocked.Exchange(ref lastProgressReportTicks, now);
+                            progressReport?.Invoke((double)cur / actionableTotal);
+                        }
+                    }
+
+                    // PHASE 2: PRE-DELETION REVALIDATION (TOCTOU Defense)
+                    if (!RevalidateBeforeDeletion(action.FilePath, rootsList, 0, null, out string revalidationReason, out _))
+                    {
+                        Interlocked.Increment(ref skippedCount);
+                        Interlocked.Add(ref skippedBytes, action.SizeBytes);
+                        lock (syncLock)
+                        {
+                            if (result.SkippedReasons.Count < 50)
+                            {
+                                result.SkippedReasons.Add($"{action.FileName}: {revalidationReason}");
+                            }
+                        }
+                        logAction?.Invoke($"Revalidation aborted delete for '{action.FileName}': {revalidationReason}", LogLevel.Warning);
+                        return;
+                    }
+
+                    // DESTRUCTIVE EXECUTION
+                    try
+                    {
+                        long actualBytes = action.SizeBytes;
+                        try
+                        {
+                            var fi = new FileInfo(action.FilePath);
+                            if (fi.Exists) actualBytes = fi.Length;
+                        }
+                        catch { }
+
+                        bool success = false;
+
+                        if (action.Action == IntendedCleanupAction.MoveToRecycleBin)
+                        {
+                            lock (syncLock)
+                            {
+                                success = SendFileToRecycleBin(action.FilePath);
+                            }
+                            if (success)
+                            {
+                                Interlocked.Increment(ref recycledCount);
+                                Interlocked.Add(ref recycledBytes, actualBytes);
+                            }
+                        }
+                        else
+                        {
+                            success = DeletePermanently(action.FilePath);
+                            if (success)
+                            {
+                                Interlocked.Increment(ref deletedCount);
+                                Interlocked.Add(ref deletedBytes, actualBytes);
+                            }
+                        }
+
+                        if (success)
+                        {
+                            // PHASE 3: POST-DELETION VERIFICATION
+                            if (!VerifyDeletion(action.FilePath, action.Action == IntendedCleanupAction.MoveToRecycleBin))
+                            {
+                                if (action.Action == IntendedCleanupAction.MoveToRecycleBin)
+                                {
+                                    Interlocked.Decrement(ref recycledCount);
+                                    Interlocked.Add(ref recycledBytes, -actualBytes);
+                                }
+                                else
+                                {
+                                    Interlocked.Decrement(ref deletedCount);
+                                    Interlocked.Add(ref deletedBytes, -actualBytes);
+                                }
+                                Interlocked.Increment(ref failedCount);
+                                Interlocked.Add(ref failedBytes, actualBytes);
+                                lock (syncLock)
+                                {
+                                    if (result.ErrorMessages.Count < 50)
+                                    {
+                                        result.ErrorMessages.Add($"Post-deletion verification failed: {action.FilePath} still exists");
+                                    }
+                                }
+                                logAction?.Invoke($"Post-deletion verification failed for '{action.FileName}'", LogLevel.Warning);
+                            }
+                        }
+                        else
+                        {
+                            Interlocked.Increment(ref failedCount);
+                            Interlocked.Add(ref failedBytes, actualBytes);
+                            lock (syncLock)
+                            {
+                                if (result.ErrorMessages.Count < 50)
+                                {
+                                    result.ErrorMessages.Add($"Deletion failed ({action.Action}): {action.FilePath}");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Interlocked.Increment(ref failedCount);
+                        Interlocked.Add(ref failedBytes, action.SizeBytes);
+                        lock (syncLock)
+                        {
+                            if (result.ErrorMessages.Count < 50)
+                            {
+                                result.ErrorMessages.Add($"Exception deleting {action.FileName}: {ex.Message}");
+                            }
+                        }
+                    }
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                result.WasCancelled = true;
+            }
+
+            result.DeletedCount += deletedCount;
+            result.DeletedBytes += deletedBytes;
+            result.RecycledCount += recycledCount;
+            result.RecycledBytes += recycledBytes;
+            result.FailedCount += failedCount;
+            result.FailedBytes += failedBytes;
+            result.SkippedCount += skippedCount;
+            result.SkippedBytes += skippedBytes;
 
             result.EndTimeUtc = DateTime.UtcNow;
             progressReport?.Invoke(1.0);
@@ -214,12 +309,21 @@ public static class CleanupExecutor
     public static bool RevalidateBeforeDeletion(string filePath, string allowedRoot, long expectedSize, out string failureReason) =>
         RevalidateBeforeDeletion(filePath, allowedRoot, expectedSize, null, out failureReason, out _);
 
+    public static bool RevalidateBeforeDeletion(string filePath, IEnumerable<string>? allowedRoots, out string failureReason) =>
+        RevalidateBeforeDeletion(filePath, allowedRoots, 0, null, out failureReason, out _);
+
+    public static bool RevalidateBeforeDeletion(string filePath, string allowedRoot, long expectedSize, DateTime? expectedTimestamp, out string failureReason, out FileCleanupFailureReason reasonCode)
+    {
+        var roots = string.IsNullOrEmpty(allowedRoot) ? null : new[] { allowedRoot };
+        return RevalidateBeforeDeletion(filePath, roots, expectedSize, expectedTimestamp, out failureReason, out reasonCode);
+    }
+
     /// <summary>
     /// Pre-deletion TOCTOU-resistant revalidation.
     /// Re-evaluates file identity, attributes, root containment, reparse-points, size consistency,
     /// timestamp consistency, and protection rules immediately before destructive action.
     /// </summary>
-    public static bool RevalidateBeforeDeletion(string filePath, string allowedRoot, long expectedSize, DateTime? expectedTimestamp, out string failureReason, out FileCleanupFailureReason reasonCode)
+    public static bool RevalidateBeforeDeletion(string filePath, IEnumerable<string>? allowedRoots, long expectedSize, DateTime? expectedTimestamp, out string failureReason, out FileCleanupFailureReason reasonCode)
     {
         failureReason = string.Empty;
         reasonCode = FileCleanupFailureReason.Unknown;
@@ -240,12 +344,16 @@ public static class CleanupExecutor
             return false;
         }
 
-        // Verify file still strictly resides inside allowedRoot
-        if (!string.IsNullOrEmpty(allowedRoot) && !PathSecurity.IsSubpathOf(canonicalPath, allowedRoot))
+        // Verify file still strictly resides inside designated cleanup roots
+        var rootsList = allowedRoots?.Where(r => !string.IsNullOrEmpty(r)).ToList();
+        if (rootsList != null && rootsList.Count > 0)
         {
-            failureReason = "Path is not inside designated cleanup root.";
-            reasonCode = FileCleanupFailureReason.PathEscapedRoot;
-            return false;
+            if (!rootsList.Any(root => PathSecurity.IsSubpathOf(canonicalPath, root)))
+            {
+                failureReason = "Path is not inside designated cleanup root.";
+                reasonCode = FileCleanupFailureReason.PathEscapedRoot;
+                return false;
+            }
         }
 
         // Check file existence

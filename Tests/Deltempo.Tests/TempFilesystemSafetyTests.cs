@@ -277,4 +277,54 @@ public class TempFilesystemSafetyTests : IDisposable
         Assert.False(new CleanupTransactionResult { DeletedCount = 0, FailedCount = 1 }.Success);
         Assert.False(new CleanupTransactionResult { WasCancelled = true, DeletedCount = 0 }.Success);
     }
+
+    [Fact]
+    public async Task ExecutePlanAsync_WithMultipleAllowedRoots_DeletesAcrossAllRoots()
+    {
+        string subDir1 = Path.Combine(_sandboxDir, "root1");
+        string subDir2 = Path.Combine(_sandboxDir, "root2");
+        Directory.CreateDirectory(subDir1);
+        Directory.CreateDirectory(subDir2);
+
+        string f1 = Path.Combine(subDir1, "data1.tmp");
+        string f2 = Path.Combine(subDir2, "data2.tmp");
+        File.WriteAllText(f1, "test1");
+        File.WriteAllText(f2, "test2");
+
+        var plan = CleanupPlanner.CreatePlan(
+            "multi_root_scope",
+            "Multi Root Scope",
+            new[] { subDir1, subDir2 },
+            "Temp",
+            apply24HourShield: false);
+
+        var result = await CleanupExecutor.ExecutePlanAsync(plan, new[] { subDir1, subDir2 });
+
+        Assert.Equal(2, result.DeletedCount);
+        Assert.False(File.Exists(f1));
+        Assert.False(File.Exists(f2));
+    }
+
+    [Fact]
+    public async Task ExecutePlanAsync_ParallelExecution_DeletesMultipleFiles()
+    {
+        int fileCount = 20;
+        for (int i = 0; i < fileCount; i++)
+        {
+            string path = Path.Combine(_sandboxDir, $"batch_{i}.tmp");
+            File.WriteAllText(path, $"content {i}");
+        }
+
+        var plan = CleanupPlanner.CreatePlan(
+            "batch_scope",
+            "Batch Scope",
+            new[] { _sandboxDir },
+            "Temp",
+            apply24HourShield: false);
+
+        var result = await CleanupExecutor.ExecutePlanAsync(plan, _sandboxDir);
+
+        Assert.Equal(fileCount, result.DeletedCount);
+        Assert.Equal(0, result.FailedCount);
+    }
 }

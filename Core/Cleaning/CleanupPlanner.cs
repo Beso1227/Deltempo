@@ -54,10 +54,14 @@ public static class CleanupPlanner
                         if (PathSecurity.IsReparsePointOrLink(file)) continue;
 
                         var safetyResult = FileSafetyEngine.Analyze(
-                            file.FullName,
-                            category,
+                            filePath: file.FullName,
+                            fileName: file.Name,
+                            category: category,
+                            sizeBytes: file.Length,
+                            lastModified: file.LastWriteTimeUtc,
                             allowedRoot: canonicalDir,
-                            apply24HourThreshold: apply24HourShield);
+                            apply24HourThreshold: apply24HourShield,
+                            allowedRoots: directories);
 
                         var intendedAction = DetermineAction(safetyResult.Tier, sendToRecycleBin, apply24HourShield);
 
