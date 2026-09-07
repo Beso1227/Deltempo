@@ -86,8 +86,6 @@
       active: false,
     };
 
-    const shockwaves = [];
-
     function resize() {
       width = window.innerWidth;
       height = window.innerHeight;
@@ -194,21 +192,6 @@
           }
         }
 
-        // Apply shockwave impulses
-        for (let i = shockwaves.length - 1; i >= 0; i--) {
-          const sw = shockwaves[i];
-          const sdx = this.x - sw.x;
-          const sdy = this.y - sw.y;
-          const sDist = Math.sqrt(sdx * sdx + sdy * sdy);
-          const diff = Math.abs(sDist - sw.radius);
-          if (diff < 40) {
-            const push = (1 - diff / 40) * (sw.maxRadius - sw.radius) * 0.08;
-            const angle = Math.atan2(sdy, sdx);
-            this.x += Math.cos(angle) * push;
-            this.y += Math.sin(angle) * push;
-          }
-        }
-
         this.x += this.vx;
         this.y += this.vy;
 
@@ -250,22 +233,6 @@
       particles.push(new Particle());
     }
 
-    // Trigger shockwave impulse on click
-    window.addEventListener(
-      'pointerdown',
-      function (e) {
-        shockwaves.push({
-          x: e.clientX,
-          y: e.clientY,
-          radius: 10,
-          maxRadius: 220,
-          speed: 8,
-          alpha: 0.7,
-        });
-      },
-      { passive: true }
-    );
-
     const maxConnectionDistance = isMobile ? 95 : 140;
     const maxMouseDistance = isMobile ? 120 : 180;
 
@@ -278,25 +245,7 @@
 
       const isLight = document.documentElement.classList.contains('light');
 
-      // 1. Update and render shockwaves
-      for (let i = shockwaves.length - 1; i >= 0; i--) {
-        const sw = shockwaves[i];
-        sw.radius += sw.speed;
-        sw.alpha = Math.max(0, 0.7 * (1 - sw.radius / sw.maxRadius));
-
-        if (sw.radius >= sw.maxRadius || sw.alpha <= 0) {
-          shockwaves.splice(i, 1);
-          continue;
-        }
-
-        ctx.beginPath();
-        ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(${isLight ? '2, 132, 199' : '0, 229, 255'}, ${sw.alpha * 0.6})`;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-
-      // 2. Update and render particles
+      // 1. Update and render particles
       for (let i = 0; i < particles.length; i++) {
         particles[i].update();
         particles[i].draw(isLight);
@@ -427,7 +376,6 @@
     // Create cursor DOM elements if not already present
     let dot = document.querySelector('.precision-cursor-dot');
     let ring = document.querySelector('.precision-cursor-ring');
-    let ripple = document.querySelector('.precision-cursor-ripple');
 
     if (!dot) {
       dot = document.createElement('div');
@@ -441,13 +389,6 @@
       ring.className = 'precision-cursor-ring';
       ring.setAttribute('aria-hidden', 'true');
       document.body.appendChild(ring);
-    }
-
-    if (!ripple) {
-      ripple = document.createElement('div');
-      ripple.className = 'precision-cursor-ripple';
-      ripple.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(ripple);
     }
 
     let mouseX = -100;
@@ -497,18 +438,12 @@
       ring.style.opacity = '1';
     });
 
-    // Active click states and ripple pulse
+    // Active click states
     window.addEventListener(
       'pointerdown',
-      function (e) {
+      function () {
         dot.classList.add('cursor-active');
         ring.classList.add('cursor-active');
-
-        ripple.style.left = e.clientX + 'px';
-        ripple.style.top = e.clientY + 'px';
-        ripple.classList.remove('ripple-active');
-        void ripple.offsetWidth; // Trigger reflow
-        ripple.classList.add('ripple-active');
       },
       { passive: true }
     );
