@@ -1567,3 +1567,90 @@ html.light .mobile-menu-overlay {
     transform: none !important;
   }
 }
+
+/* ==========================================================================
+   Deltempo vs Traditional Cleaners Comparison Matrix
+   ========================================================================== */
+.comparison-wrapper {
+  margin-top: 2.5rem;
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  -webkit-overflow-scrolling: touch;
+}
+
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.compare-table th {
+  padding: 1.25rem 1.5rem;
+  background: rgba(10, 13, 20, 0.9);
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-high);
+  white-space: nowrap;
+}
+
+.compare-table th.highlight {
+  color: var(--accent-cyan);
+  background: rgba(0, 229, 255, 0.07);
+  border-left: 1px solid var(--accent-cyan-border);
+  border-right: 1px solid var(--accent-cyan-border);
+  position: relative;
+}
+
+.compare-table td {
+  padding: 1.15rem 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-med);
+  vertical-align: middle;
+}
+
+.compare-table td.highlight {
+  color: var(--text-high);
+  background: rgba(0, 229, 255, 0.03);
+  border-left: 1px solid var(--accent-cyan-border);
+  border-right: 1px solid var(--accent-cyan-border);
+  font-weight: 600;
+}
+
+.compare-table tr:last-child td {
+  border-bottom: none;
+}
+
+.badge-tag-safe {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--accent-emerald-bg);
+  color: var(--accent-emerald);
+  border: 1px solid var(--accent-emerald-border);
+}
+
+.badge-tag-bad {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(239, 68, 68, 0.12);
+  color: #F87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+@media (max-width: 640px) {
+  .compare-table th, .compare-table td {
+    padding: 0.85rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
