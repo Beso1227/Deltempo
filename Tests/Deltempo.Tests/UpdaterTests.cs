@@ -356,6 +356,30 @@ public class TransactionJournalTests : IDisposable
     }
 
     [Fact]
+    public void TransitionTo_SelfTransition_DoesNotThrow()
+    {
+        var journal = new TransactionJournal { TransactionId = "test-tx-self" };
+        // Initial state is Discovered. Transitioning to Discovered should succeed idempotently.
+        journal.TransitionTo(TransactionState.Discovered);
+        Assert.Equal(TransactionState.Discovered, journal.State);
+
+        journal.TransitionTo(TransactionState.Downloaded);
+        journal.TransitionTo(TransactionState.Downloaded);
+        Assert.Equal(TransactionState.Downloaded, journal.State);
+    }
+
+    [Fact]
+    public void NextState_SelfTransition_ReturnsCurrentState()
+    {
+        Assert.Equal(TransactionState.Discovered,
+            TransactionJournal.NextState(TransactionState.Discovered, TransactionState.Discovered));
+        Assert.Equal(TransactionState.Downloaded,
+            TransactionJournal.NextState(TransactionState.Downloaded, TransactionState.Downloaded));
+        Assert.Equal(TransactionState.Committed,
+            TransactionJournal.NextState(TransactionState.Committed, TransactionState.Committed));
+    }
+
+    [Fact]
     public void SaveAndLoad_PersistsCorrectly()
     {
         string txId = Guid.NewGuid().ToString("N");

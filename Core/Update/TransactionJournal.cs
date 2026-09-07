@@ -84,6 +84,9 @@ public class TransactionJournal
     /// </summary>
     public static TransactionState? NextState(TransactionState current, TransactionState desired)
     {
+        if (current == desired)
+            return desired;
+
         return current switch
         {
             TransactionState.Discovered when desired == TransactionState.Downloaded => desired,
