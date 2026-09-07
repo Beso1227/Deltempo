@@ -267,7 +267,7 @@ public static class UpdateService
             ExpectedSizeBytes = 0,
             CallerPid = Environment.ProcessId
         };
-        journal.TransitionTo(TransactionState.Discovered);
+        journal.Save();
 
         try
         {
