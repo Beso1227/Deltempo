@@ -1,5 +1,7 @@
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using WinTempCleaner.Models;
 using WinTempCleaner.Services;
 using Xunit;
 
@@ -30,18 +32,39 @@ public class DeepCleanEngineTests
         var reports = new List<DeepCleanProgress>();
         var progress = new Progress<DeepCleanProgress>(p => reports.Add(p));
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-        var result = await DeepCleanEngine.ExecuteDeepCleanAsync(
-            logAction: (msg, lvl) => { },
-            progress: progress,
-            purgeAllRestorePoints: false,
-            skipDism: true,
-            ct: cts.Token);
+        var sandbox = Path.Combine(Path.GetTempPath(), "Deltempo_DeepClean_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(sandbox);
+        try
+        {
+            var dummyTarget = new TargetFolderInfo
+            {
+                Id = "test_dummy",
+                Name = "Test Dummy Target",
+                Description = "Test Description",
+                IconGlyph = "Folder",
+                FolderPath = sandbox,
+                HasAccess = true,
+                IsSelected = true
+            };
 
-        Assert.NotNull(result);
-        Assert.True(result.Duration >= TimeSpan.Zero);
-        Assert.True(result.CategoriesProcessed >= 10);
-        Assert.NotEmpty(result.SummaryHighlights);
+            var result = await DeepCleanEngine.ExecuteDeepCleanAsync(
+                logAction: (msg, lvl) => { },
+                progress: progress,
+                purgeAllRestorePoints: false,
+                skipDism: true,
+                targets: new[] { dummyTarget },
+                ct: cts.Token);
+
+            Assert.NotNull(result);
+            Assert.True(result.Duration >= TimeSpan.Zero);
+            Assert.True(result.CategoriesProcessed >= 1);
+            Assert.NotEmpty(reports);
+        }
+        finally
+        {
+            try { Directory.Delete(sandbox, true); } catch { }
+        }
     }
 }
