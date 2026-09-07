@@ -813,6 +813,22 @@ public class CleanerServiceTests : IDisposable
         var ex = Record.Exception(() => TrayService.CheckLowDiskSpaceAndNotify(telemetry));
         Assert.Null(ex);
     }
+
+    [Fact]
+    public void TrayService_OperationsSafeWhenUninitialized()
+    {
+        var ex1 = Record.Exception(() => TrayService.UpdateTooltip());
+        var ex2 = Record.Exception(() => TrayService.RestoreMainWindow());
+        var ex3 = Record.Exception(() => TrayService.ShowNotification("Test", "Message"));
+        var ex4 = Record.Exception(() => TrayService.MinimizeToTray());
+        var ex5 = Record.Exception(() => TrayService.Dispose());
+
+        Assert.Null(ex1);
+        Assert.Null(ex2);
+        Assert.Null(ex3);
+        Assert.Null(ex4);
+        Assert.Null(ex5);
+    }
 }
 
 

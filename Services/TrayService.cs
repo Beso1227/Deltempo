@@ -15,22 +15,39 @@ public static class TrayService
     private static Action? _onCleanSafeNow;
     private static Action? _onOpenSettings;
     private static Func<Task<MemoryOptimizationResult>>? _onOptimizeRam;
+    private static Func<Task<MemoryOptimizationResult>>? _onPurgeStandby;
+    private static Action? _onCheckUpdates;
     private static HwndSource? _hwndSource;
     private static bool _isInitialized;
     private static IntPtr _hIcon = IntPtr.Zero;
+    private static int _wmTaskbarCreated;
+    private static DateTime _lastHoverTime = DateTime.MinValue;
 
     private const int WM_USER = 0x0400;
     private const int WM_TRAYICON = WM_USER + 101;
+    private const int WM_MOUSEMOVE = 0x0200;
+    private const int WM_LBUTTONUP = 0x0202;
     private const int WM_LBUTTONDBLCLK = 0x0203;
     private const int WM_RBUTTONUP = 0x0205;
+    private const int WM_CONTEXTMENU = 0x007B;
+    private const int WM_NULL = 0x0000;
+
     private const int NIM_ADD = 0x00000000;
     private const int NIM_MODIFY = 0x00000001;
     private const int NIM_DELETE = 0x00000002;
+    private const int NIM_SETVERSION = 0x00000004;
+
     private const int NIF_MESSAGE = 0x00000001;
     private const int NIF_ICON = 0x00000002;
     private const int NIF_TIP = 0x00000004;
     private const int NIF_INFO = 0x00000010;
+
     private const int NIIF_INFO = 0x00000001;
+    private const int NIIF_USER = 0x00000004;
+    private const int NIIF_LARGE_ICON = 0x00000020;
+
+    private const int SM_CXSMICON = 49;
+    private const int SM_CYSMICON = 50;
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct NOTIFYICONDATA
@@ -59,22 +76,45 @@ public static class TrayService
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hWnd);
 
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    private static extern IntPtr ExtractIconW(IntPtr hInst, string lpszExeFileName, int nIconIndex);
+    [DllImport("user32.dll")]
+    private static extern bool PostMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr CreateIconFromResourceEx(
+        byte[] pbIconBits,
+        uint cbIconBits,
+        bool fIcon,
+        uint dwVersion,
+        int cxDesired,
+        int cyDesired,
+        uint uFlags);
+
+    [DllImport("user32.dll")]
+    private static extern int GetSystemMetrics(int nIndex);
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    private static extern int ExtractIconExW(string lpszFile, int nIconIndex, out IntPtr phiconLarge, out IntPtr phiconSmall, int nIcons);
 
     [DllImport("user32.dll")]
     private static extern bool DestroyIcon(IntPtr hIcon);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int RegisterWindowMessage(string lpString);
 
     public static void Initialize(
         Window mainWindow,
         Action onCleanSafeNow,
         Action onOpenSettings,
-        Func<Task<MemoryOptimizationResult>>? onOptimizeRam = null)
+        Func<Task<MemoryOptimizationResult>>? onOptimizeRam = null,
+        Func<Task<MemoryOptimizationResult>>? onPurgeStandby = null,
+        Action? onCheckUpdates = null)
     {
         _mainWindow = mainWindow;
         _onCleanSafeNow = onCleanSafeNow;
         _onOpenSettings = onOpenSettings;
         _onOptimizeRam = onOptimizeRam;
+        _onPurgeStandby = onPurgeStandby;
+        _onCheckUpdates = onCheckUpdates;
 
         var helper = new WindowInteropHelper(_mainWindow);
         var hWnd = helper.Handle;
@@ -82,60 +122,124 @@ public static class TrayService
         _hwndSource = HwndSource.FromHwnd(hWnd);
         _hwndSource?.AddHook(WndProc);
 
+        _wmTaskbarCreated = RegisterWindowMessage("TaskbarCreated");
+
+        // Load crisp, true-alpha, DPI-native tray icon
+        _hIcon = LoadCrispTrayIcon();
+
+        CreateTrayIcon(hWnd);
+        _isInitialized = true;
+    }
+
+    private static void CreateTrayIcon(IntPtr hWnd)
+    {
+        var nid = CreateNotifyData(hWnd);
+        nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
+        nid.szTip = GetFormattedTooltip();
+        Shell_NotifyIconW(NIM_ADD, ref nid);
+    }
+
+    private static IntPtr LoadCrispTrayIcon()
+    {
+        // 1. Determine optimal icon size for current system scaling/DPI
+        int cx = GetSystemMetrics(SM_CXSMICON);
+        int cy = GetSystemMetrics(SM_CYSMICON);
+        if (cx <= 0) cx = 16;
+        if (cy <= 0) cy = 16;
+
+        byte[]? icoBytes = null;
+
+        // 2. Extract ICO bytes from application pack resource
         try
         {
             var iconUri = new Uri("pack://application:,,,/app.ico", UriKind.Absolute);
             var streamInfo = Application.GetResourceStream(iconUri);
             if (streamInfo != null)
             {
-                using var stream = streamInfo.Stream;
-                using var icon = new System.Drawing.Icon(stream);
-                _hIcon = icon.Handle;
+                using var ms = new MemoryStream();
+                streamInfo.Stream.CopyTo(ms);
+                icoBytes = ms.ToArray();
             }
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
-        }
+        catch { }
 
-        if (_hIcon == IntPtr.Zero)
+        // 3. Fallback: Load directly from file if running unbundled
+        if (icoBytes == null || icoBytes.Length == 0)
         {
             try
             {
-                var icoUri = new Uri("pack://application:,,,/app.ico", UriKind.Absolute);
-                var streamInfo = Application.GetResourceStream(icoUri);
-                if (streamInfo != null)
+                string iconPath = Path.Combine(AppContext.BaseDirectory, "app.ico");
+                if (File.Exists(iconPath))
                 {
-                    using var stream = streamInfo.Stream;
-                    using var ico = new System.Drawing.Icon(stream, 16, 16);
-                    using var bmp = ico.ToBitmap();
-                    _hIcon = bmp.GetHicon();
+                    icoBytes = File.ReadAllBytes(iconPath);
+                }
+            }
+            catch { }
+        }
+
+        // 4. Parse ICO directory and extract the best matching 32-bit PNG/DIB frame
+        if (icoBytes != null && icoBytes.Length > 22)
+        {
+            try
+            {
+                ushort count = BitConverter.ToUInt16(icoBytes, 4);
+                int bestIdx = -1;
+                int bestDiff = int.MaxValue;
+
+                for (int i = 0; i < count; i++)
+                {
+                    int offset = 6 + i * 16;
+                    int w = icoBytes[offset] == 0 ? 256 : icoBytes[offset];
+                    int h = icoBytes[offset + 1] == 0 ? 256 : icoBytes[offset + 1];
+                    int diff = Math.Abs(w - cx);
+                    if (diff < bestDiff)
+                    {
+                        bestDiff = diff;
+                        bestIdx = i;
+                    }
+                }
+
+                if (bestIdx >= 0)
+                {
+                    int entryOffset = 6 + bestIdx * 16;
+                    uint bytesInRes = BitConverter.ToUInt32(icoBytes, entryOffset + 8);
+                    uint imageOffset = BitConverter.ToUInt32(icoBytes, entryOffset + 12);
+
+                    if (imageOffset + bytesInRes <= icoBytes.Length)
+                    {
+                        byte[] frameBytes = new byte[bytesInRes];
+                        Buffer.BlockCopy(icoBytes, (int)imageOffset, frameBytes, 0, (int)bytesInRes);
+
+                        IntPtr hIcon = CreateIconFromResourceEx(frameBytes, (uint)frameBytes.Length, true, 0x00030000, cx, cy, 0);
+                        if (hIcon != IntPtr.Zero)
+                        {
+                            return hIcon;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Frame extraction failed: {ex.Message}");
             }
         }
 
-        if (_hIcon == IntPtr.Zero)
+        // 5. Fallback: Extract small icon from process executable PE
+        try
         {
-            try
+            string exePath = Environment.ProcessPath ?? "";
+            if (!string.IsNullOrEmpty(exePath) && File.Exists(exePath))
             {
-                string exePath = Environment.ProcessPath ?? "";
-                _hIcon = ExtractIconW(IntPtr.Zero, exePath, 0);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                ExtractIconExW(exePath, 0, out _, out IntPtr hSmall, 1);
+                if (hSmall != IntPtr.Zero)
+                {
+                    return hSmall;
+                }
             }
         }
+        catch { }
 
-        var nid = CreateNotifyData(hWnd);
-        nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
-        nid.szTip = GetFormattedTooltip();
-        Shell_NotifyIconW(NIM_ADD, ref nid);
-        _isInitialized = true;
+        return IntPtr.Zero;
     }
 
     private static string GetFormattedTooltip()
@@ -143,12 +247,12 @@ public static class TrayService
         try
         {
             var mem = MemoryOptimizerService.GetMemoryInfo();
-            string tip = $"Deltempo\nRAM: {mem.UsedPercent:0.0}% ({mem.FormattedUsed} / {mem.FormattedTotal})";
-            return tip.Length > 120 ? tip.Substring(0, 120) : tip;
+            string tip = $"Deltempo Guardian\nRAM: {mem.UsedPercent:0.0}% ({mem.FormattedUsed} / {mem.FormattedTotal})\nStatus: Active & Protected";
+            return tip.Length > 120 ? tip[..120] : tip;
         }
         catch
         {
-            return "Deltempo";
+            return "Deltempo - Active Guardian";
         }
     }
 
@@ -166,7 +270,7 @@ public static class TrayService
     {
         return new NOTIFYICONDATA
         {
-            cbSize = Marshal.SizeOf(typeof(NOTIFYICONDATA)),
+            cbSize = Marshal.SizeOf<NOTIFYICONDATA>(),
             hWnd = hWnd,
             uID = 1001,
             uCallbackMessage = WM_TRAYICON,
@@ -176,20 +280,43 @@ public static class TrayService
 
     private static IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
+        // Handle taskbar recreation (e.g. explorer.exe restart)
+        if (_wmTaskbarCreated != 0 && msg == _wmTaskbarCreated)
+        {
+            CreateTrayIcon(hwnd);
+            handled = true;
+            return IntPtr.Zero;
+        }
+
         if (msg == WM_TRAYICON)
         {
             int eventId = lParam.ToInt32();
-            if (eventId == WM_LBUTTONDBLCLK)
+
+            switch (eventId)
             {
-                RestoreMainWindow();
-                handled = true;
-            }
-            else if (eventId == WM_RBUTTONUP)
-            {
-                ShowLuxuryContextMenu(hwnd);
-                handled = true;
+                case WM_LBUTTONUP:
+                case WM_LBUTTONDBLCLK:
+                    RestoreMainWindow();
+                    handled = true;
+                    break;
+
+                case WM_RBUTTONUP:
+                case WM_CONTEXTMENU:
+                    ShowLuxuryContextMenu(hwnd);
+                    handled = true;
+                    break;
+
+                case WM_MOUSEMOVE:
+                    // Throttled live tooltip update on hover
+                    if ((DateTime.UtcNow - _lastHoverTime).TotalSeconds >= 3)
+                    {
+                        _lastHoverTime = DateTime.UtcNow;
+                        UpdateTooltip();
+                    }
+                    break;
             }
         }
+
         return IntPtr.Zero;
     }
 
@@ -333,11 +460,11 @@ public static class TrayService
             headerBorder.Child = headerGrid;
             menu.Items.Add(headerBorder);
 
-            // 2. Open Window
+            // 2. Open Dashboard
             var openItem = CreateMenuItem("\uE80F", "Open Deltempo Dashboard", () => RestoreMainWindow(), new SolidColorBrush((Color)ColorConverter.ConvertFromString("#38BDF8")));
             menu.Items.Add(openItem);
 
-            // 3. Boost RAM
+            // 3. Boost RAM (Working Sets)
             var boostItem = CreateMenuItem("\uE768", "Boost RAM (Flush Working Sets)", async () =>
             {
                 if (_onOptimizeRam != null)
@@ -349,11 +476,27 @@ public static class TrayService
             }, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF")));
             menu.Items.Add(boostItem);
 
-            // 4. Quick Clean
+            // 4. Purge Standby Memory (Kernel)
+            var purgeItem = CreateMenuItem("\uEA86", "Purge Standby Memory (Kernel)", async () =>
+            {
+                if (_onPurgeStandby != null)
+                {
+                    var res = await _onPurgeStandby();
+                    ShowNotification("Standby List Purged", $"Successfully flushed cached standby pages ({res.FormattedReclaimed} reclaimed) in {res.ExecutionTimeMs}ms!");
+                    UpdateTooltip();
+                }
+            }, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A78BFA")));
+            menu.Items.Add(purgeItem);
+
+            // 5. Quick Clean Caches
             var cleanItem = CreateMenuItem("\uE74D", "Clean 100% Safe Caches Now", () => _onCleanSafeNow?.Invoke(), new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981")));
             menu.Items.Add(cleanItem);
 
-            // 5. Settings
+            // 6. Check for Updates
+            var updateItem = CreateMenuItem("\uE895", "Check for Updates...", () => _onCheckUpdates?.Invoke(), new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B")));
+            menu.Items.Add(updateItem);
+
+            // 7. Settings
             var settingsItem = CreateMenuItem("\uE713", "Settings & Preferences", () =>
             {
                 RestoreMainWindow();
@@ -368,13 +511,19 @@ public static class TrayService
             };
             menu.Items.Add(sep);
 
-            // 6. Exit
+            // 8. Exit
             var exitItem = CreateMenuItem("\uE711", "Exit Deltempo", () =>
             {
                 Dispose();
                 Application.Current.Shutdown();
             }, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F87171")));
             menu.Items.Add(exitItem);
+
+            // Proper foreground and dismissal handling
+            menu.Closed += (s, e) =>
+            {
+                PostMessage(hWnd, WM_NULL, IntPtr.Zero, IntPtr.Zero);
+            };
 
             SetForegroundWindow(hWnd);
             menu.IsOpen = true;
@@ -416,16 +565,25 @@ public static class TrayService
         _mainWindow.Hide();
         if (SettingsService.Current.AutoCleanNotify)
         {
-            ShowNotification("Deltempo Running in Background", "Standing guard to protect your disk space and memory. Double-click tray icon to restore.");
+            ShowNotification("Deltempo Running in Background", "Standing guard to protect your disk space and memory. Click tray icon to restore.");
         }
     }
 
     public static void RestoreMainWindow()
     {
         if (_mainWindow == null) return;
-        _mainWindow.Show();
-        _mainWindow.WindowState = WindowState.Normal;
-        _mainWindow.Activate();
+        _mainWindow.Dispatcher.Invoke(() =>
+        {
+            if (_mainWindow.WindowState == WindowState.Minimized)
+            {
+                _mainWindow.WindowState = WindowState.Normal;
+            }
+            _mainWindow.Show();
+            _mainWindow.Activate();
+            _mainWindow.Topmost = true;
+            _mainWindow.Topmost = false;
+            _mainWindow.Focus();
+        });
     }
 
     public static void ShowNotification(string title, string message)
@@ -433,9 +591,9 @@ public static class TrayService
         if (!_isInitialized || _mainWindow == null) return;
         var helper = new WindowInteropHelper(_mainWindow);
         var nid = CreateNotifyData(helper.Handle);
-        nid.uFlags = NIF_INFO;
-        nid.szInfoTitle = title;
-        nid.szInfo = message;
+        nid.uFlags = NIF_INFO | NIF_ICON;
+        nid.szInfoTitle = title.Length > 63 ? title[..63] : title;
+        nid.szInfo = message.Length > 255 ? message[..255] : message;
         nid.dwInfoFlags = NIIF_INFO;
         nid.dwTimeoutOrVersion = 3000;
         Shell_NotifyIconW(NIM_MODIFY, ref nid);
