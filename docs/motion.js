@@ -195,18 +195,21 @@
           }
         }
 
-        // Apply kinetic click shockwave impulses to scatter/ripple particles
+        // Apply smooth fluid wave displacement when wavefront passes
         for (let i = shockwaves.length - 1; i >= 0; i--) {
           const sw = shockwaves[i];
           const sdx = this.x - sw.x;
           const sdy = this.y - sw.y;
           const sDist = Math.sqrt(sdx * sdx + sdy * sdy);
-          const diff = Math.abs(sDist - sw.radius);
-          if (diff < 50) {
-            const push = (1 - diff / 50) * (sw.maxRadius - sw.radius) * 0.1;
+          const diff = sDist - sw.radius;
+
+          if (Math.abs(diff) < sw.waveWidth) {
+            // Sinusoidal wave ripple: lifts particles outward and eases them smoothly
+            const wavePhase = (diff / sw.waveWidth) * (Math.PI / 2);
+            const impulse = Math.cos(wavePhase) * sw.strength * sw.alpha;
             const angle = Math.atan2(sdy, sdx);
-            this.x += Math.cos(angle) * push;
-            this.y += Math.sin(angle) * push;
+            this.x += Math.cos(angle) * impulse;
+            this.y += Math.sin(angle) * impulse;
           }
         }
 
@@ -251,16 +254,19 @@
       particles.push(new Particle());
     }
 
-    // Trigger kinetic particle scatter impulse on click (physics only, zero drawn circle)
+    // Trigger fluid wave ripple on click (soft radiant wave band + sinusoidal particle undulation, ZERO hard circle line)
     window.addEventListener(
       'pointerdown',
       function (e) {
         shockwaves.push({
           x: e.clientX,
           y: e.clientY,
-          radius: 10,
-          maxRadius: 260,
-          speed: 12,
+          radius: 0,
+          maxRadius: Math.max(width, height) * 0.55,
+          speed: 8.5,
+          waveWidth: 48,
+          strength: 4.8,
+          alpha: 1.0,
         });
       },
       { passive: true }
@@ -278,13 +284,31 @@
 
       const isLight = document.documentElement.classList.contains('light');
 
-      // Update kinetic shockwaves (advances physics radius without drawing any circle)
+      // 1. Update and render soft ethereal light wave (wide smooth gradient wash, NO sharp stroked outline)
       for (let i = shockwaves.length - 1; i >= 0; i--) {
         const sw = shockwaves[i];
         sw.radius += sw.speed;
-        if (sw.radius >= sw.maxRadius) {
+        sw.alpha = Math.max(0, 1 - sw.radius / sw.maxRadius);
+
+        if (sw.radius >= sw.maxRadius || sw.alpha <= 0) {
           shockwaves.splice(i, 1);
+          continue;
         }
+
+        const innerR = Math.max(0, sw.radius - sw.waveWidth);
+        const outerR = sw.radius + sw.waveWidth;
+        const waveGrad = ctx.createRadialGradient(sw.x, sw.y, innerR, sw.x, sw.y, outerR);
+        const waveColor = isLight ? '2, 132, 199' : '0, 229, 255';
+        const waveAlpha = sw.alpha * (isLight ? 0.15 : 0.26);
+
+        waveGrad.addColorStop(0, `rgba(${waveColor}, 0)`);
+        waveGrad.addColorStop(0.5, `rgba(${waveColor}, ${waveAlpha})`);
+        waveGrad.addColorStop(1, `rgba(${waveColor}, 0)`);
+
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, outerR, 0, Math.PI * 2);
+        ctx.fillStyle = waveGrad;
+        ctx.fill();
       }
 
       // 1. Update and render particles
