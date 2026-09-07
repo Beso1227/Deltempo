@@ -33,6 +33,7 @@ public static class DeepCleanEngine
         Action<string, LogLevel>? logAction = null,
         IProgress<DeepCleanProgress>? progress = null,
         bool purgeAllRestorePoints = false,
+        bool skipDism = false,
         CancellationToken ct = default)
     {
         var sw = Stopwatch.StartNew();
@@ -136,7 +137,7 @@ public static class DeepCleanEngine
         // =========================================================================
         // STAGE 5: Windows Component Store Scavenging (DISM)
         // =========================================================================
-        if (ElevationService.IsRunAsAdmin())
+        if (!skipDism && ElevationService.IsRunAsAdmin())
         {
             Report("Component Store Cleanup", 0.80, "Scavenging superseded Windows updates via DISM (WinSxS)...");
             try
