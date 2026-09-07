@@ -86,6 +86,9 @@
       active: false,
     };
 
+    // Kinetic shockwave impulses for particle reaction (physics only, no visible circle drawn)
+    const shockwaves = [];
+
     function resize() {
       width = window.innerWidth;
       height = window.innerHeight;
@@ -192,6 +195,21 @@
           }
         }
 
+        // Apply kinetic click shockwave impulses to scatter/ripple particles
+        for (let i = shockwaves.length - 1; i >= 0; i--) {
+          const sw = shockwaves[i];
+          const sdx = this.x - sw.x;
+          const sdy = this.y - sw.y;
+          const sDist = Math.sqrt(sdx * sdx + sdy * sdy);
+          const diff = Math.abs(sDist - sw.radius);
+          if (diff < 50) {
+            const push = (1 - diff / 50) * (sw.maxRadius - sw.radius) * 0.1;
+            const angle = Math.atan2(sdy, sdx);
+            this.x += Math.cos(angle) * push;
+            this.y += Math.sin(angle) * push;
+          }
+        }
+
         this.x += this.vx;
         this.y += this.vy;
 
@@ -233,6 +251,21 @@
       particles.push(new Particle());
     }
 
+    // Trigger kinetic particle scatter impulse on click (physics only, zero drawn circle)
+    window.addEventListener(
+      'pointerdown',
+      function (e) {
+        shockwaves.push({
+          x: e.clientX,
+          y: e.clientY,
+          radius: 10,
+          maxRadius: 260,
+          speed: 12,
+        });
+      },
+      { passive: true }
+    );
+
     const maxConnectionDistance = isMobile ? 95 : 140;
     const maxMouseDistance = isMobile ? 120 : 180;
 
@@ -244,6 +277,15 @@
       ctx.clearRect(0, 0, width, height);
 
       const isLight = document.documentElement.classList.contains('light');
+
+      // Update kinetic shockwaves (advances physics radius without drawing any circle)
+      for (let i = shockwaves.length - 1; i >= 0; i--) {
+        const sw = shockwaves[i];
+        sw.radius += sw.speed;
+        if (sw.radius >= sw.maxRadius) {
+          shockwaves.splice(i, 1);
+        }
+      }
 
       // 1. Update and render particles
       for (let i = 0; i < particles.length; i++) {
