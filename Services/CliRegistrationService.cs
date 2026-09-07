@@ -57,17 +57,24 @@ public static class CliRegistrationService
         try
         {
             string cliTarget = Path.Combine(exeDir, "deltempo_cli.exe");
-            string targetBinary = File.Exists(cliTarget) ? "deltempo_cli.exe" : Path.GetFileName(exePath);
+            bool hasCliBinary = File.Exists(cliTarget);
+            string targetBinary = hasCliBinary ? "deltempo_cli.exe" : Path.GetFileName(exePath);
 
             string cmdFile = Path.Combine(exeDir, "deltempo.cmd");
-            string cmdContent = $"@echo off\r\n\"%~dp0{targetBinary}\" %*\r\n";
+            string cmdContent = hasCliBinary
+                ? $"@echo off\r\n\"%~dp0deltempo_cli.exe\" %*\r\n"
+                : $"@echo off\r\nstart /b /wait \"\" \"%~dp0{targetBinary}\" %*\r\n";
+
             if (!File.Exists(cmdFile) || File.ReadAllText(cmdFile) != cmdContent)
             {
                 File.WriteAllText(cmdFile, cmdContent);
             }
 
             string ps1File = Path.Combine(exeDir, "deltempo.ps1");
-            string ps1Content = $"& \"$PSScriptRoot\\{targetBinary}\" @args\r\n";
+            string ps1Content = hasCliBinary
+                ? $"& \"$PSScriptRoot\\deltempo_cli.exe\" @args\r\n"
+                : $"& \"$PSScriptRoot\\{targetBinary}\" @args | Out-Host\r\n";
+
             if (!File.Exists(ps1File) || File.ReadAllText(ps1File) != ps1Content)
             {
                 File.WriteAllText(ps1File, ps1Content);
@@ -76,6 +83,22 @@ public static class CliRegistrationService
         catch (Exception ex)
         {
             System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
+    }
+
+    private static bool IsValidCliBinary(string path)
+    {
+        if (!File.Exists(path)) return false;
+        try
+        {
+            var fi = new FileInfo(path);
+            if (fi.Length > 20 * 1024 * 1024) return true; // Single-file self-contained publish
+            string dll = Path.ChangeExtension(path, ".dll");
+            return File.Exists(dll); // Framework-dependent build with sibling dll
+        }
+        catch
+        {
+            return false;
         }
     }
 
@@ -91,16 +114,36 @@ public static class CliRegistrationService
             };
 
             string cliExe = Path.Combine(exeDir, "deltempo_cli.exe");
-            if (!File.Exists(cliExe))
+            if (!IsValidCliBinary(cliExe))
             {
-                cliExe = Path.Combine(exeDir, "deltempo.com");
-            }
-            if (!File.Exists(cliExe))
-            {
-                cliExe = currentExePath;
+                // In development environments, check sibling CLI output directories
+                string[] searchCandidates = new[]
+                {
+                    Path.GetFullPath(Path.Combine(exeDir, "..", "..", "..", "..", "Cli", "bin", "Debug", "net10.0-windows", "win-x64", "deltempo_cli.exe")),
+                    Path.GetFullPath(Path.Combine(exeDir, "..", "..", "..", "..", "Cli", "bin", "Release", "net10.0-windows", "win-x64", "deltempo_cli.exe")),
+                    Path.GetFullPath(Path.Combine(exeDir, "..", "publish_cli", "deltempo_cli.exe")),
+                    Path.GetFullPath(Path.Combine(exeDir, "..", "..", "publish_cli", "deltempo_cli.exe"))
+                };
+
+                foreach (var candidate in searchCandidates)
+                {
+                    if (IsValidCliBinary(candidate))
+                    {
+                        cliExe = candidate;
+                        break;
+                    }
+                }
             }
 
-            string snippet = $"\r\n# Deltempo Synchronous CLI\r\nfunction deltempo {{ & \"{cliExe}\" @args }}\r\n";
+            bool isNativeCli = IsValidCliBinary(cliExe);
+            string targetBinary = isNativeCli ? cliExe : currentExePath;
+
+            // When executing a GUI binary in console, pipe through Out-Host to enforce synchronous completion and a clean new line
+            string execCommand = isNativeCli
+                ? $"& \"{targetBinary}\" @args"
+                : $"& \"{targetBinary}\" @args | Out-Host";
+
+            string snippet = $"\r\n# Deltempo Synchronous CLI\r\nfunction deltempo {{ {execCommand} }}\r\n";
 
             foreach (var p in profilePaths)
             {
@@ -118,7 +161,7 @@ public static class CliRegistrationService
                         var regex = new System.Text.RegularExpressions.Regex(@"# Deltempo Synchronous CLI\r?\nfunction deltempo\s*\{[^}]*\}", System.Text.RegularExpressions.RegexOptions.Multiline);
                         if (regex.IsMatch(existing))
                         {
-                            string updated = regex.Replace(existing, $"# Deltempo Synchronous CLI\r\nfunction deltempo {{ & \"{cliExe}\" @args }}");
+                            string updated = regex.Replace(existing, $"# Deltempo Synchronous CLI\r\nfunction deltempo {{ {execCommand} }}");
                             if (updated != existing)
                             {
                                 File.WriteAllText(p, updated);

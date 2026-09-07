@@ -19,12 +19,47 @@ public partial class App : System.Windows.Application
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern IntPtr GetStdHandle(int nStdHandle);
 
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool WriteConsoleInput(
+        IntPtr hConsoleInput,
+        [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] INPUT_RECORD[] lpBuffer,
+        uint nLength,
+        out uint lpNumberOfEventsWritten);
+
     [DllImport("shell32.dll", SetLastError = true)]
     private static extern void SetCurrentProcessExplicitAppUserModelID([MarshalAs(UnmanagedType.LPWStr)] string AppID);
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct KEY_EVENT_RECORD
+    {
+        public bool bKeyDown;
+        public ushort wRepeatCount;
+        public ushort wVirtualKeyCode;
+        public ushort wVirtualScanCode;
+        public char UnicodeChar;
+        public uint dwControlKeyState;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    private struct INPUT_RECORD_UNION
+    {
+        [FieldOffset(0)]
+        public KEY_EVENT_RECORD KeyEvent;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct INPUT_RECORD
+    {
+        public ushort EventType;
+        public INPUT_RECORD_UNION Event;
+    }
+
     private const int ATTACH_PARENT_PROCESS = -1;
+    private const int STD_INPUT_HANDLE = -10;
     private const int STD_OUTPUT_HANDLE = -11;
     private const int STD_ERROR_HANDLE = -12;
+    private const ushort KEY_EVENT = 0x0001;
+    private const ushort VK_RETURN = 0x000D;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -101,9 +136,13 @@ public partial class App : System.Windows.Application
         // ═══════════════════════════════════════════════════════════════════
         if (args.Length > 0 && args[0] != "--update-handshake")
         {
-            SetupConsoleStream();
+            bool isAttached = SetupConsoleStream();
             int exitCode = CliRunner.RunAsync(args).GetAwaiter().GetResult();
             try { Console.Out.Flush(); } catch { }
+            if (isAttached)
+            {
+                ReleaseConsoleAndSignalPrompt();
+            }
             Environment.Exit(exitCode);
             return;
         }
@@ -158,26 +197,103 @@ public partial class App : System.Windows.Application
         return success ? 0 : 1;
     }
 
-    private static void SetupConsoleStream()
+    private static bool SetupConsoleStream()
     {
         try
         {
-            AttachConsole(ATTACH_PARENT_PROCESS);
-
-            IntPtr stdOutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-            if (stdOutHandle != IntPtr.Zero && stdOutHandle != new IntPtr(-1))
+            // If already redirected (e.g. piped via '| Out-Host' or file redirection), don't attach console
+            if (Console.IsOutputRedirected)
             {
-                var safeHandle = new Microsoft.Win32.SafeHandles.SafeFileHandle(stdOutHandle, ownsHandle: false);
-                var fs = new FileStream(safeHandle, FileAccess.Write);
-                var writer = new StreamWriter(fs, new UTF8Encoding(false)) { AutoFlush = true };
-                Console.SetOut(writer);
-                Console.SetError(writer);
                 Console.OutputEncoding = Encoding.UTF8;
+                return false;
+            }
+
+            bool attached = AttachConsole(ATTACH_PARENT_PROCESS);
+            if (attached)
+            {
+                IntPtr stdOutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+                if (stdOutHandle != IntPtr.Zero && stdOutHandle != new IntPtr(-1))
+                {
+                    var safeHandle = new Microsoft.Win32.SafeHandles.SafeFileHandle(stdOutHandle, ownsHandle: false);
+                    var fs = new FileStream(safeHandle, FileAccess.Write);
+                    var writer = new StreamWriter(fs, new UTF8Encoding(false)) { AutoFlush = true };
+                    Console.SetOut(writer);
+                    Console.SetError(writer);
+                    Console.OutputEncoding = Encoding.UTF8;
+                }
+                return true;
             }
         }
         catch (Exception ex)
         {
             Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// When attached to an interactive parent console, synthesizes an Enter keystroke
+    /// into the console input buffer so that cmd.exe / PowerShell prints a fresh prompt
+    /// on a brand-new line instead of leaving the cursor stranded on the output text.
+    /// </summary>
+    private static void ReleaseConsoleAndSignalPrompt()
+    {
+        try
+        {
+            Console.Out.Flush();
+            Console.Error.Flush();
+
+            IntPtr stdIn = GetStdHandle(STD_INPUT_HANDLE);
+            if (stdIn != IntPtr.Zero && stdIn != new IntPtr(-1))
+            {
+                var records = new INPUT_RECORD[2];
+
+                // Key Down: Enter
+                records[0] = new INPUT_RECORD
+                {
+                    EventType = KEY_EVENT,
+                    Event = new INPUT_RECORD_UNION
+                    {
+                        KeyEvent = new KEY_EVENT_RECORD
+                        {
+                            bKeyDown = true,
+                            wRepeatCount = 1,
+                            wVirtualKeyCode = VK_RETURN,
+                            wVirtualScanCode = 0x1C,
+                            UnicodeChar = '\r',
+                            dwControlKeyState = 0
+                        }
+                    }
+                };
+
+                // Key Up: Enter
+                records[1] = new INPUT_RECORD
+                {
+                    EventType = KEY_EVENT,
+                    Event = new INPUT_RECORD_UNION
+                    {
+                        KeyEvent = new KEY_EVENT_RECORD
+                        {
+                            bKeyDown = false,
+                            wRepeatCount = 1,
+                            wVirtualKeyCode = VK_RETURN,
+                            wVirtualScanCode = 0x1C,
+                            UnicodeChar = '\r',
+                            dwControlKeyState = 0
+                        }
+                    }
+                };
+
+                WriteConsoleInput(stdIn, records, (uint)records.Length, out _);
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] ReleaseConsoleAndSignalPrompt exception: {ex.Message}");
+        }
+        finally
+        {
+            try { FreeConsole(); } catch { }
         }
     }
 
