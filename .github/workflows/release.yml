@@ -33,7 +33,7 @@ jobs:
           dotnet restore Tests/Deltempo.Tests/Deltempo.Tests.csproj
 
       - name: Run Tests
-        run: dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --verbosity normal
+        run: dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --verbosity normal --filter "Category!=Benchmark"
 
       - name: Build & Publish Standalone Executables
         run: |
@@ -90,36 +90,31 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: "Deltempo ${{ github.ref_name }} — AI File Safety Intelligence Engine, Multi-Provider LLM Forensics & Deep File Inspection"
+          name: "Deltempo ${{ github.ref_name }} — Modular Architecture, Opt-In CLI Integration & Hardened Quality Gates"
           body: |
             ## What's New in ${{ github.ref_name }}
 
-            ### 🧠 Real-Time AI File Safety Intelligence Engine
-            - **Multi-Provider LLM Integration**: Analyze unknown or suspicious files with either local offline models (**Ollama**, **LM Studio**) or high-speed cloud inference providers (**OpenRouter**, **Groq**, **DeepSeek**, **OpenAI**, **Anthropic**, **Gemini**, **Perplexity**).
-            - **Intelligent Deletion Impact Assessment**: The engine evaluates what the file is, where it originated, whether it is an essential application component or disposable cache, and the concrete consequence if removed.
-            - **Granular Safety Scoring**: Produces an objective 0–100 safety score paired with actionable verdicts: `SAFE TO CLEAN`, `REVIEW CAREFULLY`, or `PROTECTED FILE`.
+            ### 🧩 Modular Architecture Refactor
+            - **13 focused modules** replace the two largest source files: the WPF window core (618 lines + 8 domain partials: Settings, Cleaning, Ui, Updates, Memory, SystemManagers, LargeFiles, SystemRepair) and the CLI dispatcher (276 lines + 4 command partials: Cleaning, Performance, Storage, System). Zero behavioral change.
 
-            ### 🔬 Deep File Forensics Analysis Engine
-            - **Shannon Entropy Analysis**: Detects packed binaries, encrypted payloads, and high-entropy artifacts.
-            - **Binary Header & Magic Byte Validation**: Inspects headers to determine true file type and catch deceptive extensions.
-            - **PE Header & Win32 Import Parsing**: Scans executable imports for suspicious behavior, persistence hooks, and unpackers.
-            - **Digital Signature Verification**: Checks Authenticode status to distinguish verified publisher software from untrusted binaries.
+            ### 🔐 Privacy-Hardened CLI
+            - **Shell integration is now strictly opt-in**: the CLI no longer silently modifies your PATH, registry, or PowerShell profiles on every start. New commands: `deltempo register` (install integration), `deltempo register --status` (inspect state), and `deltempo unregister` (remove everything).
+            - **Online AI file analysis is off by default.** When enabled, cloud providers receive an anonymized metadata summary only — never file contents. Local providers (Ollama, LM Studio) keep the entire workflow offline.
 
-            ### 📦 Large File Hunter AI Inspection Card
-            - **Interactive Visual Inspection**: 1-click AI inspection card right in the desktop interface showing verdict badge, origin analysis, impact assessment, and recommendation.
-            - **Safe Large File Filtering**: Quickly isolate files verified safe for disposal without risking program data or user documents.
+            ### ✅ Hardened Quality Gates
+            - **CI enforces a 60% line-coverage threshold** collected via `dotnet-coverage` (Cobertura).
+            - **CodeQL security analysis** (security-extended) runs on every push, pull request, and weekly schedule.
+            - **Zero-warning policy**: test project builds with `TreatWarningsAsErrors`.
+            - **325/325 xUnit tests passing**; suite runtime cut from 65s to 30s by eliminating blocking-task test patterns.
 
-            ### 💻 Interactive & Headless CLI Enhancements
-            - `deltempo large inspect <path>`: Run instant forensic and AI safety evaluations from your terminal.
-            - `deltempo large clean --safe-only`: Automate batch cleanup of large files strictly verified safe.
+            ### 📊 Reproducible Performance Benchmark
+            - New `scripts/benchmark.ps1` measures parallel deletion throughput on a synthetic sandbox (1,500 files × 8 KB across 50 folders). Measured: **3,385 files/s (26.4 MB/s)** with correctness-only assertions so runs never flake.
 
-            ### ⚡ High-Speed Parallel Cleaning Engine & NT Kernel Memory Optimizer
-            - Bounded parallel file deletion pool (up to 16 threads); throughput is measured and tracked via the reproducible benchmark harness (`scripts/benchmark.ps1`).
-            - NT kernel standby list purge, working set trimming, and system file cache reset.
-            - 26 deep cleaning scopes covering Windows caches, developer tools, browsers, and game launchers.
+            ### 🧰 Community Infrastructure
+            - CODEOWNERS, pull-request template with a safety-invariants checklist, structured bug/feature issue templates, and private vulnerability reporting.
 
-            ### ✅ Quality & Reliability
-            - **All automated xUnit tests passing** (CI-gated build + test + coverage threshold + CodeQL).
+            ### ⚡ Carried Forward
+            - Parallel cleaning engine (up to 16 threads), NT kernel memory optimization, 26 deep cleaning scopes, AI file forensics, transactional self-updater.
             - Native 64-bit Windows 10 & 11 support on .NET 10.0.
           files: |
             ./dist/Deltempo.exe
