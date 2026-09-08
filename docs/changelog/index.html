@@ -129,12 +129,29 @@
       <p class="section-subtitle">Complete version history, feature additions, and security improvements.</p>
     </div>
 
+    <!-- v1.5.0 -->
+    <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
+      <div class="card-inner">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.5.0 (Latest Stable)</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+        </div>
+        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <li><strong>Modular Architecture Refactor:</strong> Split the two largest source files into 13 focused modules — the WPF window core (618 lines + 8 domain partials: Settings, Cleaning, Ui, Updates, Memory, SystemManagers, LargeFiles, SystemRepair) and the CLI dispatcher (276 lines + 4 command partials: Cleaning, Performance, Storage, System) — with zero behavioral change.</li>
+          <li><strong>Opt-In CLI Shell Integration:</strong> The CLI no longer silently mutates PATH, registry, or PowerShell profiles. New commands: <code>deltempo register</code>, <code>deltempo register --status</code>, and full cleanup via <code>deltempo unregister</code>.</li>
+          <li><strong>Privacy Default Change:</strong> Online AI file analysis is now disabled by default. When enabled, cloud providers receive an anonymized metadata summary only — never file contents.</li>
+          <li><strong>Hardened Quality Gates:</strong> CI now enforces a 60% line-coverage threshold, a zero-warning policy (<code>TreatWarningsAsErrors</code>), and runs CodeQL security analysis on every push and pull request.</li>
+          <li><strong>Reproducible Benchmark Harness:</strong> New <code>scripts/benchmark.ps1</code> measures parallel deletion throughput on a synthetic sandbox (measured 3,385 files/s) with correctness-only assertions so runs never flake.</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- v1.4.0 -->
     <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
       <div class="card-inner">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.4.0 (Latest Stable)</h2>
-          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.4.0 (Stable)</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-cyan-bg); color: var(--accent-cyan); font-weight: 700;">STABLE</span>
         </div>
         <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
           <li><strong>AI File Safety Intelligence Engine:</strong> Integrated multi-provider LLM intelligence supporting both local models (Ollama, LM Studio) and cloud inference providers (OpenRouter, Groq, DeepSeek, OpenAI, Anthropic, Gemini, Perplexity) to assess files in real time.</li>

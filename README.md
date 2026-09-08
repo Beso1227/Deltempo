@@ -254,7 +254,7 @@ Deltempo features a categorized, segmented preferences center organized into fou
   * **Release Channels**: Switch between **Stable** (verified milestone releases recommended for all users) and **Beta / Pre-Release** (early access to cutting-edge features and experimental scopes).
   * **Automated Schedule**: Configure background update polling frequency: `Daily`, `Every 3 Days`, `Weekly`, or `Manual Only`.
   * **Silent Pre-Fetching**: Optionally stage verified update packages in the background so updates apply instantly upon confirmation.
-  * **Version Telemetry Card**: Real-time status badge showing current installed version (`v1.3.6`), last checked timestamp, update check button, and 1-click link to official GitHub Release Notes.
+  * **Version Telemetry Card**: Real-time status badge showing current installed version (`v1.5.0`), last checked timestamp, update check button, and 1-click link to official GitHub Release Notes.
 * **General Tab**:
   * **System Startup**: Reversibly configure Deltempo to launch on Windows logon with optional auto-minimize to tray.
   * **Recycle Bin Routing**: Global toggle to route candidate files to the Windows Recycle Bin for safety and reversible recovery.
@@ -273,7 +273,7 @@ For background monitoring and fast access, Deltempo integrates a lightweight sys
 * **Native Win32 Scaling (`LoadCrispTrayIcon`)**: Employs direct Win32 GDI icon creation (`CreateIconIndirect`) with 32-bit ARGB alpha transparency, delivering pixel-perfect crispness on standard (100%), medium (125%, 150%), and high-density (175%, 200%+) Windows displays without blurring.
 * **Real-Time RAM Telemetry**: Hovering over the tray icon displays live physical memory consumption directly in the tooltip:
   ```text
-  Deltempo v1.3.6
+  Deltempo v1.5.0
   RAM: 42% (13.4 GB / 31.9 GB)
   ```
 * **Instant Context Actions**: Right-click the tray icon to trigger **1-Click Boost Memory** or **Quick Smart Clean** immediately without bringing the main application window into focus.

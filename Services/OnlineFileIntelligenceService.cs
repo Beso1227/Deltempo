@@ -88,7 +88,7 @@ public static class OnlineFileIntelligenceService
 
     static OnlineFileIntelligenceService()
     {
-        HttpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Deltempo-Guardian", "1.4.0"));
+        HttpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Deltempo-Guardian", "1.5.0"));
         LoadCache();
     }
 

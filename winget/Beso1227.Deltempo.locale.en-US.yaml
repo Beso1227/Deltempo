@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
 
 PackageIdentifier: Beso1227.Deltempo
-PackageVersion: 1.4.0
+PackageVersion: 1.5.0
 PackageLocale: en-US
 Publisher: Beso1227
 PublisherUrl: https://github.com/Beso1227
@@ -28,6 +28,6 @@ Tags:
   - user-profile-cleaner
   - portable
   - open-source
-ReleaseNotesUrl: https://github.com/Beso1227/Deltempo/releases/tag/v1.4.0
+ReleaseNotesUrl: https://github.com/Beso1227/Deltempo/releases/tag/v1.5.0
 ManifestType: defaultLocale
 ManifestVersion: 1.6.0
