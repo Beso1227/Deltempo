@@ -13,6 +13,10 @@ jobs:
   build:
     runs-on: windows-latest
 
+    env:
+      SIGNING_CERTIFICATE_PFX: ${{ secrets.SIGNING_CERTIFICATE_PFX }}
+      SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -35,6 +39,24 @@ jobs:
         run: |
           dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
           dotnet publish Cli/Deltempo.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
+
+      - name: Authenticode Sign Release Binaries (optional)
+        if: env.SIGNING_CERTIFICATE_PFX != ''
+        shell: pwsh
+        run: |
+          $pfxPath = Join-Path $env:RUNNER_TEMP "deltempo_signing.pfx"
+          [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:SIGNING_CERTIFICATE_PFX))
+          $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe |
+            Where-Object { $_.FullName -match '\\x64\\' } |
+            Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signtool) { Write-Error "::error::signtool.exe not found on the runner."; exit 1 }
+          Write-Host "Signing with $($signtool.FullName)"
+          & $signtool.FullName sign /f $pfxPath /p "$env:SIGNING_CERTIFICATE_PASSWORD" /fd SHA256 /tr https://timestamp.digicert.com /td SHA256 `
+            "$env:GITHUB_WORKSPACE\dist\Deltempo.exe" `
+            "$env:GITHUB_WORKSPACE\dist\deltempo_cli.exe"
+          if ($LASTEXITCODE -ne 0) { Write-Error "::error::Authenticode signing failed."; exit 1 }
+          Remove-Item $pfxPath -Force
+          Write-Host "Binaries signed successfully."
 
       - name: Clean Extra Release Assets
         uses: actions/github-script@v7
@@ -92,12 +114,12 @@ jobs:
             - `deltempo large clean --safe-only`: Automate batch cleanup of large files strictly verified safe.
 
             ### ⚡ High-Speed Parallel Cleaning Engine & NT Kernel Memory Optimizer
-            - Bounded parallel file deletion pool (up to 16 threads) for 15x–20x faster cleanups.
+            - Bounded parallel file deletion pool (up to 16 threads); throughput is measured and tracked via the reproducible benchmark harness (`scripts/benchmark.ps1`).
             - NT kernel standby list purge, working set trimming, and system file cache reset.
             - 26 deep cleaning scopes covering Windows caches, developer tools, browsers, and game launchers.
 
             ### ✅ Quality & Reliability
-            - **325/325 automated xUnit tests passing**.
+            - **All automated xUnit tests passing** (CI-gated build + test + coverage threshold + CodeQL).
             - Native 64-bit Windows 10 & 11 support on .NET 10.0.
           files: |
             ./dist/Deltempo.exe

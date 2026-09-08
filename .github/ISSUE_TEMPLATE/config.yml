@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Vulnerability
+    url: https://github.com/Beso1227/Deltempo/security/advisories/new
+    about: Report security issues privately — please do not open public issues for vulnerabilities.
+  - name: Documentation
+    url: https://beso1227.github.io/Deltempo/docs/
+    about: User guides and architecture documentation.
+  - name: FAQ
+    url: https://beso1227.github.io/Deltempo/faq/
+    about: Frequently asked questions about safety, privacy, and usage.

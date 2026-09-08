@@ -39,7 +39,7 @@ public class AppSettings
     public string LastUpdateCheckTimestamp { get; set; } = string.Empty;
 
     // ─── AI & Online File Intelligence ──────────────────────────────────
-    public bool EnableOnlineAiSafety { get; set; } = true;
+    public bool EnableOnlineAiSafety { get; set; } = false;
     public string AiProvider { get; set; } = "BuiltIn"; // "BuiltIn", "Gemini", "OpenAI", "Groq", "Ollama"
     public string AiApiKey { get; set; } = string.Empty;
     public string AiModelName { get; set; } = string.Empty;

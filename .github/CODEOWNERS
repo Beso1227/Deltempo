@@ -1,0 +1,9 @@
+# Default code owners — every pull request requires review from the maintainer.
+# Safety-critical areas are explicitly listed for emphasis.
+*                                   @Beso1227
+/Core/Safety/                       @Beso1227
+/Core/Cleaning/                     @Beso1227
+/Core/Update/                       @Beso1227
+/Services/CliRegistrationService.cs @Beso1227
+/Services/OnlineFileIntelligenceService.cs @Beso1227
+/.github/workflows/                 @Beso1227

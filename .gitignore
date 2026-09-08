@@ -4,6 +4,7 @@ obj/
 publish/
 publish_*/
 dist/
+TestResults/
 *.user
 *.suo
 *.userosscache

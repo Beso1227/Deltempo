@@ -33,7 +33,7 @@
 | **License** | Open Source ([MIT](LICENSE)) |
 | **Interfaces** | Modern Desktop GUI (WPF Fluent) and Headless Terminal CLI |
 | **Distribution** | Portable single-file executable (self-contained, no installer required) |
-| **Telemetry** | None. Routine scan, clean, and memory actions execute entirely offline |
+| **Telemetry** | None. Scan, clean, and memory actions execute entirely offline; optional online AI analysis is opt-in and sends file metadata only |
 | **Safety Engine** | Two-phase planning (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) with 5 risk tiers |
 | **Memory Engine** | Native Windows NT kernel calls (`NtSetSystemInformation`, `EmptyWorkingSet`) |
 | **Preferences Hub** | Categorized 4-tab control center (*Updates*, *General*, *Memory*, *Storage & Safety*) |
@@ -159,6 +159,8 @@ Deltempo includes a synchronous, scriptable CLI designed for terminal users and 
 | `deltempo repair [subcommand]` | Windows integrity check & servicing repair | `sfc`, `dism`, `winsxs`, `chkdsk`, `update`, `network` |
 | `deltempo status` | Display system telemetry and memory info | `--json` |
 | `deltempo update [check]` | Check for official releases or apply update | `check`, `--dry-run` |
+| `deltempo register` | Opt-in shell integration (PATH, Win+R alias, PowerShell function) | `--status`, `--remove` |
+| `deltempo unregister` | Remove all shell integration | N/A |
 
 ### Practical Examples
 
@@ -294,8 +296,10 @@ Deltempo auto-updates exclusively when a verified release is published to GitHub
 
 * **Does Deltempo collect telemetry?** No. Deltempo contains no telemetry, user tracking, or analytics libraries.
 * **Does cleanup data leave your machine?** No. All scanning, classification, and deletion routines execute entirely on local drives.
-* **What network communication occurs?** Network requests are strictly limited to HTTPS queries to GitHub (`api.github.com`, `github.com`) to check for application releases and download verified executables.
+* **What network communication occurs?** Network requests are strictly limited to HTTPS queries to GitHub (`api.github.com`, `github.com`) for release checks and verified update downloads, plus the optional AI analysis described below.
 * **When does Deltempo contact GitHub?** Only when update checks are performed (via `deltempo update` or GUI settings).
+* **Optional AI file analysis (off by default)**: The *AI File Safety Intelligence* feature (`deltempo large inspect` and the GUI inspection card) is disabled by default. When enabled, the default `BuiltIn` provider works from a local fingerprint knowledge base and, only for unrecognized files, queries DuckDuckGo's Instant Answer API with the **file name alone**. Cloud providers (OpenAI, Gemini, Groq, OpenRouter) transmit an **anonymized metadata summary only** — file name, size, type, PE product/vendor metadata, signature status, and a generalized folder context with usernames stripped. **File contents are never uploaded.** Selecting a local provider (Ollama, LM Studio) keeps the entire workflow offline. Disable all online lookups in Settings (*Enable Online AI Safety*), or by deleting the setting; results are cached locally in `%LOCALAPPDATA%\Deltempo\ai_safety_cache.json`.
+* **Shell integration is explicit and reversible**: The CLI never modifies your PATH, registry, or PowerShell profile implicitly — only `deltempo register` does. The GUI performs the same registration on first launch (equivalent to an installer step). Inspect the current state with `deltempo register --status` and remove it completely with `deltempo unregister`.
 
 ---
 
@@ -382,6 +386,23 @@ dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
 * **Two-Phase Cleanup Planning**: Validates that dry-run simulations match live candidate sets and that pre-deletion revalidation catches altered disk state.
 * **Update Verification**: Schema validation, host allowlisting, HTTPS enforcement, and SHA-256 payload integrity.
 * **Service Integrations**: Memory telemetry queries, startup registry key toggles, and file classification heuristics.
+
+CI enforces a **minimum line-coverage threshold of 60%** and runs **CodeQL security analysis** on every push and pull request.
+
+### Benchmarks
+
+Reproducible cleaning-engine throughput benchmarks live in the test suite
+(`CleanEngineBenchmarks`, trait `Category=Benchmark`) and are excluded from CI
+to keep it deterministic. Run them explicitly against a synthetic sandbox
+(1,500 files × 8 KB across 50 subfolders):
+
+```powershell
+pwsh -File scripts/benchmark.ps1
+# or directly:
+dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --filter "Category=Benchmark"
+```
+
+The benchmark reports files/s and MB/s and asserts deletion **correctness only** — never timing — so runs cannot flake. Use it to compare engine changes before/after (see the script's built-in `git stash` workflow).
 
 ---
 

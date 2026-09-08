@@ -1,0 +1,74 @@
+name: Bug Report
+description: Report a problem with Deltempo
+labels: [ "bug", "triage" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please fill in the details below.
+        For security vulnerabilities, use [private vulnerability reporting](https://github.com/Beso1227/Deltempo/security/advisories/new) instead.
+  - type: input
+    id: version
+    attributes:
+      label: Deltempo Version
+      description: Run `deltempo status` or check Settings → Updates.
+      placeholder: e.g. v1.4.0
+    validations:
+      required: true
+  - type: dropdown
+    id: interface
+    attributes:
+      label: Interface
+      options:
+        - GUI (WPF)
+        - CLI
+        - Both
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      options:
+        - Scanning / cleaning engine
+        - Safety engine / false positives (files kept or flagged incorrectly)
+        - Memory optimization (RAM boost)
+        - Large File Hunter / AI inspection
+        - Updater
+        - CLI
+        - UI / UX
+        - Startup / tray
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Windows Version
+      options:
+        - Windows 11
+        - Windows 10
+        - Windows Server
+        - Other / N/A
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Run `deltempo ...` (or open ...)
+        2. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs Actual Behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Crash Dumps
+      description: Attach `%LOCALAPPDATA%\Deltempo\crash.log` if a crash occurred. Redact personal paths.
