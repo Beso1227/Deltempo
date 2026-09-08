@@ -1,0 +1,265 @@
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using WinTempCleaner.Models;
+using WinTempCleaner.Services;
+
+namespace WinTempCleaner;
+
+// Settings hub: categorized navigation, update choices, AI provider configuration.
+public partial class MainWindow
+{
+
+    private void SettingsTab_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton rb && rb.Tag is string tag)
+        {
+            if (SettingsUpdatesPanel != null) SettingsUpdatesPanel.Visibility = tag == "UPDATES" ? Visibility.Visible : Visibility.Collapsed;
+            if (SettingsGeneralPanel != null) SettingsGeneralPanel.Visibility = tag == "GENERAL" ? Visibility.Visible : Visibility.Collapsed;
+            if (SettingsMemoryPanel != null) SettingsMemoryPanel.Visibility = tag == "MEMORY" ? Visibility.Visible : Visibility.Collapsed;
+            if (SettingsSafetyPanel != null) SettingsSafetyPanel.Visibility = tag == "SAFETY" ? Visibility.Visible : Visibility.Collapsed;
+            SoundService.PlayClickSound();
+        }
+    }
+
+    private void SettingsViewReleaseNotes_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/Beso1227/Deltempo/releases",
+                UseShellExecute = true
+            });
+            SoundService.PlayClickSound();
+        }
+        catch (Exception ex)
+        {
+            AddLog($"Unable to open release notes: {ex.Message}", LogLevel.Warning);
+        }
+    }
+
+    private async Task CleanSafeFromTrayAsync()
+    {
+        if (_isBusy) return;
+        SelectSafeOnlyButton_Click(this, new RoutedEventArgs());
+        await ExecuteCleanupAsync();
+    }
+
+    private void SettingsBtn_Click(object sender, RoutedEventArgs e)
+    {
+        OpenSettingsModal();
+    }
+
+    private void OpenSettingsModal()
+    {
+        LoadSettingsIntoUI();
+        SettingsModalOverlay.Visibility = Visibility.Visible;
+        SoundService.PlayClickSound();
+    }
+
+    private void CloseSettings_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsModalOverlay.Visibility = Visibility.Collapsed;
+        SoundService.PlayClickSound();
+    }
+
+    private void SaveSettings_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsService.Current.EnableAutoPilot = SettingsAutoPilotCheckBox.IsChecked == true;
+        SettingsService.Current.MinimizeToTray = SettingsTrayCheckBox.IsChecked == true;
+        SettingsService.Current.AutoCleanNotify = SettingsNotifyCheckBox.IsChecked == true;
+        SettingsService.Current.SoundEnabled = SettingsSoundCheckBox.IsChecked == true;
+        SoundService.IsSoundEnabled = SettingsService.Current.SoundEnabled;
+
+        SettingsService.Current.SendToRecycleBin = SettingsRecycleBinCheckBox.IsChecked == true;
+        SettingsService.Current.LowDiskAlertEnabled = SettingsLowDiskAlertCheckBox.IsChecked == true;
+
+        if (SettingsDiskThresholdComboBox.SelectedItem is ComboBoxItem dItem && dItem.Tag is string dTag && int.TryParse(dTag, out int dGb))
+        {
+            SettingsService.Current.LowDiskAlertThresholdGb = dGb;
+        }
+
+        // Updates
+        SettingsService.Current.CheckUpdatesOnStartup = SettingsCheckUpdatesCheckBox.IsChecked == true;
+        SettingsService.Current.AutoDownloadUpdates = SettingsAutoDownloadCheckBox.IsChecked == true;
+
+        if (SettingsUpdateChannelComboBox.SelectedItem is ComboBoxItem cItem && cItem.Tag is string cTag)
+        {
+            SettingsService.Current.UpdateChannel = cTag;
+        }
+
+        if (SettingsUpdateFrequencyComboBox.SelectedItem is ComboBoxItem fItem && fItem.Tag is string fTag && int.TryParse(fTag, out int fDays))
+        {
+            SettingsService.Current.UpdateCheckFrequencyDays = fDays;
+        }
+
+        if (SettingsIntervalComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag && int.TryParse(tag, out int hours))
+        {
+            SettingsService.Current.AutoCleanIntervalHours = hours;
+        }
+
+        // Memory Optimizer settings
+        SettingsService.Current.MemoryAutoOptimizeEnabled = MemoryAutoOptCheckBox.IsChecked == true;
+        SettingsService.Current.MemoryShowInTray = MemoryShowInTrayCheckBox.IsChecked == true;
+        SettingsService.Current.MemoryAlwaysOnTop = MemoryAlwaysOnTopCheckBox.IsChecked == true;
+        SettingsService.Current.MemoryCompactMode = MemoryCompactModeCheckBox.IsChecked == true;
+        SettingsService.Current.MemoryCloseToTray = MemoryCloseToTrayCheckBox.IsChecked == true;
+        SettingsService.Current.MemoryShowNotifications = MemoryShowNotifyCheckBox.IsChecked == true;
+
+        if (MemoryAutoOptIntervalComboBox.SelectedItem is ComboBoxItem mi && mi.Tag is string mt && int.TryParse(mt, out int mph))
+        {
+            SettingsService.Current.MemoryAutoOptimizeIntervalHours = mph;
+        }
+
+        if (MemoryThresholdComboBox.SelectedItem is ComboBoxItem mt2 && mt2.Tag is string ttt && int.TryParse(ttt, out int tval))
+        {
+            SettingsService.Current.MemoryAutoOptimizeFreeRamThresholdPercent = tval;
+        }
+
+        // AI & Online Intelligence
+        SettingsService.Current.EnableOnlineAiSafety = SettingsEnableAiCheckBox.IsChecked == true;
+        if (SettingsAiProviderComboBox.SelectedItem is ComboBoxItem provItem && provItem.Tag is string provTag)
+        {
+            SettingsService.Current.AiProvider = provTag;
+        }
+        if (!string.IsNullOrEmpty(SettingsAiApiKeyPasswordBox.Password))
+        {
+            SettingsService.Current.AiApiKey = SettingsAiApiKeyPasswordBox.Password;
+        }
+        SettingsService.Current.AiModelName = SettingsAiModelBox.Text.Trim();
+        SettingsService.Current.AiOllamaEndpoint = string.IsNullOrWhiteSpace(SettingsAiOllamaEndpointBox.Text)
+            ? "http://localhost:11434"
+            : SettingsAiOllamaEndpointBox.Text.Trim();
+
+        SettingsService.SaveSettings();
+        AutoCleanService.Start();
+        ApplyMemorySettingsToWindow();
+
+        SettingsModalOverlay.Visibility = Visibility.Collapsed;
+        SoundService.PlayClickSound();
+        AddLog("Preferences & Auto-Pilot Guardian settings saved.", LogLevel.Success);
+    }
+
+    private void SettingsAiProviderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        UpdateAiSettingsUiVisibility();
+    }
+
+    private void UpdateAiSettingsUiVisibility()
+    {
+        if (SettingsAiProviderComboBox == null || SettingsAiApiKeyRow == null || SettingsAiOllamaRow == null || SettingsAiModelRow == null) return;
+
+        string prov = (SettingsAiProviderComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "BuiltIn";
+        bool needsKey = prov is "Gemini" or "Groq" or "OpenAI" or "OpenRouter";
+        bool isOllama = prov == "Ollama";
+
+        SettingsAiApiKeyRow.Visibility = needsKey ? Visibility.Visible : Visibility.Collapsed;
+        SettingsAiOllamaRow.Visibility = isOllama ? Visibility.Visible : Visibility.Collapsed;
+        SettingsAiModelRow.Visibility = (needsKey || isOllama) ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private async void SettingsTestAi_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsTestAiBtn.IsEnabled = false;
+        SettingsAiTestStatusText.Text = "Connecting & verifying provider...";
+        try
+        {
+            string prov = (SettingsAiProviderComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "BuiltIn";
+            string key = SettingsAiApiKeyPasswordBox.Password;
+            string end = SettingsAiOllamaEndpointBox.Text;
+            string model = SettingsAiModelBox.Text;
+
+            var (ok, msg) = await OnlineFileIntelligenceService.TestConnectionAsync(prov, key, end, model);
+            SettingsAiTestStatusText.Text = ok ? $"✅ {msg}" : $"❌ {msg}";
+        }
+        finally
+        {
+            SettingsTestAiBtn.IsEnabled = true;
+        }
+    }
+
+    private void SettingsClearAiCache_Click(object sender, RoutedEventArgs e)
+    {
+        OnlineFileIntelligenceService.ClearCache();
+        SettingsAiTestStatusText.Text = "AI reports cache cleared (0 items).";
+    }
+
+    private async void AskAiLargeFile_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.DataContext is LargeFileInfo info)
+        {
+            btn.IsEnabled = false;
+            info.AiProviderLabel = "⚡ Analyzing...";
+            try
+            {
+                await LargeFileHunterService.AnalyzeItemWithAiAsync(info);
+                RefreshLargeFileHeroStats();
+                AddLog($"AI Intelligence analyzed '{info.FileName}': {info.AiVerdict}", LogLevel.Info);
+            }
+            finally
+            {
+                btn.IsEnabled = true;
+            }
+        }
+    }
+
+    private async void AskAiSelectedLargeFiles_Click(object sender, RoutedEventArgs e)
+    {
+        var selected = _largeFiles.Where(f => f.IsSelected).ToList();
+        if (selected.Count == 0)
+        {
+            selected = _largeFiles.Where(f => !f.IsAiOnlineVerified).Take(25).ToList();
+        }
+
+        if (selected.Count == 0)
+        {
+            MessageBox.Show("No files need AI analysis. Select files or scan a folder.", "AI Intelligence", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        AskAiSelectedLargeFilesBtn.IsEnabled = false;
+        try
+        {
+            AddLog($"Starting online AI analysis for {selected.Count} large files...", LogLevel.Info);
+            var progress = new Progress<int>(pct =>
+            {
+                LargeFilesSelectedSummaryText.Text = $"AI Analyzing {selected.Count} files: {pct}%";
+            });
+
+            await LargeFileHunterService.BatchAnalyzeWithAiAsync(selected, progress);
+            AddLog($"Completed AI intelligence analysis for {selected.Count} files.", LogLevel.Success);
+            RefreshLargeFileHeroStats();
+            UpdateLargeFileSelectionSummary();
+        }
+        finally
+        {
+            AskAiSelectedLargeFilesBtn.IsEnabled = true;
+        }
+    }
+
+    /// <summary>
+    /// Applies memory optimizer runtime settings to the live window.
+    /// </summary>
+    private void ApplyMemorySettingsToWindow()
+    {
+        try
+        {
+            Topmost = SettingsService.Current.MemoryAlwaysOnTop;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] ApplyMemorySettingsToWindow suppressed: {ex.Message}");
+        }
+    }
+}

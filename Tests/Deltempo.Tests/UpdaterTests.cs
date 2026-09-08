@@ -549,7 +549,7 @@ public class PatchIntegrityVerifierPeTests : IDisposable
 public class UpdateTransactionCoordinatorTests
 {
     [Fact]
-    public void ExecuteAsync_MissingStagedFile_Fails()
+    public async Task ExecuteAsync_MissingStagedFile_Fails()
     {
         string txId = Guid.NewGuid().ToString("N");
         string updatesDir = Path.Combine(Path.GetTempPath(), "DeltempoTests", txId);
@@ -565,7 +565,7 @@ public class UpdateTransactionCoordinatorTests
                 TargetPath = Path.Combine(updatesDir, "target.exe"),
                 BackupPath = Path.Combine(updatesDir, "backup.exe"),
                 StagedPath = Path.Combine(updatesDir, "nonexistent.exe"),
-                CallerPid = Process.GetCurrentProcess().Id,
+                CallerPid = 0, // Skip caller-exit wait; this test targets the missing staged file path
                 ExpectedSha256 = "",
                 ExpectedSizeBytes = 0
             };
@@ -574,7 +574,7 @@ public class UpdateTransactionCoordinatorTests
             journal.TransitionTo(TransactionState.Staged);
 
             var coordinator = new UpdateTransactionCoordinator(journal);
-            bool result = coordinator.ExecuteAsync().GetAwaiter().GetResult();
+            bool result = await coordinator.ExecuteAsync();
             Assert.False(result);
         }
         finally
@@ -584,7 +584,7 @@ public class UpdateTransactionCoordinatorTests
     }
 
     [Fact]
-    public void ExecuteAsync_WaitsForCallerExit()
+    public async Task ExecuteAsync_WaitsForCallerExit()
     {
         string txId = Guid.NewGuid().ToString("N");
         string updatesDir = Path.Combine(Path.GetTempPath(), "DeltempoTests", txId);
@@ -615,7 +615,7 @@ public class UpdateTransactionCoordinatorTests
 
             var coordinator = new UpdateTransactionCoordinator(journal);
             // Should fail because caller PID (current process) won't exit within timeout
-            bool result = coordinator.ExecuteAsync().GetAwaiter().GetResult();
+            bool result = await coordinator.ExecuteAsync();
             Assert.False(result);
             Assert.Equal(TransactionState.Failed, journal.State);
         }
@@ -626,7 +626,7 @@ public class UpdateTransactionCoordinatorTests
     }
 
     [Fact]
-    public void ExecuteAsync_BackupFails_DueToMissingTarget()
+    public async Task ExecuteAsync_BackupFails_DueToMissingTarget()
     {
         string txId = Guid.NewGuid().ToString("N");
         string updatesDir = Path.Combine(Path.GetTempPath(), "DeltempoTests", txId);
@@ -660,7 +660,7 @@ public class UpdateTransactionCoordinatorTests
             var coordinator = new UpdateTransactionCoordinator(journal);
             // Should proceed past backup since target doesn't exist (backup is skipped)
             // but will fail at MoveFileEx since target dir may not work as expected
-            bool result = coordinator.ExecuteAsync().GetAwaiter().GetResult();
+            bool result = await coordinator.ExecuteAsync();
             // The coordinator should handle missing target gracefully
             Assert.True(result == false || result == true); // Either outcome is acceptable for missing target
         }
@@ -671,7 +671,7 @@ public class UpdateTransactionCoordinatorTests
     }
 
     [Fact]
-    public void ExecuteAsync_RenamesTargetToLocalOldAndStagesCopy()
+    public async Task ExecuteAsync_RenamesTargetToLocalOldAndStagesCopy()
     {
         string txId = Guid.NewGuid().ToString("N");
         string updatesDir = Path.Combine(Path.GetTempPath(), "DeltempoTests", txId);
@@ -703,7 +703,7 @@ public class UpdateTransactionCoordinatorTests
             journal.TransitionTo(TransactionState.StageVerified);
 
             var coordinator = new UpdateTransactionCoordinator(journal);
-            _ = coordinator.ExecuteAsync().GetAwaiter().GetResult();
+            _ = await coordinator.ExecuteAsync();
 
             // Verify that the backup mechanism created BackupPath or target.old
             Assert.True(File.Exists(journal.BackupPath) || File.Exists($"{targetPath}.old"));

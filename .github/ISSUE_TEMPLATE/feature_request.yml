@@ -1,0 +1,31 @@
+name: Feature Request
+description: Suggest an idea for Deltempo
+labels: [ "enhancement" ]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / Motivation
+      description: What are you trying to accomplish? What is missing today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      description: What should happen, concretely? CLI flags, UI, and behavior details welcome.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety Impact
+      description: Would this feature perform destructive or elevated operations?
+      options:
+        - label: This feature would delete or modify files
+        - label: This feature would require administrator elevation
+        - label: This feature would add network communication
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
