@@ -68,52 +68,36 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: "Deltempo ${{ github.ref_name }} — Ultra-Fast Multi-Threaded Engine, Smart Cache Classification & CLI Fixes"
+          name: "Deltempo ${{ github.ref_name }} — AI File Safety Intelligence Engine, Multi-Provider LLM Forensics & Deep File Inspection"
           body: |
             ## What's New in ${{ github.ref_name }}
 
-            ### ⚡ High-Speed Parallel Cleaning Engine
-            - **Multi-Threaded Cleanup Pipeline**: File deletions run on a bounded parallel worker pool (`Parallel.ForEach` up to 16 threads), yielding a dramatic 10x-20x speedup when cleaning directories with thousands of files.
-            - **Thread-Safe Metrics & Atomicity**: Deletion counters and disk freed tallies leverage atomic `Interlocked` operations for zero race conditions and 100% accurate summaries.
-            - **Lock-Protected Recycle Bin Deletion**: COM-based Recycle Bin operations are safely synchronized to prevent shell lock contention.
-            - **Optimized Progress Dispatching**: UI progress dispatches are throttled to 60 FPS with non-blocking async invoke, keeping the window fluid during intense file purges.
+            ### 🧠 Real-Time AI File Safety Intelligence Engine
+            - **Multi-Provider LLM Integration**: Analyze unknown or suspicious files with either local offline models (**Ollama**, **LM Studio**) or high-speed cloud inference providers (**OpenRouter**, **Groq**, **DeepSeek**, **OpenAI**, **Anthropic**, **Gemini**, **Perplexity**).
+            - **Intelligent Deletion Impact Assessment**: The engine evaluates what the file is, where it originated, whether it is an essential application component or disposable cache, and the concrete consequence if removed.
+            - **Granular Safety Scoring**: Produces an objective 0–100 safety score paired with actionable verdicts: `SAFE TO CLEAN`, `REVIEW CAREFULLY`, or `PROTECTED FILE`.
 
-            ### 🛡️ Smart Cache & Scratch Classification
-            - **Eliminated False-Unknown Skips**: Rule 9b (`DesignatedCacheFileRule`) accurately identifies temporary files, scratch data, shader cache binaries (`.bin`, `.dat`, `.cache`, `.json`, `.etl`), crash dumps, and extensionless hash files within legitimate cache roots.
-            - **Multi-Directory Scopes**: Seamlessly cleans complex multi-root categories (such as Developer Package Caches: npm, pip, NuGet, Cargo, Gradle, pub-cache) without path escape errors.
-            - **Eliminated Blocking DISM Calls**: Normal cache cleanup runs instantly without stalling on Windows Component Store scans.
+            ### 🔬 Deep File Forensics Analysis Engine
+            - **Shannon Entropy Analysis**: Detects packed binaries, encrypted payloads, and high-entropy artifacts.
+            - **Binary Header & Magic Byte Validation**: Inspects headers to determine true file type and catch deceptive extensions.
+            - **PE Header & Win32 Import Parsing**: Scans executable imports for suspicious behavior, persistence hooks, and unpackers.
+            - **Digital Signature Verification**: Checks Authenticode status to distinguish verified publisher software from untrusted binaries.
 
-            ### 💻 Interactive CLI Enhancement
-            - **Clean Prompt Rendering**: Terminal prompt now prints on a clean newline, preventing commands from rendering over existing output.
+            ### 📦 Large File Hunter AI Inspection Card
+            - **Interactive Visual Inspection**: 1-click AI inspection card right in the desktop interface showing verdict badge, origin analysis, impact assessment, and recommendation.
+            - **Safe Large File Filtering**: Quickly isolate files verified safe for disposal without risking program data or user documents.
 
-            ### ⚙️ Settings Hub & Crisp High-DPI Tray
-            - Segmented settings organization (*Updates*, *General*, *Memory*, *Storage & Safe*).
-            - Crisp 32-bit tray icon rendering with explorer restart recovery and real-time memory metrics.
+            ### 💻 Interactive & Headless CLI Enhancements
+            - `deltempo large inspect <path>`: Run instant forensic and AI safety evaluations from your terminal.
+            - `deltempo large clean --safe-only`: Automate batch cleanup of large files strictly verified safe.
 
-            ### 🖥️ Crisp High-DPI System Tray Engine
-            - **Native Win32 Icon Scaling (`LoadCrispTrayIcon`)**: Crisp 32-bit alpha transparency rendering across all Windows DPI scale tiers (100%, 125%, 150%, 200%).
-            - **Explorer Restart Resilience**: Re-registers tray icon seamlessly when `explorer.exe` restarts.
-            - **Real-Time RAM Telemetry & Quick Boost**: Live RAM usage in tray tooltip and 1-click memory flush.
-
-            ### ⚡ Unified Standalone Portable Binaries
-            - **Complete Standalone (`Deltempo.exe`)** — Fluent UI, Tray Guardian, NT Kernel memory optimizer, and embedded CLI in a single executable (zero installer).
-            - **Headless CLI (`deltempo_cli.exe`)** — Dedicated console executable for scripts, CI/CD, and automated pipelines.
-
-            ### 🧠 NT Kernel Memory Cleaner (WinMemoryCleaner Engine)
-            - **Standby List Purge**: Reclaims cached memory left behind by terminated applications via `NtSetSystemInformation` (SystemMemoryListInformation class 80).
-            - **Working Set Flush**: Trims memory across all running processes using `SeProfileSingleProcessPrivilege` and `SeDebugPrivilege`.
-            - **System File Cache Reset**: Flushes and resets filesystem working sets with `SetSystemFileCacheSize`.
-            - **Modified Page Flush & Immunity**: Shields system-critical processes (`csrss`, `dwm`, `explorer`, `lsass`, `services`, `smss`, `svchost`, Windows Defender).
-
-            ### 🔍 26 Deep Cleaning Scopes
-            - Cleans temporary files, upgrade leftovers (`$WINDOWS.~BT`, `ESD`), GPU shaders, driver packages, developer caches (`npm`, `pip`, `NuGet`, `Cargo`), gaming launchers, and browser profiles.
-
-            ### 📦 Large File Hunter & Undo Safety
-            - Reversible cleanup with Windows Recycle Bin undo support (`SHFileOperation`).
-            - 24-hour recent file modification shield.
+            ### ⚡ High-Speed Parallel Cleaning Engine & NT Kernel Memory Optimizer
+            - Bounded parallel file deletion pool (up to 16 threads) for 15x–20x faster cleanups.
+            - NT kernel standby list purge, working set trimming, and system file cache reset.
+            - 26 deep cleaning scopes covering Windows caches, developer tools, browsers, and game launchers.
 
             ### ✅ Quality & Reliability
-            - **126/126 automated xUnit tests passing**.
+            - **325/325 automated xUnit tests passing**.
             - Native 64-bit Windows 10 & 11 support on .NET 10.0.
           files: |
             ./dist/Deltempo.exe
