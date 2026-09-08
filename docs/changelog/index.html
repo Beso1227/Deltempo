@@ -129,12 +129,29 @@
       <p class="section-subtitle">Complete version history, feature additions, and security improvements.</p>
     </div>
 
+    <!-- v1.4.0 -->
+    <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
+      <div class="card-inner">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.4.0 (Latest Stable)</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+        </div>
+        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <li><strong>AI File Safety Intelligence Engine:</strong> Integrated multi-provider LLM intelligence supporting both local models (Ollama, LM Studio) and cloud inference providers (OpenRouter, Groq, DeepSeek, OpenAI, Anthropic, Gemini, Perplexity) to assess files in real time.</li>
+          <li><strong>Deep File Forensics Analysis:</strong> Advanced file inspection computing Shannon entropy, validating binary magic header signatures, parsing PE headers, detecting suspicious Win32 API imports, extracting suspicious string artifacts, and verifying digital signatures.</li>
+          <li><strong>Large File Hunter Interactive AI Inspection:</strong> Added rich AI inspection cards featuring safety verdicts (<em>SAFE TO CLEAN</em>, <em>REVIEW CAREFULLY</em>, <em>PROTECTED</em>), 0&ndash;100 confidence scores, origin explanations, deletion impact breakdowns, and actionable safety recommendations.</li>
+          <li><strong>Headless CLI Inspection Commands:</strong> Introduced <code>deltempo large inspect &lt;path&gt;</code> for instant terminal forensics and <code>deltempo large clean --safe-only</code> for automated safe large file cleanup.</li>
+          <li><strong>SEO &amp; Sitemap Enhancements:</strong> Optimized documentation crawlability with automated sitemap indexing and GitHub Pages configuration.</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- v1.3.9 -->
     <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
       <div class="card-inner">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.3.9 (Latest Stable)</h2>
-          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.3.9</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-low);">MILESTONE</span>
         </div>
         <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
           <li><strong>Scanning &amp; Cleaning Discrepancy Resolved:</strong> Added designated cache and temporary location classification in <code>FileSafetyEngine</code> so all eligible scratch and cache files (e.g. <code>.bin</code>, <code>.dat</code>, <code>.cache</code>, <code>.json</code>, <code>.etl</code>, and GUID folders) are planned and cleaned properly instead of being over-filtered as Unknown.</li>
