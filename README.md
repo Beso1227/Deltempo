@@ -408,7 +408,26 @@ The benchmark reports files/s and MB/s and asserts deletion **correctness only**
 
 ## Security
 
-Please review [SECURITY.md](SECURITY.md) for vulnerability disclosure guidelines. To report a security vulnerability or a safety engine bypass, please open a private security advisory on GitHub or contact the maintainers.
+Deltempo is built with security as a foundational requirement, not an afterthought.
+
+### Security Posture
+* **Code signing**: Actively pursuing free code signing through the [OpenSSF Free Signing Program](https://openssf.org/security-tools/signing/) to eliminate Windows SmartScreen warnings and provide cryptographic proof of publisher identity.
+* **Vulnerability disclosure**: Please review [SECURITY.md](SECURITY.md) for vulnerability disclosure guidelines. To report a security vulnerability or a safety engine bypass, please open a private security advisory on GitHub or contact the maintainers.
+* **Automated scanning**: CodeQL security analysis runs on every push, pull request, and weekly schedule. Dependabot monitors NuGet and GitHub Actions dependencies.
+* **Deterministic safety engine**: rule-based file classification with 24-hour safety shield, no heuristics guessing.
+* **Zero telemetry by design**: no analytics, no tracking, no phone-home; all processing is local.
+* **Opt-in network features**: AI analysis and CLI registration require explicit user action.
+* **Reproducible builds**: release workflow builds standalone self-contained executables from tagged sources with SHA-256 verification.
+
+### Security Controls Summary
+| Control | Implementation |
+| :--- | :--- |
+| **Update Integrity** | HTTPS-only, GitHub host allowlisting, SHA-256 digests, ECDSA P-256 signatures |
+| **Cleanup Safety** | Two-phase `SCAN → PLAN → PROTECT → REVALIDATE → CLEAN` with reparse-point rejection |
+| **Shell Integration** | Strictly opt-in via `deltempo register`, fully reversible via `deltempo unregister` |
+| **AI Privacy** | Off by default; transmits file metadata only, never file contents |
+| **Path Security** | Canonicalization, prefix containment, traversal attack prevention, junction detection |
+| **Response SLA** | Acknowledgment within 3 business days, critical fixes within 14 days |
 
 ---
 
