@@ -630,12 +630,40 @@
     }
   }
 
+  function initBackToTop() {
+    const btn = document.getElementById('backToTopBtn');
+    if (!btn) return;
+
+    let ticking = false;
+    window.addEventListener('scroll', function () {
+      if (!ticking) {
+        window.requestAnimationFrame(function () {
+          if (window.scrollY > 360) {
+            btn.classList.add('visible');
+          } else {
+            btn.classList.remove('visible');
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+
+    btn.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  }
+
   function initializeAll() {
     initScrollReveals();
     initInteractiveBackground();
     initCardInteractivity();
     initPrecisionCursor();
     initServiceWorker();
+    initBackToTop();
   }
 
   if (document.readyState === 'loading') {

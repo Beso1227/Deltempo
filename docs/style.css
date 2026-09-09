@@ -100,33 +100,7 @@ html {
   color-scheme: dark light;
 }
 
-/* Accessibility: Skip-to-content link (visible on keyboard focus only) */
-.skip-link {
-  position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
-  z-index: 1001;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.55rem 0.9rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-high);
-  background: var(--bg-card);
-  border: 1px solid var(--border-focus);
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-  transform: translateY(-120%);
-  transition: transform 0.18s ease;
-}
-.skip-link:focus {
-  transform: translateY(0);
-  outline: 2px solid var(--accent-cyan);
-  outline-offset: 2px;
-}
+
 
 body {
   background-color: var(--bg-canvas);
@@ -667,18 +641,81 @@ html.light .card-inner::before {
 .hero-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 6px 16px;
-  border-radius: var(--radius-pill);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: var(--accent-cyan-bg);
-  border: 1px solid var(--accent-cyan-border);
-  color: var(--accent-cyan);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
   margin-bottom: 1.75rem;
+}
+
+.hero-release-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.38rem 0.95rem 0.38rem 0.65rem;
+  background: rgba(0, 229, 255, 0.06);
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  border-radius: var(--radius-pill);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-high);
+  text-decoration: none;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 4px 20px rgba(0, 229, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-release-pill:hover {
+  background: rgba(0, 229, 255, 0.14);
+  border-color: rgba(0, 229, 255, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0, 229, 255, 0.22);
+  color: #fff;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 10px #10B981;
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-ring {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(1.35); }
+}
+
+.pill-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-cyan);
+  color: #040810;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.pill-text {
+  color: var(--text-high);
+  letter-spacing: -0.01em;
+}
+
+.pill-arrow {
+  transition: transform 0.2s ease;
+  color: var(--accent-cyan);
+  flex-shrink: 0;
+}
+
+.hero-release-pill:hover .pill-arrow {
+  transform: translateX(4px);
+}
+
+html.light .hero-release-pill {
+  background: rgba(0, 180, 216, 0.08);
+  border: 1px solid rgba(0, 180, 216, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
 .hero-headline {
@@ -1790,4 +1827,60 @@ html.light .mobile-menu-overlay {
     font-size: 0.85rem;
   }
 }
+
+/* Floating Back to Top Button */
+.back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 990;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(10, 14, 23, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text-high);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.back-to-top:hover {
+  background: var(--accent-cyan-bg);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 229, 255, 0.25);
+}
+
+html.light .back-to-top {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  color: #111;
+}
+
+@media (max-width: 768px) {
+  .back-to-top {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    width: 40px;
+    height: 40px;
+  }
+}
+
 
