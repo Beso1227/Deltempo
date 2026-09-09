@@ -318,11 +318,12 @@ public static partial class CliRunner
 
         if (recycleBin)
         {
-            SettingsService.Current.SendToRecycleBin = true;
+            SettingsService.Update(s => s.SendToRecycleBin = true);
         }
 
         string? exportPath = GetOptionValue(args, "--export");
         string? filter = GetFilterKeyword(args, 1);
+        bool sendToRecycle = SettingsService.Current.SendToRecycleBin;
 
         var allTargets = CleanerService.GetDefaultTargets();
         var selectedTargets = allTargets
@@ -348,7 +349,6 @@ public static partial class CliRunner
 
             // Use the same CleanupPlanner path as live cleanup for accurate dry-run
             bool applyShield = safeMode;
-            bool sendToRecycle = SettingsService.Current.SendToRecycleBin;
             long dryTotal = 0;
             int dryFiles = 0;
             var dryResults = new List<(string Name, long PlannedBytes, string Formatted, int PlannedFiles, int Protected, int ReviewRequired)>();

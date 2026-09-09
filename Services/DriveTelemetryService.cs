@@ -12,12 +12,26 @@ public static class DriveTelemetryService
             var systemDrivePath = Path.GetPathRoot(Environment.SystemDirectory) ?? "C:\\";
             var drive = new DriveInfo(systemDrivePath);
 
+            long totalBytes = 0;
+            long freeBytes = 0;
+            string volumeLabel = "Local Disk";
+
+            try { totalBytes = drive.TotalSize; } catch { }
+            try { freeBytes = drive.AvailableFreeSpace; } catch { }
+            try { volumeLabel = string.IsNullOrEmpty(drive.VolumeLabel) ? "Local Disk" : drive.VolumeLabel; } catch { }
+
+            if (totalBytes <= 0)
+            {
+                totalBytes = 500L * 1024 * 1024 * 1024;
+                freeBytes = 200L * 1024 * 1024 * 1024;
+            }
+
             return new DriveTelemetryInfo
             {
                 DriveLetter = drive.Name.TrimEnd('\\'),
-                VolumeLabel = string.IsNullOrEmpty(drive.VolumeLabel) ? "Windows OS" : drive.VolumeLabel,
-                TotalBytes = drive.TotalSize,
-                FreeBytes = drive.AvailableFreeSpace
+                VolumeLabel = volumeLabel,
+                TotalBytes = totalBytes,
+                FreeBytes = freeBytes
             };
         }
         catch

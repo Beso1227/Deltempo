@@ -76,73 +76,72 @@ public partial class MainWindow
 
     private void SaveSettings_Click(object sender, RoutedEventArgs e)
     {
-        SettingsService.Current.EnableAutoPilot = SettingsAutoPilotCheckBox.IsChecked == true;
-        SettingsService.Current.MinimizeToTray = SettingsTrayCheckBox.IsChecked == true;
-        SettingsService.Current.AutoCleanNotify = SettingsNotifyCheckBox.IsChecked == true;
-        SettingsService.Current.SoundEnabled = SettingsSoundCheckBox.IsChecked == true;
-        SoundService.IsSoundEnabled = SettingsService.Current.SoundEnabled;
-
-        SettingsService.Current.SendToRecycleBin = SettingsRecycleBinCheckBox.IsChecked == true;
-        SettingsService.Current.LowDiskAlertEnabled = SettingsLowDiskAlertCheckBox.IsChecked == true;
-
-        if (SettingsDiskThresholdComboBox.SelectedItem is ComboBoxItem dItem && dItem.Tag is string dTag && int.TryParse(dTag, out int dGb))
+        SettingsService.Update(s =>
         {
-            SettingsService.Current.LowDiskAlertThresholdGb = dGb;
-        }
+            s.EnableAutoPilot = SettingsAutoPilotCheckBox.IsChecked == true;
+            s.MinimizeToTray = SettingsTrayCheckBox.IsChecked == true;
+            s.AutoCleanNotify = SettingsNotifyCheckBox.IsChecked == true;
+            s.SoundEnabled = SettingsSoundCheckBox.IsChecked == true;
+            SoundService.IsSoundEnabled = s.SoundEnabled;
 
-        // Updates
-        SettingsService.Current.CheckUpdatesOnStartup = SettingsCheckUpdatesCheckBox.IsChecked == true;
-        SettingsService.Current.AutoDownloadUpdates = SettingsAutoDownloadCheckBox.IsChecked == true;
+            s.SendToRecycleBin = SettingsRecycleBinCheckBox.IsChecked == true;
+            s.LowDiskAlertEnabled = SettingsLowDiskAlertCheckBox.IsChecked == true;
 
-        if (SettingsUpdateChannelComboBox.SelectedItem is ComboBoxItem cItem && cItem.Tag is string cTag)
-        {
-            SettingsService.Current.UpdateChannel = cTag;
-        }
+            if (SettingsDiskThresholdComboBox.SelectedItem is ComboBoxItem dItem && dItem.Tag is string dTag && int.TryParse(dTag, out int dGb))
+            {
+                s.LowDiskAlertThresholdGb = dGb;
+            }
 
-        if (SettingsUpdateFrequencyComboBox.SelectedItem is ComboBoxItem fItem && fItem.Tag is string fTag && int.TryParse(fTag, out int fDays))
-        {
-            SettingsService.Current.UpdateCheckFrequencyDays = fDays;
-        }
+            s.CheckUpdatesOnStartup = SettingsCheckUpdatesCheckBox.IsChecked == true;
+            s.AutoDownloadUpdates = SettingsAutoDownloadCheckBox.IsChecked == true;
 
-        if (SettingsIntervalComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag && int.TryParse(tag, out int hours))
-        {
-            SettingsService.Current.AutoCleanIntervalHours = hours;
-        }
+            if (SettingsUpdateChannelComboBox.SelectedItem is ComboBoxItem cItem && cItem.Tag is string cTag)
+            {
+                s.UpdateChannel = cTag;
+            }
 
-        // Memory Optimizer settings
-        SettingsService.Current.MemoryAutoOptimizeEnabled = MemoryAutoOptCheckBox.IsChecked == true;
-        SettingsService.Current.MemoryShowInTray = MemoryShowInTrayCheckBox.IsChecked == true;
-        SettingsService.Current.MemoryAlwaysOnTop = MemoryAlwaysOnTopCheckBox.IsChecked == true;
-        SettingsService.Current.MemoryCompactMode = MemoryCompactModeCheckBox.IsChecked == true;
-        SettingsService.Current.MemoryCloseToTray = MemoryCloseToTrayCheckBox.IsChecked == true;
-        SettingsService.Current.MemoryShowNotifications = MemoryShowNotifyCheckBox.IsChecked == true;
+            if (SettingsUpdateFrequencyComboBox.SelectedItem is ComboBoxItem fItem && fItem.Tag is string fTag && int.TryParse(fTag, out int fDays))
+            {
+                s.UpdateCheckFrequencyDays = fDays;
+            }
 
-        if (MemoryAutoOptIntervalComboBox.SelectedItem is ComboBoxItem mi && mi.Tag is string mt && int.TryParse(mt, out int mph))
-        {
-            SettingsService.Current.MemoryAutoOptimizeIntervalHours = mph;
-        }
+            if (SettingsIntervalComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag && int.TryParse(tag, out int hours))
+            {
+                s.AutoCleanIntervalHours = hours;
+            }
 
-        if (MemoryThresholdComboBox.SelectedItem is ComboBoxItem mt2 && mt2.Tag is string ttt && int.TryParse(ttt, out int tval))
-        {
-            SettingsService.Current.MemoryAutoOptimizeFreeRamThresholdPercent = tval;
-        }
+            s.MemoryAutoOptimizeEnabled = MemoryAutoOptCheckBox.IsChecked == true;
+            s.MemoryShowInTray = MemoryShowInTrayCheckBox.IsChecked == true;
+            s.MemoryAlwaysOnTop = MemoryAlwaysOnTopCheckBox.IsChecked == true;
+            s.MemoryCompactMode = MemoryCompactModeCheckBox.IsChecked == true;
+            s.MemoryCloseToTray = MemoryCloseToTrayCheckBox.IsChecked == true;
+            s.MemoryShowNotifications = MemoryShowNotifyCheckBox.IsChecked == true;
 
-        // AI & Online Intelligence
-        SettingsService.Current.EnableOnlineAiSafety = SettingsEnableAiCheckBox.IsChecked == true;
-        if (SettingsAiProviderComboBox.SelectedItem is ComboBoxItem provItem && provItem.Tag is string provTag)
-        {
-            SettingsService.Current.AiProvider = provTag;
-        }
-        if (!string.IsNullOrEmpty(SettingsAiApiKeyPasswordBox.Password))
-        {
-            SettingsService.Current.AiApiKey = SettingsAiApiKeyPasswordBox.Password;
-        }
-        SettingsService.Current.AiModelName = SettingsAiModelBox.Text.Trim();
-        SettingsService.Current.AiOllamaEndpoint = string.IsNullOrWhiteSpace(SettingsAiOllamaEndpointBox.Text)
-            ? "http://localhost:11434"
-            : SettingsAiOllamaEndpointBox.Text.Trim();
+            if (MemoryAutoOptIntervalComboBox.SelectedItem is ComboBoxItem mi && mi.Tag is string mt && int.TryParse(mt, out int mph))
+            {
+                s.MemoryAutoOptimizeIntervalHours = mph;
+            }
 
-        SettingsService.SaveSettings();
+            if (MemoryThresholdComboBox.SelectedItem is ComboBoxItem mt2 && mt2.Tag is string ttt && int.TryParse(ttt, out int tval))
+            {
+                s.MemoryAutoOptimizeFreeRamThresholdPercent = tval;
+            }
+
+            s.EnableOnlineAiSafety = SettingsEnableAiCheckBox.IsChecked == true;
+            if (SettingsAiProviderComboBox.SelectedItem is ComboBoxItem provItem && provItem.Tag is string provTag)
+            {
+                s.AiProvider = provTag;
+            }
+            if (!string.IsNullOrEmpty(SettingsAiApiKeyPasswordBox.Password))
+            {
+                s.AiApiKey = SettingsAiApiKeyPasswordBox.Password;
+            }
+            s.AiModelName = SettingsAiModelBox.Text.Trim();
+            s.AiOllamaEndpoint = string.IsNullOrWhiteSpace(SettingsAiOllamaEndpointBox.Text)
+                ? "http://localhost:11434"
+                : SettingsAiOllamaEndpointBox.Text.Trim();
+        });
+        
         AutoCleanService.Start();
         ApplyMemorySettingsToWindow();
 

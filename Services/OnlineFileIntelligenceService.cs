@@ -73,7 +73,10 @@ public class OnlineSafetyReport
 
 public static class OnlineFileIntelligenceService
 {
-    private static readonly HttpClient HttpClient = new()
+    private static readonly HttpClient HttpClient = new(new SocketsHttpHandler
+    {
+        PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+    })
     {
         Timeout = TimeSpan.FromSeconds(15)
     };

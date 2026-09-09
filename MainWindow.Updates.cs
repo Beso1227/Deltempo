@@ -27,8 +27,7 @@ public partial class MainWindow
             bool includePrereleases = string.Equals(SettingsService.Current.UpdateChannel, "PreRelease", StringComparison.OrdinalIgnoreCase);
             var release = await UpdateService.CheckForUpdatesAsync(includePrereleases: includePrereleases);
 
-            SettingsService.Current.LastUpdateCheckTimestamp = DateTime.Now.ToString("g");
-            SettingsService.SaveSettings();
+            SettingsService.Update(s => s.LastUpdateCheckTimestamp = DateTime.Now.ToString("g"));
 
             Dispatcher.Invoke(() =>
             {
@@ -180,8 +179,7 @@ public partial class MainWindow
     {
         if (_pendingRelease != null && !string.IsNullOrEmpty(_pendingRelease.VersionString))
         {
-            SettingsService.Current.DismissedVersion = _pendingRelease.VersionString;
-            SettingsService.SaveSettings();
+            SettingsService.Update(s => s.DismissedVersion = _pendingRelease.VersionString);
         }
         UpdateModalOverlay.Visibility = Visibility.Collapsed;
         SoundService.PlayClickSound();

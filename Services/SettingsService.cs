@@ -55,11 +55,19 @@ public static class SettingsService
 
     private static readonly string SettingsFile = Path.Combine(SettingsDir, "settings.json");
 
-    public static AppSettings Current { get; set; } = new();
+    private static AppSettings _current = new();
+    public static AppSettings Current => _current;
 
     static SettingsService()
     {
         LoadSettings();
+    }
+
+    public static void Update(Action<AppSettings> apply)
+    {
+        if (apply == null) return;
+        apply(_current);
+        SaveSettings();
     }
 
     public static void LoadSettings()
@@ -80,7 +88,7 @@ public static class SettingsService
                 loaded.MemoryAutoOptimizeIntervalHours = Math.Clamp(loaded.MemoryAutoOptimizeIntervalHours, 1, 72);
                 loaded.MemoryAutoOptimizeFreeRamThresholdPercent = Math.Clamp(loaded.MemoryAutoOptimizeFreeRamThresholdPercent, 5, 95);
 
-                Current = loaded;
+                _current = loaded;
             }
         }
         catch (Exception ex)
@@ -94,7 +102,7 @@ public static class SettingsService
         try
         {
             Directory.CreateDirectory(SettingsDir);
-            var snapshot = Current;
+            var snapshot = _current;
             string json = JsonSerializer.Serialize(snapshot, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsFile, json);
         }

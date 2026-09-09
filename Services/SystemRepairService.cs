@@ -226,7 +226,7 @@ public static class SystemRepairService
             try
             {
                 Log($"[Servicing Stack] Stopping service: {svcName}...");
-                var result = await ExecuteProcessWithTelemetryAsync("net.exe", $"stop {svcName} /y", RepairToolType.WindowsUpdateReset, onOutput, null, ct);
+                var result = await ExecuteProcessWithTelemetryAsync("net.exe", $"stop {svcName} /y", RepairToolType.WindowsUpdateReset, onOutput, null, ct, timeout: TimeSpan.FromMinutes(2));
                 if (!result.Success)
                 {
                     Log($"[Servicing Stack] Warning: could not stop {svcName} (exit {result.ExitCode}).");
@@ -271,7 +271,7 @@ public static class SystemRepairService
             try
             {
                 Log($"[Servicing Stack] Starting service: {svcName}...");
-                var result = await ExecuteProcessWithTelemetryAsync("net.exe", $"start {svcName}", RepairToolType.WindowsUpdateReset, onOutput, null, ct);
+                var result = await ExecuteProcessWithTelemetryAsync("net.exe", $"start {svcName}", RepairToolType.WindowsUpdateReset, onOutput, null, ct, timeout: TimeSpan.FromMinutes(2));
                 if (!result.Success)
                 {
                     Log($"[Servicing Stack] Warning: could not start {svcName} (exit {result.ExitCode}).");
@@ -324,17 +324,17 @@ public static class SystemRepairService
 
         Log("[Network Engine] Resetting Winsock catalog...");
         onProgress?.Invoke(0.20);
-        var winsockResult = await ExecuteProcessWithTelemetryAsync("netsh.exe", "winsock reset", RepairToolType.NetworkStackReset, onOutput, null, ct);
+        var winsockResult = await ExecuteProcessWithTelemetryAsync("netsh.exe", "winsock reset", RepairToolType.NetworkStackReset, onOutput, null, ct, timeout: TimeSpan.FromMinutes(5));
         if (!winsockResult.Success) failures++;
 
         Log("[Network Engine] Resetting TCP/IP protocol stack...");
         onProgress?.Invoke(0.50);
-        var tcpResult = await ExecuteProcessWithTelemetryAsync("netsh.exe", "int ip reset", RepairToolType.NetworkStackReset, onOutput, null, ct);
+        var tcpResult = await ExecuteProcessWithTelemetryAsync("netsh.exe", "int ip reset", RepairToolType.NetworkStackReset, onOutput, null, ct, timeout: TimeSpan.FromMinutes(5));
         if (!tcpResult.Success) failures++;
 
         Log("[Network Engine] Purging and refreshing DNS resolver cache...");
         onProgress?.Invoke(0.80);
-        var dnsResult = await ExecuteProcessWithTelemetryAsync("ipconfig.exe", "/flushdns", RepairToolType.NetworkStackReset, onOutput, null, ct);
+        var dnsResult = await ExecuteProcessWithTelemetryAsync("ipconfig.exe", "/flushdns", RepairToolType.NetworkStackReset, onOutput, null, ct, timeout: TimeSpan.FromMinutes(2));
         if (!dnsResult.Success) failures++;
 
         onProgress?.Invoke(1.0);
