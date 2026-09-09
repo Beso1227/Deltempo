@@ -49,7 +49,7 @@ jobs:
           }
           [xml]$doc = Get-Content $coverage.FullName
           $lineRate = [double]$doc.coverage.'line-rate'
-          $threshold = 0.60
+          $threshold = 0.65
           Write-Host ("Line coverage: {0:P2} (enforced threshold: {1:P0})" -f $lineRate, $threshold)
           if ($lineRate -lt $threshold) {
             Write-Error ("::error::Line coverage {0:P2} is below the enforced threshold {1:P0}." -f $lineRate, $threshold)
