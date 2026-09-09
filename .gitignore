@@ -26,7 +26,10 @@ vault/
 
 # IDE & Editor files
 .vs/
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
 .idea/
 *.swp
 *.lock
