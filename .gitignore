@@ -54,3 +54,6 @@ NUL
 alt_submit_cdp.py
 cdp_submit.py
 alternativeto_submission.html
+
+# Temp deploy helpers (local only, never commit)
+.deploy*.cmd

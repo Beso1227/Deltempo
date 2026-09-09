@@ -44,7 +44,10 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=2.6.0" />
+    <link rel="stylesheet" href="style.css?v=2.6.1" />
+
+  <!-- Web App Manifest (PWA installability) -->
+  <link rel="manifest" href="manifest.json?v=2.6.1" />
 
   <!-- Schema.org JSON-LD Structured Data (Google Knowledge Graph & Rich Results) -->
   <script type="application/ld+json">
@@ -196,6 +199,7 @@
   </script>
 </head>
 <body>
+  <a href="#main" class="skip-link">Skip to content</a>
 
   <!-- Ambient Cybernetic Aurora System -->
   <div class="ambient-aurora" aria-hidden="true">
@@ -214,7 +218,7 @@
       <a href="#" class="nav-brand">
         <picture>
           <source srcset="app_icon.webp" type="image/webp" />
-          <img src="app_icon.png" alt="Deltempo Logo" class="brand-logo-img" width="28" height="28" />
+                    <img src="app_icon-64.png" alt="Deltempo Logo" class="brand-logo-img" width="28" height="28" />
         </picture>
         <span>Deltempo</span>
       </a>
@@ -264,7 +268,7 @@
     <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="mobile-nav-link">GitHub Repository</a>
   </div>
 
-  <main>
+  <main id="main">
     <!-- HERO SECTION -->
     <section class="hero">
       <div class="container">
@@ -331,7 +335,7 @@
                 <div class="window-title">
                   <picture>
                     <source srcset="app_icon.webp" type="image/webp" />
-                    <img src="app_icon.png" alt="App Icon" width="16" height="16" />
+                              <img src="app_icon-64.png" alt="App Icon" width="16" height="16" />
                   </picture>
                   <span>Deltempo</span>
                   <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">STANDALONE</span>
@@ -483,11 +487,12 @@
                     <div style="font-size: 1.125rem; font-weight: 800;">Automate in PowerShell, Command Prompt, or CI/CD</div>
                   </div>
                   <div style="padding: 1.25rem; border-radius: var(--radius-md); background: #0A0D14; border: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 0.85rem; color: #E2E8F0; line-height: 1.7;">
-                    <div style="color: var(--text-low);"># Run deterministic cleanup in simulation mode</div>
-                    <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo clean temp --dry-run</div>
-                    <div style="margin-top: 0.5rem; color: #E2E8F0;">{<br />&nbsp;&nbsp;"dryRun": <span style="color: var(--accent-cyan);">true</span>,<br />&nbsp;&nbsp;"safetyShieldActive": <span style="color: var(--accent-cyan);">true</span>,<br />&nbsp;&nbsp;"formattedTotal": <span style="color: var(--accent-emerald);">"8.3 MB"</span>,<br />&nbsp;&nbsp;"totalFiles": <span style="color: var(--accent-amber);">48</span><br />}</div>
-                    <div style="color: var(--text-low); margin-top: 0.75rem;"># Output machine-readable JSON telemetry</div>
+                                        <div style="color: var(--text-low);"># Deterministic cleanup in simulation mode (--json for machine-readable output)</div>
+                    <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo clean --dry-run --json</div>
+                    <div style="margin-top: 0.5rem; color: #E2E8F0;">{<br />&nbsp;&nbsp;"dryRun": <span style="color: var(--accent-cyan);">true</span>,<br />&nbsp;&nbsp;"safetyShieldActive": <span style="color: var(--accent-cyan);">true</span>,<br />&nbsp;&nbsp;"totalReclaimableBytes": <span style="color: var(--accent-amber);">8208188</span>,<br />&nbsp;&nbsp;"formattedTotal": <span style="color: var(--accent-emerald);">"7.8 MB"</span>,<br />&nbsp;&nbsp;"totalFiles": <span style="color: var(--accent-amber);">50</span>,<br />&nbsp;&nbsp;"categories": [<span style="color: var(--text-low);"> /* 26 live-captured scopes */</span><br />&nbsp;&nbsp;&nbsp;<span style="color: var(--accent-emerald);">"User Temp &amp; Scratchpad"</span> <span style="color: var(--text-low);">6.5 MB / 26 files</span>,<br />&nbsp;&nbsp;&nbsp;<span style="color: var(--accent-emerald);">"DirectX &amp; GPU Shader Caches"</span> <span style="color: var(--text-low);">260.0 KB / 5 files</span>,<br />&nbsp;&nbsp;&nbsp;<span style="color: var(--accent-emerald);">"Windows Store Apps &amp; UWP Caches"</span> <span style="color: var(--text-low);">0.9 MB / 11 files</span>, &hellip;<br />&nbsp;&nbsp;]<br />}</div>
+                                        <div style="color: var(--text-low); margin-top: 0.75rem;"># Structured system memory and storage telemetry</div>
                     <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo status --json</div>
+                    <div style="margin-top: 0.5rem; color: #E2E8F0;">{<br />&nbsp;&nbsp;"isAdmin": <span style="color: var(--accent-cyan);">false</span>,<br />&nbsp;&nbsp;"drive": <span style="color: var(--text-low);">{ /* C: (OS) \u2014 76.1 GB free of 170.6 GB (44.6% Free) */ </span>},<br />&nbsp;&nbsp;"memory": <span style="color: var(--text-low);">{ /* 15.6 GB total | 5.0 GB available | 68.0% used */ </span>}<br />}</div>
                     <div style="color: var(--text-low); margin-top: 0.5rem;"># Check for continuous patch updates (Exit code 0 = up to date, 2 = update available)</div>
                     <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo update check</div>
                   </div>
@@ -1054,7 +1059,7 @@
       <div class="footer-brand">
         <picture>
           <source srcset="app_icon.webp" type="image/webp" />
-          <img src="app_icon.png" alt="Deltempo Logo" width="20" height="20" style="border-radius: 4px;" />
+                    <img src="app_icon-64.png" alt="Deltempo Logo" width="20" height="20" style="border-radius: 4px;" />
         </picture>
         <span>Deltempo</span>
         <span style="font-weight: 400; color: var(--text-low); margin-left: 0.5rem;">Open Source Windows Cleaner</span>

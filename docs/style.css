@@ -100,6 +100,34 @@ html {
   color-scheme: dark light;
 }
 
+/* Accessibility: Skip-to-content link (visible on keyboard focus only) */
+.skip-link {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1001;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-high);
+  background: var(--bg-card);
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transform: translateY(-120%);
+  transition: transform 0.18s ease;
+}
+.skip-link:focus {
+  transform: translateY(0);
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
 body {
   background-color: var(--bg-canvas);
   color: var(--text-high);
@@ -654,7 +682,10 @@ html.light .card-inner::before {
 }
 
 .hero-headline {
-  font-size: clamp(2.5rem, 5vw + 1rem, 4.25rem);
+  /* Fluid across all viewports: 2.25rem (mobile) -> 4.25rem (desktop).
+     The previous fixed `font-size: 2.25rem` media-query override was
+     removed so typography now scales continuously (no breakpoint jumps). */
+  font-size: clamp(2.25rem, 3.2vw + 1.5rem, 4.25rem);
   font-weight: 900;
   letter-spacing: -0.04em;
   line-height: 1.15;
@@ -1441,9 +1472,8 @@ html.light .mobile-menu-overlay {
     padding-top: 3rem;
   }
 
-  .hero-headline {
-    font-size: 2.25rem;
-  }
+    /* .hero-headline: fluid clamp() from the base rule governs all
+     breakpoints; the previous fixed 2.25rem mobile override was removed. */
 
   .hero-subtext {
     font-size: 1.05rem;

@@ -36,7 +36,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <!-- Core Design System -->
-  <link rel="stylesheet" href="../style.css?v=2.6.0" />
+    <link rel="stylesheet" href="../style.css?v=2.6.1" />
+
+  <!-- Web App Manifest (PWA installability) -->
+  <link rel="manifest" href="../manifest.json?v=2.6.1" />
 
   <!-- Schema.org JSON-LD -->
   <script type="application/ld+json">
@@ -81,6 +84,7 @@
   </script>
 </head>
 <body>
+  <a href="#main" class="skip-link">Skip to content</a>
 
   <!-- Ambient Cybernetic Aurora System -->
   <div class="ambient-aurora" aria-hidden="true">
@@ -99,7 +103,7 @@
       <a href="../" class="nav-brand">
         <picture>
           <source srcset="../app_icon.webp" type="image/webp" />
-          <img src="../app_icon.png" alt="Deltempo Logo" class="brand-logo-img" width="28" height="28" />
+          <img src="../app_icon-64.png" alt="Deltempo Logo" class="brand-logo-img" width="28" height="28" />
         </picture>
         <span>Deltempo</span>
       </a>
@@ -127,7 +131,7 @@
     </nav>
   </header>
 
-  <main class="container" style="padding-top: 2rem; padding-bottom: 5rem; max-width: 900px;">
+  <main id="main" class="container" style="padding-top: 2rem; padding-bottom: 5rem; max-width: 900px;">
     <div class="section-header reveal-on-scroll">
       <div class="section-tag">Technical Manual</div>
       <h1 class="section-title">Deltempo Architecture &amp; Reference</h1>
@@ -203,14 +207,16 @@
         <p style="color: var(--text-med); margin-bottom: 1rem;">Both <code>Deltempo.exe</code> and <code>deltempo_cli.exe</code> offer synchronous CLI execution with deterministic exit codes (0 = Success, 1 = Error, 2 = Update Available):</p>
         
         <div style="padding: 1.25rem; border-radius: var(--radius-md); background: #0A0D14; border: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 0.85rem; color: #E2E8F0; line-height: 1.8; overflow-x: auto;">
-          <div style="color: var(--text-low);"># 1. Run simulation scan without touching disk (dry-run)</div>
-          <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo clean temp --dry-run</div>
+                    <div style="color: var(--text-low);"># 1. Simulate cleanup without touching disk; emit machine-readable JSON (--json)</div>
+          <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo clean --dry-run --json</div>
+          <div style="margin-top: 0.5rem; color: #E2E8F0;">{<br />&nbsp;&nbsp;"dryRun": <span style="color: var(--accent-cyan);">true</span>,<br />&nbsp;&nbsp;"safetyShieldActive": <span style="color: var(--accent-cyan);">true</span>,<br />&nbsp;&nbsp;"totalReclaimableBytes": <span style="color: var(--accent-amber);">8208188</span>,<br />&nbsp;&nbsp;"formattedTotal": <span style="color: var(--accent-emerald);">"7.8 MB"</span>,<br />&nbsp;&nbsp;"totalFiles": <span style="color: var(--accent-amber);">50</span>,<br />&nbsp;&nbsp;"categories": [<span style="color: var(--text-low);"> /* 26 live-captured scopes */</span><br />&nbsp;&nbsp;&nbsp;<span style="color: var(--accent-emerald);">"User Temp &amp; Scratchpad"</span><span style="color: var(--text-low);">: 6.5 MB / 26 files</span>,<br />&nbsp;&nbsp;&nbsp;<span style="color: var(--accent-emerald);">"DirectX &amp; GPU Shader Caches"</span><span style="color: var(--text-low);">: 260.0 KB / 5 files</span>,<br />&nbsp;&nbsp;&nbsp;<span style="color: var(--accent-emerald);">"Windows Store Apps &amp; UWP Caches"</span><span style="color: var(--text-low);">: 0.9 MB / 11 files</span>, &hellip;<br />&nbsp;&nbsp;]<br />}</div>
           
           <div style="color: var(--text-low); margin-top: 0.75rem;"># 2. Execute verified live cleanup across temporary files</div>
           <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo clean temp</div>
           
-          <div style="color: var(--text-low); margin-top: 0.75rem;"># 3. Output structured system memory and storage telemetry in JSON</div>
+                    <div style="color: var(--text-low); margin-top: 0.75rem;"># 3. Output structured system memory and storage telemetry in JSON</div>
           <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo status --json</div>
+          <div style="margin-top: 0.5rem; color: #E2E8F0;">{<br />&nbsp;&nbsp;"isAdmin": <span style="color: var(--accent-cyan);">false</span>,<br />&nbsp;&nbsp;"drive": <span style="color: var(--text-low);">{ /* C: (OS) \u2014 76.1 GB free of 170.6 GB (44.6% Free) */ </span>},<br />&nbsp;&nbsp;"memory": <span style="color: var(--text-low);">{ /* 15.6 GB total | 5.0 GB available | 68.0% used */ </span>}<br />}</div>
           
           <div style="color: var(--text-low); margin-top: 0.75rem;"># 4. Check for official releases</div>
           <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo update check</div>
@@ -227,7 +233,7 @@
       <div class="footer-brand">
         <picture>
           <source srcset="../app_icon.webp" type="image/webp" />
-          <img src="../app_icon.png" alt="Deltempo Logo" width="20" height="20" style="border-radius: 4px;" />
+          <img src="../app_icon-64.png" alt="Deltempo Logo" width="20" height="20" style="border-radius: 4px;" />
         </picture>
         <span>Deltempo</span>
       </div>
