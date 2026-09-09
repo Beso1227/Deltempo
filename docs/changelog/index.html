@@ -133,12 +133,30 @@
       <p class="section-subtitle">Complete version history, feature additions, and security improvements.</p>
     </div>
 
+    <!-- v1.5.1 -->
+    <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
+      <div class="card-inner">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.5.1 (Latest Stable)</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+        </div>
+        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <li><strong>Repository Debloat & Hygiene:</strong> Shrunk Git repository database by ~98.5% (from 237 MB down to 3.52 MB), purging historical binary snapshots while preserving all commit integrity.</li>
+          <li><strong>Offline PWA Support:</strong> Added Service Worker (<code>sw.js</code>) with smart caching strategies and maskable icons, enabling complete offline documentation access and native app installation.</li>
+          <li><strong>Windows Package Manager (Winget) CI Automation:</strong> Added automated schema validation workflow (<code>winget validate</code>) on every commit and PR affecting package manifests.</li>
+          <li><strong>Automated Code Formatting Gate:</strong> Enforced strict <code>dotnet format</code> verification in CI pipeline to guarantee 100% C# coding standard compliance.</li>
+          <li><strong>Automated Dependency Security Tracking:</strong> Integrated Dependabot for weekly vulnerability audits and auto-remediation PRs across NuGet and GitHub Actions.</li>
+          <li><strong>Expanded Test Suite:</strong> Verified 401 automated unit, integration, and benchmark tests passing with zero failures under enforced 65% line-coverage gating.</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- v1.5.0 -->
     <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
       <div class="card-inner">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.5.0 (Latest Stable)</h2>
-          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.5.0 (Stable)</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-cyan-bg); color: var(--accent-cyan); font-weight: 700;">STABLE</span>
         </div>
         <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
           <li><strong>Modular Architecture Refactor:</strong> Split the two largest source files into 13 focused modules — the WPF window core (618 lines + 8 domain partials: Settings, Cleaning, Ui, Updates, Memory, SystemManagers, LargeFiles, SystemRepair) and the CLI dispatcher (276 lines + 4 command partials: Cleaning, Performance, Storage, System) — with zero behavioral change.</li>
