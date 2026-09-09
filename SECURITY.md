@@ -60,5 +60,5 @@ The Deltempo project maintains the following security practices and considers th
 
 ## Code Signing
 
-Deltempo is actively pursuing free code signing through the [OpenSSF Free Signing Program](https://openssf.org/security-tools/signing/) to eliminate Windows SmartScreen warnings and provide cryptographic proof of publisher identity. Once obtained, all release binaries will be signed with a trusted DigiCert certificate.
+Deltempo is actively pursuing free code signing through the [SignPath Foundation](https://signpath.org/) to eliminate Windows SmartScreen warnings and provide cryptographic proof of publisher identity. Once approved, all release binaries will be signed automatically via SignPath's CI integration.
 
