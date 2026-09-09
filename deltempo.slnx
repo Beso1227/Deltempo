@@ -1,9 +1,0 @@
-<Solution>
-  <Folder Name="/Cli/">
-    <Project Path="Cli/Deltempo.Cli.csproj" />
-  </Folder>
-  <Folder Name="/Tests/">
-    <Project Path="Tests/Deltempo.Tests/Deltempo.Tests.csproj" />
-  </Folder>
-  <Project Path="WinTempCleaner.csproj" />
-</Solution>

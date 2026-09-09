@@ -57,3 +57,6 @@ alternativeto_submission.html
 
 # Temp deploy helpers (local only, never commit)
 .deploy*.cmd
+
+# Kilo AI local workspace/plans
+.kilo/
