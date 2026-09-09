@@ -24,10 +24,5 @@
     </windowsSettings>
   </application>
 
-  <description>
-    <description>Deltempo is a free, open-source Windows PC cleaner and memory optimizer. It safely reclaims caches, temporary files, and flushes standby RAM with zero telemetry.</description>
-    <copyright>Copyright (c) 2026 Beso1227 / Deltempo Project. MIT License.</copyright>
-    <company>Deltempo Open Source Project</company>
-    <product>Deltempo Windows Cleaner</product>
-  </description>
+  <description>Deltempo is a free, open-source Windows PC cleaner and memory optimizer.</description>
 </assembly>
