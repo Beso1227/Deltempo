@@ -730,82 +730,101 @@ html.light .hero-release-pill {
   margin: 0 auto 1.5rem;
 }
 
-/* Hero Headline Sheen and Aurora Gradient Flow */
+/* Hero Headline Continuous Shimmer and Aurora Flow */
 .hero-title-main {
   display: inline-block;
   background: linear-gradient(
-    110deg,
+    90deg,
     #FFFFFF 0%,
-    #FFFFFF 36%,
-    #A5F3FC 50%,
-    #FFFFFF 64%,
+    #F1F5F9 18%,
+    #E2E8F0 32%,
+    #38BDF8 48%,
+    #A5F3FC 52%,
+    #E2E8F0 68%,
+    #F1F5F9 82%,
     #FFFFFF 100%
   );
-  background-size: 240% 100%;
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: hero-sheen 6.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: hero-sheen-continuous 5s linear infinite;
+  will-change: background-position;
 }
 
 html.light .hero-title-main {
   background: linear-gradient(
-    110deg,
+    90deg,
     #0F172A 0%,
-    #0F172A 36%,
-    #0284C7 50%,
-    #0F172A 64%,
+    #1E293B 18%,
+    #334155 32%,
+    #0284C7 48%,
+    #38BDF8 52%,
+    #334155 68%,
+    #1E293B 82%,
     #0F172A 100%
   );
-  background-size: 240% 100%;
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-@keyframes hero-sheen {
-  0%, 18% { background-position: 180% 0; }
-  58%, 100% { background-position: -120% 0; }
+@keyframes hero-sheen-continuous {
+  0% { background-position: 200% 0; }
+  100% { background-position: 0% 0; }
 }
 
 .text-gradient {
   display: inline-block;
   background: linear-gradient(
-    125deg,
+    90deg,
     #00E5FF 0%,
-    #06B6D4 20%,
-    #3B82F6 46%,
-    #8B5CF6 72%,
-    #00E5FF 100%
+    #06B6D4 15%,
+    #3B82F6 35%,
+    #8B5CF6 55%,
+    #C084FC 70%,
+    #00E5FF 85%,
+    #06B6D4 100%
   );
-  background-size: 240% 240%;
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: aurora-flow 8s ease-in-out infinite alternate;
-  filter: drop-shadow(0 2px 14px rgba(6, 182, 212, 0.35));
+  animation: aurora-flow-continuous 6s linear infinite;
+  filter: drop-shadow(0 2px 18px rgba(0, 229, 255, 0.4));
   will-change: background-position, filter;
 }
 
 html.light .text-gradient {
   background: linear-gradient(
-    125deg,
+    90deg,
     #0284C7 0%,
-    #2563EB 36%,
-    #7C3AED 72%,
+    #2563EB 25%,
+    #7C3AED 50%,
+    #A855F7 75%,
     #0284C7 100%
   );
-  background-size: 240% 240%;
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 8px rgba(2, 132, 199, 0.2));
+  filter: drop-shadow(0 2px 10px rgba(2, 132, 199, 0.25));
 }
 
-@keyframes aurora-flow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@keyframes aurora-flow-continuous {
+  0% {
+    background-position: 0% 50%;
+    filter: drop-shadow(0 2px 18px rgba(0, 229, 255, 0.42));
+  }
+  50% {
+    background-position: -100% 50%;
+    filter: drop-shadow(0 2px 24px rgba(139, 92, 246, 0.5));
+  }
+  100% {
+    background-position: -200% 50%;
+    filter: drop-shadow(0 2px 18px rgba(0, 229, 255, 0.42));
+  }
 }
 
 .hero-subtext {
