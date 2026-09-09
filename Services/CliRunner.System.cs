@@ -281,9 +281,12 @@ public static partial class CliRunner
     private static int HandleKill(string[] args)
     {
         int myPid = Process.GetCurrentProcess().Id;
-        var procs = Process.GetProcessesByName("Deltempo")
-            .Concat(Process.GetProcessesByName("WinTempCleaner"))
-            .Where(p => p.Id != myPid)
+        var myProcessName = Process.GetCurrentProcess().ProcessName;
+        var procs = Process.GetProcesses()
+            .Where(p => p.Id != myPid && 
+                        (p.ProcessName.Equals(myProcessName, StringComparison.OrdinalIgnoreCase) ||
+                         p.ProcessName.Equals("Deltempo", StringComparison.OrdinalIgnoreCase) ||
+                         p.ProcessName.Equals("WinTempCleaner", StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
         int killed = 0;

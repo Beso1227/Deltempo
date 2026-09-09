@@ -316,4 +316,50 @@ public static partial class CliRunner
         int empty = width - filled;
         return new string('█', filled) + new string('░', empty);
     }
+
+    private static bool TryValidatePath(string? path, out string? error)
+    {
+        error = null;
+
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            error = "Path is null or empty.";
+            return false;
+        }
+
+        if (path.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+        {
+            error = "Path contains invalid characters.";
+            return false;
+        }
+
+        if (path.Length > 260)
+        {
+            error = "Path exceeds maximum supported length (260 characters).";
+            return false;
+        }
+
+        if (path.Contains("..") || path.Contains("~"))
+        {
+            error = "Path contains traversal sequences (.. or ~).";
+            return false;
+        }
+
+        try
+        {
+            var fullPath = Path.GetFullPath(path);
+            if (!Path.IsPathRooted(fullPath))
+            {
+                error = "Path must be absolute.";
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            error = $"Path is malformed: {ex.Message}";
+            return false;
+        }
+
+        return true;
+    }
 }

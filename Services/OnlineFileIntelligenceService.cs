@@ -683,25 +683,27 @@ You MUST respond with pure JSON only matching this exact structure:
     {
         try
         {
-            CacheLock.EnterWriteLock();
-            try
+            Dictionary<string, OnlineSafetyReport>? loaded = null;
+            if (File.Exists(CacheFile))
             {
-                if (File.Exists(CacheFile))
+                string json = File.ReadAllText(CacheFile);
+                loaded = JsonSerializer.Deserialize<Dictionary<string, OnlineSafetyReport>>(json);
+            }
+
+            if (loaded != null)
+            {
+                CacheLock.EnterWriteLock();
+                try
                 {
-                    string json = File.ReadAllText(CacheFile);
-                    var dict = JsonSerializer.Deserialize<Dictionary<string, OnlineSafetyReport>>(json);
-                    if (dict != null)
+                    foreach (var kvp in loaded)
                     {
-                        foreach (var kvp in dict)
-                        {
-                            MemoryCache[kvp.Key] = kvp.Value;
-                        }
+                        MemoryCache[kvp.Key] = kvp.Value;
                     }
                 }
-            }
-            finally
-            {
-                CacheLock.ExitWriteLock();
+                finally
+                {
+                    CacheLock.ExitWriteLock();
+                }
             }
         }
         catch { }

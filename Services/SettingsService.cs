@@ -54,7 +54,6 @@ public static class SettingsService
         "Deltempo");
 
     private static readonly string SettingsFile = Path.Combine(SettingsDir, "settings.json");
-    private static readonly ReaderWriterLockSlim SettingsLock = new(LockRecursionPolicy.NoRecursion);
 
     public static AppSettings Current { get; set; } = new();
 
@@ -67,28 +66,21 @@ public static class SettingsService
     {
         try
         {
-            SettingsLock.EnterReadLock();
-            try
+            AppSettings? loaded = null;
+            if (File.Exists(SettingsFile))
             {
-                if (File.Exists(SettingsFile))
-                {
-                    string json = File.ReadAllText(SettingsFile);
-                    var loaded = JsonSerializer.Deserialize<AppSettings>(json);
-                    if (loaded != null)
-                    {
-                        // Defensive input validation: clamp intervals and thresholds
-                        loaded.AutoCleanIntervalHours = Math.Clamp(loaded.AutoCleanIntervalHours, 1, 168);
-                        loaded.LowDiskAlertThresholdGb = Math.Clamp(loaded.LowDiskAlertThresholdGb, 1, 500);
-                        loaded.MemoryAutoOptimizeIntervalHours = Math.Clamp(loaded.MemoryAutoOptimizeIntervalHours, 1, 72);
-                        loaded.MemoryAutoOptimizeFreeRamThresholdPercent = Math.Clamp(loaded.MemoryAutoOptimizeFreeRamThresholdPercent, 5, 95);
-
-                        Current = loaded;
-                    }
-                }
+                string json = File.ReadAllText(SettingsFile);
+                loaded = JsonSerializer.Deserialize<AppSettings>(json);
             }
-            finally
+
+            if (loaded != null)
             {
-                SettingsLock.ExitReadLock();
+                loaded.AutoCleanIntervalHours = Math.Clamp(loaded.AutoCleanIntervalHours, 1, 168);
+                loaded.LowDiskAlertThresholdGb = Math.Clamp(loaded.LowDiskAlertThresholdGb, 1, 500);
+                loaded.MemoryAutoOptimizeIntervalHours = Math.Clamp(loaded.MemoryAutoOptimizeIntervalHours, 1, 72);
+                loaded.MemoryAutoOptimizeFreeRamThresholdPercent = Math.Clamp(loaded.MemoryAutoOptimizeFreeRamThresholdPercent, 5, 95);
+
+                Current = loaded;
             }
         }
         catch (Exception ex)
@@ -102,16 +94,9 @@ public static class SettingsService
         try
         {
             Directory.CreateDirectory(SettingsDir);
-            string json = JsonSerializer.Serialize(Current, new JsonSerializerOptions { WriteIndented = true });
-            SettingsLock.EnterWriteLock();
-            try
-            {
-                File.WriteAllText(SettingsFile, json);
-            }
-            finally
-            {
-                SettingsLock.ExitWriteLock();
-            }
+            var snapshot = Current;
+            string json = JsonSerializer.Serialize(snapshot, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(SettingsFile, json);
         }
         catch (Exception ex)
         {

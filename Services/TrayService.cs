@@ -532,6 +532,40 @@ public static class TrayService
 
     private static MenuItem CreateMenuItem(string iconGlyph, string title, Action onClick, Brush iconBrush)
     {
+        var item = CreateMenuItemBase(iconGlyph, title, iconBrush);
+        item.Click += (s, e) =>
+        {
+            try
+            {
+                onClick();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Tray menu action error: {ex.Message}");
+            }
+        };
+        return item;
+    }
+
+    private static MenuItem CreateMenuItem(string iconGlyph, string title, Func<Task> onClickAsync, Brush iconBrush)
+    {
+        var item = CreateMenuItemBase(iconGlyph, title, iconBrush);
+        item.Click += async (s, e) =>
+        {
+            try
+            {
+                await onClickAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Tray menu async action error: {ex.Message}");
+            }
+        };
+        return item;
+    }
+
+    private static MenuItem CreateMenuItemBase(string iconGlyph, string title, Brush iconBrush)
+    {
         var item = new MenuItem
         {
             Style = Application.Current.TryFindResource("LuxuryTrayMenuItem") as Style,
@@ -555,7 +589,6 @@ public static class TrayService
             }
         };
 
-        item.Click += (s, e) => onClick();
         return item;
     }
 

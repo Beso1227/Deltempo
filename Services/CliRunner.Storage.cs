@@ -63,6 +63,14 @@ public static partial class CliRunner
             scope = scopeOpt;
         }
 
+        if (scope != "ALL" && !TryValidatePath(scope, out var scopeError))
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"  ❌ Invalid scan scope: {scopeError}");
+            Console.ResetColor();
+            return 1;
+        }
+
         // Options
         long minBytes = ParseBytes(GetOptionValue(args, "--min", "-m"), 50L * 1024 * 1024);
         int topLimit = int.TryParse(GetOptionValue(args, "--top", "-n"), out int n) ? n : 35;
@@ -230,6 +238,14 @@ public static partial class CliRunner
 
     private static async Task<int> HandleInspectLargeFileAsync(string filePath, bool isJson)
     {
+        if (!TryValidatePath(filePath, out var pathError))
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"  ❌ Invalid path: {pathError}");
+            Console.ResetColor();
+            return 1;
+        }
+
         if (!File.Exists(filePath))
         {
             Console.ForegroundColor = ConsoleColor.Red;
@@ -323,6 +339,14 @@ public static partial class CliRunner
 
     private static int HandleDeleteLargeFile(string filePath, bool yesPrompt)
     {
+        if (!TryValidatePath(filePath, out var pathError))
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"  ❌ Invalid path: {pathError}");
+            Console.ResetColor();
+            return 1;
+        }
+
         if (!File.Exists(filePath))
         {
             Console.ForegroundColor = ConsoleColor.Red;
