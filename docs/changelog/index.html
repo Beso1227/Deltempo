@@ -35,7 +35,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../style.css?v=2.4.0" />
+  <link rel="stylesheet" href="../style.css?v=2.5.0" />
 
   <!-- Schema.org JSON-LD -->
   <script type="application/ld+json">
@@ -140,7 +140,7 @@
           <li><strong>Modular Architecture Refactor:</strong> Split the two largest source files into 13 focused modules — the WPF window core (618 lines + 8 domain partials: Settings, Cleaning, Ui, Updates, Memory, SystemManagers, LargeFiles, SystemRepair) and the CLI dispatcher (276 lines + 4 command partials: Cleaning, Performance, Storage, System) — with zero behavioral change.</li>
           <li><strong>Opt-In CLI Shell Integration:</strong> The CLI no longer silently mutates PATH, registry, or PowerShell profiles. New commands: <code>deltempo register</code>, <code>deltempo register --status</code>, and full cleanup via <code>deltempo unregister</code>.</li>
           <li><strong>Privacy Default Change:</strong> Online AI file analysis is now disabled by default. When enabled, cloud providers receive an anonymized metadata summary only — never file contents.</li>
-          <li><strong>Hardened Quality Gates:</strong> CI now enforces a 60% line-coverage threshold, a zero-warning policy (<code>TreatWarningsAsErrors</code>), and runs CodeQL security analysis on every push and pull request.</li>
+          <li><strong>Hardened Quality Gates:</strong> CI now enforces a 65% line-coverage threshold, a zero-warning policy (<code>TreatWarningsAsErrors</code>), and runs CodeQL security analysis on every push and pull request.</li>
           <li><strong>Reproducible Benchmark Harness:</strong> New <code>scripts/benchmark.ps1</code> measures parallel deletion throughput on a synthetic sandbox (measured 3,385 files/s) with correctness-only assertions so runs never flake.</li>
         </ul>
       </div>
@@ -173,7 +173,7 @@
         <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
           <li><strong>Scanning &amp; Cleaning Discrepancy Resolved:</strong> Added designated cache and temporary location classification in <code>FileSafetyEngine</code> so all eligible scratch and cache files (e.g. <code>.bin</code>, <code>.dat</code>, <code>.cache</code>, <code>.json</code>, <code>.etl</code>, and GUID folders) are planned and cleaned properly instead of being over-filtered as Unknown.</li>
           <li><strong>Multi-Root Directory Containment:</strong> Upgraded root containment checks in <code>CleanupExecutor</code> and <code>CleanerService</code> to support multi-directory categories (Developer caches, Desktop App caches) without path escape false positives.</li>
-          <li><strong>High-Speed Parallel Deletion:</strong> Upgraded the cleanup execution engine with bounded multi-threading (up to 16 threads), accelerating file cleanup by 15x&ndash;20x.</li>
+          <li><strong>High-Speed Parallel Deletion:</strong> Upgraded the cleanup execution engine with bounded multi-threading (up to 16 threads) for significantly faster file cleanup; see the <code>scripts/benchmark.ps1</code> harness (measured 3,385 files/s on the synthetic sandbox) for reproducible numbers.</li>
           <li><strong>Removed Blocking DISM Wait:</strong> Removed the 3-minute blocking DISM component servicing call from standard cache cleanup, eliminating application freezes.</li>
           <li><strong>Non-Blocking UI Progress:</strong> Throttled UI dispatch loops so background cleaner threads never stall waiting for WPF UI renders.</li>
         </ul>
