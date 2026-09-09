@@ -344,6 +344,21 @@ public partial class MainWindow : Window
         }
 
         await RunScanAllAsync();
+
+        // Load orphaned app leftovers asynchronously after initial scan completes
+        try
+        {
+            var orphans = await CleanerService.LoadOrphanedTargetsAsync(_cts?.Token ?? default);
+            foreach (var o in orphans)
+            {
+                _targets.Add(o);
+            }
+            RecalculateTotals();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
     }
 
     private void LoadSettingsIntoUI()

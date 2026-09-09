@@ -11,6 +11,20 @@ namespace WinTempCleaner.Services;
 
 public class CleanerService
 {
+    private static void UiInvoke(Action action)
+    {
+        try
+        {
+            if (System.Windows.Application.Current != null)
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(action);
+                return;
+            }
+        }
+        catch { }
+        action();
+    }
+
     #region Native Windows Shell & Kernel APIs
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -569,21 +583,23 @@ public class CleanerService
             }
         };
 
-        // 25. Orphaned Uninstalled AppData Leftovers
-        try
-        {
-            var orphans = OrphanedAppService.ScanVerifiedOrphanedFolders();
-            foreach (var o in orphans)
-            {
-                targets.Add(o);
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
-        }
-
         return targets;
+    }
+
+    public static async Task<List<TargetFolderInfo>> LoadOrphanedTargetsAsync(CancellationToken ct = default)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                return OrphanedAppService.ScanVerifiedOrphanedFolders();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                return new List<TargetFolderInfo>();
+            }
+        }, ct);
     }
 
     public async Task ScanFolderAsync(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct, bool safeMode24Hours = false)
@@ -609,14 +625,14 @@ public class CleanerService
             if (folder.IsSpecialShellTarget && folder.Id == "RecycleBin")
             {
                 ScanRecycleBin(folder, logAction);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "SystemRestorePoints")
             {
                 ScanRestorePoints(folder, logAction);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
@@ -624,137 +640,137 @@ public class CleanerService
             {
                 var dirs = GetDeliveryOptimizationDirectories();
                 ScanDirectoryList(folder, dirs, "Windows Delivery Optimization", logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "WinUpgradeLeftovers")
             {
                 ScanUpgradeLeftovers(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "WinComponentCaches")
             {
                 ScanComponentCaches(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "WinStoreAppCaches")
             {
                 ScanStoreAppCaches(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "DeviceDriverPackages")
             {
                 ScanDeviceDriverPackages(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "DefenderAntivirus")
             {
                 ScanDefenderAntivirus(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "WinSystemLogs")
             {
                 ScanWinSystemLogs(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "SystemDumps")
             {
                 ScanSystemDumps(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "TemporaryInternetFiles")
             {
                 ScanTemporaryInternetFiles(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "SystemUsageTraces")
             {
                 ScanSystemUsageTraces(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "GpuShaderCaches")
             {
                 ScanGpuShaderPools(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "GamingLaunchers")
             {
                 ScanGamingLauncherPools(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "MediaCreatorCaches")
             {
                 ScanMediaCreatorPools(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "MobileDevResiduals")
             {
                 ScanMobileDevPools(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "AppCacheSweeper")
             {
                 ScanAppCachePools(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "MessagingAppCaches")
             {
                 ScanMessagingAppCachePools(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "BrowserCaches")
             {
                 ScanBrowserCachePools(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (folder.Id == "DevPackageCaches")
             {
                 ScanDevPackageCaches(folder, logAction, ct);
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
             if (!Directory.Exists(folder.FolderPath))
             {
-                folder.SizeBytes = 0;
-                folder.FileCount = 0;
-                folder.FolderCount = 0;
-                folder.TopFiles = new List<JunkFileItem>();
-                folder.StatusMessage = "Empty or Not Found";
-                folder.IsScanning = false;
+                UiInvoke(() => folder.SizeBytes = 0);
+                UiInvoke(() => folder.FileCount = 0);
+                UiInvoke(() => folder.FolderCount = 0);
+                UiInvoke(() => folder.TopFiles = new List<JunkFileItem>());
+                UiInvoke(() => folder.StatusMessage = "Empty or Not Found");
+                UiInvoke(() => folder.IsScanning = false);
                 return;
             }
 
@@ -811,27 +827,27 @@ public class CleanerService
                     folderCount++;
                 }
 
-                folder.SizeBytes = totalBytes;
-                folder.FileCount = fileCount;
-                folder.FolderCount = folderCount;
-                folder.TopFiles = topFilesBag.OrderByDescending(f => f.SizeBytes).Take(15).ToList();
-                folder.StatusMessage = $"Ready: {TargetFolderInfo.FormatBytes(totalBytes)}";
+                UiInvoke(() => folder.SizeBytes = totalBytes);
+                UiInvoke(() => folder.FileCount = fileCount);
+                UiInvoke(() => folder.FolderCount = folderCount);
+                UiInvoke(() => folder.TopFiles = topFilesBag.OrderByDescending(f => f.SizeBytes).Take(15).ToList());
+                UiInvoke(() => folder.StatusMessage = $"Ready: {TargetFolderInfo.FormatBytes(totalBytes)}");
 
                 logAction($"Scanned {folder.Name}: {TargetFolderInfo.FormatBytes(totalBytes)} ({fileCount:N0} files)", LogLevel.Info);
             }
             catch (UnauthorizedAccessException ex)
             {
-                folder.StatusMessage = "Access Denied (Admin Required)";
+                UiInvoke(() => folder.StatusMessage = "Access Denied (Admin Required)");
                 logAction($"Admin privileges required to scan {folder.Name}: {ex.Message}", LogLevel.Warning);
             }
             catch (Exception ex)
             {
-                folder.StatusMessage = "Scan Error";
+                UiInvoke(() => folder.StatusMessage = "Scan Error");
                 logAction($"Error scanning {folder.Name}: {ex.Message}", LogLevel.Error);
             }
             finally
             {
-                folder.IsScanning = false;
+                UiInvoke(() => folder.IsScanning = false);
             }
         }, ct);
     }
@@ -1036,10 +1052,10 @@ public class CleanerService
             }
         }
 
-        folder.SizeBytes = totalBytes;
-        folder.FileCount = fileCount;
-        folder.TopFiles = topFilesBag.OrderByDescending(f => f.SizeBytes).Take(15).ToList();
-        folder.StatusMessage = $"Ready: {TargetFolderInfo.FormatBytes(totalBytes)}";
+        UiInvoke(() => folder.SizeBytes = totalBytes);
+        UiInvoke(() => folder.FileCount = fileCount);
+        UiInvoke(() => folder.TopFiles = topFilesBag.OrderByDescending(f => f.SizeBytes).Take(15).ToList());
+        UiInvoke(() => folder.StatusMessage = $"Ready: {TargetFolderInfo.FormatBytes(totalBytes)}");
         logAction($"Scanned {categoryTitle}: {TargetFolderInfo.FormatBytes(totalBytes)} ({fileCount:N0} files)", LogLevel.Info);
     }
 
@@ -1051,22 +1067,22 @@ public class CleanerService
             int hresult = SHQueryRecycleBin(null, ref rbInfo);
             if (hresult == 0)
             {
-                folder.SizeBytes = rbInfo.i64Size;
-                folder.FileCount = (int)rbInfo.i64NumItems;
-                folder.FolderCount = 0;
-                folder.StatusMessage = $"Ready: {TargetFolderInfo.FormatBytes(rbInfo.i64Size)}";
+                UiInvoke(() => folder.SizeBytes = rbInfo.i64Size);
+                UiInvoke(() => folder.FileCount = (int)rbInfo.i64NumItems);
+                UiInvoke(() => folder.FolderCount = 0);
+                UiInvoke(() => folder.StatusMessage = $"Ready: {TargetFolderInfo.FormatBytes(rbInfo.i64Size)}");
                 logAction($"Scanned Recycle Bin: {TargetFolderInfo.FormatBytes(rbInfo.i64Size)} across {rbInfo.i64NumItems:N0} items", LogLevel.Info);
             }
             else
             {
-                folder.StatusMessage = "Empty";
-                folder.SizeBytes = 0;
-                folder.FileCount = 0;
+                UiInvoke(() => folder.StatusMessage = "Empty");
+                UiInvoke(() => folder.SizeBytes = 0);
+                UiInvoke(() => folder.FileCount = 0);
             }
         }
         catch (Exception ex)
         {
-            folder.StatusMessage = "Scan Error";
+            UiInvoke(() => folder.StatusMessage = "Scan Error");
             logAction($"Error querying Recycle Bin: {ex.Message}", LogLevel.Warning);
         }
     }
@@ -1076,23 +1092,23 @@ public class CleanerService
         try
         {
             var (usedBytes, snapshotCount) = QueryShadowStorageInfo();
-            folder.SizeBytes = usedBytes;
-            folder.FileCount = snapshotCount;
-            folder.FolderCount = 0;
+            UiInvoke(() => folder.SizeBytes = usedBytes);
+            UiInvoke(() => folder.FileCount = snapshotCount);
+            UiInvoke(() => folder.FolderCount = 0);
             if (usedBytes > 0)
             {
-                folder.StatusMessage = $"Ready: {TargetFolderInfo.FormatBytes(usedBytes)} ({snapshotCount} snapshots)";
+                UiInvoke(() => folder.StatusMessage = $"Ready: {TargetFolderInfo.FormatBytes(usedBytes)} ({snapshotCount} snapshots)");
                 logAction($"Scanned System Restore Points: {TargetFolderInfo.FormatBytes(usedBytes)} across {snapshotCount} shadow copies", LogLevel.Info);
             }
             else
             {
-                folder.StatusMessage = "Clean / None Found";
+                UiInvoke(() => folder.StatusMessage = "Clean / None Found");
                 logAction("Scanned System Restore Points: No shadow copies found (0 bytes)", LogLevel.Info);
             }
         }
         catch (Exception ex)
         {
-            folder.StatusMessage = "Scan Error";
+            UiInvoke(() => folder.StatusMessage = "Scan Error");
             logAction($"Error querying restore points: {ex.Message}", LogLevel.Warning);
         }
     }
@@ -1128,24 +1144,24 @@ public class CleanerService
                     {
                         freedBytes = initialSize;
                         filesDeleted = initialCount;
-                        folder.SizeBytes = 0;
-                        folder.FileCount = 0;
-                        folder.StatusMessage = "Emptied successfully";
+                        UiInvoke(() => folder.SizeBytes = 0);
+                        UiInvoke(() => folder.FileCount = 0);
+                        UiInvoke(() => folder.StatusMessage = "Emptied successfully");
                         logAction($"Emptied Recycle Bin: {TargetFolderInfo.FormatBytes(freedBytes)} reclaimed", LogLevel.Success);
                     }
                     else
                     {
-                        folder.StatusMessage = "Empty";
+                        UiInvoke(() => folder.StatusMessage = "Empty");
                     }
                 }
                 catch (Exception ex)
                 {
-                    folder.StatusMessage = "Error emptying";
+                    UiInvoke(() => folder.StatusMessage = "Error emptying");
                     logAction($"Error emptying Recycle Bin: {ex.Message}", LogLevel.Error);
                 }
                 finally
                 {
-                    folder.IsCleaning = false;
+                    UiInvoke(() => folder.IsCleaning = false);
                 }
                 return;
             }
@@ -1159,23 +1175,23 @@ public class CleanerService
                     {
                         freedBytes = reclaimed;
                         filesDeleted = 1;
-                        folder.SizeBytes = 0;
-                        folder.FileCount = 0;
-                        folder.StatusMessage = $"Reclaimed: {TargetFolderInfo.FormatBytes(reclaimed)}";
+                        UiInvoke(() => folder.SizeBytes = 0);
+                        UiInvoke(() => folder.FileCount = 0);
+                        UiInvoke(() => folder.StatusMessage = $"Reclaimed: {TargetFolderInfo.FormatBytes(reclaimed)}");
                     }
                     else
                     {
-                        folder.StatusMessage = "Preserved Latest / Clean";
+                        UiInvoke(() => folder.StatusMessage = "Preserved Latest / Clean");
                     }
                 }
                 catch (Exception ex)
                 {
-                    folder.StatusMessage = "Error";
+                    UiInvoke(() => folder.StatusMessage = "Error");
                     logAction($"Error cleaning restore points: {ex.Message}", LogLevel.Warning);
                 }
                 finally
                 {
-                    folder.IsCleaning = false;
+                    UiInvoke(() => folder.IsCleaning = false);
                 }
                 return;
             }
@@ -1194,26 +1210,26 @@ public class CleanerService
                             freedBytes = initialSize;
                             filesDeleted = initialFiles;
                             foldersDeleted = 1;
-                            folder.SizeBytes = 0;
-                            folder.FileCount = 0;
-                            folder.StatusMessage = "Moved to Recycle Bin (Undoable)";
+                            UiInvoke(() => folder.SizeBytes = 0);
+                            UiInvoke(() => folder.FileCount = 0);
+                            UiInvoke(() => folder.StatusMessage = "Moved to Recycle Bin (Undoable)");
                             logAction($"Safely recycled residual folder '{folder.FolderPath}' to Windows Recycle Bin ({TargetFolderInfo.FormatBytes(initialSize)})", LogLevel.Success);
                         }
                         else
                         {
-                            folder.StatusMessage = "In Use or Locked";
+                            UiInvoke(() => folder.StatusMessage = "In Use or Locked");
                             logAction($"Could not recycle '{folder.FolderPath}'. File may be in use or require admin rights.", LogLevel.Warning);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    folder.StatusMessage = "Error";
+                    UiInvoke(() => folder.StatusMessage = "Error");
                     logAction($"Error cleaning residual folder '{folder.FolderPath}': {ex.Message}", LogLevel.Error);
                 }
                 finally
                 {
-                    folder.IsCleaning = false;
+                    UiInvoke(() => folder.IsCleaning = false);
                 }
                 return;
             }
@@ -1304,26 +1320,26 @@ public class CleanerService
                 catch { }
             }
 
-            folder.SizeBytes = Math.Max(0, folder.SizeBytes - freedBytes);
-            folder.FileCount = Math.Max(0, folder.FileCount - filesDeleted);
+            UiInvoke(() => folder.SizeBytes = Math.Max(0, folder.SizeBytes - freedBytes));
+            UiInvoke(() => folder.FileCount = Math.Max(0, folder.FileCount - filesDeleted));
 
             if (freedBytes > 0)
             {
-                folder.StatusMessage = $"Reclaimed: {TargetFolderInfo.FormatBytes(freedBytes)}";
+                UiInvoke(() => folder.StatusMessage = $"Reclaimed: {TargetFolderInfo.FormatBytes(freedBytes)}");
                 logAction($"Cleaned {folder.Name}: {TargetFolderInfo.FormatBytes(freedBytes)} reclaimed ({filesDeleted:N0} files deleted, {filesSkipped:N0} skipped/protected/failed)", LogLevel.Success);
             }
             else if (filesSkipped > 0)
             {
-                folder.StatusMessage = $"Protected ({filesSkipped:N0} items)";
+                UiInvoke(() => folder.StatusMessage = $"Protected ({filesSkipped:N0} items)");
                 logAction($"Protected {folder.Name}: {filesSkipped:N0} files skipped by safety engine, protection policy, or verification", LogLevel.Info);
             }
             else
             {
-                folder.StatusMessage = "Already Clean (0 B)";
+                UiInvoke(() => folder.StatusMessage = "Already Clean (0 B)");
                 logAction($"Checked {folder.Name}: Already clean (0 bytes)", LogLevel.Info);
             }
 
-            folder.IsCleaning = false;
+            UiInvoke(() => folder.IsCleaning = false);
         }, ct);
 
         return (freedBytes, filesDeleted, foldersDeleted, filesSkipped);

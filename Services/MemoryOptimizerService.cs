@@ -198,7 +198,7 @@ public static class MemoryOptimizerService
         public long CurrentSizeIncludingTransitionInPages;
         public long PeakSizeIncludingTransitionInPages;
         public long TransitionRePurposeCount;
-        public long Flags;
+        public int Flags;
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
