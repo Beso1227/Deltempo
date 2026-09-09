@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
-  <assemblyIdentity version="1.0.0.0" name="Deltempo.app"/>
+  <assemblyIdentity version="1.0.0.0" name="Deltempo.app" processorArchitecture="amd64" />
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>
       <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
-        <!-- Require administrator privileges to clean system caches, Prefetch, and temporary files -->
         <requestedExecutionLevel level="requireAdministrator" uiAccess="false" />
       </requestedPrivileges>
     </security>
@@ -12,8 +11,8 @@
 
   <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
     <application>
-      <!-- Windows 10 & 11 -->
       <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
+      <supportedOS Id="{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}" />
     </application>
   </compatibility>
 
@@ -21,6 +20,14 @@
     <windowsSettings>
       <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/pm</dpiAware>
       <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2, PerMonitor</dpiAwareness>
+      <longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware>
     </windowsSettings>
   </application>
+
+  <description>
+    <description>Deltempo is a free, open-source Windows PC cleaner and memory optimizer. It safely reclaims caches, temporary files, and flushes standby RAM with zero telemetry.</description>
+    <copyright>Copyright (c) 2026 Beso1227 / Deltempo Project. MIT License.</copyright>
+    <company>Deltempo Open Source Project</company>
+    <product>Deltempo Windows Cleaner</product>
+  </description>
 </assembly>

@@ -220,4 +220,16 @@ public partial class MainWindow
     // Windows System Integrity & Corruption Repair Handlers
     // =======================================================
     private CancellationTokenSource? _systemRepairCts;
+
+    private void AboutButton_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        AboutModalOverlay.Visibility = Visibility.Visible;
+    }
+
+    private void CloseAbout_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        AboutModalOverlay.Visibility = Visibility.Collapsed;
+    }
 }

@@ -95,13 +95,27 @@
                                             <GradientStop Color="#158B5CF6" Offset="1"/>
                                         </LinearGradientBrush>
                                     </Border.Background>
-                                    <TextBlock x:Name="AppVersionHeaderBadge"
-                                               Text="v1.4.0"
-                                               FontSize="9"
-                                               FontWeight="Bold"
-                                               Foreground="#00E5FF"
-                                               RenderOptions.ClearTypeHint="Enabled"/>
-                                </Border>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock x:Name="AppVersionHeaderBadge"
+                                                   Text="v1.4.0"
+                                                   FontSize="9"
+                                                   FontWeight="Bold"
+                                                   Foreground="#00E5FF"
+                                                   RenderOptions.ClearTypeHint="Enabled"/>
+                                        <Border BorderBrush="#26FFFFFF"
+                                                BorderThickness="1"
+                                                CornerRadius="4"
+                                                Padding="4,1"
+                                                Margin="6,0,0,0"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="MIT"
+                                                       FontSize="8"
+                                                       FontWeight="Bold"
+                                                       Foreground="#94A3B8"
+                                                       RenderOptions.ClearTypeHint="Enabled"/>
+                                        </Border>
+                                    </StackPanel>
+                                 </Border>
                             </StackPanel>
                             <TextBlock x:Name="BrandSubtitleText"
                                        Text="Windows Cleaner &amp; Memory Optimizer"
@@ -284,6 +298,26 @@
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
+                        </Button>
+
+                        <!-- About / Trust Button -->
+                        <Button x:Name="AboutButton"
+                                Style="{DynamicResource HeaderToolButton}"
+                                ToolTip="About Deltempo — Open Source, MIT Licensed, Zero Telemetry"
+                                AutomationProperties.Name="About Deltempo"
+                                Click="AboutButton_Click">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="&#xE946;"
+                                           FontFamily="{DynamicResource IconFont}"
+                                           FontSize="10.5"
+                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                           Margin="0,0,5,0"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Text="About"
+                                           FontSize="11"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
                         </Button>
 
                         <!-- Quick Preferences Pod -->
@@ -1912,6 +1946,125 @@
                                     Padding="28,9"
                                     Click="CloseCelebration_Click"/>
                         </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- 8. ABOUT / TRUST MODAL -->
+            <Grid Grid.RowSpan="6"
+                  x:Name="AboutModalOverlay"
+                  Background="{DynamicResource ModalBackdropBrush}"
+                  Visibility="Collapsed"
+                  AutomationProperties.Name="Deltempo About Dialog">
+                <Border MinWidth="420" MaxWidth="560" Margin="16"
+                        Background="{DynamicResource ModalSurfaceBrush}"
+                        BorderBrush="{DynamicResource ElectricCyanBrush}"
+                        BorderThickness="1.5"
+                        CornerRadius="18"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Padding="28,24">
+                    <StackPanel>
+                        <!-- Header -->
+                        <Grid Margin="0,0,0,18">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Width="38" Height="38"
+                                        CornerRadius="10"
+                                        Background="{DynamicResource SurfaceSubCardBrush}"
+                                        BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                        BorderThickness="1"
+                                        Margin="0,0,12,0">
+                                    <TextBlock Text="&#xE946;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="16"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="About Deltempo"
+                                               FontSize="15"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                    <TextBlock Text="Open Source • MIT Licensed • Zero Telemetry"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    Style="{DynamicResource WindowCloseButton}"
+                                    Content="&#xE8BB;"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    AutomationProperties.Name="Close About Dialog"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Click="CloseAbout_Click"/>
+                        </Grid>
+
+                        <!-- Content -->
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="340">
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock Text="Deltempo is a free, open-source Windows PC cleaner and NT memory optimizer."
+                                           FontSize="12.5"
+                                           Foreground="{DynamicResource TextHighBrush}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,10"/>
+                                <TextBlock Text="It safely reclaims disposable caches, GPU shader caches, and temporary data with zero telemetry. All processing happens locally on your machine — no data is uploaded anywhere."
+                                           FontSize="11.5"
+                                           Foreground="{DynamicResource TextMediumBrush}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,14"/>
+
+                                <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="12,10"
+                                        Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="TRUST &amp; SAFETY" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,0,6"/>
+                                        <TextBlock Text="✓ 100% Open Source (MIT License)" FontSize="11" Foreground="{DynamicResource TextHighBrush}" Margin="0,0,0,3"/>
+                                        <TextBlock Text="✓ Zero telemetry — no tracking, no analytics, no phone home" FontSize="11" Foreground="{DynamicResource TextHighBrush}" Margin="0,0,0,3"/>
+                                        <TextBlock Text="✓ Safety Shield protects files modified in the last 24 hours" FontSize="11" Foreground="{DynamicResource TextHighBrush}" Margin="0,0,0,3"/>
+                                        <TextBlock Text="✓ Recycle Bin mode available — deleted files can be restored" FontSize="11" Foreground="{DynamicResource TextHighBrush}" Margin="0,0,0,3"/>
+                                        <TextBlock Text="✓ Deterministic rule-based safety engine — no heuristics guessing" FontSize="11" Foreground="{DynamicResource TextHighBrush}" Margin="0,0,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="12,10"
+                                        Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="PUBLISHER" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,0,6"/>
+                                        <TextBlock Text="Beso1227" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}" Margin="0,0,0,3"/>
+                                        <TextBlock Text="Deltempo Open Source Project" FontSize="11" Foreground="{DynamicResource TextMediumBrush}" Margin="0,0,0,3"/>
+                                        <TextBlock Text="https://github.com/Beso1227/Deltempo" FontSize="10.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <TextBlock Text="If you see a Windows SmartScreen warning, it is because this executable is not yet code-signed with a trusted publisher certificate. The app is open source — you can inspect, build, and verify the code yourself at the link above."
+                                           FontSize="11"
+                                           Foreground="{DynamicResource TextMediumBrush}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,0"/>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- Footer -->
+                        <Button Content="Close"
+                                Style="{DynamicResource HeroCTAButton}"
+                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                Padding="22,8"
+                                HorizontalAlignment="Center"
+                                Margin="0,10,0,0"
+                                Click="CloseAbout_Click"/>
                     </StackPanel>
                 </Border>
             </Grid>

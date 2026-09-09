@@ -10,18 +10,21 @@
     <ApplicationIcon>app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationTitle>Deltempo - Windows Cleaner and Memory Optimizer</ApplicationTitle>
-    <Authors>Beso1227</Authors>
-    <Company>Deltempo Open Source Project</Company>
-    <Product>Deltempo Windows Cleaner</Product>
-    <Description>Open source Windows cache cleaner and memory optimizer with zero telemetry.</Description>
-    <Copyright>Copyright © 2026 Beso1227 / Deltempo Project. MIT Licensed.</Copyright>
     <Version>1.5.2</Version>
     <FileVersion>1.5.2.0</FileVersion>
     <AssemblyVersion>1.5.2.0</AssemblyVersion>
     <NeutralLanguage>en-US</NeutralLanguage>
     <RepositoryUrl>https://github.com/Beso1227/Deltempo</RepositoryUrl>
     <PackageProjectUrl>https://beso1227.github.io/Deltempo/</PackageProjectUrl>
-    
+    <RepositoryType>git</RepositoryType>
+    <Authors>Beso1227</Authors>
+    <Company>Deltempo Open Source Project</Company>
+    <Product>Deltempo Windows Cleaner</Product>
+    <Description>Open source Windows cache cleaner and memory optimizer with zero telemetry.</Description>
+    <Copyright>Copyright (c) 2026 Beso1227 / Deltempo Project. MIT Licensed.</Copyright>
+    <Title>Deltempo</Title>
+    <Publisher>Beso1227</Publisher>
+
     <!-- Unified 100% Standalone Self-Contained Executable -->
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
