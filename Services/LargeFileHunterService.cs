@@ -221,13 +221,14 @@ public static class LargeFileHunterService
         string targetScope = "ALL",
         int maxResults = 250,
         IProgress<int>? progress = null,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        bool excludeSystem = false)
     {
         return await Task.Run(() =>
         {
             var allResults = new List<LargeFileInfo>();
             var inaccessibleDirs = new List<string>();
-            var rootsToScan = ResolveRoots(targetScope);
+            var rootsToScan = ResolveRoots(targetScope, excludeSystem);
 
             int totalRoots = rootsToScan.Count;
             int currentRootIndex = 0;
@@ -385,7 +386,7 @@ public static class LargeFileHunterService
         }
     }
 
-    private static List<string> ResolveRoots(string targetScope)
+    private static List<string> ResolveRoots(string targetScope, bool excludeSystem = false)
     {
         var roots = new List<string>();
         string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -400,18 +401,15 @@ public static class LargeFileHunterService
             return roots;
         }
 
-        // If specific path, user folder, or drive passed
         if (!string.Equals(targetScope, "ALL", StringComparison.OrdinalIgnoreCase) &&
             !string.IsNullOrWhiteSpace(targetScope))
         {
-            // 1. Direct directory or full path
             if (Directory.Exists(targetScope))
             {
                 roots.Add(Path.GetFullPath(targetScope));
                 return roots;
             }
 
-            // 2. Relative to current working directory
             string localPath = Path.GetFullPath(targetScope);
             if (Directory.Exists(localPath))
             {
@@ -419,7 +417,6 @@ public static class LargeFileHunterService
                 return roots;
             }
 
-            // 3. User subfolder (e.g. "Downloads", "Documents", "Desktop", "Videos")
             string userFolder = Path.Combine(userProfile, targetScope);
             if (Directory.Exists(userFolder))
             {
@@ -427,7 +424,6 @@ public static class LargeFileHunterService
                 return roots;
             }
 
-            // 4. Drive letter (e.g. "C", "C:", "D:")
             string cleanDrive = targetScope.Trim().TrimEnd('\\');
             if (cleanDrive.Length == 1) cleanDrive += ":";
             cleanDrive += "\\";
@@ -439,7 +435,6 @@ public static class LargeFileHunterService
             }
         }
 
-        // ALL Drives
         try
         {
             var fixedDrives = DriveInfo.GetDrives()
@@ -448,12 +443,17 @@ public static class LargeFileHunterService
 
             foreach (var drive in fixedDrives)
             {
+                if (excludeSystem)
+                {
+                    string root = drive.RootDirectory.FullName.TrimEnd('\\').ToUpperInvariant();
+                    if (root == "C:\\" || root == "D:\\") continue;
+                }
                 roots.Add(drive.RootDirectory.FullName);
             }
         }
         catch
         {
-            roots.Add(@"C:\");
+            if (!excludeSystem) roots.Add(@"C:\");
         }
 
         return roots;

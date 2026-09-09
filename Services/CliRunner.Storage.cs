@@ -81,15 +81,20 @@ public static partial class CliRunner
         bool dryRun = HasFlag(args, "--dry-run", "-d");
         bool yesPrompt = HasFlag(args, "--yes", "-y");
         bool cleanAll = HasFlag(args, "--all");
+        bool excludeSystem = HasFlag(args, "--exclude-system", "-es");
 
         if (!isJson)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine($"  [Deltempo] Large File Hunter (>{TargetFolderInfo.FormatBytes(minBytes)}) on '{scope}'...\n");
+            if (excludeSystem && scope.Equals("ALL", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("  [Deltempo] System drive exclusion active: skipping C: and D: roots.\n");
+            }
             Console.ResetColor();
         }
 
-        var scanResult = await LargeFileHunterService.ScanLargeFilesAsync(minBytes, scope);
+        var scanResult = await LargeFileHunterService.ScanLargeFilesAsync(minBytes, scope, excludeSystem: excludeSystem);
         var files = scanResult.Files;
 
         // Apply filters
