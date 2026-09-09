@@ -44,7 +44,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=2.5.0" />
+  <link rel="stylesheet" href="style.css?v=2.6.0" />
 
   <!-- Schema.org JSON-LD Structured Data (Google Knowledge Graph & Rich Results) -->
   <script type="application/ld+json">
@@ -485,7 +485,8 @@
                   <div style="padding: 1.25rem; border-radius: var(--radius-md); background: #0A0D14; border: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 0.85rem; color: #E2E8F0; line-height: 1.7;">
                     <div style="color: var(--text-low);"># Run deterministic cleanup in simulation mode</div>
                     <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo clean temp --dry-run</div>
-                    <div style="color: var(--text-low); margin-top: 0.5rem;"># Output machine-readable JSON telemetry</div>
+                    <div style="margin-top: 0.5rem; color: #E2E8F0;">{<br />&nbsp;&nbsp;"dryRun": <span style="color: var(--accent-cyan);">true</span>,<br />&nbsp;&nbsp;"safetyShieldActive": <span style="color: var(--accent-cyan);">true</span>,<br />&nbsp;&nbsp;"formattedTotal": <span style="color: var(--accent-emerald);">"8.3 MB"</span>,<br />&nbsp;&nbsp;"totalFiles": <span style="color: var(--accent-amber);">48</span><br />}</div>
+                    <div style="color: var(--text-low); margin-top: 0.75rem;"># Output machine-readable JSON telemetry</div>
                     <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo status --json</div>
                     <div style="color: var(--text-low); margin-top: 0.5rem;"># Check for continuous patch updates (Exit code 0 = up to date, 2 = update available)</div>
                     <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo update check</div>
@@ -1209,6 +1210,13 @@
           if (e.key === 'Escape' && mobileMenu.classList.contains('open')) {
             toggleMobileMenu(false);
             mobileToggle.focus();
+          }
+        });
+
+        // Close menu on viewport resize to desktop width
+        window.addEventListener('resize', function () {
+          if (window.innerWidth > 960 && mobileMenu.classList.contains('open')) {
+            toggleMobileMenu(false);
           }
         });
       }

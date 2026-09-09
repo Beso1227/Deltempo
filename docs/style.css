@@ -1417,12 +1417,30 @@ html.light .mobile-menu-overlay {
     display: none;
   }
 
+  .nav-download-btn span:first-child {
+    display: none;
+  }
+
+  .nav-download-btn {
+    padding: 0.45rem 0.7rem !important;
+    gap: 0 !important;
+  }
+
+  .nav-island {
+    max-width: 100%;
+    height: 52px;
+  }
+
   .nav-mobile-toggle {
     display: flex;
   }
 }
 
 @media (max-width: 768px) {
+  .hero {
+    padding-top: 3rem;
+  }
+
   .hero-headline {
     font-size: 2.25rem;
   }
@@ -1439,6 +1457,25 @@ html.light .mobile-menu-overlay {
   .pipeline-arrow {
     transform: rotate(90deg);
     margin: 0.5rem auto;
+  }
+
+  .app-content {
+    padding: 1.25rem;
+  }
+
+  .app-tabs {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .app-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .app-tab {
+    padding: 0.7rem 1rem;
+    font-size: 0.8rem;
+    flex: 0 0 auto;
   }
 
   .footer-inner {
