@@ -272,9 +272,9 @@
     <section class="hero">
       <div class="container">
         <div class="hero-eyebrow reveal-on-scroll">
-          <a href="changelog/" class="hero-release-pill" title="View v1.5.1 Release Notes">
+          <a href="changelog/" id="heroReleasePill" class="hero-release-pill" title="View v1.5.2 Release Notes">
             <span class="pulse-dot"></span>
-            <span class="pill-tag">v1.5.1</span>
+            <span class="pill-tag" id="heroVersionTag">v1.5.2</span>
             <span class="pill-text">Latest Stable Release • Offline PWA &amp; NT Kernel Engine</span>
             <svg class="pill-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
           </a>
@@ -1239,5 +1239,29 @@
 
   <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals) -->
   <script src="motion.js?v=2.2.0" defer></script>
+
+  <!-- Dynamic Release Version Sync -->
+  <script defer>
+    (function() {
+      const pill = document.getElementById('heroReleasePill');
+      const tag = document.getElementById('heroVersionTag');
+      if (!pill || !tag) return;
+
+      fetch('https://api.github.com/repos/Beso1227/Deltempo/releases/latest', {
+        headers: { 'Accept': 'application/vnd.github+json' }
+      })
+      .then(function(res) { return res.ok ? res.json() : Promise.reject(res.status); })
+      .then(function(data) {
+        if (data && data.tag_name && data.tag_name !== tag.textContent) {
+          tag.textContent = data.tag_name;
+          pill.setAttribute('title', 'View ' + data.tag_name + ' Release Notes');
+          pill.href = 'changelog/' + data.tag_name + '/';
+        }
+      })
+      .catch(function() {
+        // keep fallback version on failure
+      });
+    })();
+  </script>
 </body>
 </html>

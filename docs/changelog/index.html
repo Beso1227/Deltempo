@@ -132,12 +132,33 @@
       <p class="section-subtitle">Complete version history, feature additions, and security improvements.</p>
     </div>
 
+    <!-- v1.5.2 -->
+    <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
+      <div class="card-inner">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.5.2 (Latest Stable)</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+        </div>
+        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <li><strong>Critical Runtime Fixes:</strong> Resolved cross-thread UI crashes in the cleaning engine, fixed a native memory-struct layout mismatch that prevented kernel cache optimization, and eliminated a startup freeze caused by synchronous orphan-folder scanning.</li>
+          <li><strong>Settings Reliability:</strong> Made app settings immutable from external callers and introduced atomic update-with-persist semantics, preventing silent config loss on restart.</li>
+          <li><strong>Repair Tool Hardening:</strong> Added bounded timeouts to all external repair runners so corrupted-system repair can no longer hang the app indefinitely.</li>
+          <li><strong>Drive Telemetry Resilience:</strong> Hardened system-drive telemetry to survive inaccessible or failing volumes without crashing.</li>
+          <li><strong>HTTP Client Refresh:</strong> Forced periodic DNS/socket recycling in the online intelligence client to avoid stale-connection failures during long sessions.</li>
+          <li><strong>CLI Usability & Safety:</strong> Added path validation for user-supplied scan targets, made process-kill resolution dynamic, and added an <code>--exclude-system</code> scope for large-file scans.</li>
+          <li><strong>Tray Robustness:</strong> Wrapped all tray async menu handlers in exception guards so a single tray-action failure no longer crashes the process.</li>
+          <li><strong>UI/UX Polish:</strong> Added empty-state guidance, inline scan-error cards with retry, keyboard shortcut badges, settings search/reset, skeleton loading states, and a log notification indicator.</li>
+          <li><strong>Repository Hygiene:</strong> Removed duplicate site assets, legacy launcher scripts, local AI workspace artifacts, and stale root-level published binaries.</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- v1.5.1 -->
     <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
       <div class="card-inner">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.5.1 (Latest Stable)</h2>
-          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.5.1</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-low);">STABLE</span>
         </div>
         <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
           <li><strong>Repository Debloat & Hygiene:</strong> Shrunk Git repository database by ~98.5% (from 237 MB down to 3.52 MB), purging historical binary snapshots while preserving all commit integrity.</li>
