@@ -67,8 +67,8 @@ public partial class MainWindow
     {
         SoundService.IsSoundEnabled = !SoundService.IsSoundEnabled;
         SoundToggleIcon.Text = SoundService.IsSoundEnabled ? "\uE767" : "\uE74F";
-        SoundToggleIcon.Foreground = SoundService.IsSoundEnabled 
-            ? (Brush)FindResource("ElectricCyanBrush") 
+        SoundToggleIcon.Foreground = SoundService.IsSoundEnabled
+            ? (Brush)FindResource("ElectricCyanBrush")
             : (Brush)FindResource("TextMutedBrush");
 
         if (SoundService.IsSoundEnabled)
@@ -162,22 +162,22 @@ public partial class MainWindow
 
         // 1. Tag filter
         if (_currentFilterTag == "SAFE" && !target.IsSafeModeEligible) return false;
-        if (_currentFilterTag == "SYSTEM" && 
-            !target.Category.Contains("System", StringComparison.OrdinalIgnoreCase) && 
+        if (_currentFilterTag == "SYSTEM" &&
+            !target.Category.Contains("System", StringComparison.OrdinalIgnoreCase) &&
             !target.Category.Contains("Driver", StringComparison.OrdinalIgnoreCase) &&
             !target.Category.Contains("Diagnostics", StringComparison.OrdinalIgnoreCase) &&
             !target.Category.Contains("Security", StringComparison.OrdinalIgnoreCase) &&
             !target.Category.Contains("Storage", StringComparison.OrdinalIgnoreCase) &&
             !target.Category.Contains("SO", StringComparison.OrdinalIgnoreCase)) return false;
-        if (_currentFilterTag == "GAMING" && 
-            !target.Category.Contains("Gaming", StringComparison.OrdinalIgnoreCase) && 
-            !target.Category.Contains("Shader", StringComparison.OrdinalIgnoreCase) && 
+        if (_currentFilterTag == "GAMING" &&
+            !target.Category.Contains("Gaming", StringComparison.OrdinalIgnoreCase) &&
+            !target.Category.Contains("Shader", StringComparison.OrdinalIgnoreCase) &&
             !target.Category.Contains("GPU", StringComparison.OrdinalIgnoreCase)) return false;
-        if (_currentFilterTag == "MEDIA" && 
-            !target.Category.Contains("Media", StringComparison.OrdinalIgnoreCase) && 
-            !target.Category.Contains("App", StringComparison.OrdinalIgnoreCase) && 
-            !target.Category.Contains("Browser", StringComparison.OrdinalIgnoreCase) && 
-            !target.Category.Contains("Store", StringComparison.OrdinalIgnoreCase) && 
+        if (_currentFilterTag == "MEDIA" &&
+            !target.Category.Contains("Media", StringComparison.OrdinalIgnoreCase) &&
+            !target.Category.Contains("App", StringComparison.OrdinalIgnoreCase) &&
+            !target.Category.Contains("Browser", StringComparison.OrdinalIgnoreCase) &&
+            !target.Category.Contains("Store", StringComparison.OrdinalIgnoreCase) &&
             !target.Category.Contains("Dev", StringComparison.OrdinalIgnoreCase) &&
             !target.Category.Contains("User", StringComparison.OrdinalIgnoreCase) &&
             !target.Category.Contains("Creator", StringComparison.OrdinalIgnoreCase)) return false;

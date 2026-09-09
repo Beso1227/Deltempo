@@ -1,0 +1,31 @@
+name: Winget Manifest Validation
+
+on:
+  push:
+    paths:
+      - 'winget/**'
+      - '.github/workflows/winget-validate.yml'
+  pull_request:
+    paths:
+      - 'winget/**'
+      - '.github/workflows/winget-validate.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-winget:
+    name: Validate Windows Package Manager Manifest
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Validate Manifest Files
+        shell: pwsh
+        run: |
+          winget validate --manifest winget/
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "::error::Winget manifest validation failed."
+            exit 1
+          }
+          Write-Host "Winget manifest successfully validated against schema."

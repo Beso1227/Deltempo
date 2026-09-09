@@ -397,9 +397,9 @@ public partial class MainWindow
     private void SafeModeCheckBox_Changed(object sender, RoutedEventArgs e)
     {
         bool isSafe = SafeModeCheckBox.IsChecked == true;
-        AddLog(isSafe 
-            ? "Safety Shield ENABLED: Files created/modified within last 24 hours will be preserved." 
-            : "Safety Shield DISABLED: All files in selected categories will be removed.", 
+        AddLog(isSafe
+            ? "Safety Shield ENABLED: Files created/modified within last 24 hours will be preserved."
+            : "Safety Shield DISABLED: All files in selected categories will be removed.",
             LogLevel.Info);
     }
 

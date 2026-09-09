@@ -41,29 +41,29 @@ public class MemoryAreaSnapshot
 
     public string IconGlyph => Target switch
     {
-        MemoryTargetType.WorkingSet             => "\uE950", // memory chip
-        MemoryTargetType.StandbyList             => "\uE8B7", // package
-        MemoryTargetType.StandbyListLowPriority  => "\uE756", // app
-        MemoryTargetType.ModifiedPageList       => "\uE8A5", // document
-        MemoryTargetType.CombinedPageList       => "\uF012", // archive/combine
-        MemoryTargetType.SystemFileCache        => "\uEDA2", // storage drive
-        MemoryTargetType.ModifiedFileCache      => "\uE714", // file
-        MemoryTargetType.RegistryCache          => "\uE793", // registry
-        _                                        => "\uE950"
+        MemoryTargetType.WorkingSet => "\uE950", // memory chip
+        MemoryTargetType.StandbyList => "\uE8B7", // package
+        MemoryTargetType.StandbyListLowPriority => "\uE756", // app
+        MemoryTargetType.ModifiedPageList => "\uE8A5", // document
+        MemoryTargetType.CombinedPageList => "\uF012", // archive/combine
+        MemoryTargetType.SystemFileCache => "\uEDA2", // storage drive
+        MemoryTargetType.ModifiedFileCache => "\uE714", // file
+        MemoryTargetType.RegistryCache => "\uE793", // registry
+        _ => "\uE950"
     };
 
     public Brush UsedPercentBrush => UsedPercent switch
     {
         > 90 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EF4444")), // red
         > 70 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B")), // amber
-        _    => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF"))  // cyan
+        _ => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF"))  // cyan
     };
 
     public Brush UsageBarBrush => UsedPercent switch
     {
         > 90 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EF4444")),
         > 70 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B")),
-        _    => (System.Windows.Application.Current?.FindResource("BrandHeroGradientBrush") as Brush)
+        _ => (System.Windows.Application.Current?.FindResource("BrandHeroGradientBrush") as Brush)
                 ?? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF"))
     };
 }
@@ -436,15 +436,15 @@ public static class MemoryOptimizerService
 
             long currentBytes = target switch
             {
-                MemoryTargetType.StandbyList             => sysCache,
-                MemoryTargetType.SystemFileCache         => sysCache,
-                MemoryTargetType.ModifiedPageList        => 0,
-                MemoryTargetType.CombinedPageList        => 0,
-                MemoryTargetType.WorkingSet              => 0,
-                MemoryTargetType.StandbyListLowPriority  => 0,
-                MemoryTargetType.ModifiedFileCache       => 0,
-                MemoryTargetType.RegistryCache           => 0,
-                _                                        => 0
+                MemoryTargetType.StandbyList => sysCache,
+                MemoryTargetType.SystemFileCache => sysCache,
+                MemoryTargetType.ModifiedPageList => 0,
+                MemoryTargetType.CombinedPageList => 0,
+                MemoryTargetType.WorkingSet => 0,
+                MemoryTargetType.StandbyListLowPriority => 0,
+                MemoryTargetType.ModifiedFileCache => 0,
+                MemoryTargetType.RegistryCache => 0,
+                _ => 0
             };
 
             double pct = totalPhys > 0 && currentBytes > 0 ? ((double)currentBytes / totalPhys) * 100.0 : 0;

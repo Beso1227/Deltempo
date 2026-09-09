@@ -362,11 +362,11 @@ public static class FileSafetyEngine
 
     private static (string fg, string bg, string border) GetBadgeColors(SafetyRiskTier tier) => tier switch
     {
-        SafetyRiskTier.Protected      => ("#EF4444", "#2A0E0E", "#EF4444"), // Red
-        SafetyRiskTier.Safe           => ("#10B981", "#0D2818", "#10B981"), // Green
-        SafetyRiskTier.LowRisk        => ("#06B6D4", "#0C2329", "#06B6D4"), // Cyan
+        SafetyRiskTier.Protected => ("#EF4444", "#2A0E0E", "#EF4444"), // Red
+        SafetyRiskTier.Safe => ("#10B981", "#0D2818", "#10B981"), // Green
+        SafetyRiskTier.LowRisk => ("#06B6D4", "#0C2329", "#06B6D4"), // Cyan
         SafetyRiskTier.ReviewRequired => ("#F59E0B", "#2A1E0D", "#F59E0B"), // Amber
-        _                             => ("#9CA3AF", "#1F2937", "#4B5563")  // Slate / Neutral
+        _ => ("#9CA3AF", "#1F2937", "#4B5563")  // Slate / Neutral
     };
 
     private static string FormatBytes(long bytes) =>

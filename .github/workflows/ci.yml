@@ -32,6 +32,9 @@ jobs:
           dotnet build WinTempCleaner.csproj -c Release --no-restore
           dotnet build Cli/Deltempo.Cli.csproj -c Release --no-restore
 
+      - name: Verify Code Style & Formatting
+        run: dotnet format deltempo.sln --verify-no-changes --no-restore
+
       - name: Run xUnit Test Suite with Coverage Collection
         shell: pwsh
         run: |

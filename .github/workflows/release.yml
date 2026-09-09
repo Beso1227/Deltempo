@@ -102,10 +102,11 @@ jobs:
             - **Online AI file analysis is off by default.** When enabled, cloud providers receive an anonymized metadata summary only — never file contents. Local providers (Ollama, LM Studio) keep the entire workflow offline.
 
             ### ✅ Hardened Quality Gates
-            - **CI enforces a 60% line-coverage threshold** collected via `dotnet-coverage` (Cobertura).
+            - **CI enforces a 65% line-coverage threshold** collected via `dotnet-coverage` (Cobertura).
             - **CodeQL security analysis** (security-extended) runs on every push, pull request, and weekly schedule.
             - **Zero-warning policy**: test project builds with `TreatWarningsAsErrors`.
-            - **325/325 xUnit tests passing**; suite runtime cut from 65s to 30s by eliminating blocking-task test patterns.
+            - **Automated formatting gate**: enforces `dotnet format` style compliance on every push/PR.
+            - **401/401 xUnit tests passing**; suite runtime cut to 30s by eliminating blocking-task test patterns.
 
             ### 📊 Reproducible Performance Benchmark
             - New `scripts/benchmark.ps1` measures parallel deletion throughput on a synthetic sandbox (1,500 files × 8 KB across 50 folders). Measured: **3,385 files/s (26.4 MB/s)** with correctness-only assertions so runs never flake.

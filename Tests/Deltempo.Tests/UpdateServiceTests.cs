@@ -63,7 +63,7 @@ public class UpdateServiceTests
     public async Task DownloadAndApplyUpdateAsync_RejectsUntrustedHosts()
     {
         var progress = new Progress<double>();
-        
+
         // HTTP instead of HTTPS
         await Assert.ThrowsAsync<System.Security.SecurityException>(async () =>
         {

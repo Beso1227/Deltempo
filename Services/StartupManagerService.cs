@@ -281,7 +281,7 @@ public static class StartupManagerService
                 return false;
             }
 
-            if (item.Location.StartsWith("HKCU", StringComparison.OrdinalIgnoreCase) || 
+            if (item.Location.StartsWith("HKCU", StringComparison.OrdinalIgnoreCase) ||
                 item.Location.StartsWith("HKLM", StringComparison.OrdinalIgnoreCase) ||
                 item.Location.Contains("WOW64", StringComparison.OrdinalIgnoreCase))
             {

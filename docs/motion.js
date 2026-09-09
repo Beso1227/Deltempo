@@ -614,11 +614,28 @@
   /* ==========================================================================
      6. Initialization on DOMContentLoaded
      ========================================================================== */
+  function initServiceWorker() {
+    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+      window.addEventListener('load', function () {
+        const swPath = window.location.pathname.includes('/docs/') ||
+          window.location.pathname.includes('/download/') ||
+          window.location.pathname.includes('/changelog/') ||
+          window.location.pathname.includes('/faq/')
+          ? '../sw.js'
+          : 'sw.js';
+        navigator.serviceWorker.register(swPath).catch(function (err) {
+          console.debug('ServiceWorker registration note:', err);
+        });
+      });
+    }
+  }
+
   function initializeAll() {
     initScrollReveals();
     initInteractiveBackground();
     initCardInteractivity();
     initPrecisionCursor();
+    initServiceWorker();
   }
 
   if (document.readyState === 'loading') {

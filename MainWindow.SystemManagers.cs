@@ -31,10 +31,10 @@ public partial class MainWindow
     {
         StartupStatusText.Text = "Scanning startup entries & Windows registry hives...";
         StartupSearchBox.Text = string.Empty;
-        
+
         _allStartupItems = await StartupManagerService.GetStartupItemsAsync();
         ApplyStartupFilter();
-        
+
         int enabledCount = _allStartupItems.Count(x => x.IsEnabled);
         int disabledCount = _allStartupItems.Count - enabledCount;
         StartupStatusText.Text = $"Found {_allStartupItems.Count} startup programs ({enabledCount} enabled, {disabledCount} disabled)";
@@ -48,8 +48,8 @@ public partial class MainWindow
 
     private void StartupSearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        StartupSearchPlaceholder.Visibility = string.IsNullOrWhiteSpace(StartupSearchBox.Text) 
-            ? Visibility.Visible 
+        StartupSearchPlaceholder.Visibility = string.IsNullOrWhiteSpace(StartupSearchBox.Text)
+            ? Visibility.Visible
             : Visibility.Collapsed;
         ApplyStartupFilter();
     }
@@ -129,7 +129,7 @@ public partial class MainWindow
     {
         ProcessStatusSummaryText.Text = "Analyzing running background tasks...";
         ProcessSearchBox.Text = string.Empty;
-        
+
         _allProcesses = await ProcessOptimizerService.GetHeavyProcessesAsync(20L * 1024 * 1024);
         ApplyProcessFilter();
 
@@ -145,8 +145,8 @@ public partial class MainWindow
 
     private void ProcessSearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        ProcessSearchPlaceholder.Visibility = string.IsNullOrWhiteSpace(ProcessSearchBox.Text) 
-            ? Visibility.Visible 
+        ProcessSearchPlaceholder.Visibility = string.IsNullOrWhiteSpace(ProcessSearchBox.Text)
+            ? Visibility.Visible
             : Visibility.Collapsed;
         ApplyProcessFilter();
     }

@@ -228,21 +228,24 @@ public static class LocalizationService
         switch (target.Id)
         {
             case "UserTemp":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "ملفات المستخدم المؤقتة (%TEMP%)",
                     "es" => "Archivos Temporales de Usuario",
                     "fr" => "Fichiers Temporaires Utilisateur",
                     "de" => "Benutzer-Temp & Zwischenspeicher",
                     _ => "User Temp & Scratchpad"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "كاش المستخدم",
                     "es" => "Caché Usuario",
                     "fr" => "Cache Utilisateur",
                     "de" => "Benutzer-Cache",
                     _ => "User Cache"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "كاش البرامج، استخراج ملفات التثبيت المؤقتة والتحميلات (%TEMP%)",
                     "es" => "Caché de aplicaciones, extracciones de instalación (%TEMP%)",
                     "fr" => "Cache d'applications et extractions temporaires (%TEMP%)",
@@ -252,21 +255,24 @@ public static class LocalizationService
                 break;
 
             case "WinTemp":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "ملفات نظام ويندوز المؤقتة",
                     "es" => "Temporales del Sistema Windows",
                     "fr" => "Fichiers Temporaires Système",
                     "de" => "Windows System-Temp",
                     _ => "Windows System Temp"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "النظام وكارت الشاشة",
                     "es" => "Sistema y GPU",
                     "fr" => "Système & GPU",
                     "de" => "System & GPU",
                     _ => "System & GPU"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "سجلات تشخيص النظام ومسودات تحديثات ويندوز (C:\\Windows\\Temp)",
                     "es" => "Registros de diagnóstico y temporales de actualización",
                     "fr" => "Traces de diagnostic et fichiers de mise à jour système",
@@ -276,14 +282,16 @@ public static class LocalizationService
                 break;
 
             case "WinPrefetch":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش التشغيل المسبق (Prefetch)",
                     "es" => "Caché Prefetch de Windows",
                     "fr" => "Cache Windows Prefetch",
                     "de" => "Windows Prefetch-Cache",
                     _ => "Windows Prefetch Cache"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "آثار التشغيل القديمة وترويسات بدء التشغيل المؤقتة",
                     "es" => "Rastros de ejecución antiguos y cabeceras de inicio",
                     "fr" => "Traces d'exécution obsolètes et en-têtes de démarrage",
@@ -293,14 +301,16 @@ public static class LocalizationService
                 break;
 
             case "WinUpdateCache":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش تنزيلات تحديثات ويندوز",
                     "es" => "Caché de Windows Update",
                     "fr" => "Téléchargements Windows Update",
                     "de" => "Windows Update Download-Cache",
                     _ => "Windows Update Cache"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "حزم التثبيت التي تم تنزيلها وكاش التسليم (SoftwareDistribution\\Download)",
                     "es" => "Instaladores descargados y caché de distribución",
                     "fr" => "Packages d'installation téléchargés et cache de distribution",
@@ -310,21 +320,24 @@ public static class LocalizationService
                 break;
 
             case "WinUpgradeLeftovers":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "بقايا ترقيات وتثبيت ويندوز السابقة",
                     "es" => "Restos de Actualizaciones de Windows",
                     "fr" => "Résidus de Mises à Niveau Windows",
                     "de" => "Windows Upgrade- & Setup-Rückstände",
                     _ => "Windows Upgrade & Setup Leftovers"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "النظام والتحديثات",
                     "es" => "Sistema y SO",
                     "fr" => "Système & OS",
                     "de" => "System & OS",
                     _ => "System & OS"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "بقايا ترقيات النظام السابقة ($WINDOWS.~BT و $WINDOWS.~WS و ESD ومسودات الإعداد)",
                     "es" => "Restos de instalaciones anteriores, $WINDOWS.~BT, $WINDOWS.~WS y ESD",
                     "fr" => "Restes d'anciennes installations d'OS, $WINDOWS.~BT, $WINDOWS.~WS, ESD",
@@ -334,21 +347,24 @@ public static class LocalizationService
                 break;
 
             case "WinDeliveryOpt":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش تسليم التحديثات عبر الشبكة (WUDO)",
                     "es" => "Optimización de Entrega de Windows",
                     "fr" => "Optimisation de Livraison Windows",
                     "de" => "Windows Übermittlungsoptimierung",
                     _ => "Windows Delivery Optimization"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "النظام والتحديثات",
                     "es" => "Sistema y SO",
                     "fr" => "Système & OS",
                     "de" => "System & OS",
                     _ => "System & OS"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "أجزاء كاش التحديثات الموزعة بين الأجهزة عبر الشبكة (DeliveryOptimization)",
                     "es" => "Fragmentos de entrega P2P de actualizaciones de Windows",
                     "fr" => "Morceaux de mise à jour P2P et cache d'optimisation",
@@ -358,21 +374,24 @@ public static class LocalizationService
                 break;
 
             case "WinComponentCaches":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش مكونات وخطوط ويندوز",
                     "es" => "Cachés de Componentes y Fuentes de Windows",
                     "fr" => "Caches Composants & Polices Windows",
                     "de" => "Windows Komponenten- & Schriftarten-Caches",
                     _ => "Windows Component & Font Caches"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "النظام والتحديثات",
                     "es" => "Sistema y SO",
                     "fr" => "Système & OS",
                     "de" => "System & OS",
                     _ => "System & OS"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "كاش خطوط ويندوز FontCache ومجلد البرامج المنزلة ومسودات WinSxS و DISM و BranchCache",
                     "es" => "FontCache de Windows, Archivos de programa descargados, temporal WinSxS y DISM",
                     "fr" => "FontCache Windows, fichiers téléchargés, WinSxS temp, DISM et BranchCache",
@@ -382,21 +401,24 @@ public static class LocalizationService
                 break;
 
             case "DeviceDriverPackages":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "حزم تعاريف الأجهزة وتحديثات GPU",
                     "es" => "Paquetes de Controladores y GPU",
                     "fr" => "Pilotes Périphériques & Mises à Jour GPU",
                     "de" => "Gerätetreiber-Pakete & GPU-Updates",
                     _ => "Device Driver Packages & GPU Updates"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "النظام والتعريفات",
                     "es" => "Sistema y Controladores",
                     "fr" => "Système & Pilotes",
                     "de" => "System & Treiber",
                     _ => "System & Drivers"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "حزم تحديثات NVIDIA App و AMD و Intel وكاش DriverStore المؤقت",
                     "es" => "Paquetes OTA de NVIDIA App, instaladores AMD e Intel, temp DriverStore",
                     "fr" => "Packages OTA NVIDIA App, installateurs AMD/Intel, DriverStore temp",
@@ -406,21 +428,24 @@ public static class LocalizationService
                 break;
 
             case "DefenderAntivirus":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "سجلات وفحوصات حماية Microsoft Defender",
                     "es" => "Soporte y Análisis de Microsoft Defender",
                     "fr" => "Support & Analyses Microsoft Defender",
                     "de" => "Microsoft Defender Support & Scans",
                     _ => "Microsoft Defender Support & Scans"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "الأمان والسجلات",
                     "es" => "Seguridad y Registros",
                     "fr" => "Sécurité & Journaux",
                     "de" => "Sicherheit & Protokolle",
                     _ => "Security & Logs"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "سجلات تشخيص Defender (MPLog)، النسخ الاحتياطية لتحديثات التواقيع وسجل الفحص",
                     "es" => "Registros MPLog de Defender, copias de seguridad de definiciones y caché de análisis",
                     "fr" => "Journaux de support Defender (MPLog), sauvegardes de définitions et historique d'analyse",
@@ -430,21 +455,24 @@ public static class LocalizationService
                 break;
 
             case "WinSystemLogs":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "سجلات تشخيص النظام",
                     "es" => "Registros de Diagnóstico de Windows",
                     "fr" => "Journaux de Diagnostic Système",
                     "de" => "Windows System-Diagnoseprotokolle",
                     _ => "Windows System Diagnostic Logs"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "التشخيص والسجلات",
                     "es" => "Diagnóstico",
                     "fr" => "Diagnostic",
                     "de" => "Diagnose",
                     _ => "Diagnostics"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "سجلات CBS و DISM و Panther و SetupAPI و LogFiles وسجلات التتبع",
                     "es" => "Registros CBS, DISM, Panther, SetupAPI, LogFiles y seguimiento",
                     "fr" => "Journaux CBS, DISM, Panther, SetupAPI, LogFiles et traces",
@@ -454,21 +482,24 @@ public static class LocalizationService
                 break;
 
             case "SystemDumps":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "تفريغات انهيار النظام وتقارير الكيرنل",
                     "es" => "Volcados de Bloqueo y Minivolcados BSOD",
                     "fr" => "Vidages de Mémoire et Rapports Noyau",
                     "de" => "BSOD-Minidumps & Kernel-Berichte",
                     _ => "BSOD Minidumps & Kernel Reports"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "التشخيص والسجلات",
                     "es" => "Diagnóstico",
                     "fr" => "Diagnostic",
                     "de" => "Diagnose",
                     _ => "Diagnostics"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "تفريغات أخطاء الشاشة الزرقاء (*.dmp) و MEMORY.DMP وتقارير LiveKernelReports",
                     "es" => "Minivolcados BSOD (*.dmp), MEMORY.DMP y LiveKernelReports",
                     "fr" => "Minividages BSOD (*.dmp), MEMORY.DMP et LiveKernelReports",
@@ -478,21 +509,24 @@ public static class LocalizationService
                 break;
 
             case "TemporaryInternetFiles":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "ملفات الإنترنت المؤقتة و WebCache",
                     "es" => "Archivos Temporales de Internet y WebCache",
                     "fr" => "Fichiers Internet Temporaires & WebCache",
                     "de" => "Temporäre Internetdateien & WebCache",
                     _ => "Temporary Internet Files & WebCache"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "كاش الإنترنت",
                     "es" => "Caché de Internet",
                     "fr" => "Cache Internet",
                     "de" => "Internet-Cache",
                     _ => "Internet Cache"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "كاش INetCache و WebCache ومحتوى شهادات CryptnetUrlCache",
                     "es" => "INetCache de Windows, WebCache y certificados CryptnetUrlCache",
                     "fr" => "INetCache Windows, WebCache et contenu de certificat CryptnetUrlCache",
@@ -502,21 +536,24 @@ public static class LocalizationService
                 break;
 
             case "GpuShaderCaches":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش كروت الشاشة و DirectX",
                     "es" => "Shaders de GPU y DirectX",
                     "fr" => "Shaders GPU et DirectX",
                     "de" => "DirectX & GPU Shader-Caches",
                     _ => "DirectX & GPU Shader Caches"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "كارت الشاشة",
                     "es" => "Sistema y GPU",
                     "fr" => "Système & GPU",
                     "de" => "System & GPU",
                     _ => "System & GPU"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "شيدرز الرسوميات المترجمة لكروت NVIDIA و AMD و Intel و D3DSCache",
                     "es" => "Shaders gráficos compilados de NVIDIA, AMD e Intel",
                     "fr" => "Shaders graphiques compilés NVIDIA, AMD et Intel",
@@ -526,21 +563,24 @@ public static class LocalizationService
                 break;
 
             case "GamingLaunchers":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش منصات الألعاب (Steam / Epic / Battle.net / Riot)",
                     "es" => "Lanzadores de Juegos y Shaders",
                     "fr" => "Lanceurs de Jeux et Shaders",
                     "de" => "Gaming-Launcher & Shader-Caches",
                     _ => "Game Launchers & Shaders"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "الألعاب والوسائط",
                     "es" => "Juegos y Medios",
                     "fr" => "Jeux & Médias",
                     "de" => "Gaming & Medien",
                     _ => "Gaming & Media"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "تنزيلات Steam، كاش Epic Games و Battle.net و EA App وسجلات Riot Games و Roblox",
                     "es" => "Descargas temporales de Steam, caché de Epic Games, Battle.net, Riot y Roblox",
                     "fr" => "Téléchargements Steam, caches web Epic Games, Battle.net, Riot et Roblox",
@@ -550,21 +590,24 @@ public static class LocalizationService
                 break;
 
             case "MediaCreatorCaches":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش برامج المونتاج والتصميم (Adobe / CapCut / DaVinci)",
                     "es" => "Cachés de Renderizado y Creadores",
                     "fr" => "Caches de Rendu et Créateurs",
                     "de" => "Medien- & Render-Caches",
                     _ => "Media & Creator Render Caches"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "صناع المحتوى والميديا",
                     "es" => "Creadores y Medios",
                     "fr" => "Créateurs & Médias",
                     "de" => "Kreativ & Medien",
                     _ => "Creator & Media"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "ملفات Media Cache في Adobe و CapCut و DaVinci Resolve وسجلات OBS ومؤقتات Blender",
                     "es" => "Media Cache de Adobe, CapCut, proxy de DaVinci, logs de OBS y Blender temp",
                     "fr" => "Media Cache Adobe, CapCut, proxies DaVinci, logs OBS et Blender temp",
@@ -574,14 +617,16 @@ public static class LocalizationService
                 break;
 
             case "AppCacheSweeper":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش برامج سطح المكتب (Discord/WhatsApp/Teams)",
                     "es" => "Caché de Apps de Escritorio",
                     "fr" => "Cache des Applications Desktop",
                     "de" => "Desktop-App Cache-Bereiniger",
                     _ => "Desktop Apps Cache Sweeper"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "كاش GPU و Code Cache المؤقت في Discord و Spotify و Slack و VS Code و WhatsApp و Notion",
                     "es" => "Caché GPU y código de Discord, Spotify, Slack, VS Code, WhatsApp y Notion",
                     "fr" => "Cache GPU et code de Discord, Spotify, Slack, VS Code, WhatsApp et Notion",
@@ -591,21 +636,24 @@ public static class LocalizationService
                 break;
 
             case "WinStoreAppCaches":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش تطبيقات متجر ويندوز و UWP",
                     "es" => "Caché de Apps de la Tienda y UWP",
                     "fr" => "Caches Applications Windows Store & UWP",
                     "de" => "Windows Store-Apps & UWP Caches",
                     _ => "Windows Store Apps & UWP Caches"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "تطبيقات المتجر",
                     "es" => "Apps de Tienda",
                     "fr" => "Applications Store",
                     "de" => "Store-Apps",
                     _ => "Store Apps"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "ملفات LocalCache و INetCache المؤقتة لحزم تطبيقات متجر ويندوز (Teams الجديد و Xbox وغيرها)",
                     "es" => "LocalCache e INetCache temporales de paquetes Windows Store (Teams, Xbox, etc.)",
                     "fr" => "LocalCache et INetCache temporaires des applications Store (New Teams, Xbox, etc.)",
@@ -615,21 +663,24 @@ public static class LocalizationService
                 break;
 
             case "MessagingAppCaches":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش برامج المحادثة والمراسلة",
                     "es" => "Caché de Apps de Mensajería y Chat",
                     "fr" => "Cache des Applications de Messagerie",
                     "de" => "Messenger & Chat-Apps Cache",
                     _ => "Messaging & Social Apps Caches"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "المحادثة والتواصل",
                     "es" => "Comunicación",
                     "fr" => "Communication",
                     "de" => "Kommunikation",
                     _ => "Communication"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "كاش الصور والفيديو و GPU المؤقتة لتطبيقات WhatsApp و Telegram و Discord و Slack و Teams و Signal (مع حماية تامة لجلسات الدخول)",
                     "es" => "Caché GPU y multimedia de WhatsApp, Telegram, Discord, Slack, Teams, Signal (sesiones e inicios de sesión preservados)",
                     "fr" => "Caches GPU et médias de WhatsApp, Telegram, Discord, Slack, Teams, Signal (sessions et connexions préservées)",
@@ -639,14 +690,16 @@ public static class LocalizationService
                 break;
 
             case "BrowserCaches":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش متصفحات الإنترنت متعددة الحسابات",
                     "es" => "Caché de Navegadores Web Multiprofil",
                     "fr" => "Cache des Navigateurs Web Multi-Profils",
                     "de" => "Webbrowser-Caches (Multi-Profil)",
                     _ => "Web Browsers Cache Pool"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "فحص عميق وشامل لكافة حسابات ومتصفحات Chrome و Edge و Brave و Opera و Firefox و Arc و Vivaldi",
                     "es" => "Caché web y shaders de todos los perfiles de Chrome, Edge, Brave, Opera, Firefox, Arc, Vivaldi",
                     "fr" => "Cache web et shaders multi-profils de Chrome, Edge, Brave, Opera, Firefox, Arc, Vivaldi",
@@ -656,14 +709,16 @@ public static class LocalizationService
                 break;
 
             case "DevPackageCaches":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش حزم وأدوات المطورين",
                     "es" => "Caché de Paquetes de Desarrollo",
                     "fr" => "Caches de Packages Développeur",
                     "de" => "Entwickler- & Paket-Caches",
                     _ => "Developer & Package Caches"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "كاش تنزيلات الحزم في pip و npm و yarn و pnpm و NuGet و Cargo و Go و Bun و .NET",
                     "es" => "Descargas temporales de pip, npm, yarn, pnpm, NuGet, Cargo, Go, Bun y .NET",
                     "fr" => "Téléchargements de packages pip, npm, yarn, pnpm, NuGet, Cargo, Go, Bun et .NET",
@@ -673,21 +728,24 @@ public static class LocalizationService
                 break;
 
             case "MobileDevResiduals":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش مزامنة الهواتف ومحاكيات التطوير",
                     "es" => "Sincronización Móvil y Demonios Dev",
                     "fr" => "Synchro Mobile et Démons Dev",
                     "de" => "Mobile Synchronisation & Dev-Daemons",
                     _ => "Mobile Sync & Dev Daemons"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "المطورين والهواتف",
                     "es" => "Móvil y Desarrollo",
                     "fr" => "Mobile & Développeur",
                     "de" => "Entwicklung & Mobil",
                     _ => "Dev & Mobile"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "كاش مزامنة iTunes المؤقت، كاش محاكي Android Studio، ومسودات Gradle و Cargo",
                     "es" => "Caché temporal de Apple iTunes, emulador Android Studio y daemons Gradle",
                     "fr" => "Cache temporaire iTunes, émulateur Android Studio et démons Gradle",
@@ -697,14 +755,16 @@ public static class LocalizationService
                 break;
 
             case "CrashDumps":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "تقارير أخطاء النظام وسجلات الانهيار",
                     "es" => "Informes de Errores y Volcados",
                     "fr" => "Rapports d'Erreurs et Vidages",
                     "de" => "Fehlerberichte & Speicherabdrücke",
                     _ => "Windows Error Reports (WER)"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "سجلات تقارير أخطاء ويندوز (WER) وتفريغات ذاكرة العمليات عند الانهيار",
                     "es" => "Registros de Windows Error Reporting y volcados de memoria",
                     "fr" => "Journaux Windows Error Reporting et vidages mémoire processus",
@@ -714,14 +774,16 @@ public static class LocalizationService
                 break;
 
             case "Thumbnails":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "كاش مصغرات مستكشف الملفات",
                     "es" => "Caché de Miniaturas de Windows",
                     "fr" => "Cache des Miniatures de l'Explorateur",
                     "de" => "Explorer Miniaturansichten-Cache",
                     _ => "Explorer Thumbnail Cache"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "قواعد بيانات مصغرات الصور ومقاطع الفيديو المؤقتة (thumbcache_*.db)",
                     "es" => "Bases de datos de miniaturas de fotos y videos",
                     "fr" => "Bases de données de miniatures d'images et vidéos",
@@ -731,21 +793,24 @@ public static class LocalizationService
                 break;
 
             case "SystemUsageTraces":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "آثار استخدام النظام ومستكشف الملفات",
                     "es" => "Rastros de Uso del Sistema y Explorador",
                     "fr" => "Traces d'Utilisation Système & Explorateur",
                     "de" => "System- & Explorer-Nutzungsspuren",
                     _ => "System & Explorer Usage Traces"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "آثار الخصوصية",
                     "es" => "Privacidad",
                     "fr" => "Confidentialité",
                     "de" => "Privatsphäre",
                     _ => "Privacy Traces"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "اختصارات العناصر الأخيرة وقوائم الانتقال السريع (Jump Lists)",
                     "es" => "Accesos directos a elementos recientes y listas de accesos rápidos Jump Lists",
                     "fr" => "Raccourcis d'éléments récents et listes de raccourcis Jump Lists",
@@ -755,14 +820,16 @@ public static class LocalizationService
                 break;
 
             case "RecycleBin":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "سلة المحذوفات لجميع الأقراص",
                     "es" => "Papelera de Reciclaje (Todos los Discos)",
                     "fr" => "Corbeille Windows (Tous les Disques)",
                     "de" => "Windows Papierkorb (Alle Laufwerke)",
                     _ => "Windows Recycle Bin"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "تفريغ سلة المحذوفات عبر جميع الأقراص المتصلة باستخدام Windows Shell API",
                     "es" => "Papeleras de todas las unidades físicas mediante Windows Shell API",
                     "fr" => "Corbeilles de tous les disques physiques via l'API Windows Shell",
@@ -772,28 +839,32 @@ public static class LocalizationService
                 break;
 
             case "OrphanedAppData":
-                target.Name = CurrentLanguage switch {
+                target.Name = CurrentLanguage switch
+                {
                     "ar" => "بقايا البرامج المحذوفة غير المثبتة",
                     "es" => "Restos de Apps Desinstaladas",
                     "fr" => "Résidus d'Applications Désinstallées",
                     "de" => "Reste Deinstallierter Programme",
                     _ => "Orphaned AppData Leftovers"
                 };
-                target.Category = CurrentLanguage switch {
+                target.Category = CurrentLanguage switch
+                {
                     "ar" => "بقايا برامج",
                     "es" => "Huérfanos",
                     "fr" => "Orphelins",
                     "de" => "Verwaist",
                     _ => "Residuals"
                 };
-                target.SafetyBadge = CurrentLanguage switch {
+                target.SafetyBadge = CurrentLanguage switch
+                {
                     "ar" => "🟡 بقايا محققة",
                     "es" => "🟡 Restos Verificados",
                     "fr" => "🟡 Résidus Vérifiés",
                     "de" => "🟡 Verifizierte Reste",
                     _ => "🟡 Verified Leftovers"
                 };
-                target.Description = CurrentLanguage switch {
+                target.Description = CurrentLanguage switch
+                {
                     "ar" => "مجلدات البرامج المحذوفة المتبقية في AppData والمطابقة مع سجل إلغاء التثبيت في ويندوز",
                     "es" => "Carpetas de AppData huérfanas cotejadas con el Registro de Desinstalación",
                     "fr" => "Dossiers AppData résiduels vérifiés avec le Registre de Désinstallation",
