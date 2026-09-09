@@ -307,7 +307,7 @@ public class UpdateTransactionCoordinator
         return false;
     }
 
-    private async Task RollbackAsync()
+    private Task RollbackAsync()
     {
         Log("Initiating rollback.");
         _journal.TransitionTo(TransactionState.RolledBack);
@@ -319,7 +319,7 @@ public class UpdateTransactionCoordinator
         if (string.IsNullOrEmpty(sourceBackup))
         {
             Log("No backup available for rollback.");
-            return;
+            return Task.CompletedTask;
         }
 
         try
@@ -342,7 +342,7 @@ public class UpdateTransactionCoordinator
             {
                 Log("CRITICAL: Restored binary does not exist after rollback move.");
                 _journal.TransitionTo(TransactionState.Failed, "Restored binary missing after rollback.");
-                return;
+                return Task.CompletedTask;
             }
 
             var fi = new FileInfo(_journal.TargetPath);
@@ -350,7 +350,7 @@ public class UpdateTransactionCoordinator
             {
                 Log("CRITICAL: Restored binary is empty (0 bytes) after rollback.");
                 _journal.TransitionTo(TransactionState.Failed, "Restored binary is empty after rollback.");
-                return;
+                return Task.CompletedTask;
             }
 
             // Verify PE header of restored binary
@@ -361,7 +361,7 @@ public class UpdateTransactionCoordinator
                 {
                     Log("CRITICAL: Restored binary is not a valid PE executable after rollback.");
                     _journal.TransitionTo(TransactionState.Failed, "Restored binary is not a valid PE after rollback.");
-                    return;
+                    return Task.CompletedTask;
                 }
             }
 
@@ -381,5 +381,7 @@ public class UpdateTransactionCoordinator
             Log($"Rollback failed: {ex.Message}");
             _journal.TransitionTo(TransactionState.Failed, $"Rollback failed: {ex.Message}");
         }
+
+        return Task.CompletedTask;
     }
 }
