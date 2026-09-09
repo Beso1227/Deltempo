@@ -11,6 +11,8 @@ public class TargetFolderInfo : INotifyPropertyChanged
     private int _folderCount;
     private bool _isScanning;
     private bool _isCleaning;
+    private bool _hasError;
+    private string _errorMessage = string.Empty;
     private string _statusMessage = "Pending Scan";
     private bool _requiresAdmin;
     private bool _hasAccess = true;
@@ -122,6 +124,18 @@ public class TargetFolderInfo : INotifyPropertyChanged
     {
         get => _isCleaning;
         set { _isCleaning = value; OnPropertyChanged(); }
+    }
+
+    public bool HasError
+    {
+        get => _hasError;
+        set { _hasError = value; OnPropertyChanged(); }
+    }
+
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        set { _errorMessage = value; OnPropertyChanged(); }
     }
 
     public string StatusMessage

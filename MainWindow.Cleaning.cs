@@ -37,11 +37,23 @@ public partial class MainWindow
         ProgressPercentageText.Text = "--";
         AddLog("Starting full precision scan of temporary locations...", LogLevel.Info);
 
+        EmptyStateBorder.Visibility = Visibility.Collapsed;
+        SkeletonItemsControl.Visibility = Visibility.Visible;
+        TargetCardsItemsControl.Visibility = Visibility.Collapsed;
+
         try
         {
             bool safeMode = SafeModeCheckBox.IsChecked == true;
             var scanTasks = _targets.Select(target => _cleanerService.ScanFolderAsync(target, AddLog, _cts.Token, safeMode));
             await Task.WhenAll(scanTasks);
+
+            SkeletonItemsControl.Visibility = Visibility.Collapsed;
+            TargetCardsItemsControl.Visibility = Visibility.Visible;
+
+            if (_targets.Count == 0 || _targets.All(t => t.SizeBytes == 0 && !t.IsScanning))
+            {
+                EmptyStateBorder.Visibility = Visibility.Visible;
+            }
 
             RecalculateTotals();
             ProgressStatusText.Text = "Scan completed. Ready to clean.";
@@ -49,11 +61,15 @@ public partial class MainWindow
         }
         catch (OperationCanceledException)
         {
+            SkeletonItemsControl.Visibility = Visibility.Collapsed;
+            TargetCardsItemsControl.Visibility = Visibility.Visible;
             ProgressStatusText.Text = "Scan cancelled.";
             AddLog("Scan operation was cancelled by user.", LogLevel.Warning);
         }
         catch (Exception ex)
         {
+            SkeletonItemsControl.Visibility = Visibility.Collapsed;
+            TargetCardsItemsControl.Visibility = Visibility.Visible;
             ProgressStatusText.Text = "Scan error.";
             AddLog($"Scan error: {ex.Message}", LogLevel.Error);
         }
@@ -106,7 +122,12 @@ public partial class MainWindow
             ConfirmModalDeletionModeBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4DF59E0B"));
         }
 
-        ConfirmModalSummaryText.Text = $"Cleaning {selectedTargets.Count} selected categories ({totalEstimatedFiles:N0} estimated files). System integrity, user credentials, and personal files remain 100% protected.";
+        var categoryNames = selectedTargets.Select(t => t.Name).ToList();
+        string categoryList = categoryNames.Count <= 5
+            ? string.Join(", ", categoryNames)
+            : string.Join(", ", categoryNames.Take(5)) + $" and {categoryNames.Count - 5} more";
+
+        ConfirmModalSummaryText.Text = $"Cleaning {selectedTargets.Count} selected categories ({totalEstimatedFiles:N0} estimated files). Categories: {categoryList}. System integrity, user credentials, and personal files remain 100% protected.";
         ConfirmModalOverlay.Visibility = Visibility.Visible;
     }
 
@@ -403,6 +424,22 @@ public partial class MainWindow
             LogLevel.Info);
     }
 
+    private void RetryScanTarget_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is TargetFolderInfo target)
+        {
+            target.HasError = false;
+            target.ErrorMessage = string.Empty;
+            target.StatusMessage = "Retrying...";
+            target.IsScanning = true;
+
+            _ = Task.Run(async () =>
+            {
+                await _cleanerService.ScanFolderAsync(target, AddLog, CancellationToken.None, SafeModeCheckBox.IsChecked == true);
+            });
+        }
+    }
+
     private void InspectTarget_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is TargetFolderInfo target)
@@ -500,6 +537,7 @@ public partial class MainWindow
             BottomActionDockBorder.CornerRadius = new CornerRadius(0, 0, 19, 19);
             ToggleLogText.Text = "Activity Log";
             ToggleLogIcon.Text = "\uE756";
+            if (_logs.Count > 0) LogNotificationBadge.Visibility = Visibility.Visible;
         }
         else
         {
@@ -508,6 +546,7 @@ public partial class MainWindow
             LogDrawerBorder.CornerRadius = new CornerRadius(0, 0, 19, 19);
             ToggleLogText.Text = "Hide Log";
             ToggleLogIcon.Text = "\uE70D";
+            LogNotificationBadge.Visibility = Visibility.Collapsed;
             LogScrollViewer.ScrollToEnd();
         }
     }

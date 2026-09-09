@@ -838,11 +838,15 @@ public class CleanerService
             catch (UnauthorizedAccessException ex)
             {
                 UiInvoke(() => folder.StatusMessage = "Access Denied (Admin Required)");
+                UiInvoke(() => folder.HasError = true);
+                UiInvoke(() => folder.ErrorMessage = ex.Message);
                 logAction($"Admin privileges required to scan {folder.Name}: {ex.Message}", LogLevel.Warning);
             }
             catch (Exception ex)
             {
                 UiInvoke(() => folder.StatusMessage = "Scan Error");
+                UiInvoke(() => folder.HasError = true);
+                UiInvoke(() => folder.ErrorMessage = ex.Message);
                 logAction($"Error scanning {folder.Name}: {ex.Message}", LogLevel.Error);
             }
             finally
@@ -1083,6 +1087,8 @@ public class CleanerService
         catch (Exception ex)
         {
             UiInvoke(() => folder.StatusMessage = "Scan Error");
+            UiInvoke(() => folder.HasError = true);
+            UiInvoke(() => folder.ErrorMessage = ex.Message);
             logAction($"Error querying Recycle Bin: {ex.Message}", LogLevel.Warning);
         }
     }
@@ -1109,6 +1115,8 @@ public class CleanerService
         catch (Exception ex)
         {
             UiInvoke(() => folder.StatusMessage = "Scan Error");
+            UiInvoke(() => folder.HasError = true);
+            UiInvoke(() => folder.ErrorMessage = ex.Message);
             logAction($"Error querying restore points: {ex.Message}", LogLevel.Warning);
         }
     }
@@ -1187,6 +1195,8 @@ public class CleanerService
                 catch (Exception ex)
                 {
                     UiInvoke(() => folder.StatusMessage = "Error");
+                    UiInvoke(() => folder.HasError = true);
+                    UiInvoke(() => folder.ErrorMessage = ex.Message);
                     logAction($"Error cleaning restore points: {ex.Message}", LogLevel.Warning);
                 }
                 finally
@@ -1225,6 +1235,8 @@ public class CleanerService
                 catch (Exception ex)
                 {
                     UiInvoke(() => folder.StatusMessage = "Error");
+                    UiInvoke(() => folder.HasError = true);
+                    UiInvoke(() => folder.ErrorMessage = ex.Message);
                     logAction($"Error cleaning residual folder '{folder.FolderPath}': {ex.Message}", LogLevel.Error);
                 }
                 finally

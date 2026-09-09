@@ -5,6 +5,9 @@
     <Application.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
 
+        <local:BoolToBrushConverter x:Key="BoolToBrushConverter"/>
+        <local:BoolToThicknessConverter x:Key="BoolToThicknessConverter"/>
+
         <!-- High-End Dynamic Palette Tokens (Initial Dark State) -->
         <!-- Canvas & base layers -->
         <SolidColorBrush x:Key="CanvasDarkBrush" Color="#090B10"/>

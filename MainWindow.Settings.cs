@@ -32,6 +32,73 @@ public partial class MainWindow
         }
     }
 
+    private void SettingsSearchBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        string term = SettingsSearchBox.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(term))
+        {
+            SettingsUpdatesPanel.Visibility = Visibility.Visible;
+            SettingsGeneralPanel.Visibility = Visibility.Visible;
+            SettingsMemoryPanel.Visibility = Visibility.Visible;
+            SettingsSafetyPanel.Visibility = Visibility.Visible;
+            return;
+        }
+
+        bool updatesMatch = IsPanelMatch(SettingsUpdatesPanel, term);
+        bool generalMatch = IsPanelMatch(SettingsGeneralPanel, term);
+        bool memoryMatch = IsPanelMatch(SettingsMemoryPanel, term);
+        bool safetyMatch = IsPanelMatch(SettingsSafetyPanel, term);
+
+        if (SettingsUpdatesPanel != null) SettingsUpdatesPanel.Visibility = updatesMatch ? Visibility.Visible : Visibility.Collapsed;
+        if (SettingsGeneralPanel != null) SettingsGeneralPanel.Visibility = generalMatch ? Visibility.Visible : Visibility.Collapsed;
+        if (SettingsMemoryPanel != null) SettingsMemoryPanel.Visibility = memoryMatch ? Visibility.Visible : Visibility.Collapsed;
+        if (SettingsSafetyPanel != null) SettingsSafetyPanel.Visibility = safetyMatch ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private bool IsPanelMatch(Panel panel, string term)
+    {
+        if (panel == null) return false;
+        return panel.FindName("SettingsSearchScope") is TextBlock tb && tb.Text.Contains(term, StringComparison.OrdinalIgnoreCase)
+            || panel.FindName("SettingsAiApiKeyRow") is FrameworkElement fe && fe.Visibility != Visibility.Collapsed;
+    }
+
+    private void ResetSettings_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsService.Update(s =>
+        {
+            var defaults = new AppSettings();
+            s.EnableAutoPilot = defaults.EnableAutoPilot;
+            s.MinimizeToTray = defaults.MinimizeToTray;
+            s.AutoCleanNotify = defaults.AutoCleanNotify;
+            s.SoundEnabled = defaults.SoundEnabled;
+            s.SendToRecycleBin = defaults.SendToRecycleBin;
+            s.LowDiskAlertEnabled = defaults.LowDiskAlertEnabled;
+            s.LowDiskAlertThresholdGb = defaults.LowDiskAlertThresholdGb;
+            s.CheckUpdatesOnStartup = defaults.CheckUpdatesOnStartup;
+            s.AutoDownloadUpdates = defaults.AutoDownloadUpdates;
+            s.UpdateChannel = defaults.UpdateChannel;
+            s.UpdateCheckFrequencyDays = defaults.UpdateCheckFrequencyDays;
+            s.AutoCleanIntervalHours = defaults.AutoCleanIntervalHours;
+            s.MemoryAutoOptimizeEnabled = defaults.MemoryAutoOptimizeEnabled;
+            s.MemoryShowInTray = defaults.MemoryShowInTray;
+            s.MemoryAlwaysOnTop = defaults.MemoryAlwaysOnTop;
+            s.MemoryCompactMode = defaults.MemoryCompactMode;
+            s.MemoryCloseToTray = defaults.MemoryCloseToTray;
+            s.MemoryShowNotifications = defaults.MemoryShowNotifications;
+            s.MemoryAutoOptimizeIntervalHours = defaults.MemoryAutoOptimizeIntervalHours;
+            s.MemoryAutoOptimizeFreeRamThresholdPercent = defaults.MemoryAutoOptimizeFreeRamThresholdPercent;
+            s.EnableOnlineAiSafety = defaults.EnableOnlineAiSafety;
+            s.AiProvider = defaults.AiProvider;
+            s.AiApiKey = defaults.AiApiKey;
+            s.AiModelName = defaults.AiModelName;
+            s.AiOllamaEndpoint = defaults.AiOllamaEndpoint;
+        });
+
+        LoadSettingsIntoUI();
+        AddLog("Settings restored to factory defaults.", LogLevel.Info);
+        SoundService.PlayClickSound();
+    }
+
     private void SettingsViewReleaseNotes_Click(object sender, RoutedEventArgs e)
     {
         try

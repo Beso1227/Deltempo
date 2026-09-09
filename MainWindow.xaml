@@ -449,6 +449,12 @@
                                                    FontWeight="Bold"
                                                    Foreground="#FFFFFF"
                                                    VerticalAlignment="Center"/>
+                                        <TextBlock Text="F5"
+                                                   FontSize="9"
+                                                   FontFamily="{DynamicResource MonospaceFont}"
+                                                   Foreground="#FFFFFF80"
+                                                   Margin="6,0,0,0"
+                                                   VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
 
@@ -880,147 +886,300 @@
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
                           Margin="18,0,18,6">
-                <ItemsControl x:Name="TargetCardsItemsControl">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Style="{DynamicResource ModernCard}"
-                                    Margin="0,0,0,8"
-                                    Padding="14,11">
-                                <Grid>
+                <Grid>
+                    <!-- Empty State Placeholder -->
+                    <Border x:Name="EmptyStateBorder"
+                            Visibility="Collapsed"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Padding="40,32"
+                            Margin="0,20,0,0">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="&#xE721;"
+                                       FontFamily="{DynamicResource IconFont}"
+                                       FontSize="36"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,0,0,12"/>
+                            <TextBlock Text="No scan data yet"
+                                       FontSize="16"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextHighBrush}"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,0,0,6"/>
+                            <TextBlock Text="Click Scan Now to discover reclaimable files across 25+ scopes"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource TextMediumBrush}"
+                                       HorizontalAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="360"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Skeleton Loading State -->
+                    <ItemsControl x:Name="SkeletonItemsControl" Visibility="Collapsed">
+                        <ItemsControl.Items>
+                            <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,8" Padding="14,11">
+                                <Grid Height="64">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/> <!-- Switch Checkbox -->
-                                        <ColumnDefinition Width="Auto"/> <!-- Category Glyph Orb -->
-                                        <ColumnDefinition Width="*"/>    <!-- Category Info -->
-                                        <ColumnDefinition Width="Auto"/> <!-- Size, Stats & Inspect -->
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-
-                                    <!-- Switch Toggle -->
-                                    <CheckBox Grid.Column="0"
-                                              Style="{DynamicResource ModernSwitchCheckBox}"
-                                              FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                              AutomationProperties.Name="{Binding Name}"
-                                              AutomationProperties.HelpText="{Binding Description}"
-                                              IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                              VerticalAlignment="Center"
-                                              Margin="0,0,12,0"
-                                              Checked="TargetCheckBox_Changed"
-                                              Unchecked="TargetCheckBox_Changed"/>
-
-                                    <!-- Category Glyph Orb -->
-                                    <Border Grid.Column="1"
-                                            Width="38" Height="38"
-                                            CornerRadius="10"
-                                            Background="{DynamicResource SurfaceSubCardBrush}"
-                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                            BorderThickness="1"
-                                            Margin="0,0,12,0"
-                                            VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding IconGlyph}"
-                                                   FontFamily="{DynamicResource IconFont}"
-                                                   FontSize="17"
-                                                   Foreground="{Binding CategoryColor}"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"/>
-                                    </Border>
-
-                                    <!-- Category Title, Safety Badge & Path -->
-                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Name}"
-                                                       FontSize="13.5"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextHighBrush}"/>
-
-                                            <!-- Category Badge -->
-                                            <Border Background="{DynamicResource SurfaceCardHoverBrush}"
-                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                    BorderThickness="1"
-                                                    CornerRadius="4"
-                                                    Padding="6,1"
-                                                    Margin="8,0,0,0"
-                                                    VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Category}"
-                                                           FontSize="9"
-                                                           FontWeight="Bold"
-                                                           Foreground="{Binding CategoryColor}"/>
-                                            </Border>
-
-                                            <!-- Safety Badge -->
-                                            <Border Background="{DynamicResource SafetyBadgeBgBrush}"
-                                                    BorderBrush="{DynamicResource SafetyBadgeBorderBrush}"
-                                                    BorderThickness="1"
-                                                    CornerRadius="4"
-                                                    Padding="6,1"
-                                                    Margin="6,0,0,0"
-                                                    VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding SafetyBadge}"
-                                                           FontSize="9"
-                                                           FontWeight="Bold"
-                                                           Foreground="{DynamicResource SafetyBadgeTextBrush}"/>
-                                            </Border>
-                                        </StackPanel>
-
-                                        <TextBlock Text="{Binding Description}"
-                                                   FontSize="11"
-                                                   Foreground="{DynamicResource TextMediumBrush}"
-                                                   Margin="0,2,0,2"
-                                                   TextTrimming="CharacterEllipsis"/>
-
-                                        <TextBlock Text="{Binding FolderPath}"
-                                                   FontSize="10"
-                                                   FontFamily="{DynamicResource MonospaceFont}"
-                                                   Foreground="{DynamicResource TextMutedBrush}"
-                                                   TextTrimming="CharacterEllipsis"/>
-                                    </StackPanel>
-
-                                    <!-- Size & Action Tag -->
-                                    <StackPanel Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding FormattedSize}"
-                                                   FontSize="15"
-                                                   FontWeight="Bold"
-                                                   Foreground="{DynamicResource TextHighBrush}"
-                                                   HorizontalAlignment="Right"/>
-                                        <TextBlock Text="{Binding FormattedStats}"
-                                                   FontSize="10"
-                                                   Foreground="{DynamicResource TextMutedBrush}"
-                                                   HorizontalAlignment="Right"
-                                                   Margin="0,1,0,3"/>
-
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                            <TextBlock Text="{Binding StatusMessage}"
-                                                       FontSize="10"
-                                                       Foreground="{DynamicResource ElectricCyanBrush}"
-                                                       VerticalAlignment="Center"
-                                                       Margin="0,0,6,0"/>
-
-                                            <Button Style="{DynamicResource PillButton}"
-                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                    AutomationProperties.Name="Inspect Large Files"
-                                                    Padding="8,2"
-                                                    FontSize="10"
-                                                    Tag="{Binding}"
-                                                    Click="InspectTarget_Click"
-                                                    Visibility="{Binding HasTopFiles, Converter={StaticResource BoolToVisConverter}}">
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <TextBlock Text="&#xE721;"
-                                                               FontFamily="{DynamicResource IconFont}"
-                                                               FontSize="9"
-                                                               Foreground="{DynamicResource ElectricCyanBrush}"
-                                                               Margin="0,0,4,0"
-                                                               VerticalAlignment="Center"/>
-                                                    <TextBlock Text="Inspect"
-                                                               FontSize="10"
-                                                               FontWeight="SemiBold"
-                                                               VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Button>
-                                        </StackPanel>
-                                    </StackPanel>
+                                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource TrackBgBrush}"/>
+                                    <Border Grid.Column="1" Width="200" Height="12" CornerRadius="4" Background="{DynamicResource TrackBgBrush}" Margin="12,0,12,0" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="2" Width="120" Height="10" CornerRadius="4" Background="{DynamicResource TrackBgBrush}" VerticalAlignment="Center"/>
                                 </Grid>
                             </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                            <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,8" Padding="14,11">
+                                <Grid Height="64">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource TrackBgBrush}"/>
+                                    <Border Grid.Column="1" Width="160" Height="12" CornerRadius="4" Background="{DynamicResource TrackBgBrush}" Margin="12,0,12,0" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="2" Width="100" Height="10" CornerRadius="4" Background="{DynamicResource TrackBgBrush}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                            <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,8" Padding="14,11">
+                                <Grid Height="64">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource TrackBgBrush}"/>
+                                    <Border Grid.Column="1" Width="180" Height="12" CornerRadius="4" Background="{DynamicResource TrackBgBrush}" Margin="12,0,12,0" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="2" Width="140" Height="10" CornerRadius="4" Background="{DynamicResource TrackBgBrush}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </ItemsControl.Items>
+                    </ItemsControl>
+
+                    <!-- Target Cards -->
+                    <ItemsControl x:Name="TargetCardsItemsControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,8"
+                                        Padding="14,11">
+                                    <Border.Style>
+                                        <Style TargetType="Border" BasedOn="{StaticResource ModernCard}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasError}" Value="True">
+                                                    <Setter Property="BorderBrush" Value="#EF4444"/>
+                                                    <Setter Property="BorderThickness" Value="1.5"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/> <!-- Switch Checkbox -->
+                                            <ColumnDefinition Width="Auto"/> <!-- Category Glyph Orb -->
+                                            <ColumnDefinition Width="*"/>    <!-- Category Info -->
+                                            <ColumnDefinition Width="Auto"/> <!-- Size, Stats & Inspect -->
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Switch Toggle -->
+                                        <CheckBox Grid.Column="0"
+                                                  Style="{DynamicResource ModernSwitchCheckBox}"
+                                                  FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                  AutomationProperties.Name="{Binding Name}"
+                                                  AutomationProperties.HelpText="{Binding Description}"
+                                                  IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  VerticalAlignment="Center"
+                                                  Margin="0,0,12,0"
+                                                  Checked="TargetCheckBox_Changed"
+                                                  Unchecked="TargetCheckBox_Changed"/>
+
+                                        <!-- Category Glyph Orb -->
+                                        <Border Grid.Column="1"
+                                                Width="38" Height="38"
+                                                CornerRadius="10"
+                                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                                Margin="0,0,12,0"
+                                                VerticalAlignment="Center">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource HairlineBorderBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasError}" Value="True">
+                                                            <Setter Property="BorderBrush" Value="#EF4444"/>
+                                                            <Setter Property="BorderThickness" Value="1.5"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding IconGlyph}"
+                                                       FontFamily="{DynamicResource IconFont}"
+                                                       FontSize="17"
+                                                       Foreground="{Binding CategoryColor}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"/>
+                                        </Border>
+
+                                        <!-- Category Title, Safety Badge & Path -->
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontSize="13.5"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextHighBrush}"/>
+
+                                                <!-- Category Badge -->
+                                                <Border Background="{DynamicResource SurfaceCardHoverBrush}"
+                                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="4"
+                                                        Padding="6,1"
+                                                        Margin="8,0,0,0"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Category}"
+                                                               FontSize="9"
+                                                               FontWeight="Bold"
+                                                               Foreground="{Binding CategoryColor}"/>
+                                                </Border>
+
+                                                <!-- Safety Badge -->
+                                                <Border Background="{DynamicResource SafetyBadgeBgBrush}"
+                                                        BorderBrush="{DynamicResource SafetyBadgeBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="4"
+                                                        Padding="6,1"
+                                                        Margin="6,0,0,0"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding SafetyBadge}"
+                                                               FontSize="9"
+                                                               FontWeight="Bold"
+                                                               Foreground="{DynamicResource SafetyBadgeTextBrush}"/>
+                                                </Border>
+
+                                                <!-- Error Badge -->
+                                                <Border Background="#2A1515"
+                                                        BorderBrush="#EF4444"
+                                                        BorderThickness="1"
+                                                        CornerRadius="4"
+                                                        Padding="6,1"
+                                                        Margin="6,0,0,0"
+                                                        VerticalAlignment="Center"
+                                                        Visibility="{Binding HasError, Converter={StaticResource BoolToVisConverter}}">
+                                                    <TextBlock Text="ERROR"
+                                                               FontSize="9"
+                                                               FontWeight="Bold"
+                                                               Foreground="#FCA5A5"/>
+                                                </Border>
+                                            </StackPanel>
+
+                                            <TextBlock Text="{Binding Description}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextMediumBrush}"
+                                                       Margin="0,2,0,2"
+                                                       TextTrimming="CharacterEllipsis"/>
+
+                                            <TextBlock Text="{Binding FolderPath}"
+                                                       FontSize="10"
+                                                       FontFamily="{DynamicResource MonospaceFont}"
+                                                       Foreground="{DynamicResource TextMutedBrush}"
+                                                       TextTrimming="CharacterEllipsis"/>
+
+                                            <!-- Error Message -->
+                                            <TextBlock Text="{Binding ErrorMessage}"
+                                                       FontSize="10"
+                                                       Foreground="#FCA5A5"
+                                                       Margin="0,3,0,0"
+                                                       TextWrapping="Wrap"
+                                                       Visibility="{Binding HasError, Converter={StaticResource BoolToVisConverter}}"/>
+                                        </StackPanel>
+
+                                        <!-- Size & Action Tag -->
+                                        <StackPanel Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding FormattedSize}"
+                                                       FontSize="15"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource TextHighBrush}"
+                                                       HorizontalAlignment="Right"/>
+                                            <TextBlock Text="{Binding FormattedStats}"
+                                                       FontSize="10"
+                                                       Foreground="{DynamicResource TextMutedBrush}"
+                                                       HorizontalAlignment="Right"
+                                                       Margin="0,1,0,3"/>
+
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding StatusMessage}"
+                                                           FontSize="10"
+                                                           VerticalAlignment="Center"
+                                                           Margin="0,0,6,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Foreground" Value="{DynamicResource ElectricCyanBrush}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasError}" Value="True">
+                                                                    <Setter Property="Foreground" Value="#FCA5A5"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+
+                                                <Button Style="{DynamicResource PillButton}"
+                                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                        AutomationProperties.Name="Inspect Large Files"
+                                                        Padding="8,2"
+                                                        FontSize="10"
+                                                        Tag="{Binding}"
+                                                        Click="InspectTarget_Click"
+                                                        Visibility="{Binding HasTopFiles, Converter={StaticResource BoolToVisConverter}}">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="&#xE721;"
+                                                                   FontFamily="{DynamicResource IconFont}"
+                                                                   FontSize="9"
+                                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                                   Margin="0,0,4,0"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Inspect"
+                                                                   FontSize="10"
+                                                                   FontWeight="SemiBold"
+                                                                   VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <!-- Retry Button for Errors -->
+                                                <Button Style="{DynamicResource PillButton}"
+                                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                        AutomationProperties.Name="Retry Scan"
+                                                        Padding="8,2"
+                                                        FontSize="10"
+                                                        Tag="{Binding}"
+                                                        Click="RetryScanTarget_Click"
+                                                        Visibility="{Binding HasError, Converter={StaticResource BoolToVisConverter}}"
+                                                        Margin="4,0,0,0">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="&#xE72C;"
+                                                                   FontFamily="{DynamicResource IconFont}"
+                                                                   FontSize="9"
+                                                                   Foreground="{DynamicResource EmeraldGreenBrush}"
+                                                                   Margin="0,0,4,0"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Retry"
+                                                                   FontSize="10"
+                                                                   FontWeight="SemiBold"
+                                                                   VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
             </ScrollViewer>
 
             <!-- 4. BOTTOM FLOATING ACTION DOCK -->
@@ -1139,20 +1298,31 @@
                                         Padding="10,4"
                                         Margin="0,0,2,0"
                                         Click="ToggleLogBtn_Click">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock x:Name="ToggleLogIcon"
-                                                   Text="&#xE756;"
-                                                   FontFamily="{DynamicResource IconFont}"
-                                                   FontSize="10.5"
-                                                   Foreground="{DynamicResource ElectricCyanBrush}"
-                                                   Margin="0,0,5,0"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock x:Name="ToggleLogText"
-                                                   Text="Activity Log"
-                                                   FontSize="11"
-                                                   FontWeight="SemiBold"
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock x:Name="ToggleLogIcon"
+                                                       Text="&#xE756;"
+                                                       FontFamily="{DynamicResource IconFont}"
+                                                       FontSize="10.5"
+                                                       Foreground="{DynamicResource ElectricCyanBrush}"
+                                                       Margin="0,0,5,0"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="ToggleLogText"
+                                                       Text="Activity Log"
+                                                       FontSize="10.5"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextMediumBrush}"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <Border x:Name="LogNotificationBadge"
+                                                Width="6" Height="6"
+                                                CornerRadius="3"
+                                                Background="#EF4444"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Top"
+                                                Margin="0,-2,-2,0"
+                                                Visibility="Collapsed"/>
+                                    </Grid>
                                 </Button>
 
                                 <Button x:Name="ExportReportBtn"
@@ -1229,6 +1399,12 @@
                                                Text="Clean Selected (0.0 MB)"
                                                FontSize="12.5"
                                                FontWeight="Bold"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="Ctrl+Enter"
+                                               FontSize="9"
+                                               FontFamily="{DynamicResource MonospaceFont}"
+                                               Foreground="#FFFFFF80"
+                                               Margin="6,0,0,0"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
@@ -1359,7 +1535,7 @@
                   Visibility="Collapsed"
                   AutomationProperties.Name="Large Files Inspector Dialog">
                 <Border Style="{DynamicResource ModernCard}"
-                        MaxWidth="660" MaxHeight="520" Margin="16"
+                        MinWidth="420" MaxWidth="660" MaxHeight="520" Margin="16"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Background="{DynamicResource ModalSurfaceBrush}"
@@ -1470,7 +1646,7 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Confirm Cleanup Dialog">
-                <Border MaxWidth="560" MaxHeight="640" Margin="16"
+                <Border MinWidth="380" MaxWidth="560" MaxHeight="640" Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5"
@@ -1640,7 +1816,7 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Cleanup Completed Celebration Dialog">
-                <Border MaxWidth="500" Margin="16"
+                <Border MinWidth="340" MaxWidth="500" Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource EmeraldGreenBrush}"
                         BorderThickness="1.5"
@@ -1746,7 +1922,7 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Deltempo Settings Dialog">
-                <Border MaxWidth="600"
+                <Border MinWidth="480" MaxWidth="600"
                         MaxHeight="680"
                         Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
@@ -1762,9 +1938,10 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/> <!-- 0: Header -->
-                            <RowDefinition Height="Auto"/> <!-- 1: Category Tab Bar -->
-                            <RowDefinition Height="*"/>    <!-- 2: Content View -->
-                            <RowDefinition Height="Auto"/> <!-- 3: Footer Actions -->
+                            <RowDefinition Height="Auto"/> <!-- 1: Search Bar -->
+                            <RowDefinition Height="Auto"/> <!-- 2: Category Tab Bar -->
+                            <RowDefinition Height="*"/>    <!-- 3: Content View -->
+                            <RowDefinition Height="Auto"/> <!-- 4: Footer Actions -->
                         </Grid.RowDefinitions>
 
                         <!-- 0. Header -->
@@ -1807,8 +1984,59 @@
                                     Click="CloseSettings_Click"/>
                         </Grid>
 
-                        <!-- 1. Category Tab Navigation Bar -->
-                        <Border Grid.Row="1"
+                        <!-- 0.5 Search Bar -->
+                        <Grid Grid.Row="1" Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0"
+                                    Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="8,6">
+                                <Grid>
+                                    <TextBlock Text="&#xE721;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextMutedBrush}"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,6,0"/>
+                                    <TextBox x:Name="SettingsSearchBox"
+                                             Style="{StaticResource {x:Type TextBox}}"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             FontSize="11"
+                                             Foreground="{DynamicResource TextHighBrush}"
+                                             VerticalContentAlignment="Center"
+                                             Padding="16,0,0,0"
+                                             TextChanged="SettingsSearchBox_TextChanged"/>
+                                </Grid>
+                            </Border>
+                            <Button Grid.Column="1"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    Padding="10,4"
+                                    Margin="8,0,0,0"
+                                    Click="ResetSettings_Click">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE72C;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="9"
+                                               Foreground="{DynamicResource AmberWarningBrush}"
+                                               Margin="0,0,4,0"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="Reset"
+                                               FontSize="10"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <!-- 2. Category Tab Navigation Bar -->
+                        <Border Grid.Row="2"
                                 Background="{DynamicResource SurfaceCardBrush}"
                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1"
@@ -1860,8 +2088,8 @@
                             </UniformGrid>
                         </Border>
 
-                        <!-- 2. Scrollable Settings Content Container -->
-                        <ScrollViewer Grid.Row="2"
+                        <!-- 3. Scrollable Settings Content Container -->
+                        <ScrollViewer Grid.Row="3"
                                       VerticalScrollBarVisibility="Auto"
                                       HorizontalScrollBarVisibility="Disabled"
                                       MaxHeight="450"
@@ -2679,21 +2907,29 @@
                             </StackPanel>
                         </ScrollViewer>
 
-                        <!-- 3. Footer Actions (Fixed Bottom) -->
-                        <Grid Grid.Row="3" Margin="0,14,0,0">
+                        <!-- 4. Footer Actions (Fixed Bottom) -->
+                        <Grid Grid.Row="4" Margin="0,14,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Button Grid.Column="1"
+                                    Content="Reset"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    Padding="14,7.5"
+                                    Margin="0,0,10,0"
+                                    Click="ResetSettings_Click"/>
+                            <Button Grid.Column="2"
                                     Content="Cancel"
                                     Style="{DynamicResource PillButton}"
                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     Padding="18,7.5"
                                     Margin="0,0,10,0"
                                     Click="CloseSettings_Click"/>
-                            <Button Grid.Column="2"
+                            <Button Grid.Column="3"
                                     Content="Save &amp; Apply"
                                     Style="{DynamicResource HeroCTAButton}"
                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
