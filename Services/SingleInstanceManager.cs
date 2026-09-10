@@ -30,69 +30,25 @@ public static class SingleInstanceManager
 
     public static bool TryAcquire()
     {
+        // Single authority: the named mutex. No process killing.
+        //
+        // Why NOT kill "headless ghost" instances (MainWindowHandle == 0)?
+        // - Tray-minimized instances legitimately have no visible main window:
+        //   the old ghost purge destroyed live sessions on relaunch instead of
+        //   restoring them.
+        // - The embedded updater (--update) and update handshake instances are
+        //   headless by design; killing them interrupts update transactions.
+        // Crashed owners need no cleanup either: a named mutex kernel object is
+        // destroyed when its owning process dies, so acquisition succeeds.
         try
         {
-            int currentPid = Process.GetCurrentProcess().Id;
-            var otherInstances = Process.GetProcessesByName("Deltempo")
-                .Concat(Process.GetProcessesByName("WinTempCleaner"))
-                .Where(p => p.Id != currentPid)
-                .ToList();
-
-            // Automatically purge any orphaned / headless ghost instances (MainWindowHandle == 0),
-            // but NEVER terminate an active updater process.
-            var ghosts = otherInstances.Where(p => p.MainWindowHandle == IntPtr.Zero).ToList();
-            foreach (var ghost in ghosts)
-            {
-                try
-                {
-                    if (ghost.ProcessName.Contains("updater", StringComparison.OrdinalIgnoreCase))
-                        continue;
-
-                    ghost.Kill();
-                    ghost.WaitForExit(500);
-                }
-                catch { }
-                finally
-                {
-                    ghost.Dispose();
-                }
-            }
-
-            // Refresh list after clearing ghosts: only consider instances that actually have a visible window
-            otherInstances = Process.GetProcessesByName("Deltempo")
-                .Concat(Process.GetProcessesByName("WinTempCleaner"))
-                .Where(p => p.Id != currentPid && p.MainWindowHandle != IntPtr.Zero)
-                .ToList();
-
-            // If no visible window exists, always allow this instance to start
-            if (otherInstances.Count == 0)
-            {
-                try
-                {
-                    _mutex = new Mutex(true, MutexName, out _);
-                }
-                catch { }
-                return true;
-            }
-
-            // An actual instance with a visible window is running
-            try
-            {
-                _mutex = new Mutex(true, MutexName, out bool createdNew);
-                return createdNew;
-            }
-            catch (AbandonedMutexException)
-            {
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            _mutex = new Mutex(true, MutexName, out bool createdNew);
+            return createdNew;
         }
-        catch
+        catch (Exception ex)
         {
-            return true;
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Single-instance mutex acquisition failed: {ex.Message}");
+            return false;
         }
     }
 

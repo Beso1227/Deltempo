@@ -200,7 +200,7 @@ public static partial class CliRunner
         bool silent = HasFlag(args, "--silent", "-s");
         string? filter = GetFilterKeyword(args, 1);
 
-        var allTargets = CleanerService.GetDefaultTargets();
+        var allTargets = ResolveTargets();
         var targets = string.IsNullOrWhiteSpace(filter)
             ? allTargets
             : allTargets.Where(t => MatchesFilter(t, filter)).ToList();
@@ -325,7 +325,7 @@ public static partial class CliRunner
         string? filter = GetFilterKeyword(args, 1);
         bool sendToRecycle = SettingsService.Current.SendToRecycleBin;
 
-        var allTargets = CleanerService.GetDefaultTargets();
+        var allTargets = ResolveTargets();
         var selectedTargets = allTargets
             .Where(t => cleanAll || !t.IsOrphanedAppFolder)
             .Where(t => !smartOnly || ((t.SafetyBadge.Contains("Verified") || t.SafetyBadge.Contains("100%")) && !t.IsOrphanedAppFolder))

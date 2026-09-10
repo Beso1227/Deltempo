@@ -152,7 +152,7 @@ public class ModelsAndPureServicesTests
     public void PercentWidthConverter_HalfOf200_Is100px()
     {
         var c = new PercentWidthConverter();
-        var result = (System.Windows.GridLength)c.Convert(new object[] { 50.0, 200.0 }, typeof(System.Windows.GridLength), null!, System.Globalization.CultureInfo.InvariantCulture);
+        var result = (System.Windows.GridLength)c.Convert([50.0, 200.0], typeof(System.Windows.GridLength), null!, System.Globalization.CultureInfo.InvariantCulture);
         Assert.Equal(100.0, result.Value, precision: 5);
     }
 
@@ -164,7 +164,7 @@ public class ModelsAndPureServicesTests
     public void PercentWidthConverter_EdgeCases(object pct, double total, double expected)
     {
         var c = new PercentWidthConverter();
-        var result = (System.Windows.GridLength)c.Convert(new object[] { pct, total }, typeof(System.Windows.GridLength), null!, System.Globalization.CultureInfo.InvariantCulture);
+        var result = (System.Windows.GridLength)c.Convert([pct, total], typeof(System.Windows.GridLength), null!, System.Globalization.CultureInfo.InvariantCulture);
         Assert.Equal(expected, result.Value, precision: 5);
     }
 
@@ -172,7 +172,7 @@ public class ModelsAndPureServicesTests
     public void PercentWidthConverter_TooFewValues_ReturnsZero()
     {
         var c = new PercentWidthConverter();
-        var result = (System.Windows.GridLength)c.Convert(new object[] { 50.0 }, typeof(System.Windows.GridLength), null!, System.Globalization.CultureInfo.InvariantCulture);
+        var result = (System.Windows.GridLength)c.Convert([50.0], typeof(System.Windows.GridLength), null!, System.Globalization.CultureInfo.InvariantCulture);
         Assert.Equal(0, result.Value);
     }
 
@@ -181,7 +181,7 @@ public class ModelsAndPureServicesTests
     {
         var c = new PercentWidthConverter();
         Assert.Throws<NotImplementedException>(() =>
-            c.ConvertBack(new System.Windows.GridLength(5), new[] { typeof(double) }, null!, System.Globalization.CultureInfo.InvariantCulture));
+            c.ConvertBack(new System.Windows.GridLength(5), [typeof(double)], null!, System.Globalization.CultureInfo.InvariantCulture));
     }
 
     [Fact]
@@ -201,5 +201,46 @@ public class ModelsAndPureServicesTests
         // Determinism of the bool depends on machine state; assert no-throw only.
         var ex = Record.Exception(() => CliRegistrationService.UnregisterAll());
         Assert.Null(ex);
+    }
+
+    [Fact]
+    public void MemoryOptimizer_AllTargetTypes_ContainsAllExpectedTargets()
+    {
+        var allTargets = MemoryOptimizerService.AllTargetTypes();
+        var defaultTargets = MemoryOptimizerService.DefaultActiveTargetTypes();
+
+        Assert.Equal(8, allTargets.Length);
+        Assert.True(defaultTargets.Length >= 7);
+        Assert.Contains(MemoryTargetType.WorkingSet, allTargets);
+        Assert.Contains(MemoryTargetType.StandbyList, allTargets);
+        Assert.Contains(MemoryTargetType.SystemFileCache, allTargets);
+    }
+
+    [Fact]
+    public void MemoryAreaSnapshot_FormattedProperties_ProduceValidStrings()
+    {
+        var snapshot = new MemoryAreaSnapshot
+        {
+            Target = MemoryTargetType.WorkingSet,
+            DisplayName = "Working Set",
+            CurrentBytes = 1024 * 1024 * 50,
+            TotalBytes = 1024 * 1024 * 100,
+            FreeBytes = 1024 * 1024 * 50,
+            UsedPercent = 50.0
+        };
+
+        Assert.Equal("50.0%", snapshot.FormattedUsedPercent);
+        Assert.False(string.IsNullOrWhiteSpace(snapshot.FormattedCurrent));
+        Assert.False(string.IsNullOrWhiteSpace(snapshot.FormattedTotal));
+        Assert.False(string.IsNullOrWhiteSpace(snapshot.FormattedFree));
+        Assert.False(string.IsNullOrWhiteSpace(snapshot.IconGlyph));
+    }
+
+    [Fact]
+    public void AutoCleanService_StartAndStop_DoesNotThrow()
+    {
+        AutoCleanService.Stop();
+        AutoCleanService.Start();
+        AutoCleanService.Stop();
     }
 }

@@ -38,6 +38,7 @@ Deltempo runs with administrator privileges and deletes files, so the following 
 
 ## Security Controls
 
+* For detailed threat analysis, attack vectors, and specific defenses against symlink traversal, TOCTOU, and privilege escalation, see [Deltempo Threat Model](docs/THREAT_MODEL.md).
 * Updates are verified end-to-end: HTTPS-only, GitHub host allowlisting, SHA-256 payload digests, and ECDSA P-256 manifest signatures.
 * Cleanup operations are two-phase (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) with reparse-point rejection and containment enforcement immediately before every destructive action.
 * Shell integration (PATH, registry aliases, PowerShell profiles) is strictly opt-in via `deltempo register` and fully reversible via `deltempo unregister`.

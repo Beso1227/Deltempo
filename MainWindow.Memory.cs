@@ -7,26 +7,34 @@ namespace WinTempCleaner;
 // RAM telemetry and NT kernel boost actions.
 public partial class MainWindow
 {
+    private readonly ViewModels.MemoryOptimizationViewModel _memoryViewModel = new();
+
+    private void InitializeMemoryViewModel()
+    {
+        _memoryViewModel.LogRequested += (msg, level) => AddLog(msg, level);
+        _memoryViewModel.PropertyChanged += (_, e) =>
+        {
+            if (HeroRamPercentText != null)
+                HeroRamPercentText.Text = $"{_memoryViewModel.UsedPercent:F0}%";
+            if (HeroRamDetailText != null)
+                HeroRamDetailText.Text = _memoryViewModel.FormattedDetail;
+            if (HeroRamProgressBar != null)
+                HeroRamProgressBar.Value = _memoryViewModel.UsedPercent;
+            if (HeroBoostRamBtn != null)
+            {
+                HeroBoostRamBtn.IsEnabled = !_memoryViewModel.IsBoosting;
+                HeroBoostRamBtn.Content = _memoryViewModel.BoostButtonText;
+            }
+        };
+    }
+
     private void UpdateMemoryTelemetry()
     {
-        try
+        _memoryViewModel.RefreshTelemetry();
+        if (MemoryModalOverlay != null && MemoryModalOverlay.Visibility == Visibility.Visible)
         {
             var mem = MemoryOptimizerService.GetMemoryInfo();
-            if (HeroRamPercentText != null)
-                HeroRamPercentText.Text = $"{mem.UsedPercent:F0}%";
-            if (HeroRamDetailText != null)
-                HeroRamDetailText.Text = $"{mem.FormattedUsed} / {mem.FormattedTotal} Used";
-            if (HeroRamProgressBar != null)
-                HeroRamProgressBar.Value = mem.UsedPercent;
-
-            if (MemoryModalOverlay != null && MemoryModalOverlay.Visibility == Visibility.Visible)
-            {
-                MemoryModalOverlay.UpdateTelemetry(mem);
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            MemoryModalOverlay.UpdateTelemetry(mem);
         }
     }
 
@@ -43,27 +51,7 @@ public partial class MainWindow
 
     private async void HeroBoostRamBtn_Click(object sender, RoutedEventArgs e)
     {
-        HeroBoostRamBtn.IsEnabled = false;
-        HeroBoostRamBtn.Content = "Boosting...";
-        SoundService.PlayClickSound();
-
-        try
-        {
-            var res = await MemoryOptimizerService.OptimizeRamAsync();
-            UpdateMemoryTelemetry();
-            AddLog($"[RAM Engine] Boost Complete: Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} processes in {res.ExecutionTimeMs}ms.", LogLevel.Success);
-            HeroBoostRamBtn.Content = $"✓ -{res.FormattedReclaimed}";
-            await Task.Delay(1500);
-        }
-        catch (Exception ex)
-        {
-            AddLog($"RAM optimization error: {ex.Message}", LogLevel.Warning);
-        }
-        finally
-        {
-            HeroBoostRamBtn.IsEnabled = true;
-            HeroBoostRamBtn.Content = "Quick Boost";
-        }
+        await _memoryViewModel.ExecuteBoostAsync();
     }
 
     // 1. Startup Accelerator Handlers

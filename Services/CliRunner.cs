@@ -10,6 +10,10 @@ namespace WinTempCleaner.Services;
 
 public static partial class CliRunner
 {
+    public static Func<List<TargetFolderInfo>>? TargetsResolver { get; set; }
+
+    public static List<TargetFolderInfo> ResolveTargets() => TargetsResolver?.Invoke() ?? CleanerService.GetDefaultTargets();
+
     public static async Task<int> RunAsync(string[] args)
     {
         Console.WriteLine();
@@ -22,7 +26,7 @@ public static partial class CliRunner
             case "test":
                 Console.WriteLine("  🧪 Running Deltempo Internal Diagnostics...");
                 var mem = MemoryOptimizerService.GetMemoryInfo();
-                var targets = CleanerService.GetDefaultTargets();
+                var targets = ResolveTargets();
                 bool ok = mem.TotalPhysicalBytes > 0 && targets.Count >= 20;
                 Console.WriteLine($"  ✓ Engine Status: {(ok ? "PASS" : "FAIL")}");
                 Console.WriteLine($"  ✓ Discovered Scopes: {targets.Count} targets");

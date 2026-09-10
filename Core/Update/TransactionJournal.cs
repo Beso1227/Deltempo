@@ -40,6 +40,14 @@ public class TransactionJournal
     [JsonPropertyName("transactionId")]
     public string TransactionId { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Optional root directory for transaction journals. Production uses the
+    /// machine-wide update store; callers such as tests can supply an isolated
+    /// directory without changing process-wide environment state.
+    /// </summary>
+    [JsonIgnore]
+    public string? StorageRoot { get; set; }
+
     [JsonPropertyName("state")]
     public TransactionState State { get; set; } = TransactionState.Discovered;
 
@@ -114,10 +122,7 @@ public class TransactionJournal
 
     public string GetDirectoryPath()
     {
-        string baseDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-            "Deltempo", "Updates");
-        return Path.Combine(baseDir, TransactionId);
+        return Path.Combine(GetStorageRoot(), TransactionId);
     }
 
     public string GetJournalPath()
@@ -155,11 +160,9 @@ public class TransactionJournal
         }
     }
 
-    public static TransactionJournal? Load(string transactionId)
+    public static TransactionJournal? Load(string transactionId, string? storageRoot = null)
     {
-        string baseDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-            "Deltempo", "Updates");
+        string baseDir = GetStorageRoot(storageRoot);
         string journalPath = Path.Combine(baseDir, transactionId, "transaction.json");
 
         if (!File.Exists(journalPath))
@@ -168,7 +171,9 @@ public class TransactionJournal
         try
         {
             string json = File.ReadAllText(journalPath);
-            return JsonSerializer.Deserialize<TransactionJournal>(json, JsonOptions);
+            TransactionJournal? journal = JsonSerializer.Deserialize<TransactionJournal>(json, JsonOptions);
+            if (journal != null) journal.StorageRoot = baseDir;
+            return journal;
         }
         catch
         {
@@ -179,12 +184,10 @@ public class TransactionJournal
     /// <summary>
     /// Scans for incomplete transactions (from crash/reboot) and returns them.
     /// </summary>
-    public static List<TransactionJournal> FindIncompleteTransactions()
+    public static List<TransactionJournal> FindIncompleteTransactions(string? storageRoot = null)
     {
         var result = new List<TransactionJournal>();
-        string baseDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-            "Deltempo", "Updates");
+        string baseDir = GetStorageRoot(storageRoot);
 
         if (!Directory.Exists(baseDir))
             return result;
@@ -195,7 +198,7 @@ public class TransactionJournal
             if (!File.Exists(journalPath))
                 continue;
 
-            var journal = Load(Path.GetFileName(dir));
+            var journal = Load(Path.GetFileName(dir), baseDir);
             if (journal != null && journal.State is not (TransactionState.Committed or TransactionState.RolledBack or TransactionState.Failed))
             {
                 result.Add(journal);
@@ -203,6 +206,15 @@ public class TransactionJournal
         }
 
         return result;
+    }
+
+    private string GetStorageRoot() => GetStorageRoot(StorageRoot);
+
+    private static string GetStorageRoot(string? storageRoot)
+    {
+        return string.IsNullOrWhiteSpace(storageRoot)
+            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Deltempo", "Updates")
+            : Path.GetFullPath(storageRoot);
     }
 
     public void TransitionTo(TransactionState newState, string? errorMessage = null)

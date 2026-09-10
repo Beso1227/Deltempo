@@ -38,22 +38,40 @@ public partial class MainWindow
         _logs.Clear();
     }
 
+    private const int MaxLogEntries = 2000;
+    private long _lastLogScrollTicks;
+
     private void AddLog(string message, LogLevel level = LogLevel.Info)
     {
-        Dispatcher.Invoke(() =>
+        var entry = new LogEntry
         {
-            var entry = new LogEntry
-            {
-                Timestamp = DateTime.Now,
-                Level = level,
-                Message = message
-            };
+            Timestamp = DateTime.Now,
+            Level = level,
+            Message = message
+        };
+
+        // Non-blocking dispatch: background scan/clean threads must never stall
+        // waiting on the UI thread for a log line (was synchronous Invoke).
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
             _logs.Add(entry);
-            if (LogDrawerBorder.Visibility == Visibility.Visible)
+
+            // Bounded stream: drop the oldest entries once the cap is reached so a
+            // long scan cannot grow the collection and visual tree without limit.
+            int overflow = _logs.Count - MaxLogEntries;
+            for (int i = 0; i < overflow; i++)
             {
+                _logs.RemoveAt(0);
+            }
+
+            // Throttled auto-scroll: avoids forcing a layout pass per entry.
+            if (LogDrawerBorder.Visibility == Visibility.Visible &&
+                Stopwatch.GetElapsedTime(_lastLogScrollTicks).TotalMilliseconds >= 120)
+            {
+                _lastLogScrollTicks = Stopwatch.GetTimestamp();
                 LogScrollViewer.ScrollToEnd();
             }
-        });
+        }));
     }
 
     private void ThemeToggleBtn_Click(object sender, RoutedEventArgs e)

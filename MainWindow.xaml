@@ -99,7 +99,7 @@
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <!-- Design-time placeholder; runtime value is assigned from BuildInfo in MainWindow_Loaded -->
                                         <TextBlock x:Name="AppVersionHeaderBadge"
-                                                   Text="v1.5.2"
+                                                   Text="v1.6.0"
                                                    FontSize="9"
                                                    FontWeight="Bold"
                                                    Foreground="#00E5FF"
@@ -658,6 +658,8 @@
                                                    VerticalAlignment="Center"/>
                                         <Button x:Name="HeroBoostRamBtn"
                                                 Content="Quick Boost"
+                                                AutomationProperties.Name="Quick RAM Boost"
+                                                AutomationProperties.HelpText="Trim working sets and optimize system memory"
                                                 Style="{DynamicResource PillButton}"
                                                 FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                 Padding="8,2"
@@ -1507,8 +1509,14 @@
                     <ScrollViewer Grid.Row="1"
                                   x:Name="LogScrollViewer"
                                   VerticalScrollBarVisibility="Auto"
-                                  HorizontalScrollBarVisibility="Disabled">
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  CanContentScroll="True">
                         <ItemsControl x:Name="LogItemsControl">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel VirtualizationMode="Recycling" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Grid Margin="0,2">
@@ -1620,8 +1628,13 @@
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 Padding="8">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" CanContentScroll="True">
                                 <ItemsControl x:Name="InspectorItemsControl">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <VirtualizingStackPanel VirtualizationMode="Recycling" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border Background="{DynamicResource SurfaceCardBrush}"
@@ -3759,8 +3772,13 @@
                                 MaxHeight="280">
                             <Grid>
                                 <!-- File list -->
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" CanContentScroll="True">
                                     <ItemsControl x:Name="LargeFilesItemsControl">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <VirtualizingStackPanel VirtualizationMode="Recycling" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Background="{DynamicResource SurfaceCardBrush}"
@@ -4158,8 +4176,13 @@
                                 Padding="12,8"
                                 Margin="0,0,0,12"
                                 MaxHeight="380">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" CanContentScroll="True">
                                 <ItemsControl x:Name="ProcessItemsControl">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <VirtualizingStackPanel VirtualizationMode="Recycling" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border Background="{DynamicResource SurfaceCardBrush}"

@@ -194,6 +194,55 @@ public static partial class MemoryOptimizerService
         return false;
     }
 
+    /// <summary>
+    /// Disables a token privilege previously enabled by <see cref="SetIncreasePrivilege"/>.
+    /// Disabling an unheld privilege is a harmless no-op (AdjustTokenPrivileges with
+    /// a zero attribute simply has nothing to remove).
+    /// </summary>
+    private static void DisablePrivilege(string privilegeName)
+    {
+        try
+        {
+            if (OpenProcessToken(Process.GetCurrentProcess().Handle, TokenAdjustPrivileges | TokenQuery, out IntPtr tokenHandle))
+            {
+                try
+                {
+                    var newState = new TokenPrivileges
+                    {
+                        Count = 1,
+                        Luid = 0L,
+                        Attr = 0 // SE_PRIVILEGE_DISABLED
+                    };
+
+                    if (LookupPrivilegeValue(null, privilegeName, ref newState.Luid))
+                    {
+                        AdjustTokenPrivileges(tokenHandle, false, ref newState, 0, IntPtr.Zero, IntPtr.Zero);
+                    }
+                }
+                finally
+                {
+                    CloseHandle(tokenHandle);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] Privilege revert failed for '{privilegeName}': {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Privilege hygiene for memory-boost operations: ensures SeProfileSingleProcess,
+    /// SeIncreaseQuota, and SeDebug are not left enabled for the remainder of the
+    /// process lifetime (defense in depth against post-compromise privilege reuse).
+    /// </summary>
+    private static void RevertBoostPrivileges()
+    {
+        DisablePrivilege(SeProfSingleProcessName);
+        DisablePrivilege(SeIncreaseQuotaName);
+        DisablePrivilege(SeDebugName);
+    }
+
     #endregion
 
     #region Memory Telemetry API
@@ -293,51 +342,60 @@ public static partial class MemoryOptimizerService
     {
         return await Task.Run(() =>
         {
-            var sw = Stopwatch.StartNew();
-            var beforeMem = GetMemoryInfo();
-            var results = new List<MemoryAreaResult>();
-            int totalProcessesTrimmed = 0;
-
-            var targetTypes = targets ?? DefaultActiveTargetTypes();
-
-            foreach (var t in targetTypes)
+            try
             {
-                if (ct.IsCancellationRequested) break;
+                var sw = Stopwatch.StartNew();
+                var beforeMem = GetMemoryInfo();
+                var results = new List<MemoryAreaResult>();
+                int totalProcessesTrimmed = 0;
 
-                var areaRes = ExecuteAreaClean(t);
-                if (areaRes.ProcessesOptimized.HasValue)
+                var targetTypes = targets ?? DefaultActiveTargetTypes();
+
+                foreach (var t in targetTypes)
                 {
-                    totalProcessesTrimmed += areaRes.ProcessesOptimized.Value;
+                    if (ct.IsCancellationRequested) break;
+
+                    var areaRes = ExecuteAreaClean(t);
+                    if (areaRes.ProcessesOptimized.HasValue)
+                    {
+                        totalProcessesTrimmed += areaRes.ProcessesOptimized.Value;
+                    }
+                    results.Add(areaRes);
                 }
-                results.Add(areaRes);
+
+                ReleaseAppMemory();
+
+                sw.Stop();
+                var afterMem = GetMemoryInfo();
+                long measured = Math.Max(0, afterMem.AvailablePhysicalBytes - beforeMem.AvailablePhysicalBytes);
+
+                var succeededCount = results.Count(r => r.Success);
+                var failedCount = results.Count(r => !r.Success);
+                MemoryOperationStatus overallStatus;
+                if (failedCount == 0)
+                    overallStatus = MemoryOperationStatus.Success;
+                else if (succeededCount > 0)
+                    overallStatus = MemoryOperationStatus.PartialSuccess;
+                else
+                    overallStatus = MemoryOperationStatus.Failed;
+
+                return new MemoryOptimizationResult
+                {
+                    MeasuredBytesFreed = measured,
+                    Status = overallStatus,
+                    ProcessesOptimized = totalProcessesTrimmed,
+                    ExecutionTimeMs = sw.ElapsedMilliseconds,
+                    MeasuredAvailableBefore = beforeMem.AvailablePhysicalBytes,
+                    MeasuredAvailableAfter = afterMem.AvailablePhysicalBytes,
+                    AreaResults = results
+                };
             }
-
-            ReleaseAppMemory();
-
-            sw.Stop();
-            var afterMem = GetMemoryInfo();
-            long measured = Math.Max(0, afterMem.AvailablePhysicalBytes - beforeMem.AvailablePhysicalBytes);
-
-            var succeededCount = results.Count(r => r.Success);
-            var failedCount = results.Count(r => !r.Success);
-            MemoryOperationStatus overallStatus;
-            if (failedCount == 0)
-                overallStatus = MemoryOperationStatus.Success;
-            else if (succeededCount > 0)
-                overallStatus = MemoryOperationStatus.PartialSuccess;
-            else
-                overallStatus = MemoryOperationStatus.Failed;
-
-            return new MemoryOptimizationResult
+            finally
             {
-                MeasuredBytesFreed = measured,
-                Status = overallStatus,
-                ProcessesOptimized = totalProcessesTrimmed,
-                ExecutionTimeMs = sw.ElapsedMilliseconds,
-                MeasuredAvailableBefore = beforeMem.AvailablePhysicalBytes,
-                MeasuredAvailableAfter = afterMem.AvailablePhysicalBytes,
-                AreaResults = results
-            };
+                // Privilege hygiene: never leave elevated token privileges enabled
+                // beyond the boost operation itself.
+                RevertBoostPrivileges();
+            }
         }, ct);
     }
 
@@ -347,9 +405,16 @@ public static partial class MemoryOptimizerService
     {
         return await Task.Run(() =>
         {
-            var res = ExecuteAreaClean(target);
-            ReleaseAppMemory();
-            return res;
+            try
+            {
+                var res = ExecuteAreaClean(target);
+                ReleaseAppMemory();
+                return res;
+            }
+            finally
+            {
+                RevertBoostPrivileges();
+            }
         }, ct);
     }
 
@@ -533,6 +598,7 @@ public static partial class MemoryOptimizerService
     {
         SetIncreasePrivilege(SeIncreaseQuotaName);
 
+        bool ntSuccess = false;
         try
         {
             object systemFileCacheInformation;
@@ -556,7 +622,8 @@ public static partial class MemoryOptimizerService
             var handle = GCHandle.Alloc(systemFileCacheInformation, GCHandleType.Pinned);
             try
             {
-                NtSetSystemInformation(SystemFileCacheInformation, handle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(systemFileCacheInformation));
+                int status = NtSetSystemInformation(SystemFileCacheInformation, handle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(systemFileCacheInformation));
+                ntSuccess = (status == 0);
             }
             finally
             {
@@ -568,15 +635,18 @@ public static partial class MemoryOptimizerService
             // Ignored, proceed to Win32 cache size flush
         }
 
+        bool win32Success = false;
         try
         {
             var fileCacheSize = IntPtr.Subtract(IntPtr.Zero, 1); // Flush
-            return SetSystemFileCacheSize(fileCacheSize, fileCacheSize, 0);
+            win32Success = SetSystemFileCacheSize(fileCacheSize, fileCacheSize, 0);
         }
         catch
         {
-            return false;
+            // Suppressed
         }
+
+        return ntSuccess || win32Success;
     }
 
     /// <summary>

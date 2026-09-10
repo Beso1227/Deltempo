@@ -12,8 +12,9 @@ namespace WinTempCleaner.Core.Update;
 public class UpdateTransactionCoordinator
 {
     private const string UpdateMutexName = @"Local\Deltempo_Update_Tx_Lock";
-    private const int ProcessExitTimeoutMs = 30000;
-    private const int HealthCheckTimeoutMs = 30000;
+    private static readonly TimeSpan DefaultProcessExitTimeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan DefaultHealthCheckTimeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan DefaultPollInterval = TimeSpan.FromMilliseconds(500);
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern bool MoveFileExW(string lpExistingFileName, string lpNewFileName, int dwFlags);
@@ -23,11 +24,25 @@ public class UpdateTransactionCoordinator
 
     private readonly TransactionJournal _journal;
     private readonly Action<string>? _logAction;
+    private readonly TimeSpan _processExitTimeout;
+    private readonly TimeSpan _healthCheckTimeout;
+    private readonly TimeSpan _pollInterval;
 
-    public UpdateTransactionCoordinator(TransactionJournal journal, Action<string>? logAction = null)
+    public UpdateTransactionCoordinator(
+        TransactionJournal journal,
+        Action<string>? logAction = null,
+        TimeSpan? processExitTimeout = null,
+        TimeSpan? healthCheckTimeout = null,
+        TimeSpan? pollInterval = null)
     {
         _journal = journal;
         _logAction = logAction;
+        _processExitTimeout = processExitTimeout ?? DefaultProcessExitTimeout;
+        _healthCheckTimeout = healthCheckTimeout ?? DefaultHealthCheckTimeout;
+        _pollInterval = pollInterval ?? DefaultPollInterval;
+
+        if (_processExitTimeout <= TimeSpan.Zero || _healthCheckTimeout <= TimeSpan.Zero || _pollInterval <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(processExitTimeout), "Timeouts and polling interval must be positive.");
     }
 
     private void Log(string msg)
@@ -250,7 +265,7 @@ public class UpdateTransactionCoordinator
             return true; // No PID to wait for
 
         var sw = Stopwatch.StartNew();
-        while (sw.ElapsedMilliseconds < ProcessExitTimeoutMs)
+        while (sw.Elapsed < _processExitTimeout)
         {
             if (ct.IsCancellationRequested)
                 return false;
@@ -278,7 +293,7 @@ public class UpdateTransactionCoordinator
                 return true;
             }
 
-            await Task.Delay(500, ct);
+            await Task.Delay(_pollInterval, ct);
         }
 
         return false;
@@ -289,7 +304,7 @@ public class UpdateTransactionCoordinator
         string healthSignalPath = _journal.GetHealthSignalPath();
         var sw = Stopwatch.StartNew();
 
-        while (sw.ElapsedMilliseconds < HealthCheckTimeoutMs)
+        while (sw.Elapsed < _healthCheckTimeout)
         {
             if (ct.IsCancellationRequested)
                 return false;
@@ -301,7 +316,7 @@ public class UpdateTransactionCoordinator
                 return true;
             }
 
-            await Task.Delay(500, ct);
+            await Task.Delay(_pollInterval, ct);
         }
 
         return false;

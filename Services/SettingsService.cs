@@ -49,11 +49,9 @@ public class AppSettings
 
 public static class SettingsService
 {
-    private static readonly string SettingsDir = Path.Combine(
+    private static readonly string SettingsFile = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "Deltempo");
-
-    private static readonly string SettingsFile = Path.Combine(SettingsDir, "settings.json");
+        "Deltempo", "settings.json");
 
     private static AppSettings _current = new();
     public static AppSettings Current => _current;
@@ -74,21 +72,26 @@ public static class SettingsService
     {
         try
         {
-            AppSettings? loaded = null;
-            if (File.Exists(SettingsFile))
-            {
-                string json = File.ReadAllText(SettingsFile);
-                loaded = JsonSerializer.Deserialize<AppSettings>(json);
-            }
+            AppSettings? loaded = SettingsFileStore.Load(SettingsFile);
 
             if (loaded != null)
             {
-                loaded.AutoCleanIntervalHours = Math.Clamp(loaded.AutoCleanIntervalHours, 1, 168);
-                loaded.LowDiskAlertThresholdGb = Math.Clamp(loaded.LowDiskAlertThresholdGb, 1, 500);
-                loaded.MemoryAutoOptimizeIntervalHours = Math.Clamp(loaded.MemoryAutoOptimizeIntervalHours, 1, 72);
-                loaded.MemoryAutoOptimizeFreeRamThresholdPercent = Math.Clamp(loaded.MemoryAutoOptimizeFreeRamThresholdPercent, 5, 95);
+                Normalize(loaded);
+
+                // Secrets are DPAPI-protected on disk and plaintext only in memory.
+                string rawKey = loaded.AiApiKey;
+                bool legacyPlaintextKey = !string.IsNullOrEmpty(rawKey) &&
+                                          !SettingsSecretProtector.IsProtected(rawKey);
+                loaded.AiApiKey = SettingsSecretProtector.Unprotect(rawKey);
 
                 _current = loaded;
+
+                // One-time migration: re-persist legacy plaintext keys in DPAPI form
+                // so plaintext stops existing on disk immediately after upgrade.
+                if (legacyPlaintextKey)
+                {
+                    SaveSettings();
+                }
             }
         }
         catch (Exception ex)
@@ -101,14 +104,29 @@ public static class SettingsService
     {
         try
         {
-            Directory.CreateDirectory(SettingsDir);
+            Normalize(_current);
             var snapshot = _current;
-            string json = JsonSerializer.Serialize(snapshot, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(SettingsFile, json);
+
+            // Encrypt secrets at the persistence boundary: plaintext never touches disk.
+            var persisted = JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(snapshot));
+            if (persisted == null) return;
+
+            persisted.AiApiKey = SettingsSecretProtector.Protect(persisted.AiApiKey);
+
+            string json = JsonSerializer.Serialize(persisted, new JsonSerializerOptions { WriteIndented = true });
+            SettingsFileStore.SaveAtomic(SettingsFile, json);
         }
         catch (Exception ex)
         {
             System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
         }
+    }
+
+    private static void Normalize(AppSettings settings)
+    {
+        settings.AutoCleanIntervalHours = Math.Clamp(settings.AutoCleanIntervalHours, 1, 168);
+        settings.LowDiskAlertThresholdGb = Math.Clamp(settings.LowDiskAlertThresholdGb, 1, 500);
+        settings.MemoryAutoOptimizeIntervalHours = Math.Clamp(settings.MemoryAutoOptimizeIntervalHours, 1, 72);
+        settings.MemoryAutoOptimizeFreeRamThresholdPercent = Math.Clamp(settings.MemoryAutoOptimizeFreeRamThresholdPercent, 5, 95);
     }
 }

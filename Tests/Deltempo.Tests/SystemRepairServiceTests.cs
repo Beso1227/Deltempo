@@ -80,4 +80,82 @@ public class SystemRepairServiceTests
         Assert.Equal(1.0, SystemRepairService.ParseProgressFromLine("[100%]"));
         Assert.Equal(0.0, SystemRepairService.ParseProgressFromLine("[0%]"));
     }
+
+    [Fact]
+    public async Task RunDismRestoreHealthAsync_CancelledToken_ReturnsCancelledResult()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var res = await SystemRepairService.RunDismRestoreHealthAsync(null, null, cts.Token);
+        Assert.False(res.Success);
+        Assert.Equal(-1, res.ExitCode);
+    }
+
+    [Fact]
+    public async Task RunDismComponentCleanupAsync_CancelledToken_ReturnsCancelledResult()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var res = await SystemRepairService.RunDismComponentCleanupAsync(null, null, cts.Token);
+        Assert.False(res.Success);
+        Assert.Equal(-1, res.ExitCode);
+    }
+
+    [Fact]
+    public async Task ResetWindowsUpdateStackAsync_CancelledToken_CompletesSafely()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var res = await SystemRepairService.ResetWindowsUpdateStackAsync(null, null, cts.Token);
+        Assert.NotNull(res);
+    }
+
+    [Fact]
+    public async Task ResetNetworkStackAsync_CancelledToken_CompletesSafely()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var res = await SystemRepairService.ResetNetworkStackAsync(null, null, cts.Token);
+        Assert.NotNull(res);
+    }
+
+    [Fact]
+    public async Task RunAutonomousHealthCheckAndRepairAsync_CancelledToken_CompletesSafely()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var res = await SystemRepairService.RunAutonomousHealthCheckAndRepairAsync(null, null, cts.Token);
+        Assert.NotNull(res);
+    }
+
+    [Fact]
+    public void RepairExecutionResult_MessageProperty_ReturnsAppropriateDescriptions()
+    {
+        var successResult = new RepairExecutionResult
+        {
+            Success = true,
+            Tool = RepairToolType.SfcScan
+        };
+        Assert.Contains("completed successfully", successResult.Message);
+
+        var failResult = new RepairExecutionResult
+        {
+            Success = false,
+            ExitCode = 87,
+            Tool = RepairToolType.DismScanHealth
+        };
+        Assert.Contains("completed with exit code 87", failResult.Message);
+
+        var errorResult = new RepairExecutionResult
+        {
+            Success = false,
+            ErrorMessage = "Custom error"
+        };
+        Assert.Equal("Custom error", errorResult.Message);
+    }
 }

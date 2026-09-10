@@ -13,7 +13,7 @@ public static class CleanupPlanner
         string scopeId,
         string scopeName,
         IEnumerable<string> directories,
-        string category,
+        string category = "General",
         bool apply24HourShield = true,
         bool sendToRecycleBin = false,
         CancellationToken ct = default)
@@ -106,6 +106,12 @@ public static class CleanupPlanner
 
         SafetyRiskTier.ReviewRequired => IntendedCleanupAction.SkipReviewRequired,
 
+        // Non-negotiable invariant: PROTECTED is strictly never deletable under any circumstance
+        SafetyRiskTier.Protected => IntendedCleanupAction.SkipProtected,
+
+        // When 24-hour shield is disabled (e.g. pure cache scope or explicit --unsafe flag),
+        // unclassified non-protected files in the target scope are eligible for cleaning.
+        // When the shield IS active (default safe mode), UNKNOWN files are strictly protected.
         SafetyRiskTier.Unknown when !apply24HourShield => sendToRecycleBin
             ? IntendedCleanupAction.MoveToRecycleBin
             : IntendedCleanupAction.DeletePermanently,

@@ -132,12 +132,30 @@
       <p class="section-subtitle">Complete version history, feature additions, and security improvements.</p>
     </div>
 
+    <!-- v1.6.0 -->
+    <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
+      <div class="card-inner">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.6.0 (Latest Stable)</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+        </div>
+        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <li><strong>Production-Grade Safety Invariants:</strong> Sealed non-deletable risk tiers in <code>CleanupPlanner</code>; eliminated naive string matching in favor of canonical containment (<code>PathSecurity.IsSubpathOf</code>) preventing sibling directory prefix-collision attacks.</li>
+          <li><strong>Two-Phase TOCTOU Protection:</strong> Implemented <code>CleanupTransaction</code> with pre-deletion size drift and reparse point rejection (<code>CleanupErrorCategory</code>) across all deletion pipelines.</li>
+          <li><strong>Adversarial Filesystem Test Suite:</strong> Added 14 adversarial security tests validating symlink trapping, directory traversal prevention, and immunity against malicious external heuristics.</li>
+          <li><strong>Native NT Memory Auditing &amp; Benchmarks:</strong> Audited <code>ntdll!NtSetSystemInformation</code> calls with strict NTSTATUS return validation, automated token privilege revocation (<code>RevertBoostPrivileges</code>), and added reproducible memory benchmarks.</li>
+          <li><strong>Comprehensive Documentation Suite:</strong> Added formal system architecture (<code>docs/ARCHITECTURE.md</code>), threat model &amp; security boundaries (<code>docs/THREAT_MODEL.md</code>), testing guide (<code>docs/TESTING.md</code>), and release engineering handbook (<code>docs/RELEASES.md</code>).</li>
+          <li><strong>Zero-Warning Release Build:</strong> 480 automated tests passing with zero skips, 100% clean formatting verification, and zero NuGet package vulnerabilities.</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- v1.5.2 -->
     <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
       <div class="card-inner">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.5.2 (Latest Stable)</h2>
-          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.5.2</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--bg-surface-elevated); color: var(--text-muted); font-weight: 700;">PREVIOUS</span>
         </div>
         <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
           <li><strong>Critical Runtime Fixes:</strong> Resolved cross-thread UI crashes in the cleaning engine, fixed a native memory-struct layout mismatch that prevented kernel cache optimization, and eliminated a startup freeze caused by synchronous orphan-folder scanning.</li>

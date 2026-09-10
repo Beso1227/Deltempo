@@ -94,14 +94,16 @@ public static class ProtectionPolicy
         }
 
         // 2. Windows Core System Directories (System32, SysWOW64, WinSxS, Boot, Recovery)
-        string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows).ToLowerInvariant();
-        string system32 = Path.Combine(winDir, "system32");
-        string syswow64 = Path.Combine(winDir, "syswow64");
-        string winsxs = Path.Combine(winDir, "winsxs");
-        string boot = Path.Combine(winDir, "boot");
+        string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        string system32 = Path.Combine(winDir, "System32");
+        string syswow64 = Path.Combine(winDir, "SysWOW64");
+        string winsxs = Path.Combine(winDir, "WinSxS");
+        string boot = Path.Combine(winDir, "Boot");
 
-        if (pathLower.StartsWith(system32) || pathLower.StartsWith(syswow64) ||
-            pathLower.StartsWith(winsxs) || pathLower.StartsWith(boot) ||
+        if (PathSecurity.IsSubpathOf(path, system32) ||
+            PathSecurity.IsSubpathOf(path, syswow64) ||
+            PathSecurity.IsSubpathOf(path, winsxs) ||
+            PathSecurity.IsSubpathOf(path, boot) ||
             pathLower.Contains(@"\system volume information") ||
             pathLower.Contains(@"\$recycle.bin"))
         {
@@ -111,7 +113,7 @@ public static class ProtectionPolicy
         }
 
         // 3. User Libraries & Personal Storage (Documents, Desktop, Pictures, Music, Videos)
-        if (IsUserPersonalDirectory(pathLower))
+        if (IsUserPersonalDirectory(path))
         {
             matchedReason = "User personal library or workspace folder (Documents/Desktop/Pictures/Projects)";
             return true;
@@ -173,31 +175,31 @@ public static class ProtectionPolicy
         return false;
     }
 
-    private static bool IsUserPersonalDirectory(string pathLower)
+    private static bool IsUserPersonalDirectory(string path)
     {
-        string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).ToLowerInvariant();
+        string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         if (string.IsNullOrEmpty(userProfile)) return false;
 
         string[] userProtectedDirs =
         {
-            Path.Combine(userProfile, "documents"),
-            Path.Combine(userProfile, "desktop"),
-            Path.Combine(userProfile, "pictures"),
-            Path.Combine(userProfile, "music"),
-            Path.Combine(userProfile, "videos"),
-            Path.Combine(userProfile, "contacts"),
-            Path.Combine(userProfile, "favorites"),
-            Path.Combine(userProfile, "searches"),
-            Path.Combine(userProfile, "saved games"),
-            Path.Combine(userProfile, "source"),
-            Path.Combine(userProfile, "repos"),
-            Path.Combine(userProfile, "projects"),
-            Path.Combine(userProfile, "onedrive")
+            Path.Combine(userProfile, "Documents"),
+            Path.Combine(userProfile, "Desktop"),
+            Path.Combine(userProfile, "Pictures"),
+            Path.Combine(userProfile, "Music"),
+            Path.Combine(userProfile, "Videos"),
+            Path.Combine(userProfile, "Contacts"),
+            Path.Combine(userProfile, "Favorites"),
+            Path.Combine(userProfile, "Searches"),
+            Path.Combine(userProfile, "Saved Games"),
+            Path.Combine(userProfile, "Source"),
+            Path.Combine(userProfile, "Repos"),
+            Path.Combine(userProfile, "Projects"),
+            Path.Combine(userProfile, "OneDrive")
         };
 
         foreach (var dir in userProtectedDirs)
         {
-            if (pathLower.StartsWith(dir))
+            if (PathSecurity.IsSubpathOf(path, dir))
             {
                 return true;
             }

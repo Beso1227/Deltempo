@@ -11,6 +11,7 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <ApplicationManifest>..\app.manifest</ApplicationManifest>
+    <PublishReadyToRun>true</PublishReadyToRun>
     <!-- Version/FileVersion/AssemblyVersion are centralized in Directory.Build.props -->
   </PropertyGroup>
 

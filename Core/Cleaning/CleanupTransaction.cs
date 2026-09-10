@@ -15,6 +15,56 @@ public enum CleanupCompletionStatus
 }
 
 /// <summary>
+/// Structured category of error or safety abort reason.
+/// </summary>
+public enum CleanupErrorCategory
+{
+    None,
+    AccessDenied,
+    FileLocked,
+    InvalidPath,
+    ReparsePointRejected,
+    ProtectedPath,
+    NativeApiFailure,
+    SizeDriftDetected,
+    TimestampDriftDetected,
+    SystemAttributeSet,
+    PostVerificationFailed,
+    Cancelled,
+    Unknown
+}
+
+/// <summary>
+/// Execution status of an individual file within the cleanup transaction audit log.
+/// </summary>
+public enum DeletionAuditStatus
+{
+    Deleted,
+    Recycled,
+    SkippedPolicy,
+    SkippedRevalidation,
+    Failed,
+    VerificationFailed
+}
+
+/// <summary>
+/// Fine-grained, immutable audit entry for every evaluated or executed file in the cleanup transaction.
+/// </summary>
+public record DeletionAuditRecord
+{
+    public string FilePath { get; init; } = string.Empty;
+    public string FileName { get; init; } = string.Empty;
+    public WinTempCleaner.Core.Safety.SafetyRiskTier RiskTier { get; init; } = WinTempCleaner.Core.Safety.SafetyRiskTier.Unknown;
+    public string MatchedRule { get; init; } = string.Empty;
+    public IntendedCleanupAction IntendedAction { get; init; }
+    public DeletionAuditStatus Status { get; init; }
+    public CleanupErrorCategory ErrorCategory { get; init; } = CleanupErrorCategory.None;
+    public long SizeBytes { get; init; }
+    public DateTime TimestampUtc { get; init; } = DateTime.UtcNow;
+    public string? ErrorOrSkipReason { get; init; }
+}
+
+/// <summary>
 /// Structured verification transaction summarizing the precise outcome of a cleanup operation.
 /// Enforces the rule: "Do not report '18 GB cleaned' unless the application actually verified what happened."
 /// </summary>
@@ -22,6 +72,8 @@ public class CleanupTransactionResult
 {
     public string ScopeId { get; set; } = string.Empty;
     public string ScopeName { get; set; } = string.Empty;
+
+    public List<DeletionAuditRecord> AuditRecords { get; set; } = new();
 
     public int DiscoveredCount { get; set; }
     public long DiscoveredBytes { get; set; }

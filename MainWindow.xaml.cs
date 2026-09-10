@@ -41,6 +41,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        InitializeMemoryViewModel();
         SystemRepairModalOverlay.LogRequested += AddLog;
         MemoryModalOverlay.LogRequested += AddLog;
         MemoryModalOverlay.TelemetryRefreshRequested += UpdateMemoryTelemetry;

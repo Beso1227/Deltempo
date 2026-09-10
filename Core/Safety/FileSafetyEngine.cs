@@ -179,8 +179,8 @@ public static class FileSafetyEngine
         }
 
         // 9b. Non-executable files in designated temporary and cache directories
-        // Files in verified temp/cache directories (subject to 24h shield, protection policy, and executable gates)
-        // are disposable scratch and cache items.
+        // Only files with recognized disposable extensions or inside explicit cache subdirectories are safe.
+        // Unrecognized extensions fail closed to UNKNOWN.
         bool isDesignatedTempOrCacheLocation =
             pathLower.Contains(@"\appdata\local\temp\") ||
             pathLower.Contains(@"\windows\temp\") ||
@@ -193,7 +193,11 @@ public static class FileSafetyEngine
             (allowedRoots != null && allowedRoots.Any(r => !string.IsNullOrEmpty(r) && PathSecurity.IsSubpathOf(canonicalPath, r))) ||
             (!string.IsNullOrEmpty(allowedRoot) && PathSecurity.IsSubpathOf(canonicalPath, allowedRoot));
 
-        if (isDesignatedTempOrCacheLocation)
+        bool isKnownDisposableFormat = KnownDisposableExtensions.Contains(ext) ||
+                                       pathLower.Contains("cache") ||
+                                       category.Contains("cache", StringComparison.OrdinalIgnoreCase);
+
+        if (isDesignatedTempOrCacheLocation && isKnownDisposableFormat)
         {
             return CreateResult(
                 SafetyRiskTier.Safe,
@@ -217,6 +221,14 @@ public static class FileSafetyEngine
             origin: "Unclassified File",
             impact: "Preserved to avoid data loss.");
     }
+
+    private static readonly HashSet<string> KnownDisposableExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".tmp", ".temp", ".log", ".old", ".bak", ".dmp", ".mdmp", ".wer", ".chk",
+        ".cache", ".etl", ".crdownload", ".partial", ".dir", ".sqm",
+        ".dat", ".bin", ".data", ".blob", ".chunk", ".idx", ".pack", ".index",
+        ".lock", ".swp", ".etag"
+    };
 
     private static SafetyAnalysisResult? EvaluateVerifiedCachePatterns(string pathLower, string fileName, string ext, long sizeBytes)
     {

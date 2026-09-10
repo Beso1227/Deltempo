@@ -9,14 +9,20 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?label=Release&color=06B6D4" alt="Latest Release" /></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&label=CI%20Build" alt="CI Build Status" /></a>
+    <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/Tests-480%20Passed%20(0%20failed)-10B981" alt="Tests: 480 Passed" /></a>
+    <a href="docs/THREAT_MODEL.md"><img src="https://img.shields.io/badge/Security-STRIDE%20Hardened-8B5CF6" alt="STRIDE Hardened" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/github/license/Beso1227/Deltempo?color=10B981" alt="License: MIT" /></a>
     <a href="#supported-platforms"><img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20(x64)-0078D4" alt="Platform Support" /></a>
   </p>
 
   <p>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest">Download Release</a> •
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest">Download v1.6.0</a> •
     <a href="https://beso1227.github.io/Deltempo/">Official Website</a> •
-    <a href="https://beso1227.github.io/Deltempo/docs/">Documentation</a> •
+    <a href="docs/ARCHITECTURE.md">Architecture</a> •
+    <a href="docs/THREAT_MODEL.md">Threat Model</a> •
+    <a href="docs/TESTING.md">Testing Guide</a> •
+    <a href="docs/BENCHMARKS.md">Benchmarks</a> •
+    <a href="docs/RELEASES.md">Release Engineering</a> •
     <a href="SECURITY.md">Security Policy</a> •
     <a href="#quick-start">Quick Start</a>
   </p>
@@ -30,15 +36,17 @@
 | Property | Detail |
 | :--- | :--- |
 | **Platform** | Windows 10 & 11 (64-bit / x64) |
+| **Version** | v1.6.0 (Production Release) |
 | **License** | Open Source ([MIT](LICENSE)) |
 | **Interfaces** | Modern Desktop GUI (WPF Fluent) and Headless Terminal CLI |
 | **Distribution** | Portable single-file executable (self-contained, no installer required) |
-| **Telemetry** | None. Scan, clean, and memory actions execute entirely offline; optional online AI analysis is opt-in and sends file metadata only |
-| **Safety Engine** | Two-phase planning (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) with 5 risk tiers |
+| **Test Coverage** | 480 automated tests (100% pass rate, 0 failed, 0 skipped), adversarial filesystem fuzzing |
+| **Telemetry** | Zero telemetry. Scan, clean, and memory operations execute 100% offline |
+| **Safety Engine** | Two-phase planning (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) with 5 risk tiers & transaction journaling |
 | **Memory Engine** | Native Windows NT kernel calls (`NtSetSystemInformation`, `EmptyWorkingSet`) |
 | **Preferences Hub** | Categorized 4-tab control center (*Updates*, *General*, *Memory*, *Storage & Safety*) |
 | **Tray Guardian** | High-DPI native Win32 icon (`LoadCrispTrayIcon`) with live RAM telemetry & 1-click Boost |
-| **Updates** | Cryptographically verified (SHA-256) Stable & Beta release channels with scheduled background polling |
+| **Updates** | Cryptographically verified (SHA-256) Stable & Beta release channels with atomic staging |
 
 ---
 
@@ -254,7 +262,7 @@ Deltempo features a categorized, segmented preferences center organized into fou
   * **Release Channels**: Switch between **Stable** (verified milestone releases recommended for all users) and **Beta / Pre-Release** (early access to cutting-edge features and experimental scopes).
   * **Automated Schedule**: Configure background update polling frequency: `Daily`, `Every 3 Days`, `Weekly`, or `Manual Only`.
   * **Silent Pre-Fetching**: Optionally stage verified update packages in the background so updates apply instantly upon confirmation.
-  * **Version Telemetry Card**: Real-time status badge showing current installed version (`v1.5.1`), last checked timestamp, update check button, and 1-click link to official GitHub Release Notes.
+  * **Version Telemetry Card**: Real-time status badge showing current installed version (`v1.6.0`), last checked timestamp, update check button, and 1-click link to official GitHub Release Notes.
 * **General Tab**:
   * **System Startup**: Reversibly configure Deltempo to launch on Windows logon with optional auto-minimize to tray.
   * **Recycle Bin Routing**: Global toggle to route candidate files to the Windows Recycle Bin for safety and reversible recovery.
@@ -273,7 +281,7 @@ For background monitoring and fast access, Deltempo integrates a lightweight sys
 * **Native Win32 Scaling (`LoadCrispTrayIcon`)**: Employs direct Win32 GDI icon creation (`CreateIconIndirect`) with 32-bit ARGB alpha transparency, delivering pixel-perfect crispness on standard (100%), medium (125%, 150%), and high-density (175%, 200%+) Windows displays without blurring.
 * **Real-Time RAM Telemetry**: Hovering over the tray icon displays live physical memory consumption directly in the tooltip:
   ```text
-  Deltempo v1.5.1
+  Deltempo v1.6.0
   RAM: 42% (13.4 GB / 31.9 GB)
   ```
 * **Instant Context Actions**: Right-click the tray icon to trigger **1-Click Boost Memory** or **Quick Smart Clean** immediately without bringing the main application window into focus.
@@ -339,7 +347,7 @@ Deltempo/
 ├── Services/                # System integrations (CleanerService, MemoryOptimizer, LargeFileHunter)
 ├── Models/                  # Telemetry models, target folder definitions, and data structures
 ├── Views/                   # Modular WPF UI components (SystemRepairModal, MemoryOptimizerModal)
-├── Tests/                   # Automated verification suite (Deltempo.Tests.csproj, 400+ xUnit tests)
+├── Tests/                   # Automated verification suite (Deltempo.Tests.csproj, 480+ xUnit tests)
 ├── scripts/                 # Build, benchmark, and release packaging scripts
 └── docs/                    # GitHub Pages website and technical documentation
 ```

@@ -91,6 +91,8 @@ public partial class App : System.Windows.Application
 
         base.OnStartup(e);
 
+        InitializeDiagnostics();
+
         DispatcherUnhandledException += (s, args) =>
         {
             try
@@ -339,6 +341,31 @@ public partial class App : System.Windows.Application
         catch (Exception ex)
         {
             Trace.WriteLine($"[Deltempo] Update handshake setup failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Attaches a size-rolled local file trace listener so the diagnostic traces
+    /// emitted across the core are visible in released builds (previously Debug-only).
+    /// Local file only — no network activity, preserving the zero-telemetry promise.
+    /// </summary>
+    private static void InitializeDiagnostics()
+    {
+        try
+        {
+            string logDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Deltempo", "logs");
+
+            var listener = RollingFileTraceListener.TryCreate(Path.Combine(logDir, "deltempo.log"));
+            if (listener != null)
+            {
+                Trace.Listeners.Add(listener);
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] Diagnostics initialization suppressed: {ex.Message}");
         }
     }
 

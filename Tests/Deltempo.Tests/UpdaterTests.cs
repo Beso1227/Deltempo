@@ -348,7 +348,7 @@ public class TransactionJournalTests : IDisposable
     [Fact]
     public void TransitionTo_InvalidTransition_ThrowsException()
     {
-        var journal = new TransactionJournal { TransactionId = "test-tx" };
+        var journal = new TransactionJournal { TransactionId = "test-tx", StorageRoot = _testDir };
         journal.TransitionTo(TransactionState.Downloaded);
 
         Assert.Throws<InvalidOperationException>(() =>
@@ -358,7 +358,7 @@ public class TransactionJournalTests : IDisposable
     [Fact]
     public void TransitionTo_SelfTransition_DoesNotThrow()
     {
-        var journal = new TransactionJournal { TransactionId = "test-tx-self" };
+        var journal = new TransactionJournal { TransactionId = "test-tx-self", StorageRoot = _testDir };
         // Initial state is Discovered. Transitioning to Discovered should succeed idempotently.
         journal.TransitionTo(TransactionState.Discovered);
         Assert.Equal(TransactionState.Discovered, journal.State);
@@ -386,6 +386,7 @@ public class TransactionJournalTests : IDisposable
         var journal = new TransactionJournal
         {
             TransactionId = txId,
+            StorageRoot = _testDir,
             Channel = "patch",
             Version = "1.3.3",
             CommitSha = "abc1234",
@@ -560,6 +561,7 @@ public class UpdateTransactionCoordinatorTests
             var journal = new TransactionJournal
             {
                 TransactionId = txId,
+                StorageRoot = updatesDir,
                 Channel = "test",
                 Version = "1.0.0",
                 TargetPath = Path.Combine(updatesDir, "target.exe"),
@@ -599,6 +601,7 @@ public class UpdateTransactionCoordinatorTests
             var journal = new TransactionJournal
             {
                 TransactionId = txId,
+                StorageRoot = updatesDir,
                 Channel = "test",
                 Version = "1.0.0",
                 TargetPath = Path.Combine(updatesDir, "target.exe"),
@@ -613,7 +616,10 @@ public class UpdateTransactionCoordinatorTests
             journal.TransitionTo(TransactionState.Staged);
             journal.TransitionTo(TransactionState.StageVerified);
 
-            var coordinator = new UpdateTransactionCoordinator(journal);
+            var coordinator = new UpdateTransactionCoordinator(
+                journal,
+                processExitTimeout: TimeSpan.FromMilliseconds(50),
+                pollInterval: TimeSpan.FromMilliseconds(10));
             // Should fail because caller PID (current process) won't exit within timeout
             bool result = await coordinator.ExecuteAsync();
             Assert.False(result);
@@ -643,6 +649,7 @@ public class UpdateTransactionCoordinatorTests
             var journal = new TransactionJournal
             {
                 TransactionId = txId,
+                StorageRoot = updatesDir,
                 Channel = "test",
                 Version = "1.0.0",
                 TargetPath = targetPath,
@@ -688,6 +695,7 @@ public class UpdateTransactionCoordinatorTests
             var journal = new TransactionJournal
             {
                 TransactionId = txId,
+                StorageRoot = updatesDir,
                 Channel = "test",
                 Version = "1.0.0",
                 TargetPath = targetPath,
@@ -702,7 +710,10 @@ public class UpdateTransactionCoordinatorTests
             journal.TransitionTo(TransactionState.Staged);
             journal.TransitionTo(TransactionState.StageVerified);
 
-            var coordinator = new UpdateTransactionCoordinator(journal);
+            var coordinator = new UpdateTransactionCoordinator(
+                journal,
+                healthCheckTimeout: TimeSpan.FromMilliseconds(50),
+                pollInterval: TimeSpan.FromMilliseconds(10));
             _ = await coordinator.ExecuteAsync();
 
             // Verify that the backup mechanism created BackupPath or target.old
