@@ -646,10 +646,41 @@ public partial class MainWindow : Window
                 CloseMemoryCleanerModal_Click(sender, e);
                 e.Handled = true;
             }
+            else if (AboutModalOverlay.Visibility == Visibility.Visible)
+            {
+                CloseAbout_Click(sender, e);
+                e.Handled = true;
+            }
             else if (SystemRepairModalOverlay.Visibility == Visibility.Visible)
             {
                 CloseSystemRepairModal_Click(sender, e);
                 e.Handled = true;
+            }
+        }
+        else if (e.Key == Key.Tab)
+        {
+            // Focus Trap: when an overlay modal is active, keep Tab navigation inside the modal boundary
+            FrameworkElement? activeModal = null;
+            if (SettingsModalOverlay.Visibility == Visibility.Visible) activeModal = SettingsModalOverlay;
+            else if (ConfirmModalOverlay.Visibility == Visibility.Visible) activeModal = ConfirmModalOverlay;
+            else if (CelebrationModalOverlay.Visibility == Visibility.Visible) activeModal = CelebrationModalOverlay;
+            else if (InspectorModalOverlay.Visibility == Visibility.Visible) activeModal = InspectorModalOverlay;
+            else if (StartupModalOverlay.Visibility == Visibility.Visible) activeModal = StartupModalOverlay;
+            else if (LargeFilesModalOverlay.Visibility == Visibility.Visible) activeModal = LargeFilesModalOverlay;
+            else if (ProcessModalOverlay.Visibility == Visibility.Visible) activeModal = ProcessModalOverlay;
+            else if (UpdateModalOverlay.Visibility == Visibility.Visible) activeModal = UpdateModalOverlay;
+            else if (MemoryModalOverlay.Visibility == Visibility.Visible) activeModal = MemoryModalOverlay;
+            else if (SystemRepairModalOverlay.Visibility == Visibility.Visible) activeModal = SystemRepairModalOverlay;
+            else if (AboutModalOverlay.Visibility == Visibility.Visible) activeModal = AboutModalOverlay;
+
+            if (activeModal != null)
+            {
+                var focused = Keyboard.FocusedElement as DependencyObject;
+                if (focused == null || !IsDescendantOf(focused, activeModal))
+                {
+                    activeModal.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+                    e.Handled = true;
+                }
             }
         }
         else if (e.Key == Key.F5 || (e.Key == Key.R && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control))
@@ -702,4 +733,14 @@ public partial class MainWindow : Window
         }
     }
 
+    private static bool IsDescendantOf(DependencyObject child, DependencyObject parent)
+    {
+        var current = child;
+        while (current != null)
+        {
+            if (ReferenceEquals(current, parent)) return true;
+            current = VisualTreeHelper.GetParent(current) ?? LogicalTreeHelper.GetParent(current);
+        }
+        return false;
+    }
 }

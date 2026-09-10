@@ -237,6 +237,23 @@
             </Setter>
         </Style>
 
+        <!-- Shimmering Skeleton Loader Element -->
+        <Style x:Key="ShimmerSkeletonBar" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource TrackBgBrush}"/>
+            <Style.Triggers>
+                <EventTrigger RoutedEvent="Loaded">
+                    <BeginStoryboard>
+                        <Storyboard RepeatBehavior="Forever">
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                             From="0.45" To="0.88"
+                                             Duration="0:0:1.1"
+                                             AutoReverse="True"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Style.Triggers>
+        </Style>
+
         <!-- Primary Action Button (Sleek Tech CTA) -->
         <Style x:Key="HeroCTAButton" TargetType="Button">
             <Setter Property="FocusVisualStyle" Value="{StaticResource AccessibleFocusVisualStyle}"/>

@@ -333,15 +333,15 @@
                                 <!-- Language Selector Pill -->
                                 <ComboBox x:Name="LanguageComboBox"
                                           Style="{DynamicResource ModernComboBox}"
-                                          Width="72" Height="24"
+                                          Width="76" Height="24"
                                           AutomationProperties.Name="Select Application Language"
                                           Margin="0"
                                           SelectionChanged="LanguageComboBox_SelectionChanged">
-                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="EN" ToolTip="English" IsSelected="True" Tag="en"/>
-                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="AR" ToolTip="العربية" Tag="ar"/>
-                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="ES" ToolTip="Español" Tag="es"/>
-                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="FR" ToolTip="Français" Tag="fr"/>
-                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="DE" ToolTip="Deutsch" Tag="de"/>
+                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="EN" ToolTip="English" AutomationProperties.Name="English" IsSelected="True" Tag="en"/>
+                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="AR" ToolTip="العربية (Arabic)" AutomationProperties.Name="العربية (Arabic)" Tag="ar"/>
+                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="ES" ToolTip="Español (Spanish)" AutomationProperties.Name="Español (Spanish)" Tag="es"/>
+                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="FR" ToolTip="Français (French)" AutomationProperties.Name="Français (French)" Tag="fr"/>
+                                    <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="DE" ToolTip="Deutsch (German)" AutomationProperties.Name="Deutsch (German)" Tag="de"/>
                                 </ComboBox>
 
                                 <!-- Subtle Vertical Separator -->
@@ -680,7 +680,9 @@
                     BorderThickness="1"
                     CornerRadius="14"
                     Margin="18,4,18,8"
-                    Padding="12,10">
+                    Padding="12,10"
+                    AutomationProperties.Name="Filter and Scope Selection Bar"
+                    AutomationProperties.HelpText="Filter cleanup categories by safety, system, gaming, or search">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/> <!-- Tier 1: Category Filter Chips & Search -->
@@ -952,7 +954,7 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Skeleton Loading State -->
+                    <!-- Skeleton Loading State (Animated Shimmer) -->
                     <ItemsControl x:Name="SkeletonItemsControl" Visibility="Collapsed">
                         <ItemsControl.Items>
                             <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,8" Padding="14,11">
@@ -963,9 +965,9 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource TrackBgBrush}"/>
-                                    <Border Grid.Column="1" Width="200" Height="12" CornerRadius="4" Background="{DynamicResource TrackBgBrush}" Margin="12,0,12,0" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="2" Width="120" Height="10" CornerRadius="4" Background="{DynamicResource TrackBgBrush}" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="10" Style="{DynamicResource ShimmerSkeletonBar}"/>
+                                    <Border Grid.Column="1" Width="200" Height="12" CornerRadius="4" Style="{DynamicResource ShimmerSkeletonBar}" Margin="12,0,12,0" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="2" Width="120" Height="10" CornerRadius="4" Style="{DynamicResource ShimmerSkeletonBar}" VerticalAlignment="Center"/>
                                 </Grid>
                             </Border>
                             <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,8" Padding="14,11">
@@ -976,9 +978,9 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource TrackBgBrush}"/>
-                                    <Border Grid.Column="1" Width="160" Height="12" CornerRadius="4" Background="{DynamicResource TrackBgBrush}" Margin="12,0,12,0" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="2" Width="100" Height="10" CornerRadius="4" Background="{DynamicResource TrackBgBrush}" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="10" Style="{DynamicResource ShimmerSkeletonBar}"/>
+                                    <Border Grid.Column="1" Width="160" Height="12" CornerRadius="4" Style="{DynamicResource ShimmerSkeletonBar}" Margin="12,0,12,0" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="2" Width="100" Height="10" CornerRadius="4" Style="{DynamicResource ShimmerSkeletonBar}" VerticalAlignment="Center"/>
                                 </Grid>
                             </Border>
                             <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,8" Padding="14,11">
@@ -989,16 +991,18 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource TrackBgBrush}"/>
-                                    <Border Grid.Column="1" Width="180" Height="12" CornerRadius="4" Background="{DynamicResource TrackBgBrush}" Margin="12,0,12,0" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="2" Width="140" Height="10" CornerRadius="4" Background="{DynamicResource TrackBgBrush}" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="10" Style="{DynamicResource ShimmerSkeletonBar}"/>
+                                    <Border Grid.Column="1" Width="180" Height="12" CornerRadius="4" Style="{DynamicResource ShimmerSkeletonBar}" Margin="12,0,12,0" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="2" Width="140" Height="10" CornerRadius="4" Style="{DynamicResource ShimmerSkeletonBar}" VerticalAlignment="Center"/>
                                 </Grid>
                             </Border>
                         </ItemsControl.Items>
                     </ItemsControl>
 
                     <!-- Target Cards -->
-                    <ItemsControl x:Name="TargetCardsItemsControl">
+                    <ItemsControl x:Name="TargetCardsItemsControl"
+                                  AutomationProperties.Name="Cleanable Cache and Temp Categories List"
+                                  AutomationProperties.HelpText="List of discovered disposable cache, shader, and temporary folders available for cleanup">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Margin="0,0,0,8"
@@ -1225,7 +1229,9 @@
                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                     BorderThickness="0,1,0,0"
                     CornerRadius="0,0,19,19"
-                    Padding="18,12">
+                    Padding="18,12"
+                    AutomationProperties.Name="Bottom Action Dock"
+                    AutomationProperties.HelpText="Controls for Safety Shield, audit log export, and executing cleanup operations">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
