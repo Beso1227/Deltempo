@@ -283,7 +283,7 @@ public static partial class CliRunner
         int myPid = Process.GetCurrentProcess().Id;
         var myProcessName = Process.GetCurrentProcess().ProcessName;
         var procs = Process.GetProcesses()
-            .Where(p => p.Id != myPid && 
+            .Where(p => p.Id != myPid &&
                         (p.ProcessName.Equals(myProcessName, StringComparison.OrdinalIgnoreCase) ||
                          p.ProcessName.Equals("Deltempo", StringComparison.OrdinalIgnoreCase) ||
                          p.ProcessName.Equals("WinTempCleaner", StringComparison.OrdinalIgnoreCase)))

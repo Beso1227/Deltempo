@@ -216,10 +216,6 @@ public partial class MainWindow
         }
     }
 
-    // =======================================================
-    // Windows System Integrity & Corruption Repair Handlers
-    // =======================================================
-    private CancellationTokenSource? _systemRepairCts;
 
     private void AboutButton_Click(object sender, RoutedEventArgs e)
     {

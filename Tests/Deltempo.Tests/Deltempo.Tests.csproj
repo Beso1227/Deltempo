@@ -24,14 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\Core\Safety\*.cs" Link="Core\Safety\%(FileName)%(Extension)" />
-    <Compile Include="..\..\Core\Cleaning\*.cs" Link="Core\Cleaning\%(FileName)%(Extension)" />
-    <Compile Include="..\..\Core\Update\*.cs" Link="Core\Update\%(FileName)%(Extension)" />
-    <Compile Include="..\..\Services\*.cs" Link="Services\%(FileName)%(Extension)" />
-    <Compile Include="..\..\Services\Providers\*.cs" Link="Services\Providers\%(FileName)%(Extension)" />
-    <Compile Include="..\..\Services\Providers\CacheResolvers\*.cs" Link="Services\Providers\CacheResolvers\%(FileName)%(Extension)" />
-    <Compile Include="..\..\Models\*.cs" Link="Models\%(FileName)%(Extension)" />
-    <Compile Include="..\..\Tests\*.cs" Link="Tests\%(FileName)%(Extension)" />
+    <ProjectReference Include="..\..\Core\Deltempo.Core.csproj" />
+    <Compile Include="..\..\Converters\PercentWidthConverter.cs" Link="Converters\PercentWidthConverter.cs" />
   </ItemGroup>
 
 </Project>

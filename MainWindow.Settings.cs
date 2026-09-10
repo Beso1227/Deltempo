@@ -208,7 +208,7 @@ public partial class MainWindow
                 ? "http://localhost:11434"
                 : SettingsAiOllamaEndpointBox.Text.Trim();
         });
-        
+
         AutoCleanService.Start();
         ApplyMemorySettingsToWindow();
 

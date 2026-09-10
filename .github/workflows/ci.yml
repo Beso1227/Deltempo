@@ -22,15 +22,10 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore Dependencies
-        run: |
-          dotnet restore WinTempCleaner.csproj
-          dotnet restore Cli/Deltempo.Cli.csproj
-          dotnet restore Tests/Deltempo.Tests/Deltempo.Tests.csproj
+        run: dotnet restore deltempo.sln
 
-      - name: Build Core Engine & CLI
-        run: |
-          dotnet build WinTempCleaner.csproj -c Release --no-restore
-          dotnet build Cli/Deltempo.Cli.csproj -c Release --no-restore
+      - name: Build Solution
+        run: dotnet build deltempo.sln -c Release --no-restore
 
       - name: Verify Code Style & Formatting
         run: dotnet format deltempo.sln --verify-no-changes --no-restore

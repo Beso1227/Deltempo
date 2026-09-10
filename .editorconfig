@@ -1,0 +1,26 @@
+# Top-most EditorConfig file
+root = true
+
+# Default all files
+[*]
+indent_style = space
+indent_size = 4
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# C# files
+[*.cs]
+indent_size = 4
+
+# XAML / XML files
+[*.{xaml,xml,props,targets,csproj,sln}]
+indent_size = 4
+
+# JSON and YAML
+[*.{json,yml,yaml}]
+indent_size = 2
+
+# Markdown files
+[*.md]
+trim_trailing_whitespace = false

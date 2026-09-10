@@ -14,13 +14,20 @@ TestResults/
 *.exe
 *.com
 *.cer
+*.pfx
 
 # Developer Visualizations & Generated Artifacts
 graphify-out/
 GRAPHIFY.md
 vault/
 
-# Secrets
+# Python & Local Automation Scratch
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Secrets & Environment
 .env
 .env.*
 
@@ -33,6 +40,7 @@ vault/
 .idea/
 *.swp
 *.lock
+*.bak
 
 # OS Generated
 Thumbs.db
@@ -47,18 +55,7 @@ NUL
 *.dmp
 *.tmp
 
-# Obsidian local workspace
+# Local workspace scratch
 .obsidian/
-
-# Local submission automation
-alt_submit_cdp.py
-cdp_submit.py
-alternativeto_submission.html
-
-# Temp deploy helpers (local only, never commit)
-.deploy*.cmd
-deltempo.cmd
-deltempo.ps1
-
-# Kilo AI local workspace/plans
 .kilo/
+.deploy*.cmd

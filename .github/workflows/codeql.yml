@@ -35,10 +35,8 @@ jobs:
 
       - name: Build
         run: |
-          dotnet restore WinTempCleaner.csproj
-          dotnet restore Cli/Deltempo.Cli.csproj
-          dotnet build WinTempCleaner.csproj -c Release --no-restore
-          dotnet build Cli/Deltempo.Cli.csproj -c Release --no-restore
+          dotnet restore deltempo.sln
+          dotnet build deltempo.sln -c Release --no-restore
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

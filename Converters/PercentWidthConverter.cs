@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace WinTempCleaner.Services;
+namespace WinTempCleaner.Converters;
 
 /// <summary>
 /// Converts a percentage (0–100) + a total width into a pixel width for a progress bar thumb.

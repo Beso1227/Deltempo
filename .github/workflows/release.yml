@@ -27,10 +27,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore All Dependencies
-        run: |
-          dotnet restore WinTempCleaner.csproj
-          dotnet restore Cli/Deltempo.Cli.csproj
-          dotnet restore Tests/Deltempo.Tests/Deltempo.Tests.csproj
+        run: dotnet restore deltempo.sln
 
       - name: Run Tests
         run: dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --verbosity normal --filter "Category!=Benchmark"

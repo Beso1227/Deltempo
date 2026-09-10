@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace WinTempCleaner.Services;
+namespace WinTempCleaner.Converters;
 
 public class BoolToBrushConverter : IValueConverter
 {

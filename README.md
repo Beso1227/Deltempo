@@ -331,15 +331,16 @@ Deltempo is compiled as a self-contained single-file executable (`win-x64`). No 
 ```text
 Deltempo/
 ├── Cli/                     # Headless command-line interface (Deltempo.Cli.csproj)
-├── Core/                    # Core domain logic, safety rules, and update verification
+├── Core/                    # Shared domain class library (Deltempo.Core.csproj)
 │   ├── Cleaning/            # CleanupPlan, CleanupPlanner, CleanupExecutor
 │   ├── Safety/              # FileSafetyEngine, ProtectionPolicy, PathSecurity, SafetyRiskTier
 │   └── Update/              # UpdateSecurityValidator, PatchIntegrityVerifier, TransactionJournal
+├── Converters/              # High-DPI WPF UI data and value converters
 ├── Services/                # System integrations (CleanerService, MemoryOptimizer, LargeFileHunter)
 ├── Models/                  # Telemetry models, target folder definitions, and data structures
-├── Views/ & ViewModels/     # WPF UI presentation layer (Fluent dark and light themes)
-├── Tests/                   # Automated verification suite (xUnit on .NET 10)
-├── scripts/                 # Build, test, and release packaging scripts
+├── Views/                   # Modular WPF UI components (SystemRepairModal, MemoryOptimizerModal)
+├── Tests/                   # Automated verification suite (Deltempo.Tests.csproj, 400+ xUnit tests)
+├── scripts/                 # Build, benchmark, and release packaging scripts
 └── docs/                    # GitHub Pages website and technical documentation
 ```
 
@@ -358,17 +359,16 @@ Deltempo/
 git clone https://github.com/Beso1227/Deltempo.git
 cd Deltempo
 
-# Build GUI and CLI in Release configuration
-dotnet build WinTempCleaner.csproj -c Release
-dotnet build Cli/Deltempo.Cli.csproj -c Release
+# Build entire solution (Core library, GUI, CLI, and Tests) in Release configuration
+dotnet build deltempo.sln -c Release
 
-# Run the test suite
+# Run the automated test suite
 dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
 
-# Package the standalone release executable
+# Package the standalone release executables (GUI and CLI)
 pwsh -ExecutionPolicy Bypass -File scripts/build_release_exe.ps1
 ```
-The compiled single-file binary is generated at `publish/Deltempo.exe`.
+The compiled single-file binaries are generated at `publish/Deltempo.exe` and `publish/deltempo_cli.exe`.
 
 ---
 

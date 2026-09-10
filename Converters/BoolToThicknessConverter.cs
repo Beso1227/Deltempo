@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace WinTempCleaner.Services;
+namespace WinTempCleaner.Converters;
 
 public class BoolToThicknessConverter : IValueConverter
 {

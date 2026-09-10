@@ -41,6 +41,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        SystemRepairModalOverlay.LogRequested += AddLog;
+        MemoryModalOverlay.LogRequested += AddLog;
+        MemoryModalOverlay.TelemetryRefreshRequested += UpdateMemoryTelemetry;
 
         _targetsCollectionView = CollectionViewSource.GetDefaultView(_targets);
         _targetsCollectionView.Filter = FilterTargetPredicate;
