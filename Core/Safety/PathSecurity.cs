@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -35,8 +36,9 @@ public static class PathSecurity
             string full = Path.GetFullPath(trimmed);
             return full.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
-        catch
+        catch (Exception ex)
         {
+            Trace.WriteLine($"[PathSecurity] Canonicalization failed for '{path}': {ex.Message}");
             return string.Empty;
         }
     }
@@ -90,9 +92,10 @@ public static class PathSecurity
                 return (di.Attributes & FileAttributes.ReparsePoint) != 0 || di.LinkTarget != null;
             }
         }
-        catch
+        catch (Exception ex)
         {
             // If attributes cannot be read safely, treat as potentially hazardous reparse point
+            Trace.WriteLine($"[PathSecurity] Attribute read failed for '{path}': treating as reparse point ({ex.GetType().Name}: {ex.Message})");
             return true;
         }
 
@@ -109,8 +112,9 @@ public static class PathSecurity
         {
             return (info.Attributes & FileAttributes.ReparsePoint) != 0 || info.LinkTarget != null;
         }
-        catch
+        catch (Exception ex)
         {
+            Trace.WriteLine($"[PathSecurity] Attribute read failed for '{info.FullName}': treating as reparse point ({ex.GetType().Name}: {ex.Message})");
             return true;
         }
     }
@@ -138,7 +142,10 @@ public static class PathSecurity
                 return uri.IsUnc;
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[PathSecurity] URI classification failed for '{trimmed}': {ex.Message}");
+        }
 
         return false;
     }

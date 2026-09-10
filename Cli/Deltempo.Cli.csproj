@@ -10,9 +10,7 @@
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
-    <Version>1.5.1</Version>
-    <FileVersion>1.5.1.0</FileVersion>
-    <AssemblyVersion>1.5.1.0</AssemblyVersion>
+    <!-- Version/FileVersion/AssemblyVersion are centralized in Directory.Build.props -->
   </PropertyGroup>
 
   <ItemGroup>

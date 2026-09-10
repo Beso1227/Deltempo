@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
+using WinTempCleaner.ViewModels;
 
 namespace WinTempCleaner;
 
@@ -95,39 +96,64 @@ public partial class MainWindow
             return;
         }
 
-        long totalEstimatedBytes = selectedTargets.Sum(t => t.SizeBytes);
-        long totalEstimatedFiles = selectedTargets.Sum(t => (long)t.FileCount);
-        bool safeMode = SafeModeCheckBox.IsChecked == true;
-
-        ConfirmModalSizeText.Text = TargetFolderInfo.FormatBytes(totalEstimatedBytes);
-        ConfirmModalShieldText.Text = safeMode ? "Safety Shield: Active" : "Safety Shield: Disabled";
-        ConfirmModalShieldBadge.BorderBrush = safeMode ? (Brush)FindResource("EmeraldGreenBrush") : (Brush)FindResource("AmberWarningBrush");
-        ConfirmModalShieldBadge.Background = safeMode ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10241B")) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A1E16"));
-
-        bool recycleBin = SettingsService.Current.SendToRecycleBin;
-        if (recycleBin)
+        // PHASE 0: Elevation gate. Selected system categories may be inaccessible
+        // when running as a standard user (asInvoker manifest). Offer a UAC
+        // re-launch instead of failing per-file with access-denied noise.
+        var elevation = CleaningPipelineViewModel.GetElevationRequirement(selectedTargets);
+        if (elevation.RequiresElevation)
         {
-            ConfirmModalDeletionModeTitle.Text = "Recycle Bin Protection: Active";
-            ConfirmModalDeletionModeDesc.Text = "Files will be moved to the Windows Recycle Bin and can be restored if needed.";
+            string blockedList = elevation.BlockedCategoryNames.Count <= 4
+                ? string.Join(", ", elevation.BlockedCategoryNames)
+                : string.Join(", ", elevation.BlockedCategoryNames.Take(4)) + $" and {elevation.BlockedCategoryNames.Count - 4} more";
+
+            var elevationChoice = MessageBox.Show(
+                $"The selected categories require Administrator privileges and are not accessible from this session:\n\n{blockedList}\n\nRelaunch Deltempo as Administrator now?",
+                "Administrator Privileges Required",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (elevationChoice == MessageBoxResult.Yes)
+            {
+                AddLog("Relaunching with Administrator privileges to clean protected system categories...", LogLevel.Info);
+                ElevationService.RestartAsAdmin();
+            }
+            else
+            {
+                AddLog("Cleanup cancelled: Administrator privileges are required for the selected categories.", LogLevel.Warning);
+                ProgressStatusText.Text = "Elevation required for selected categories.";
+            }
+            return;
+        }
+
+        bool safeMode = SafeModeCheckBox.IsChecked == true;
+        bool recycleBin = SettingsService.Current.SendToRecycleBin;
+
+        // Confirmation content is derived in CleaningPipelineViewModel (unit-tested, MVVM phase 1).
+        var preview = CleaningPipelineViewModel.BuildConfirmationPreview(selectedTargets, safeMode, recycleBin);
+
+        ConfirmModalSizeText.Text = preview.EstimatedSizeText;
+        ConfirmModalShieldText.Text = preview.ShieldText;
+        ConfirmModalShieldBadge.BorderBrush = preview.IsShieldActive ? (Brush)FindResource("EmeraldGreenBrush") : (Brush)FindResource("AmberWarningBrush");
+        ConfirmModalShieldBadge.Background = preview.IsShieldActive ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10241B")) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A1E16"));
+
+        if (preview.IsRecycleBinMode)
+        {
+            ConfirmModalDeletionModeTitle.Text = preview.DeletionModeTitle;
+            ConfirmModalDeletionModeDesc.Text = preview.DeletionModeDescription;
             ConfirmModalDeletionModeIcon.Text = "\uE74D";
             ConfirmModalDeletionModeIcon.Foreground = (Brush)FindResource("ElectricCyanBrush");
             ConfirmModalDeletionModeBorder.BorderBrush = (Brush)FindResource("HairlineBorderBrush");
         }
         else
         {
-            ConfirmModalDeletionModeTitle.Text = "Permanent Deletion: Active";
-            ConfirmModalDeletionModeDesc.Text = "Files will be permanently deleted from disk to maximize free space and cannot be restored.";
+            ConfirmModalDeletionModeTitle.Text = preview.DeletionModeTitle;
+            ConfirmModalDeletionModeDesc.Text = preview.DeletionModeDescription;
             ConfirmModalDeletionModeIcon.Text = "\uE7BA";
             ConfirmModalDeletionModeIcon.Foreground = (Brush)FindResource("AmberWarningBrush");
             ConfirmModalDeletionModeBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4DF59E0B"));
         }
 
-        var categoryNames = selectedTargets.Select(t => t.Name).ToList();
-        string categoryList = categoryNames.Count <= 5
-            ? string.Join(", ", categoryNames)
-            : string.Join(", ", categoryNames.Take(5)) + $" and {categoryNames.Count - 5} more";
-
-        ConfirmModalSummaryText.Text = $"Cleaning {selectedTargets.Count} selected categories ({totalEstimatedFiles:N0} estimated files). Categories: {categoryList}. System integrity, user credentials, and personal files remain 100% protected.";
+        ConfirmModalSummaryText.Text = preview.CategorySummary;
         ConfirmModalOverlay.Visibility = Visibility.Visible;
     }
 
@@ -491,34 +517,11 @@ public partial class MainWindow
 
     private void RecalculateTotals()
     {
-        long selectedBytes = 0;
-        int selectedFiles = 0;
-        int safeCount = 0;
-        int reviewCount = 0;
-
-        foreach (var target in _targets.Where(t => t.IsSelected))
-        {
-            selectedBytes += target.SizeBytes;
-            selectedFiles += target.FileCount;
-            if (target.SafetyBadge.Contains("REVIEW", StringComparison.OrdinalIgnoreCase))
-                reviewCount++;
-            else
-                safeCount++;
-        }
-
-        var formattedSize = TargetFolderInfo.FormatBytes(selectedBytes);
-        HeroSizeText.Text = formattedSize;
-        CleanButtonText.Text = $"Clean Selected ({formattedSize})";
-
-        if (selectedBytes == 0)
-        {
-            HeroSubtext.Text = "Selected categories are clean or ready for scan";
-        }
-        else
-        {
-            string breakdown = reviewCount > 0 ? $" ({safeCount} safe, {reviewCount} review required)" : " (100% verified safe)";
-            HeroSubtext.Text = $"{selectedFiles:N0} junk items selected across {_targets.Count(t => t.IsSelected)} categories{breakdown}";
-        }
+        // Presentation math lives in CleaningPipelineViewModel (unit-tested, MVVM phase 1).
+        var summary = CleaningPipelineViewModel.ComputeSelectionSummary(_targets);
+        HeroSizeText.Text = summary.HeroSizeText;
+        CleanButtonText.Text = summary.CleanButtonText;
+        HeroSubtext.Text = summary.HeroSubtext;
     }
 
     private void SetControlsEnabled(bool enabled)

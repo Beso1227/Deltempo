@@ -199,7 +199,10 @@ public static class CleanupExecutor
                             var fi = new FileInfo(action.FilePath);
                             if (fi.Exists) actualBytes = fi.Length;
                         }
-                        catch { }
+                        catch (Exception ex)
+                        {
+                            Trace.WriteLine($"[Cleanup] Size probe failed for '{action.FilePath}': {ex.Message}");
+                        }
 
                         bool success = false;
 
@@ -444,9 +447,10 @@ public static class CleanupExecutor
                 return !File.Exists(path);
             }
         }
-        catch
+        catch (Exception ex)
         {
             // If we cannot verify, assume failure (conservative)
+            Trace.WriteLine($"[Cleanup] Post-deletion verification threw for '{path}': {ex.Message}");
             return false;
         }
     }
@@ -473,8 +477,9 @@ public static class CleanupExecutor
 
             return !File.Exists(path);
         }
-        catch
+        catch (Exception ex)
         {
+            Trace.WriteLine($"[Cleanup] Permanent delete failed for '{path}': {ex.Message}");
             return false;
         }
     }
@@ -496,8 +501,9 @@ public static class CleanupExecutor
             int res = SHFileOperation(ref shf);
             return res == 0 && !File.Exists(path) && !Directory.Exists(path);
         }
-        catch
+        catch (Exception ex)
         {
+            Trace.WriteLine($"[Cleanup] Recycle-bin operation failed for '{path}': {ex.Message}");
             return false;
         }
     }

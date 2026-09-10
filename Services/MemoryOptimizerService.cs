@@ -52,19 +52,33 @@ public class MemoryAreaSnapshot
         _ => "\uE950"
     };
 
+    // Cached frozen brushes. These properties are read on every memory-telemetry
+    // refresh tick; allocating a new SolidColorBrush per read created steady GC
+    // pressure. Frozen brushes are thread-safe and skip change-notification overhead.
+    private static readonly Brush HighUsageBrush = CreateFrozenBrush("#EF4444");     // red
+    private static readonly Brush ElevatedUsageBrush = CreateFrozenBrush("#F59E0B"); // amber
+    private static readonly Brush NormalUsageBrush = CreateFrozenBrush("#00E5FF");   // cyan
+
+    private static SolidColorBrush CreateFrozenBrush(string hex)
+    {
+        var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+        brush.Freeze();
+        return brush;
+    }
+
     public Brush UsedPercentBrush => UsedPercent switch
     {
-        > 90 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EF4444")), // red
-        > 70 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B")), // amber
-        _ => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF"))  // cyan
+        > 90 => HighUsageBrush,
+        > 70 => ElevatedUsageBrush,
+        _ => NormalUsageBrush
     };
 
     public Brush UsageBarBrush => UsedPercent switch
     {
-        > 90 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EF4444")),
-        > 70 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B")),
+        > 90 => HighUsageBrush,
+        > 70 => ElevatedUsageBrush,
         _ => (System.Windows.Application.Current?.FindResource("BrandHeroGradientBrush") as Brush)
-                ?? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF"))
+                ?? NormalUsageBrush
     };
 }
 

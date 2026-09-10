@@ -4,7 +4,10 @@
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>
       <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
-        <requestedExecutionLevel level="requireAdministrator" uiAccess="false" />
+        <!-- asInvoker: launches without a UAC prompt. Elevation is opt-in via the
+             in-app shield button or requested on-demand when a privileged
+             cleanup is confirmed (UAC re-launch). -->
+        <requestedExecutionLevel level="asInvoker" uiAccess="false" />
       </requestedPrivileges>
     </security>
   </trustInfo>

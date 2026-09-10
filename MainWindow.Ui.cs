@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
+using WinTempCleaner.ViewModels;
 
 namespace WinTempCleaner;
 
@@ -158,38 +159,9 @@ public partial class MainWindow
 
     private bool FilterTargetPredicate(object item)
     {
-        if (item is not TargetFolderInfo target) return false;
-
-        // 1. Tag filter
-        if (_currentFilterTag == "SAFE" && !target.IsSafeModeEligible) return false;
-        if (_currentFilterTag == "SYSTEM" &&
-            !target.Category.Contains("System", StringComparison.OrdinalIgnoreCase) &&
-            !target.Category.Contains("Driver", StringComparison.OrdinalIgnoreCase) &&
-            !target.Category.Contains("Diagnostics", StringComparison.OrdinalIgnoreCase) &&
-            !target.Category.Contains("Security", StringComparison.OrdinalIgnoreCase) &&
-            !target.Category.Contains("Storage", StringComparison.OrdinalIgnoreCase) &&
-            !target.Category.Contains("SO", StringComparison.OrdinalIgnoreCase)) return false;
-        if (_currentFilterTag == "GAMING" &&
-            !target.Category.Contains("Gaming", StringComparison.OrdinalIgnoreCase) &&
-            !target.Category.Contains("Shader", StringComparison.OrdinalIgnoreCase) &&
-            !target.Category.Contains("GPU", StringComparison.OrdinalIgnoreCase)) return false;
-        if (_currentFilterTag == "MEDIA" &&
-            !target.Category.Contains("Media", StringComparison.OrdinalIgnoreCase) &&
-            !target.Category.Contains("App", StringComparison.OrdinalIgnoreCase) &&
-            !target.Category.Contains("Browser", StringComparison.OrdinalIgnoreCase) &&
-            !target.Category.Contains("Store", StringComparison.OrdinalIgnoreCase) &&
-            !target.Category.Contains("Dev", StringComparison.OrdinalIgnoreCase) &&
-            !target.Category.Contains("User", StringComparison.OrdinalIgnoreCase) &&
-            !target.Category.Contains("Creator", StringComparison.OrdinalIgnoreCase)) return false;
-
-        // 2. Search text filter
-        if (string.IsNullOrWhiteSpace(_currentSearchText)) return true;
-
-        var term = _currentSearchText.Trim();
-        return target.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
-            || target.Description.Contains(term, StringComparison.OrdinalIgnoreCase)
-            || target.Category.Contains(term, StringComparison.OrdinalIgnoreCase)
-            || target.FolderPath.Contains(term, StringComparison.OrdinalIgnoreCase);
+        // Filter/search semantics live in CleaningPipelineViewModel (unit-tested, MVVM phase 2).
+        return item is TargetFolderInfo target &&
+               CleaningPipelineViewModel.MatchesFilter(target, _currentFilterTag, _currentSearchText);
     }
 
     private void CategorySearchBox_TextChanged(object sender, TextChangedEventArgs e)

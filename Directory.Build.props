@@ -1,0 +1,14 @@
+<Project>
+
+  <!--
+    Single source of truth for Deltempo versioning.
+    Applies to GUI (WinTempCleaner), CLI (Deltempo.Cli), Core, and Tests.
+    Bump here only; individual csproj files must not override Version/FileVersion/AssemblyVersion.
+  -->
+  <PropertyGroup>
+    <Version>1.5.2</Version>
+    <FileVersion>1.5.2.0</FileVersion>
+    <AssemblyVersion>1.5.2.0</AssemblyVersion>
+  </PropertyGroup>
+
+</Project>

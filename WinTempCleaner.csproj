@@ -10,9 +10,7 @@
     <ApplicationIcon>app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationTitle>Deltempo - Windows Cleaner and Memory Optimizer</ApplicationTitle>
-    <Version>1.5.2</Version>
-    <FileVersion>1.5.2.0</FileVersion>
-    <AssemblyVersion>1.5.2.0</AssemblyVersion>
+    <!-- Version/FileVersion/AssemblyVersion are centralized in Directory.Build.props -->
     <NeutralLanguage>en-US</NeutralLanguage>
     <RepositoryUrl>https://github.com/Beso1227/Deltempo</RepositoryUrl>
     <PackageProjectUrl>https://beso1227.github.io/Deltempo/</PackageProjectUrl>
@@ -48,6 +46,9 @@
     <Compile Remove="Models\**" />
     <EmbeddedResource Remove="Models\**" />
     <None Remove="Models\**" />
+    <Compile Remove="ViewModels\**" />
+    <EmbeddedResource Remove="ViewModels\**" />
+    <None Remove="ViewModels\**" />
   </ItemGroup>
 
   <ItemGroup>

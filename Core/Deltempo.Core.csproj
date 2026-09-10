@@ -12,6 +12,7 @@
   <ItemGroup>
     <Compile Include="..\Services\**\*.cs" Link="Services\%(RecursiveDir)%(FileName)%(Extension)" />
     <Compile Include="..\Models\**\*.cs" Link="Models\%(RecursiveDir)%(FileName)%(Extension)" />
+    <Compile Include="..\ViewModels\**\*.cs" Link="ViewModels\%(RecursiveDir)%(FileName)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
