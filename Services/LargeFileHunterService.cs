@@ -571,13 +571,25 @@ public static class LargeFileHunterService
         int total = list.Count;
         if (total == 0) return;
 
+        using var throttler = new SemaphoreSlim(4);
         int processed = 0;
-        foreach (var item in list)
+
+        var tasks = list.Select(async item =>
         {
-            if (ct.IsCancellationRequested) break;
-            await AnalyzeItemWithAiAsync(item, ct);
-            processed++;
-            progress?.Report((int)((double)processed / total * 100));
-        }
+            await throttler.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                if (ct.IsCancellationRequested) return;
+                await AnalyzeItemWithAiAsync(item, ct).ConfigureAwait(false);
+            }
+            finally
+            {
+                int current = Interlocked.Increment(ref processed);
+                progress?.Report((int)((double)current / total * 100));
+                throttler.Release();
+            }
+        });
+
+        await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 }

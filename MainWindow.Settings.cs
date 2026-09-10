@@ -285,7 +285,13 @@ public partial class MainWindow
         var selected = _largeFiles.Where(f => f.IsSelected).ToList();
         if (selected.Count == 0)
         {
-            selected = _largeFiles.Where(f => !f.IsAiOnlineVerified).Take(25).ToList();
+            // If no specific checkboxes are marked, analyze all scanned files that haven't been verified yet
+            selected = _largeFiles.Where(f => !f.IsAiOnlineVerified).ToList();
+            if (selected.Count == 0 && _largeFiles.Count > 0)
+            {
+                // If all were previously analyzed, allow re-analyzing all scanned files
+                selected = _largeFiles.ToList();
+            }
         }
 
         if (selected.Count == 0)
