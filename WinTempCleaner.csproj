@@ -52,6 +52,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Views\**\*.xaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="Core\Deltempo.Core.csproj" />
   </ItemGroup>
 
