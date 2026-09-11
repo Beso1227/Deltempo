@@ -428,7 +428,7 @@
   }
 
   /* ==========================================================================
-     5. Precision Cybernetic Dual-Ring Cursor with Magnetic Snap & Ripple
+     5. Upgraded Cybernetic Dual-Ring Cursor with Aerodynamic Stretch & Snap
      ========================================================================== */
   function initPrecisionCursor() {
     if (!isFinePointer.matches) return;
@@ -461,8 +461,14 @@
     let mouseY = -100;
     let ringX = -100;
     let ringY = -100;
+    let lastRingX = -100;
+    let lastRingY = -100;
     let isVisible = false;
     let currentMagneticEl = null;
+
+    let currentAngle = 0;
+    let currentStretch = 1;
+    let currentCompress = 1;
 
     function onPointerMove(e) {
       mouseX = e.clientX;
@@ -472,6 +478,8 @@
         isVisible = true;
         ringX = mouseX;
         ringY = mouseY;
+        lastRingX = mouseX;
+        lastRingY = mouseY;
         dot.style.opacity = '1';
         ring.style.opacity = '1';
       }
@@ -499,17 +507,29 @@
       mouseY = e.clientY;
       ringX = mouseX;
       ringY = mouseY;
+      lastRingX = mouseX;
+      lastRingY = mouseY;
       isVisible = true;
       dot.style.opacity = '1';
       ring.style.opacity = '1';
     });
 
-    // Active click states
+    // Active click states with kinetic shockwave
     window.addEventListener(
       'pointerdown',
-      function () {
+      function (e) {
         dot.classList.add('cursor-active');
         ring.classList.add('cursor-active');
+
+        // Spawn kinetic click pulse
+        const pulse = document.createElement('div');
+        pulse.className = 'cursor-click-pulse';
+        pulse.style.left = e.clientX + 'px';
+        pulse.style.top = e.clientY + 'px';
+        document.body.appendChild(pulse);
+        setTimeout(function () {
+          if (pulse.parentNode) pulse.parentNode.removeChild(pulse);
+        }, 550);
       },
       { passive: true }
     );
@@ -525,9 +545,9 @@
 
     // Interactive element hover & magnetic detection
     const interactiveQuery =
-      'a, button, input, textarea, select, [role="button"], .btn-pill, .btn-icon, .hero-winget, .card-inner, .faq-item, .mobile-nav-link, .nav-link, summary';
+      'a, button, input, textarea, select, [role="button"], [role="tab"], .btn-pill, .btn-icon, .hero-winget, .card-inner, .faq-item, .mobile-nav-link, .nav-link, summary, .calc-profile-btn, .cmd-pill';
     const magneticQuery =
-      '.btn-pill-primary, .hero-winget, #themeToggleBtn, .btn-icon, .nav-github-btn, .dl-btn-primary';
+      '.btn-pill-primary, .hero-winget, #themeToggleBtn, .btn-icon, .nav-github-btn, .dl-btn-primary, .app-tab';
 
     document.addEventListener(
       'pointerover',
@@ -573,7 +593,7 @@
       { passive: true }
     );
 
-    // 60-144fps fluid spring lerp interpolation for trailing ring & magnetic snap
+    // 60-144fps fluid aerodynamic spring physics loop
     function renderLoop() {
       if (isVisible) {
         let targetX = mouseX;
@@ -587,22 +607,42 @@
           const deltaX = mouseX - centerX;
           const deltaY = mouseY - centerY;
 
-          targetX = mouseX * 0.55 + centerX * 0.45;
-          targetY = mouseY * 0.55 + centerY * 0.45;
+          targetX = mouseX * 0.52 + centerX * 0.48;
+          targetY = mouseY * 0.52 + centerY * 0.48;
 
-          const maxTranslate = 3.5;
-          const transX = Math.max(-maxTranslate, Math.min(maxTranslate, deltaX * 0.12));
-          const transY = Math.max(-maxTranslate, Math.min(maxTranslate, deltaY * 0.12));
+          const maxTranslate = 4.0;
+          const transX = Math.max(-maxTranslate, Math.min(maxTranslate, deltaX * 0.14));
+          const transY = Math.max(-maxTranslate, Math.min(maxTranslate, deltaY * 0.14));
           currentMagneticEl.style.transform =
             'translate3d(' + transX.toFixed(2) + 'px, ' + transY.toFixed(2) + 'px, 0)';
         }
 
-        // Fluid spring lerp (0.28 factor for snappy yet silky tracking)
-        ringX += (targetX - ringX) * 0.28;
-        ringY += (targetY - ringY) * 0.28;
+        // Smooth spring interpolation (0.32 factor for responsive tracking)
+        ringX += (targetX - ringX) * 0.32;
+        ringY += (targetY - ringY) * 0.32;
+
+        // Compute velocity vector for aerodynamic stretch
+        const dX = ringX - lastRingX;
+        const dY = ringY - lastRingY;
+        const speed = Math.sqrt(dX * dX + dY * dY);
+
+        if (speed > 1.2 && !currentMagneticEl) {
+          currentAngle = Math.atan2(dY, dX) * (180 / Math.PI);
+        }
+
+        const targetStretch = currentMagneticEl ? 1 : 1 + Math.min(speed * 0.012, 0.4);
+        const targetCompress = currentMagneticEl ? 1 : 1 - Math.min(speed * 0.006, 0.2);
+        currentStretch += (targetStretch - currentStretch) * 0.22;
+        currentCompress += (targetCompress - currentCompress) * 0.22;
+
+        lastRingX = ringX;
+        lastRingY = ringY;
 
         ring.style.transform =
-          'translate3d(' + ringX.toFixed(2) + 'px, ' + ringY.toFixed(2) + 'px, 0) translate(-50%, -50%)';
+          'translate3d(' + ringX.toFixed(2) + 'px, ' + ringY.toFixed(2) + 'px, 0) ' +
+          'translate(-50%, -50%) ' +
+          'rotate(' + currentAngle.toFixed(1) + 'deg) ' +
+          'scale(' + currentStretch.toFixed(3) + ', ' + currentCompress.toFixed(3) + ')';
       }
 
       requestAnimationFrame(renderLoop);
@@ -612,7 +652,224 @@
   }
 
   /* ==========================================================================
-     6. Initialization on DOMContentLoaded
+     6. Interactive 7-Workspace Live Simulator Engine
+     ========================================================================== */
+  function initWorkspaceSimulator() {
+    const tabs = document.querySelectorAll('.app-tab');
+    if (!tabs.length) return;
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        tabs.forEach(function (t) {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('.tab-pane').forEach(function (p) {
+          p.classList.remove('active');
+        });
+
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        const target = tab.getAttribute('data-tab');
+        const pane = document.getElementById('pane-' + target);
+        if (pane) pane.classList.add('active');
+      });
+    });
+
+    // 1. Cleaner Scan Simulation
+    const scanBtn = document.getElementById('simScanBtn');
+    const cleanBtn = document.getElementById('simCleanBtn');
+    const scanDock = document.getElementById('simScanDock');
+    const junkTotal = document.getElementById('simJunkTotal');
+
+    if (scanBtn && scanDock && junkTotal) {
+      scanBtn.addEventListener('click', function () {
+        scanBtn.disabled = true;
+        scanBtn.textContent = 'Scanning...';
+        scanDock.style.display = 'flex';
+        let step = 0;
+        const phases = [
+          'Volume C:\\ • 2,400 files/s • 45 MB/s • ETA: 3s',
+          'Volume C:\\ • 4,200 files/s • 115 MB/s • ETA: 2s',
+          'Volume D:\\ (NVMe) • 6,100 files/s • 190 MB/s • ETA: 1s',
+          '✓ Complete • 26 scopes scanned • 10,407 items verified'
+        ];
+
+        const interval = setInterval(function () {
+          if (step < phases.length) {
+            scanDock.innerHTML = '<span class="status-pulse-green"></span> ' + phases[step];
+            step++;
+          } else {
+            clearInterval(interval);
+            scanBtn.disabled = false;
+            scanBtn.textContent = 'Re-Scan';
+            junkTotal.textContent = '14.8 GB';
+            if (cleanBtn) cleanBtn.disabled = false;
+          }
+        }, 600);
+      });
+    }
+
+    if (cleanBtn && junkTotal && scanDock) {
+      cleanBtn.addEventListener('click', function () {
+        cleanBtn.disabled = true;
+        cleanBtn.textContent = 'Cleaning...';
+        scanDock.innerHTML = '<span class="status-pulse-green"></span> Purging verified caches & bottom-up empty directories...';
+        setTimeout(function () {
+          junkTotal.textContent = '0 B';
+          cleanBtn.textContent = 'Cleaned!';
+          scanDock.innerHTML = '✓ Reclaimed 14.8 GB • 0 locked-file errors • System Clean';
+          setTimeout(function () {
+            cleanBtn.textContent = 'Clean Verified Junk';
+            cleanBtn.disabled = true;
+          }, 3000);
+        }, 1200);
+      });
+    }
+
+    // 2. RAM Boost Simulation
+    const boostBtn = document.getElementById('simBoostBtn');
+    const ramGauge = document.getElementById('simRamGauge');
+    const ramPercent = document.getElementById('simRamPercent');
+    const ramDetail = document.getElementById('simRamDetail');
+
+    if (boostBtn && ramGauge && ramPercent) {
+      boostBtn.addEventListener('click', function () {
+        boostBtn.disabled = true;
+        boostBtn.textContent = 'Optimizing NT Kernel...';
+
+        let current = 76;
+        const target = 34;
+        const anim = setInterval(function () {
+          if (current > target) {
+            current -= 3;
+            ramPercent.textContent = current + '%';
+            ramGauge.style.background = 'conic-gradient(var(--accent-cyan) ' + (current * 3.6) + 'deg, rgba(255,255,255,0.06) 0deg)';
+          } else {
+            clearInterval(anim);
+            ramPercent.textContent = '34%';
+            ramGauge.style.background = 'conic-gradient(var(--accent-emerald) 122.4deg, rgba(255,255,255,0.06) 0deg)';
+            if (ramDetail) ramDetail.textContent = '5.4 GB / 16.0 GB (Flushed 6.8 GB Standby RAM)';
+            boostBtn.textContent = '✓ RAM Boosted (-6.8 GB)';
+            setTimeout(function () {
+              boostBtn.textContent = '1-Click Boost Memory';
+              boostBtn.disabled = false;
+            }, 3000);
+          }
+        }, 40);
+      });
+    }
+
+    // 3. Interactive CLI Console
+    const cliOutput = document.getElementById('simCliOutput');
+    const cmdPills = document.querySelectorAll('.cmd-pill');
+
+    const cliResponses = {
+      'deltempo status':
+        '<span style="color:var(--accent-cyan);font-weight:700;">>>> Deltempo System Telemetry (v1.6.5)</span>\n' +
+        '  OS Platform: Windows 11 Pro 64-bit (24H2)\n' +
+        '  Privileges: Standard Invoker (Restart Manager available)\n' +
+        '  Physical Memory: 15.9 GB total | 5.2 GB active | 5.8 GB standby\n' +
+        '  Storage: C:\\ (NVMe) 84.2 GB free / 512.0 GB (83.5% Used)\n' +
+        '  Status: Ready for optimization',
+      'deltempo boost --all':
+        '<span style="color:var(--accent-emerald);font-weight:700;">>>> NT Kernel Memory Deep Purge:</span>\n' +
+        '  [OK] Trimmed 18 inactive application working sets\n' +
+        '  [OK] Flushed Windows NT Standby Page Lists (Pri 0-7)\n' +
+        '  [OK] Cleared System File Cache memory pages\n' +
+        '  SUCCESS: Freed 5.84 GB physical RAM in 42ms.',
+      'deltempo smart --dry-run':
+        '<span style="color:var(--accent-amber);font-weight:700;">>>> Deltempo Smart Clean (Dry Run Simulation):</span>\n' +
+        '  Safety Shield: ACTIVE (<24h protected)\n' +
+        '  Selected Scopes: 14 safe disposable cache targets\n' +
+        '  - User & Windows Temp: 4.8 GB (1,420 files)\n' +
+        '  - DirectX & GPU Shaders: 1.2 GB (890 files)\n' +
+        '  - Developer Caches (npm/pip/gradle): 5.4 GB (8,120 files)\n' +
+        '  - Delivery Optimization: 2.1 GB (12 chunks)\n' +
+        '  TOTAL RECLAIMABLE: 13.5 GB across 10,442 items (0 files modified).',
+      'deltempo scan temp':
+        '<span style="color:var(--accent-cyan);font-weight:700;">>>> Scanning Category: [temp]</span>\n' +
+        '  Scanning Volume C:\\ (%TEMP% & Windows Temp)...\n' +
+        '  Found: 4,820 MB across 1,420 files past 24-hour shield.\n' +
+        '  Protected files untouched: 0 credential or personal documents.'
+    };
+
+    if (cliOutput && cmdPills.length) {
+      cmdPills.forEach(function (pill) {
+        pill.addEventListener('click', function () {
+          cmdPills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          const cmd = pill.getAttribute('data-cmd');
+          if (cliResponses[cmd]) {
+            cliOutput.innerHTML =
+              '<span style="color:var(--accent-cyan);">$</span> ' + cmd + '\n\n' + cliResponses[cmd];
+          }
+        });
+      });
+    }
+  }
+
+  /* ==========================================================================
+     7. Interactive Space Reclaim Calculator
+     ========================================================================== */
+  function initReclaimCalculator() {
+    const profileBtns = document.querySelectorAll('.calc-profile-btn');
+    const calcStorage = document.getElementById('calcStorageValue');
+    const calcRam = document.getElementById('calcRamValue');
+    const calcBar1 = document.getElementById('calcBarTemp');
+    const calcBar2 = document.getElementById('calcBarShader');
+    const calcBar3 = document.getElementById('calcBarDev');
+    const calcSummary = document.getElementById('calcSummaryText');
+
+    if (!profileBtns.length || !calcStorage || !calcRam) return;
+
+    const data = {
+      gamer: {
+        storage: '32.4 GB',
+        ram: '4.8 GB',
+        bars: { temp: '35%', shader: '45%', dev: '20%' },
+        summary: 'Cleans massive DirectX, NVIDIA, AMD, and Unreal Engine shader caches plus game installer dumps.'
+      },
+      dev: {
+        storage: '26.8 GB',
+        ram: '6.2 GB',
+        bars: { temp: '20%', shader: '15%', dev: '65%' },
+        summary: 'Reclaims npm-cache, pip wheels, .gradle, Cargo registry caches, and heavy Docker temp staging.'
+      },
+      everyday: {
+        storage: '14.5 GB',
+        ram: '3.4 GB',
+        bars: { temp: '60%', shader: '10%', dev: '30%' },
+        summary: 'Safely flushes browser HTTP caches, Windows Update Delivery Optimization, and app temporary logs.'
+      },
+      power: {
+        storage: '48.2 GB',
+        ram: '8.4 GB',
+        bars: { temp: '30%', shader: '35%', dev: '35%' },
+        summary: 'Complete multi-drive sweep across 26 verified scopes, crash dumps, and full NT memory purge.'
+      }
+    };
+
+    profileBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        profileBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const prof = btn.getAttribute('data-profile');
+        const item = data[prof];
+        if (item) {
+          calcStorage.textContent = item.storage;
+          calcRam.textContent = item.ram;
+          if (calcBar1) calcBar1.style.width = item.bars.temp;
+          if (calcBar2) calcBar2.style.width = item.bars.shader;
+          if (calcBar3) calcBar3.style.width = item.bars.dev;
+          if (calcSummary) calcSummary.textContent = item.summary;
+        }
+      });
+    });
+  }
+
+  /* ==========================================================================
+     8. Initialization on DOMContentLoaded
      ========================================================================== */
   function initServiceWorker() {
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
@@ -662,6 +919,8 @@
     initInteractiveBackground();
     initCardInteractivity();
     initPrecisionCursor();
+    initWorkspaceSimulator();
+    initReclaimCalculator();
     initServiceWorker();
     initBackToTop();
   }

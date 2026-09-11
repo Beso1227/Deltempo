@@ -70,6 +70,7 @@
         "applicationCategory": "UtilitiesApplication, SystemOptimizer",
         "applicationSubCategory": "PC Cleaner, Memory Optimizer, Cache Cleaner",
         "operatingSystem": "Windows 10, Windows 11 (64-bit)",
+        "softwareVersion": "1.6.5",
         "isAccessibleForFree": true,
         "fileFormat": "application/vnd.microsoft.portable-executable",
         "license": "https://opensource.org/licenses/MIT",
@@ -84,7 +85,13 @@
           "https://winget.run/pkg/Beso1227.Deltempo"
         ],
         "featureList": [
-          "25+ Verified System, Developer, and User Profile Cache Scopes",
+          "Integrated In-Window Workspaces for Cleaner, Memory, Large Files, Startup, Running Processes & System Repair",
+          "Volume-Partitioned Drive Concurrency for NVMe, SATA SSD, and HDD Storage",
+          "Native Win32 Restart Manager (rstrtmgr.dll) Locked File Diagnostics and Deferred Boot-Time Deletion",
+          "Bounded O(1) Memory Heap Prioritization during Large Scans",
+          "Targeted Bottom-Up Parent Directory Pruning",
+          "Package & Build Cache Cleanup with 100% Cryptographic Credential Protection",
+          "26+ Verified System, Developer, and User Profile Cache Scopes",
           "DirectX, NVIDIA, AMD, and Intel GPU Shader Cache Cleaner",
           "Native Windows NT Kernel Working Set and Standby List Memory Optimizer",
           "Global Hotkey (Ctrl+Shift+M) for 1-Click Working Set Trim",
@@ -93,7 +100,7 @@
           "Microsoft WinGet Package Manager Support (winget install Beso1227.Deltempo)",
           "Portable Standalone Single-File Executable",
           "Deterministic 5-Tier Safety Engine with Pre-Deletion Revalidation",
-          "Zero Telemetry, Local Operation, Open Source (MIT)"
+          "Zero Telemetry, Local Operation, Open Source (MIT, 501 Verified Tests)"
         ],
         "offers": {
           "@type": "Offer",
@@ -355,19 +362,25 @@
                 </div>
               </div>
 
-              <!-- Tabs Strip -->
-              <div class="app-tabs" role="tablist">
+              <!-- Tabs Strip (7 Workspaces) -->
+              <div class="app-tabs app-tabs-island" role="tablist">
                 <button class="app-tab active" data-tab="cleaner" role="tab" aria-selected="true">
-                  <span>🧹 System Cleaner (25+ Scopes)</span>
+                  <span>🧹 System Cleaner</span>
                 </button>
                 <button class="app-tab" data-tab="memory" role="tab" aria-selected="false">
                   <span>⚡ NT Kernel Memory</span>
                 </button>
                 <button class="app-tab" data-tab="largefiles" role="tab" aria-selected="false">
-                  <span>📦 Large File Hunter</span>
+                  <span>📦 Large Files</span>
                 </button>
                 <button class="app-tab" data-tab="startup" role="tab" aria-selected="false">
                   <span>🚀 Startup Manager</span>
+                </button>
+                <button class="app-tab" data-tab="procs" role="tab" aria-selected="false">
+                  <span>📊 Running Processes</span>
+                </button>
+                <button class="app-tab" data-tab="repair" role="tab" aria-selected="false">
+                  <span>🛠️ System Repair</span>
                 </button>
                 <button class="app-tab" data-tab="cli" role="tab" aria-selected="false">
                   <span>💻 Terminal CLI</span>
@@ -378,14 +391,19 @@
               <div class="app-content">
                 <!-- TAB 1: CLEANER -->
                 <div class="tab-pane active" id="pane-cleaner">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
                     <div>
-                      <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Two-Phase Planning Engine</div>
-                      <div style="font-size: 1.125rem; font-weight: 800;">Target Scopes Verified by Protection Policy</div>
+                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Volume-Aware Parallel Engine (v1.6.5)</div>
+                      <div style="font-size: 1.25rem; font-weight: 800;">Target Scopes Verified by Protection Policy</div>
                     </div>
-                    <div style="display: flex; gap: 0.5rem;">
-                      <span class="tier-badge safe">🟢 Verified Cache</span>
-                      <span class="tier-badge lowrisk">🟡 Standalone Leftovers</span>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                      <span style="font-size: 0.95rem; font-weight: 700; color: var(--accent-emerald);" id="simJunkTotal">14.8 GB</span>
+                      <button class="btn-pill btn-pill-secondary" id="simScanBtn" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">
+                        Simulate Scan
+                      </button>
+                      <button class="btn-pill btn-pill-primary" id="simCleanBtn" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">
+                        Clean Verified Junk
+                      </button>
                     </div>
                   </div>
 
@@ -394,44 +412,50 @@
                       <div class="scope-icon">🎮</div>
                       <div>
                         <div class="scope-title">DirectX &amp; GPU Shaders</div>
-                        <div class="scope-desc">NVIDIA, AMD, Intel, and DirectX shader caches. Purges compiled pipeline caches safely.</div>
+                        <div class="scope-desc">NVIDIA, AMD, Intel &amp; DirectX shader bytecode. Purges compiled caches safely.</div>
                       </div>
                     </div>
                     <div class="scope-card">
                       <div class="scope-icon">📁</div>
                       <div>
                         <div class="scope-title">Windows &amp; User Temp</div>
-                        <div class="scope-desc">User %TEMP% and System Temp files past the 24-hour protection shield.</div>
+                        <div class="scope-desc">User %TEMP% &amp; System Temp files past the 24-hour protection shield.</div>
                       </div>
                     </div>
                     <div class="scope-card">
                       <div class="scope-icon">📦</div>
                       <div>
                         <div class="scope-title">Delivery Optimization</div>
-                        <div class="scope-desc">Windows Update peer-to-peer cache chunks and update leftovers.</div>
+                        <div class="scope-desc">Windows Update peer-to-peer cache chunks and update staging leftovers.</div>
                       </div>
                     </div>
                     <div class="scope-card">
                       <div class="scope-icon">⚙️</div>
                       <div>
                         <div class="scope-title">Developer Caches</div>
-                        <div class="scope-desc">npm, pip, NuGet, Cargo, and gradle build cache directories.</div>
+                        <div class="scope-desc">npm, pip, NuGet, Cargo, Bun &amp; Gradle build cache trees (100% credential protected).</div>
                       </div>
                     </div>
                     <div class="scope-card">
                       <div class="scope-icon">💬</div>
                       <div>
                         <div class="scope-title">Messaging Media Scratch</div>
-                        <div class="scope-desc">Volatile media caches for Discord, Telegram, and WhatsApp. Session tokens strictly protected.</div>
+                        <div class="scope-desc">Volatile media caches for Discord, Telegram &amp; WhatsApp. Session tokens strictly protected.</div>
                       </div>
                     </div>
                     <div class="scope-card">
                       <div class="scope-icon">🌐</div>
                       <div>
                         <div class="scope-title">Browser Disk Caches</div>
-                        <div class="scope-desc">Edge, Chrome, Brave, and Firefox HTTP caches. Passwords and cookies untouched.</div>
+                        <div class="scope-desc">Edge, Chrome, Brave &amp; Firefox HTTP caches. Passwords, cookies &amp; logins untouched.</div>
                       </div>
                     </div>
+                  </div>
+
+                  <!-- Real-Time Velocity Dock Simulation -->
+                  <div class="sim-status-dock" id="simScanDock">
+                    <span class="status-pulse-green"></span>
+                    <span>Ready • Volume-Aware Parallel Coordinator Active • 26 Scopes Verified</span>
                   </div>
                 </div>
 
@@ -439,73 +463,255 @@
                 <div class="tab-pane" id="pane-memory">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
-                      <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">NT Kernel Optimization</div>
-                      <div style="font-size: 1.125rem; font-weight: 800;">Working Set Trimming &amp; Standby List Purge</div>
+                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">NT Kernel Memory Optimization</div>
+                      <div style="font-size: 1.25rem; font-weight: 800;">Working Set Trimming &amp; Standby List Purge</div>
                     </div>
-                    <div style="font-family: var(--font-mono); font-size: 0.85rem; padding: 4px 10px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-                      Global Hotkey: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd>
-                    </div>
+                    <button class="btn-pill btn-pill-primary" id="simBoostBtn" style="padding: 0.5rem 1.2rem; font-size: 0.85rem;">
+                      ⚡ 1-Click Boost Memory
+                    </button>
                   </div>
 
-                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
-                    <div style="padding: 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-                      <div style="font-size: 0.8rem; color: var(--text-low); margin-bottom: 0.25rem;">STANDBY LIST PURGE</div>
-                      <div style="font-weight: 700; margin-bottom: 0.5rem;">NtSetSystemInformation</div>
-                      <p style="font-size: 0.85rem; color: var(--text-med); line-height: 1.5;">Calls native NT memory list information class 80 to reclaim standby memory held by closed apps.</p>
+                  <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; align-items: center;">
+                    <!-- Circular RAM Meter -->
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; border-radius: var(--radius-lg); background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle);">
+                      <div id="simRamGauge" style="width: 110px; height: 110px; border-radius: 50%; background: conic-gradient(var(--accent-cyan) 273deg, rgba(255,255,255,0.06) 0deg); display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; transition: background 0.4s var(--ease-smooth);">
+                        <div style="width: 82px; height: 82px; border-radius: 50%; background: var(--bg-card); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                          <div id="simRamPercent" style="font-size: 1.4rem; font-weight: 800; color: var(--text-high);">76%</div>
+                          <div style="font-size: 0.65rem; color: var(--text-low); font-weight: 600;">RAM LOAD</div>
+                        </div>
+                      </div>
+                      <div id="simRamDetail" style="font-size: 0.75rem; color: var(--text-med); font-family: var(--font-mono); text-align: center;">
+                        12.2 GB / 16.0 GB (5.8 GB Standby)
+                      </div>
                     </div>
-                    <div style="padding: 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-                      <div style="font-size: 0.8rem; color: var(--text-low); margin-bottom: 0.25rem;">WORKING SET TRIM</div>
-                      <div style="font-weight: 700; margin-bottom: 0.5rem;">EmptyWorkingSet</div>
-                      <p style="font-size: 0.85rem; color: var(--text-med); line-height: 1.5;">Trims private working sets across active user processes while shielding core Windows OS services.</p>
-                    </div>
-                    <div style="padding: 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-                      <div style="font-size: 0.8rem; color: var(--text-low); margin-bottom: 0.25rem;">SYSTEM FILE CACHE</div>
-                      <div style="font-weight: 700; margin-bottom: 0.5rem;">SetSystemFileCacheSize</div>
-                      <p style="font-size: 0.85rem; color: var(--text-med); line-height: 1.5;">Flushes excessive file system cache pages during heavy I/O operations and disk transfers.</p>
+
+                    <!-- NT Memory Zones -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
+                      <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
+                        <div style="font-size: 0.7rem; color: var(--accent-cyan); font-weight: 700; margin-bottom: 0.25rem;">STANDBY LIST PURGE</div>
+                        <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem;">ntdll!NtSetSystemInformation</div>
+                        <p style="font-size: 0.8rem; color: var(--text-med);">Reclaims inactive standby pages cached by closed games and apps.</p>
+                      </div>
+                      <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
+                        <div style="font-size: 0.7rem; color: var(--accent-emerald); font-weight: 700; margin-bottom: 0.25rem;">WORKING SET TRIM</div>
+                        <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem;">psapi!EmptyWorkingSet</div>
+                        <p style="font-size: 0.8rem; color: var(--text-med);">Safely trims bloated background processes while shielding Windows OS core.</p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <!-- TAB 3: LARGE FILES -->
                 <div class="tab-pane" id="pane-largefiles">
-                  <div style="margin-bottom: 1.5rem;">
-                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Transparent Exploration</div>
-                    <div style="font-size: 1.125rem; font-weight: 800;">Inspect Disk Consumption with Recycle Bin Undo Safety</div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Transparent Disk Consumption</div>
+                      <div style="font-size: 1.25rem; font-weight: 800;">Large File Hunter with Recycle Bin Undo Safety</div>
+                    </div>
+                    <span class="tier-badge safe">♻️ Windows Recycle Bin Protected</span>
                   </div>
-                  <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle); font-size: 0.9rem; color: var(--text-med); line-height: 1.6;">
-                    <p style="margin-bottom: 0.75rem;">Unlike tools that permanently delete large files immediately, Deltempo sends user-selected large files to the <strong>Windows Recycle Bin</strong> via <code>SHFileOperation</code>, allowing full recovery if needed.</p>
-                    <p>Every inspected file is evaluated against the 5-tier safety engine. Protected OS files (System32, WinSxS, boot files) cannot be selected for deletion.</p>
+
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.85rem;">
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+                      <span>📁 C:\Users\Admin\Downloads\UnrealEngine-5.4-Setup.exe</span>
+                      <span style="color: var(--accent-amber); font-weight: 700;">8.4 GB</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+                      <span>📁 C:\Users\Admin\AppData\Local\NVIDIA\DXCache\dx_48102.bin</span>
+                      <span style="color: var(--accent-cyan); font-weight: 700;">2.1 GB</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+                      <span>📁 C:\Windows\Temp\stale_driver_package.cab</span>
+                      <span style="color: var(--accent-emerald); font-weight: 700;">1.6 GB</span>
+                    </div>
                   </div>
                 </div>
 
                 <!-- TAB 4: STARTUP -->
                 <div class="tab-pane" id="pane-startup">
-                  <div style="margin-bottom: 1.5rem;">
-                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Boot Acceleration</div>
-                    <div style="font-size: 1.125rem; font-weight: 800;">Startup Manager with Core OS Process Immunity</div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Boot Acceleration</div>
+                      <div style="font-size: 1.25rem; font-weight: 800;">Startup Manager with Core OS Process Immunity</div>
+                    </div>
+                    <span class="tier-badge protected">🛡️ Windows Defender &amp; Security Protected</span>
                   </div>
-                  <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle); font-size: 0.9rem; color: var(--text-med); line-height: 1.6;">
-                    <p style="margin-bottom: 0.75rem;">Manage startup apps across Registry (HKCU / HKLM) and Startup folders without accidentally disabling critical security or system components.</p>
-                    <p>Built-in process immunity protects <code>SecurityHealth</code>, <code>WindowsDefender</code>, <code>smartscreen</code>, <code>msmpeng</code>, and <code>ctfmon</code>.</p>
+
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+                      <div><strong>Discord</strong> <span style="color: var(--text-low); font-size: 0.8rem; margin-left: 0.5rem;">Registry HKCU</span></div>
+                      <div><span style="font-size: 0.75rem; color: var(--accent-amber); font-weight: 700; margin-right: 0.75rem;">HIGH IMPACT</span> <span style="color: var(--accent-emerald); font-weight: 700;">ENABLED</span></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+                      <div><strong>Spotify</strong> <span style="color: var(--text-low); font-size: 0.8rem; margin-left: 0.5rem;">Startup Folder</span></div>
+                      <div><span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700; margin-right: 0.75rem;">MEDIUM IMPACT</span> <span style="color: var(--accent-emerald); font-weight: 700;">ENABLED</span></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+                      <div><strong>Microsoft Teams</strong> <span style="color: var(--text-low); font-size: 0.8rem; margin-left: 0.5rem;">Registry HKLM</span></div>
+                      <div><span style="font-size: 0.75rem; color: var(--accent-amber); font-weight: 700; margin-right: 0.75rem;">HIGH IMPACT</span> <span style="color: var(--text-low); font-weight: 700;">DISABLED</span></div>
+                    </div>
                   </div>
                 </div>
 
-                <!-- TAB 5: CLI -->
+                <!-- TAB 5: RUNNING PROCESSES -->
+                <div class="tab-pane" id="pane-procs">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Active Memory Inspector</div>
+                      <div style="font-size: 1.25rem; font-weight: 800;">Heavy Background Process Trim &amp; Management</div>
+                    </div>
+                    <span style="font-size: 0.8rem; color: var(--text-low);">Filtering processes &gt; 20 MB</span>
+                  </div>
+
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.85rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+                      <span>🌐 msedge.exe (PID 14208)</span>
+                      <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="color: var(--accent-cyan); font-weight: 700;">842 MB</span>
+                        <span style="font-size: 0.7rem; padding: 2px 6px; background: rgba(0,229,255,0.1); color: var(--accent-cyan); border-radius: 4px;">TRIMMED</span>
+                      </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+                      <span>🎮 steamwebhelper.exe (PID 8904)</span>
+                      <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="color: var(--accent-amber); font-weight: 700;">418 MB</span>
+                        <span style="font-size: 0.7rem; padding: 2px 6px; background: rgba(245,158,11,0.1); color: var(--accent-amber); border-radius: 4px;">ACTIVE</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- TAB 6: SYSTEM REPAIR -->
+                <div class="tab-pane" id="pane-repair">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Autonomous Integrity Engine</div>
+                      <div style="font-size: 1.25rem; font-weight: 800;">Windows Servicing Stack &amp; Corruption Repair</div>
+                    </div>
+                    <span class="tier-badge safe">🛡️ DISM &amp; SFC Servicing Stack</span>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem;">
+                    <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
+                      <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem;">SFC Scannow</div>
+                      <p style="font-size: 0.8rem; color: var(--text-med); margin-bottom: 0.5rem;">Scans and repairs corrupted system files.</p>
+                      <div style="font-size: 0.75rem; color: var(--accent-emerald); font-weight: 700;">✓ Healthy</div>
+                    </div>
+                    <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
+                      <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem;">DISM Component Store</div>
+                      <p style="font-size: 0.8rem; color: var(--text-med); margin-bottom: 0.5rem;">Restores corrupted Windows system packages.</p>
+                      <div style="font-size: 0.75rem; color: var(--accent-emerald); font-weight: 700;">✓ Ready</div>
+                    </div>
+                    <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
+                      <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem;">WinSxS Scavenge</div>
+                      <p style="font-size: 0.8rem; color: var(--text-med); margin-bottom: 0.5rem;">Purges superseded component versions.</p>
+                      <div style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700;">Reclaims ~4 GB</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- TAB 7: CLI -->
                 <div class="tab-pane" id="pane-cli">
-                  <div style="margin-bottom: 1rem;">
-                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Synchronous Native Console</div>
-                    <div style="font-size: 1.125rem; font-weight: 800;">Automate in PowerShell, Command Prompt, or CI/CD</div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Synchronous Console Binary (v1.6.5)</div>
+                      <div style="font-size: 1.25rem; font-weight: 800;">Click Commands to Test Live Output</div>
+                    </div>
+                    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                      <button class="cmd-pill active" data-cmd="deltempo status">deltempo status</button>
+                      <button class="cmd-pill" data-cmd="deltempo boost --all">deltempo boost --all</button>
+                      <button class="cmd-pill" data-cmd="deltempo smart --dry-run">deltempo smart --dry-run</button>
+                      <button class="cmd-pill" data-cmd="deltempo scan temp">deltempo scan temp</button>
+                    </div>
                   </div>
-                  <div style="padding: 1.25rem; border-radius: var(--radius-md); background: #0A0D14; border: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 0.85rem; color: #E2E8F0; line-height: 1.7;">
-                                        <div style="color: var(--text-low);"># Deterministic cleanup in simulation mode (--json for machine-readable output)</div>
-                    <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo clean --dry-run --json</div>
-                    <div style="margin-top: 0.5rem; color: #E2E8F0;">{<br />&nbsp;&nbsp;"dryRun": <span style="color: var(--accent-cyan);">true</span>,<br />&nbsp;&nbsp;"safetyShieldActive": <span style="color: var(--accent-cyan);">true</span>,<br />&nbsp;&nbsp;"totalReclaimableBytes": <span style="color: var(--accent-amber);">8208188</span>,<br />&nbsp;&nbsp;"formattedTotal": <span style="color: var(--accent-emerald);">"7.8 MB"</span>,<br />&nbsp;&nbsp;"totalFiles": <span style="color: var(--accent-amber);">50</span>,<br />&nbsp;&nbsp;"categories": [<span style="color: var(--text-low);"> /* 26 live-captured scopes */</span><br />&nbsp;&nbsp;&nbsp;<span style="color: var(--accent-emerald);">"User Temp &amp; Scratchpad"</span> <span style="color: var(--text-low);">6.5 MB / 26 files</span>,<br />&nbsp;&nbsp;&nbsp;<span style="color: var(--accent-emerald);">"DirectX &amp; GPU Shader Caches"</span> <span style="color: var(--text-low);">260.0 KB / 5 files</span>,<br />&nbsp;&nbsp;&nbsp;<span style="color: var(--accent-emerald);">"Windows Store Apps &amp; UWP Caches"</span> <span style="color: var(--text-low);">0.9 MB / 11 files</span>, &hellip;<br />&nbsp;&nbsp;]<br />}</div>
-                                        <div style="color: var(--text-low); margin-top: 0.75rem;"># Structured system memory and storage telemetry</div>
-                    <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo status --json</div>
-                    <div style="margin-top: 0.5rem; color: #E2E8F0;">{<br />&nbsp;&nbsp;"isAdmin": <span style="color: var(--accent-cyan);">false</span>,<br />&nbsp;&nbsp;"drive": <span style="color: var(--text-low);">{ /* C: (OS) \u2014 76.1 GB free of 170.6 GB (44.6% Free) */ </span>},<br />&nbsp;&nbsp;"memory": <span style="color: var(--text-low);">{ /* 15.6 GB total | 5.0 GB available | 68.0% used */ </span>}<br />}</div>
-                    <div style="color: var(--text-low); margin-top: 0.5rem;"># Check for continuous patch updates (Exit code 0 = up to date, 2 = update available)</div>
-                    <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo update check</div>
-                  </div>
+
+                  <pre id="simCliOutput" style="padding: 1.25rem; border-radius: var(--radius-md); background: #0A0D14; border: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 0.82rem; color: #E2E8F0; line-height: 1.6; white-space: pre-wrap; margin: 0;"><span style="color:var(--accent-cyan);">$</span> deltempo status
+
+<span style="color:var(--accent-cyan);font-weight:700;">>>> Deltempo System Telemetry (v1.6.5)</span>
+  OS Platform: Windows 11 Pro 64-bit (24H2)
+  Privileges: Standard Invoker (Restart Manager available)
+  Physical Memory: 15.9 GB total | 5.2 GB active | 5.8 GB standby
+  Storage: C:\ (NVMe) 84.2 GB free / 512.0 GB (83.5% Used)
+  Status: Ready for optimization</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERACTIVE SPACE RECLAIM CALCULATOR (NEW 10/10 EXPERIENCE) -->
+    <section class="section-py" id="calculator" style="border-top: 1px solid var(--border-subtle); background: radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.04) 0%, transparent 60%);">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <div class="section-tag">Interactive Reclaim Estimator</div>
+          <h2 class="section-title">See how much storage &amp; RAM you get back.</h2>
+          <p class="section-subtitle">Select your usage profile to see an accurate simulation of reclaimable junk data and flushed standby memory.</p>
+        </div>
+
+        <div class="double-bezel reveal-on-scroll stagger-1">
+          <div class="card-inner calc-card">
+            <div class="calc-profiles">
+              <button class="calc-profile-btn active" data-profile="gamer">
+                <span>🎮</span> Gamer
+              </button>
+              <button class="calc-profile-btn" data-profile="dev">
+                <span>💻</span> Developer
+              </button>
+              <button class="calc-profile-btn" data-profile="everyday">
+                <span>💼</span> Everyday / Office
+              </button>
+              <button class="calc-profile-btn" data-profile="power">
+                <span>⚡</span> Power User
+              </button>
+            </div>
+
+            <div class="calc-metrics-grid">
+              <div class="calc-metric-box">
+                <div style="font-size: 0.75rem; color: var(--text-low); font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">Estimated Reclaimable Junk</div>
+                <div class="calc-metric-num" id="calcStorageValue">32.4 GB</div>
+                <p style="font-size: 0.85rem; color: var(--text-med);" id="calcSummaryText">
+                  Cleans massive DirectX, NVIDIA, AMD, and Unreal Engine shader caches plus game installer dumps.
+                </p>
+              </div>
+
+              <div class="calc-metric-box">
+                <div style="font-size: 0.75rem; color: var(--text-low); font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">Standby RAM Recoverable</div>
+                <div class="calc-metric-num" id="calcRamValue" style="background: linear-gradient(135deg, #10B981, #00E5FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">4.8 GB</div>
+                <p style="font-size: 0.85rem; color: var(--text-med);">
+                  Flushed via native NT kernel system information classes in under 50 milliseconds.
+                </p>
+              </div>
+            </div>
+
+            <!-- Breakdown Visual Bars -->
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem;">
+                  <span>DirectX &amp; GPU Shader Caches</span>
+                  <span style="color: var(--accent-cyan);">High Density</span>
+                </div>
+                <div class="calc-bar-container">
+                  <div class="calc-bar-fill" id="calcBarShader" style="width: 45%; background: linear-gradient(90deg, #00E5FF, #0284C7);"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem;">
+                  <span>Temp &amp; Scratch Data (&gt;24h Old)</span>
+                  <span style="color: var(--accent-emerald);">Verified Disposable</span>
+                </div>
+                <div class="calc-bar-container">
+                  <div class="calc-bar-fill" id="calcBarTemp" style="width: 35%; background: linear-gradient(90deg, #10B981, #059669);"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem;">
+                  <span>Package &amp; Build Staging</span>
+                  <span style="color: var(--accent-purple);">Safe Clean</span>
+                </div>
+                <div class="calc-bar-container">
+                  <div class="calc-bar-fill" id="calcBarDev" style="width: 20%; background: linear-gradient(90deg, #A855F7, #7C3AED);"></div>
                 </div>
               </div>
             </div>
@@ -568,7 +774,7 @@
             <div class="card-inner feature-card">
               <div class="feature-icon-wrapper">📖</div>
               <h3 class="feature-title">Open Source (MIT)</h3>
-              <p class="feature-body">Every single line of C#, XAML, and build scripts is open for inspection on GitHub under the permissive MIT license. Backed by 400 automated verification tests, all enforced green by a coverage-gated CI pipeline.</p>
+              <p class="feature-body">Every single line of C#, XAML, and build scripts is open for inspection on GitHub under the permissive MIT license. Backed by 501 automated verification tests, all enforced green by a coverage-gated CI pipeline.</p>
             </div>
           </div>
         </div>
@@ -622,7 +828,7 @@
                 </tr>
                 <tr>
                   <td><strong>Pricing &amp; License</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ 100% Free Forever (MIT)</span><br /><span style="font-size: 0.8rem; color: var(--text-low); font-weight: 400;">Open-source code, 400 automated tests, no ads or upsells</span></td>
+                  <td class="highlight"><span class="badge-tag-safe">✓ 100% Free Forever (MIT)</span><br /><span style="font-size: 0.8rem; color: var(--text-low); font-weight: 400;">Open-source code, 501 automated tests, no ads or upsells</span></td>
                   <td><span class="badge-tag-bad">✕ Subscriptions &amp; Upsells</span><br /><span style="font-size: 0.8rem; color: var(--text-low);">Annual renewal fees, nagging alerts, and artificial feature locks</span></td>
                 </tr>
               </tbody>
@@ -890,8 +1096,8 @@
 
           <div style="padding: 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
             <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-amber); margin-bottom: 0.25rem;">FILE LOCKS</div>
-            <div style="font-weight: 800; margin-bottom: 0.5rem;">Active In-Use Files Preserved</div>
-            <p style="font-size: 0.875rem; color: var(--text-med); line-height: 1.5;">Files with exclusive open handles held by active programs cannot be removed and are skipped gracefully without crashing.</p>
+            <div style="font-weight: 800; margin-bottom: 0.5rem;">Win32 Restart Manager Engine</div>
+            <p style="font-size: 0.875rem; color: var(--text-med); line-height: 1.5;">Files held by running apps trigger native <code>rstrtmgr.dll</code> inspection to identify locking processes (PID and application title) and schedule deferred boot-time removal.</p>
           </div>
 
           <div style="padding: 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
@@ -921,7 +1127,7 @@
             </div>
             <div class="trust-badge-item">
               <span>🛡️</span>
-              <span>400 Automated Tests</span>
+              <span>501 Automated Tests</span>
             </div>
             <div class="trust-badge-item">
               <span>🔑</span>

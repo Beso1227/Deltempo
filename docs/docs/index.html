@@ -229,6 +229,32 @@
         </div>
       </div>
     </div>
+
+    <!-- Section 5: Lock Handling -->
+    <div class="double-bezel" style="margin-bottom: 2rem;">
+      <div class="card-inner">
+        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem;">5. File Lock Transparency (Win32 Restart Manager)</h2>
+        <p style="color: var(--text-med); margin-bottom: 1rem;">When a file candidate is locked by an active process, Deltempo avoids blind failure or aggressive process termination. Instead, it queries the native Windows Restart Manager (<code>rstrtmgr.dll</code>):</p>
+        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; margin-bottom: 1rem;">
+          <li style="margin-bottom: 0.5rem;"><strong>Lock Owner Identification:</strong> Registers a temporary Restart Manager session via <code>RmStartSession</code> and queries holding process IDs with <code>RmGetList</code>.</li>
+          <li style="margin-bottom: 0.5rem;"><strong>3-Pass Adaptive Retry:</strong> Applies exponential backoff delays (25ms, 75ms, 150ms) to accommodate transient file locks from antivirus scanners or file flushers.</li>
+          <li><strong>Non-Destructive Fail-Closed:</strong> If the file remains locked, Deltempo gracefully marks the item as skipped with lock details in the audit ledger, preserving system stability.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Section 6: Architecture & Testing -->
+    <div class="double-bezel">
+      <div class="card-inner">
+        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem;">6. Volume Scan Coordination &amp; 501 Verification Tests</h2>
+        <p style="color: var(--text-med); margin-bottom: 1rem;">Deltempo organizes filesystem operations with drive-aware parallelism and strict verification standards:</p>
+        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem;">
+          <li style="margin-bottom: 0.5rem;"><strong>VolumeScanCoordinator:</strong> Partitions directory enumeration into per-physical-volume queues. SSDs run concurrent high-IOPS worker pools, while HDDs execute serialized traversals to prevent mechanical head thrashing.</li>
+          <li style="margin-bottom: 0.5rem;"><strong>501 Automated Tests:</strong> Full unit, integration, memory leak, and adversarial filesystem security tests pass with zero warnings before any tag is released.</li>
+          <li><strong>100% Self-Contained:</strong> Zero runtime dependencies, zero external DLL requirements, and zero registry bloat.</li>
+        </ul>
+      </div>
+    </div>
   </main>
 
   <footer class="footer">

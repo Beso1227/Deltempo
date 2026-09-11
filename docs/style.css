@@ -1902,4 +1902,187 @@ html.light .back-to-top {
   }
 }
 
+/* ==========================================================================
+   KINETIC CYBERNETIC CURSOR PULSE
+   ========================================================================== */
+.cursor-click-pulse {
+  position: fixed;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid #00E5FF;
+  box-shadow: 0 0 16px #00E5FF;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: none !important;
+  z-index: 999997;
+  animation: cursorPulseAnim 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cursorPulseAnim {
+  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(4.5); opacity: 0; }
+}
+
+/* ==========================================================================
+   INTERACTIVE WORKSPACE SIMULATOR STYLES
+   ========================================================================== */
+.app-tabs-island {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.35rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.app-tabs-island::-webkit-scrollbar { display: none; }
+
+.app-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-med);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s var(--ease-smooth);
+}
+.app-tab:hover {
+  color: var(--text-high);
+  background: rgba(255, 255, 255, 0.05);
+}
+.app-tab.active {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.4);
+  color: #00E5FF;
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.18);
+}
+
+.sim-status-dock {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: #00E5FF;
+  margin-top: 1rem;
+}
+.status-pulse-green {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 10px #10B981;
+  animation: pulseGreen 1.5s infinite;
+}
+@keyframes pulseGreen {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.cmd-pill {
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-med);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.cmd-pill:hover {
+  color: var(--text-high);
+  background: rgba(255, 255, 255, 0.08);
+}
+.cmd-pill.active {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: #00E5FF;
+  color: #00E5FF;
+}
+
+/* ==========================================================================
+   SPACE RECLAIM CALCULATOR STYLES
+   ========================================================================== */
+.calc-card {
+  padding: 2.5rem;
+}
+.calc-profiles {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+.calc-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-med);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-smooth);
+}
+.calc-profile-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-high);
+}
+.calc-profile-btn.active {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: #00E5FF;
+  color: #00E5FF;
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.2);
+}
+.calc-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.calc-metric-box {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-subtle);
+}
+.calc-metric-num {
+  font-size: 2.75rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #00E5FF, #A855F7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
+}
+.calc-bar-container {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+.calc-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s var(--ease-smooth);
+}
+
+
 

@@ -88,6 +88,30 @@
               "@type": "Answer",
               "text": "No. Deltempo never touches personal folders (Documents, Desktop, Pictures), browser saved credentials, cookies, or session databases."
             }
+          },
+          {
+            "@type": "Question",
+            "name": "How does Deltempo handle locked or in-use files?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Deltempo uses the native Win32 Restart Manager API (rstrtmgr.dll) to detect lock holders, attempts up to 3 non-destructive retry passes, and safely skips in-use files without force-terminating apps."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What are the 7 integrated workspaces in Deltempo?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Deltempo includes 7 dedicated workspaces: System Cleaner, RAM Optimizer, Large File Explorer, Startup Manager, Process Monitor, System Repair, and Terminal CLI."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How thoroughly is Deltempo tested and verified?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Deltempo is backed by 501 automated tests spanning unit, integration, benchmark, and adversarial filesystem security test suites with zero warnings."
+            }
           }
         ]
       },
@@ -256,6 +280,42 @@
         </h2>
         <div class="faq-answer">
           Yes. Both <code>Deltempo.exe</code> and <code>deltempo_cli.exe</code> support command-line arguments. You can run <code>deltempo clean temp --dry-run</code> to simulate cleanups or <code>deltempo status --json</code> for automated monitoring.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
+          <button class="faq-question" aria-expanded="false">
+            <span>How does Deltempo handle locked or in-use files?</span>
+            <span class="faq-icon">+</span>
+          </button>
+        </h2>
+        <div class="faq-answer">
+          Deltempo utilizes the native Win32 Restart Manager API (<code>rstrtmgr.dll</code>) to identify exactly which process holds an exclusive lock on a file. It performs up to 3 non-destructive retry passes with exponential backoff. If the file remains locked by an active process, Deltempo skips it safely rather than force-terminating running applications.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
+          <button class="faq-question" aria-expanded="false">
+            <span>What are the 7 integrated workspaces in Deltempo?</span>
+            <span class="faq-icon">+</span>
+          </button>
+        </h2>
+        <div class="faq-answer">
+          Deltempo provides 7 dedicated operational workspaces within a single portable binary: <strong>System Cleaner</strong> (25+ scopes), <strong>RAM Optimizer</strong> (NT kernel working set &amp; standby flusher), <strong>Large File Explorer</strong> (deep disk hog discovery), <strong>Startup Manager</strong> (autorun &amp; boot impact analyzer), <strong>Process Monitor</strong> (resource consumption tracker), <strong>System Repair</strong> (SFC/DISM health orchestration), and <strong>Terminal CLI</strong> (scriptable console automation).
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
+          <button class="faq-question" aria-expanded="false">
+            <span>How thoroughly is Deltempo tested and verified?</span>
+            <span class="faq-icon">+</span>
+          </button>
+        </h2>
+        <div class="faq-answer">
+          Every release is gated by <strong>501 automated verification tests</strong> spanning unit tests, integration tests, timing benchmarks, and an adversarial filesystem security test suite (validating symlink traps, junction loop containment, and directory traversal immunity). All builds enforce a 0-warning compilation standard.
         </div>
       </div>
     </div>
