@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Deltempo FAQ — Windows Cleaner &amp; Memory Optimizer Guide (Official)</title>
+  <title>Deltempo FAQ — Windows Cleaner &amp; Memory Optimizer Guide</title>
   <meta name="description" content="Frequently asked questions about Deltempo: deterministic safety architecture, NT kernel memory optimization, GPU shader caches, privacy, and zero telemetry." />
   <meta name="keywords" content="deltempo faq, is deltempo safe, deltempo cleaner, deltempo memory optimizer, deltempo vs ccleaner, clear shader cache windows 11, open source windows cleaner" />
   <meta name="author" content="Beso1227" />
@@ -16,14 +16,14 @@
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://beso1227.github.io/Deltempo/faq/" />
   <meta property="og:site_name" content="Deltempo" />
-  <meta property="og:title" content="Deltempo FAQ — Windows Cleaner &amp; Memory Optimizer Guide (Official)" />
+  <meta property="og:title" content="Deltempo FAQ — Windows Cleaner &amp; Memory Optimizer Guide" />
   <meta property="og:description" content="Official answers about safety tiers, NT memory optimization, GPU shader caches, and privacy." />
   <meta property="og:image" content="https://beso1227.github.io/Deltempo/app_icon.png" />
 
   <!-- Twitter Meta -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@Beso1227" />
-  <meta name="twitter:title" content="Deltempo FAQ — Windows Cleaner &amp; Memory Optimizer Guide (Official)" />
+  <meta name="twitter:title" content="Deltempo FAQ — Windows Cleaner &amp; Memory Optimizer Guide" />
   <meta name="twitter:description" content="Official answers about safety tiers, NT memory optimization, GPU shader caches, and privacy." />
   <meta name="twitter:image" content="https://beso1227.github.io/Deltempo/app_icon.png" />
 
@@ -51,10 +51,10 @@
         "mainEntity": [
           {
             "@type": "Question",
-            "name": "What is Deltempo Windows Cleaner?",
+            "name": "What is Deltempo?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Deltempo is a portable, open-source Windows cleaner and NT memory optimizer application. It safely cleans 25+ disposable cache targets including GPU shader caches, user profile temporary files, and system junk without analytics tracking."
+              "text": "Deltempo is a portable, open-source Windows cleaner and NT memory optimizer application for Windows 10 and 11. It safely reclaims disposable caches, GPU shader caches, and temporary files while flushing unreferenced memory working sets."
             }
           },
           {
@@ -67,26 +67,26 @@
           },
           {
             "@type": "Question",
-            "name": "How does Deltempo clean GPU shader caches without causing game stuttering?",
+            "name": "Does Deltempo delete personal files or browser passwords?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Deltempo utilizes a recent file safety shield protecting actively used shaders while purging orphaned and stale shader cache files accumulated from past driver updates and uninstalled games."
+              "text": "Deltempo's protection policies strictly exclude personal files, documents, code repositories, browser login databases, and messaging app credentials from cleanup."
             }
           },
           {
             "@type": "Question",
-            "name": "Does Deltempo delete personal files or passwords?",
+            "name": "How does the 24-Hour Safety Shield work?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Files created or modified within the last 24 hours in temporary directories are marked as protected by default. This prevents deleting files actively used by running installers, background updates, or uncommitted edits."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Deltempo delete browser passwords or history?",
             "acceptedAnswer": {
               "@type": "Answer",
               "text": "No. Deltempo never touches personal folders (Documents, Desktop, Pictures), browser saved credentials, cookies, or session databases."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How does the NT kernel memory optimizer work?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "It calls native Windows NT APIs (NtSetSystemInformation and EmptyWorkingSet) to safely release standby memory and private working set pages back to the free pool without terminating running programs."
             }
           }
         ]
@@ -142,97 +142,118 @@
         <li><a href="../#safety" class="nav-link">Safety</a></li>
         <li><a href="../#compare" class="nav-link">Compare</a></li>
         <li><a href="../download/" class="nav-link">Download</a></li>
+        <li><a href="." class="nav-link active" aria-current="page">FAQ</a></li>
         <li><a href="../docs/" class="nav-link">Docs</a></li>
       </ul>
       <div class="nav-actions">
         <div class="nav-divider" aria-hidden="true"></div>
-        <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="btn-icon" title="View Source on GitHub" aria-label="View Source on GitHub">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-        </a>
         <button id="themeToggleBtn" class="btn-icon" aria-label="Toggle Dark or Light Theme" title="Toggle Theme">
           <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
           <svg class="theme-icon-light" style="display: none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
-        <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="btn-pill btn-pill-secondary">
-          <span>GitHub</span>
+        <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-pill btn-pill-primary nav-download-btn">
+          <span>Download</span>
+          <span class="btn-icon-bubble">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </span>
         </a>
       </div>
     </nav>
   </header>
 
-  <main id="main" class="container" style="padding-top: 2rem; padding-bottom: 5rem;">
-    <div class="section-header reveal-on-scroll">
-      <div class="section-tag">FAQ</div>
-      <h1 class="section-title">Deltempo Frequently Asked Questions</h1>
-      <p class="section-subtitle">Clear, technical, and honest answers about how Deltempo cleans and protects your system.</p>
+  <main class="container" style="padding-top: 8rem; padding-bottom: 6rem; max-width: 860px;">
+    <div style="text-align: center; margin-bottom: 3.5rem;" class="reveal-on-scroll">
+      <div class="hero-eyebrow" style="margin-bottom: 1rem;">
+        <span class="pill-tag" style="background: rgba(6,182,212,0.15); color: var(--accent-cyan);">Knowledge Base</span>
+      </div>
+      <h1 style="font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem;">
+        Deltempo Frequently Asked Questions
+      </h1>
+      <p style="color: var(--text-med); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
+        Everything you need to know about Deltempo's safety engine, NT kernel memory optimization, privacy architecture, and WinGet packaging.
+      </p>
     </div>
 
     <div class="faq-grid reveal-on-scroll stagger-1">
       <div class="faq-item open">
-        <button class="faq-question" aria-expanded="true">
-          <span>What is Deltempo?</span>
-          <span class="faq-icon">+</span>
-        </button>
+        <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
+          <button class="faq-question" aria-expanded="true">
+            <span>What is Deltempo?</span>
+            <span class="faq-icon">+</span>
+          </button>
+        </h2>
         <div class="faq-answer">
           Deltempo is an open-source, portable Windows utility that safely cleans disposable cache files and flushes unreferenced memory. It is designed to replace opaque PC cleaning tools with transparent, deterministic code.
         </div>
       </div>
 
       <div class="faq-item">
-        <button class="faq-question" aria-expanded="false">
-          <span>Does Deltempo delete personal files?</span>
-          <span class="faq-icon">+</span>
-        </button>
+        <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
+          <button class="faq-question" aria-expanded="false">
+            <span>Does Deltempo delete personal files?</span>
+            <span class="faq-icon">+</span>
+          </button>
+        </h2>
         <div class="faq-answer">
           Deltempo's protection policies are designed to exclude personal directories (Documents, Desktop, Pictures, Videos, Music, code repositories), browser saved passwords and cookies, and cloud/developer credentials (.ssh, AWS, GPG keys) from cleanup.
         </div>
       </div>
 
       <div class="faq-item">
-        <button class="faq-question" aria-expanded="false">
-          <span>How does the 24-Hour Safety Shield work?</span>
-          <span class="faq-icon">+</span>
-        </button>
+        <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
+          <button class="faq-question" aria-expanded="false">
+            <span>How does the 24-Hour Safety Shield work?</span>
+            <span class="faq-icon">+</span>
+          </button>
+        </h2>
         <div class="faq-answer">
           Files modified within the last 24 hours in temporary directories are flagged as "Review Required" and excluded from automatic deletion to avoid interrupting active installers, in-progress updates, or open work.
         </div>
       </div>
 
       <div class="faq-item">
-        <button class="faq-question" aria-expanded="false">
-          <span>How does the NT memory optimizer work?</span>
-          <span class="faq-icon">+</span>
-        </button>
+        <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
+          <button class="faq-question" aria-expanded="false">
+            <span>How does the NT memory optimizer work?</span>
+            <span class="faq-icon">+</span>
+          </button>
+        </h2>
         <div class="faq-answer">
           Deltempo utilizes native Windows NT kernel APIs (<code>NtSetSystemInformation</code> with memory list class 80 and <code>EmptyWorkingSet</code>) to flush standby list pages left behind by closed applications and trim idle process working sets. It does not terminate active programs.
         </div>
       </div>
 
       <div class="faq-item">
-        <button class="faq-question" aria-expanded="false">
-          <span>Does Deltempo require administrator privileges?</span>
-          <span class="faq-icon">+</span>
-        </button>
+        <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
+          <button class="faq-question" aria-expanded="false">
+            <span>Does Deltempo require administrator privileges?</span>
+            <span class="faq-icon">+</span>
+          </button>
+        </h2>
         <div class="faq-answer">
           Standard user profile cache cleaning runs without elevation. Cleaning system-level temporary files (e.g. Windows Update leftovers, Delivery Optimization) and flushing system memory standby lists requires Windows administrator privileges.
         </div>
       </div>
 
       <div class="faq-item">
-        <button class="faq-question" aria-expanded="false">
-          <span>Does Deltempo collect telemetry or phone home?</span>
-          <span class="faq-icon">+</span>
-        </button>
+        <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
+          <button class="faq-question" aria-expanded="false">
+            <span>Does Deltempo collect telemetry or phone home?</span>
+            <span class="faq-icon">+</span>
+          </button>
+        </h2>
         <div class="faq-answer">
           Deltempo contains no analytics SDKs, tracking pixels, or advertising beacons. Routine scan and clean operations run entirely offline. Network activity only occurs if you explicitly request an update check or download patch builds from GitHub.
         </div>
       </div>
 
       <div class="faq-item">
-        <button class="faq-question" aria-expanded="false">
-          <span>Can I automate Deltempo via command line?</span>
-          <span class="faq-icon">+</span>
-        </button>
+        <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
+          <button class="faq-question" aria-expanded="false">
+            <span>Can I automate Deltempo via command line?</span>
+            <span class="faq-icon">+</span>
+          </button>
+        </h2>
         <div class="faq-answer">
           Yes. Both <code>Deltempo.exe</code> and <code>deltempo_cli.exe</code> support command-line arguments. You can run <code>deltempo clean temp --dry-run</code> to simulate cleanups or <code>deltempo status --json</code> for automated monitoring.
         </div>

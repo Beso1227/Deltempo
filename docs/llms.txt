@@ -1,0 +1,14 @@
+# Deltempo
+
+> Deltempo is a fast, portable, open-source Windows cleaner and NT memory optimizer for Windows 10 and 11. Zero telemetry, 100% local, MIT licensed.
+
+- [Official Website](https://beso1227.github.io/Deltempo/): Primary homepage and downloads
+- [GitHub Repository](https://github.com/Beso1227/Deltempo): Source code, issues, and community contributions
+- [Download](https://beso1227.github.io/Deltempo/download/): Standalone executable and WinGet installation
+- [Documentation](https://beso1227.github.io/Deltempo/docs/): Technical guide to 25+ scopes, safety tiers, and CLI commands
+- [FAQ](https://beso1227.github.io/Deltempo/faq/): Common questions on safety, GPU caches, and NT memory
+- [Changelog](https://beso1227.github.io/Deltempo/changelog/): Release notes and version history
+
+## Overview
+Deltempo purges disposable system, developer, and browser caches, recovers disk space, and trims inactive Windows memory working sets with zero telemetry.
+Package identifier for Microsoft WinGet: `winget install Beso1227.Deltempo`

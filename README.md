@@ -2,9 +2,9 @@
 
   <img src="docs/app_icon.png" alt="Deltempo Logo" width="88" height="88" />
 
-  # Deltempo
+  # Deltempo: Open-Source Windows Cleaner & Memory Optimizer
 
-  <p><strong>Open-source, privacy-first Windows cleaner and memory optimizer.</strong></p>
+  <p><strong>Fast, privacy-first Windows cleaner and NT memory optimizer for Windows 10 & 11.</strong></p>
 
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?label=Release&color=06B6D4" alt="Latest Release" /></a>
@@ -17,7 +17,7 @@
 
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest">Download v1.6.1</a> •
-    <a href="https://beso1227.github.io/Deltempo/">Official Website</a> •
+    <a href="https://beso1227.github.io/Deltempo/"><strong>Deltempo Official Website</strong></a> •
     <a href="docs/ARCHITECTURE.md">Architecture</a> •
     <a href="docs/THREAT_MODEL.md">Threat Model</a> •
     <a href="docs/TESTING.md">Testing Guide</a> •
@@ -35,6 +35,7 @@
 
 | Property | Detail |
 | :--- | :--- |
+| **Official Website** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **Platform** | Windows 10 & 11 (64-bit / x64) |
 | **Version** | v1.6.1 (Production Release) |
 | **License** | Open Source ([MIT](LICENSE)) |

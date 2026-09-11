@@ -59,3 +59,5 @@ NUL
 .obsidian/
 .kilo/
 .deploy*.cmd
+ci_runs.json
+ci_*.json
