@@ -198,6 +198,7 @@ public static partial class CliRunner
     {
         bool isJson = HasFlag(args, "--json", "-j");
         bool silent = HasFlag(args, "--silent", "-s");
+        bool safeMode = !HasFlag(args, "--unsafe");
         string? filter = GetFilterKeyword(args, 1);
 
         var allTargets = ResolveTargets();
@@ -219,13 +220,13 @@ public static partial class CliRunner
         if (!silent && !isJson)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine($"  🔍 [Deltempo] Scanning {targets.Count} Windows & User Profile directories...\n");
+            Console.WriteLine($"  🔍 [Deltempo] Scanning {targets.Count} Windows & User Profile directories (Safety Shield: {(safeMode ? "ACTIVE" : "OFF")})...\n");
             Console.ResetColor();
         }
 
         using var cts = new CancellationTokenSource();
         var cleanerService = new CleanerService();
-        var tasks = targets.Select(t => cleanerService.ScanFolderAsync(t, (msg, level) => { }, cts.Token)).ToList();
+        var tasks = targets.Select(t => cleanerService.ScanFolderAsync(t, (msg, level) => { }, cts.Token, safeMode24Hours: safeMode)).ToList();
         await Task.WhenAll(tasks);
 
         // Sort by reclaimable size descending so largest appear at the top
@@ -281,13 +282,26 @@ public static partial class CliRunner
 
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"  ✓ Total Reclaimable Space: {TargetFolderInfo.FormatBytes(totalBytes)} ({totalFiles:N0} files found)");
+            Console.WriteLine($"  ✓ Total Reclaimable Space: {TargetFolderInfo.FormatBytes(totalBytes)} ({totalFiles:N0} files ready for cleanup)");
             Console.ResetColor();
+
+            if (safeMode)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkCyan;
+                Console.WriteLine("  🛡️ Safety Shield: ACTIVE (Files modified in the last 24h are protected)");
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("  🛡️ Safety Shield: OFF (All files included regardless of modification age)");
+                Console.ResetColor();
+            }
 
             if (totalBytes > 0)
             {
                 Console.ForegroundColor = ConsoleColor.DarkCyan;
-                Console.WriteLine($"  💡 Tip: Run 'deltempo clean{(string.IsNullOrWhiteSpace(filter) ? "" : " " + filter)}' to purge these safe temporary caches.");
+                Console.WriteLine($"  💡 Tip: Run 'deltempo clean{(string.IsNullOrWhiteSpace(filter) ? "" : " " + filter)}' to purge ready caches, or 'deltempo clean --unsafe' to include all files.");
                 Console.ResetColor();
             }
         }
@@ -311,26 +325,57 @@ public static partial class CliRunner
         bool safeMode = !HasFlag(args, "--unsafe");
         bool cleanAll = HasFlag(args, "--all");
         bool smartOnly = HasFlag(args, "--smart", "--safe-only");
-        bool recycleBin = HasFlag(args, "--recycle-bin", "--recycle", "-r");
+        bool sendToRecycle = HasFlag(args, "--recycle-bin", "--recycle", "-r");
+        bool emptyRecycleBin = HasFlag(args, "--empty-recycle-bin", "--purge-recycle-bin");
         bool dryRun = HasFlag(args, "--dry-run", "-d");
         bool yesPrompt = HasFlag(args, "--yes", "-y");
         bool silent = HasFlag(args, "--silent", "-s");
 
-        if (recycleBin)
+        if (sendToRecycle)
         {
             SettingsService.Update(s => s.SendToRecycleBin = true);
         }
 
         string? exportPath = GetOptionValue(args, "--export");
         string? filter = GetFilterKeyword(args, 1);
-        bool sendToRecycle = SettingsService.Current.SendToRecycleBin;
+        bool recycleBinSetting = SettingsService.Current.SendToRecycleBin;
 
         var allTargets = ResolveTargets();
         var selectedTargets = allTargets
-            .Where(t => cleanAll || !t.IsOrphanedAppFolder)
-            .Where(t => !smartOnly || ((t.SafetyBadge.Contains("Verified") || t.SafetyBadge.Contains("100%")) && !t.IsOrphanedAppFolder))
-            .Where(t => string.IsNullOrWhiteSpace(filter) || MatchesFilter(t, filter))
+            .Where(t =>
+            {
+                if (!string.IsNullOrWhiteSpace(filter))
+                {
+                    return MatchesFilter(t, filter);
+                }
+
+                if (t.IsOrphanedAppFolder && !cleanAll) return false;
+                if (t.IsSpecialShellTarget && !cleanAll && !emptyRecycleBin) return false;
+                if (t.Id == "SystemRestorePoints" && !cleanAll) return false;
+                if (t.RequiresAdmin && !t.HasAccess) return false;
+                if (smartOnly && (!t.IsSafeModeEligible || t.IsOrphanedAppFolder)) return false;
+
+                return true;
+            })
             .ToList();
+
+        // Check if an explicit filter requested a category that requires admin elevation
+        if (!string.IsNullOrWhiteSpace(filter) && selectedTargets.Count > 0 && selectedTargets.All(t => t.RequiresAdmin && !t.HasAccess))
+        {
+            if (!silent && !isJson)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"  ❌ The requested category '{selectedTargets[0].Name}' requires elevated Administrator privileges.");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("  Please run PowerShell or Command Prompt as Administrator to clean protected system scopes.");
+                Console.ResetColor();
+            }
+            else if (isJson)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { error = "Administrator privileges required for requested category." }));
+            }
+            return 1;
+        }
 
         if (selectedTargets.Count == 0)
         {
@@ -342,12 +387,11 @@ public static partial class CliRunner
         {
             if (!silent && !isJson)
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.WriteLine($"  [DRY RUN SIMULATION] Deltempo would clean {selectedTargets.Count} categories (Safety Shield: {(safeMode ? "ACTIVE" : "OFF")})\n");
                 Console.ResetColor();
             }
 
-            // Use the same CleanupPlanner path as live cleanup for accurate dry-run
             bool applyShield = safeMode;
             long dryTotal = 0;
             int dryFiles = 0;
@@ -355,6 +399,30 @@ public static partial class CliRunner
 
             foreach (var t in selectedTargets)
             {
+                if (t.IsSpecialShellTarget && t.Id == "RecycleBin")
+                {
+                    var (size, count) = CleanerService.QueryRecycleBinInfo();
+                    if (size > 0 || count > 0)
+                    {
+                        dryTotal += size;
+                        dryFiles += count;
+                        dryResults.Add((t.Name, size, TargetFolderInfo.FormatBytes(size), count, 0, 0));
+                    }
+                    continue;
+                }
+
+                if (t.Id == "SystemRestorePoints")
+                {
+                    var (used, count) = CleanerService.QueryShadowStorageInfo();
+                    if (used > 0 || count > 0)
+                    {
+                        dryTotal += used;
+                        dryFiles += count;
+                        dryResults.Add((t.Name, used, TargetFolderInfo.FormatBytes(used), count, 0, 0));
+                    }
+                    continue;
+                }
+
                 var directories = CleanerService.ResolveDirectoriesForFolderPublic(t);
                 if (directories.Count == 0) continue;
 
@@ -363,8 +431,8 @@ public static partial class CliRunner
                     scopeName: t.Name,
                     directories: directories,
                     category: t.Category,
-                    apply24HourShield: applyShield,
-                    sendToRecycleBin: sendToRecycle);
+                    apply24HourShield: applyShield && t.IsSafeModeEligible,
+                    sendToRecycleBin: recycleBinSetting);
 
                 long scopePlanned = plan.Actions.Where(a => a.Action != IntendedCleanupAction.SkipProtected &&
                     a.Action != IntendedCleanupAction.SkipReviewRequired).Sum(a => a.SizeBytes);
@@ -407,14 +475,27 @@ public static partial class CliRunner
         if (!silent && !yesPrompt && !isJson)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write($"  ⚠️ Proceed with cleaning {selectedTargets.Count} categories? (y/N): ");
+            Console.WriteLine($"  Selected {selectedTargets.Count} categories for cleanup (Safety Shield: {(safeMode ? "ACTIVE (<24h protected)" : "OFF")}):");
             Console.ResetColor();
-            var key = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(key) || (!key.Trim().Equals("y", StringComparison.OrdinalIgnoreCase) && !key.Trim().Equals("yes", StringComparison.OrdinalIgnoreCase)))
+            foreach (var t in selectedTargets.Take(6))
+            {
+                Console.WriteLine($"    • {t.Name}");
+            }
+            if (selectedTargets.Count > 6)
+            {
+                Console.WriteLine($"    • ... and {selectedTargets.Count - 6} more categories");
+            }
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write($"  Proceed with precision clean? [Y/n]: ");
+            Console.ResetColor();
+            var key = Console.ReadLine()?.Trim().ToLowerInvariant();
+            if (!string.IsNullOrEmpty(key) && key != "y" && key != "yes")
             {
                 Console.WriteLine("  • Cleanup cancelled by user.");
                 return 0;
             }
+            Console.WriteLine();
         }
 
         if (!silent && !isJson)
@@ -489,7 +570,7 @@ public static partial class CliRunner
             Console.WriteLine($"  ✨ CLEANUP COMPLETE: Successfully reclaimed {summary.FormattedFreedSize}!");
             Console.WriteLine($"     • Files purged:    {totalFilesDeleted:N0}");
             Console.WriteLine($"     • Folders removed: {totalFoldersDeleted:N0}");
-            Console.WriteLine($"     • Files protected: {totalFilesSkipped:N0} (Shield >24h)");
+            Console.WriteLine($"     • Files protected: {totalFilesSkipped:N0} (Shield <24h)");
             Console.ResetColor();
         }
 

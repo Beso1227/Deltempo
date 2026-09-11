@@ -48,9 +48,9 @@
         <SolidColorBrush x:Key="WarningBadgeBorderBrush" Color="#F59E0B"/>
         <SolidColorBrush x:Key="WarningBadgeTextBrush" Color="#F59E0B"/>
 
-        <!-- Models -->
+        <!-- Modals -->
         <SolidColorBrush x:Key="ModalSurfaceBrush" Color="#0F131E"/>
-        <SolidColorBrush x:Key="ModalBackdropBrush" Color="#EE05070B"/>
+        <SolidColorBrush x:Key="ModalBackdropBrush" Color="#55050A14"/>
 
         <!-- Brand Accents — electric cyan primary, blue→indigo→violet gradient -->
         <SolidColorBrush x:Key="ElectricCyanBrush" Color="#00E5FF"/>
@@ -400,6 +400,11 @@
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
+                            <Trigger Property="Tag" Value="Active">
+                                <Setter TargetName="border" Property="Background" Value="#2200E5FF"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#5500E5FF"/>
+                                <Setter Property="Foreground" Value="{DynamicResource ElectricCyanBrush}"/>
+                            </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="{DynamicResource SurfaceCardHoverBrush}"/>
                                 <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource HairlineBorderBrush}"/>
@@ -409,6 +414,14 @@
                                     </Setter.Value>
                                 </Setter>
                             </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="Tag" Value="Active"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="border" Property="Background" Value="#3300E5FF"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#8800E5FF"/>
+                            </MultiTrigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="{DynamicResource PillButtonBorderBrush}"/>
                                 <Setter TargetName="border" Property="RenderTransform">

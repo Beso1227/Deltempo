@@ -108,6 +108,7 @@ public class CleanupTransactionResult
 
     public List<string> ErrorMessages { get; set; } = new();
     public List<string> SkippedReasons { get; set; } = new();
+    public HashSet<string> AffectedParentDirectories { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     public long TotalFreedBytes => DeletedBytes + RecycledBytes;
     public int TotalItemsFreed => DeletedCount + RecycledCount;

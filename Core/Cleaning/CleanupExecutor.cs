@@ -314,6 +314,15 @@ public static class CleanupExecutor
                                 }
                                 else
                                 {
+                                    string? parent = Path.GetDirectoryName(action.FilePath);
+                                    if (!string.IsNullOrEmpty(parent))
+                                    {
+                                        lock (syncLock)
+                                        {
+                                            result.AffectedParentDirectories.Add(parent);
+                                        }
+                                    }
+
                                     lock (syncLock)
                                     {
                                         result.AuditRecords.Add(new DeletionAuditRecord
@@ -335,11 +344,24 @@ public static class CleanupExecutor
                             {
                                 Interlocked.Increment(ref failedCount);
                                 Interlocked.Add(ref failedBytes, actualBytes);
+
+                                string failReason = $"Deletion failed ({action.Action}): {action.FilePath}";
+                                var errorCategory = CleanupErrorCategory.AccessDenied;
+
+                                var lockingProcesses = RestartManagerService.GetLockingProcesses(action.FilePath);
+                                if (lockingProcesses.Count > 0)
+                                {
+                                    string procNames = string.Join(", ", lockingProcesses.Select(p => $"{p.ProcessName} (PID {p.ProcessId})"));
+                                    failReason = $"In use by: {procNames}";
+                                    errorCategory = CleanupErrorCategory.FileLocked;
+                                    logAction?.Invoke($"Notice: '{action.FileName}' is in use by {procNames}", LogLevel.Info);
+                                }
+
                                 lock (syncLock)
                                 {
                                     if (result.ErrorMessages.Count < 50)
                                     {
-                                        result.ErrorMessages.Add($"Deletion failed ({action.Action}): {action.FilePath}");
+                                        result.ErrorMessages.Add(failReason);
                                     }
                                     result.AuditRecords.Add(new DeletionAuditRecord
                                     {
@@ -349,10 +371,10 @@ public static class CleanupExecutor
                                         MatchedRule = action.MatchedRule,
                                         IntendedAction = action.Action,
                                         Status = DeletionAuditStatus.Failed,
-                                        ErrorCategory = CleanupErrorCategory.AccessDenied,
+                                        ErrorCategory = errorCategory,
                                         SizeBytes = actualBytes,
                                         TimestampUtc = DateTime.UtcNow,
-                                        ErrorOrSkipReason = $"Deletion failed ({action.Action}): {action.FilePath}"
+                                        ErrorOrSkipReason = failReason
                                     });
                                 }
                             }
@@ -361,11 +383,27 @@ public static class CleanupExecutor
                         {
                             Interlocked.Increment(ref failedCount);
                             Interlocked.Add(ref failedBytes, action.SizeBytes);
+
+                            string errReason = ex.Message;
+                            var errCategory = ex is UnauthorizedAccessException ? CleanupErrorCategory.AccessDenied : (ex is IOException ? CleanupErrorCategory.FileLocked : CleanupErrorCategory.Unknown);
+
+                            if (ex is IOException or UnauthorizedAccessException)
+                            {
+                                var lockingProcesses = RestartManagerService.GetLockingProcesses(action.FilePath);
+                                if (lockingProcesses.Count > 0)
+                                {
+                                    string procNames = string.Join(", ", lockingProcesses.Select(p => $"{p.ProcessName} (PID {p.ProcessId})"));
+                                    errReason = $"Locked by {procNames}: {ex.Message}";
+                                    errCategory = CleanupErrorCategory.FileLocked;
+                                    logAction?.Invoke($"Notice: '{action.FileName}' is in use by {procNames}", LogLevel.Info);
+                                }
+                            }
+
                             lock (syncLock)
                             {
                                 if (result.ErrorMessages.Count < 50)
                                 {
-                                    result.ErrorMessages.Add($"Exception deleting {action.FileName}: {ex.Message}");
+                                    result.ErrorMessages.Add($"Exception deleting {action.FileName}: {errReason}");
                                 }
                                 result.AuditRecords.Add(new DeletionAuditRecord
                                 {
@@ -375,10 +413,10 @@ public static class CleanupExecutor
                                     MatchedRule = action.MatchedRule,
                                     IntendedAction = action.Action,
                                     Status = DeletionAuditStatus.Failed,
-                                    ErrorCategory = ex is UnauthorizedAccessException ? CleanupErrorCategory.AccessDenied : (ex is IOException ? CleanupErrorCategory.FileLocked : CleanupErrorCategory.Unknown),
+                                    ErrorCategory = errCategory,
                                     SizeBytes = action.SizeBytes,
                                     TimestampUtc = DateTime.UtcNow,
-                                    ErrorOrSkipReason = ex.Message
+                                    ErrorOrSkipReason = errReason
                                 });
                             }
                         }

@@ -20,11 +20,9 @@ namespace WinTempCleaner;
 public partial class MainWindow
 {
 
-    private async void OpenStartupModal_Click(object sender, RoutedEventArgs e)
+    private void OpenStartupModal_Click(object sender, RoutedEventArgs e)
     {
-        StartupModalOverlay.Visibility = Visibility.Visible;
-        SoundService.PlayClickSound();
-        await ReloadStartupItemsAsync();
+        SwitchWorkspaceView(WorkspaceView.Startup);
     }
 
     private async Task ReloadStartupItemsAsync()
@@ -76,8 +74,7 @@ public partial class MainWindow
 
     private void CloseStartupModal_Click(object sender, RoutedEventArgs e)
     {
-        StartupModalOverlay.Visibility = Visibility.Collapsed;
-        SoundService.PlayClickSound();
+        SwitchWorkspaceView(WorkspaceView.Cleaner);
     }
 
     private void StartupSwitch_Click(object sender, RoutedEventArgs e)
@@ -118,11 +115,9 @@ public partial class MainWindow
     // 2. Large File Hunter Handlers
     private CancellationTokenSource? _largeFileScanCts;
 
-    private async void OpenProcessModal_Click(object sender, RoutedEventArgs e)
+    private void OpenProcessModal_Click(object sender, RoutedEventArgs e)
     {
-        ProcessModalOverlay.Visibility = Visibility.Visible;
-        SoundService.PlayClickSound();
-        await ReloadProcessesAsync();
+        SwitchWorkspaceView(WorkspaceView.Processes);
     }
 
     private async Task ReloadProcessesAsync()
@@ -171,15 +166,14 @@ public partial class MainWindow
 
     private void CloseProcessModal_Click(object sender, RoutedEventArgs e)
     {
-        ProcessModalOverlay.Visibility = Visibility.Collapsed;
-        SoundService.PlayClickSound();
+        SwitchWorkspaceView(WorkspaceView.Cleaner);
     }
 
     private void TrimProcessMemory_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.DataContext is ProcessMemoryInfo proc)
         {
-            var pids = proc.ProcessIds.Count > 0 ? proc.ProcessIds : new List<int> { proc.ProcessId };
+            var pids = proc.ProcessIds.Count > 0 ? proc.ProcessIds : [proc.ProcessId];
             var (ok, freed) = ProcessOptimizerService.TrimProcessMemoryEx(pids);
             if (ok)
             {
@@ -213,7 +207,7 @@ public partial class MainWindow
 
             if (res == MessageBoxResult.Yes)
             {
-                bool ok = ProcessOptimizerService.SafeTerminateProcess(proc.ProcessIds.Count > 0 ? proc.ProcessIds : new List<int> { proc.ProcessId });
+                bool ok = ProcessOptimizerService.SafeTerminateProcess(proc.ProcessIds.Count > 0 ? proc.ProcessIds : [proc.ProcessId]);
                 if (ok)
                 {
                     AddLog($"Terminated task '{proc.DisplayName}'.", LogLevel.Info);

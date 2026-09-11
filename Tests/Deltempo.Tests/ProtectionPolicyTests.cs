@@ -89,4 +89,27 @@ public class ProtectionPolicyTests
         Assert.True(protectedFile);
         Assert.True(reason.Contains("Protected sensitive file type") || reason.Contains("Cryptographic Key"));
     }
+
+    [Theory]
+    [InlineData(@"C:\Users\user\AppData\Local\npm-cache\_cacache\content-v2\sha512\index.js")]
+    [InlineData(@"C:\Users\user\AppData\Local\pip\cache\wheels\script.py")]
+    [InlineData(@"C:\Users\user\.gradle\caches\modules-2\files-2.1\module.ts")]
+    [InlineData(@"C:\Users\user\.bun\install\cache\module.ts")]
+    [InlineData(@"C:\Users\user\AppData\Local\Google\Chrome\User Data\Default\Code Cache\js\cache.js")]
+    public void IsProtected_PackageAndScriptCaches_Permitted(string cacheFilePath)
+    {
+        bool protectedFile = ProtectionPolicy.IsProtected(cacheFilePath, out _);
+        Assert.False(protectedFile);
+    }
+
+    [Theory]
+    [InlineData(@"C:\Users\user\AppData\Local\npm-cache\_cacache\secret.kdbx")]
+    [InlineData(@"C:\Users\user\AppData\Local\npm-cache\_cacache\key.pem")]
+    [InlineData(@"C:\Users\user\.gradle\caches\modules-2\id_rsa")]
+    public void IsProtected_CredentialsInsideCaches_StillProtected(string credentialInCachePath)
+    {
+        bool protectedFile = ProtectionPolicy.IsProtected(credentialInCachePath, out string reason);
+        Assert.True(protectedFile);
+        Assert.True(reason.Contains("Cryptographic Key") || reason.Contains("Developer / SSH / Cloud"));
+    }
 }

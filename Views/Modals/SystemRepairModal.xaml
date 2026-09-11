@@ -5,15 +5,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="660" d:DesignWidth="840">
-    <Grid Background="{DynamicResource ModalBackdropBrush}">
-        <Border MaxWidth="840" MaxHeight="660" Margin="16"
+    <Grid Background="Transparent">
+        <Border Margin="18,8,18,6"
                 Background="{DynamicResource DoubleBezelOuterBrush}"
                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="16"
                 Padding="2"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center">
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
             <Border Background="{DynamicResource ModalSurfaceBrush}"
                     CornerRadius="14"
                     Padding="22,18">

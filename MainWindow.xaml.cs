@@ -43,8 +43,10 @@ public partial class MainWindow : Window
         InitializeComponent();
         InitializeMemoryViewModel();
         SystemRepairModalOverlay.LogRequested += AddLog;
+        SystemRepairModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
         MemoryModalOverlay.LogRequested += AddLog;
         MemoryModalOverlay.TelemetryRefreshRequested += UpdateMemoryTelemetry;
+        MemoryModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
 
         _targetsCollectionView = CollectionViewSource.GetDefaultView(_targets);
         _targetsCollectionView.Filter = FilterTargetPredicate;
@@ -743,5 +745,93 @@ public partial class MainWindow : Window
             current = VisualTreeHelper.GetParent(current) ?? LogicalTreeHelper.GetParent(current);
         }
         return false;
+    }
+
+    // ─── Integrated Workspace Navigation System ───────────────────────────────
+    public enum WorkspaceView
+    {
+        Cleaner,
+        LargeFiles,
+        Startup,
+        Processes,
+        Memory,
+        SystemRepair
+    }
+
+    private WorkspaceView _currentWorkspace = WorkspaceView.Cleaner;
+
+    public void SwitchWorkspaceView(WorkspaceView view)
+    {
+        if (_currentWorkspace == view && view != WorkspaceView.Cleaner)
+        {
+            SwitchWorkspaceView(WorkspaceView.Cleaner);
+            return;
+        }
+
+        if (_currentWorkspace == WorkspaceView.LargeFiles && view != WorkspaceView.LargeFiles)
+        {
+            _largeFileScanCts?.Cancel();
+        }
+
+        _currentWorkspace = view;
+        SoundService.PlayClickSound();
+
+        if (CleanerWorkspaceView != null)
+            CleanerWorkspaceView.Visibility = (view == WorkspaceView.Cleaner) ? Visibility.Visible : Visibility.Collapsed;
+
+        if (LargeFilesModalOverlay != null)
+            LargeFilesModalOverlay.Visibility = (view == WorkspaceView.LargeFiles) ? Visibility.Visible : Visibility.Collapsed;
+
+        if (StartupModalOverlay != null)
+            StartupModalOverlay.Visibility = (view == WorkspaceView.Startup) ? Visibility.Visible : Visibility.Collapsed;
+
+        if (ProcessModalOverlay != null)
+            ProcessModalOverlay.Visibility = (view == WorkspaceView.Processes) ? Visibility.Visible : Visibility.Collapsed;
+
+        if (MemoryModalOverlay != null)
+            MemoryModalOverlay.Visibility = (view == WorkspaceView.Memory) ? Visibility.Visible : Visibility.Collapsed;
+
+        if (SystemRepairModalOverlay != null)
+            SystemRepairModalOverlay.Visibility = (view == WorkspaceView.SystemRepair) ? Visibility.Visible : Visibility.Collapsed;
+
+        UpdateWorkspaceNavButtons(view);
+
+        switch (view)
+        {
+            case WorkspaceView.Cleaner:
+                UpdateMemoryTelemetry();
+                break;
+            case WorkspaceView.LargeFiles:
+                PopulateLargeFileDrives();
+                _ = RunLargeFileScanAsync();
+                break;
+            case WorkspaceView.Startup:
+                _ = ReloadStartupItemsAsync();
+                break;
+            case WorkspaceView.Processes:
+                _ = ReloadProcessesAsync();
+                break;
+            case WorkspaceView.Memory:
+                MemoryModalOverlay?.RefreshData();
+                break;
+            case WorkspaceView.SystemRepair:
+                SystemRepairModalOverlay?.RefreshSystemRepairAdminStatus();
+                break;
+        }
+    }
+
+    private void UpdateWorkspaceNavButtons(WorkspaceView view)
+    {
+        if (ToolCleanerBtn != null) ToolCleanerBtn.Tag = (view == WorkspaceView.Cleaner) ? "Active" : null;
+        if (ToolLargeFilesBtn != null) ToolLargeFilesBtn.Tag = (view == WorkspaceView.LargeFiles) ? "Active" : null;
+        if (ToolStartupBtn != null) ToolStartupBtn.Tag = (view == WorkspaceView.Startup) ? "Active" : null;
+        if (ToolProcessesBtn != null) ToolProcessesBtn.Tag = (view == WorkspaceView.Processes) ? "Active" : null;
+        if (ToolMemoryBtn != null) ToolMemoryBtn.Tag = (view == WorkspaceView.Memory) ? "Active" : null;
+        if (ToolSystemRepairBtn != null) ToolSystemRepairBtn.Tag = (view == WorkspaceView.SystemRepair) ? "Active" : null;
+    }
+
+    private void NavCleaner_Click(object sender, RoutedEventArgs e)
+    {
+        SwitchWorkspaceView(WorkspaceView.Cleaner);
     }
 }

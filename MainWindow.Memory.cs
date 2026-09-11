@@ -40,13 +40,12 @@ public partial class MainWindow
 
     private void OpenMemoryCleanerModal_Click(object sender, RoutedEventArgs e)
     {
-        MemoryModalOverlay.Open();
+        SwitchWorkspaceView(WorkspaceView.Memory);
     }
 
     private void CloseMemoryCleanerModal_Click(object sender, RoutedEventArgs e)
     {
-        MemoryModalOverlay.CloseModal();
-        UpdateMemoryTelemetry();
+        SwitchWorkspaceView(WorkspaceView.Cleaner);
     }
 
     private async void HeroBoostRamBtn_Click(object sender, RoutedEventArgs e)
@@ -55,5 +54,5 @@ public partial class MainWindow
     }
 
     // 1. Startup Accelerator Handlers
-    private List<StartupItem> _allStartupItems = new();
+    private List<StartupItem> _allStartupItems = [];
 }

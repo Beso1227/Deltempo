@@ -12,6 +12,7 @@ public partial class SystemRepairModal : UserControl
     private CancellationTokenSource? _systemRepairCts;
 
     public event Action<string, LogLevel>? LogRequested;
+    public event Action? Closed;
 
     public SystemRepairModal()
     {
@@ -41,6 +42,7 @@ public partial class SystemRepairModal : UserControl
 
         SoundService.PlayClickSound();
         Visibility = Visibility.Collapsed;
+        Closed?.Invoke();
         return true;
     }
 

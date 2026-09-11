@@ -134,12 +134,32 @@
       <p class="section-subtitle">Complete version history, feature additions, and security improvements.</p>
     </div>
 
+    <!-- v1.6.5 -->
+    <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
+      <div class="card-inner">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.6.5 (Latest Stable)</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+        </div>
+        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <li><strong>Integrated In-Window Workspaces:</strong> Replaced rigid popup windows and blackout backdrop overlays with fluid, edge-to-edge workspaces directly inside the main UI for Large Files, Startup Apps, Running Processes, Memory Optimizer, and System Repair.</li>
+          <li><strong>Volume-Partitioned Concurrency:</strong> Partitioned scanning targets by physical drive root with per-volume concurrency throttling, eliminating disk queue contention across NVMe, SATA, and HDD storage.</li>
+          <li><strong>Bounded Priority Heap Memory Capping:</strong> Implemented thread-safe <code>TopFilesCollector</code> min-heap bounded strictly to 30 items, running in $O(1)$ memory without allocating large object bags.</li>
+          <li><strong>Real-Time Velocity &amp; ETA Telemetry:</strong> Live throughput tracking displaying rolling files/s, MB/s, and projected completion ETA throttled to 250ms UI updates.</li>
+          <li><strong>Win32 Restart Manager Integration:</strong> Integrated native <code>rstrtmgr.dll</code> to identify locking process names/PIDs during locked-file conflicts and schedule deferred boot-time cleanup.</li>
+          <li><strong>Targeted Bottom-Up Directory Pruning:</strong> Replaced full recursive filesystem walks with ancestor-chain pruning for affected parent directories.</li>
+          <li><strong>CLI Engine Overhaul:</strong> Fixed <code>smart</code> clean target filtering, resolved safe-mode shield discrepancies between scan and clean, and enabled context-aware package cache clearance while preserving 100% credential protection.</li>
+          <li><strong>Comprehensive Test Verification:</strong> 501 automated tests passing with zero failures and zero warnings.</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- v1.6.1 -->
     <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
       <div class="card-inner">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.6.1 (Latest Stable)</h2>
-          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--accent-emerald-bg); color: var(--accent-emerald); font-weight: 700;">CURRENT STABLE</span>
+          <h2 style="font-size: 1.4rem; font-weight: 800;">v1.6.1</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--bg-surface-elevated); color: var(--text-muted); font-weight: 700;">PREVIOUS</span>
         </div>
         <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
           <li><strong>Autonomous CLI Terminal Usability:</strong> Standalone CLI binary (<code>deltempo_cli.exe</code>) now ships with a dedicated <code>asInvoker</code> execution manifest, allowing all standard commands (<code>status</code>, <code>scan</code>, <code>clean --safe</code>, <code>startup</code>, <code>large</code>, <code>register</code>, <code>help</code>) to execute in any terminal without elevation blocking.</li>

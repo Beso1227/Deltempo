@@ -45,8 +45,43 @@ public partial class MainWindow
         try
         {
             bool safeMode = SafeModeCheckBox.IsChecked == true;
-            var scanTasks = _targets.Select(target => _cleanerService.ScanFolderAsync(target, AddLog, _cts.Token, safeMode));
-            await Task.WhenAll(scanTasks);
+            var velocity = new WinTempCleaner.Core.Scanning.ScanVelocityTracker();
+            int completedCount = 0;
+            int totalTargets = _targets.Count;
+            long lastUiUpdateTicks = Stopwatch.GetTimestamp();
+
+            await WinTempCleaner.Core.Scanning.VolumeScanCoordinator.ExecutePartitionedAsync(
+                _targets,
+                target => target.FolderPath,
+                async (target, token) =>
+                {
+                    await _cleanerService.ScanFolderAsync(target, AddLog, token, safeMode);
+                    int done = Interlocked.Increment(ref completedCount);
+                    velocity.RecordProgress(target.SizeBytes, target.FileCount);
+
+                    long now = Stopwatch.GetTimestamp();
+                    if (Stopwatch.GetElapsedTime(Interlocked.Read(ref lastUiUpdateTicks), now).TotalMilliseconds >= 250 || done == totalTargets)
+                    {
+                        Interlocked.Exchange(ref lastUiUpdateTicks, now);
+                        string rateStr = velocity.GetFormattedVelocity();
+                        var eta = velocity.EstimateRemaining(done, totalTargets);
+                        string etaStr = eta.HasValue && eta.Value.TotalSeconds >= 1 ? $" • ETA: {eta.Value.TotalSeconds:N0}s" : string.Empty;
+
+                        _ = Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            if (_isBusy)
+                            {
+                                ProgressStatusText.Text = $"Scanning ({done}/{totalTargets}) • {rateStr}{etaStr}";
+                                double pct = (double)done / totalTargets * 100.0;
+                                AppProgressBar.IsIndeterminate = false;
+                                AppProgressBar.Value = pct;
+                                ProgressPercentageText.Text = $"{(int)pct}%";
+                            }
+                        }));
+                    }
+                },
+                maxParallelismPerVolume: 3,
+                ct: _cts.Token);
 
             SkeletonItemsControl.Visibility = Visibility.Collapsed;
             TargetCardsItemsControl.Visibility = Visibility.Visible;
@@ -58,7 +93,7 @@ public partial class MainWindow
 
             RecalculateTotals();
             ProgressStatusText.Text = "Scan completed. Ready to clean.";
-            AddLog($"Scan finished. Total reclaimable space: {HeroSizeText.Text}", LogLevel.Success);
+            AddLog($"Scan finished in {velocity.Elapsed.TotalSeconds:N1}s ({velocity.GetFormattedVelocity()}). Total reclaimable space: {HeroSizeText.Text}", LogLevel.Success);
         }
         catch (OperationCanceledException)
         {

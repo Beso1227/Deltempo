@@ -7,11 +7,14 @@ public partial class MainWindow
 {
     private void OpenSystemRepairModal_Click(object sender, RoutedEventArgs e)
     {
-        SystemRepairModalOverlay.Open();
+        SwitchWorkspaceView(WorkspaceView.SystemRepair);
     }
 
     private void CloseSystemRepairModal_Click(object sender, RoutedEventArgs e)
     {
-        SystemRepairModalOverlay.CloseModal();
+        if (SystemRepairModalOverlay.CloseModal())
+        {
+            SwitchWorkspaceView(WorkspaceView.Cleaner);
+        }
     }
 }

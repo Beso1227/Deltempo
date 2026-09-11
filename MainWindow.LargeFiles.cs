@@ -169,12 +169,9 @@ public partial class MainWindow
         }
     }
 
-    private async void OpenLargeFilesModal_Click(object sender, RoutedEventArgs e)
+    private void OpenLargeFilesModal_Click(object sender, RoutedEventArgs e)
     {
-        LargeFilesModalOverlay.Visibility = Visibility.Visible;
-        SoundService.PlayClickSound();
-        PopulateLargeFileDrives();
-        await RunLargeFileScanAsync();
+        SwitchWorkspaceView(WorkspaceView.LargeFiles);
     }
 
     private async void LargeFileFilter_Changed(object sender, SelectionChangedEventArgs e)
@@ -334,9 +331,7 @@ public partial class MainWindow
 
     private void CloseLargeFilesModal_Click(object sender, RoutedEventArgs e)
     {
-        _largeFileScanCts?.Cancel();
-        LargeFilesModalOverlay.Visibility = Visibility.Collapsed;
-        SoundService.PlayClickSound();
+        SwitchWorkspaceView(WorkspaceView.Cleaner);
     }
 
     private void RevealLargeFile_Click(object sender, RoutedEventArgs e)
@@ -394,5 +389,5 @@ public partial class MainWindow
     }
 
     // 3. Process Optimizer Handlers
-    private List<ProcessMemoryInfo> _allProcesses = new();
+    private List<ProcessMemoryInfo> _allProcesses = [];
 }

@@ -154,15 +154,26 @@ public static class ProtectionPolicy
         // If a sensitive document is sitting in a temp or download folder, we STILL protect it!
         if (SensitiveExtensions.Contains(ext))
         {
-            matchedReason = ext switch
+            // If the file resides inside a recognized package or application script cache,
+            // source/script/text files are cached dependencies or compiled scripts, NOT user documents.
+            if (IsPackageOrScriptCachePath(pathLower) &&
+                ext is ".js" or ".ts" or ".py" or ".cs" or ".rs" or ".go" or ".cpp" or ".c" or ".h" or ".hpp"
+                    or ".java" or ".kt" or ".swift" or ".html" or ".css" or ".sql" or ".sh" or ".ps1" or ".txt" or ".csv")
             {
-                ".safetensors" or ".gguf" or ".onnx" or ".pt" or ".pth" or ".ckpt" or ".h5"
-                    => "AI Model Weights and Machine Learning Assets",
-                ".kdbx" or ".kdb" or ".key" or ".pem" or ".pfx" or ".p12"
-                    => "Cryptographic Key or Password Database",
-                _ => $"Protected sensitive file type ({ext})"
-            };
-            return true;
+                // Safe package/script cache dependency - permitted for cache purge
+            }
+            else
+            {
+                matchedReason = ext switch
+                {
+                    ".safetensors" or ".gguf" or ".onnx" or ".pt" or ".pth" or ".ckpt" or ".h5"
+                        => "AI Model Weights and Machine Learning Assets",
+                    ".kdbx" or ".kdb" or ".key" or ".pem" or ".pfx" or ".p12"
+                        => "Cryptographic Key or Password Database",
+                    _ => $"Protected sensitive file type ({ext})"
+                };
+                return true;
+            }
         }
 
         // 9. NTFS Reparse Point, Symlink or Junction
@@ -317,6 +328,43 @@ public static class ProtectionPolicy
             }
         }
 
+        return false;
+    }
+
+    private static readonly string[] PackageAndScriptCachePathMarkers =
+    {
+        @"\npm-cache\",
+        @"\pip\cache\",
+        @"\yarn\cache\",
+        @"\pnpm\store\",
+        @"\pnpm-cache\",
+        @"\nuget\v3-cache\",
+        @"\nuget\plugins-cache\",
+        @"\.cache\",
+        @"\.gradle\caches\",
+        @"\.cargo\registry\cache\",
+        @"\.cargo\git\db\",
+        @"\.rustup\downloads\",
+        @"\.rustup\tmp\",
+        @"\.bun\install\cache\",
+        @"\deno\deps\",
+        @"\go-build\",
+        @"\.m2\repository\.cache\",
+        @"\.m2\temp\",
+        @"\temp\.net\",
+        @"\code cache\js\",
+        @"\code cache\wasm\",
+        @"\gpucache\",
+        @"\scriptcache\"
+    };
+
+    public static bool IsPackageOrScriptCachePath(string pathLower)
+    {
+        foreach (var marker in PackageAndScriptCachePathMarkers)
+        {
+            if (pathLower.Contains(marker, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
         return false;
     }
 }

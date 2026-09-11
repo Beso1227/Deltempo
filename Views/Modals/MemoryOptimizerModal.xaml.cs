@@ -9,6 +9,7 @@ public partial class MemoryOptimizerModal : UserControl
 {
     public event Action<string, LogLevel>? LogRequested;
     public event Action? TelemetryRefreshRequested;
+    public event Action? Closed;
 
     public MemoryOptimizerModal()
     {
@@ -27,6 +28,7 @@ public partial class MemoryOptimizerModal : UserControl
         SoundService.PlayClickSound();
         Visibility = Visibility.Collapsed;
         TelemetryRefreshRequested?.Invoke();
+        Closed?.Invoke();
     }
 
     private void CloseMemoryCleanerModal_Click(object sender, RoutedEventArgs e)
