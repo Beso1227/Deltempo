@@ -655,8 +655,81 @@
      6. Interactive 7-Workspace Live Simulator Engine
      ========================================================================== */
   function initWorkspaceSimulator() {
+    const tabsIsland = document.querySelector('.app-tabs-island');
     const tabs = document.querySelectorAll('.app-tab');
+    const tabNavLeft = document.getElementById('tabNavLeft');
+    const tabNavRight = document.getElementById('tabNavRight');
+
     if (!tabs.length) return;
+
+    // Arrow button visibility helper
+    function updateArrows() {
+      if (!tabsIsland || !tabNavLeft || !tabNavRight) return;
+      const maxScroll = tabsIsland.scrollWidth - tabsIsland.clientWidth - 4;
+      tabNavLeft.classList.toggle('disabled', tabsIsland.scrollLeft <= 4);
+      tabNavRight.classList.toggle('disabled', tabsIsland.scrollLeft >= maxScroll);
+    }
+
+    if (tabsIsland) {
+      // 1. Mouse wheel horizontal scrolling (supports mouse roll in either orientation)
+      tabsIsland.addEventListener('wheel', function (e) {
+        if (tabsIsland.scrollWidth > tabsIsland.clientWidth) {
+          const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+          if (delta !== 0) {
+            e.preventDefault();
+            tabsIsland.scrollLeft += delta;
+            updateArrows();
+          }
+        }
+      }, { passive: false });
+
+      // 2. Click & drag mouse panning
+      let isDown = false;
+      let startX = 0;
+      let scrollLeft = 0;
+
+      tabsIsland.addEventListener('mousedown', function (e) {
+        if (e.button !== 0) return;
+        isDown = true;
+        startX = e.pageX - tabsIsland.offsetLeft;
+        scrollLeft = tabsIsland.scrollLeft;
+        tabsIsland.style.cursor = 'grabbing';
+      });
+
+      window.addEventListener('mouseup', function () {
+        if (isDown && tabsIsland) {
+          isDown = false;
+          tabsIsland.style.cursor = '';
+        }
+      });
+
+      tabsIsland.addEventListener('mousemove', function (e) {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - tabsIsland.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        tabsIsland.scrollLeft = scrollLeft - walk;
+        updateArrows();
+      });
+
+      tabsIsland.addEventListener('scroll', updateArrows, { passive: true });
+      window.addEventListener('resize', updateArrows);
+      setTimeout(updateArrows, 100);
+
+      // Arrow navigation button handlers
+      if (tabNavLeft) {
+        tabNavLeft.addEventListener('click', function () {
+          tabsIsland.scrollBy({ left: -220, behavior: 'smooth' });
+          setTimeout(updateArrows, 300);
+        });
+      }
+      if (tabNavRight) {
+        tabNavRight.addEventListener('click', function () {
+          tabsIsland.scrollBy({ left: 220, behavior: 'smooth' });
+          setTimeout(updateArrows, 300);
+        });
+      }
+    }
 
     tabs.forEach(function (tab) {
       tab.addEventListener('click', function () {
@@ -670,6 +743,9 @@
 
         tab.classList.add('active');
         tab.setAttribute('aria-selected', 'true');
+        tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        setTimeout(updateArrows, 300);
+
         const target = tab.getAttribute('data-tab');
         const pane = document.getElementById('pane-' + target);
         if (pane) pane.classList.add('active');
@@ -740,15 +816,18 @@
 
         let current = 76;
         const target = 34;
+        const isLight = document.documentElement.classList.contains('light');
+        const trackBg = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+
         const anim = setInterval(function () {
           if (current > target) {
             current -= 3;
             ramPercent.textContent = current + '%';
-            ramGauge.style.background = 'conic-gradient(var(--accent-cyan) ' + (current * 3.6) + 'deg, rgba(255,255,255,0.06) 0deg)';
+            ramGauge.style.background = 'conic-gradient(var(--accent-cyan) ' + (current * 3.6) + 'deg, ' + trackBg + ' 0deg)';
           } else {
             clearInterval(anim);
             ramPercent.textContent = '34%';
-            ramGauge.style.background = 'conic-gradient(var(--accent-emerald) 122.4deg, rgba(255,255,255,0.06) 0deg)';
+            ramGauge.style.background = 'conic-gradient(var(--accent-emerald) 122.4deg, ' + trackBg + ' 0deg)';
             if (ramDetail) ramDetail.textContent = '5.4 GB / 16.0 GB (Flushed 6.8 GB Standby RAM)';
             boostBtn.textContent = '✓ RAM Boosted (-6.8 GB)';
             setTimeout(function () {

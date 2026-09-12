@@ -44,7 +44,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=2.6.3" />
+  <link rel="stylesheet" href="style.css?v=2.7.5" />
 
   <!-- Web App Manifest (PWA installability) -->
   <link rel="manifest" href="manifest.json?v=2.6.1" />
@@ -362,28 +362,36 @@
                 </div>
               </div>
 
-              <!-- Tabs Strip (7 Workspaces) -->
-              <div class="app-tabs app-tabs-island" role="tablist">
-                <button class="app-tab active" data-tab="cleaner" role="tab" aria-selected="true">
-                  <span>🧹 System Cleaner</span>
+              <!-- Tabs Strip (7 Workspaces) with Smooth Scroll & Wheel Support -->
+              <div class="tabs-nav-wrapper">
+                <button class="tabs-nav-arrow tabs-arrow-left" id="tabNavLeft" aria-label="Scroll tabs left" title="Scroll left">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </button>
-                <button class="app-tab" data-tab="memory" role="tab" aria-selected="false">
-                  <span>⚡ NT Kernel Memory</span>
-                </button>
-                <button class="app-tab" data-tab="largefiles" role="tab" aria-selected="false">
-                  <span>📦 Large Files</span>
-                </button>
-                <button class="app-tab" data-tab="startup" role="tab" aria-selected="false">
-                  <span>🚀 Startup Manager</span>
-                </button>
-                <button class="app-tab" data-tab="procs" role="tab" aria-selected="false">
-                  <span>📊 Running Processes</span>
-                </button>
-                <button class="app-tab" data-tab="repair" role="tab" aria-selected="false">
-                  <span>🛠️ System Repair</span>
-                </button>
-                <button class="app-tab" data-tab="cli" role="tab" aria-selected="false">
-                  <span>💻 Terminal CLI</span>
+                <div class="app-tabs app-tabs-island" id="simulatorTabs" role="tablist" tabindex="0">
+                  <button class="app-tab active" data-tab="cleaner" role="tab" aria-selected="true">
+                    <span>🧹 System Cleaner</span>
+                  </button>
+                  <button class="app-tab" data-tab="memory" role="tab" aria-selected="false">
+                    <span>⚡ NT Kernel Memory</span>
+                  </button>
+                  <button class="app-tab" data-tab="largefiles" role="tab" aria-selected="false">
+                    <span>📦 Large Files</span>
+                  </button>
+                  <button class="app-tab" data-tab="startup" role="tab" aria-selected="false">
+                    <span>🚀 Startup Manager</span>
+                  </button>
+                  <button class="app-tab" data-tab="procs" role="tab" aria-selected="false">
+                    <span>📊 Running Processes</span>
+                  </button>
+                  <button class="app-tab" data-tab="repair" role="tab" aria-selected="false">
+                    <span>🛠️ System Repair</span>
+                  </button>
+                  <button class="app-tab" data-tab="cli" role="tab" aria-selected="false">
+                    <span>💻 Terminal CLI</span>
+                  </button>
+                </div>
+                <button class="tabs-nav-arrow tabs-arrow-right" id="tabNavRight" aria-label="Scroll tabs right" title="Scroll right">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </button>
               </div>
 
@@ -473,8 +481,8 @@
 
                   <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; align-items: center;">
                     <!-- Circular RAM Meter -->
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; border-radius: var(--radius-lg); background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle);">
-                      <div id="simRamGauge" style="width: 110px; height: 110px; border-radius: 50%; background: conic-gradient(var(--accent-cyan) 273deg, rgba(255,255,255,0.06) 0deg); display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; transition: background 0.4s var(--ease-smooth);">
+                    <div class="sim-ram-box">
+                      <div id="simRamGauge" class="sim-ram-gauge">
                         <div style="width: 82px; height: 82px; border-radius: 50%; background: var(--bg-card); display: flex; flex-direction: column; align-items: center; justify-content: center;">
                           <div id="simRamPercent" style="font-size: 1.4rem; font-weight: 800; color: var(--text-high);">76%</div>
                           <div style="font-size: 0.65rem; color: var(--text-low); font-weight: 600;">RAM LOAD</div>
@@ -669,17 +677,17 @@
 
             <div class="calc-metrics-grid">
               <div class="calc-metric-box">
-                <div style="font-size: 0.75rem; color: var(--text-low); font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">Estimated Reclaimable Junk</div>
+                <div class="calc-metric-title">Estimated Reclaimable Junk</div>
                 <div class="calc-metric-num" id="calcStorageValue">32.4 GB</div>
-                <p style="font-size: 0.85rem; color: var(--text-med);" id="calcSummaryText">
+                <p class="calc-metric-desc" id="calcSummaryText">
                   Cleans massive DirectX, NVIDIA, AMD, and Unreal Engine shader caches plus game installer dumps.
                 </p>
               </div>
 
               <div class="calc-metric-box">
-                <div style="font-size: 0.75rem; color: var(--text-low); font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">Standby RAM Recoverable</div>
+                <div class="calc-metric-title">Standby RAM Recoverable</div>
                 <div class="calc-metric-num" id="calcRamValue" style="background: linear-gradient(135deg, #10B981, #00E5FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">4.8 GB</div>
-                <p style="font-size: 0.85rem; color: var(--text-med);">
+                <p class="calc-metric-desc">
                   Flushed via native NT kernel system information classes in under 50 milliseconds.
                 </p>
               </div>
@@ -1336,25 +1344,7 @@
         setTheme(current === 'light' ? 'dark' : 'light');
       });
 
-      // 2. Interactive App Showcase Tabs
-      const tabs = document.querySelectorAll('.app-tab');
-      tabs.forEach(function (tab) {
-        tab.addEventListener('click', function () {
-          tabs.forEach(t => {
-            t.classList.remove('active');
-            t.setAttribute('aria-selected', 'false');
-          });
-          document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-
-          tab.classList.add('active');
-          tab.setAttribute('aria-selected', 'true');
-          const target = tab.getAttribute('data-tab');
-          const pane = document.getElementById('pane-' + target);
-          if (pane) pane.classList.add('active');
-        });
-      });
-
-      // 3. FAQ Accordion
+      // 2. FAQ Accordion
       const faqButtons = document.querySelectorAll('.faq-question');
       faqButtons.forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -1450,7 +1440,7 @@
   </button>
 
   <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals) -->
-  <script src="motion.js?v=2.2.0" defer></script>
+  <script src="motion.js?v=2.7.5" defer></script>
 
   <!-- Dynamic Release Version Sync -->
   <script defer>
