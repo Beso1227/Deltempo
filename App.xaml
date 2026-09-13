@@ -381,8 +381,8 @@
             <Setter Property="FontFamily" Value="{DynamicResource AppFont}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Padding" Value="8,3.5"/>
-            <Setter Property="Margin" Value="0,0,2,0"/>
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="Margin" Value="0,0,1,0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>

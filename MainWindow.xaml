@@ -8,8 +8,8 @@
         mc:Ignorable="d"
         Title="Deltempo"
         Icon="pack://application:,,,/app.ico"
-        Height="760" Width="940"
-        MinWidth="900" MinHeight="660"
+        Width="1360" Height="840"
+        MinWidth="1160" MinHeight="700"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -25,19 +25,26 @@
         <TaskbarItemInfo Description="Deltempo - Elite PC Performance Guardian" />
     </Window.TaskbarItemInfo>
 
-    <!-- Master Shell Container with Deep Ambient Shadow -->
+    <!-- Master Shell Container (Flush Edge-to-Edge with Smooth Bezel) -->
     <Border x:Name="MasterShellBorder"
             Background="{DynamicResource CanvasDarkBrush}"
             BorderBrush="{DynamicResource HairlineBorderBrush}"
             BorderThickness="1"
-            CornerRadius="20"
-            Margin="12">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="36" ShadowDepth="10" Direction="270" Color="#000000" Opacity="0.35"/>
-        </Border.Effect>
+            CornerRadius="12"
+            Margin="0">
 
-        <!-- Inner Concentric Clipping Shell to guarantee flawless bottom rounding -->
-        <Border CornerRadius="19" ClipToBounds="True" Background="Transparent">
+        <!-- Inner Concentric Clipping Shell to guarantee flawless corner rounding -->
+        <Border x:Name="InnerClippingShell" CornerRadius="11" Background="Transparent">
+            <Border.OpacityMask>
+                <VisualBrush>
+                    <VisualBrush.Visual>
+                        <Border Width="{Binding ActualWidth, ElementName=InnerClippingShell}"
+                                Height="{Binding ActualHeight, ElementName=InnerClippingShell}"
+                                CornerRadius="{Binding CornerRadius, ElementName=InnerClippingShell}"
+                                Background="Black"/>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </Border.OpacityMask>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/> <!-- 0: Seamless Header / Title Bar -->
@@ -49,10 +56,10 @@
                 </Grid.RowDefinitions>
 
                 <!-- 0. SEAMLESS HEADER / TITLE BAR -->
-                <Border Grid.Row="0"
+                <Border x:Name="TitleBarBorder" Grid.Row="0"
                         Background="{DynamicResource HeaderDockBrush}"
-                        CornerRadius="19,19,0,0"
-                        Padding="16,10"
+                        CornerRadius="11,11,0,0"
+                        Padding="14,9"
                         MouseDown="TitleBar_MouseDown">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -62,7 +69,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Left: Brand Identity -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
                         <Border Width="32" Height="32"
                                 CornerRadius="8"
                                 Margin="0,0,10,0"
@@ -120,9 +127,10 @@
                                  </Border>
                             </StackPanel>
                             <TextBlock x:Name="BrandSubtitleText"
-                                       Text="Windows Cleaner &amp; Memory Optimizer"
-                                       FontSize="10.5"
+                                       Text="Windows &amp; User Profile Guardian"
+                                       FontSize="10"
                                        Foreground="{DynamicResource TextMutedBrush}"
+                                       TextTrimming="CharacterEllipsis"
                                        Margin="0,1.5,0,0"/>
                         </StackPanel>
                     </StackPanel>
@@ -263,7 +271,28 @@
                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Text="System Repair"
+                                    <TextBlock Text="Repair"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Advanced Group: App Uninstaller -->
+                            <Button x:Name="ToolAppUninstallBtn"
+                                    Style="{DynamicResource HeaderToolButton}"
+                                    ToolTip="Installed applications manager, uninstaller &amp; residual bloatware purger"
+                                    AutomationProperties.Name="App Uninstaller Tool"
+                                    Margin="0"
+                                    Click="OpenAppUninstallModal_Click">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE71D;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                               Margin="0,0,5,0"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="Apps"
                                                FontSize="11"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center"/>
@@ -273,14 +302,14 @@
                     </Border>
 
                     <!-- Right: Dedicated Admin Status & Quick Preferences Pod -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
                         <!-- Dedicated Admin Elevation Status Capsule -->
                         <Button x:Name="AdminElevationButton"
                                 Cursor="Hand"
                                 Background="Transparent"
                                 BorderThickness="0"
                                 Padding="0"
-                                Margin="0,0,8,0"
+                                Margin="0,0,6,0"
                                 Height="24"
                                 VerticalAlignment="Center"
                                 Click="AdminElevationButton_Click"
@@ -307,7 +336,7 @@
                                     BorderThickness="1"
                                     CornerRadius="12"
                                     Height="24"
-                                    Padding="8,0,9,0"
+                                    Padding="7,0,8,0"
                                     SnapsToDevicePixels="True"
                                     VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -359,7 +388,7 @@
                                 <!-- Language Selector Pill -->
                                 <ComboBox x:Name="LanguageComboBox"
                                           Style="{DynamicResource ModernComboBox}"
-                                          Width="76" Height="24"
+                                          Width="68" Height="24"
                                           AutomationProperties.Name="Select Application Language"
                                           Margin="0"
                                           SelectionChanged="LanguageComboBox_SelectionChanged">
@@ -552,6 +581,54 @@
                                                    VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
+
+                                <Button x:Name="HeroGameBoostBtn"
+                                        Style="{DynamicResource PillButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        Padding="14,6.5"
+                                        Margin="8,0,0,0"
+                                        ToolTip="1-Click Game Boost: sets Windows to Ultimate Performance, flushes standby RAM &amp; throttles background updaters"
+                                        AutomationProperties.Name="1-Click Game Boost"
+                                        Click="HeroGameBoostBtn_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock x:Name="HeroGameBoostIcon"
+                                                   Text="&#xE7FC;"
+                                                   FontFamily="{DynamicResource IconFont}"
+                                                   FontSize="11.5"
+                                                   Foreground="#10B981"
+                                                   Margin="0,0,6,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="HeroGameBoostBtnText"
+                                                   Text="Game Boost"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextHighBrush}"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button x:Name="HeroWinUtilBtn"
+                                        Style="{DynamicResource PillButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        Padding="14,6.5"
+                                        Margin="8,0,0,0"
+                                        ToolTip="Launch Chris Titus Tech Windows Utility (CTT WinUtil) for system debloating, tweaks &amp; winget installs"
+                                        AutomationProperties.Name="Launch Chris Titus WinUtil"
+                                        Click="HeroWinUtilBtn_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE756;"
+                                                   FontFamily="{DynamicResource IconFont}"
+                                                   FontSize="11.5"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                   Margin="0,0,6,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="CTT WinUtil"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextHighBrush}"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                         </StackPanel>
 
@@ -623,10 +700,35 @@
                                                      Background="Transparent"
                                                      BorderThickness="0"/>
                                     </Border>
-                                    <TextBlock x:Name="DriveTelemetryDetails"
-                                               Text="Calculating disk space..."
-                                               FontSize="10"
-                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                    <Grid>
+                                        <TextBlock x:Name="DriveTelemetryDetails"
+                                                   Text="Calculating disk space..."
+                                                   FontSize="10"
+                                                   Foreground="{DynamicResource TextMediumBrush}"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Border x:Name="DriveHealthBadge"
+                                                    Background="#142B20"
+                                                    BorderBrush="#3D10B981"
+                                                    BorderThickness="1"
+                                                    CornerRadius="5"
+                                                    Padding="5,1"
+                                                    Margin="0,0,6,0"
+                                                    ToolTip="NVMe / SSD Controller S.M.A.R.T. Health Status">
+                                                <TextBlock x:Name="DriveHealthText" Text="SSD 100%" FontSize="8.5" FontWeight="Bold" Foreground="#10B981"/>
+                                            </Border>
+                                            <Button x:Name="DriveBenchmarkBtn"
+                                                    Content="Speed Test"
+                                                    Style="{DynamicResource PillButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="6,2"
+                                                    FontSize="9"
+                                                    FontWeight="SemiBold"
+                                                    ToolTip="Run non-destructive sequential read speed test"
+                                                    Click="DriveBenchmarkBtn_Click"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </StackPanel>
                             </Border>
 
@@ -1265,7 +1367,7 @@
                     Background="{DynamicResource HeaderDockBrush}"
                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                     BorderThickness="0,1,0,0"
-                    CornerRadius="0,0,19,19"
+                    CornerRadius="0,0,11,11"
                     Padding="18,12"
                     AutomationProperties.Name="Bottom Action Dock"
                     AutomationProperties.HelpText="Controls for Safety Shield, audit log export, and executing cleanup operations">
@@ -1499,7 +1601,7 @@
                     Background="{DynamicResource SurfaceSubCardBrush}"
                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                     BorderThickness="0,1,0,0"
-                    CornerRadius="0,0,20,20"
+                    CornerRadius="0,0,11,11"
                     MaxHeight="150"
                     Visibility="Collapsed"
                     AutomationProperties.Name="Activity Log Drawer">
@@ -3316,12 +3418,13 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/><!-- Row 0: Header -->
-                            <RowDefinition Height="Auto"/><!-- Row 1: Search & Refresh -->
-                            <RowDefinition Height="*"/>   <!-- Row 2: List -->
-                            <RowDefinition Height="Auto"/><!-- Row 3: Footer -->
+                            <RowDefinition Height="Auto"/><!-- Row 1: Telemetry Hero Strip -->
+                            <RowDefinition Height="Auto"/><!-- Row 2: Filter & Search Toolbar -->
+                            <RowDefinition Height="*"/>   <!-- Row 3: Items List -->
+                            <RowDefinition Height="Auto"/><!-- Row 4: Footer -->
                         </Grid.RowDefinitions>
 
-                        <!-- Header -->
+                        <!-- Row 0: Header -->
                         <Grid Grid.Row="0" Margin="0,0,0,10">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Border Width="38" Height="38"
@@ -3342,7 +3445,7 @@
                                                FontSize="15"
                                                FontWeight="Bold"
                                                Foreground="{DynamicResource TextHighBrush}"/>
-                                    <TextBlock Text="Manage Windows &amp; registry startup entries with 100% reversible safety"
+                                    <TextBlock Text="Manage Windows, Registry &amp; Task Scheduler startup entries with 100% reversible safety"
                                                FontSize="11"
                                                Foreground="{DynamicResource TextMediumBrush}"/>
                                 </StackPanel>
@@ -3354,13 +3457,131 @@
                                     Click="CloseStartupModal_Click"/>
                         </Grid>
 
-                        <!-- Search & Refresh Toolbar -->
-                        <Grid Grid.Row="1" Margin="0,0,0,10">
+                        <!-- Row 1: Telemetry Hero Strip -->
+                        <Border Grid.Row="1"
+                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="4"
+                                Margin="0,0,0,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Pod 1: Total Apps -->
+                                <Border Grid.Column="0"
+                                        Background="{DynamicResource SurfaceCardBrush}"
+                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="12,7"
+                                        Margin="0,0,3,0">
+                                    <StackPanel>
+                                        <TextBlock Text="TOTAL APPS" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                        <TextBlock x:Name="StartupTotalAppsHeroText" Text="0 apps" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Pod 2: High Impact -->
+                                <Border Grid.Column="1"
+                                        Background="#241B12"
+                                        BorderBrush="#8CF59E0B"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="12,7"
+                                        Margin="2,0,3,0">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Ellipse Width="6" Height="6" Fill="#F59E0B" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="HIGH IMPACT" FontSize="9" FontWeight="Bold" Foreground="#F59E0B" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="StartupHighImpactHeroText" Text="0 high impact" FontSize="13" FontWeight="Bold" Foreground="#FBBF24" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Pod 3: Estimated Boot Delay -->
+                                <Border Grid.Column="2"
+                                        Background="{DynamicResource SurfaceCardBrush}"
+                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="12,7"
+                                        Margin="2,0,3,0">
+                                    <StackPanel>
+                                        <TextBlock Text="EST. BOOT DELAY" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                        <TextBlock x:Name="StartupBootDelayHeroText" Text="~0.0s delay" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Pod 4: Cleanable Orphaned -->
+                                <Border Grid.Column="3"
+                                        Background="#2A0E0E"
+                                        BorderBrush="#EF4444"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="12,7"
+                                        Margin="2,0,4,0">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Ellipse Width="6" Height="6" Fill="#EF4444" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="ORPHANED BROKEN" FontSize="9" FontWeight="Bold" Foreground="#F87171" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="StartupOrphanedHeroText" Text="0 cleanable" FontSize="13" FontWeight="Bold" Foreground="#FCA5A5" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Action: 1-Click Optimize Boot -->
+                                <Button Grid.Column="4"
+                                        x:Name="StartupOptimizeBootBtn"
+                                        Style="{DynamicResource HeroCTAButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        Padding="14,7"
+                                        FontSize="11"
+                                        FontWeight="Bold"
+                                        VerticalAlignment="Center"
+                                        Margin="2,0,2,0"
+                                        ToolTip="Automatically disable non-essential high-impact apps to maximize boot speed"
+                                        Click="StartupOptimizeBootBtn_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE7E8;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Optimize Boot" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <!-- Row 2: Filter Tabs & Search Toolbar -->
+                        <Grid Grid.Row="2" Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
+
+                            <!-- Filter Tabs Island -->
                             <Border Grid.Column="0"
+                                    Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="2"
+                                    Margin="0,0,10,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button x:Name="StartupFilterAllBtn" Style="{DynamicResource HeaderToolButton}" Tag="Active" Content="All" Click="StartupFilterTab_Click"/>
+                                    <Button x:Name="StartupFilterHighBtn" Style="{DynamicResource HeaderToolButton}" Content="High Impact" Click="StartupFilterTab_Click"/>
+                                    <Button x:Name="StartupFilterDisabledBtn" Style="{DynamicResource HeaderToolButton}" Content="Disabled" Click="StartupFilterTab_Click"/>
+                                    <Button x:Name="StartupFilterOrphanedBtn" Style="{DynamicResource HeaderToolButton}" Content="Orphaned" Click="StartupFilterTab_Click"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Search Box -->
+                            <Border Grid.Column="1"
                                     Background="{DynamicResource SurfaceSubCardBrush}"
                                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                                     BorderThickness="1"
@@ -3388,7 +3609,7 @@
                                              TextChanged="StartupSearchBox_TextChanged"/>
                                     <TextBlock Grid.Column="1"
                                                x:Name="StartupSearchPlaceholder"
-                                               Text="Search startup apps by name, publisher, or path..."
+                                               Text="Search startup apps by name, publisher, location, or command..."
                                                Foreground="{DynamicResource TextMutedBrush}"
                                                FontSize="11"
                                                VerticalAlignment="Center"
@@ -3396,37 +3617,62 @@
                                                Opacity="0.7"/>
                                 </Grid>
                             </Border>
-                            <Button Grid.Column="1"
-                                    x:Name="RefreshStartupBtn"
-                                    Style="{DynamicResource HeaderToolButton}"
-                                    ToolTip="Refresh Startup List"
-                                    Margin="8,0,0,0"
-                                    Height="28"
-                                    Click="RefreshStartup_Click">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="&#xE72C;"
-                                               FontFamily="{DynamicResource IconFont}"
-                                               FontSize="11"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"
-                                               Margin="0,0,4,0"
-                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="Refresh"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
+
+                            <!-- Actions: AI Analyze All & Refresh -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <!-- AI Analyze All Button -->
+                                <Button x:Name="StartupBatchAiBtn"
+                                        Style="{DynamicResource HeaderToolButton}"
+                                        ToolTip="Analyze unknown startup entries with AI to assess boot &amp; system disable consequences"
+                                        Margin="8,0,0,0"
+                                        Height="28"
+                                        Click="StartupBatchAi_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE946;"
+                                                   FontFamily="{DynamicResource IconFont}"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                   Margin="0,0,4,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="AI Analyze All"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Refresh Button -->
+                                <Button x:Name="RefreshStartupBtn"
+                                        Style="{DynamicResource HeaderToolButton}"
+                                        ToolTip="Refresh Startup List"
+                                        Margin="8,0,0,0"
+                                        Height="28"
+                                        Click="RefreshStartup_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE72C;"
+                                                   FontFamily="{DynamicResource IconFont}"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                   Margin="0,0,4,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="Refresh"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
                         </Grid>
 
-                        <!-- Startup Items List -->
-                        <Border Grid.Row="2"
+                        <!-- Row 3: Startup Items List (Uncapped natural stretch) -->
+                        <Border Grid.Row="3"
                                 Background="{DynamicResource SurfaceSubCardBrush}"
                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="12"
                                 Padding="12,8"
-                                Margin="0,0,0,12"
-                                MaxHeight="380">
+                                Margin="0,0,0,10"
+                                MinHeight="140">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <ItemsControl x:Name="StartupItemsControl">
                                     <ItemsControl.ItemTemplate>
@@ -3435,67 +3681,251 @@
                                                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="10"
-                                                    Padding="12,8"
+                                                    Padding="12,9"
                                                     Margin="0,0,0,6">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
-                                                        <TextBlock Text="{Binding DisplayTitle}"
-                                                                   FontSize="12"
-                                                                   FontWeight="Bold"
-                                                                   Foreground="{DynamicResource TextHighBrush}"
-                                                                   TextTrimming="CharacterEllipsis"/>
-                                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                                            <TextBlock Text="{Binding Publisher}"
-                                                                       FontSize="10"
-                                                                       Foreground="{DynamicResource TextMediumBrush}"
-                                                                       TextTrimming="CharacterEllipsis"/>
-                                                            <TextBlock Text=" • "
-                                                                       FontSize="10"
-                                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                                            <TextBlock Text="{Binding LocationDisplay}"
-                                                                       FontSize="9.5"
-                                                                       Foreground="{DynamicResource ElectricCyanBrush}"/>
-                                                        </StackPanel>
-                                                    </StackPanel>
-                                                    <Border Grid.Column="1"
-                                                            Background="{DynamicResource SurfaceSubCardBrush}"
-                                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                            BorderThickness="1"
-                                                            CornerRadius="6"
-                                                            Padding="8,3"
-                                                            Margin="8,0"
-                                                            VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding ImpactText}"
-                                                                   FontSize="10"
-                                                                   FontWeight="Bold"
-                                                                   Foreground="{Binding ImpactColor}"/>
-                                                    </Border>
-                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <Border Visibility="{Binding ProtectedBadgeVisibility}"
-                                                                Background="#142B20"
-                                                                BorderBrush="#3D10B981"
+                                                <StackPanel>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <!-- Col 0: App Icon + Name + Badges + Subtitles -->
+                                                        <Grid Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <!-- Native App Icon / Category Fallback Glyph -->
+                                                            <Grid Grid.Column="0" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                                <Border Background="{Binding DisableBadgeBackground}"
+                                                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                                        BorderThickness="1"
+                                                                        CornerRadius="6">
+                                                                    <TextBlock Text="{Binding FallbackGlyph}"
+                                                                               FontFamily="{DynamicResource IconFont}"
+                                                                               FontSize="12"
+                                                                               Foreground="{Binding DisableBadgeColor}"
+                                                                               HorizontalAlignment="Center"
+                                                                               VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <Image Source="{Binding AppIcon}"
+                                                                       Width="22"
+                                                                       Height="22"
+                                                                       RenderOptions.BitmapScalingMode="HighQuality"
+                                                                       VerticalAlignment="Center"
+                                                                       HorizontalAlignment="Center"
+                                                                       Visibility="{Binding HasAppIcon, Converter={StaticResource BoolToVisConverter}}"/>
+                                                            </Grid>
+
+                                                            <!-- Title, Verdict Pill & Consequence Details -->
+                                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding DisplayTitle}"
+                                                                               FontSize="12"
+                                                                               FontWeight="Bold"
+                                                                               Foreground="{DynamicResource TextHighBrush}"
+                                                                               TextTrimming="CharacterEllipsis"
+                                                                               MaxWidth="280"/>
+
+                                                                    <!-- Safety Verdict Badge (Safe / Caution / Keep) -->
+                                                                    <Border Background="{Binding DisableBadgeBackground}"
+                                                                            BorderBrush="{Binding DisableBadgeColor}"
+                                                                            BorderThickness="1"
+                                                                            CornerRadius="4"
+                                                                            Padding="5,1"
+                                                                            Margin="7,0,0,0"
+                                                                            VerticalAlignment="Center">
+                                                                        <TextBlock Text="{Binding DisableVerdictDisplay}"
+                                                                                   FontSize="8.5"
+                                                                                   FontWeight="Bold"
+                                                                                   Foreground="{Binding DisableBadgeColor}"/>
+                                                                    </Border>
+
+                                                                    <!-- AI Verified Badge -->
+                                                                    <Border Background="#1A10B981"
+                                                                            BorderBrush="#3310B981"
+                                                                            BorderThickness="1"
+                                                                            CornerRadius="4"
+                                                                            Padding="4,1"
+                                                                            Margin="4,0,0,0"
+                                                                            VerticalAlignment="Center"
+                                                                            Visibility="{Binding IsAiEnriched, Converter={StaticResource BoolToVisConverter}}"
+                                                                            ToolTip="{Binding AiProviderUsed, StringFormat='Analyzed by {0}'}">
+                                                                        <TextBlock Text="AI BRIEFED"
+                                                                                   FontSize="8"
+                                                                                   FontWeight="Bold"
+                                                                                   Foreground="#10B981"/>
+                                                                    </Border>
+                                                                </StackPanel>
+
+                                                                <!-- Consequence Explanation Line -->
+                                                                <TextBlock FontSize="10"
+                                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                                           TextTrimming="CharacterEllipsis"
+                                                                           Margin="0,2,0,0">
+                                                                    <Run Text="If disabled: " FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>
+                                                                    <Run Text="{Binding DisableImpact, Mode=OneWay}"/>
+                                                                </TextBlock>
+
+                                                                <!-- Publisher & Hive Location Subtitle -->
+                                                                <StackPanel Orientation="Horizontal" Margin="0,1,0,0">
+                                                                    <TextBlock Text="{Binding Publisher}"
+                                                                               FontSize="9.5"
+                                                                               Foreground="{DynamicResource TextMutedBrush}"
+                                                                               TextTrimming="CharacterEllipsis"
+                                                                               MaxWidth="220"/>
+                                                                    <TextBlock Text=" • "
+                                                                               FontSize="9.5"
+                                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                                    <TextBlock Text="{Binding LocationDisplay}"
+                                                                               FontSize="9.5"
+                                                                               Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                                </StackPanel>
+                                                            </StackPanel>
+                                                        </Grid>
+
+                                                        <!-- Col 1: Boot Impact Badge -->
+                                                        <Border Grid.Column="1"
+                                                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
                                                                 BorderThickness="1"
                                                                 CornerRadius="6"
-                                                                Padding="6,2"
-                                                                Margin="0,0,8,0"
-                                                                ToolTip="Essential Windows system component. Modifying this entry may affect system stability.">
-                                                            <TextBlock Text="⊘ Protected"
-                                                                       FontSize="9.5"
-                                                                       FontWeight="SemiBold"
-                                                                       Foreground="#34D399"/>
+                                                                Padding="8,3"
+                                                                Margin="6,0"
+                                                                VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding ImpactText}"
+                                                                       FontSize="10"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="{Binding ImpactColor}"/>
                                                         </Border>
-                                                        <CheckBox Style="{DynamicResource ModernSwitchCheckBox}"
+
+                                                        <!-- Col 2: Action Buttons -->
+                                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <!-- Clean Orphaned Button -->
+                                                            <Button Style="{DynamicResource PillButton}"
+                                                                    Visibility="{Binding OrphanedCleanVisibility}"
+                                                                    Padding="7,3"
+                                                                    Margin="0,0,5,0"
+                                                                    ToolTip="Delete this orphaned startup entry cleanly"
+                                                                    Click="StartupCleanOrphaned_Click">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="&#xE74D;" FontFamily="{DynamicResource IconFont}" FontSize="10" Foreground="{DynamicResource DestructiveRedBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="Clean" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource DestructiveRedBrush}" VerticalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Button>
+
+                                                            <!-- AI Info Deep Briefing Button -->
+                                                            <Button Style="{DynamicResource PillButton}"
+                                                                    Padding="7,3"
+                                                                    Margin="0,0,5,0"
+                                                                    ToolTip="Get in-depth AI analysis of this startup program and disabling consequences"
+                                                                    Click="StartupItemAi_Click">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="&#xE946;" FontFamily="{DynamicResource IconFont}" FontSize="10" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="AI Info" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}" VerticalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Button>
+
+                                                            <!-- Reveal in Explorer Button -->
+                                                            <Button Style="{DynamicResource PillButton}"
+                                                                    Visibility="{Binding RevealVisibility}"
+                                                                    Padding="7,3"
+                                                                    Margin="0,0,5,0"
+                                                                    ToolTip="Reveal file location in File Explorer"
+                                                                    Click="StartupReveal_Click">
+                                                                <TextBlock Text="&#xED25;" FontFamily="{DynamicResource IconFont}" FontSize="11" VerticalAlignment="Center"/>
+                                                            </Button>
+
+                                                            <!-- Search Online Button -->
+                                                            <Button Style="{DynamicResource PillButton}"
+                                                                    Padding="7,3"
+                                                                    Margin="0,0,6,0"
+                                                                    ToolTip="Search web for process reputation &amp; safety"
+                                                                    Click="StartupSearchOnline_Click">
+                                                                <TextBlock Text="&#xE721;" FontFamily="{DynamicResource IconFont}" FontSize="10.5" Foreground="{DynamicResource ElectricCyanBrush}" VerticalAlignment="Center"/>
+                                                            </Button>
+
+                                                            <!-- Protected Badge -->
+                                                            <Border Visibility="{Binding ProtectedBadgeVisibility}"
+                                                                    Background="#142B20"
+                                                                    BorderBrush="#3D10B981"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="6"
+                                                                    Padding="6,2"
+                                                                    Margin="0,0,6,0"
+                                                                    ToolTip="Essential Windows system component. Modifying this entry may affect system stability.">
+                                                                <TextBlock Text="⊘ Protected"
+                                                                           FontSize="9.5"
+                                                                           FontWeight="SemiBold"
+                                                                           Foreground="#34D399"/>
+                                                            </Border>
+                                                        </StackPanel>
+
+                                                        <!-- Col 3: Toggle Switch -->
+                                                        <CheckBox Grid.Column="3"
+                                                                  Style="{DynamicResource ModernSwitchCheckBox}"
                                                                   IsChecked="{Binding IsEnabled}"
                                                                   IsEnabled="{Binding CanToggle}"
                                                                   VerticalAlignment="Center"
+                                                                  Margin="4,0,0,0"
                                                                   Click="StartupSwitch_Click"/>
-                                                    </StackPanel>
-                                                </Grid>
+                                                    </Grid>
+
+                                                    <!-- Expandable AI Deep Intelligence Card -->
+                                                    <Border Visibility="{Binding ExpandedVisibility}"
+                                                            Background="{DynamicResource SurfaceSubCardBrush}"
+                                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="8"
+                                                            Padding="10,8"
+                                                            Margin="0,8,0,0">
+                                                        <Grid>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                            </Grid.RowDefinitions>
+
+                                                            <!-- Header row with source provider badge and close -->
+                                                            <Grid Grid.Row="0" Margin="0,0,0,6">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <TextBlock Text="&#xE946;" FontFamily="{DynamicResource IconFont}" FontSize="11" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="Startup Intelligence Briefing" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}"/>
+                                                                    <Border Background="#143B82F6" CornerRadius="3" Padding="5,1" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                                        <TextBlock Text="{Binding AiProviderUsed, FallbackValue='Offline Intelligence'}" FontSize="8.5" FontWeight="SemiBold" Foreground="#60A5FA"/>
+                                                                    </Border>
+                                                                </StackPanel>
+                                                                <Button Style="{DynamicResource WindowCloseButton}"
+                                                                        Content="&#xE8BB;"
+                                                                        FontFamily="{DynamicResource IconFont}"
+                                                                        FontSize="9"
+                                                                        HorizontalAlignment="Right"
+                                                                        Width="18"
+                                                                        Height="18"
+                                                                        Click="StartupItemCloseExpand_Click"/>
+                                                            </Grid>
+
+                                                            <!-- Content: What is it, Disabling impact, and recommendation -->
+                                                            <StackPanel Grid.Row="1">
+                                                                <TextBlock FontSize="10.5" Foreground="{DynamicResource TextMediumBrush}" TextWrapping="Wrap">
+                                                                    <Run Text="What it is: " FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>
+                                                                    <Run Text="{Binding Description, Mode=OneWay}"/>
+                                                                </TextBlock>
+                                                                <TextBlock FontSize="10.5" Foreground="{DynamicResource TextMediumBrush}" TextWrapping="Wrap" Margin="0,3,0,0">
+                                                                    <Run Text="Disabling Impact: " FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>
+                                                                    <Run Text="{Binding DisableImpact, Mode=OneWay}"/>
+                                                                </TextBlock>
+                                                                <TextBlock FontSize="10.5" Foreground="{DynamicResource TextMediumBrush}" TextWrapping="Wrap" Margin="0,3,0,0">
+                                                                    <Run Text="Recommendation: " FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>
+                                                                    <Run Text="{Binding Recommendation, Mode=OneWay}"/>
+                                                                </TextBlock>
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                </StackPanel>
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -3503,8 +3933,8 @@
                             </ScrollViewer>
                         </Border>
 
-                        <!-- Footer Actions -->
-                        <Grid Grid.Row="3">
+                        <!-- Row 4: Footer Actions -->
+                        <Grid Grid.Row="4">
                             <TextBlock x:Name="StartupStatusText"
                                        Text="Toggles use safe backup keys • Zero registry corruption"
                                        FontSize="10.5"
@@ -3805,8 +4235,7 @@
                                 CornerRadius="12"
                                 Padding="8,6"
                                 Margin="0,0,0,10"
-                                MinHeight="120"
-                                MaxHeight="280">
+                                MinHeight="140">
                             <Grid>
                                 <!-- File list -->
                                 <ScrollViewer VerticalScrollBarVisibility="Auto" CanContentScroll="True">
@@ -4213,7 +4642,7 @@
                                 CornerRadius="12"
                                 Padding="12,8"
                                 Margin="0,0,0,12"
-                                MaxHeight="380">
+                                MinHeight="140">
                             <ScrollViewer VerticalScrollBarVisibility="Auto" CanContentScroll="True">
                                 <ItemsControl x:Name="ProcessItemsControl">
                                     <ItemsControl.ItemsPanel>
@@ -4238,20 +4667,26 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
 
-                                                    <!-- Category Icon Badge -->
-                                                    <Border Grid.Column="0"
-                                                            Width="32" Height="32"
-                                                            CornerRadius="8"
-                                                            Background="{DynamicResource SurfaceSubCardBrush}"
-                                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                            BorderThickness="1"
-                                                            Margin="0,0,10,0"
-                                                            VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding CategoryIcon}"
-                                                                   FontSize="14"
-                                                                   HorizontalAlignment="Center"
-                                                                   VerticalAlignment="Center"/>
-                                                    </Border>
+                                                    <!-- Process Icon / Category Fallback Badge -->
+                                                    <Grid Grid.Column="0" Width="32" Height="32" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                        <Border Width="32" Height="32"
+                                                                CornerRadius="8"
+                                                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                                BorderThickness="1">
+                                                            <TextBlock Text="{Binding CategoryIcon}"
+                                                                       FontSize="14"
+                                                                       HorizontalAlignment="Center"
+                                                                       VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <Image Source="{Binding AppIcon}"
+                                                               Width="26"
+                                                               Height="26"
+                                                               RenderOptions.BitmapScalingMode="HighQuality"
+                                                               VerticalAlignment="Center"
+                                                               HorizontalAlignment="Center"
+                                                               Visibility="{Binding HasAppIcon, Converter={StaticResource BoolToVisConverter}}"/>
+                                                    </Grid>
 
                                                     <!-- App Name & Dynamic Category Description -->
                                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
@@ -4344,6 +4779,11 @@
 
         <!-- WINDOWS SYSTEM INTEGRITY & CORRUPTION REPAIR WORKSPACE MODAL -->
         <modals:SystemRepairModal x:Name="SystemRepairModalOverlay"
+                                  Grid.Row="1" Grid.RowSpan="4"
+                                  Visibility="Collapsed"/>
+
+        <!-- INSTALLED APPS & RESIDUAL BLOATWARE UNINSTALLER MODAL -->
+        <modals:AppUninstallModal x:Name="AppUninstallModalOverlay"
                                   Grid.Row="1" Grid.RowSpan="4"
                                   Visibility="Collapsed"/>
     </Grid>

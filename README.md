@@ -9,14 +9,14 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?label=Release&color=06B6D4" alt="Latest Release" /></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&label=CI%20Build" alt="CI Build Status" /></a>
-    <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/Tests-480%20Passed%20(0%20failed)-10B981" alt="Tests: 480 Passed" /></a>
+    <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/Tests-581%20Passed%20(0%20failed)-10B981" alt="Tests: 581 Passed" /></a>
     <a href="docs/THREAT_MODEL.md"><img src="https://img.shields.io/badge/Security-STRIDE%20Hardened-8B5CF6" alt="STRIDE Hardened" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/github/license/Beso1227/Deltempo?color=10B981" alt="License: MIT" /></a>
     <a href="#supported-platforms"><img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20(x64)-0078D4" alt="Platform Support" /></a>
   </p>
 
   <p>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest">Download v1.6.5</a> •
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest">Download v1.7.0</a> •
     <a href="https://beso1227.github.io/Deltempo/"><strong>Deltempo Official Website</strong></a> •
     <a href="docs/ARCHITECTURE.md">Architecture</a> •
     <a href="docs/THREAT_MODEL.md">Threat Model</a> •
@@ -37,11 +37,11 @@
 | :--- | :--- |
 | **Official Website** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **Platform** | Windows 10 & 11 (64-bit / x64) |
-| **Version** | v1.6.5 (Production Release) |
+| **Version** | v1.7.0 (Production Release) |
 | **License** | Open Source ([MIT](LICENSE)) |
 | **Interfaces** | Modern Desktop GUI (WPF Fluent) and Headless Terminal CLI |
 | **Distribution** | Portable single-file executable (self-contained, no installer required) |
-| **Test Coverage** | 501 automated tests (100% pass rate, 0 failed, 0 skipped), adversarial filesystem fuzzing |
+| **Test Coverage** | 581 automated tests (100% pass rate, 0 failed, 0 skipped), adversarial filesystem fuzzing |
 | **Telemetry** | Zero telemetry. Scan, clean, and memory operations execute 100% offline |
 | **Safety Engine** | Two-phase planning (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) with 5 risk tiers & transaction journaling |
 | **Memory Engine** | Native Windows NT kernel calls (`NtSetSystemInformation`, `EmptyWorkingSet`) |

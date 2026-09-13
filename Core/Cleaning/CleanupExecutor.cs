@@ -539,8 +539,12 @@ public static class CleanupExecutor
             return false;
         }
 
-        // Enforce that System files are NEVER deleted
-        if ((fsi.Attributes & FileAttributes.System) != 0)
+        // Enforce that System files are NEVER deleted (unless verified Windows Explorer thumbnail cache database)
+        bool isExplorerThumbcache = canonicalPath.Contains(@"\Microsoft\Windows\Explorer\", StringComparison.OrdinalIgnoreCase) &&
+                                    (Path.GetFileName(canonicalPath).StartsWith("thumbcache_", StringComparison.OrdinalIgnoreCase) ||
+                                     Path.GetFileName(canonicalPath).StartsWith("iconcache_", StringComparison.OrdinalIgnoreCase));
+
+        if ((fsi.Attributes & FileAttributes.System) != 0 && !isExplorerThumbcache)
         {
             failureReason = "Target has System attribute set.";
             reasonCode = FileCleanupFailureReason.SystemAttributeSet;
@@ -615,9 +619,17 @@ public static class CleanupExecutor
         try
         {
             var fi = new FileInfo(path);
-            if (fi.Exists && (fi.Attributes & FileAttributes.ReadOnly) != 0)
+            if (fi.Exists)
             {
-                fi.Attributes &= ~FileAttributes.ReadOnly;
+                if ((fi.Attributes & FileAttributes.ReadOnly) != 0)
+                {
+                    fi.Attributes &= ~FileAttributes.ReadOnly;
+                }
+                if ((fi.Attributes & (FileAttributes.System | FileAttributes.Hidden)) != 0 &&
+                    path.Contains(@"\Microsoft\Windows\Explorer\", StringComparison.OrdinalIgnoreCase))
+                {
+                    fi.Attributes = FileAttributes.Normal;
+                }
             }
 
             if (DeleteFileW(path))

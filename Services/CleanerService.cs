@@ -420,16 +420,16 @@ public partial class CleanerService
                 IsSelected = isAdmin
             },
 
-            // 22. Explorer Thumbnails
+            // 22. Explorer Thumbnails (thumbcache)
             new TargetFolderInfo
             {
                 Id = "Thumbnails",
-                Name = "Explorer Thumbnail Cache",
+                Name = "Explorer Thumbnail Cache (thumbcache)",
                 Category = "Diagnostics",
                 CategoryColor = "#06B6D4",
                 SafetyBadge = "✓ SAFE • Cache",
                 SafetyBadgeColor = "#10B981",
-                Description = "Cached image & video thumbnail databases (thumbcache_*.db)",
+                Description = "Windows Explorer thumbnail and icon cache databases (thumbcache_*.db, iconcache_*.db)",
                 FolderPath = explorerThumbnails,
                 IconGlyph = "\uE8B9",
                 RequiresAdmin = false,

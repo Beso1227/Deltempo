@@ -47,6 +47,8 @@ public partial class MainWindow : Window
         MemoryModalOverlay.LogRequested += AddLog;
         MemoryModalOverlay.TelemetryRefreshRequested += UpdateMemoryTelemetry;
         MemoryModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
+        AppUninstallModalOverlay.LogRequested += AddLog;
+        AppUninstallModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
 
         _targetsCollectionView = CollectionViewSource.GetDefaultView(_targets);
         _targetsCollectionView.Filter = FilterTargetPredicate;
@@ -112,6 +114,10 @@ public partial class MainWindow : Window
         if (PresentationSource.FromVisual(this) is HwndSource source)
         {
             SetupNativeWindowIcons(source.Handle);
+
+            // Apply native Windows 11 immersive dark mode and round corner hints
+            DwmBackdropService.ApplyDarkMode(source.Handle, isDarkMode: true);
+            DwmBackdropService.ApplyWindowCorners(source.Handle, DwmBackdropService.DWMWCP_ROUND);
 
             _restoreMsgId = SingleInstanceManager.RegisterWindowMessage(SingleInstanceManager.ShowWindowMessageName);
             if (_restoreMsgId != 0)
@@ -305,6 +311,23 @@ public partial class MainWindow : Window
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         _isLoaded = true;
+        try
+        {
+            var workArea = SystemParameters.WorkArea;
+            if (workArea.Width > 0 && workArea.Height > 0)
+            {
+                if (Width > workArea.Width)
+                {
+                    Width = Math.Max(MinWidth, workArea.Width - 32);
+                }
+                if (Height > workArea.Height)
+                {
+                    Height = Math.Max(MinHeight, workArea.Height - 32);
+                }
+            }
+        }
+        catch { }
+
         CheckAdminPrivileges();
         UpdateDriveTelemetry();
         UpdateMemoryTelemetry();
@@ -527,6 +550,18 @@ public partial class MainWindow : Window
         DriveTelemetryDetails.Text = $"{telemetry.FormattedFree} free of {telemetry.FormattedTotal}";
         DriveUsageBar.Value = telemetry.UsedPercentage;
 
+        // Update S.M.A.R.T. Health Pill
+        try
+        {
+            var health = DriveHealthService.GetDriveHealthSnapshot(telemetry.DriveLetter);
+            DriveHealthText.Text = $"SSD {health.HealthScore}%";
+            if (new BrushConverter().ConvertFromString(health.HealthColor) is Brush healthBrush)
+            {
+                DriveHealthText.Foreground = healthBrush;
+            }
+        }
+        catch { }
+
         if (additionalFreedBytes > 0)
         {
             _sessionTotalFreed += additionalFreedBytes;
@@ -534,6 +569,88 @@ public partial class MainWindow : Window
         }
 
         TrayService.CheckLowDiskSpaceAndNotify(telemetry);
+    }
+
+    private async void DriveBenchmarkBtn_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        DriveBenchmarkBtn.IsEnabled = false;
+        DriveBenchmarkBtn.Content = "Testing...";
+        AddLog("[Storage Benchmark] Running non-destructive sequential read speed test on OS drive...", LogLevel.Info);
+
+        try
+        {
+            var res = await DriveHealthService.RunQuickReadBenchmarkAsync("C:", null, CancellationToken.None);
+            DriveBenchmarkBtn.Content = res.FormattedSpeed;
+            AddLog($"[Storage Benchmark] Complete: {res.FormattedSpeed} sustained read on {res.DriveLetter} ({res.ExecutionTimeMs}ms).", LogLevel.Success);
+            SoundService.PlaySuccessSound();
+        }
+        catch (Exception ex)
+        {
+            DriveBenchmarkBtn.Content = "Retry";
+            AddLog($"[Storage Benchmark Error] {ex.Message}", LogLevel.Warning);
+        }
+        finally
+        {
+            DriveBenchmarkBtn.IsEnabled = true;
+        }
+    }
+
+    private async void HeroGameBoostBtn_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        HeroGameBoostBtn.IsEnabled = false;
+
+        bool targetState = !GameBoostService.IsBoostActive;
+        HeroGameBoostBtnText.Text = targetState ? "Engaging..." : "Restoring...";
+
+        try
+        {
+            var res = await GameBoostService.ToggleGameBoostAsync(targetState, CancellationToken.None);
+
+            if (res.IsActive)
+            {
+                HeroGameBoostBtnText.Text = "Boost Active";
+                HeroGameBoostIcon.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981"));
+                HeroGameBoostBtn.ToolTip = "Game Boost Active: Ultimate Performance profile engaged, standby RAM purged, background tasks throttled. Click to disable.";
+                AddLog($"[Game Boost] {res.Message}", LogLevel.Success);
+                SoundService.PlaySuccessSound();
+            }
+            else
+            {
+                HeroGameBoostBtnText.Text = "Game Boost";
+                HeroGameBoostIcon.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8"));
+                HeroGameBoostBtn.ToolTip = "1-Click Game Boost: sets Windows to Ultimate Performance, flushes standby RAM & throttles background updaters";
+                AddLog($"[Game Boost] {res.Message}", LogLevel.Info);
+                SoundService.PlayClickSound();
+            }
+
+            UpdateDriveTelemetry();
+        }
+        catch (Exception ex)
+        {
+            AddLog($"[Game Boost Error] Failed to switch state: {ex.Message}", LogLevel.Warning);
+            HeroGameBoostBtnText.Text = "Game Boost";
+        }
+        finally
+        {
+            HeroGameBoostBtn.IsEnabled = true;
+        }
+    }
+
+    private void HeroWinUtilBtn_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        AddLog("[CTT WinUtil] Launching Chris Titus Tech Windows Utility in elevated session...", LogLevel.Info);
+        bool launched = SystemRepairService.LaunchChrisTitusWinUtil(out string error);
+        if (launched)
+        {
+            AddLog("[CTT WinUtil] Chris Titus Tech WinUtil launched successfully in elevated PowerShell terminal.", LogLevel.Success);
+        }
+        else if (!string.IsNullOrEmpty(error))
+        {
+            AddLog($"[CTT WinUtil] {error}", LogLevel.Warning);
+        }
     }
 
     private void InitializeTargets()
@@ -583,6 +700,23 @@ public partial class MainWindow : Window
             {
                 MasterShellBorder.Margin = new Thickness(0);
                 MasterShellBorder.CornerRadius = new CornerRadius(0);
+                MasterShellBorder.BorderThickness = new Thickness(0);
+            }
+            if (FindName("InnerClippingShell") is Border innerClip)
+            {
+                innerClip.CornerRadius = new CornerRadius(0);
+            }
+            if (FindName("TitleBarBorder") is Border titleBar)
+            {
+                titleBar.CornerRadius = new CornerRadius(0);
+            }
+            if (FindName("BottomActionDockBorder") is Border bottomDock)
+            {
+                bottomDock.CornerRadius = new CornerRadius(0);
+            }
+            if (FindName("LogDrawerBorder") is Border logDrawer)
+            {
+                logDrawer.CornerRadius = new CornerRadius(0);
             }
         }
         else
@@ -594,8 +728,25 @@ public partial class MainWindow : Window
             }
             if (MasterShellBorder != null)
             {
-                MasterShellBorder.Margin = new Thickness(12);
-                MasterShellBorder.CornerRadius = new CornerRadius(20);
+                MasterShellBorder.Margin = new Thickness(0);
+                MasterShellBorder.CornerRadius = new CornerRadius(12);
+                MasterShellBorder.BorderThickness = new Thickness(1);
+            }
+            if (FindName("InnerClippingShell") is Border innerClip)
+            {
+                innerClip.CornerRadius = new CornerRadius(11);
+            }
+            if (FindName("TitleBarBorder") is Border titleBar)
+            {
+                titleBar.CornerRadius = new CornerRadius(11, 11, 0, 0);
+            }
+            if (FindName("BottomActionDockBorder") is Border bottomDock)
+            {
+                bottomDock.CornerRadius = new CornerRadius(0, 0, 11, 11);
+            }
+            if (FindName("LogDrawerBorder") is Border logDrawer)
+            {
+                logDrawer.CornerRadius = new CornerRadius(0, 0, 11, 11);
             }
         }
     }
@@ -659,6 +810,11 @@ public partial class MainWindow : Window
                 CloseSystemRepairModal_Click(sender, e);
                 e.Handled = true;
             }
+            else if (AppUninstallModalOverlay.Visibility == Visibility.Visible)
+            {
+                AppUninstallModalOverlay.CloseModal();
+                e.Handled = true;
+            }
         }
         else if (e.Key == Key.Tab)
         {
@@ -674,6 +830,7 @@ public partial class MainWindow : Window
             else if (UpdateModalOverlay.Visibility == Visibility.Visible) activeModal = UpdateModalOverlay;
             else if (MemoryModalOverlay.Visibility == Visibility.Visible) activeModal = MemoryModalOverlay;
             else if (SystemRepairModalOverlay.Visibility == Visibility.Visible) activeModal = SystemRepairModalOverlay;
+            else if (AppUninstallModalOverlay.Visibility == Visibility.Visible) activeModal = AppUninstallModalOverlay;
             else if (AboutModalOverlay.Visibility == Visibility.Visible) activeModal = AboutModalOverlay;
 
             if (activeModal != null)
@@ -755,7 +912,8 @@ public partial class MainWindow : Window
         Startup,
         Processes,
         Memory,
-        SystemRepair
+        SystemRepair,
+        Apps
     }
 
     private WorkspaceView _currentWorkspace = WorkspaceView.Cleaner;
@@ -794,6 +952,9 @@ public partial class MainWindow : Window
         if (SystemRepairModalOverlay != null)
             SystemRepairModalOverlay.Visibility = (view == WorkspaceView.SystemRepair) ? Visibility.Visible : Visibility.Collapsed;
 
+        if (AppUninstallModalOverlay != null)
+            AppUninstallModalOverlay.Visibility = (view == WorkspaceView.Apps) ? Visibility.Visible : Visibility.Collapsed;
+
         UpdateWorkspaceNavButtons(view);
 
         switch (view)
@@ -817,6 +978,9 @@ public partial class MainWindow : Window
             case WorkspaceView.SystemRepair:
                 SystemRepairModalOverlay?.RefreshSystemRepairAdminStatus();
                 break;
+            case WorkspaceView.Apps:
+                AppUninstallModalOverlay?.Open();
+                break;
         }
     }
 
@@ -828,6 +992,12 @@ public partial class MainWindow : Window
         if (ToolProcessesBtn != null) ToolProcessesBtn.Tag = (view == WorkspaceView.Processes) ? "Active" : null;
         if (ToolMemoryBtn != null) ToolMemoryBtn.Tag = (view == WorkspaceView.Memory) ? "Active" : null;
         if (ToolSystemRepairBtn != null) ToolSystemRepairBtn.Tag = (view == WorkspaceView.SystemRepair) ? "Active" : null;
+        if (ToolAppUninstallBtn != null) ToolAppUninstallBtn.Tag = (view == WorkspaceView.Apps) ? "Active" : null;
+    }
+
+    private void OpenAppUninstallModal_Click(object sender, RoutedEventArgs e)
+    {
+        SwitchWorkspaceView(WorkspaceView.Apps);
     }
 
     private void NavCleaner_Click(object sender, RoutedEventArgs e)

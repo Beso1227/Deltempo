@@ -845,7 +845,7 @@
 
     const cliResponses = {
       'deltempo status':
-        '<span style="color:var(--accent-cyan);font-weight:700;">>>> Deltempo System Telemetry (v1.6.5)</span>\n' +
+        '<span style="color:var(--accent-cyan);font-weight:700;">>>> Deltempo System Telemetry (v1.7.0)</span>\n' +
         '  OS Platform: Windows 11 Pro 64-bit (24H2)\n' +
         '  Privileges: Standard Invoker (Restart Manager available)\n' +
         '  Physical Memory: 15.9 GB total | 5.2 GB active | 5.8 GB standby\n' +

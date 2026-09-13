@@ -192,17 +192,27 @@
                                                        Margin="0,3,0,0"/>
                                         </StackPanel>
 
-                                        <Button Grid.Column="2"
-                                                x:Name="HeroAutonomousRepairBtn"
-                                                Content="Run Autonomous Repair"
-                                                Style="{DynamicResource HeroCTAButton}"
-                                                FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                Padding="18,8"
-                                                FontSize="11.5"
-                                                FontWeight="SemiBold"
-                                                VerticalAlignment="Center"
-                                                Margin="14,0,0,0"
-                                                Click="RunAutonomousRepair_Click"/>
+                                        <!-- Action CTA Group -->
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                                            <Button x:Name="HeroQuickAssessmentBtn"
+                                                    Content="Quick Assessment"
+                                                    Style="{DynamicResource PillButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="14,8"
+                                                    FontSize="11"
+                                                    FontWeight="SemiBold"
+                                                    Margin="0,0,8,0"
+                                                    ToolTip="Executes DISM CheckHealth, filesystem dirty bit check, and servicing integrity in &lt; 20s"
+                                                    Click="RunQuickAssessment_Click"/>
+                                            <Button x:Name="HeroAutonomousRepairBtn"
+                                                    Content="Run Autonomous Repair"
+                                                    Style="{DynamicResource HeroCTAButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="16,8"
+                                                    FontSize="11.5"
+                                                    FontWeight="SemiBold"
+                                                    Click="RunAutonomousRepair_Click"/>
+                                        </StackPanel>
                                     </Grid>
 
                                     <!-- Progress Tracking Strip -->
@@ -232,12 +242,263 @@
                                 </Grid>
                             </Border>
 
+                            <!-- Subsystem Live Health Matrix (4 Pillars) -->
+                            <Border Background="{DynamicResource SurfaceCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Padding="12,10"
+                                    Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE958;"
+                                                       FontFamily="{DynamicResource IconFont}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource ElectricCyanBrush}"
+                                                       Margin="0,0,6,0"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBlock Text="SUBSYSTEM INTEGRITY MATRIX"
+                                                       FontSize="10"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="SubsystemsOverallRatingText"
+                                                   Text="Awaiting Assessment"
+                                                   FontSize="10"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextMediumBrush}"
+                                                   HorizontalAlignment="Right"/>
+                                    </Grid>
+
+                                    <UniformGrid Grid.Row="1" Columns="4">
+                                        <!-- Subsystem 1: Component Store -->
+                                        <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="10,8"
+                                                Margin="0,0,4,0">
+                                            <StackPanel>
+                                                <Grid>
+                                                    <TextBlock Text="Component Store"
+                                                               FontSize="10.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <Ellipse x:Name="ComponentStoreIndicator"
+                                                             Width="7" Height="7"
+                                                             Fill="{DynamicResource TextMutedBrush}"
+                                                             HorizontalAlignment="Right"
+                                                             VerticalAlignment="Center"/>
+                                                </Grid>
+                                                <TextBlock x:Name="ComponentStoreStatusText"
+                                                           Text="DISM Intact"
+                                                           FontSize="9.5"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           Margin="0,3,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Subsystem 2: Core Files -->
+                                        <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="10,8"
+                                                Margin="2,0,2,0">
+                                            <StackPanel>
+                                                <Grid>
+                                                    <TextBlock Text="Core OS Binaries"
+                                                               FontSize="10.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <Ellipse x:Name="SystemFilesIndicator"
+                                                             Width="7" Height="7"
+                                                             Fill="{DynamicResource TextMutedBrush}"
+                                                             HorizontalAlignment="Right"
+                                                             VerticalAlignment="Center"/>
+                                                </Grid>
+                                                <TextBlock x:Name="SystemFilesStatusText"
+                                                           Text="SFC / Protected"
+                                                           FontSize="9.5"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           Margin="0,3,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Subsystem 3: Filesystem -->
+                                        <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="10,8"
+                                                Margin="2,0,2,0">
+                                            <StackPanel>
+                                                <Grid>
+                                                    <TextBlock Text="Volume C: (NTFS)"
+                                                               FontSize="10.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <Ellipse x:Name="FilesystemIndicator"
+                                                             Width="7" Height="7"
+                                                             Fill="{DynamicResource TextMutedBrush}"
+                                                             HorizontalAlignment="Right"
+                                                             VerticalAlignment="Center"/>
+                                                </Grid>
+                                                <TextBlock x:Name="FilesystemStatusText"
+                                                           Text="Clean / Unflagged"
+                                                           FontSize="9.5"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           Margin="0,3,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Subsystem 4: Servicing Stack -->
+                                        <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="10,8"
+                                                Margin="4,0,0,0">
+                                            <StackPanel>
+                                                <Grid>
+                                                    <TextBlock Text="Servicing Stack"
+                                                               FontSize="10.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <Ellipse x:Name="ServicingStackIndicator"
+                                                             Width="7" Height="7"
+                                                             Fill="{DynamicResource TextMutedBrush}"
+                                                             HorizontalAlignment="Right"
+                                                             VerticalAlignment="Center"/>
+                                                </Grid>
+                                                <TextBlock x:Name="ServicingStackStatusText"
+                                                           Text="WUA &amp; CBS Active"
+                                                           FontSize="9.5"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           Margin="0,3,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </UniformGrid>
+                                </Grid>
+                            </Border>
+
+                            <!-- Executive Remediation Summary Card (Collapsible, shown when scan/repair completes) -->
+                            <Border x:Name="ExecutiveRemediationCard"
+                                    Visibility="Collapsed"
+                                    Background="#142B20"
+                                    BorderBrush="#3D10B981"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Padding="12,10"
+                                    Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="RemediationVerdictIcon"
+                                               Grid.Column="0"
+                                               Text="&#xE73E;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="18"
+                                               Foreground="#10B981"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,10,0"/>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock x:Name="RemediationVerdictTitle"
+                                                   Text="Integrity Remediation Completed"
+                                                   FontSize="12"
+                                                   FontWeight="Bold"
+                                                   Foreground="#10B981"/>
+                                        <TextBlock x:Name="RemediationVerdictDetails"
+                                                   Text="All subsystem verification steps finished successfully."
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextHighBrush}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
                             <!-- Section Header: Surgical Tools -->
                             <TextBlock Text="SURGICAL INTEGRITY &amp; SERVICING TOOLS"
                                        FontSize="10"
                                        FontWeight="Bold"
                                        Foreground="{DynamicResource TextMutedBrush}"
                                        Margin="2,0,0,8"/>
+
+                            <!-- Community Power Tool: Chris Titus Tech WinUtil -->
+                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Padding="14,11"
+                                    Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0"
+                                            Width="36" Height="36"
+                                            CornerRadius="8"
+                                            Background="{DynamicResource SurfaceCardBrush}"
+                                            BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                            BorderThickness="1"
+                                            Margin="0,0,12,0"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE756;"
+                                                   FontFamily="{DynamicResource IconFont}"
+                                                   FontSize="15"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="Chris Titus Tech Windows Utility (WinUtil)"
+                                                       FontSize="12.5"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource TextHighBrush}"/>
+                                            <Border Background="#1A00E5FF"
+                                                    BorderBrush="#4400E5FF"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Padding="5,1"
+                                                    Margin="8,0,0,0"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="OPEN SOURCE"
+                                                           FontSize="8.5"
+                                                           FontWeight="Bold"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock Text="Industry-standard open source utility by Chris Titus for advanced Windows debloating, essential software installation, privacy tweaks, and desktop configuration."
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextMediumBrush}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="2"
+                                            x:Name="ToolChrisTitusBtn"
+                                            Content="Launch CTT WinUtil"
+                                            Style="{DynamicResource HeroCTAButton}"
+                                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                            Padding="14,7"
+                                            FontSize="11"
+                                            FontWeight="SemiBold"
+                                            VerticalAlignment="Center"
+                                            ToolTip="Runs 'irm https://christitus.com/win | iex' in an elevated PowerShell session"
+                                            Click="RunChrisTitusWinUtil_Click"/>
+                                </Grid>
+                            </Border>
 
                             <!-- 6 Bento Tool Cards Grid -->
                             <UniformGrid Columns="2" Margin="0,0,0,14">

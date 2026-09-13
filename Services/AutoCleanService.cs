@@ -68,6 +68,28 @@ public static class AutoCleanService
                     "Deltempo Auto-Pilot Guardian",
                     $"Silently reclaimed {TargetFolderInfo.FormatBytes(totalFreed)} of background junk across {totalFiles:N0} files.");
             }
+
+            // Background RAM Guardian: check if memory auto-optimization is enabled and free RAM is below threshold
+            if (SettingsService.Current.MemoryAutoOptimizeEnabled)
+            {
+                var memInfo = MemoryOptimizerService.GetMemoryInfo();
+                double freePercent = 100.0 - memInfo.UsedPercent;
+                if (freePercent < SettingsService.Current.MemoryAutoOptimizeFreeRamThresholdPercent)
+                {
+                    var ramRes = await MemoryOptimizerService.OptimizeRamAsync(new[]
+                    {
+                        MemoryTargetType.StandbyList,
+                        MemoryTargetType.StandbyListLowPriority
+                    });
+
+                    if (ramRes.MeasuredBytesFreed > 0 && SettingsService.Current.MemoryShowNotifications)
+                    {
+                        TrayService.ShowNotification(
+                            "Deltempo Memory Guardian",
+                            $"Auto-purged standby cache: reclaimed {ramRes.FormattedReclaimed} to relieve RAM pressure.");
+                    }
+                }
+            }
         }
         catch (Exception ex)
         {

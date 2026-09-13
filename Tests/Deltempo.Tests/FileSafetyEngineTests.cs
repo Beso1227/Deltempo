@@ -138,4 +138,22 @@ public class FileSafetyEngineTests
         Assert.Equal(SafetyRiskTier.Protected, result.Tier);
         Assert.Contains("Out of Scope", result.Verdict);
     }
+
+    [Theory]
+    [InlineData(@"C:\Users\JohnDoe\AppData\Local\Microsoft\Windows\Explorer\thumbcache_256.db", "thumbcache_256.db")]
+    [InlineData(@"C:\Users\JohnDoe\AppData\Local\Microsoft\Windows\Explorer\thumbcache_idx.db", "thumbcache_idx.db")]
+    [InlineData(@"C:\Users\JohnDoe\AppData\Local\Microsoft\Windows\Explorer\iconcache_idx.db", "iconcache_idx.db")]
+    public void Analyze_WindowsExplorerThumbcache_ReturnsSafe(string path, string fileName)
+    {
+        var result = FileSafetyEngine.Analyze(
+            path,
+            fileName: fileName,
+            category: "Media Cache",
+            sizeBytes: 1024 * 512,
+            lastModified: DateTime.UtcNow.AddDays(-3));
+
+        Assert.Equal(SafetyRiskTier.Safe, result.Tier);
+        Assert.Equal("ExplorerThumbnailCacheRule", result.MatchedRule);
+        Assert.Contains("Thumbnail", result.Verdict);
+    }
 }

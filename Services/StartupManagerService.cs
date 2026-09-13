@@ -1,10 +1,13 @@
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
 
@@ -15,13 +18,17 @@ public enum BootImpact
     High
 }
 
-public class StartupItem
+public class StartupItem : INotifyPropertyChanged
 {
+    public event PropertyChangedEventHandler? PropertyChanged;
+    protected void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? name = null) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
     public string Name { get; set; } = string.Empty;
     public string FriendlyName { get; set; } = string.Empty;
     public string Command { get; set; } = string.Empty;
     public string ExePath { get; set; } = string.Empty;
-    public string Location { get; set; } = string.Empty; // HKCU, HKLM, WOW64_HKLM, WOW64_HKCU, Startup Folder, Common Startup
+    public string Location { get; set; } = string.Empty; // HKCU, HKLM, WOW64_HKLM, WOW64_HKCU, Startup Folder, Common Startup, Task Scheduler
     public string LocationDisplay => Location switch
     {
         "HKCU" => "Registry (Current User)",
@@ -30,9 +37,17 @@ public class StartupItem
         "WOW64_HKCU" => "Registry (32-bit User)",
         "Startup Folder" => "Startup Folder (User)",
         "Common Startup" => "Startup Folder (All Users)",
+        "Task Scheduler" => "Task Scheduler (Logon Task)",
         _ => Location
     };
-    public bool IsEnabled { get; set; } = true;
+
+    private bool _isEnabled = true;
+    public bool IsEnabled
+    {
+        get => _isEnabled;
+        set { if (_isEnabled != value) { _isEnabled = value; OnPropertyChanged(); } }
+    }
+
     public bool IsFileMissing { get; set; } = false;
     public BootImpact Impact { get; set; } = BootImpact.Low;
     public string Publisher { get; set; } = "Unknown";
@@ -51,7 +66,125 @@ public class StartupItem
     };
     public bool IsProtected => StartupManagerService.IsProtectedStartupItem(this);
     public System.Windows.Visibility ProtectedBadgeVisibility => IsProtected ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+    public bool CanCleanOrphaned => IsFileMissing && !IsProtected;
+    public System.Windows.Visibility OrphanedCleanVisibility => CanCleanOrphaned ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+    public bool CanReveal => !string.IsNullOrWhiteSpace(ExePath) && (File.Exists(ExePath) || Directory.Exists(Path.GetDirectoryName(ExePath) ?? ""));
+    public System.Windows.Visibility RevealVisibility => CanReveal ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
     public bool CanToggle => !IsProtected;
+
+    // AI & Catalog Intelligence
+    private string _description = string.Empty;
+    public string Description
+    {
+        get => _description;
+        set { if (_description != value) { _description = value; OnPropertyChanged(); } }
+    }
+
+    private StartupDisableVerdict _disableVerdict = StartupDisableVerdict.SafeToDisable;
+    public StartupDisableVerdict DisableVerdict
+    {
+        get => _disableVerdict;
+        set
+        {
+            if (_disableVerdict != value)
+            {
+                _disableVerdict = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisableVerdictDisplay));
+                OnPropertyChanged(nameof(DisableBadgeColor));
+                OnPropertyChanged(nameof(DisableBadgeBackground));
+                OnPropertyChanged(nameof(FallbackGlyph));
+            }
+        }
+    }
+
+    private string _disableImpact = string.Empty;
+    public string DisableImpact
+    {
+        get => _disableImpact;
+        set { if (_disableImpact != value) { _disableImpact = value; OnPropertyChanged(); } }
+    }
+
+    private string _recommendation = string.Empty;
+    public string Recommendation
+    {
+        get => _recommendation;
+        set { if (_recommendation != value) { _recommendation = value; OnPropertyChanged(); } }
+    }
+
+    private bool _isAiEnriched;
+    public bool IsAiEnriched
+    {
+        get => _isAiEnriched;
+        set { if (_isAiEnriched != value) { _isAiEnriched = value; OnPropertyChanged(); } }
+    }
+
+    private string _aiProviderUsed = string.Empty;
+    public string AiProviderUsed
+    {
+        get => _aiProviderUsed;
+        set { if (_aiProviderUsed != value) { _aiProviderUsed = value; OnPropertyChanged(); } }
+    }
+
+    private bool _isExpanded;
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set
+        {
+            if (_isExpanded != value)
+            {
+                _isExpanded = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ExpandedVisibility));
+            }
+        }
+    }
+    public System.Windows.Visibility ExpandedVisibility => IsExpanded ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+
+    public string DisableVerdictDisplay => DisableVerdict switch
+    {
+        StartupDisableVerdict.DoNotDisable => "Essential / Keep",
+        StartupDisableVerdict.Caution => "Caution / Sync",
+        _ => "Safe to Disable"
+    };
+
+    public string DisableBadgeColor => DisableVerdict switch
+    {
+        StartupDisableVerdict.DoNotDisable => "#EF4444",
+        StartupDisableVerdict.Caution => "#F59E0B",
+        _ => "#10B981"
+    };
+
+    public string DisableBadgeBackground => DisableVerdict switch
+    {
+        StartupDisableVerdict.DoNotDisable => "#2A0E0E",
+        StartupDisableVerdict.Caution => "#2A1E0D",
+        _ => "#0D2818"
+    };
+
+    private System.Windows.Media.ImageSource? _appIcon;
+    public System.Windows.Media.ImageSource? AppIcon
+    {
+        get => _appIcon;
+        set
+        {
+            if (_appIcon != value)
+            {
+                _appIcon = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasAppIcon));
+            }
+        }
+    }
+    public bool HasAppIcon => AppIcon != null;
+
+    public string FallbackGlyph => DisableVerdict switch
+    {
+        StartupDisableVerdict.DoNotDisable => "\uE72E", // Shield
+        StartupDisableVerdict.Caution => "\uE753",      // Cloud / Sync
+        _ => "\uE71D"                                   // App Box
+    };
 }
 
 public static class StartupManagerService
@@ -89,12 +222,46 @@ public static class StartupManagerService
             // 6. Common Startup Folder (All Users)
             AddStartupFolderItems(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup), "Common Startup", list, seen);
 
+            // 7. Windows Task Scheduler Logon Tasks (Third-party background bloat)
+            AddTaskSchedulerLogonItems(list, seen);
+
             return list
                 .OrderByDescending(x => x.IsFileMissing)
                 .ThenByDescending(x => x.Impact)
                 .ThenBy(x => x.DisplayTitle)
                 .ToList();
         });
+    }
+
+    public static void PopulateStartupIntelligence(StartupItem item)
+    {
+        var cached = StartupIntelligenceService.GetCachedReport(item);
+        if (cached != null)
+        {
+            item.Description = cached.WhatIsIt;
+            item.DisableVerdict = cached.Verdict;
+            item.DisableImpact = cached.ImpactIfDisabled;
+            item.Recommendation = cached.Recommendation;
+            item.IsAiEnriched = cached.IsAiGenerated;
+            item.AiProviderUsed = cached.ProviderUsed;
+        }
+        else
+        {
+            var entry = StartupIntelligenceCatalog.FindCatalogEntry(item.Name, item.ExePath, item.Command) ??
+                        StartupIntelligenceCatalog.ClassifyUnknownStartup(item.Name, item.ExePath, item.Command, item.Publisher);
+
+            item.Description = entry.WhatIsIt;
+            item.DisableVerdict = entry.Verdict;
+            item.DisableImpact = entry.ImpactIfDisabled;
+            item.Recommendation = entry.Recommendation;
+            item.IsAiEnriched = false;
+            item.AiProviderUsed = "Built-in Catalog";
+        }
+
+        if (item.AppIcon == null)
+        {
+            item.AppIcon = AppIconService.GetAppIcon(item.ExePath, Path.GetDirectoryName(item.ExePath) ?? "", item.DisplayTitle);
+        }
     }
 
     private static void AddRunKeyItems(RegistryKey rootKey, string subKeyPath, string location, List<StartupItem> list, HashSet<string> seen, bool forceDisabled = false)
@@ -126,7 +293,7 @@ public static class StartupManagerService
                     }
                 }
 
-                list.Add(new StartupItem
+                var item = new StartupItem
                 {
                     Name = valName,
                     FriendlyName = friendlyName,
@@ -137,7 +304,9 @@ public static class StartupManagerService
                     IsFileMissing = !fileExists,
                     Impact = CalculateImpact(exePath, cmd),
                     Publisher = publisher
-                });
+                };
+                PopulateStartupIntelligence(item);
+                list.Add(item);
             }
         }
         catch (Exception ex)
@@ -182,7 +351,7 @@ public static class StartupManagerService
                     bool fileExists = File.Exists(file) && (ext != ".lnk" || string.IsNullOrWhiteSpace(exePath) || File.Exists(exePath));
                     var (publisher, friendlyName) = ResolveMetadata(name, exePath, file);
 
-                    list.Add(new StartupItem
+                    var item = new StartupItem
                     {
                         Name = name,
                         FriendlyName = friendlyName,
@@ -193,7 +362,9 @@ public static class StartupManagerService
                         IsFileMissing = !fileExists,
                         Impact = BootImpact.Medium,
                         Publisher = publisher
-                    });
+                    };
+                    PopulateStartupIntelligence(item);
+                    list.Add(item);
                 }
             }
         }
@@ -201,6 +372,136 @@ public static class StartupManagerService
         {
             Trace.WriteLine($"[Deltempo] Error enumerating {location}: {ex.Message}");
         }
+    }
+
+    private static void AddTaskSchedulerLogonItems(List<StartupItem> list, HashSet<string> seen)
+    {
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "schtasks.exe",
+                Arguments = "/query /fo csv /v",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                StandardOutputEncoding = Encoding.UTF8
+            };
+
+            using var proc = Process.Start(psi);
+            if (proc == null) return;
+
+            string csvOutput = proc.StandardOutput.ReadToEnd();
+            proc.WaitForExit(4000);
+
+            if (string.IsNullOrWhiteSpace(csvOutput)) return;
+
+            using var reader = new StringReader(csvOutput);
+            string? headerLine = reader.ReadLine();
+            if (string.IsNullOrWhiteSpace(headerLine)) return;
+
+            var headers = ParseCsvLine(headerLine);
+            int taskNameIdx = headers.FindIndex(h => h.Equals("TaskName", StringComparison.OrdinalIgnoreCase));
+            int triggerIdx = headers.FindIndex(h => h.Equals("Schedule Type", StringComparison.OrdinalIgnoreCase) || h.Equals("Task Type", StringComparison.OrdinalIgnoreCase));
+            int taskToRunIdx = headers.FindIndex(h => h.Equals("Task To Run", StringComparison.OrdinalIgnoreCase));
+            int statusIdx = headers.FindIndex(h => h.Equals("Status", StringComparison.OrdinalIgnoreCase));
+
+            if (taskNameIdx < 0 || taskToRunIdx < 0) return;
+
+            string? line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                var cols = ParseCsvLine(line);
+                if (cols.Count <= Math.Max(taskNameIdx, taskToRunIdx)) continue;
+
+                string rawTaskName = cols[taskNameIdx].Trim();
+                if (string.IsNullOrWhiteSpace(rawTaskName)) continue;
+
+                // Exclude Microsoft core system tasks
+                if (rawTaskName.StartsWith(@"\Microsoft\Windows", StringComparison.OrdinalIgnoreCase) ||
+                    rawTaskName.StartsWith(@"\Microsoft\XblGameSave", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                string trigger = triggerIdx >= 0 && triggerIdx < cols.Count ? cols[triggerIdx] : "";
+                bool isLogonOrStartup = trigger.Contains("logon", StringComparison.OrdinalIgnoreCase) ||
+                                        trigger.Contains("boot", StringComparison.OrdinalIgnoreCase) ||
+                                        trigger.Contains("startup", StringComparison.OrdinalIgnoreCase);
+
+                if (!isLogonOrStartup) continue;
+
+                string cmd = cols[taskToRunIdx].Trim();
+                if (string.IsNullOrWhiteSpace(cmd) || cmd.Equals("N/A", StringComparison.OrdinalIgnoreCase)) continue;
+
+                string cleanName = rawTaskName.TrimStart('\\');
+                string dedupeKey = $"TaskScheduler_{cleanName}";
+                if (!seen.Add(dedupeKey)) continue;
+
+                string exePath = ExtractExecutablePath(cmd);
+                bool fileExists = string.IsNullOrWhiteSpace(exePath) || File.Exists(exePath);
+                var (publisher, friendlyName) = ResolveMetadata(cleanName, exePath, cmd);
+
+                string status = statusIdx >= 0 && statusIdx < cols.Count ? cols[statusIdx] : "Ready";
+                bool isEnabled = !status.Equals("Disabled", StringComparison.OrdinalIgnoreCase);
+
+                var item = new StartupItem
+                {
+                    Name = cleanName,
+                    FriendlyName = friendlyName,
+                    Command = cmd,
+                    ExePath = exePath,
+                    Location = "Task Scheduler",
+                    IsEnabled = isEnabled,
+                    IsFileMissing = !fileExists,
+                    Impact = CalculateImpact(exePath, cmd),
+                    Publisher = publisher
+                };
+                PopulateStartupIntelligence(item);
+                list.Add(item);
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] Error enumerating Task Scheduler startup tasks: {ex.Message}");
+        }
+    }
+
+    private static List<string> ParseCsvLine(string line)
+    {
+        var result = new List<string>();
+        var current = new StringBuilder();
+        bool inQuotes = false;
+
+        for (int i = 0; i < line.Length; i++)
+        {
+            char c = line[i];
+            if (c == '"')
+            {
+                if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+                {
+                    current.Append('"');
+                    i++;
+                }
+                else
+                {
+                    inQuotes = !inQuotes;
+                }
+            }
+            else if (c == ',' && !inQuotes)
+            {
+                result.Add(current.ToString().Trim());
+                current.Clear();
+            }
+            else
+            {
+                current.Append(c);
+            }
+        }
+        result.Add(current.ToString().Trim());
+        return result;
     }
 
     private static bool IsDisabledInStartupApproved(RegistryKey rootKey, string subKeyPath, string valName)
@@ -359,7 +660,7 @@ public static class StartupManagerService
                         {
                             string restoreKey = enable ? RunDisabledKeyPath : subKey;
                             using var rk = rootKey.OpenSubKey(restoreKey, true);
-                            if (rk != null) rk.SetValue(item.Name, backupValue);
+                            rk?.SetValue(item.Name, backupValue);
                         }
                         catch { }
                     }
@@ -411,6 +712,25 @@ public static class StartupManagerService
                 item.IsEnabled = enable;
                 return true;
             }
+            else if (item.Location == "Task Scheduler")
+            {
+                string action = enable ? "/enable" : "/disable";
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "schtasks.exe",
+                    Arguments = $"/change /tn \"{item.Name}\" {action}",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                using var p = Process.Start(psi);
+                p?.WaitForExit(3000);
+                if (p?.ExitCode == 0)
+                {
+                    item.IsEnabled = enable;
+                    return true;
+                }
+                return false;
+            }
         }
         catch (Exception ex)
         {
@@ -420,24 +740,125 @@ public static class StartupManagerService
         return false;
     }
 
+    public static bool RemoveOrphanedStartupItem(StartupItem item)
+    {
+        try
+        {
+            if (IsProtectedStartupItem(item)) return false;
+
+            if (item.Location.StartsWith("HKCU", StringComparison.OrdinalIgnoreCase) ||
+                item.Location.StartsWith("HKLM", StringComparison.OrdinalIgnoreCase) ||
+                item.Location.Contains("WOW64", StringComparison.OrdinalIgnoreCase))
+            {
+                bool isHkcu = item.Location.Contains("HKCU", StringComparison.OrdinalIgnoreCase);
+                RegistryKey rootKey = isHkcu ? Registry.CurrentUser : Registry.LocalMachine;
+                string subKey = item.Location.Contains("WOW64") ? Wow64RunKeyPath : RunKeyPath;
+
+                try
+                {
+                    using var key = rootKey.OpenSubKey(subKey, true);
+                    key?.DeleteValue(item.Name, false);
+                }
+                catch { }
+
+                try
+                {
+                    using var disKey = rootKey.OpenSubKey(RunDisabledKeyPath, true);
+                    disKey?.DeleteValue(item.Name, false);
+                }
+                catch { }
+
+                try
+                {
+                    using var approvedKey = rootKey.OpenSubKey(StartupApprovedRunPath, true);
+                    approvedKey?.DeleteValue(item.Name, false);
+                }
+                catch { }
+
+                return true;
+            }
+            else if (item.Location.Contains("Startup"))
+            {
+                if (File.Exists(item.Command))
+                {
+                    File.Delete(item.Command);
+                }
+                return true;
+            }
+            else if (item.Location == "Task Scheduler")
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "schtasks.exe",
+                    Arguments = $"/delete /tn \"{item.Name}\" /f",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                using var p = Process.Start(psi);
+                p?.WaitForExit(3000);
+                return p?.ExitCode == 0;
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] Failed to remove orphaned item {item.Name}: {ex.Message}");
+        }
+        return false;
+    }
+
+    public static double CalculateEstimatedBootDelaySeconds(IEnumerable<StartupItem> items)
+    {
+        double totalSeconds = 0;
+        foreach (var item in items.Where(x => x.IsEnabled && !x.IsFileMissing))
+        {
+            totalSeconds += item.Impact switch
+            {
+                BootImpact.High => 2.8,
+                BootImpact.Medium => 1.1,
+                _ => 0.3
+            };
+        }
+        return Math.Round(totalSeconds, 1);
+    }
+
+    public static List<StartupItem> OptimizeBoot(IEnumerable<StartupItem> items)
+    {
+        var disabledList = new List<StartupItem>();
+        foreach (var item in items)
+        {
+            if (!item.IsEnabled || item.IsProtected || item.IsFileMissing) continue;
+
+            if (item.Impact == BootImpact.High ||
+                (item.Impact == BootImpact.Medium && (item.Name.Contains("Update", StringComparison.OrdinalIgnoreCase) ||
+                                                      item.Command.Contains("update", StringComparison.OrdinalIgnoreCase))))
+            {
+                if (ToggleStartupItem(item, false))
+                {
+                    disabledList.Add(item);
+                }
+            }
+        }
+        return disabledList;
+    }
+
     public static string ExtractExecutablePath(string rawCommand)
     {
         if (string.IsNullOrWhiteSpace(rawCommand)) return string.Empty;
         rawCommand = rawCommand.Trim();
 
-        if (rawCommand.StartsWith("\""))
+        if (rawCommand.StartsWith('"'))
         {
             int nextQuote = rawCommand.IndexOf('"', 1);
             if (nextQuote > 1)
             {
-                return rawCommand.Substring(1, nextQuote - 1);
+                return rawCommand[1..nextQuote];
             }
         }
 
         int exeIdx = rawCommand.IndexOf(".exe", StringComparison.OrdinalIgnoreCase);
         if (exeIdx > 0)
         {
-            string candidate = rawCommand.Substring(0, exeIdx + 4).Trim('"', ' ');
+            string candidate = rawCommand[..(exeIdx + 4)].Trim('"', ' ');
             if (File.Exists(candidate)) return candidate;
         }
 
@@ -448,7 +869,7 @@ public static class StartupManagerService
             if (File.Exists(candidate)) return candidate;
         }
 
-        return rawCommand.Trim('"', ' ');
+        return rawCommand;
     }
 
     private static (string Publisher, string FriendlyName) ResolveMetadata(string valName, string exePath, string rawCmd)
@@ -475,21 +896,28 @@ public static class StartupManagerService
         return (publisher, friendlyName);
     }
 
+    /// <summary>
+    /// Binary parser for Shell Link (.lnk) files to extract local basePath without external COM dependencies.
+    /// </summary>
     private static string ResolveShortcutTarget(string lnkPath)
     {
         try
         {
-            // Lightweight Windows shortcut target resolution
             using var stream = File.OpenRead(lnkPath);
             using var reader = new BinaryReader(stream);
+
             if (stream.Length < 0x4C) return string.Empty;
 
-            stream.Seek(0x14, SeekOrigin.Begin);
+            uint headerSize = reader.ReadUInt32();
+            if (headerSize != 0x4C) return string.Empty;
+
+            byte[] clsid = reader.ReadBytes(16);
             uint flags = reader.ReadUInt32();
-            if ((flags & 0x02) == 0) return string.Empty; // HasLinkInfo flag
 
             stream.Seek(0x4C, SeekOrigin.Begin);
-            if ((flags & 0x01) != 0) // HasLinkTargetIDList
+
+            // HasLinkTargetIDList flag = 0x01
+            if ((flags & 0x01) != 0)
             {
                 uint idListSize = reader.ReadUInt16();
                 stream.Seek(idListSize, SeekOrigin.Current);
@@ -504,14 +932,14 @@ public static class StartupManagerService
                 if (localBasePathOffset > 0)
                 {
                     stream.Seek(linkInfoPos + localBasePathOffset, SeekOrigin.Begin);
-                    var chars = new List<char>();
+                    List<char> chars = [];
                     while (stream.Position < stream.Length)
                     {
                         byte b = reader.ReadByte();
                         if (b == 0) break;
                         chars.Add((char)b);
                     }
-                    return new string(chars.ToArray());
+                    return new string([.. chars]);
                 }
             }
         }

@@ -111,6 +111,7 @@ public partial class SystemRepairModal : UserControl
     {
         _isSystemRepairRunning = running;
         HeroAutonomousRepairBtn.IsEnabled = !running;
+        HeroQuickAssessmentBtn.IsEnabled = !running;
         ToolSfcBtn.IsEnabled = !running;
         ToolDismRestoreBtn.IsEnabled = !running;
         ToolWinSxSBtn.IsEnabled = !running;
@@ -123,6 +124,7 @@ public partial class SystemRepairModal : UserControl
         {
             SystemRepairStatusText.Text = $"Running {operationName}...";
             SystemRepairProgressBar.IsIndeterminate = false;
+            ExecutiveRemediationCard.Visibility = Visibility.Collapsed;
         }
         else
         {
@@ -141,11 +143,143 @@ public partial class SystemRepairModal : UserControl
         }
     }
 
+    private async void RunQuickAssessment_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isSystemRepairRunning) return;
+        SoundService.PlayClickSound();
+
+        _systemRepairCts = new CancellationTokenSource();
+        SetSystemRepairRunning(true, "Quick Integrity Assessment");
+        SystemRepairProgressBar.Value = 0;
+        SystemRepairProgressPercentText.Text = "0%";
+        SubsystemsOverallRatingText.Text = "Scanning Subsystems...";
+        SubsystemsOverallRatingText.Foreground = (Brush)FindResource("TextMediumBrush");
+        AppendSystemRepairTerminal($"\n>>> [{DateTime.Now:HH:mm:ss}] Starting 4-Point Quick Health Assessment...");
+
+        void OnProgress(double val)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                double pct = val <= 1.0 ? val * 100 : val;
+                SystemRepairProgressBar.Value = Math.Min(100, Math.Max(0, pct));
+                SystemRepairProgressPercentText.Text = $"{Math.Round(SystemRepairProgressBar.Value)}%";
+            });
+        }
+
+        try
+        {
+            var result = await SystemRepairService.RunQuickHealthAssessmentAsync(
+                AppendSystemRepairTerminal,
+                OnProgress,
+                _systemRepairCts.Token);
+
+            SystemRepairProgressBar.Value = 100;
+            SystemRepairProgressPercentText.Text = "100%";
+            SystemRepairStatusText.Text = $"Assessment complete: {result.OverallRating}";
+
+            // Update 4 Matrix Subsystem Cards
+            UpdateSubsystemPill(ComponentStoreIndicator, ComponentStoreStatusText, result.ComponentStoreHealthy, result.ComponentStoreDetails);
+            UpdateSubsystemPill(SystemFilesIndicator, SystemFilesStatusText, result.SystemFilesHealthy, result.SystemFilesDetails);
+            UpdateSubsystemPill(FilesystemIndicator, FilesystemStatusText, result.FilesystemHealthy, result.FilesystemDetails);
+            UpdateSubsystemPill(ServicingStackIndicator, ServicingStackStatusText, result.ServicingStackHealthy, result.ServicingStackDetails);
+
+            SubsystemsOverallRatingText.Text = result.OverallRating;
+            if (new BrushConverter().ConvertFromString(result.OverallColor) is Brush overallBrush)
+            {
+                SubsystemsOverallRatingText.Foreground = overallBrush;
+            }
+
+            // Show Executive Summary Card
+            ExecutiveRemediationCard.Visibility = Visibility.Visible;
+            if (result.IssuesCount == 0)
+            {
+                if (new BrushConverter().ConvertFromString("#142B20") is Brush bg) ExecutiveRemediationCard.Background = bg;
+                if (new BrushConverter().ConvertFromString("#3D10B981") is Brush border) ExecutiveRemediationCard.BorderBrush = border;
+                RemediationVerdictIcon.Text = "\uE73E";
+                if (new BrushConverter().ConvertFromString("#10B981") is Brush green)
+                {
+                    RemediationVerdictIcon.Foreground = green;
+                    RemediationVerdictTitle.Foreground = green;
+                }
+                RemediationVerdictTitle.Text = "Subsystems Verified 100% Intact";
+                RemediationVerdictDetails.Text = result.Recommendation;
+                SoundService.PlaySuccessSound();
+            }
+            else
+            {
+                if (new BrushConverter().ConvertFromString("#291E14") is Brush bg) ExecutiveRemediationCard.Background = bg;
+                if (new BrushConverter().ConvertFromString("#8CF59E0B") is Brush border) ExecutiveRemediationCard.BorderBrush = border;
+                RemediationVerdictIcon.Text = "\uE7BA";
+                if (new BrushConverter().ConvertFromString("#F59E0B") is Brush amber)
+                {
+                    RemediationVerdictIcon.Foreground = amber;
+                    RemediationVerdictTitle.Foreground = amber;
+                }
+                RemediationVerdictTitle.Text = $"Integrity Anomalies Detected ({result.IssuesCount} Subsystems)";
+                RemediationVerdictDetails.Text = result.Recommendation;
+            }
+
+            LogRequested?.Invoke($"[Health Assessment] {result.OverallRating}", result.IssuesCount == 0 ? LogLevel.Success : LogLevel.Warning);
+        }
+        catch (OperationCanceledException)
+        {
+            SystemRepairStatusText.Text = "Assessment cancelled.";
+            AppendSystemRepairTerminal("\n<<< Assessment Cancelled.");
+        }
+        catch (Exception ex)
+        {
+            SystemRepairStatusText.Text = $"Error: {ex.Message}";
+            AppendSystemRepairTerminal($"\n[ERROR] {ex.Message}");
+        }
+        finally
+        {
+            SetSystemRepairRunning(false, "Quick Assessment");
+            _systemRepairCts?.Dispose();
+            _systemRepairCts = null;
+        }
+    }
+
+    private static void UpdateSubsystemPill(System.Windows.Shapes.Ellipse indicator, TextBlock statusText, bool healthy, string details)
+    {
+        string color = healthy ? "#10B981" : "#EF4444";
+        if (new BrushConverter().ConvertFromString(color) is Brush brush)
+        {
+            indicator.Fill = brush;
+            statusText.Text = details;
+            statusText.Foreground = brush;
+        }
+    }
+
     private async void RunAutonomousRepair_Click(object sender, RoutedEventArgs e)
     {
-        await ExecuteRepairActionAsync("Autonomous System Repair", (onProgress, log, ct) =>
+        await ExecuteRepairActionAsync("Autonomous System Repair", async (onProgress, log, ct) =>
         {
-            return SystemRepairService.RunAutonomousHealthCheckAndRepairAsync(log, onProgress, ct);
+            var res = await SystemRepairService.RunAutonomousHealthCheckAndRepairAsync(log, onProgress, ct);
+            if (res.Success)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    UpdateSubsystemPill(ComponentStoreIndicator, ComponentStoreStatusText, true, "DISM Serviced");
+                    UpdateSubsystemPill(SystemFilesIndicator, SystemFilesStatusText, true, "SFC Protected");
+                    UpdateSubsystemPill(FilesystemIndicator, FilesystemStatusText, true, "Filesystem Verified");
+                    UpdateSubsystemPill(ServicingStackIndicator, ServicingStackStatusText, true, "Stack Active");
+                    SubsystemsOverallRatingText.Text = "Remediated (100% Healthy)";
+                    if (new BrushConverter().ConvertFromString("#10B981") is Brush green)
+                    {
+                        SubsystemsOverallRatingText.Foreground = green;
+                        RemediationVerdictIcon.Foreground = green;
+                        RemediationVerdictTitle.Foreground = green;
+                    }
+
+                    ExecutiveRemediationCard.Visibility = Visibility.Visible;
+                    if (new BrushConverter().ConvertFromString("#142B20") is Brush bg) ExecutiveRemediationCard.Background = bg;
+                    if (new BrushConverter().ConvertFromString("#3D10B981") is Brush border) ExecutiveRemediationCard.BorderBrush = border;
+                    RemediationVerdictIcon.Text = "\uE73E";
+                    RemediationVerdictTitle.Text = "Autonomous Remediation Succeeded";
+                    RemediationVerdictDetails.Text = "All DISM manifests, protected system files, and volumes have been verified and restored.";
+                });
+            }
+            return res;
         });
     }
 
@@ -195,6 +329,25 @@ public partial class SystemRepairModal : UserControl
         {
             return SystemRepairService.ResetNetworkStackAsync(log, onProgress, ct);
         });
+    }
+
+    private void RunChrisTitusWinUtil_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        AppendSystemRepairTerminal($"\n>>> [{DateTime.Now:HH:mm:ss}] Launching Chris Titus Tech Windows Utility (CTT WinUtil)...");
+        LogRequested?.Invoke("[CTT WinUtil] Launching Chris Titus Tech Windows Utility in elevated PowerShell...", LogLevel.Info);
+
+        bool launched = SystemRepairService.LaunchChrisTitusWinUtil(out string error);
+        if (launched)
+        {
+            AppendSystemRepairTerminal($"<<< [{DateTime.Now:HH:mm:ss}] Chris Titus Tech WinUtil launched in elevated PowerShell window.");
+            LogRequested?.Invoke("[CTT WinUtil] Chris Titus Tech WinUtil launched successfully.", LogLevel.Success);
+        }
+        else if (!string.IsNullOrEmpty(error))
+        {
+            AppendSystemRepairTerminal($"[ERROR] Failed to launch CTT WinUtil: {error}");
+            LogRequested?.Invoke($"[CTT WinUtil] {error}", LogLevel.Warning);
+        }
     }
 
     private async Task ExecuteRepairActionAsync(string opName, Func<Action<double>, Action<string>, CancellationToken, Task<RepairExecutionResult>> action)

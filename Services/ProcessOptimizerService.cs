@@ -17,6 +17,9 @@ public class ProcessMemoryInfo
     public string FriendlyName { get; set; } = string.Empty;
     public string CategoryDescription { get; set; } = "Background Application";
     public string CategoryIcon { get; set; } = "\uE713";
+    public string ExePath { get; set; } = string.Empty;
+    public System.Windows.Media.ImageSource? AppIcon { get; set; }
+    public bool HasAppIcon => AppIcon != null;
     public long WorkingSetBytes { get; set; }
     public string FormattedMemory => TargetFolderInfo.FormatBytes(WorkingSetBytes);
     public bool IsSafeToClose { get; set; } = true;
@@ -212,6 +215,13 @@ public static class ProcessOptimizerService
 
                     string key = pName.ToLowerInvariant();
 
+                    string exePath = string.Empty;
+                    try
+                    {
+                        exePath = p.MainModule?.FileName ?? string.Empty;
+                    }
+                    catch { }
+
                     if (!groups.TryGetValue(key, out var info))
                     {
                         var (friendly, category, icon) = ResolveMetadata(p, pName);
@@ -224,6 +234,7 @@ public static class ProcessOptimizerService
                             FriendlyName = friendly,
                             CategoryDescription = category,
                             CategoryIcon = icon,
+                            ExePath = exePath,
                             WorkingSetBytes = ws,
                             IsSafeToClose = true
                         };
@@ -233,6 +244,10 @@ public static class ProcessOptimizerService
                     {
                         info.ProcessIds.Add(p.Id);
                         info.WorkingSetBytes += ws;
+                        if (string.IsNullOrWhiteSpace(info.ExePath) && !string.IsNullOrWhiteSpace(exePath))
+                        {
+                            info.ExePath = exePath;
+                        }
                         if (string.IsNullOrWhiteSpace(info.WindowTitle) && !string.IsNullOrWhiteSpace(windowTitle))
                         {
                             info.WindowTitle = windowTitle;

@@ -249,6 +249,23 @@ public static class FileSafetyEngine
                 impact: "Zero impact — shaders rebuild seamlessly on demand.");
         }
 
+        // Windows Explorer Thumbnail & Icon Cache (thumbcache_*.db, iconcache_*.db)
+        if (pathLower.Contains(@"\microsoft\windows\explorer\") &&
+            (fileName.StartsWith("thumbcache_", StringComparison.OrdinalIgnoreCase) ||
+             fileName.StartsWith("iconcache_", StringComparison.OrdinalIgnoreCase) ||
+             ext is ".db"))
+        {
+            return CreateResult(
+                SafetyRiskTier.Safe,
+                95,
+                "SAFE (Windows Thumbnail Cache)",
+                "VERIFIED CACHE",
+                $"Windows Explorer thumbnail database ({FormatBytes(sizeBytes)}). Rebuilt automatically by Windows as folders are browsed.",
+                "ExplorerThumbnailCacheRule",
+                origin: "Windows Explorer Thumbnail Cache",
+                impact: "Zero impact — thumbnails re-generate on demand.");
+        }
+
         // Windows Prefetch Traces
         if (pathLower.Contains(@"\windows\prefetch\"))
         {

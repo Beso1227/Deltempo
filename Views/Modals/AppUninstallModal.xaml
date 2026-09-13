@@ -1,0 +1,895 @@
+<UserControl x:Class="WinTempCleaner.Views.Modals.AppUninstallModal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="760" d:DesignWidth="1050">
+    <UserControl.Resources>
+        <!-- Clickable & Hoverable App Description Expander Button -->
+        <Style x:Key="ExpandableDescriptionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="5"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#1800E5FF"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#3300E5FF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#2500E5FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid Background="Transparent">
+        <Border Margin="18,8,18,6"
+                Background="{DynamicResource DoubleBezelOuterBrush}"
+                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="16"
+                Padding="2"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource ModalSurfaceBrush}"
+                    CornerRadius="14"
+                    Padding="20,16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- 0: Header -->
+                        <RowDefinition Height="Auto"/> <!-- 1: Search & Filter Toolbar -->
+                        <RowDefinition Height="*"/>    <!-- 2: App Bento DataGrid / List -->
+                        <RowDefinition Height="Auto"/> <!-- 3: Deep Root Leftovers Drawer -->
+                        <RowDefinition Height="Auto"/> <!-- 4: Footer -->
+                    </Grid.RowDefinitions>
+
+                    <!-- 0: Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="40" Height="40"
+                                    CornerRadius="12"
+                                    Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                    BorderThickness="1"
+                                    Margin="0,0,12,0">
+                                <TextBlock Text="&#xE71D;"
+                                           FontFamily="{DynamicResource IconFont}"
+                                           FontSize="18"
+                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Deep Root App Uninstaller"
+                                               FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                    <Border Background="#1A00E5FF"
+                                            BorderBrush="#3300E5FF"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            Padding="6,1"
+                                            Margin="8,0,0,0"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="BCU Engine"
+                                                   FontSize="9"
+                                                   FontWeight="Bold"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Software Inventory, Process Terminator, Silent Removal &amp; Multi-Vector Leftover Eradication"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource TextMediumBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button Style="{DynamicResource WindowCloseButton}"
+                                Content="&#xE8BB;"
+                                FontFamily="{DynamicResource IconFont}"
+                                FontSize="12"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Width="28" Height="28"
+                                Click="CloseAppUninstallModal_Click"
+                                ToolTip="Close Apps Uninstaller (Esc)"/>
+                    </Grid>
+
+                    <!-- 1: Search & Filter Toolbar -->
+                    <Grid Grid.Row="1" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Search Box -->
+                        <Border Grid.Column="0"
+                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="8,4"
+                                Margin="0,0,10,0">
+                            <Grid>
+                                <TextBox x:Name="SearchAppTextBox"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         Foreground="{DynamicResource TextHighBrush}"
+                                         CaretBrush="{DynamicResource ElectricCyanBrush}"
+                                         FontSize="11.5"
+                                         VerticalAlignment="Center"
+                                         TextChanged="SearchAppTextBox_TextChanged"/>
+                                <TextBlock x:Name="SearchAppPlaceholder"
+                                           Text="Search installed applications, publishers, or uninstall engines..."
+                                           Foreground="{DynamicResource TextMutedBrush}"
+                                           FontSize="11.5"
+                                           VerticalAlignment="Center"
+                                           Margin="4,0,0,0"
+                                           IsHitTestVisible="False"
+                                           Opacity="0.7"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Filter Chips -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                            <Button x:Name="FilterAllBtn" Style="{DynamicResource HeaderToolButton}" Tag="Active" Content="All" Padding="7,3" Click="FilterTab_Click"/>
+                            <Button x:Name="FilterBrowsersBtn" Style="{DynamicResource HeaderToolButton}" Content="Browsers" Padding="7,3" Click="FilterTab_Click"/>
+                            <Button x:Name="FilterGamingBtn" Style="{DynamicResource HeaderToolButton}" Content="Gaming" Padding="7,3" Click="FilterTab_Click"/>
+                            <Button x:Name="FilterDevBtn" Style="{DynamicResource HeaderToolButton}" Content="Dev Tools" Padding="7,3" Click="FilterTab_Click"/>
+                            <Button x:Name="FilterRuntimesBtn" Style="{DynamicResource HeaderToolButton}" Content="Runtimes" Padding="7,3" Click="FilterTab_Click"/>
+                            <Button x:Name="FilterLargeBtn" Style="{DynamicResource HeaderToolButton}" Content="Large (>500MB)" Padding="7,3" Click="FilterTab_Click"/>
+                            <Button x:Name="FilterBrokenBtn" Style="{DynamicResource HeaderToolButton}" Content="Broken" Padding="7,3" Click="FilterTab_Click"/>
+                        </StackPanel>
+
+                        <!-- Refresh, AI & Count Group -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button x:Name="FetchAllAiBtn"
+                                    Style="{DynamicResource PillButton}"
+                                    Padding="10,4"
+                                    Margin="0,0,8,0"
+                                    Click="FetchAllAiBtn_Click"
+                                    ToolTip="Query AI Engine to analyze all unidentified software">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE946;" FontFamily="{DynamicResource IconFont}" FontSize="10.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="AI Analyze" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="10,4"
+                                    Margin="0,0,8,0">
+                                <TextBlock x:Name="AppCountBadge"
+                                           Text="0 Apps Detected"
+                                           FontSize="11"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextMediumBrush}"/>
+                            </Border>
+
+                            <Button Style="{DynamicResource PillButton}"
+                                    Padding="10,4"
+                                    Click="RefreshAppsBtn_Click"
+                                    ToolTip="Reload installed applications list">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE72C;" FontFamily="{DynamicResource IconFont}" FontSize="10.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Refresh" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 2: App DataGrid / ListView -->
+                    <Border Grid.Row="2"
+                            Background="{DynamicResource SurfaceSubCardBrush}"
+                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="2">
+                        <ListView x:Name="AppsListView"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  Foreground="{DynamicResource TextHighBrush}"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                  SelectionMode="Single">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Padding" Value="10,7"/>
+                                    <Setter Property="Margin" Value="2,1,2,1"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListViewItem">
+                                                <Border x:Name="ItemBorder"
+                                                        Background="{TemplateBinding Background}"
+                                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                        BorderThickness="0,0,0,1"
+                                                        CornerRadius="6"
+                                                        Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="ItemBorder" Property="Background" Value="#1A38BDF8"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="ItemBorder" Property="Background" Value="#2A38BDF8"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="0,3">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="120"/>
+                                                <ColumnDefinition Width="80"/>
+                                                <ColumnDefinition Width="75"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- App Name, Category, Engine Pill & Description -->
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <!-- App Icon with Category Fallback Glyph -->
+                                                    <Grid Width="22" Height="22" Margin="0,0,7,0" VerticalAlignment="Center">
+                                                        <!-- Fallback Category Glyph Container -->
+                                                        <Border Background="{Binding CategoryBadgeBackground}"
+                                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="4">
+                                                            <TextBlock Text="{Binding FallbackGlyph}"
+                                                                       FontFamily="{DynamicResource IconFont}"
+                                                                       FontSize="11"
+                                                                       Foreground="{Binding CategoryBadgeColor}"
+                                                                       HorizontalAlignment="Center"
+                                                                       VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <!-- Native Extracted Windows App Icon -->
+                                                        <Image Source="{Binding AppIcon}"
+                                                               Width="20"
+                                                               Height="20"
+                                                               RenderOptions.BitmapScalingMode="HighQuality"
+                                                               VerticalAlignment="Center"
+                                                               HorizontalAlignment="Center"
+                                                               Visibility="{Binding HasAppIcon, Converter={StaticResource BoolToVisConverter}}"/>
+                                                    </Grid>
+
+                                                    <TextBlock Text="{Binding DisplayName}"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               MaxWidth="280"/>
+                                                    <!-- Category Badge -->
+                                                    <Border Background="{Binding CategoryBadgeBackground}"
+                                                            BorderBrush="{Binding CategoryBadgeColor}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="3"
+                                                            Padding="4,0"
+                                                            Margin="6,0,0,0"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Category}"
+                                                                   FontSize="8.5"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{Binding CategoryBadgeColor}"/>
+                                                    </Border>
+                                                    <!-- Engine Badge -->
+                                                    <Border Background="#1400E5FF"
+                                                            BorderBrush="#2900E5FF"
+                                                            BorderThickness="1"
+                                                            CornerRadius="3"
+                                                            Padding="4,0"
+                                                            Margin="4,0,0,0"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding UninstallEngine}"
+                                                                   FontSize="8.5"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                    </Border>
+                                                    <!-- Core Runtime / Driver Warning -->
+                                                    <Border Background="#2A0E0E"
+                                                            BorderBrush="#EF4444"
+                                                            BorderThickness="1"
+                                                            CornerRadius="3"
+                                                            Padding="4,0"
+                                                            Margin="4,0,0,0"
+                                                            VerticalAlignment="Center"
+                                                            Visibility="{Binding IsCoreRuntime, Converter={StaticResource BoolToVisConverter}}">
+                                                        <TextBlock Text="CORE RUNTIME"
+                                                                   FontSize="8"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="#EF4444"/>
+                                                    </Border>
+                                                    <!-- AI Enriched Badge -->
+                                                    <Border Background="#1A10B981"
+                                                            BorderBrush="#3310B981"
+                                                            BorderThickness="1"
+                                                            CornerRadius="3"
+                                                            Padding="4,0"
+                                                            Margin="4,0,0,0"
+                                                            VerticalAlignment="Center"
+                                                            Visibility="{Binding IsAiEnriched, Converter={StaticResource BoolToVisConverter}}"
+                                                            ToolTip="{Binding AiProviderUsed, StringFormat='Enriched by {0}'}">
+                                                        <TextBlock Text="AI VERIFIED"
+                                                                   FontSize="8"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="#10B981"/>
+                                                    </Border>
+                                                </StackPanel>
+
+                                                <!-- App Description & Publisher Subtitle (High Visibility & Interactive Click-to-Expand) -->
+                                                <Button Style="{StaticResource ExpandableDescriptionButtonStyle}"
+                                                        Margin="0,2,0,0"
+                                                        Click="AppItemToggleExpand_Click"
+                                                        ToolTip="Click to expand deep intelligence briefing, install path &amp; removal safety">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <!-- Chevron indicator -->
+                                                        <TextBlock Text="{Binding ExpandGlyph}"
+                                                                   FontFamily="{DynamicResource IconFont}"
+                                                                   FontSize="9.5"
+                                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                                   Margin="0,0,5,0"
+                                                                   VerticalAlignment="Center"/>
+                                                        <!-- Highly visible Description -->
+                                                        <TextBlock Text="{Binding Description}"
+                                                                   FontSize="11"
+                                                                   FontWeight="Medium"
+                                                                   Foreground="{DynamicResource TextHighBrush}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   MaxWidth="320"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBlock Text=" • "
+                                                                   FontSize="10.5"
+                                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding Publisher}"
+                                                                   FontSize="10"
+                                                                   Foreground="{DynamicResource TextMediumBrush}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   MaxWidth="130"
+                                                                   VerticalAlignment="Center"/>
+                                                        <!-- Interactive Cue Badge -->
+                                                        <Border Background="#1400E5FF"
+                                                                BorderBrush="#2900E5FF"
+                                                                BorderThickness="1"
+                                                                CornerRadius="3"
+                                                                Padding="4,0"
+                                                                Margin="6,0,0,0"
+                                                                VerticalAlignment="Center">
+                                                            <TextBlock Text="DETAILS ▾"
+                                                                       FontSize="8"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+
+                                            <!-- Version -->
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding DisplayVersion}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextMediumBrush}"
+                                                       VerticalAlignment="Center"
+                                                       HorizontalAlignment="Left"
+                                                       TextTrimming="CharacterEllipsis"/>
+
+                                            <!-- Date -->
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding InstallDate}"
+                                                       FontSize="10.5"
+                                                       Foreground="{DynamicResource TextMutedBrush}"
+                                                       VerticalAlignment="Center"
+                                                       HorizontalAlignment="Left"/>
+
+                                            <!-- Size -->
+                                            <TextBlock Grid.Column="3"
+                                                       Text="{Binding FormattedSize}"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource ElectricCyanBrush}"
+                                                       VerticalAlignment="Center"
+                                                       HorizontalAlignment="Right"/>
+
+                                            <!-- Actions -->
+                                            <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center">
+                                                <!-- AI Info -->
+                                                <Button Style="{DynamicResource PillButton}"
+                                                        Padding="7,3"
+                                                        Margin="0,0,5,0"
+                                                        ToolTip="Query AI to analyze what this app is, its safety rating, and uninstall impact"
+                                                        Click="FetchSingleAppAi_Click">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="&#xE946;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="AI Info" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <!-- Scan Traces -->
+                                                <Button Style="{DynamicResource PillButton}"
+                                                        Padding="7,3"
+                                                        Margin="0,0,5,0"
+                                                        ToolTip="Scan files, registry keys, and shortcuts without uninstalling"
+                                                        Click="ScanTracesBtn_Click">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="&#xE721;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Traces" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <!-- Force Root Clean (for broken apps) -->
+                                                <Button Style="{DynamicResource PillButton}"
+                                                        Padding="7,3"
+                                                        Margin="0,0,5,0"
+                                                        ToolTip="Force wipe all files, registry entries, and shortcuts without running official uninstaller"
+                                                        Click="ForceRootCleanBtn_Click">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="&#xE74D;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource AmberWarningBrush}" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Force" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AmberWarningBrush}"/>
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <!-- Deep Uninstall -->
+                                                <Button Style="{DynamicResource HeroCTAButton}"
+                                                        Padding="9,3"
+                                                        ToolTip="Terminate locked processes, launch uninstaller, and automatically purge all leftover traces"
+                                                        Click="DeepUninstallBtn_Click">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="&#xE71D;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="#FFFFFF" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Uninstall" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Expandable In-Depth Intelligence & System Details Card -->
+                                        <Border Visibility="{Binding ExpandedVisibility}"
+                                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="10"
+                                                Padding="14,12"
+                                                Margin="0,6,0,6">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/> <!-- Header -->
+                                                    <RowDefinition Height="Auto"/> <!-- Description / Purpose -->
+                                                    <RowDefinition Height="Auto"/> <!-- Safety Verdict & Impact -->
+                                                    <RowDefinition Height="Auto"/> <!-- System Details: Install path, Registry, Command -->
+                                                    <RowDefinition Height="Auto"/> <!-- Quick Action Toolbar -->
+                                                </Grid.RowDefinitions>
+
+                                                <!-- Header -->
+                                                <Grid Grid.Row="0" Margin="0,0,0,10">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="&#xE946;"
+                                                                   FontFamily="{DynamicResource IconFont}"
+                                                                   FontSize="12.5"
+                                                                   Foreground="{DynamicResource ElectricCyanBrush}"
+                                                                   Margin="0,0,6,0"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Application Intelligence &amp; Details"
+                                                                   FontSize="12"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource TextHighBrush}"
+                                                                   VerticalAlignment="Center"/>
+
+                                                        <!-- Category Badge -->
+                                                        <Border Background="{Binding CategoryBadgeBackground}"
+                                                                BorderBrush="{Binding CategoryBadgeColor}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="4"
+                                                                Padding="6,1"
+                                                                Margin="10,0,0,0"
+                                                                VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Category}"
+                                                                       FontSize="9"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="{Binding CategoryBadgeColor}"/>
+                                                        </Border>
+
+                                                        <!-- AI / Catalog Provider Badge -->
+                                                        <Border Background="#143B82F6"
+                                                                BorderBrush="#283B82F6"
+                                                                BorderThickness="1"
+                                                                CornerRadius="4"
+                                                                Padding="6,1"
+                                                                Margin="6,0,0,0"
+                                                                VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding AiProviderDisplay}"
+                                                                       FontSize="9"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="#60A5FA"/>
+                                                        </Border>
+                                                    </StackPanel>
+
+                                                    <!-- Close / Collapse Button -->
+                                                    <Button Style="{DynamicResource WindowCloseButton}"
+                                                            Content="&#xE8BB;"
+                                                            FontFamily="{DynamicResource IconFont}"
+                                                            FontSize="9"
+                                                            HorizontalAlignment="Right"
+                                                            Width="20"
+                                                            Height="20"
+                                                            ToolTip="Collapse details"
+                                                            Click="AppItemToggleExpand_Click"/>
+                                                </Grid>
+
+                                                <!-- Row 1: Full Multi-line Description -->
+                                                <Border Grid.Row="1" Background="#0AFFFFFF" CornerRadius="6" Padding="10,8" Margin="0,0,0,8">
+                                                    <StackPanel>
+                                                        <TextBlock Text="DESCRIPTION &amp; FUNCTION"
+                                                                   FontSize="9"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                                   Margin="0,0,0,4"/>
+                                                        <TextBlock Text="{Binding Description}"
+                                                                   FontSize="11.5"
+                                                                   Foreground="{DynamicResource TextHighBrush}"
+                                                                   TextWrapping="Wrap"
+                                                                   LineHeight="17"/>
+                                                    </StackPanel>
+                                                </Border>
+
+                                                <!-- Row 2: Safety Verdict & Removal Impact -->
+                                                <Border Grid.Row="2"
+                                                        Background="{Binding SafetyBadgeBackground}"
+                                                        BorderBrush="{Binding SafetyBadgeBorder}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="6"
+                                                        Padding="10,8"
+                                                        Margin="0,0,0,8">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="&#xE7BA;"
+                                                                   FontFamily="{DynamicResource IconFont}"
+                                                                   FontSize="15"
+                                                                   Foreground="{Binding SafetyBadgeColor}"
+                                                                   VerticalAlignment="Top"
+                                                                   Margin="0,1,8,0"/>
+                                                        <StackPanel Grid.Column="1">
+                                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                                                                <TextBlock Text="REMOVAL IMPACT: "
+                                                                           FontSize="9.5"
+                                                                           FontWeight="Bold"
+                                                                           Foreground="{DynamicResource TextMutedBrush}"/>
+                                                                <TextBlock Text="{Binding SafetyVerdict}"
+                                                                           FontSize="9.5"
+                                                                           FontWeight="Bold"
+                                                                           Foreground="{Binding SafetyBadgeColor}"/>
+                                                            </StackPanel>
+                                                            <TextBlock Text="{Binding SafetyAdviceDisplay}"
+                                                                       FontSize="11"
+                                                                       Foreground="{DynamicResource TextHighBrush}"
+                                                                       TextWrapping="Wrap"
+                                                                       LineHeight="16"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+
+                                                <!-- Row 3: System Details (Install Path, Uninstall Command, Registry) -->
+                                                <Grid Grid.Row="3" Margin="0,0,0,10">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+
+                                                    <!-- Install Path -->
+                                                    <Grid Grid.Row="0" Margin="0,0,0,5">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="110"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="Install Location:" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding InstallLocationDisplay}" FontSize="10.5" Foreground="{DynamicResource TextMediumBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding InstallLocation}" VerticalAlignment="Center"/>
+                                                        <Button Grid.Column="2" Style="{DynamicResource PillButton}" Padding="7,2" Margin="8,0,0,0" ToolTip="Open install folder in File Explorer" Visibility="{Binding OpenFolderVisibility}" Click="OpenInstallLocation_Click">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xED25;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Open Folder" FontSize="9.5" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>
+                                                            </StackPanel>
+                                                        </Button>
+                                                    </Grid>
+
+                                                    <!-- Uninstall Command -->
+                                                    <Grid Grid.Row="1" Margin="0,0,0,5">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="110"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="Uninstall Command:" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding UninstallCommandDisplay}" FontSize="10.5" Foreground="{DynamicResource TextMediumBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding UninstallString}" VerticalAlignment="Center"/>
+                                                    </Grid>
+
+                                                    <!-- Registry Path -->
+                                                    <Grid Grid.Row="2">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="110"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="Registry Key:" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding RegistryKeyPathDisplay}" FontSize="10.5" Foreground="{DynamicResource TextMediumBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding RegistryKeyPath}" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </Grid>
+
+                                                <!-- Row 4: Action Toolbar inside card -->
+                                                <Border Grid.Row="4" BorderBrush="{DynamicResource HairlineBorderBrush}" BorderThickness="0,1,0,0" Padding="0,8,0,0">
+                                                    <Grid>
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                                            <!-- Refresh / Query AI -->
+                                                            <Button Style="{DynamicResource PillButton}"
+                                                                    Padding="9,4"
+                                                                    Margin="0,0,6,0"
+                                                                    ToolTip="Query AI to analyze or refresh intelligence"
+                                                                    Click="FetchSingleAppAi_Click">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="&#xE946;" FontFamily="{DynamicResource IconFont}" FontSize="10" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="Refresh AI Analysis" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>
+                                                                </StackPanel>
+                                                            </Button>
+                                                            <!-- Scan Traces -->
+                                                            <Button Style="{DynamicResource PillButton}"
+                                                                    Padding="9,4"
+                                                                    Margin="0,0,6,0"
+                                                                    ToolTip="Scan leftover files and registry traces"
+                                                                    Click="ScanTracesBtn_Click">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="&#xE721;" FontFamily="{DynamicResource IconFont}" FontSize="10" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="Scan Residual Traces" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>
+                                                                </StackPanel>
+                                                            </Button>
+                                                        </StackPanel>
+
+                                                        <!-- Deep Uninstall CTA on right -->
+                                                        <Button Style="{DynamicResource HeroCTAButton}"
+                                                                HorizontalAlignment="Right"
+                                                                Padding="14,4"
+                                                                ToolTip="Initiate deep uninstaller"
+                                                                Click="DeepUninstallBtn_Click">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xE71D;" FontFamily="{DynamicResource IconFont}" FontSize="10" Foreground="#FFFFFF" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Deep Uninstall" FontSize="10.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                                            </StackPanel>
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Border>
+
+                    <!-- 3: Deep Root Leftovers Drawer -->
+                    <Border x:Name="RootLeftoversDrawer"
+                            Grid.Row="3"
+                            Visibility="Collapsed"
+                            Background="{DynamicResource SurfaceSubCardBrush}"
+                            BorderBrush="{DynamicResource ElectricCyanBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="14"
+                            Margin="0,8,0,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/> <!-- Header -->
+                                <RowDefinition Height="Auto"/> <!-- App AI Intelligence Card -->
+                                <RowDefinition Height="Auto"/> <!-- Filter Tabs & Select All -->
+                                <RowDefinition Height="*"/>    <!-- Items List -->
+                                <RowDefinition Height="Auto"/> <!-- Footer Action -->
+                            </Grid.RowDefinitions>
+
+                            <!-- Drawer Header -->
+                            <Grid Grid.Row="0" Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE7E8;" FontFamily="{DynamicResource IconFont}" FontSize="13" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="RootDrawerTitle" Text="Deep Root Leftover Inspector" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}"/>
+                                    <Border Background="#1A00E5FF" BorderBrush="#3300E5FF" BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock x:Name="RootReclaimableSizeBadge" Text="0 MB Found" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                    </Border>
+                                </StackPanel>
+                                <Button Style="{DynamicResource WindowCloseButton}" Content="&#xE8BB;" FontFamily="{DynamicResource IconFont}" FontSize="10" HorizontalAlignment="Right" Width="22" Height="22" Click="CloseRootDrawer_Click"/>
+                            </Grid>
+
+                            <!-- App AI Intelligence Card in Drawer -->
+                            <Border x:Name="DrawerAiIntelligenceCard"
+                                    Grid.Row="1"
+                                    Background="{DynamicResource SurfaceCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="12,8"
+                                    Margin="0,0,0,8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Grid.Column="0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Drawer App Icon -->
+                                        <Grid Grid.Column="0" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                            <Border x:Name="DrawerIconFallbackBorder"
+                                                    Background="#1400E5FF"
+                                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="5">
+                                                <TextBlock x:Name="DrawerIconFallbackGlyph"
+                                                           Text="&#xE71D;"
+                                                           FontFamily="{DynamicResource IconFont}"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                            <Image x:Name="DrawerAppIconImage"
+                                                   Width="24"
+                                                   Height="24"
+                                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   Visibility="Collapsed"/>
+                                        </Grid>
+
+                                        <StackPanel Grid.Column="1">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock x:Name="DrawerAppNameText" Text="Application Name" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}"/>
+                                                <Border x:Name="DrawerCategoryBadge" Background="#1400E5FF" CornerRadius="3" Padding="5,1" Margin="6,0,0,0">
+                                                    <TextBlock x:Name="DrawerCategoryText" Text="General" FontSize="8.5" FontWeight="Bold" Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                </Border>
+                                                <Border x:Name="DrawerSafetyBadge" Background="#0D2818" BorderBrush="#10B981" BorderThickness="1" CornerRadius="3" Padding="5,1" Margin="6,0,0,0">
+                                                    <TextBlock x:Name="DrawerSafetyText" Text="Safe to Remove" FontSize="8.5" FontWeight="Bold" Foreground="#10B981"/>
+                                                </Border>
+                                                <Border x:Name="DrawerProviderBadge" Background="#143B82F6" CornerRadius="3" Padding="5,1" Margin="6,0,0,0">
+                                                    <TextBlock x:Name="DrawerProviderText" Text="Offline Catalog" FontSize="8.5" FontWeight="SemiBold" Foreground="#60A5FA"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock x:Name="DrawerAppDescriptionText" Text="Description of application" FontSize="10.5" Foreground="{DynamicResource TextMediumBrush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                            <TextBlock x:Name="DrawerAppImpactText" Text="Impact if removed: Reclaims disk space." FontSize="10" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Button x:Name="DrawerFetchAiBtn"
+                                            Grid.Column="1"
+                                            Style="{DynamicResource PillButton}"
+                                            Padding="10,4"
+                                            Margin="12,0,0,0"
+                                            VerticalAlignment="Center"
+                                            ToolTip="Re-analyze or enrich this app using configured AI model"
+                                            Click="DrawerFetchAiBtn_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE946;" FontFamily="{DynamicResource IconFont}" FontSize="10" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,4,0"/>
+                                            <TextBlock Text="Fetch AI" FontSize="10.5" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                            </Border>
+
+                            <!-- Drawer Filter Strip & Bulk Actions -->
+                            <Grid Grid.Row="2" Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button x:Name="DrawerTabAllBtn" Style="{DynamicResource HeaderToolButton}" Tag="Active" Content="All Traces" Padding="8,2" Click="DrawerTab_Click"/>
+                                    <Button x:Name="DrawerTabFilesBtn" Style="{DynamicResource HeaderToolButton}" Content="Files &amp; Folders" Padding="8,2" Click="DrawerTab_Click"/>
+                                    <Button x:Name="DrawerTabRegistryBtn" Style="{DynamicResource HeaderToolButton}" Content="Registry Keys" Padding="8,2" Click="DrawerTab_Click"/>
+                                    <Button x:Name="DrawerTabShortcutsBtn" Style="{DynamicResource HeaderToolButton}" Content="Shortcuts &amp; System" Padding="8,2" Click="DrawerTab_Click"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <Button Style="{DynamicResource PillButton}" Content="Select All" Padding="8,2" Margin="0,0,5,0" FontSize="10" Click="SelectAllTraces_Click"/>
+                                    <Button Style="{DynamicResource PillButton}" Content="Select Recommended" Padding="8,2" FontSize="10" Click="SelectRecommendedTraces_Click"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Leftover Items Scrollable List -->
+                            <Border Grid.Row="3" MaxHeight="180" Background="{DynamicResource CanvasDarkBrush}" BorderBrush="{DynamicResource HairlineBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="4">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                    <ItemsControl x:Name="LeftoversItemsControl">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="Transparent" BorderBrush="{DynamicResource HairlineBorderBrush}" BorderThickness="0,0,0,1" Padding="6,4">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="85"/>
+                                                            <ColumnDefinition Width="70"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <!-- Selection Checkbox -->
+                                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,8,0" Click="TraceCheckbox_Click"/>
+
+                                                        <!-- Type Glyph & Path -->
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding IconGlyph}" FontFamily="{DynamicResource IconFont}" FontSize="10" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding TypeBadge}" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding Description}" FontSize="9.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                            <TextBlock Text="{Binding PathOrKey}" FontSize="10" Foreground="{DynamicResource TextHighBrush}" TextTrimming="CharacterEllipsis" Margin="15,1,0,0"/>
+                                                        </StackPanel>
+
+                                                        <!-- Confidence Badge -->
+                                                        <Border Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="5,1" CornerRadius="3" Background="#1410B981" BorderBrush="#3310B981" BorderThickness="1">
+                                                            <TextBlock Text="{Binding Confidence}" FontSize="9" FontWeight="SemiBold" Foreground="#10B981"/>
+                                                        </Border>
+
+                                                        <!-- Size -->
+                                                        <TextBlock Grid.Column="3" Text="{Binding FormattedSize}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextMediumBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Border>
+
+                            <!-- Drawer Purge Action Footer -->
+                            <Grid Grid.Row="4" Margin="0,10,0,0">
+                                <TextBlock x:Name="RootDrawerSelectionSummary" Text="0 items selected for root purge" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                <Button x:Name="PurgeRootTracesBtn"
+                                        Style="{DynamicResource HeroCTAButton}"
+                                        Padding="14,6"
+                                        HorizontalAlignment="Right"
+                                        Click="PurgeRootTracesBtn_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE74D;" FontFamily="{DynamicResource IconFont}" FontSize="11" Foreground="#FFFFFF" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Purge All Selected Traces from Roots" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <!-- 4: Footer -->
+                    <Grid Grid.Row="4" Margin="0,10,0,0">
+                        <TextBlock x:Name="StatusFooterText"
+                                   Text="Ready to inspect and safely uninstall applications from their roots."
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   VerticalAlignment="Center"/>
+                        <Button Style="{DynamicResource PillButton}"
+                                Padding="16,6"
+                                HorizontalAlignment="Right"
+                                Content="Done"
+                                FontSize="11"
+                                FontWeight="SemiBold"
+                                Click="CloseAppUninstallModal_Click"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

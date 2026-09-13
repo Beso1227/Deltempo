@@ -142,7 +142,7 @@
                             CornerRadius="12"
                             Padding="10,6"
                             Margin="0,0,0,12"
-                            MaxHeight="330">
+                            MinHeight="140">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <ItemsControl x:Name="MemoryAreaItemsControl">
                                 <ItemsControl.ItemTemplate>
