@@ -13,6 +13,11 @@
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
   <meta name="google-site-verification" content="O1sRzpPpESGv7N3wCwbqzfrOy534mJ0CljA9e8zHqrg" />
 
+  <!-- Security Headers & Defense-in-Depth -->
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://api.github.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://beso1227.github.io https://img.shields.io; media-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
+
   <link rel="canonical" href="https://beso1227.github.io/Deltempo/" />
 
   <!-- Open Graph / Social Meta -->
@@ -1559,10 +1564,12 @@
       })
       .then(function(res) { return res.ok ? res.json() : Promise.reject(res.status); })
       .then(function(data) {
-        if (data && data.tag_name && data.tag_name !== tag.textContent) {
-          tag.textContent = data.tag_name;
-          pill.setAttribute('title', 'View ' + data.tag_name + ' Release Notes');
-          pill.href = 'changelog/' + data.tag_name + '/';
+        if (data && typeof data.tag_name === 'string' && /^v?[0-9]+(\.[0-9]+)*(-[a-zA-Z0-9.]+)?$/.test(data.tag_name)) {
+          if (data.tag_name !== tag.textContent) {
+            tag.textContent = data.tag_name;
+            pill.setAttribute('title', 'View ' + data.tag_name + ' Release Notes');
+            pill.href = 'changelog/';
+          }
         }
       })
       .catch(function() {

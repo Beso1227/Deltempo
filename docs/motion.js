@@ -880,8 +880,11 @@
           pill.classList.add('active');
           const cmd = pill.getAttribute('data-cmd');
           if (cliResponses[cmd]) {
+            const safeCmd = String(cmd).replace(/[&<>"']/g, function (m) {
+              return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+            });
             cliOutput.innerHTML =
-              '<span style="color:var(--accent-cyan);">$</span> ' + cmd + '\n\n' + cliResponses[cmd];
+              '<span style="color:var(--accent-cyan);">$</span> ' + safeCmd + '\n\n' + cliResponses[cmd];
           }
         });
       });

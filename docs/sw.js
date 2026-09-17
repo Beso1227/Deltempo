@@ -1,11 +1,11 @@
 // Deltempo Documentation & Landing Page PWA Service Worker
-const CACHE_NAME = 'deltempo-cache-v2.7.5';
+const CACHE_NAME = 'deltempo-cache-v2.7.6';
 
 const PRECACHE_ASSETS = [
   './',
   'index.html',
-  'style.css?v=2.7.5',
-  'motion.js?v=2.7.5',
+  'style.css?v=2.7.6',
+  'motion.js?v=2.7.6',
   'manifest.json?v=2.6.1',
   'app_icon-192.png',
   'app_icon-64.png',
