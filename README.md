@@ -27,6 +27,13 @@
     <a href="#quick-start">Quick Start</a>
   </p>
 
+  <br />
+
+  <a href="https://beso1227.github.io/Deltempo/#video">
+    <img src="docs/brag.jpg" alt="Deltempo 20-Second Product Launch Video" width="760" style="border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 16px 40px rgba(0,0,0,0.5);" />
+  </a>
+  <p><sub>🎬 <strong><a href="https://beso1227.github.io/Deltempo/brag.mp4">Watch the 20-second Deltempo launch overview video</a></strong> (1080p)</sub></p>
+
 </div>
 
 ---

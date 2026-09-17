@@ -44,7 +44,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=2.7.5" />
+  <link rel="stylesheet" href="style.css?v=2.7.6" />
 
   <!-- Web App Manifest (PWA installability) -->
   <link rel="manifest" href="manifest.json?v=2.6.1" />
@@ -240,10 +240,11 @@
         <span>Deltempo</span>
       </a>
       <ul class="nav-links">
+        <li><a href="#video" class="nav-link">Video</a></li>
         <li><a href="#why" class="nav-link">Overview</a></li>
-        <li><a href="#features" class="nav-link">Features</a></li>
-        <li><a href="#safety" class="nav-link">Safety</a></li>
         <li><a href="#compare" class="nav-link">Compare</a></li>
+        <li><a href="#safety" class="nav-link">Safety</a></li>
+        <li><a href="#features" class="nav-link">Features</a></li>
         <li><a href="#faq" class="nav-link">FAQ</a></li>
         <li><a href="docs/" class="nav-link">Docs</a></li>
       </ul>
@@ -273,6 +274,7 @@
 
   <!-- Mobile Menu Overlay -->
   <div class="mobile-menu-overlay" id="mobileMenu" aria-hidden="true">
+    <a href="#video" class="mobile-nav-link">🎬 Launch Video (20s)</a>
     <a href="#why" class="mobile-nav-link">Why Deltempo</a>
     <a href="#compare" class="mobile-nav-link">Comparison</a>
     <a href="#safety" class="mobile-nav-link">Safety Architecture</a>
@@ -311,7 +313,11 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             </span>
           </a>
-          <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="btn-pill btn-pill-secondary" style="padding: 0.75rem 1.75rem; font-size: 1rem;">
+          <a href="#video" class="btn-pill btn-pill-secondary hero-video-btn" style="padding: 0.75rem 1.4rem; font-size: 1rem;">
+            <span style="color: var(--accent-cyan);">▶</span>
+            <span>Watch Video (20s)</span>
+          </a>
+          <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="btn-pill btn-pill-secondary" style="padding: 0.75rem 1.5rem; font-size: 1rem;">
             <span>View on GitHub</span>
           </a>
         </div>
@@ -367,7 +373,7 @@
                 </div>
               </div>
 
-              <!-- Tabs Strip (7 Workspaces) with Smooth Scroll & Wheel Support -->
+              <!-- Tabs Strip (8 Workspaces) with Smooth Scroll & Wheel Support -->
               <div class="tabs-nav-wrapper">
                 <button class="tabs-nav-arrow tabs-arrow-left" id="tabNavLeft" aria-label="Scroll tabs left" title="Scroll left">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -390,6 +396,9 @@
                   </button>
                   <button class="app-tab" data-tab="repair" role="tab" aria-selected="false">
                     <span>🛠️ System Repair</span>
+                  </button>
+                  <button class="app-tab" data-tab="uninstaller" role="tab" aria-selected="false">
+                    <span>🗑️ App Uninstaller</span>
                   </button>
                   <button class="app-tab" data-tab="cli" role="tab" aria-selected="false">
                     <span>💻 Terminal CLI</span>
@@ -551,17 +560,26 @@
                   </div>
 
                   <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-                      <div><strong>Discord</strong> <span style="color: var(--text-low); font-size: 0.8rem; margin-left: 0.5rem;">Registry HKCU</span></div>
-                      <div><span style="font-size: 0.75rem; color: var(--accent-amber); font-weight: 700; margin-right: 0.75rem;">HIGH IMPACT</span> <span style="color: var(--accent-emerald); font-weight: 700;">ENABLED</span></div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); flex-wrap: wrap; gap: 0.5rem;">
+                      <div>
+                        <strong>Discord</strong> <span style="color: var(--text-low); font-size: 0.8rem; margin-left: 0.5rem;">Registry HKCU</span>
+                        <div style="font-size: 0.76rem; color: var(--accent-emerald); margin-top: 2px;">🤖 AI Verdict: SafeToDisable • Won't affect voice or messaging when launched manually</div>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="font-size: 0.75rem; color: var(--accent-amber); font-weight: 700;">HIGH IMPACT</span> <span style="color: var(--accent-emerald); font-weight: 700;">ENABLED</span></div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-                      <div><strong>Spotify</strong> <span style="color: var(--text-low); font-size: 0.8rem; margin-left: 0.5rem;">Startup Folder</span></div>
-                      <div><span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700; margin-right: 0.75rem;">MEDIUM IMPACT</span> <span style="color: var(--accent-emerald); font-weight: 700;">ENABLED</span></div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); flex-wrap: wrap; gap: 0.5rem;">
+                      <div>
+                        <strong>Spotify</strong> <span style="color: var(--text-low); font-size: 0.8rem; margin-left: 0.5rem;">Startup Folder</span>
+                        <div style="font-size: 0.76rem; color: var(--accent-emerald); margin-top: 2px;">🤖 AI Verdict: SafeToDisable • Disabling cuts ~1.8s boot delay</div>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700;">MEDIUM IMPACT</span> <span style="color: var(--accent-emerald); font-weight: 700;">ENABLED</span></div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-                      <div><strong>Microsoft Teams</strong> <span style="color: var(--text-low); font-size: 0.8rem; margin-left: 0.5rem;">Registry HKLM</span></div>
-                      <div><span style="font-size: 0.75rem; color: var(--accent-amber); font-weight: 700; margin-right: 0.75rem;">HIGH IMPACT</span> <span style="color: var(--text-low); font-weight: 700;">DISABLED</span></div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); flex-wrap: wrap; gap: 0.5rem;">
+                      <div>
+                        <strong>Windows Security Tray</strong> <span style="color: var(--text-low); font-size: 0.8rem; margin-left: 0.5rem;">Registry HKLM</span>
+                        <div style="font-size: 0.76rem; color: #EF4444; margin-top: 2px;">🛡️ AI Verdict: EssentialKeep • Protected core Windows security component</div>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="font-size: 0.75rem; color: var(--accent-emerald); font-weight: 700;">CORE OS</span> <span style="color: var(--accent-emerald); font-weight: 700;">PROTECTED</span></div>
                     </div>
                   </div>
                 </div>
@@ -623,7 +641,87 @@
                   </div>
                 </div>
 
-                <!-- TAB 7: CLI -->
+                <!-- TAB 7: APP UNINSTALLER (v1.7.0 BCU ENGINE) -->
+                <div class="tab-pane" id="pane-uninstaller">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Bulk Crap Uninstaller (BCU) Engine • v1.7.0</div>
+                      <div style="font-size: 1.25rem; font-weight: 800;">Silent Batch Removal &amp; Residual Leftover Sweeper</div>
+                    </div>
+                    <span class="tier-badge safe">🛡️ Deep Root Tracing &amp; TOCTOU Protected</span>
+                  </div>
+
+                  <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 240px; max-width: 420px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); padding: 0.4rem 0.85rem; font-size: 0.82rem; color: var(--text-med);">
+                      <span>🔍</span>
+                      <span>Filter 78 installed applications...</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                      <button class="btn-pill btn-pill-secondary" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; pointer-events: none;">Scan Residuals</button>
+                      <button class="btn-pill btn-pill-primary" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; pointer-events: none;">Purge Leftovers (1.8 GB)</button>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.88rem;">
+                    <!-- App 1: Epic Games Launcher -->
+                    <div style="padding: 0.85rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                      <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.25rem;">🎮</span>
+                        <div>
+                          <div style="font-weight: 700; color: var(--text-high);">Epic Games Launcher</div>
+                          <div style="font-size: 0.76rem; color: var(--text-low); font-family: var(--font-mono);">Epic Games Inc. • 1.84 GB • Win32 Registry</div>
+                        </div>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 0.72rem; padding: 3px 8px; background: rgba(245, 158, 11, 0.12); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 4px; font-weight: 700;">14 LEFTOVERS FOUND</span>
+                        <span style="font-size: 0.76rem; color: var(--accent-cyan); font-weight: 700;">HKCU + AppData</span>
+                      </div>
+                    </div>
+
+                    <!-- App 2: Visual Studio Preview -->
+                    <div style="padding: 0.85rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                      <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.25rem;">💻</span>
+                        <div>
+                          <div style="font-weight: 700; color: var(--text-high);">Microsoft Visual Studio 2022 Preview</div>
+                          <div style="font-size: 0.76rem; color: var(--text-low); font-family: var(--font-mono);">Microsoft Corporation • 14.2 GB • ProgramData Residuals</div>
+                        </div>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 0.72rem; padding: 3px 8px; background: rgba(239, 68, 68, 0.12); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 4px; font-weight: 700;">82 LEFTOVERS DETECTED</span>
+                        <span style="font-size: 0.76rem; color: var(--text-med); font-weight: 700;">ProgramData + Registry</span>
+                      </div>
+                    </div>
+
+                    <!-- App 3: Spotify -->
+                    <div style="padding: 0.85rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                      <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.25rem;">🎵</span>
+                        <div>
+                          <div style="font-weight: 700; color: var(--text-high);">Spotify Music Desktop</div>
+                          <div style="font-size: 0.76rem; color: var(--text-low); font-family: var(--font-mono);">Spotify AB • 312 MB • Roaming AppData</div>
+                        </div>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 0.72rem; padding: 3px 8px; background: rgba(16, 185, 129, 0.12); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 4px; font-weight: 700;">CLEAN STATE</span>
+                        <span style="font-size: 0.76rem; color: var(--accent-emerald); font-weight: 700;">Safe Removal Ready</span>
+                      </div>
+                    </div>
+
+                    <!-- App Intelligence Briefing Card -->
+                    <div style="padding: 0.85rem 1rem; background: rgba(6, 182, 212, 0.05); border: 1px solid rgba(6, 182, 212, 0.2); border-radius: var(--radius-md); margin-top: 0.25rem;">
+                      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                        <span style="color: var(--accent-cyan); font-size: 0.95rem;">💡</span>
+                        <strong style="font-size: 0.82rem; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px;">Expandable Application Intelligence</strong>
+                      </div>
+                      <p style="font-size: 0.8rem; color: var(--text-med); margin: 0; line-height: 1.5;">
+                        Deltempo deep-scans AppData, ProgramData, and registry keys for orphaned leftovers after silent uninstallation. Pre-deletion revalidation guarantees zero collateral damage to adjacent developer or user files.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- TAB 8: CLI -->
                 <div class="tab-pane" id="pane-cli">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
                     <div>
@@ -649,6 +747,52 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 20-SECOND LAUNCH FILM SHOWCASE -->
+    <section class="section-py video-section" id="video" style="border-top: 1px solid var(--border-subtle); background: radial-gradient(circle at 50% 10%, rgba(6, 182, 212, 0.05) 0%, transparent 65%);">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <div class="section-tag" style="display: inline-flex; align-items: center; gap: 8px;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #06B6D4; box-shadow: 0 0 10px #06B6D4; display: inline-block;"></span>
+            <span>Official Launch Film • 20 Seconds</span>
+          </div>
+          <h2 class="section-title">See Deltempo in motion.</h2>
+          <p class="section-subtitle">
+            Zero telemetry. 14.8 GB purged in seconds. Native NT kernel standby memory trim. Watch the open-source Windows guardian in action.
+          </p>
+        </div>
+
+        <div class="video-showcase-wrapper reveal-on-scroll stagger-1">
+          <div class="double-bezel video-double-bezel">
+            <div class="video-player-container">
+              <video
+                id="launchVideo"
+                controls
+                preload="metadata"
+                poster="brag.jpg"
+                playsinline
+                class="responsive-launch-video"
+                aria-label="Deltempo 20-second official launch overview video"
+              >
+                <source src="brag.mp4" type="video/mp4" />
+                Your browser does not support HTML5 video. <a href="brag.mp4" download>Download the launch video</a>.
+              </video>
+            </div>
+          </div>
+          <div class="video-caption-bar">
+            <div class="video-badges">
+              <span class="video-badge"><span class="badge-dot-green"></span> 1080p · 30fps</span>
+              <span class="video-badge">20s Fast Tour</span>
+              <span class="video-badge">Zero Telemetry</span>
+            </div>
+            <a href="https://github.com/Beso1227/Deltempo/releases/latest" class="video-direct-link">
+              <span>Get Deltempo v1.7.0</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+            </a>
           </div>
         </div>
       </div>
@@ -1020,7 +1164,11 @@
             <ul class="cap-list">
               <li class="cap-item">
                 <span class="cap-check">✓</span>
-                <div><strong>Startup Manager:</strong> Manage startup apps with built-in Windows Defender immunity.</div>
+                <div><strong>Deep Root App Uninstaller:</strong> BCU engine with silent batch removal and leftover file/registry sweeper.</div>
+              </li>
+              <li class="cap-item">
+                <span class="cap-check">✓</span>
+                <div><strong>Startup AI Safety Verdicts:</strong> AI intelligence answering <em>"Will anything go wrong if I disable this?"</em>.</div>
               </li>
               <li class="cap-item">
                 <span class="cap-check">✓</span>
@@ -1032,11 +1180,11 @@
               </li>
               <li class="cap-item">
                 <span class="cap-check">✓</span>
-                <div><strong>Continuous Patch Delivery:</strong> Safe rolling updates with SHA-256 and PE header verification.</div>
+                <div><strong>CTT WinUtil Integration:</strong> 1-click Chris Titus Tech Windows Utility for advanced system tweaks.</div>
               </li>
               <li class="cap-item">
                 <span class="cap-check">✓</span>
-                <div><strong>System Tray Guardian:</strong> Lightweight background monitor for memory and scheduled cleaning.</div>
+                <div><strong>Continuous Patch Delivery:</strong> Safe rolling updates with SHA-256 and PE header verification.</div>
               </li>
               <li class="cap-item">
                 <span class="cap-check">✓</span>
@@ -1388,54 +1536,6 @@
           });
         });
       }
-
-      // 5. Mobile Menu Toggle with Accessibility & Scroll Lock
-      const mobileToggle = document.getElementById('mobileToggle');
-      const mobileMenu = document.getElementById('mobileMenu');
-      if (mobileToggle && mobileMenu) {
-        function toggleMobileMenu(open) {
-          if (open) {
-            mobileMenu.classList.add('open');
-            mobileMenu.setAttribute('aria-hidden', 'false');
-            mobileToggle.setAttribute('aria-expanded', 'true');
-            mobileToggle.setAttribute('aria-label', 'Close Navigation Menu');
-            document.body.style.overflow = 'hidden';
-          } else {
-            mobileMenu.classList.remove('open');
-            mobileMenu.setAttribute('aria-hidden', 'true');
-            mobileToggle.setAttribute('aria-expanded', 'false');
-            mobileToggle.setAttribute('aria-label', 'Open Navigation Menu');
-            document.body.style.overflow = '';
-          }
-        }
-
-        mobileToggle.addEventListener('click', function () {
-          const isOpen = mobileMenu.classList.contains('open');
-          toggleMobileMenu(!isOpen);
-        });
-
-        // Close menu when clicking any nav link
-        document.querySelectorAll('.mobile-nav-link').forEach(function (link) {
-          link.addEventListener('click', function () {
-            toggleMobileMenu(false);
-          });
-        });
-
-        // Close menu on Escape key
-        document.addEventListener('keydown', function (e) {
-          if (e.key === 'Escape' && mobileMenu.classList.contains('open')) {
-            toggleMobileMenu(false);
-            mobileToggle.focus();
-          }
-        });
-
-        // Close menu on viewport resize to desktop width
-        window.addEventListener('resize', function () {
-          if (window.innerWidth > 960 && mobileMenu.classList.contains('open')) {
-            toggleMobileMenu(false);
-          }
-        });
-      }
     })();
   </script>
 
@@ -1444,8 +1544,8 @@
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
   </button>
 
-  <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals) -->
-  <script src="motion.js?v=2.7.5" defer></script>
+  <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals, Mobile Menu, Scroll Spy) -->
+  <script src="motion.js?v=2.7.6" defer></script>
 
   <!-- Dynamic Release Version Sync -->
   <script defer>

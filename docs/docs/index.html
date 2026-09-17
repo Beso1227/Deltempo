@@ -36,7 +36,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <!-- Core Design System -->
-    <link rel="stylesheet" href="../style.css?v=2.7.5" />
+  <link rel="stylesheet" href="../style.css?v=2.7.6" />
 
   <!-- Web App Manifest (PWA installability) -->
   <link rel="manifest" href="../manifest.json?v=2.6.1" />
@@ -49,15 +49,17 @@
       {
         "@type": "TechArticle",
         "@id": "https://beso1227.github.io/Deltempo/docs/#article",
-        "headline": "Deltempo Documentation: 25+ Cleaning Scopes, 5-Tier Safety Engine, and NT Kernel Memory Architecture",
-        "description": "Comprehensive reference covering all cleanup scopes, GPU shader cache handling, safety architecture, and CLI automation in Deltempo.",
+        "headline": "Deltempo Technical Architecture and Reference Manual",
+        "description": "Comprehensive reference guide covering the 26+ cleaning scopes, 5-tier safety classification, NT memory APIs, and command-line automation.",
+        "inLanguage": "en-US",
         "datePublished": "2026-03-01",
         "dateModified": "2026-09-12",
         "mainEntityOfPage": "https://beso1227.github.io/Deltempo/docs/",
         "image": "https://beso1227.github.io/Deltempo/app_icon.png",
         "author": {
           "@type": "Person",
-          "name": "Beso1227"
+          "name": "Beso1227",
+          "url": "https://github.com/Beso1227"
         },
         "publisher": {
           "@type": "Organization",
@@ -112,11 +114,13 @@
       </a>
       <ul class="nav-links">
         <li><a href="../" class="nav-link">Home</a></li>
-        <li><a href="../#features" class="nav-link">Features</a></li>
-        <li><a href="../#safety" class="nav-link">Safety</a></li>
+        <li><a href="../#video" class="nav-link">Video</a></li>
         <li><a href="../#compare" class="nav-link">Compare</a></li>
+        <li><a href="../#safety" class="nav-link">Safety</a></li>
+        <li><a href="../#features" class="nav-link">Features</a></li>
         <li><a href="../download/" class="nav-link">Download</a></li>
         <li><a href="../faq/" class="nav-link">FAQ</a></li>
+        <li><a href="." class="nav-link active" aria-current="page">Docs</a></li>
       </ul>
       <div class="nav-actions">
         <div class="nav-divider" aria-hidden="true"></div>
@@ -130,15 +134,34 @@
         <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="btn-pill btn-pill-secondary">
           <span>GitHub</span>
         </a>
+        <button class="nav-mobile-toggle" id="mobileToggle" aria-label="Open Navigation Menu" aria-expanded="false" aria-controls="mobileMenu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
     </nav>
   </header>
+
+  <!-- Mobile Menu Overlay -->
+  <div class="mobile-menu-overlay" id="mobileMenu" aria-hidden="true">
+    <a href="../" class="mobile-nav-link">Home</a>
+    <a href="../#video" class="mobile-nav-link">🎬 Launch Video (20s)</a>
+    <a href="../#why" class="mobile-nav-link">Why Deltempo</a>
+    <a href="../#compare" class="mobile-nav-link">Comparison</a>
+    <a href="../#safety" class="mobile-nav-link">Safety Architecture</a>
+    <a href="../#features" class="mobile-nav-link">Capabilities</a>
+    <a href="../download/" class="mobile-nav-link">Download Center</a>
+    <a href="../faq/" class="mobile-nav-link">FAQ</a>
+    <a href="." class="mobile-nav-link">Documentation</a>
+    <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="mobile-nav-link">GitHub Repository</a>
+  </div>
 
   <main id="main" class="container" style="padding-top: 2rem; padding-bottom: 5rem; max-width: 900px;">
     <div class="section-header reveal-on-scroll">
       <div class="section-tag">Technical Manual</div>
       <h1 class="section-title">Deltempo Architecture &amp; Reference</h1>
-      <p class="section-subtitle">Comprehensive reference guide covering the 25+ cleaning scopes, 5-tier safety classification, NT memory APIs, and command-line automation.</p>
+      <p class="section-subtitle">Comprehensive reference guide covering the 26+ cleaning scopes, 5-tier safety classification, NT memory APIs, and command-line automation.</p>
     </div>
 
     <!-- Section 1: Shader Caches -->
@@ -319,6 +342,6 @@
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
   </button>
   <!-- Cybernetic Motion Engine -->
-  <script src="../motion.js?v=2.7.5" defer></script>
+  <script src="../motion.js?v=2.7.6" defer></script>
 </body>
 </html>

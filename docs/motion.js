@@ -993,6 +993,101 @@
     });
   }
 
+  /* ==========================================================================
+     9. Global Responsive Mobile Menu Engine
+     ========================================================================== */
+  function initMobileMenu() {
+    const mobileToggle = document.getElementById('mobileToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (!mobileToggle || !mobileMenu) return;
+
+    function toggleMobileMenu(open) {
+      if (open) {
+        mobileMenu.classList.add('open');
+        mobileMenu.setAttribute('aria-hidden', 'false');
+        mobileToggle.setAttribute('aria-expanded', 'true');
+        mobileToggle.setAttribute('aria-label', 'Close Navigation Menu');
+        document.body.style.overflow = 'hidden';
+      } else {
+        mobileMenu.classList.remove('open');
+        mobileMenu.setAttribute('aria-hidden', 'true');
+        mobileToggle.setAttribute('aria-expanded', 'false');
+        mobileToggle.setAttribute('aria-label', 'Open Navigation Menu');
+        document.body.style.overflow = '';
+      }
+    }
+
+    mobileToggle.addEventListener('click', function () {
+      const isOpen = mobileMenu.classList.contains('open');
+      toggleMobileMenu(!isOpen);
+    });
+
+    document.querySelectorAll('.mobile-nav-link').forEach(function (link) {
+      link.addEventListener('click', function () {
+        toggleMobileMenu(false);
+      });
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && mobileMenu.classList.contains('open')) {
+        toggleMobileMenu(false);
+        mobileToggle.focus();
+      }
+    });
+
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 960 && mobileMenu.classList.contains('open')) {
+        toggleMobileMenu(false);
+      }
+    });
+  }
+
+  /* ==========================================================================
+     10. Active Navigation Scroll Spy
+     ========================================================================== */
+  function initScrollSpy() {
+    const navLinks = document.querySelectorAll('.nav-links .nav-link');
+    if (!navLinks.length) return;
+
+    const tracked = [];
+    navLinks.forEach(function (link) {
+      const href = link.getAttribute('href');
+      if (href && href.startsWith('#') && href.length > 1) {
+        const target = document.getElementById(href.substring(1));
+        if (target) {
+          tracked.push({ link: link, target: target });
+        }
+      }
+    });
+
+    if (!tracked.length) return;
+
+    function updateActiveNav() {
+      const scrollPos = window.scrollY + 160;
+      let currentActive = null;
+
+      for (let i = 0; i < tracked.length; i++) {
+        const top = tracked[i].target.offsetTop;
+        const height = tracked[i].target.offsetHeight;
+        if (scrollPos >= top && scrollPos < top + height) {
+          currentActive = tracked[i].link;
+          break;
+        }
+      }
+
+      tracked.forEach(function (item) {
+        if (item.link === currentActive) {
+          item.link.classList.add('active');
+        } else {
+          item.link.classList.remove('active');
+        }
+      });
+    }
+
+    window.addEventListener('scroll', updateActiveNav, { passive: true });
+    updateActiveNav();
+  }
+
   function initializeAll() {
     initScrollReveals();
     initInteractiveBackground();
@@ -1002,6 +1097,8 @@
     initReclaimCalculator();
     initServiceWorker();
     initBackToTop();
+    initMobileMenu();
+    initScrollSpy();
   }
 
   if (document.readyState === 'loading') {
