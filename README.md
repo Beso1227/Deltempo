@@ -11,8 +11,20 @@
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&label=CI%20Build" alt="CI Build Status" /></a>
     <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/Tests-581%20Passed%20(0%20failed)-10B981" alt="Tests: 581 Passed" /></a>
     <a href="docs/THREAT_MODEL.md"><img src="https://img.shields.io/badge/Security-STRIDE%20Hardened-8B5CF6" alt="STRIDE Hardened" /></a>
+    <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 10" /></a>
+    <a href="https://learn.microsoft.com/dotnet/csharp/"><img src="https://img.shields.io/badge/C%23-13-239120?logo=csharp&logoColor=white" alt="C# 13" /></a>
+    <a href="#supported-platforms"><img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20(x64)-0078D4?logo=windows" alt="Platform Support" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/github/license/Beso1227/Deltempo?color=10B981" alt="License: MIT" /></a>
-    <a href="#supported-platforms"><img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20(x64)-0078D4" alt="Platform Support" /></a>
+  </p>
+
+  <p>
+    <a href="#telemetry--offline-guarantee"><img src="https://img.shields.io/badge/Telemetry-Zero%20%7C%20100%25%20Offline-10B981" alt="Zero Telemetry" /></a>
+    <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/Memory%20Engine-NT%20Kernel%20Native-0EA5E9" alt="NT Kernel Native" /></a>
+    <a href="#installation"><img src="https://img.shields.io/badge/winget-Beso1227.Deltempo-0078D4" alt="winget package" /></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/badge/Binary-Portable%20Single--File-F59E0B" alt="Portable Single File" /></a>
+    <a href="docs/ARCHITECTURE.md#safety-pipeline"><img src="https://img.shields.io/badge/Safety%20Model-Two--Phase%20Verified-8B5CF6" alt="Two Phase Verified Safety" /></a>
+    <a href="https://github.com/Beso1227/Deltempo/stargazers"><img src="https://img.shields.io/github/stars/Beso1227/Deltempo?style=flat&color=F59E0B&logo=github" alt="GitHub Stars" /></a>
+    <a href="https://github.com/Beso1227/Deltempo/pulls"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen" alt="PRs Welcome" /></a>
   </p>
 
   <p>
