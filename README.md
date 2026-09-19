@@ -23,6 +23,7 @@
     <a href="#installation"><img src="https://img.shields.io/badge/winget-Beso1227.Deltempo-0078D4" alt="winget package" /></a>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/badge/Binary-Portable%20Single--File-F59E0B" alt="Portable Single File" /></a>
     <a href="docs/ARCHITECTURE.md#safety-pipeline"><img src="https://img.shields.io/badge/Safety%20Model-Two--Phase%20Verified-8B5CF6" alt="Two Phase Verified Safety" /></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases"><img src="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?color=10B981&label=Downloads&logo=github" alt="GitHub Downloads" /></a>
     <a href="https://github.com/Beso1227/Deltempo/stargazers"><img src="https://img.shields.io/github/stars/Beso1227/Deltempo?style=flat&color=F59E0B&logo=github" alt="GitHub Stars" /></a>
     <a href="https://github.com/Beso1227/Deltempo/pulls"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen" alt="PRs Welcome" /></a>
   </p>
