@@ -93,6 +93,14 @@ public partial class App : System.Windows.Application
 
         InitializeDiagnostics();
 
+        if (args.Length >= 1 && args[0] == "--render-screens")
+        {
+            string targetDir = args.Length >= 2 ? args[1] : Path.Combine(AppContext.BaseDirectory, "app_screens");
+            RenderScreenshots(targetDir);
+            Shutdown(0);
+            return;
+        }
+
         DispatcherUnhandledException += (s, args) =>
         {
             try
@@ -382,5 +390,74 @@ public partial class App : System.Windows.Application
         }
 
         base.OnExit(e);
+    }
+
+    private static void RenderScreenshots(string outDir)
+    {
+        try
+        {
+            Directory.CreateDirectory(outDir);
+            var win = new MainWindow();
+            win.Width = 1360;
+            win.Height = 840;
+            win.Show();
+
+            void PumpEvents()
+            {
+                var frame = new System.Windows.Threading.DispatcherFrame();
+                win.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(() => frame.Continue = false));
+                System.Windows.Threading.Dispatcher.PushFrame(frame);
+            }
+
+            void CaptureView(string filename)
+            {
+                PumpEvents();
+                win.UpdateLayout();
+                var rtb = new System.Windows.Media.Imaging.RenderTargetBitmap(1360, 840, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+                rtb.Render(win);
+                var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+                encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(rtb));
+                using var fs = File.Create(Path.Combine(outDir, filename));
+                encoder.Save(fs);
+            }
+
+            // 1. Cleaner view
+            win.SwitchWorkspaceView(WinTempCleaner.MainWindow.WorkspaceView.Cleaner);
+            var targets = WinTempCleaner.Services.CleanerService.GetDefaultTargets();
+            long[] sizes = { 4200000000L, 2150000000L, 1850000000L, 3400000000L, 1500000000L, 950000000L, 750000000L };
+            int sidx = 0;
+            foreach (var t in targets)
+            {
+                t.SizeBytes = sizes[sidx % sizes.Length];
+                t.FileCount = 140 + (sidx * 37);
+                t.StatusMessage = "Scanned & Verified Safe";
+                t.IsSelected = true;
+                sidx++;
+            }
+            win.PopulateTargetsForScreenshots(targets);
+            CaptureView("app_cleaner.png");
+
+            // 2. Memory Optimizer
+            win.SwitchWorkspaceView(WinTempCleaner.MainWindow.WorkspaceView.Memory);
+            CaptureView("app_memory.png");
+
+            // 3. Startup Manager
+            win.SwitchWorkspaceView(WinTempCleaner.MainWindow.WorkspaceView.Startup);
+            CaptureView("app_startup.png");
+
+            // 4. System Repair
+            win.SwitchWorkspaceView(WinTempCleaner.MainWindow.WorkspaceView.SystemRepair);
+            CaptureView("app_repair.png");
+
+            // 5. App Uninstaller
+            win.SwitchWorkspaceView(WinTempCleaner.MainWindow.WorkspaceView.Apps);
+            CaptureView("app_uninstaller.png");
+
+            win.Close();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Deltempo ScreenCapture] Error: {ex.Message}");
+        }
     }
 }

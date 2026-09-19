@@ -663,6 +663,19 @@ public partial class MainWindow : Window
         }
     }
 
+    internal void PopulateTargetsForScreenshots(IEnumerable<TargetFolderInfo> targets)
+    {
+        _targets.Clear();
+        foreach (var target in targets)
+        {
+            _targets.Add(target);
+        }
+        HeroSizeText.Text = "14.8 GB";
+        HeroSubtext.Text = "14.8 GB Reclaimable across 25 scopes • 0 Credentials Touched";
+        UpdateDriveTelemetry();
+        UpdateLayout();
+    }
+
     private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ClickCount == 2)

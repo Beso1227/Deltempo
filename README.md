@@ -29,8 +29,8 @@
 
   <br />
 
-  <video src="https://github.com/user-attachments/assets/df4fb0e6-9dc4-4eeb-9998-554932927ca6" controls="controls" width="100%"></video>
-  <p><sub>🎬 <strong>Deltempo 20-Second Product Launch Video</strong> (1080p · 30fps)</sub></p>
+  <video src="https://github.com/user-attachments/assets/f1ec0480-033f-4e7c-934e-96cce0883f90" controls="controls" width="100%"></video>
+  <p><sub>🎬 <strong>Deltempo Product Showcase Video</strong> (34s · 1080p · 30fps)</sub></p>
 
 </div>
 
