@@ -113,6 +113,13 @@ public static partial class CliRunner
                 exitCode = await HandleRepairAsync(args);
                 break;
 
+            case "uninstall":
+            case "uninst":
+            case "remove":
+            case "rm":
+                exitCode = await HandleUninstallAsync(args);
+                break;
+
             case "register":
             case "unregister":
                 exitCode = CliRegistrationService.HandleRegisterCommand(args);
@@ -195,6 +202,11 @@ public static partial class CliRunner
         PrintCmdRow("procs", "List heavy background memory apps (>20 MB)");
         PrintCmdRow("procs trim <pid|name>", "Trim working set memory of a specific process");
         PrintCmdRow("procs kill <pid|name>", "Terminate a heavy runaway background process");
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("\n  UNINSTALL & ROOT REMOVAL COMMANDS:");
+        Console.ResetColor();
+        PrintCmdRow("uninstall <app>", "Eradicate application and residual traces from roots (--dry-run, --force, --silent, --json)");
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("\n  UTILITY & STATUS COMMANDS:");

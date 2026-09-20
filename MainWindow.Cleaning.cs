@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using WinTempCleaner.Core.Safety;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
 using WinTempCleaner.ViewModels;
@@ -209,6 +210,7 @@ public partial class MainWindow
         if (selectedTargets.Count == 0) return;
 
         bool safeMode = SafeModeCheckBox.IsChecked == true;
+        bool quarantine = ConfirmModalQuarantineCheckBox.IsChecked == true;
         _isBusy = true;
         SetControlsEnabled(false);
         CancelButton.Visibility = Visibility.Visible;
@@ -220,7 +222,7 @@ public partial class MainWindow
         int totalFoldersDeleted = 0;
         int totalFilesSkipped = 0;
 
-        AddLog($"Starting cleanup with Safety Shield {(safeMode ? "ENABLED (>24h old only)" : "DISABLED (all files)")}...", LogLevel.Info);
+        AddLog($"Starting cleanup with Safety Shield {(safeMode ? "ENABLED (>24h old only)" : "DISABLED (all files)")} (Quarantine: {(quarantine ? "ACTIVE" : "OFF")})...", LogLevel.Info);
 
         try
         {
@@ -255,7 +257,8 @@ public partial class MainWindow
                     safeMode,
                     AddLog,
                     progressHandler,
-                    _cts.Token);
+                    _cts.Token,
+                    quarantine);
 
                 totalFreed += freed;
                 totalFilesDeleted += filesDel;
@@ -555,7 +558,7 @@ public partial class MainWindow
         // Presentation math lives in CleaningPipelineViewModel (unit-tested, MVVM phase 1).
         var summary = CleaningPipelineViewModel.ComputeSelectionSummary(_targets);
         HeroSizeText.Text = summary.HeroSizeText;
-        CleanButtonText.Text = summary.CleanButtonText;
+        CleanButtonText.Text = $"{LocalizationService.Get("CleanSelected")} ({TargetFolderInfo.FormatBytes(summary.SelectedBytes)})";
         HeroSubtext.Text = summary.HeroSubtext;
     }
 
@@ -586,6 +589,57 @@ public partial class MainWindow
             ToggleLogIcon.Text = "\uE70D";
             LogNotificationBadge.Visibility = Visibility.Collapsed;
             LogScrollViewer.ScrollToEnd();
+        }
+    }
+
+    private void QuarantineVaultBtn_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        RefreshQuarantineSessions();
+        QuarantineModalOverlay.Visibility = Visibility.Visible;
+    }
+
+    private void CloseQuarantineModal_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        QuarantineModalOverlay.Visibility = Visibility.Collapsed;
+    }
+
+    private void RefreshQuarantineSessions()
+    {
+        var sessions = QuarantineManager.GetQuarantineSessions();
+        QuarantineSessionsItemsControl.ItemsSource = sessions;
+        if (sessions.Count == 0)
+        {
+            QuarantineStatusText.Text = "Vault is empty. No archived cleanups yet.";
+        }
+        else
+        {
+            QuarantineStatusText.Text = $"{sessions.Count} session(s) stored in local vault (auto-purged after 7 days)";
+        }
+    }
+
+    private async void RestoreQuarantineSession_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string sessionId)
+        {
+            SoundService.PlayClickSound();
+            btn.IsEnabled = false;
+            AddLog($"Restoring files from quarantine session {sessionId}...", LogLevel.Info);
+
+            var (ok, restored, bytes, err) = await QuarantineManager.RestoreQuarantineSessionAsync(sessionId, AddLog, CancellationToken.None);
+            if (ok)
+            {
+                AddLog($"Restore completed: {restored:N0} files restored successfully ({TargetFolderInfo.FormatBytes(bytes)}).", LogLevel.Success);
+                MessageBox.Show($"Successfully restored {restored:N0} files ({TargetFolderInfo.FormatBytes(bytes)}) from quarantine.", "Quarantine Restored", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                AddLog($"Restore failed: {err}", LogLevel.Error);
+                MessageBox.Show($"Could not restore session: {err}", "Restore Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            btn.IsEnabled = true;
+            RefreshQuarantineSessions();
         }
     }
 }

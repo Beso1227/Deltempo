@@ -84,13 +84,16 @@ public static class RootLeftoverScannerService
         "Windows", "System32", "SysWOW64", "Program Files", "Program Files (x86)",
         "Users", "Default", "Public", "Microsoft", "AppData", "Local", "Roaming",
         "LocalLow", "ProgramData", "Common Files", "Windows Defender", "SoftwareDistribution",
-        "Documents", "Desktop", "Downloads", "Pictures", "Music", "Videos", "Saved Games"
+        "Documents", "Desktop", "Downloads", "Pictures", "Music", "Videos", "Saved Games",
+        "dotnet", "Microsoft.NET", "WindowsApps", "Windows Defender Advanced Threat Protection",
+        "Microsoft Visual Studio", "Package Cache", "Microsoft SDKs", "Windows Kits"
     };
 
     private static readonly HashSet<string> ProtectedRegistryRootNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "Microsoft", "Windows", "Classes", "Clients", "Policies", "RegisteredApplications",
-        "Security", "System", "SYSTEM", "HARDWARE", "SAM"
+        "Security", "System", "SYSTEM", "HARDWARE", "SAM", ".NETFramework", ".NET",
+        "Microsoft .NET Framework", "Windows Defender", "Windows Mail", "Windows Media Player"
     };
 
     /// <summary>
@@ -117,6 +120,15 @@ public static class RootLeftoverScannerService
 
             // 4. Scan Services & Scheduled Tasks
             ScanServiceAndTaskLeftovers(app, items);
+
+            // 5. Scan Explorer Context Menu & Shell Extension Handlers
+            ScanShellExtensionLeftovers(app, items);
+
+            // 6. Scan Windows Firewall Rules
+            ScanFirewallRules(app, items);
+
+            // 7. Scan URL Protocol Schemes
+            ScanProtocolSchemeLeftovers(app, items);
 
             // Deduplicate items by PathOrKey + Type
             var distinctItems = items
@@ -442,6 +454,152 @@ public static class RootLeftoverScannerService
                         }
                     }
                     catch { }
+                }
+            }
+        }
+        catch { }
+    }
+
+    private static void ScanShellExtensionLeftovers(InstalledAppItem app, List<LeftoverItem> items)
+    {
+        string[] shellKeys =
+        {
+            @"*\shellex\ContextMenuHandlers",
+            @"Directory\shellex\ContextMenuHandlers",
+            @"Directory\Background\shellex\ContextMenuHandlers",
+            @"Drive\shellex\ContextMenuHandlers",
+            @"AllFilesystemObjects\shellex\ContextMenuHandlers"
+        };
+
+        foreach (var relKey in shellKeys)
+        {
+            try
+            {
+                using var baseKey = Registry.ClassesRoot.OpenSubKey(relKey);
+                if (baseKey == null) continue;
+
+                foreach (var handlerName in baseKey.GetSubKeyNames())
+                {
+                    bool matchesName = handlerName.Contains(app.DisplayName, StringComparison.OrdinalIgnoreCase);
+                    string clsid = string.Empty;
+
+                    using var subKey = baseKey.OpenSubKey(handlerName);
+                    if (subKey != null)
+                    {
+                        clsid = subKey.GetValue(null)?.ToString() ?? string.Empty;
+                    }
+
+                    bool matchesDll = false;
+                    if (!string.IsNullOrWhiteSpace(clsid) && clsid.StartsWith("{") && !string.IsNullOrWhiteSpace(app.InstallLocation))
+                    {
+                        try
+                        {
+                            using var clsidKey = Registry.ClassesRoot.OpenSubKey($@"CLSID\{clsid}\InprocServer32");
+                            string dllPath = clsidKey?.GetValue(null)?.ToString() ?? string.Empty;
+                            if (!string.IsNullOrWhiteSpace(dllPath) && dllPath.Contains(app.InstallLocation, StringComparison.OrdinalIgnoreCase))
+                            {
+                                matchesDll = true;
+                                items.Add(new LeftoverItem
+                                {
+                                    Type = LeftoverType.RegistryKey,
+                                    PathOrKey = $@"HKCR\CLSID\{clsid}",
+                                    Description = $"Shell Extension InProc COM Server: {handlerName}",
+                                    Confidence = LeftoverConfidence.High,
+                                    IsSelected = true
+                                });
+                            }
+                        }
+                        catch { }
+                    }
+
+                    if (matchesName || matchesDll)
+                    {
+                        items.Add(new LeftoverItem
+                        {
+                            Type = LeftoverType.RegistryKey,
+                            PathOrKey = $@"HKCR\{relKey}\{handlerName}",
+                            Description = $"Explorer Context Menu Handler: {handlerName}",
+                            Confidence = LeftoverConfidence.High,
+                            IsSelected = true
+                        });
+                    }
+                }
+            }
+            catch { }
+        }
+    }
+
+    private static void ScanFirewallRules(InstalledAppItem app, List<LeftoverItem> items)
+    {
+        if (string.IsNullOrWhiteSpace(app.InstallLocation) && string.IsNullOrWhiteSpace(app.DisplayName)) return;
+
+        try
+        {
+            using var fwKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules");
+            if (fwKey == null) return;
+
+            foreach (var ruleName in fwKey.GetValueNames())
+            {
+                string ruleData = fwKey.GetValue(ruleName)?.ToString() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(ruleData)) continue;
+
+                bool matchesPath = !string.IsNullOrWhiteSpace(app.InstallLocation) &&
+                                   ruleData.Contains(app.InstallLocation, StringComparison.OrdinalIgnoreCase);
+
+                bool matchesName = !string.IsNullOrWhiteSpace(app.DisplayName) &&
+                                   app.DisplayName.Length >= 4 &&
+                                   ruleData.Contains($"Name={app.DisplayName}|", StringComparison.OrdinalIgnoreCase);
+
+                if (matchesPath || matchesName)
+                {
+                    items.Add(new LeftoverItem
+                    {
+                        Type = LeftoverType.RegistryValue,
+                        PathOrKey = @"HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules",
+                        SubKeyOrValueName = ruleName,
+                        Description = $"Windows Firewall Rule: {ruleName}",
+                        Confidence = matchesPath ? LeftoverConfidence.High : LeftoverConfidence.Medium,
+                        IsSelected = true
+                    });
+                }
+            }
+        }
+        catch { }
+    }
+
+    private static void ScanProtocolSchemeLeftovers(InstalledAppItem app, List<LeftoverItem> items)
+    {
+        if (string.IsNullOrWhiteSpace(app.InstallLocation) && string.IsNullOrWhiteSpace(app.DisplayName)) return;
+
+        try
+        {
+            using var crKey = Registry.ClassesRoot;
+            if (crKey == null) return;
+
+            // Check potential protocol schemes matching app name
+            string scheme = app.DisplayName.ToLowerInvariant().Replace(" ", "");
+            if (scheme.Length >= 3 && !ProtectedRegistryRootNames.Contains(scheme))
+            {
+                using var schemeKey = crKey.OpenSubKey(scheme);
+                if (schemeKey != null && schemeKey.GetValue("URL Protocol") != null)
+                {
+                    using var cmdKey = schemeKey.OpenSubKey(@"shell\open\command");
+                    string cmdVal = cmdKey?.GetValue(null)?.ToString() ?? string.Empty;
+
+                    bool matches = (!string.IsNullOrWhiteSpace(app.InstallLocation) && cmdVal.Contains(app.InstallLocation, StringComparison.OrdinalIgnoreCase)) ||
+                                   cmdVal.Contains(app.DisplayName, StringComparison.OrdinalIgnoreCase);
+
+                    if (matches)
+                    {
+                        items.Add(new LeftoverItem
+                        {
+                            Type = LeftoverType.RegistryKey,
+                            PathOrKey = $@"HKCR\{scheme}",
+                            Description = $"Custom URL Protocol Scheme: {scheme}://",
+                            Confidence = LeftoverConfidence.High,
+                            IsSelected = true
+                        });
+                    }
                 }
             }
         }

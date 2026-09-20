@@ -374,7 +374,7 @@ public partial class MainWindow : Window
 
         await RunScanAllAsync();
 
-        // Load orphaned app leftovers asynchronously after initial scan completes
+        // Load orphaned app leftovers and dynamic rulepacks asynchronously after initial scan completes
         try
         {
             var orphans = await CleanerService.LoadOrphanedTargetsAsync(_cts?.Token ?? default);
@@ -382,6 +382,16 @@ public partial class MainWindow : Window
             {
                 _targets.Add(o);
             }
+
+            var dynamicRules = await CleanerService.LoadDynamicRulepackTargetsAsync(_cts?.Token ?? default);
+            foreach (var r in dynamicRules)
+            {
+                if (!_targets.Any(t => t.Id == r.Id))
+                {
+                    _targets.Add(r);
+                }
+            }
+
             RecalculateTotals();
         }
         catch (Exception ex)
@@ -503,23 +513,23 @@ public partial class MainWindow : Window
         _isAdmin = ElevationService.IsRunAsAdmin();
         if (_isAdmin)
         {
-            AdminBadgeText.Text = "Elevated";
-            AdminBadgeText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#34D399"));
+            AdminBadgeText.Text = LocalizationService.Get("AdminLabel") ?? "Elevated";
+            AdminBadgeText.SetResourceReference(TextBlock.ForegroundProperty, "AdminBadgeTextBrush");
             AdminBadgeIcon.Text = "\uE73E";
-            AdminBadgeIcon.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981"));
-            AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#142B20"));
-            AdminBadgeBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3D10B981"));
+            AdminBadgeIcon.SetResourceReference(TextBlock.ForegroundProperty, "AdminBadgeTextBrush");
+            AdminBadgeBorder.SetResourceReference(Border.BackgroundProperty, "AdminBadgeBgBrush");
+            AdminBadgeBorder.SetResourceReference(Border.BorderBrushProperty, "AdminBadgeBorderBrush");
             AdminElevationButton.ToolTip = "Administrator privileges are active. Full system cleanup and optimization enabled.";
             AddLog("Running with Administrator privileges (Full access to all system locations)", LogLevel.Success);
         }
         else
         {
             AdminBadgeText.Text = "Standard User";
-            AdminBadgeText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FBBF24"));
+            AdminBadgeText.SetResourceReference(TextBlock.ForegroundProperty, "WarningBadgeTextBrush");
             AdminBadgeIcon.Text = "\uE7EF";
-            AdminBadgeIcon.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B"));
-            AdminBadgeBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#281C0E"));
-            AdminBadgeBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4DF59E0B"));
+            AdminBadgeIcon.SetResourceReference(TextBlock.ForegroundProperty, "WarningBadgeTextBrush");
+            AdminBadgeBorder.SetResourceReference(Border.BackgroundProperty, "WarningBadgeBgBrush");
+            AdminBadgeBorder.SetResourceReference(Border.BorderBrushProperty, "WarningBadgeBorderBrush");
             AdminElevationButton.ToolTip = "Running as Standard User. Click to relaunch as Administrator for full system access.";
             AddLog("Running as Standard User. Windows system caches require Administrator rights.", LogLevel.Warning);
         }
@@ -545,9 +555,12 @@ public partial class MainWindow : Window
     private void UpdateDriveTelemetry(long additionalFreedBytes = 0)
     {
         var telemetry = DriveTelemetryService.GetSystemDriveTelemetry();
-        DriveTelemetryLabel.Text = $"OS Drive ({telemetry.DriveLetter})";
-        DriveTelemetryPercentage.Text = $"{telemetry.FreePercentage:F1}% Free";
-        DriveTelemetryDetails.Text = $"{telemetry.FormattedFree} free of {telemetry.FormattedTotal}";
+        string osLabel = LocalizationService.Get("DriveOsLabel");
+        DriveTelemetryLabel.Text = osLabel.Contains("C:") 
+            ? osLabel.Replace("C:", telemetry.DriveLetter.TrimEnd('\\'))
+            : $"{osLabel} ({telemetry.DriveLetter})";
+        DriveTelemetryPercentage.Text = $"{telemetry.FreePercentage:F1}% {LocalizationService.Get("DriveFree")}";
+        DriveTelemetryDetails.Text = $"{telemetry.FormattedFree} {LocalizationService.Get("DriveOf")} {telemetry.FormattedTotal}";
         DriveUsageBar.Value = telemetry.UsedPercentage;
 
         // Update S.M.A.R.T. Health Pill
@@ -778,6 +791,11 @@ public partial class MainWindow : Window
                 CancelConfirmModal_Click(sender, e);
                 e.Handled = true;
             }
+            else if (QuarantineModalOverlay.Visibility == Visibility.Visible)
+            {
+                CloseQuarantineModal_Click(sender, e);
+                e.Handled = true;
+            }
             else if (CelebrationModalOverlay.Visibility == Visibility.Visible)
             {
                 CloseCelebration_Click(sender, e);
@@ -835,6 +853,7 @@ public partial class MainWindow : Window
             FrameworkElement? activeModal = null;
             if (SettingsModalOverlay.Visibility == Visibility.Visible) activeModal = SettingsModalOverlay;
             else if (ConfirmModalOverlay.Visibility == Visibility.Visible) activeModal = ConfirmModalOverlay;
+            else if (QuarantineModalOverlay.Visibility == Visibility.Visible) activeModal = QuarantineModalOverlay;
             else if (CelebrationModalOverlay.Visibility == Visibility.Visible) activeModal = CelebrationModalOverlay;
             else if (InspectorModalOverlay.Visibility == Visibility.Visible) activeModal = InspectorModalOverlay;
             else if (StartupModalOverlay.Visibility == Visibility.Visible) activeModal = StartupModalOverlay;

@@ -156,6 +156,7 @@
                             <Button x:Name="FilterRuntimesBtn" Style="{DynamicResource HeaderToolButton}" Content="Runtimes" Padding="7,3" Click="FilterTab_Click"/>
                             <Button x:Name="FilterLargeBtn" Style="{DynamicResource HeaderToolButton}" Content="Large (>500MB)" Padding="7,3" Click="FilterTab_Click"/>
                             <Button x:Name="FilterBrokenBtn" Style="{DynamicResource HeaderToolButton}" Content="Broken" Padding="7,3" Click="FilterTab_Click"/>
+                            <Button x:Name="FilterStoreBtn" Style="{DynamicResource HeaderToolButton}" Content="Store / MSIX" Padding="7,3" Click="FilterTab_Click"/>
                         </StackPanel>
 
                         <!-- Refresh, AI & Count Group -->
@@ -875,11 +876,21 @@
 
                     <!-- 4: Footer -->
                     <Grid Grid.Row="4" Margin="0,10,0,0">
-                        <TextBlock x:Name="StatusFooterText"
-                                   Text="Ready to inspect and safely uninstall applications from their roots."
-                                   FontSize="11"
-                                   Foreground="{DynamicResource TextMutedBrush}"
-                                   VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <CheckBox x:Name="CreateRestorePointCheckBox"
+                                      IsChecked="False"
+                                      Content="Create System Restore Point checkpoint before uninstall"
+                                      FontSize="11"
+                                      Foreground="{DynamicResource TextMediumBrush}"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,16,0"
+                                      ToolTip="Optional safety checkpoint: Creates a Windows System Restore Point prior to launching uninstallation. Turned off by default."/>
+                            <TextBlock x:Name="StatusFooterText"
+                                       Text="Ready to inspect and safely uninstall applications from their roots."
+                                       FontSize="11"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
                         <Button Style="{DynamicResource PillButton}"
                                 Padding="16,6"
                                 HorizontalAlignment="Right"

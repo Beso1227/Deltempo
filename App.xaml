@@ -447,8 +447,13 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
                         <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <!-- Pill Track -->
                             <Border x:Name="track"
+                                    Grid.Column="0"
                                     Width="36" Height="20"
                                     CornerRadius="10"
                                     Background="{DynamicResource TrackBgBrush}"
@@ -466,6 +471,12 @@
                                     </Border.Effect>
                                 </Border>
                             </Border>
+
+                            <!-- Content Presenter -->
+                            <ContentPresenter Grid.Column="1"
+                                              VerticalAlignment="Center"
+                                              Margin="8,0,0,0"
+                                              RecognizesAccessKey="True"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">

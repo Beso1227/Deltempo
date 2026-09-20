@@ -116,22 +116,46 @@ public partial class MainWindow
         bool isAr = LocalizationService.CurrentLanguage == "ar";
         FlowDirection = isAr ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
 
-        // 1. Header & Badges
+        // 1. Header Navigation & Badges
         BrandSubtitleText.Text = LocalizationService.Get("AppSubtitle");
         AdminBadgeText.Text = _isAdmin ? LocalizationService.Get("AdminLabel") : "Elevate";
+        ToolCleanerText.Text = LocalizationService.Get("NavCleaner");
+        ToolLargeFilesText.Text = LocalizationService.Get("NavLargeFiles");
+        ToolStartupText.Text = LocalizationService.Get("NavStartup");
+        ToolProcessesText.Text = LocalizationService.Get("NavProcesses");
+        ToolMemoryText.Text = LocalizationService.Get("NavMemory");
+        ToolSystemRepairText.Text = LocalizationService.Get("NavRepair");
+        ToolAppUninstallText.Text = LocalizationService.Get("NavApps");
+        AboutButtonText.Text = LocalizationService.Get("NavAbout");
 
-        // 2. Hero & Telemetry
+        // 2. Hero Actions & Telemetry
         HeroHeaderLabel.Text = LocalizationService.Get("ReclaimableSpace");
         HeroSubtext.Text = LocalizationService.Get("HeroScanSubtext");
+        HeroScanBtnText.Text = LocalizationService.Get("HeroScanNow");
+        HeroOneClickBtnText.Text = LocalizationService.Get("HeroOneClick");
+        HeroGameBoostBtnText.Text = LocalizationService.Get("HeroGameBoost");
+        HeroWinUtilBtnText.Text = LocalizationService.Get("HeroWinUtil");
+        DriveTelemetryLargeFilesText.Text = LocalizationService.Get("DriveLargeFiles");
+        HeroRamLabel.Text = LocalizationService.Get("HeroRamLabel");
+        HeroRamBtnText.Text = LocalizationService.Get("HeroRamBtn");
+        HeroBoostRamBtn.Content = LocalizationService.Get("HeroBoostRam");
         UpdateDriveTelemetry();
 
-        // 3. Toolbar & Buttons
+        // 3. Toolbar, Filter Chips & Search
         SelectSafeBtnText.Text = LocalizationService.Get("SelectSafe");
         SmartCleanBtnText.Text = LocalizationService.Get("SmartClean");
         SelectAllBtn.Content = LocalizationService.Get("SelectAll");
         ClearBtn.Content = LocalizationService.Get("Clear");
         QuickScanBtnText.Text = LocalizationService.Get("Rescan");
         SafeModeLabelText.Text = LocalizationService.Get("SafetyShield");
+        FilterAllText.Text = LocalizationService.Get("FilterAll");
+        FilterSafeText.Text = LocalizationService.Get("FilterSafe");
+        FilterDriversText.Text = LocalizationService.Get("FilterSystem");
+        FilterGamingText.Text = LocalizationService.Get("FilterGaming");
+        FilterMediaText.Text = LocalizationService.Get("FilterMedia");
+        FilterDevText.Text = LocalizationService.Get("FilterDev");
+        FilterRulepackText.Text = LocalizationService.Get("FilterRulepack");
+        SearchPlaceholderText.Text = LocalizationService.Get("SearchPlaceholder");
 
         // 4. Bottom Dock
         if (!_isBusy)
@@ -141,6 +165,7 @@ public partial class MainWindow
         ToggleLogText.Text = LogDrawerBorder.Visibility == Visibility.Visible ? LocalizationService.Get("HideLog") : LocalizationService.Get("ActivityLog");
         ExportReportBtnText.Text = LocalizationService.Get("ExportReport");
         CancelButton.Content = LocalizationService.Get("Cancel");
+        FooterOneClickBtnText.Text = LocalizationService.Get("HeroOneClick");
 
         // 5. Modals & Overlays
         InspectorTitleText.Text = LocalizationService.Get("InspectorTitle");

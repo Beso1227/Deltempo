@@ -3,7 +3,9 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using WinTempCleaner.Core.Cleaning;
+using WinTempCleaner.Core.Discovery;
 using WinTempCleaner.Core.Safety;
+using WinTempCleaner.Core.Scanning;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services.Providers.CacheResolvers;
 
@@ -509,6 +511,35 @@ public partial class CleanerService
         }, ct);
     }
 
+    public static async Task<List<TargetFolderInfo>> LoadDynamicRulepackTargetsAsync(CancellationToken ct = default)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var isAdmin = ElevationService.IsRunAsAdmin();
+                var builtIn = RulepackEngine.GetBuiltInRulepacks();
+
+                string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                string userRulesDir = Path.Combine(appData, "Deltempo", "rules");
+                var userRules = RulepackEngine.LoadUserRulepacks(userRulesDir);
+
+                var allRules = builtIn.Concat(userRules);
+                var targets = RulepackEngine.BuildTargetFolderInfos(allRules, isAdmin);
+                foreach (var t in targets)
+                {
+                    t.DiscoveryTag = "[Rulepack]";
+                }
+                return targets;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] LoadDynamicRulepackTargetsAsync error: {ex.Message}");
+                return new List<TargetFolderInfo>();
+            }
+        }, ct);
+    }
+
     public async Task ScanFolderAsync(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct, bool safeMode24Hours = false)
     {
         folder.IsScanning = true;
@@ -639,38 +670,32 @@ public partial class CleanerService
         foreach (var dir in directories)
         {
             if (ct.IsCancellationRequested) break;
-            if (!Directory.Exists(dir)) continue;
+            if (string.IsNullOrWhiteSpace(dir) || !Directory.Exists(dir)) continue;
+
             try
             {
-                var dirInfo = new DirectoryInfo(dir);
-                var enumOptions = new EnumerationOptions
+                NativeFileScanner.ScanDirectory(dir, file =>
                 {
-                    IgnoreInaccessible = true,
-                    RecurseSubdirectories = true,
-                    AttributesToSkip = FileAttributes.ReparsePoint
-                };
+                    if (ct.IsCancellationRequested) return;
 
-                foreach (var f in dirInfo.EnumerateFiles("*", enumOptions))
-                {
-                    if (ct.IsCancellationRequested) break;
                     try
                     {
-                        if (IsProtectedFile(f.FullName)) continue;
+                        if (IsProtectedFile(file.FullPath)) return;
 
-                        if (safeMode24Hours && folder.IsSafeModeEligible && f.LastWriteTimeUtc > cutoffUtc)
+                        if (safeMode24Hours && folder.IsSafeModeEligible && file.LastWriteTimeUtc > cutoffUtc)
                         {
-                            continue;
+                            return;
                         }
 
-                        totalBytes += f.Length;
+                        totalBytes += file.SizeBytes;
                         fileCount++;
-                        topCollector.TryAdd(f.Name, f.FullName, f.Length, f.LastWriteTime);
+                        topCollector.TryAdd(file.FileName, file.FullPath, file.SizeBytes, file.LastWriteTimeUtc.ToLocalTime());
                     }
                     catch (Exception ex)
                     {
                         System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
                     }
-                }
+                }, ct, recurse: true);
             }
             catch (Exception ex)
             {
@@ -765,7 +790,8 @@ public partial class CleanerService
         bool safeMode24Hours,
         Action<string, LogLevel> logAction,
         Action<double> progressReport,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool enableQuarantine = false)
     {
         folder.IsCleaning = true;
         folder.StatusMessage = "Cleaning...";
@@ -920,7 +946,8 @@ public partial class CleanerService
                 directoriesToClean,
                 logAction,
                 progressReport,
-                ct).ConfigureAwait(false);
+                ct,
+                enableQuarantine).ConfigureAwait(false);
 
             freedBytes = txResult.TotalFreedBytes;
             filesDeleted = txResult.TotalItemsFreed;
@@ -1067,6 +1094,11 @@ public partial class CleanerService
 
     private static List<string> ResolveDirectoriesForFolder(TargetFolderInfo folder)
     {
+        if (folder.ResolvedDirectoriesOverride != null && folder.ResolvedDirectoriesOverride.Count > 0)
+        {
+            return folder.ResolvedDirectoriesOverride;
+        }
+
         var dirs = new List<string>();
 
         if (folder.Id == "WinUpgradeLeftovers") dirs.AddRange(GetUpgradeLeftoverDirectories());

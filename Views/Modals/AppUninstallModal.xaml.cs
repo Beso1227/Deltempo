@@ -106,6 +106,9 @@ public partial class AppUninstallModal : UserControl
             case "Broken":
                 queryable = queryable.Where(a => a.IsBroken);
                 break;
+            case "Store":
+                queryable = queryable.Where(a => a.UninstallEngine.Contains("MSIX", StringComparison.OrdinalIgnoreCase) || a.UninstallEngine.Contains("Store", StringComparison.OrdinalIgnoreCase));
+                break;
         }
 
         var filtered = queryable.ToList();
@@ -136,6 +139,7 @@ public partial class AppUninstallModal : UserControl
             FilterRuntimesBtn.Tag = null;
             FilterLargeBtn.Tag = null;
             FilterBrokenBtn.Tag = null;
+            FilterStoreBtn.Tag = null;
 
             btn.Tag = "Active";
 
@@ -145,6 +149,7 @@ public partial class AppUninstallModal : UserControl
             else if (btn == FilterRuntimesBtn) _currentAppFilter = "Runtimes";
             else if (btn == FilterLargeBtn) _currentAppFilter = "Large";
             else if (btn == FilterBrokenBtn) _currentAppFilter = "Broken";
+            else if (btn == FilterStoreBtn) _currentAppFilter = "Store";
             else _currentAppFilter = "All";
 
             ApplyFilter();
@@ -382,15 +387,36 @@ public partial class AppUninstallModal : UserControl
                 return;
             }
 
+            bool shouldCreateRestorePoint = CreateRestorePointCheckBox.IsChecked == true;
+            string rpText = shouldCreateRestorePoint
+                ? "• System Restore Point: Enabled (Checkpoint will be created)\n"
+                : "• System Restore Point: Disabled (Optional checkpoint skipped)\n";
+
             var confirm = MessageBox.Show(
                 $"Deep Uninstall will:\n" +
                 $"1. Terminate running processes for {app.DisplayName}\n" +
                 $"2. Run the official uninstaller ({app.UninstallEngine})\n" +
                 $"3. Perform a Deep Root Scan to eradicate leftover traces\n\n" +
+                rpText + "\n" +
                 $"Proceed with uninstallation?",
                 "Deep Root Uninstall", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (confirm != MessageBoxResult.Yes) return;
+
+            if (shouldCreateRestorePoint)
+            {
+                StatusFooterText.Text = $"Creating System Restore Point checkpoint...";
+                LogRequested?.Invoke($"[App Uninstaller] Creating System Restore Point checkpoint for {app.DisplayName}...", LogLevel.Info);
+                var restoreResult = await WinTempCleaner.Core.Safety.SystemRestorePointService.CreateRestorePointAsync($"Pre-Uninstall {app.DisplayName}");
+                if (restoreResult.Success)
+                {
+                    LogRequested?.Invoke($"[App Uninstaller] System Restore Point created successfully (Sequence: {restoreResult.SequenceNumber}).", LogLevel.Success);
+                }
+                else
+                {
+                    LogRequested?.Invoke($"[App Uninstaller] System Restore Point skipped or unavailable: {restoreResult.Message}", LogLevel.Warning);
+                }
+            }
 
             StatusFooterText.Text = $"Terminating background processes and launching uninstaller for {app.DisplayName}...";
             LogRequested?.Invoke($"[App Uninstaller] Initiating deep uninstall for {app.DisplayName} ({app.UninstallEngine})...", LogLevel.Info);

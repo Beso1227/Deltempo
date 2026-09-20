@@ -172,6 +172,13 @@ public static class CleaningPipelineViewModel
             !target.Category.Contains("User", StringComparison.OrdinalIgnoreCase) &&
             !target.Category.Contains("Creator", StringComparison.OrdinalIgnoreCase)) return false;
 
+        if (filterTag == "DEV" &&
+            !target.Category.Contains("Dev", StringComparison.OrdinalIgnoreCase) &&
+            !target.Category.Contains("Package", StringComparison.OrdinalIgnoreCase) &&
+            !target.Name.Contains("JetBrains", StringComparison.OrdinalIgnoreCase)) return false;
+        if (filterTag == "RULEPACK" &&
+            !string.Equals(target.DiscoveryTag, "[Rulepack]", StringComparison.OrdinalIgnoreCase)) return false;
+
         // 2. Search text filter
         if (string.IsNullOrWhiteSpace(searchText)) return true;
 
@@ -179,6 +186,7 @@ public static class CleaningPipelineViewModel
         return target.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
             || target.Description.Contains(term, StringComparison.OrdinalIgnoreCase)
             || target.Category.Contains(term, StringComparison.OrdinalIgnoreCase)
-            || target.FolderPath.Contains(term, StringComparison.OrdinalIgnoreCase);
+            || target.FolderPath.Contains(term, StringComparison.OrdinalIgnoreCase)
+            || (!string.IsNullOrEmpty(target.DiscoveryTag) && target.DiscoveryTag.Contains(term, StringComparison.OrdinalIgnoreCase));
     }
 }

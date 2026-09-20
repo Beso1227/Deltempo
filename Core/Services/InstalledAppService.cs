@@ -92,6 +92,13 @@ public class InstalledAppItem : INotifyPropertyChanged
     public bool IsSystemComponent { get; set; }
     public bool IsWindowsStoreApp { get; set; }
 
+    private string _packageFullName = string.Empty;
+    public string PackageFullName
+    {
+        get => _packageFullName;
+        set { if (_packageFullName != value) { _packageFullName = value; OnPropertyChanged(); } }
+    }
+
     // Visual Icon & Fallback Glyph
     private ImageSource? _appIcon;
     public ImageSource? AppIcon
@@ -276,10 +283,10 @@ public class InstalledAppItem : INotifyPropertyChanged
         _ => "#1494A3B8"
     };
 
-    public bool HasUninstaller => !string.IsNullOrWhiteSpace(UninstallString) || !string.IsNullOrWhiteSpace(QuietUninstallString);
+    public bool HasUninstaller => !string.IsNullOrWhiteSpace(UninstallString) || !string.IsNullOrWhiteSpace(QuietUninstallString) || IsWindowsStoreApp;
     public bool IsBroken => !HasUninstaller;
 
-    public string UninstallEngine => DetectUninstallEngine(UninstallString, QuietUninstallString);
+    public string UninstallEngine => IsWindowsStoreApp ? "MSIX / Store" : DetectUninstallEngine(UninstallString, QuietUninstallString);
 
     private static string DetectUninstallEngine(string uninstallStr, string quietStr)
     {
@@ -318,6 +325,9 @@ public static class InstalledAppService
             ReadRegistryUninstallKeys(Registry.LocalMachine, subKeyPath, result);
             ReadRegistryUninstallKeys(Registry.CurrentUser, subKeyPath, result);
         }
+
+        // Read Modern Windows Store / AppX / MSIX Packages
+        ReadAppxPackages(result);
 
         return result.Values
             .OrderBy(a => a.DisplayName, StringComparer.CurrentCultureIgnoreCase)
@@ -602,6 +612,7 @@ public static class InstalledAppService
             string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).TrimEnd('\\', '/');
 
             if (fullPath.Equals(winDir, StringComparison.OrdinalIgnoreCase) ||
+                fullPath.StartsWith(winDir + "\\", StringComparison.OrdinalIgnoreCase) ||
                 fullPath.Equals(progFiles, StringComparison.OrdinalIgnoreCase) ||
                 fullPath.Equals(progFilesX86, StringComparison.OrdinalIgnoreCase) ||
                 fullPath.Equals(userProfile, StringComparison.OrdinalIgnoreCase))
@@ -622,6 +633,9 @@ public static class InstalledAppService
         var matched = new List<Process>();
         try
         {
+            string appDataLocal = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), app.DisplayName);
+            string appDataRoaming = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), app.DisplayName);
+
             var processes = Process.GetProcesses();
             foreach (var proc in processes)
             {
@@ -636,9 +650,14 @@ public static class InstalledAppService
                                        !string.IsNullOrWhiteSpace(mainModulePath) &&
                                        mainModulePath.Contains(app.InstallLocation, StringComparison.OrdinalIgnoreCase);
 
-                    bool matchesName = string.Equals(proc.ProcessName, app.DisplayName, StringComparison.OrdinalIgnoreCase);
+                    bool matchesAppData = !string.IsNullOrWhiteSpace(mainModulePath) &&
+                                          (mainModulePath.StartsWith(appDataLocal, StringComparison.OrdinalIgnoreCase) ||
+                                           mainModulePath.StartsWith(appDataRoaming, StringComparison.OrdinalIgnoreCase));
 
-                    if (matchesPath || matchesName)
+                    bool matchesName = string.Equals(proc.ProcessName, app.DisplayName, StringComparison.OrdinalIgnoreCase) ||
+                                       (app.DisplayName.Length >= 4 && proc.ProcessName.Contains(app.DisplayName, StringComparison.OrdinalIgnoreCase));
+
+                    if (matchesPath || matchesAppData || matchesName)
                     {
                         matched.Add(proc);
                     }
@@ -674,6 +693,12 @@ public static class InstalledAppService
     {
         // First terminate any running instances of the app so uninstaller isn't blocked
         await TerminateAppProcessesAsync(app);
+
+        // Modern Windows Store / AppX / MSIX Package uninstallation
+        if (app.IsWindowsStoreApp && !string.IsNullOrWhiteSpace(app.PackageFullName))
+        {
+            return await UninstallAppxPackageAsync(app.PackageFullName);
+        }
 
         string cmd = silent && !string.IsNullOrWhiteSpace(app.QuietUninstallString)
             ? app.QuietUninstallString
@@ -755,6 +780,122 @@ public static class InstalledAppService
                 return false;
             }
         });
+    }
+
+    public static async Task<bool> UninstallAppxPackageAsync(string packageFullName)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                string script = $"Remove-AppxPackage -Package '{packageFullName.Replace("'", "''")}' -ErrorAction Stop";
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"{script}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+
+                using var proc = Process.Start(psi);
+                if (proc != null)
+                {
+                    bool finished = proc.WaitForExit(60000);
+                    return finished && proc.ExitCode == 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[AppX Uninstall] Error: {ex.Message}");
+            }
+            return false;
+        });
+    }
+
+    private static void ReadAppxPackages(Dictionary<string, InstalledAppItem> acc)
+    {
+        try
+        {
+            const string appModelKeyPath = @"Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\Repository\Packages";
+            using var baseKey = Registry.CurrentUser.OpenSubKey(appModelKeyPath);
+            if (baseKey == null) return;
+
+            foreach (var pkgName in baseKey.GetSubKeyNames())
+            {
+                try
+                {
+                    using var pkgKey = baseKey.OpenSubKey(pkgName);
+                    if (pkgKey == null) continue;
+
+                    string displayName = pkgKey.GetValue("DisplayName")?.ToString()?.Trim() ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(displayName) || displayName.StartsWith("@{") || displayName.StartsWith("ms-resource:"))
+                    {
+                        continue;
+                    }
+
+                    string pkgRoot = pkgKey.GetValue("PackageRootFolder")?.ToString()?.Trim() ?? string.Empty;
+                    string pkgId = pkgKey.GetValue("PackageID")?.ToString()?.Trim() ?? pkgName;
+
+                    // Skip internal system dependency frameworks
+                    if (displayName.StartsWith("Microsoft.NET", StringComparison.OrdinalIgnoreCase) ||
+                        displayName.StartsWith("Microsoft.VCLibs", StringComparison.OrdinalIgnoreCase) ||
+                        displayName.StartsWith("Microsoft.UI.Xaml", StringComparison.OrdinalIgnoreCase) ||
+                        displayName.StartsWith("Microsoft.WindowsAppRuntime", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (!acc.ContainsKey(displayName))
+                    {
+                        var appItem = new InstalledAppItem
+                        {
+                            DisplayName = displayName,
+                            Publisher = ExtractPublisherFromPackageId(pkgId),
+                            DisplayVersion = ExtractVersionFromPackageId(pkgId),
+                            InstallLocation = pkgRoot,
+                            PackageFullName = pkgName,
+                            IsSystemComponent = false,
+                            IsWindowsStoreApp = true,
+                            UninstallString = $"powershell.exe -NoProfile -NonInteractive -Command \"Remove-AppxPackage -Package {pkgName}\"",
+                            QuietUninstallString = $"powershell.exe -NoProfile -NonInteractive -Command \"Remove-AppxPackage -Package {pkgName}\"",
+                            Category = "Utilities"
+                        };
+
+                        acc[displayName] = appItem;
+                    }
+                }
+                catch { }
+            }
+        }
+        catch { }
+    }
+
+    private static string ExtractPublisherFromPackageId(string pkgId)
+    {
+        int underscoreIdx = pkgId.IndexOf('_');
+        if (underscoreIdx > 0)
+        {
+            string prefix = pkgId.Substring(0, underscoreIdx);
+            int dotIdx = prefix.IndexOf('.');
+            if (dotIdx > 0)
+            {
+                return prefix.Substring(dotIdx + 1);
+            }
+            return prefix;
+        }
+        return "Windows Store";
+    }
+
+    private static string ExtractVersionFromPackageId(string pkgId)
+    {
+        var parts = pkgId.Split('_');
+        if (parts.Length >= 2)
+        {
+            return parts[1];
+        }
+        return string.Empty;
     }
 }
 

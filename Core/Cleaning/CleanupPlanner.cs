@@ -1,5 +1,6 @@
 using System.IO;
 using WinTempCleaner.Core.Safety;
+using WinTempCleaner.Core.Scanning;
 
 namespace WinTempCleaner.Core.Cleaning;
 
@@ -43,21 +44,17 @@ public static class CleanupPlanner
 
             try
             {
-                var dirInfo = new DirectoryInfo(canonicalDir);
-
-                foreach (var file in dirInfo.EnumerateFiles("*", enumOptions))
+                NativeFileScanner.ScanDirectory(canonicalDir, file =>
                 {
-                    if (ct.IsCancellationRequested) break;
+                    if (ct.IsCancellationRequested) return;
 
                     try
                     {
-                        if (PathSecurity.IsReparsePointOrLink(file)) continue;
-
                         var safetyResult = FileSafetyEngine.Analyze(
-                            filePath: file.FullName,
-                            fileName: file.Name,
+                            filePath: file.FullPath,
+                            fileName: file.FileName,
                             category: category,
-                            sizeBytes: file.Length,
+                            sizeBytes: file.SizeBytes,
                             lastModified: file.LastWriteTimeUtc,
                             allowedRoot: canonicalDir,
                             apply24HourThreshold: apply24HourShield,
@@ -67,23 +64,23 @@ public static class CleanupPlanner
 
                         plan.Actions.Add(new PlannedFileAction
                         {
-                            FilePath = file.FullName,
-                            FileName = file.Name,
-                            SizeBytes = file.Length,
+                            FilePath = file.FullPath,
+                            FileName = file.FileName,
+                            SizeBytes = file.SizeBytes,
                             Category = category,
                             SafetyTier = safetyResult.Tier,
                             Reason = safetyResult.Explanation,
                             MatchedRule = safetyResult.MatchedRule,
                             Action = intendedAction,
                             LastModified = file.LastWriteTimeUtc,
-                            PlannedSizeBytes = file.Length
+                            PlannedSizeBytes = file.SizeBytes
                         });
                     }
                     catch (Exception ex)
                     {
                         System.Diagnostics.Trace.WriteLine($"[Deltempo Planner] File skipped: {ex.Message}");
                     }
-                }
+                }, ct, recurse: true);
             }
             catch (Exception ex)
             {

@@ -9,16 +9,21 @@ using System.Threading.Tasks;
 using Microsoft.Win32;
 using WinTempCleaner.Models;
 
+using WinTempCleaner.Core.Safety;
+
 namespace WinTempCleaner.Services;
 
 public class PurgeResult
 {
     public int ItemsPurgedCount { get; set; }
+    public int RebootScheduledCount { get; set; }
     public int ErrorsCount { get; set; }
     public long TotalReclaimedBytes { get; set; }
     public long ExecutionTimeMs { get; set; }
     public string FormattedReclaimed => TargetFolderInfo.FormatBytes(TotalReclaimedBytes);
     public List<string> ErrorMessages { get; set; } = new();
+    public List<string> RebootScheduledItems { get; set; } = new();
+    public string? QuarantineSessionId { get; set; }
 }
 
 public static class RootLeftoverPurgeService
@@ -31,12 +36,56 @@ public static class RootLeftoverPurgeService
 
     /// <summary>
     /// Safely purges all selected leftover items (files, directories, registry keys, shortcuts, services).
+    /// Supports automatic compressed Quarantine archiving and boot-time MoveFileEx scheduling for locked files.
     /// </summary>
-    public static async Task<PurgeResult> PurgeLeftoversAsync(IEnumerable<LeftoverItem> items, CancellationToken ct = default)
+    public static async Task<PurgeResult> PurgeLeftoversAsync(
+        IEnumerable<LeftoverItem> items,
+        bool enableQuarantine = true,
+        string? appName = null,
+        CancellationToken ct = default)
     {
         var sw = Stopwatch.StartNew();
         var result = new PurgeResult();
 
+        // 1. Archive filesystem leftovers into Quarantine Vault before permanent removal
+        if (enableQuarantine)
+        {
+            var selectedFiles = items
+                .Where(i => i.IsSelected && (i.Type == LeftoverType.File || i.Type == LeftoverType.Shortcut))
+                .Select(i => i.PathOrKey)
+                .Where(File.Exists)
+                .ToList();
+
+            // Also include files from selected directories
+            foreach (var dir in items.Where(i => i.IsSelected && i.Type == LeftoverType.Directory && Directory.Exists(i.PathOrKey)))
+            {
+                try
+                {
+                    var innerFiles = Directory.GetFiles(dir.PathOrKey, "*", SearchOption.AllDirectories);
+                    selectedFiles.AddRange(innerFiles);
+                }
+                catch { }
+            }
+
+            if (selectedFiles.Count > 0)
+            {
+                try
+                {
+                    string scope = !string.IsNullOrWhiteSpace(appName) ? $"Uninstall_{appName}" : "AppUninstall";
+                    var session = await QuarantineManager.CreateQuarantineSnapshotAsync(scope, scope, selectedFiles.Distinct(), ct);
+                    if (session != null)
+                    {
+                        result.QuarantineSessionId = session.SessionId;
+                    }
+                }
+                catch (Exception qEx)
+                {
+                    Trace.WriteLine($"[RootLeftoverPurge] Quarantine archiving error: {qEx.Message}");
+                }
+            }
+        }
+
+        // 2. Perform safe deletion across all leftover vectors
         await Task.Run(() =>
         {
             foreach (var item in items.Where(i => i.IsSelected))
@@ -112,8 +161,46 @@ public static class RootLeftoverPurgeService
         }
         catch (Exception ex)
         {
-            res.ErrorsCount++;
-            res.ErrorMessages.Add($"File delete failed: {item.PathOrKey} ({ex.Message})");
+            // Lock handling: inspect lockers and attempt reboot queue via MoveFileEx
+            bool resolved = false;
+            try
+            {
+                var lockers = RestartManagerService.GetLockingProcesses(item.PathOrKey);
+                foreach (var locker in lockers)
+                {
+                    try
+                    {
+                        using var proc = Process.GetProcessById(locker.ProcessId);
+                        proc.Kill();
+                        proc.WaitForExit(1000);
+                    }
+                    catch { }
+                }
+
+                if (lockers.Count > 0)
+                {
+                    File.SetAttributes(item.PathOrKey, FileAttributes.Normal);
+                    File.Delete(item.PathOrKey);
+                    res.ItemsPurgedCount++;
+                    resolved = true;
+                }
+            }
+            catch { }
+
+            if (!resolved)
+            {
+                bool scheduled = RestartManagerService.ScheduleRebootDeletion(item.PathOrKey);
+                if (scheduled)
+                {
+                    res.RebootScheduledCount++;
+                    res.RebootScheduledItems.Add(item.PathOrKey);
+                }
+                else
+                {
+                    res.ErrorsCount++;
+                    res.ErrorMessages.Add($"File delete failed: {item.PathOrKey} ({ex.Message})");
+                }
+            }
         }
     }
 
@@ -160,8 +247,36 @@ public static class RootLeftoverPurgeService
         }
         catch (Exception ex)
         {
-            res.ErrorsCount++;
-            res.ErrorMessages.Add($"Folder delete failed: {item.PathOrKey} ({ex.Message})");
+            // Directory lock handling: schedule remaining items for reboot deletion
+            bool scheduledAny = false;
+            try
+            {
+                var di = new DirectoryInfo(item.PathOrKey);
+                foreach (var f in di.EnumerateFiles("*", SearchOption.AllDirectories))
+                {
+                    if (RestartManagerService.ScheduleRebootDeletion(f.FullName))
+                    {
+                        scheduledAny = true;
+                        res.RebootScheduledItems.Add(f.FullName);
+                    }
+                }
+                if (RestartManagerService.ScheduleRebootDeletion(item.PathOrKey))
+                {
+                    scheduledAny = true;
+                    res.RebootScheduledItems.Add(item.PathOrKey);
+                }
+            }
+            catch { }
+
+            if (scheduledAny)
+            {
+                res.RebootScheduledCount++;
+            }
+            else
+            {
+                res.ErrorsCount++;
+                res.ErrorMessages.Add($"Folder delete failed: {item.PathOrKey} ({ex.Message})");
+            }
         }
     }
 

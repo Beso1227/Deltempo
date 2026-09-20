@@ -50,6 +50,22 @@ public class TargetFolderInfo : INotifyPropertyChanged
     public bool IsSpecialShellTarget { get; set; }
     public bool IsSafeModeEligible { get; set; } = true;
     public bool IsOrphanedAppFolder { get; set; }
+    public List<string>? ResolvedDirectoriesOverride { get; set; }
+
+    private string _discoveryTag = string.Empty;
+    public string DiscoveryTag
+    {
+        get => _discoveryTag;
+        set
+        {
+            _discoveryTag = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasDiscoveryTag));
+            OnPropertyChanged(nameof(DisplayDiscoveryTag));
+        }
+    }
+    public bool HasDiscoveryTag => !string.IsNullOrEmpty(_discoveryTag);
+    public string DisplayDiscoveryTag => _discoveryTag.Trim('[', ']');
 
     public string SafetyBadge
     {

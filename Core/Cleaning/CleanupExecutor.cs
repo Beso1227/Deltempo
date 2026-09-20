@@ -41,28 +41,44 @@ public static class CleanupExecutor
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool RemoveDirectoryW(string lpPathName);
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-    private struct SHFILEOPSTRUCT
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool MoveFileExW(string lpExistingFileName, string? lpNewFileName, uint dwFlags);
+
+    public const uint MOVEFILE_DELAY_UNTIL_REBOOT = 0x00000004;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct FILE_DISPOSITION_INFO_EX
     {
-        public IntPtr hwnd;
-        [MarshalAs(UnmanagedType.U4)]
-        public int wFunc;
-        public string pFrom;
-        public string pTo;
-        public short fFlags;
-        [MarshalAs(UnmanagedType.Bool)]
-        public bool fAnyOperationsAborted;
-        public IntPtr hNameMappings;
-        public string lpszProgressTitle;
+        public uint Flags;
     }
 
-    private const int FO_DELETE = 0x0003;
-    private const short FOF_ALLOWUNDO = 0x0040;
-    private const short FOF_NOCONFIRMATION = 0x0010;
-    private const short FOF_SILENT = 0x0004;
+    private const int FileDispositionInfoEx = 21;
+    private const uint FILE_DISPOSITION_FLAG_DELETE = 0x00000001;
+    private const uint FILE_DISPOSITION_FLAG_POSIX_SEMANTICS = 0x00000002;
+    private const uint FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE = 0x00000010;
+    private const uint DELETE_ACCESS = 0x00010000;
+    private const uint FILE_SHARE_ALL = 0x00000001 | 0x00000002 | 0x00000004; // READ | WRITE | DELETE
+    private const uint OPEN_EXISTING = 3;
+    private const uint FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
 
-    [DllImport("shell32.dll", CharSet = CharSet.Auto)]
-    private static extern int SHFileOperation(ref SHFILEOPSTRUCT FileOp);
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern Microsoft.Win32.SafeHandles.SafeFileHandle CreateFileW(
+        string lpFileName,
+        uint dwDesiredAccess,
+        uint dwShareMode,
+        IntPtr lpSecurityAttributes,
+        uint dwCreationDisposition,
+        uint dwFlagsAndAttributes,
+        IntPtr hTemplateFile);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetFileInformationByHandle(
+        Microsoft.Win32.SafeHandles.SafeFileHandle hFile,
+        int FileInformationClass,
+        ref FILE_DISPOSITION_INFO_EX lpFileInformation,
+        uint dwBufferSize);
 
     #endregion
 
@@ -71,10 +87,11 @@ public static class CleanupExecutor
         string allowedRoot,
         Action<string, LogLevel>? logAction = null,
         Action<double>? progressReport = null,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        bool enableQuarantine = false)
     {
         var roots = string.IsNullOrEmpty(allowedRoot) ? null : new[] { allowedRoot };
-        return ExecutePlanAsync(plan, roots, logAction, progressReport, ct);
+        return ExecutePlanAsync(plan, roots, logAction, progressReport, ct, enableQuarantine);
     }
 
     public static async Task<CleanupTransactionResult> ExecutePlanAsync(
@@ -82,7 +99,8 @@ public static class CleanupExecutor
         IEnumerable<string>? allowedRoots,
         Action<string, LogLevel>? logAction = null,
         Action<double>? progressReport = null,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        bool enableQuarantine = false)
     {
         var result = new CleanupTransactionResult
         {
@@ -99,7 +117,7 @@ public static class CleanupExecutor
 
         try
         {
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 int total = plan.Actions.Count;
                 var actionable = new List<PlannedFileAction>(total);
@@ -120,17 +138,18 @@ public static class CleanupExecutor
                             MatchedRule = action.MatchedRule,
                             IntendedAction = action.Action,
                             Status = DeletionAuditStatus.SkippedPolicy,
-                            ErrorCategory = action.Action == IntendedCleanupAction.SkipError ? CleanupErrorCategory.InvalidPath : CleanupErrorCategory.ProtectedPath,
+                            ErrorCategory = CleanupErrorCategory.ProtectedPath,
                             SizeBytes = action.SizeBytes,
                             TimestampUtc = DateTime.UtcNow,
                             ErrorOrSkipReason = action.Reason
                         });
+                        continue;
                     }
-                    else if (action.Action == IntendedCleanupAction.SkipReviewRequired)
+
+                    if (action.Action == IntendedCleanupAction.SkipReviewRequired)
                     {
                         result.ReviewRequiredCount++;
                         result.ReviewRequiredBytes += action.SizeBytes;
-                        result.SkippedReasons.Add($"{action.FileName}: ReviewRequired - not auto-deleted");
                         result.AuditRecords.Add(new DeletionAuditRecord
                         {
                             FilePath = action.FilePath,
@@ -142,10 +161,12 @@ public static class CleanupExecutor
                             ErrorCategory = CleanupErrorCategory.ProtectedPath,
                             SizeBytes = action.SizeBytes,
                             TimestampUtc = DateTime.UtcNow,
-                            ErrorOrSkipReason = "ReviewRequired - not auto-deleted"
+                            ErrorOrSkipReason = action.Reason
                         });
+                        continue;
                     }
-                    else
+
+                    if (action.Action is IntendedCleanupAction.DeletePermanently or IntendedCleanupAction.MoveToRecycleBin)
                     {
                         actionable.Add(action);
                     }
@@ -157,6 +178,28 @@ public static class CleanupExecutor
                     result.EndTimeUtc = DateTime.UtcNow;
                     progressReport?.Invoke(1.0);
                     return;
+                }
+
+                // Phase: Quarantine snapshot if requested
+                if (enableQuarantine && actionableTotal > 0)
+                {
+                    try
+                    {
+                        var snapshot = await QuarantineManager.CreateQuarantineSnapshotAsync(
+                            plan.ScopeId,
+                            plan.ScopeName,
+                            actionable.Select(a => a.FilePath),
+                            ct).ConfigureAwait(false);
+
+                        if (snapshot != null)
+                        {
+                            logAction?.Invoke($"Archived {snapshot.FileCount} items to Quarantine ({TargetFolderInfo.FormatBytes(snapshot.CompressedSizeBytes)})", LogLevel.Info);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logAction?.Invoke($"Quarantine snapshot skipped: {ex.Message}", LogLevel.Warning);
+                    }
                 }
 
                 int processed = 0;
@@ -253,10 +296,7 @@ public static class CleanupExecutor
 
                             if (action.Action == IntendedCleanupAction.MoveToRecycleBin)
                             {
-                                lock (syncLock)
-                                {
-                                    success = SendFileToRecycleBin(action.FilePath);
-                                }
+                                success = IFileOperationHelper.RecycleFile(action.FilePath);
                                 if (success)
                                 {
                                     Interlocked.Increment(ref recycledCount);
@@ -618,6 +658,43 @@ public static class CleanupExecutor
     {
         try
         {
+            // Primary: Attempt modern Win10+ POSIX semantics delete (atomic, ignores read-only attribute, unlinks in-use handles)
+            try
+            {
+                using var hFile = CreateFileW(
+                    path,
+                    DELETE_ACCESS,
+                    FILE_SHARE_ALL,
+                    IntPtr.Zero,
+                    OPEN_EXISTING,
+                    FILE_FLAG_BACKUP_SEMANTICS,
+                    IntPtr.Zero);
+
+                if (!hFile.IsInvalid)
+                {
+                    var dispInfo = new FILE_DISPOSITION_INFO_EX
+                    {
+                        Flags = FILE_DISPOSITION_FLAG_DELETE |
+                                FILE_DISPOSITION_FLAG_POSIX_SEMANTICS |
+                                FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE
+                    };
+
+                    if (SetFileInformationByHandle(
+                        hFile,
+                        FileDispositionInfoEx,
+                        ref dispInfo,
+                        (uint)Marshal.SizeOf<FILE_DISPOSITION_INFO_EX>()))
+                    {
+                        hFile.Dispose();
+                        if (!File.Exists(path)) return true;
+                    }
+                }
+            }
+            catch
+            {
+                // Fall back to standard Win32 DeleteFileW below
+            }
+
             var fi = new FileInfo(path);
             if (fi.Exists)
             {
@@ -653,26 +730,7 @@ public static class CleanupExecutor
 
     public static bool SendFileToRecycleBin(string path)
     {
-        try
-        {
-            if (!File.Exists(path) && !Directory.Exists(path))
-                return false;
-
-            var shf = new SHFILEOPSTRUCT
-            {
-                wFunc = FO_DELETE,
-                pFrom = path + '\0' + '\0',
-                fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_SILENT
-            };
-
-            int res = SHFileOperation(ref shf);
-            return res == 0 && !File.Exists(path) && !Directory.Exists(path);
-        }
-        catch (Exception ex)
-        {
-            Trace.WriteLine($"[Cleanup] Recycle-bin operation failed for '{path}': {ex.Message}");
-            return false;
-        }
+        return IFileOperationHelper.RecycleFile(path);
     }
 
     private static CleanupErrorCategory MapFailureReasonToCategory(FileCleanupFailureReason reason) => reason switch

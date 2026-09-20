@@ -24,10 +24,14 @@ public static class ThemeService
             res["SurfaceCardSelectedBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#141A28"));
             res["SurfaceSubCardBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#141926"));
             res["HairlineBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E2538"));
+            res["AccentBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#26354D"));
 
             res["TextHighBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));
             res["TextMediumBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8"));
             res["TextMutedBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#64748B"));
+
+            // Brand Accents
+            res["ElectricCyanBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF"));
 
             // Buttons & Controls
             res["PillButtonBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#151D2A"));
@@ -49,9 +53,38 @@ public static class ThemeService
             res["SafetyBadgeBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981"));
             res["SafetyBadgeTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981"));
 
+            res["WarningBadgeBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A1E16"));
+            res["WarningBadgeBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B"));
+            res["WarningBadgeTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B"));
+
             // Modals
             res["ModalSurfaceBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0F131E"));
             res["ModalBackdropBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#55050A14"));
+
+            // Hero Gradients
+            var heroGrad = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
+            heroGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#00E5FF"), 0.0));
+            heroGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#0284C7"), 0.5));
+            heroGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#2563EB"), 1.0));
+            res["BrandHeroGradientBrush"] = heroGrad;
+
+            var heroGradTop = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(0, 1) };
+            heroGradTop.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#00E5FF"), 0.0));
+            heroGradTop.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#0284C7"), 0.5));
+            heroGradTop.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#2563EB"), 1.0));
+            res["BrandHeroGradientBrushTop"] = heroGradTop;
+
+            var heroBtn = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            heroBtn.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#00C7E5"), 0.0));
+            heroBtn.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#0284C7"), 0.5));
+            heroBtn.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#0369A1"), 1.0));
+            res["HeroActionBtnBrush"] = heroBtn;
+
+            var heroBtnPressed = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            heroBtnPressed.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#00A3BC"), 0.0));
+            heroBtnPressed.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#0369A1"), 0.5));
+            heroBtnPressed.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#075985"), 1.0));
+            res["HeroActionBtnPressedBrush"] = heroBtnPressed;
 
             var outerGrad = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
             outerGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#1A2234"), 0.0));
@@ -66,23 +99,29 @@ public static class ThemeService
         else
         {
             // ============================================
-            // NORDIC PORCELAIN & FROST LIGHT PALETTE
+            // PRO EYE-COMFORT PORCELAIN & SLATE PALETTE
             // ============================================
-            res["CanvasDarkBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));
+            // Calm, glare-free canvas: Slate 100 provides gentle contrast so pure white cards float effortlessly
+            res["CanvasDarkBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F1F5F9"));
             res["HeaderDockBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"));
             res["SurfaceCardBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"));
-            res["SurfaceCardHoverBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F1F5F9"));
-            res["SurfaceCardSelectedBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EFF6FF"));
-            res["SurfaceSubCardBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F1F5F9"));
+            res["SurfaceCardHoverBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));
+            res["SurfaceCardSelectedBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F0F9FF"));
+            res["SurfaceSubCardBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));
             res["HairlineBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E2E8F0"));
+            res["AccentBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#CBD5E1"));
 
+            // Deep, crisp Slate typography for effortless readability without eye strain
             res["TextHighBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0F172A"));
-            res["TextMediumBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#475569"));
-            res["TextMutedBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8"));
+            res["TextMediumBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#334155"));
+            res["TextMutedBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#64748B"));
 
-            // Buttons & Controls (Clean Light Grey with Border)
-            res["PillButtonBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F1F5F9"));
-            res["PillButtonHoverBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E2E8F0"));
+            // Executive Ocean Azure accent (replaces blinding neon cyan in light mode)
+            res["ElectricCyanBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0284C7"));
+
+            // Buttons & Controls (Clean Slate 50 with crisp borders)
+            res["PillButtonBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));
+            res["PillButtonHoverBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F1F5F9"));
             res["PillButtonBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#CBD5E1"));
 
             // Switches & Progress
@@ -91,22 +130,51 @@ public static class ThemeService
             res["ScrollThumbBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#CBD5E1"));
             res["ScrollThumbHoverBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0284C7"));
 
-            // Badges (Crisp Pastel Emerald on Light)
+            // Badges (Crisp, high-contrast, WCAG AA compliant)
             res["AdminBadgeBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ECFDF5"));
-            res["AdminBadgeBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6EE7B7"));
-            res["AdminBadgeTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#059669"));
+            res["AdminBadgeBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A7F3D0"));
+            res["AdminBadgeTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#047857"));
 
             res["SafetyBadgeBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ECFDF5"));
             res["SafetyBadgeBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A7F3D0"));
-            res["SafetyBadgeTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#059669"));
+            res["SafetyBadgeTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#047857"));
+
+            res["WarningBadgeBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFBEB"));
+            res["WarningBadgeBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FDE68A"));
+            res["WarningBadgeTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#B45309"));
 
             // Modals
             res["ModalSurfaceBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"));
-            res["ModalBackdropBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#400F172A"));
+            res["ModalBackdropBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#600F172A"));
+
+            // Hero Gradients (Refined Ocean Azure -> Royal Blue)
+            var heroGrad = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
+            heroGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#0284C7"), 0.0));
+            heroGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#2563EB"), 0.5));
+            heroGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#1D4ED8"), 1.0));
+            res["BrandHeroGradientBrush"] = heroGrad;
+
+            var heroGradTop = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(0, 1) };
+            heroGradTop.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#0284C7"), 0.0));
+            heroGradTop.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#2563EB"), 0.5));
+            heroGradTop.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#1D4ED8"), 1.0));
+            res["BrandHeroGradientBrushTop"] = heroGradTop;
+
+            var heroBtn = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            heroBtn.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#0284C7"), 0.0));
+            heroBtn.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#2563EB"), 0.5));
+            heroBtn.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#1D4ED8"), 1.0));
+            res["HeroActionBtnBrush"] = heroBtn;
+
+            var heroBtnPressed = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            heroBtnPressed.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#0369A1"), 0.0));
+            heroBtnPressed.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#1D4ED8"), 0.5));
+            heroBtnPressed.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#1E40AF"), 1.0));
+            res["HeroActionBtnPressedBrush"] = heroBtnPressed;
 
             var outerGrad = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
-            outerGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#E2E8F0"), 0.0));
-            outerGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#CBD5E1"), 1.0));
+            outerGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#F1F5F9"), 0.0));
+            outerGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#E2E8F0"), 1.0));
             res["DoubleBezelOuterBrush"] = outerGrad;
 
             var innerGrad = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };

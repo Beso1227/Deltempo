@@ -159,7 +159,8 @@
                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Text="Cleaner"
+                                    <TextBlock x:Name="ToolCleanerText"
+                                               Text="Cleaner"
                                                FontSize="11"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center"/>
@@ -184,7 +185,8 @@
                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Text="Large Files"
+                                    <TextBlock x:Name="ToolLargeFilesText"
+                                               Text="Large Files"
                                                FontSize="11"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center"/>
@@ -202,7 +204,8 @@
                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Text="Startup"
+                                    <TextBlock x:Name="ToolStartupText"
+                                               Text="Startup"
                                                FontSize="11"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center"/>
@@ -227,7 +230,8 @@
                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Text="Processes"
+                                    <TextBlock x:Name="ToolProcessesText"
+                                               Text="Processes"
                                                FontSize="11"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center"/>
@@ -245,7 +249,8 @@
                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Text="Memory"
+                                    <TextBlock x:Name="ToolMemoryText"
+                                               Text="Memory"
                                                FontSize="11"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center"/>
@@ -271,7 +276,8 @@
                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Text="Repair"
+                                    <TextBlock x:Name="ToolSystemRepairText"
+                                               Text="Repair"
                                                FontSize="11"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center"/>
@@ -292,7 +298,8 @@
                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Text="Apps"
+                                    <TextBlock x:Name="ToolAppUninstallText"
+                                               Text="Apps"
                                                FontSize="11"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center"/>
@@ -370,7 +377,8 @@
                                            Foreground="{DynamicResource ElectricCyanBrush}"
                                            Margin="0,0,5,0"
                                            VerticalAlignment="Center"/>
-                                <TextBlock Text="About"
+                                <TextBlock x:Name="AboutButtonText"
+                                           Text="About"
                                            FontSize="11"
                                            FontWeight="SemiBold"
                                            VerticalAlignment="Center"/>
@@ -518,6 +526,7 @@
                                        FontSize="32"
                                        FontWeight="Bold"
                                        Foreground="{DynamicResource TextHighBrush}"
+                                       FlowDirection="LeftToRight"
                                        Margin="0,1,0,2"
                                        AutomationProperties.Name="Total Reclaimable Space"
                                        AutomationProperties.LiveSetting="Polite"/>
@@ -622,7 +631,8 @@
                                                    Foreground="{DynamicResource ElectricCyanBrush}"
                                                    Margin="0,0,6,0"
                                                    VerticalAlignment="Center"/>
-                                        <TextBlock Text="CTT WinUtil"
+                                        <TextBlock x:Name="HeroWinUtilBtnText"
+                                                   Text="CTT WinUtil"
                                                    FontSize="11"
                                                    FontWeight="SemiBold"
                                                    Foreground="{DynamicResource TextHighBrush}"
@@ -667,6 +677,7 @@
                                                        FontSize="11"
                                                        FontWeight="Bold"
                                                        Foreground="{DynamicResource ElectricCyanBrush}"
+                                                       FlowDirection="LeftToRight"
                                                        Margin="0,0,8,0"
                                                        VerticalAlignment="Center"
                                                        AutomationProperties.LiveSetting="Polite"/>
@@ -682,7 +693,8 @@
                                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                                Margin="0,0,4,0"
                                                                VerticalAlignment="Center"/>
-                                                    <TextBlock Text="Large Files"
+                                                    <TextBlock x:Name="DriveTelemetryLargeFilesText"
+                                                               Text="Large Files"
                                                                FontSize="10"
                                                                FontWeight="SemiBold"
                                                                Foreground="{DynamicResource ElectricCyanBrush}"
@@ -698,7 +710,8 @@
                                                      Value="50"
                                                      Foreground="{DynamicResource BrandHeroGradientBrush}"
                                                      Background="Transparent"
-                                                     BorderThickness="0"/>
+                                                     BorderThickness="0"
+                                                     FlowDirection="LeftToRight"/>
                                     </Border>
                                     <Grid>
                                         <TextBlock x:Name="DriveTelemetryDetails"
@@ -742,9 +755,9 @@
                                 <StackPanel>
                                     <Grid Margin="0,0,0,4">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
+                                             <ColumnDefinition Width="Auto"/>
+                                             <ColumnDefinition Width="*"/>
+                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                             <TextBlock Text="&#xE950;"
@@ -753,7 +766,8 @@
                                                        Foreground="{DynamicResource ElectricCyanBrush}"
                                                        Margin="0,0,5,0"
                                                        VerticalAlignment="Center"/>
-                                            <TextBlock Text="RAM Memory"
+                                            <TextBlock x:Name="HeroRamLabel"
+                                                       Text="RAM Memory"
                                                        FontSize="11"
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource TextHighBrush}"/>
@@ -764,6 +778,7 @@
                                                        FontSize="11"
                                                        FontWeight="Bold"
                                                        Foreground="{DynamicResource ElectricCyanBrush}"
+                                                       FlowDirection="LeftToRight"
                                                        Margin="0,0,8,0"
                                                        VerticalAlignment="Center"/>
                                             <Button Style="{DynamicResource PillButton}"
@@ -773,7 +788,12 @@
                                                     Click="OpenMemoryCleanerModal_Click">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                     <TextBlock Text="&#xE950;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="RAM Cleaner" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource ElectricCyanBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock x:Name="HeroRamBtnText"
+                                                               Text="RAM Cleaner"
+                                                               FontSize="10"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                                               VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Button>
                                         </StackPanel>
@@ -785,13 +805,15 @@
                                                      Value="50"
                                                      Foreground="{DynamicResource BrandHeroGradientBrush}"
                                                      Background="Transparent"
-                                                     BorderThickness="0"/>
+                                                     BorderThickness="0"
+                                                     FlowDirection="LeftToRight"/>
                                     </Border>
                                     <Grid>
                                         <TextBlock x:Name="HeroRamDetailText"
                                                    Text="Reading RAM telemetry..."
                                                    FontSize="10"
                                                    Foreground="{DynamicResource TextMediumBrush}"
+                                                   FlowDirection="LeftToRight"
                                                    VerticalAlignment="Center"/>
                                         <Button x:Name="HeroBoostRamBtn"
                                                 Content="Quick Boost"
@@ -838,38 +860,56 @@
                         </Grid.ColumnDefinitions>
 
                         <!-- Category Filter Chips (Left) -->
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                            <RadioButton x:Name="FilterAllRadio" Style="{DynamicResource FilterChipRadio}" IsChecked="True" Checked="FilterChip_Checked" Tag="ALL">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="&#xE774;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="All Scopes" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </RadioButton>
-                            <RadioButton x:Name="FilterSafeRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SAFE">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="&#xE73E;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource EmeraldGreenBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Safe Only" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </RadioButton>
-                            <RadioButton x:Name="FilterDriversRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SYSTEM">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="&#xE770;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="System &amp; Drivers" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </RadioButton>
-                            <RadioButton x:Name="FilterGamingRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="GAMING">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="&#xE7FC;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Gaming" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </RadioButton>
-                            <RadioButton x:Name="FilterMediaRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="MEDIA">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="&#xE714;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Media &amp; Apps" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </RadioButton>
-                        </StackPanel>
+                        <ScrollViewer Grid.Column="0"
+                                      HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Disabled"
+                                      Focusable="False"
+                                      Margin="0,0,10,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <RadioButton x:Name="FilterAllRadio" Style="{DynamicResource FilterChipRadio}" IsChecked="True" Checked="FilterChip_Checked" Tag="ALL">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE774;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="FilterAllText" Text="All Scopes" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="FilterSafeRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SAFE">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE73E;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource EmeraldGreenBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="FilterSafeText" Text="Safe Only" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="FilterDriversRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="SYSTEM">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE770;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="FilterDriversText" Text="System &amp; Drivers" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="FilterGamingRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="GAMING">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE7FC;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="FilterGamingText" Text="Gaming" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="FilterMediaRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="MEDIA">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE714;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="FilterMediaText" Text="Media &amp; Apps" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="FilterDevRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="DEV">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE7BE;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="FilterDevText" Text="Dev Tools" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="FilterRulepackRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="RULEPACK">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE8B7;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="FilterRulepackText" Text="Rulepacks" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </RadioButton>
+                            </StackPanel>
+                        </ScrollViewer>
 
                         <!-- Search Input (Right) -->
                         <Border Grid.Column="1"
@@ -1011,6 +1051,8 @@
                                         Style="{DynamicResource PillButton}"
                                         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                         ToolTip="1-Click Smart Clean: Selects 100% safe junk targets and cleans immediately"
+                                        AutomationProperties.Name="1-Click Smart Clean"
+                                        AutomationProperties.HelpText="Selects all 100% safe junk targets and cleans immediately"
                                         Padding="11,4.5"
                                         FontSize="10.5"
                                         Margin="0,0,6,0"
@@ -1035,6 +1077,8 @@
                                         Style="{DynamicResource PillButton}"
                                         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                         ToolTip="Rescan all categories (F5)"
+                                        AutomationProperties.Name="Rescan All Categories"
+                                        AutomationProperties.HelpText="Rescan all cache and temporary locations"
                                         Padding="11,4.5"
                                         FontSize="10.5"
                                         Click="ScanButton_Click">
@@ -1047,6 +1091,32 @@
                                                    VerticalAlignment="Center"/>
                                         <TextBlock x:Name="QuickScanBtnText"
                                                    Text="Rescan"
+                                                   FontSize="10.5"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Quarantine Vault Pill -->
+                                <Button x:Name="QuarantineVaultBtn"
+                                        Style="{DynamicResource PillButton}"
+                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                        ToolTip="Quarantine Vault: View and restore files from previous cleanups"
+                                        AutomationProperties.Name="Open Quarantine Vault"
+                                        AutomationProperties.HelpText="Review and restore previous cleanup archives"
+                                        Padding="11,4.5"
+                                        FontSize="10.5"
+                                        Margin="6,0,0,0"
+                                        Click="QuarantineVaultBtn_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE8B7;"
+                                                   FontFamily="{DynamicResource IconFont}"
+                                                   FontSize="10"
+                                                   Foreground="#A78BFA"
+                                                   Margin="0,0,5,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="QuarantineVaultBtnText"
+                                                   Text="Quarantine"
                                                    FontSize="10.5"
                                                    FontWeight="SemiBold"
                                                    VerticalAlignment="Center"/>
@@ -1205,7 +1275,7 @@
 
                                         <!-- Category Title, Safety Badge & Path -->
                                         <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0">
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Name}"
                                                            FontSize="13.5"
                                                            FontWeight="SemiBold"
@@ -1253,7 +1323,22 @@
                                                                FontWeight="Bold"
                                                                Foreground="#FCA5A5"/>
                                                 </Border>
-                                            </StackPanel>
+
+                                                <!-- Discovery Tag Badge -->
+                                                <Border Background="#1E1B4B"
+                                                        BorderBrush="#6366F1"
+                                                        BorderThickness="1"
+                                                        CornerRadius="4"
+                                                        Padding="6,1"
+                                                        Margin="6,0,0,0"
+                                                        VerticalAlignment="Center"
+                                                        Visibility="{Binding HasDiscoveryTag, Converter={StaticResource BoolToVisConverter}}">
+                                                    <TextBlock Text="{Binding DisplayDiscoveryTag}"
+                                                               FontSize="9"
+                                                               FontWeight="Bold"
+                                                               Foreground="#A5B4FC"/>
+                                                </Border>
+                                            </WrapPanel>
 
                                             <TextBlock Text="{Binding Description}"
                                                        FontSize="11"
@@ -1411,6 +1496,7 @@
                                    FontSize="11.5"
                                    FontWeight="Bold"
                                    Foreground="{DynamicResource TextHighBrush}"
+                                   FlowDirection="LeftToRight"
                                    VerticalAlignment="Center"
                                    Margin="14,8,0,0"
                                    AutomationProperties.LiveSetting="Polite"/>
@@ -1555,7 +1641,8 @@
                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Text="1-Click Deep Clean"
+                                    <TextBlock x:Name="FooterOneClickBtnText"
+                                               Text="1-Click Deep Clean"
                                                FontSize="11"
                                                FontWeight="Bold"
                                                Foreground="{DynamicResource TextHighBrush}"
@@ -1964,6 +2051,29 @@
                                    TextWrapping="Wrap"
                                    Margin="0,0,0,20"/>
 
+                        <!-- Quarantine Option -->
+                        <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="12,8"
+                                Margin="0,0,0,16">
+                            <CheckBox x:Name="ConfirmModalQuarantineCheckBox"
+                                      IsChecked="True"
+                                      Style="{DynamicResource ModernSwitchCheckBox}"
+                                      VerticalAlignment="Center">
+                                <StackPanel Margin="6,0,0,0">
+                                    <TextBlock Text="Archive Snapshot to Quarantine Vault"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                    <TextBlock Text="Enables 1-click restore if an application needs its cache back"
+                                               FontSize="10"
+                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </CheckBox>
+                        </Border>
+
                         <!-- Action Buttons -->
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -2000,6 +2110,97 @@
                             </Button>
                         </Grid>
                     </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- 7b. QUARANTINE VAULT MODAL -->
+            <Grid Grid.RowSpan="6"
+                  x:Name="QuarantineModalOverlay"
+                  Background="{DynamicResource ModalBackdropBrush}"
+                  Visibility="Collapsed"
+                  AutomationProperties.Name="Quarantine Vault Dialog">
+                <Border MinWidth="460" MaxWidth="640" MaxHeight="520" Margin="16"
+                        Background="{DynamicResource ModalSurfaceBrush}"
+                        BorderBrush="#8B5CF6"
+                        BorderThickness="1.5"
+                        CornerRadius="18"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Padding="24,20">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.4"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header -->
+                        <Grid Grid.Row="0" Margin="0,0,0,16">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="&#xE8B7;" FontFamily="{DynamicResource IconFont}" FontSize="18" Foreground="#A78BFA" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <StackPanel>
+                                    <TextBlock Text="Quarantine Vault" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}"/>
+                                    <TextBlock Text="Review and 1-click restore archives from previous cleanups" FontSize="11" Foreground="{DynamicResource TextMediumBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Style="{DynamicResource WindowControlButton}"
+                                    Content="&#xE711;" FontSize="11" Width="26" Height="26"
+                                    Click="CloseQuarantineModal_Click"/>
+                        </Grid>
+
+                        <!-- List of Snapshots -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16">
+                            <ItemsControl x:Name="QuarantineSessionsItemsControl">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                BorderThickness="1" CornerRadius="10"
+                                                Padding="12,10" Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="{Binding ScopeName}" FontWeight="SemiBold" FontSize="12.5" Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="{Binding SessionId}" FontSize="10" FontFamily="{DynamicResource MonospaceFont}" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                    <TextBlock FontSize="10.5" Foreground="{DynamicResource TextMediumBrush}" Margin="0,2,0,0">
+                                                        <Run Text="{Binding FileCount}"/> files • 
+                                                        <Run Text="Archived: "/>
+                                                        <Run Text="{Binding CreatedUtc, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                                <Button Grid.Column="1"
+                                                        Style="{DynamicResource PillButton}"
+                                                        Padding="12,5"
+                                                        Tag="{Binding SessionId}"
+                                                        Click="RestoreQuarantineSession_Click"
+                                                        VerticalAlignment="Center">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="&#xE777;" FontFamily="{DynamicResource IconFont}" FontSize="10" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Restore" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <!-- Footer -->
+                        <Grid Grid.Row="2">
+                            <TextBlock x:Name="QuarantineStatusText" Text="Stored in local AppData vault" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            <Button HorizontalAlignment="Right" Content="Close"
+                                    Style="{DynamicResource PillButton}" Padding="16,6"
+                                    Click="CloseQuarantineModal_Click"/>
+                        </Grid>
+                    </Grid>
                 </Border>
             </Grid>
 
@@ -2123,6 +2324,9 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Padding="28,24">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.4"/>
+                    </Border.Effect>
                     <StackPanel>
                         <!-- Header -->
                         <Grid Margin="0,0,0,18">

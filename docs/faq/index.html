@@ -112,10 +112,34 @@
           },
           {
             "@type": "Question",
+            "name": "Does Deltempo create system restore points automatically during app uninstallation?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Deltempo respects your choice and system resources. In the Deep Root App Uninstaller, restore point creation is an optional toggle that is turned off by default. If you prefer to have a checkpoint before removing an app, simply check the box in the GUI or pass the '--restore-point' flag in the CLI."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does Deltempo compare to CCleaner, BleachBit, and Bulk Crap Uninstaller?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Deltempo combines the best aspects of all three while remaining 100% open source under MIT. Unlike CCleaner, it has zero telemetry and no paid upsells. Unlike BleachBit, it features a modern Fluent UI, native NT kernel memory optimization, and an app uninstaller. Unlike BCU, it includes an integrated 26+ scope disk cleaner, large file hunter, system repair tools, and a high-DPI tray monitor."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Deltempo support Arabic and other international languages?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Deltempo includes comprehensive native localization for English, Arabic, Spanish, French, and German. When switching to Arabic, true Right-to-Left (RTL) window flow is activated, while numeric values, storage metrics, and filesystem paths remain protected in Left-to-Right layout so statistics are never inverted."
+            }
+          },
+          {
+            "@type": "Question",
             "name": "How thoroughly is Deltempo tested and verified?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Deltempo is backed by 581 automated tests spanning unit, integration, benchmark, and adversarial filesystem security test suites with zero warnings."
+              "text": "Deltempo is backed by 598 automated tests spanning unit, integration, benchmark, and adversarial filesystem security test suites with zero warnings."
             }
           }
         ]
@@ -338,12 +362,48 @@
       <div class="faq-item">
         <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
           <button class="faq-question" aria-expanded="false">
+            <span>Does Deltempo create system restore points automatically during app uninstallation?</span>
+            <span class="faq-icon">+</span>
+          </button>
+        </h2>
+        <div class="faq-answer">
+          No. Deltempo respects your system resources and personal choice. In the Deep Root App Uninstaller, restore point creation is an optional toggle that is turned off by default. If you prefer to have a system checkpoint before removing an application, simply check the box in the GUI or pass the <code>--restore-point</code> flag in the terminal CLI.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
+          <button class="faq-question" aria-expanded="false">
+            <span>How does Deltempo compare to CCleaner, BleachBit, and Bulk Crap Uninstaller?</span>
+            <span class="faq-icon">+</span>
+          </button>
+        </h2>
+        <div class="faq-answer">
+          Deltempo combines the best aspects of all three while remaining 100% open source under MIT. Unlike CCleaner, it has zero telemetry and no paid upsells. Unlike BleachBit, it features a modern Fluent UI, native NT kernel memory optimization, and an app uninstaller. Unlike BCU, it includes an integrated 26+ scope disk cleaner, large file hunter, system repair tools, and a high-DPI tray monitor.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
+          <button class="faq-question" aria-expanded="false">
+            <span>Does Deltempo support Arabic and other international languages?</span>
+            <span class="faq-icon">+</span>
+          </button>
+        </h2>
+        <div class="faq-answer">
+          Yes. Deltempo includes comprehensive native localization for English, Arabic, Spanish, French, and German. When switching to Arabic, true Right-to-Left (RTL) window flow is activated, while numeric values, storage metrics, and filesystem paths remain protected in Left-to-Right layout so statistics are never inverted.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <h2 class="faq-heading" style="margin: 0; font-size: inherit; font-weight: inherit;">
+          <button class="faq-question" aria-expanded="false">
             <span>How thoroughly is Deltempo tested and verified?</span>
             <span class="faq-icon">+</span>
           </button>
         </h2>
         <div class="faq-answer">
-          Every release is gated by <strong>581 automated verification tests</strong> spanning unit tests, integration tests, timing benchmarks, and an adversarial filesystem security test suite (validating symlink traps, junction loop containment, and directory traversal immunity). All builds enforce a 0-warning compilation standard.
+          Every release is gated by <strong>598 automated verification tests</strong> spanning unit tests, integration tests, timing benchmarks, and an adversarial filesystem security test suite (validating symlink traps, junction loop containment, and directory traversal immunity). All builds enforce a 0-warning compilation standard.
         </div>
       </div>
     </div>

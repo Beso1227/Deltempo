@@ -92,4 +92,39 @@ public class RootLeftoverScannerTests
         Assert.Equal(0, res.ItemsPurgedCount);
         Assert.Equal(0, res.TotalReclaimedBytes);
     }
+
+    [Fact]
+    public void InstalledAppItem_StoreApp_DetectsStoreEngine()
+    {
+        var app = new InstalledAppItem
+        {
+            DisplayName = "Spotify Music",
+            IsWindowsStoreApp = true,
+            PackageFullName = "SpotifyAB.SpotifyMusic_1.2.3.4_x64__zpdnekdrzrea0"
+        };
+
+        Assert.Equal("MSIX / Store", app.UninstallEngine);
+        Assert.True(app.HasUninstaller);
+        Assert.False(app.IsBroken);
+    }
+
+    [Theory]
+    [InlineData(@"C:\Program Files\Common Files")]
+    [InlineData(@"C:\Program Files (x86)\Common Files")]
+    [InlineData(@"C:\Users\User\AppData\Local\Microsoft")]
+    [InlineData(@"C:\Windows\System32\drivers")]
+    public void IsSafeToDeleteResidual_AdditionalProtectedPaths_ReturnsFalse(string path)
+    {
+        bool isSafe = InstalledAppService.IsSafeToDeleteResidual(path);
+        Assert.False(isSafe);
+    }
+
+    [Fact]
+    public async Task SystemRestorePointService_WithEmptyDescription_DoesNotCrash()
+    {
+        // Calling CreateRestorePointAsync with empty string should safely handle default description
+        // without throwing exceptions even if system restore service is disabled on CI/environment.
+        var result = await WinTempCleaner.Core.Safety.SystemRestorePointService.CreateRestorePointAsync("");
+        Assert.NotNull(result.Message);
+    }
 }

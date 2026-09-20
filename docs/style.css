@@ -1773,9 +1773,54 @@ html.light .mobile-menu-overlay {
 
 .compare-table {
   width: 100%;
+  min-width: 880px;
   border-collapse: collapse;
   text-align: left;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+}
+
+html.light .compare-table th {
+  background: #F1F5F9;
+  color: #0F172A;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+html.light .compare-table th.highlight {
+  background: #E0F2FE;
+  color: #0284C7;
+  border-left: 1px solid rgba(2, 132, 199, 0.35);
+  border-right: 1px solid rgba(2, 132, 199, 0.35);
+}
+
+html.light .compare-table td {
+  color: #334155;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+html.light .compare-table td.highlight {
+  background: rgba(2, 132, 199, 0.04);
+  border-left: 1px solid rgba(2, 132, 199, 0.25);
+  border-right: 1px solid rgba(2, 132, 199, 0.25);
+  color: #0F172A;
+}
+
+html.light .badge-tag-safe {
+  background: rgba(5, 150, 105, 0.1);
+  color: #059669;
+  border-color: rgba(5, 150, 105, 0.3);
+}
+
+html.light .badge-tag-bad {
+  background: rgba(220, 38, 38, 0.1);
+  color: #DC2626;
+  border-color: rgba(220, 38, 38, 0.25);
+}
+
+@media (max-width: 640px) {
+  .compare-table th, .compare-table td {
+    padding: 0.85rem 1rem;
+    font-size: 0.85rem;
+  }
 }
 
 .compare-table th {
