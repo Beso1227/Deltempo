@@ -34,7 +34,7 @@ public partial class MainWindow
                 SettingsLastCheckedText.Text = $"Last checked: {SettingsService.Current.LastUpdateCheckTimestamp}";
             });
 
-            if (release != null && release.IsNewer && !string.IsNullOrEmpty(release.DownloadUrl))
+            if (release != null && release.IsNewer)
             {
                 // Suppress repeated prompt on startup if user previously dismissed this exact release version
                 if (silent && !string.IsNullOrEmpty(release.VersionString) &&
@@ -44,13 +44,17 @@ public partial class MainWindow
                 }
 
                 _pendingRelease = release;
+                bool hasDirectDownload = !string.IsNullOrEmpty(release.DownloadUrl);
+
                 Dispatcher.Invoke(() =>
                 {
                     ManualCheckStatusText.Text = $"New release ready: {release.TagName}";
                     ManualCheckStatusText.Foreground = (Brush)FindResource("ElectricCyanBrush");
 
                     UpdateVersionTagText.Text = release.TagName;
-                    UpdateSubtitleText.Text = "A new official release of Deltempo is ready";
+                    UpdateSubtitleText.Text = hasDirectDownload
+                        ? "A new official release of Deltempo is ready"
+                        : "A new official release of Deltempo is available on GitHub";
 
                     if (!string.IsNullOrWhiteSpace(release.Body))
                     {
@@ -61,8 +65,19 @@ public partial class MainWindow
                         UpdateChangelogText.Text = "• Performance optimizations & precision engine enhancements\n• Direct in-place hot-swap update (zero installer leftovers)";
                     }
                     UpdateProgressContainer.Visibility = Visibility.Collapsed;
-                    ApplyUpdateBtn.IsEnabled = true;
-                    ApplyUpdateBtn.Content = "Update Now";
+
+                    if (hasDirectDownload)
+                    {
+                        ApplyUpdateBtn.IsEnabled = true;
+                        ApplyUpdateBtn.Content = "Update Now";
+                    }
+                    else
+                    {
+                        // No binary asset attached — point user to the GitHub releases page
+                        ApplyUpdateBtn.IsEnabled = true;
+                        ApplyUpdateBtn.Content = "Download on GitHub";
+                    }
+
                     UpdateLaterBtn.IsEnabled = true;
                     UpdateModalOverlay.Visibility = Visibility.Visible;
                     SoundService.PlayClickSound();
@@ -120,8 +135,20 @@ public partial class MainWindow
 
     private async void ApplyUpdateBtn_Click(object sender, RoutedEventArgs e)
     {
-        if (_pendingRelease == null || string.IsNullOrEmpty(_pendingRelease.DownloadUrl))
+        if (_pendingRelease == null)
             return;
+
+        // If no direct download asset is available, open the GitHub releases page in the browser
+        if (string.IsNullOrEmpty(_pendingRelease.DownloadUrl))
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = $"https://github.com/Beso1227/Deltempo/releases/tag/{_pendingRelease.TagName}",
+                UseShellExecute = true
+            });
+            UpdateModalOverlay.Visibility = Visibility.Collapsed;
+            return;
+        }
 
         ApplyUpdateBtn.IsEnabled = false;
         UpdateLaterBtn.IsEnabled = false;
