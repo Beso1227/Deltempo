@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build and upload assets for (e.g. v1.7.5). Must already exist on GitHub.'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -12,30 +17,75 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    name: Build, Sign & Upload Release Assets
 
     env:
       SIGNING_CERTIFICATE_PFX: ${{ secrets.SIGNING_CERTIFICATE_PFX }}
       SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
 
     steps:
+      - name: Resolve Tag
+        id: tag
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $tag = "${{ github.event.inputs.tag }}"
+          } else {
+            $tag = "${{ github.ref_name }}"
+          }
+          Write-Host "Building for tag: $tag"
+          echo "value=$tag" >> $env:GITHUB_OUTPUT
+
       - name: Checkout Source Code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.value }}
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
+      - name: Validate Version Matches Tag
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.tag.outputs.value }}"
+          $tagVersion = $tag.TrimStart('v')
+          [xml]$props = Get-Content "Directory.Build.props"
+          $assemblyVersion = $props.Project.PropertyGroup.AssemblyVersion
+          $tagShort = ($tagVersion -split '\.')[0..2] -join '.'
+          $asmShort = ($assemblyVersion -split '\.')[0..2] -join '.'
+          Write-Host "Tag version:      $tagShort"
+          Write-Host "Assembly version: $asmShort"
+          if ($tagShort -ne $asmShort) {
+            Write-Error "::error::Version mismatch! Tag '$tagShort' != Directory.Build.props '$asmShort'. Update Directory.Build.props before releasing."
+            exit 1
+          }
+          Write-Host "Version validated: $tagShort"
+
       - name: Restore All Dependencies
         run: dotnet restore deltempo.sln
 
       - name: Run Tests
-        run: dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --verbosity normal --filter "Category!=Benchmark"
+        run: dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore --verbosity normal --filter "Category!=Benchmark"
 
       - name: Build & Publish Standalone Executables
         run: |
           dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
           dotnet publish Cli/Deltempo.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
+
+      - name: Generate SHA-256 Checksums
+        shell: pwsh
+        run: |
+          $files = @("./dist/Deltempo.exe", "./dist/deltempo_cli.exe")
+          $lines = @()
+          foreach ($f in $files) {
+            $hash = (Get-FileHash $f -Algorithm SHA256).Hash.ToLower()
+            $name = [System.IO.Path]::GetFileName($f)
+            $lines += "$hash  $name"
+            Write-Host "$hash  $name"
+          }
+          $lines | Out-File -FilePath "./dist/checksums.sha256" -Encoding utf8 -NoNewline
 
       - name: Authenticode Sign Release Binaries (optional)
         if: env.SIGNING_CERTIFICATE_PFX != ''
@@ -47,7 +97,6 @@ jobs:
             Where-Object { $_.FullName -match '\\x64\\' } |
             Sort-Object FullName -Descending | Select-Object -First 1
           if (-not $signtool) { Write-Error "::error::signtool.exe not found on the runner."; exit 1 }
-          Write-Host "Signing with $($signtool.FullName)"
           & $signtool.FullName sign /f $pfxPath /p "$env:SIGNING_CERTIFICATE_PASSWORD" /fd SHA256 /tr https://timestamp.digicert.com /td SHA256 `
             "$env:GITHUB_WORKSPACE\dist\Deltempo.exe" `
             "$env:GITHUB_WORKSPACE\dist\deltempo_cli.exe"
@@ -55,58 +104,60 @@ jobs:
           Remove-Item $pfxPath -Force
           Write-Host "Binaries signed successfully."
 
-      - name: Clean Extra Release Assets
+      - name: Delete Existing Assets (idempotent re-runs)
         uses: actions/github-script@v7
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           script: |
+            const tag = "${{ steps.tag.outputs.value }}";
             try {
-              const tag = context.ref.replace('refs/tags/', '');
               const release = await github.rest.repos.getReleaseByTag({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 tag: tag
               });
-              if (release && release.data && release.data.assets) {
-                for (const asset of release.data.assets) {
-                  if (asset.name !== 'Deltempo.exe' && asset.name !== 'deltempo_cli.exe') {
-                    console.log(`Deleting extra asset: ${asset.name} (id: ${asset.id})`);
-                    await github.rest.repos.deleteReleaseAsset({
-                      owner: context.repo.owner,
-                      repo: context.repo.repo,
-                      asset_id: asset.id
-                    });
-                  }
-                }
+              for (const asset of release.data.assets) {
+                console.log(`Deleting existing asset: ${asset.name} (id: ${asset.id})`);
+                await github.rest.repos.deleteReleaseAsset({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  asset_id: asset.id
+                });
               }
             } catch (err) {
-              console.log('No prior release to clean:', err.message);
+              console.log('No existing release assets to clean:', err.message);
             }
 
-      - name: Create GitHub Release
+      - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: "Deltempo ${{ github.ref_name }}"
+          tag_name: ${{ steps.tag.outputs.value }}
+          name: "Deltempo ${{ steps.tag.outputs.value }}"
           body: |
-            ## Deltempo ${{ github.ref_name }}
+            ## Deltempo ${{ steps.tag.outputs.value }}
 
             Download the standalone Windows executables below. For full details, see the [changelog](https://beso1227.github.io/Deltempo/changelog/).
 
-            ### 📦 Downloads
-            - `Deltempo.exe` — Main GUI application (portable, self-contained)
-            - `deltempo_cli.exe` — Headless CLI for automation and scripting
+            ### Downloads
+            | File | Description |
+            |------|-------------|
+            | `Deltempo.exe` | Main GUI application - portable, self-contained, no installer |
+            | `deltempo_cli.exe` | Headless CLI for automation and scripting |
+            | `checksums.sha256` | SHA-256 verification hashes for both executables |
 
-            ### ⚙️ Requirements
+            ### Requirements
             - Windows 10 / 11 (64-bit)
-            - No .NET runtime required — fully self-contained
+            - No .NET runtime required - fully self-contained single file
 
-            ### 🔒 Verification
-            - Reproducible standalone build from tag `${{ github.ref_name }}`
-            - 401/401 automated tests passing in CI
+            ### Verification
+            ```powershell
+            Get-FileHash Deltempo.exe -Algorithm SHA256
+            ```
+            Compare the hash against `checksums.sha256` included in the release assets.
+
+            Reproducible build from tag `${{ steps.tag.outputs.value }}` - All tests passing in CI.
           files: |
             ./dist/Deltempo.exe
             ./dist/deltempo_cli.exe
+            ./dist/checksums.sha256
           draft: false
           prerelease: false
-
