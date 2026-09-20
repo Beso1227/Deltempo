@@ -7,7 +7,7 @@
 - [Download](https://beso1227.github.io/Deltempo/download/): Standalone executable and WinGet installation
 - [Documentation](https://beso1227.github.io/Deltempo/docs/): Technical guide to 25+ scopes, safety tiers, and CLI commands
 - [FAQ](https://beso1227.github.io/Deltempo/faq/): Common questions on safety, GPU caches, NT memory, and app uninstallation
-- [Changelog](https://beso1227.github.io/Deltempo/changelog/): Release notes and version history (including v1.7.0)
+- [Changelog](https://beso1227.github.io/Deltempo/changelog/): Release notes and version history (including v1.7.5)
 
 ## Overview
 Deltempo safely purges disposable system, developer, and browser caches, recovers gigabytes of disk space, thoroughly uninstalls desktop programs with leftover cleanup, provides startup intelligence, and trims inactive Windows memory working sets with zero telemetry.
@@ -15,7 +15,7 @@ Package identifier for Microsoft WinGet: `winget install Beso1227.Deltempo`
 
 ## Core Capabilities
 - **26+ Cleaning Scopes**: System temp, driver installers, DirectX/GPU shader caches, browser caches, dev artifacts (NuGet, npm, pip, Cargo, Gradle), and crash dumps.
-- **Deep Root App Uninstaller (v1.7.0)**: Powered by BCU engine; performs silent bulk removals, registry and AppData leftover sweeps, and force-removals of corrupt/broken software.
+- **Deep Root App Uninstaller (v1.7.5)**: Powered by BCU engine; performs silent bulk removals, registry and AppData leftover sweeps, and force-removals of corrupt/broken software.
 - **Optional System Restore Points**: Pre-uninstall restore point creation is an optional toggle, turned off by default to conserve disk and avoid freezes.
 - **Quarantine Vault**: Compress and backup files before uninstallation into a recoverable ZIP archive with 1-click restore.
 - **Application & Startup Intelligence**: Answers "Will anything go wrong if I disable or uninstall this?" with 3-tier verdicts (SafeToDisable, CautionNeeded, EssentialKeep), offline heuristics, and multi-provider AI support (OpenAI, Anthropic, Gemini, Groq, OpenRouter, Ollama, LM Studio).
