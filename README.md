@@ -42,8 +42,10 @@
 
   <br />
 
-  <video src="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/deltempo.mp4" poster="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/deltempo.jpg" controls="controls" width="100%"></video>
-  <p><sub>🎬 <strong>Deltempo Product Showcase Video</strong> (34s · 1080p · 30fps)</sub></p>
+  <a href="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/deltempo.mp4">
+    <img src="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/deltempo.jpg" alt="Watch Deltempo Demo Video" width="100%" />
+  </a>
+  <p><sub>🎬 <strong>Deltempo Product Showcase Video</strong> — Click the image to watch (34s · 1080p · 30fps)</sub></p>
 
 </div>
 
