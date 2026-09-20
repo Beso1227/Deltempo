@@ -87,7 +87,7 @@ In addition to disk cleanup, Deltempo includes low-level Windows NT kernel memor
 
 ## ⚔️ How Deltempo Compares to Competitors
 
-Most Windows cleaning and optimization utilities either bundle commercial adware, require invasive background services, lock essential features behind paid subscriptions, or rely on outdated codebases. 
+Most Windows cleaning and optimization utilities either bundle commercial adware, require invasive background services, lock essential features behind paid subscriptions, or rely on outdated codebases.
 
 Deltempo is completely open-source, contains zero telemetry, requires no installation, and provides an end-to-end suite combining precision cleaning, deep root software uninstallation, kernel-level memory management, and startup service intelligence.
 
@@ -115,7 +115,9 @@ Deltempo is completely open-source, contains zero telemetry, requires no install
 ## 🌟 Core Features Deep Dive
 
 ### 1. 🧹 Precision 26+ Scope Storage Cleaner
+
 Deltempo targets disposable data across system, developer, and gaming environments without touching user documents, active authentication tokens, or personal settings:
+
 * **Operating System Scopes**: User Temp (`%TEMP%`), Windows Temp (`C:\Windows\Temp`), Prefetch, Windows Update download caches (`SoftwareDistribution\Download`), Windows Upgrade residue (`$WINDOWS.~BT`), Delivery Optimization caches, Windows Error Reporting (`WER`), Memory Dumps, and Font/Thumbnail caches.
 * **GPU & Game Shaders**: NVIDIA App / GeForce Experience OTA cache, AMD Radeon Software cache, DirectX shader caches (`D3DSCache`), Vulkan pipelines (`GLCache`), Steam shader pre-caching, and Epic Games launcher webcaches.
 * **Developer Ecosystem**: NuGet v3 local cache, npm cache, pip cache, Rust Cargo target cache, Gradle caches, Android Studio emulator temporary snapshots, and VS Code extension caches.
@@ -126,7 +128,9 @@ Deltempo targets disposable data across system, developer, and gaming environmen
 ---
 
 ### 2. 📦 Deep Root App Uninstaller & Leftover Sweeper
+
 Say goodbye to stubborn bloatware, half-deleted software, and messy uninstallation wizards:
+
 * **Unified Application Inventory**: Scans both 64-bit and 32-bit registry hives (`HKLM`, `HKCU`) alongside modern Windows Store (AppX/UWP) packages. Displays real installation size, publisher verification, version, and install dates.
 * **Optional System Restore Point**: Unlike other utilities that force a slow 2-minute system restore point or skip it entirely, Deltempo gives full control to the user. A dedicated toggle lets you decide whether to create a pre-uninstall restore checkpoint (**turned off by default**).
 * **Silent Multi-App Bulk Removal**: Select multiple applications and trigger unattended uninstallation without clicking through dozens of repetitive installer dialogs.
@@ -140,7 +144,9 @@ Say goodbye to stubborn bloatware, half-deleted software, and messy uninstallati
 ---
 
 ### 3. ⚡ Native Windows NT Kernel Memory Optimizer
+
 Unlike consumer "RAM cleaners" that simply force memory into the swap file and slow down your PC, Deltempo utilizes native, documented Windows NT kernel system calls:
+
 * **Standby List Invalidation**: Calls `NtSetSystemInformation` with `SystemMemoryListInformation` (class `80`) to flush unused cached standby memory pages back into the available pool for high-demand tasks (gaming, compiling, rendering).
 * **Inactive Working Set Trimming**: Leverages `EmptyWorkingSet` with elevated process tokens (`SeProfileSingleProcessPrivilege` and `SeDebugPrivilege`) to release abandoned working sets from inactive background processes.
 * **Critical Process Shield**: Core Windows components (`csrss.exe`, `dwm.exe`, `explorer.exe`, `lsass.exe`, `services.exe`, `smss.exe`, `svchost.exe`, and Windows Defender) are automatically shielded and never trimmed.
@@ -149,7 +155,9 @@ Unlike consumer "RAM cleaners" that simply force memory into the swap file and s
 ---
 
 ### 4. 🧠 Startup Manager & Service Intelligence
+
 Stop wondering what programs are slowing down your PC's boot time:
+
 * **"Will anything go wrong if I disable this?"**: Every startup application and background service is analyzed with an intelligent 3-tier verdict badge:
   * 🟢 **SafeToDisable**: Convenience launchers, game updaters, and communication apps that do not need to boot with Windows.
   * 🟡 **CautionNeeded**: Audio control panels, trackpad utilities, or peripheral software where hotkeys or tray menus might become inactive until opened manually.
@@ -162,7 +170,9 @@ Stop wondering what programs are slowing down your PC's boot time:
 ---
 
 ### 5. 🔍 AI-Categorized Large File Inspector
+
 Find out what is actually consuming your disk space:
+
 * **Multi-Drive Scanning**: Rapidly scan `C:\` or any secondary fixed drive for files exceeding customizable size thresholds (>50 MB, >100 MB, >500 MB, >1 GB).
 * **Automatic Category Tagging**: Intelligently groups discoveries into Archives (`.zip`, `.rar`, `.7z`), Disk Images (`.iso`, `.vhd`), Virtual Machine disks (`.vmdk`, `.vhdx`), Installers (`.msi`, `.exe`), Video/Audio media, and Stale Log files.
 * **Safety Risk Tiering**: Every large file is evaluated for safety before you touch it, preventing accidental deletion of hypervisor disks or important game installations.
@@ -170,7 +180,9 @@ Find out what is actually consuming your disk space:
 ---
 
 ### 6. 🛠️ Windows System Repair & CTT WinUtil Integration
+
 Diagnose and repair Windows operating system corruption directly from the interface:
+
 * **SFC (System File Checker)**: Executes `sfc /scannow` in an elevated context to repair corrupt system files.
 * **DISM Servicing**: Checks, scans, and restores Windows Component Store health (`/Cleanup-Image /RestoreHealth`).
 * **WinSxS Base Reset**: Cleans up superseded component store versions to recover gigabytes after major Windows updates.
@@ -180,6 +192,7 @@ Diagnose and repair Windows operating system corruption directly from the interf
 ---
 
 ### 7. 📊 Real-Time Process Manager
+
 * **Native High-DPI Icon Extraction**: Live extraction of 32-bit crisp executable icons using native Win32 `SHGetFileInfo` and `ExtractIconEx` routines.
 * **Memory & PID Telemetry**: Real-time process memory footprint, process ID, publisher information, and file path.
 * **Safe Termination**: Protected kill routines prevent accidental termination of critical Windows system processes.
@@ -187,7 +200,9 @@ Diagnose and repair Windows operating system corruption directly from the interf
 ---
 
 ### 8. 🎨 Pro Eye-Comfort Themes & Multilingual RTL Support
+
 Designed with obsessive attention to user experience:
+
 * **Pro Eye-Comfort Light Mode**: A soothing, Fluent/macOS porcelain and slate theme (`#F1F5F9`) that completely eliminates eye strain, replaces glaring white screens, and uses high-contrast Ocean Azure (`#0284C7`) accents.
 * **Obsidian Dark Mode**: Sleek, deep-space dark theme with vibrant electric cyan accents, subtle glassmorphism, and double-bezel cards.
 * **Comprehensive Multilingual Coverage**: Full native translations across **English, Arabic, Spanish, French, and German**.
@@ -196,6 +211,7 @@ Designed with obsessive attention to user experience:
 ---
 
 ### 9. 🔔 Pixel-Perfect System Tray Guardian
+
 * **True High-DPI Win32 Icon (`LoadCrispTrayIcon`)**: Employs direct Win32 GDI icon creation (`CreateIconIndirect`) with 32-bit ARGB alpha transparency, delivering razor-sharp rendering on 100%, 125%, 150%, 175%, and 200%+ scaling displays without blurring.
 * **Live Hover Telemetry**: Displays real-time memory usage in the tray tooltip: `RAM: 42% (13.4 GB / 31.9 GB)`.
 * **Quick Context Actions**: Right-click to trigger **1-Click Boost Memory** or **Quick Smart Clean** without opening the main window.
@@ -238,10 +254,10 @@ deltempo status --json
 | `deltempo boost` | Optimize system memory via NT kernel | `--all`, `--standby`, `--cache`, `--workingsets`, `--json` |
 | `deltempo uninstall <app>` | Deep root uninstallation and leftover purge | `--dry-run`, `--force`, `--silent`, `--no-quarantine`, `--restore-point`, `--json` |
 | `deltempo large [path]` | Scan drives for space-consuming files | `--min <size>`, `--type <cat>`, `--safe`, `--top <n>`, `--sort <size\|date>` |
-| `deltempo large inspect <file>`| Inspect file risk tier and safety verdict | `--json` |
+| `deltempo large inspect <file>` | Inspect file risk tier and safety verdict | `--json` |
 | `deltempo large clean` | Recycle disposable large files | `--dry-run`, `--yes`, `--safe-only` |
 | `deltempo startup [list]` | Inspect startup applications and boot impact | `--high`, `--json` |
-| `deltempo startup disable <app>`| Reversibly disable a startup program | N/A |
+| `deltempo startup disable <app>` | Reversibly disable a startup program | N/A |
 | `deltempo startup enable <app>` | Restore a disabled startup program | N/A |
 | `deltempo repair [subcommand]` | Windows integrity check & servicing repair | `sfc`, `dism`, `winsxs`, `chkdsk`, `update`, `network` |
 | `deltempo status` | Display system telemetry and memory info | `--json` |
@@ -254,16 +270,19 @@ deltempo status --json
 ## 🚀 Quick Start
 
 ### Option 1: Portable Standalone Executable (Recommended)
+
 1. Download **`Deltempo.exe`** from the [Latest Release](https://github.com/Beso1227/Deltempo/releases/latest) page.
 2. Run `Deltempo.exe` directly (no installer required, self-contained single-file).
 3. Click **Scan Now** or **1-Click Deep Clean** to reclaim space.
 
 ### Option 2: Windows Package Manager (WinGet)
+
 ```powershell
 winget install Beso1227.Deltempo
 ```
 
 ### Option 3: Terminal Registration
+
 Running `Deltempo.exe` automatically registers user-level App Paths so you can press <kbd>Win</kbd> + <kbd>R</kbd> and type `deltempo`, or use `deltempo` directly in any PowerShell or Command Prompt terminal.
 
 ---
@@ -274,11 +293,13 @@ Deltempo is architected with security and user privacy as non-negotiable fundame
 
 1. **Zero Telemetry Guarantee**: Deltempo contains **zero telemetry**, analytics libraries, advertising SDKs, or background ping trackers. Routine scanning, cleaning, memory optimization, and uninstallation run **100% offline**.
 2. **Deterministic Safety Pipeline**:
+
    ```text
    ┌────────┐     ┌────────┐     ┌─────────┐     ┌────────────┐     ┌─────────┐
    │  SCAN  │ ──► │  PLAN  │ ──► │ PROTECT │ ──► │ REVALIDATE │ ──► │  CLEAN  │
    └────────┘     └────────┘     └─────────┘     └────────────┘     └─────────┘
    ```
+
    Candidate files are planned, verified against protected directory boundaries (Documents, Desktop, Code Repositories, SSH keys, credentials), and revalidated immediately before deletion.
 3. **Reparse Point & Traversal Defense**: NTFS directory junctions, symbolic links, and volume mount points are automatically rejected to prevent traversal attacks outside target boundaries.
 4. **Local Drive Boundary**: Confined exclusively to local fixed drives; remote network shares and UNC paths are blocked.
@@ -289,11 +310,13 @@ Deltempo is architected with security and user privacy as non-negotiable fundame
 ## 🛠️ Building from Source
 
 ### Prerequisites
+
 * Windows 10 or 11 (64-bit / x64)
 * [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 * PowerShell 7+ or Windows PowerShell 5.1
 
 ### Compilation & Testing
+
 ```powershell
 # Clone the repository
 git clone https://github.com/Beso1227/Deltempo.git
@@ -310,6 +333,7 @@ pwsh -ExecutionPolicy Bypass -File scripts/build_release_exe.ps1
 ```
 
 The resulting single-file executables will be published to:
+
 * `publish\Deltempo.exe` (GUI)
 * `publish\deltempo_cli.exe` (CLI)
 
