@@ -42,7 +42,7 @@
 
   <br />
 
-  <video src="docs/deltempo.mp4" poster="docs/deltempo.jpg" controls="controls" width="100%"></video>
+  <video src="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/deltempo.mp4" poster="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/deltempo.jpg" controls="controls" width="100%"></video>
   <p><sub>🎬 <strong>Deltempo Product Showcase Video</strong> (34s · 1080p · 30fps)</sub></p>
 
 </div>
