@@ -23,7 +23,6 @@ public class PurgeResult
     public string FormattedReclaimed => TargetFolderInfo.FormatBytes(TotalReclaimedBytes);
     public List<string> ErrorMessages { get; set; } = new();
     public List<string> RebootScheduledItems { get; set; } = new();
-    public string? QuarantineSessionId { get; set; }
 }
 
 public static class RootLeftoverPurgeService
@@ -36,56 +35,17 @@ public static class RootLeftoverPurgeService
 
     /// <summary>
     /// Safely purges all selected leftover items (files, directories, registry keys, shortcuts, services).
-    /// Supports automatic compressed Quarantine archiving and boot-time MoveFileEx scheduling for locked files.
+    /// Supports boot-time MoveFileEx scheduling for locked files.
     /// </summary>
     public static async Task<PurgeResult> PurgeLeftoversAsync(
         IEnumerable<LeftoverItem> items,
-        bool enableQuarantine = true,
         string? appName = null,
         CancellationToken ct = default)
     {
         var sw = Stopwatch.StartNew();
         var result = new PurgeResult();
 
-        // 1. Archive filesystem leftovers into Quarantine Vault before permanent removal
-        if (enableQuarantine)
-        {
-            var selectedFiles = items
-                .Where(i => i.IsSelected && (i.Type == LeftoverType.File || i.Type == LeftoverType.Shortcut))
-                .Select(i => i.PathOrKey)
-                .Where(File.Exists)
-                .ToList();
-
-            // Also include files from selected directories
-            foreach (var dir in items.Where(i => i.IsSelected && i.Type == LeftoverType.Directory && Directory.Exists(i.PathOrKey)))
-            {
-                try
-                {
-                    var innerFiles = Directory.GetFiles(dir.PathOrKey, "*", SearchOption.AllDirectories);
-                    selectedFiles.AddRange(innerFiles);
-                }
-                catch { }
-            }
-
-            if (selectedFiles.Count > 0)
-            {
-                try
-                {
-                    string scope = !string.IsNullOrWhiteSpace(appName) ? $"Uninstall_{appName}" : "AppUninstall";
-                    var session = await QuarantineManager.CreateQuarantineSnapshotAsync(scope, scope, selectedFiles.Distinct(), ct);
-                    if (session != null)
-                    {
-                        result.QuarantineSessionId = session.SessionId;
-                    }
-                }
-                catch (Exception qEx)
-                {
-                    Trace.WriteLine($"[RootLeftoverPurge] Quarantine archiving error: {qEx.Message}");
-                }
-            }
-        }
-
-        // 2. Perform safe deletion across all leftover vectors
+        // Perform safe deletion across all leftover vectors
         await Task.Run(() =>
         {
             foreach (var item in items.Where(i => i.IsSelected))

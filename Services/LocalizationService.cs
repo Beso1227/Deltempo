@@ -70,8 +70,7 @@ public static class LocalizationService
             ["FilterMedia"] = "Media & Apps",
             ["FilterDev"] = "Dev Tools",
             ["FilterRulepack"] = "Rulepacks",
-            ["SearchPlaceholder"] = "Search 25+ scopes...",
-            ["QuarantineVault"] = "Quarantine Vault"
+            ["SearchPlaceholder"] = "Search 25+ scopes..."
         },
         ["ar"] = new()
         {
@@ -135,8 +134,7 @@ public static class LocalizationService
             ["FilterMedia"] = "الوسائط والتطبيقات",
             ["FilterDev"] = "أدوات التطوير",
             ["FilterRulepack"] = "حزم القواعد",
-            ["SearchPlaceholder"] = "ابحث في أكثر من 25 نطاقاً...",
-            ["QuarantineVault"] = "العزل المسترد"
+            ["SearchPlaceholder"] = "ابحث في أكثر من 25 نطاقاً..."
         },
         ["es"] = new()
         {
@@ -200,8 +198,7 @@ public static class LocalizationService
             ["FilterMedia"] = "Multimedia y Apps",
             ["FilterDev"] = "Herramientas Dev",
             ["FilterRulepack"] = "Paquetes de Reglas",
-            ["SearchPlaceholder"] = "Buscar más de 25 ámbitos...",
-            ["QuarantineVault"] = "Cuarentena"
+            ["SearchPlaceholder"] = "Buscar más de 25 ámbitos..."
         },
         ["fr"] = new()
         {
@@ -265,8 +262,7 @@ public static class LocalizationService
             ["FilterMedia"] = "Médias & Apps",
             ["FilterDev"] = "Outils Développeur",
             ["FilterRulepack"] = "Packs de Règles",
-            ["SearchPlaceholder"] = "Rechercher parmi 25+ éléments...",
-            ["QuarantineVault"] = "Quarantaine"
+            ["SearchPlaceholder"] = "Rechercher parmi 25+ éléments..."
         },
         ["de"] = new()
         {
@@ -330,8 +326,7 @@ public static class LocalizationService
             ["FilterMedia"] = "Medien & Apps",
             ["FilterDev"] = "Entwicklertools",
             ["FilterRulepack"] = "Regelpakete",
-            ["SearchPlaceholder"] = "25+ Bereiche durchsuchen...",
-            ["QuarantineVault"] = "Quarantäne"
+            ["SearchPlaceholder"] = "25+ Bereiche durchsuchen..."
         }
     };
 

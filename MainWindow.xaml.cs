@@ -791,11 +791,6 @@ public partial class MainWindow : Window
                 CancelConfirmModal_Click(sender, e);
                 e.Handled = true;
             }
-            else if (QuarantineModalOverlay.Visibility == Visibility.Visible)
-            {
-                CloseQuarantineModal_Click(sender, e);
-                e.Handled = true;
-            }
             else if (CelebrationModalOverlay.Visibility == Visibility.Visible)
             {
                 CloseCelebration_Click(sender, e);
@@ -853,7 +848,6 @@ public partial class MainWindow : Window
             FrameworkElement? activeModal = null;
             if (SettingsModalOverlay.Visibility == Visibility.Visible) activeModal = SettingsModalOverlay;
             else if (ConfirmModalOverlay.Visibility == Visibility.Visible) activeModal = ConfirmModalOverlay;
-            else if (QuarantineModalOverlay.Visibility == Visibility.Visible) activeModal = QuarantineModalOverlay;
             else if (CelebrationModalOverlay.Visibility == Visibility.Visible) activeModal = CelebrationModalOverlay;
             else if (InspectorModalOverlay.Visibility == Visibility.Visible) activeModal = InspectorModalOverlay;
             else if (StartupModalOverlay.Visibility == Visibility.Visible) activeModal = StartupModalOverlay;

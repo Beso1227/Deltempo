@@ -9,7 +9,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?label=Release&color=06B6D4" alt="Latest Release" /></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&label=CI%20Build" alt="CI Build Status" /></a>
-    <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/Tests-598%20Passed%20(0%20failed)-10B981" alt="Tests: 598 Passed" /></a>
+    <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/Tests-596%20Passed%20(0%20failed)-10B981" alt="Tests: 596 Passed" /></a>
     <a href="docs/THREAT_MODEL.md"><img src="https://img.shields.io/badge/Security-STRIDE%20Hardened-8B5CF6" alt="STRIDE Hardened" /></a>
     <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 10" /></a>
     <a href="https://learn.microsoft.com/dotnet/csharp/"><img src="https://img.shields.io/badge/C%23-13-239120?logo=csharp&logoColor=white" alt="C# 13" /></a>
@@ -42,10 +42,10 @@
 
   <br />
 
-  <a href="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/deltempo.mp4">
-    <img src="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/deltempo.jpg" alt="Watch Deltempo Demo Video" width="100%" />
-  </a>
-  <p><sub>🎬 <strong>Deltempo Product Showcase Video</strong> — Click the image to watch (34s · 1080p · 30fps)</sub></p>
+  <video src="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/deltempo.mp4" poster="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/deltempo.jpg" controls="controls" width="100%">
+    Your browser does not support the video tag.
+  </video>
+  <p><sub>🎬 <strong>Deltempo Product Showcase Video</strong> (34s · 1080p · 30fps)</sub></p>
 
 </div>
 
@@ -61,7 +61,7 @@
 | **License** | Open Source ([MIT](LICENSE)) |
 | **Interfaces** | Modern Desktop GUI (WPF Fluent) and Headless Terminal CLI |
 | **Distribution** | Portable single-file executable (self-contained, no installer required) |
-| **Test Coverage** | 598 automated tests (100% pass rate, 0 failed, 0 skipped), adversarial filesystem fuzzing |
+| **Test Coverage** | 596 automated tests (100% pass rate, 0 failed, 0 skipped), adversarial filesystem fuzzing |
 | **Telemetry** | Zero telemetry. Scan, clean, memory, and uninstaller operations execute 100% offline |
 | **Safety Engine** | Two-phase planning (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) with 5 risk tiers & transaction journaling |
 | **App Uninstaller** | Bulk silent uninstaller, BCU engine, leftover AppData/Registry trace cleanup, forced wipe for broken apps |
@@ -99,11 +99,10 @@ Deltempo is completely open-source, contains zero telemetry, requires no install
 | **Telemetry & Privacy** | **Zero Telemetry (100% Offline)** | ⚠️ Trackers & Data Collection | ✅ Zero Telemetry | Minimal Telemetry | Windows Diagnostic Telemetry |
 | **Bundled Adware / Upsells** | **None / Never** | ⚠️ Historical adware bundles & upsells | None | None | None |
 | **Memory Engine** | **Native NT Kernel (`NtSetSystemInformation`)** | ⚠️ Basic (Paid Pro only) | ❌ None | ❌ None | ❌ None |
-| **Deep Root App Uninstaller** | **Silent Bulk + Leftovers + Quarantine** | ⚠️ Basic (Paid Pro for deep) | ❌ None | ✅ Comprehensive | ❌ Basic Add/Remove only |
+| **Deep Root App Uninstaller** | **Silent Bulk + Residual Eradication** | ⚠️ Basic (Paid Pro for deep) | ❌ None | ✅ Comprehensive | ❌ Basic Add/Remove only |
 | **Optional Restore Points** | **Optional (User Choice, Off by Default)** | ⚠️ Automated / Paid feature | ❌ None | Optional | Manual system toggle |
 | **Startup Service Intelligence** | **Yes ("Will anything break?" 3-tier verdicts)** | ❌ Plain on/off toggle list | ❌ None | Detailed Registry list | Basic Task Manager metrics |
 | **Leftover Trace Sweeper** | **AppData, ProgramData, Registry & Shortcuts** | ⚠️ Paid Pro only | ❌ None | ✅ Manual Registry search | ❌ None |
-| **Quarantine Vault (Rollback)** | **Compressed timestamped backup vault** | ❌ None | ❌ None | ❌ None | ❌ None |
 | **Developer & Shader Caches** | **NuGet, npm, pip, Cargo, Gradle, GPU Shaders** | ❌ Browser & Windows only | ⚠️ Partial | ❌ None | ❌ None |
 | **Large Files Discovery** | **AI-Categorized (>50MB, risk-classified)** | ❌ Basic File Search | ❌ None | ❌ None | Basic drive breakdown |
 | **System File Repair** | **Integrated SFC, DISM & CHKDSK** | ❌ Separate paid utility | ❌ None | ❌ None | Manual Command Prompt |
@@ -141,7 +140,6 @@ Say goodbye to stubborn bloatware, half-deleted software, and messy uninstallati
   * Filesystem directories: `%LocalAppData%\<App>`, `%AppData%\<App>`, `%ProgramData%\<App>`, `%ProgramFiles%\<App>`.
   * Startup entries and Start Menu orphaned shortcuts.
 * **Force Wipe for Corrupt Software**: If an uninstaller is broken, missing, or throws errors, Deltempo forcefully cleans all related filesystem directories and deregisters its registry keys cleanly.
-* **Quarantine Vault**: All purged leftover files can be compressed and sealed into a timestamped, recoverable ZIP archive in the Quarantine Vault before deletion.
 
 ---
 
@@ -254,7 +252,7 @@ deltempo status --json
 | `deltempo smart-clean` | Quick purge of verified safe caches | `--dry-run`, `--json`, `--yes` |
 | `deltempo deep-clean` | Autonomous full cleanup (RAM, DISM, scopes) | `--dry-run`, `--json`, `--yes` |
 | `deltempo boost` | Optimize system memory via NT kernel | `--all`, `--standby`, `--cache`, `--workingsets`, `--json` |
-| `deltempo uninstall <app>` | Deep root uninstallation and leftover purge | `--dry-run`, `--force`, `--silent`, `--no-quarantine`, `--restore-point`, `--json` |
+| `deltempo uninstall <app>` | Deep root uninstallation and leftover purge | `--dry-run`, `--force`, `--silent`, `--restore-point`, `--json` |
 | `deltempo large [path]` | Scan drives for space-consuming files | `--min <size>`, `--type <cat>`, `--safe`, `--top <n>`, `--sort <size\|date>` |
 | `deltempo large inspect <file>` | Inspect file risk tier and safety verdict | `--json` |
 | `deltempo large clean` | Recycle disposable large files | `--dry-run`, `--yes`, `--safe-only` |
@@ -327,7 +325,7 @@ cd Deltempo
 # Compile the entire solution in Release configuration
 dotnet build deltempo.sln -c Release
 
-# Execute the automated test suite (598 passing unit & integration tests)
+# Execute the automated test suite (596 passing unit & integration tests)
 dotnet test deltempo.sln -c Release
 
 # Package the standalone single-file release binaries (GUI & CLI)

@@ -9,7 +9,7 @@ public static partial class CliRunner
 {
     private static async Task<int> HandleUninstallAsync(string[] args)
     {
-        // deltempo uninstall <app-query> [--dry-run] [--force] [--silent] [--no-quarantine] [--no-restore-point] [--json]
+        // deltempo uninstall <app-query> [--dry-run] [--force] [--silent] [--restore-point] [--json]
         if (args.Length < 2 || args[1].StartsWith("-", StringComparison.OrdinalIgnoreCase))
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -19,7 +19,6 @@ public static partial class CliRunner
             Console.WriteLine("    --dry-run, -d         Simulate leftover scanning without modifying system");
             Console.WriteLine("    --force, -f           Bypass interactive confirmation prompt");
             Console.WriteLine("    --silent, -s          Pass silent/quiet switches to uninstaller");
-            Console.WriteLine("    --no-quarantine       Skip compressing backups into Quarantine Vault");
             Console.WriteLine("    --restore-point, -rp  Create optional pre-uninstall Windows System Restore Point (disabled by default)");
             Console.WriteLine("    --json                Output results in structured machine-readable JSON");
             return 1;
@@ -29,7 +28,6 @@ public static partial class CliRunner
         bool isDryRun = args.Any(a => string.Equals(a, "--dry-run", StringComparison.OrdinalIgnoreCase) || string.Equals(a, "-d", StringComparison.OrdinalIgnoreCase));
         bool isForce = args.Any(a => string.Equals(a, "--force", StringComparison.OrdinalIgnoreCase) || string.Equals(a, "-f", StringComparison.OrdinalIgnoreCase));
         bool isSilent = args.Any(a => string.Equals(a, "--silent", StringComparison.OrdinalIgnoreCase) || string.Equals(a, "-s", StringComparison.OrdinalIgnoreCase));
-        bool enableQuarantine = !args.Any(a => string.Equals(a, "--no-quarantine", StringComparison.OrdinalIgnoreCase));
         bool createRestorePoint = args.Any(a => string.Equals(a, "--restore-point", StringComparison.OrdinalIgnoreCase) || string.Equals(a, "-rp", StringComparison.OrdinalIgnoreCase));
         bool outputJson = args.Any(a => string.Equals(a, "--json", StringComparison.OrdinalIgnoreCase));
 
@@ -208,14 +206,14 @@ public static partial class CliRunner
             return 0;
         }
 
-        // 4. Residual Eradication with Quarantine & Locked File Scheduling
+        // 4. Residual Eradication & Locked File Scheduling
         if (!outputJson)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write("  [4/4] Eradicating remnants and securing quarantine vault... ");
+            Console.Write("  [4/4] Eradicating remnants... ");
         }
 
-        var purgeResult = await RootLeftoverPurgeService.PurgeLeftoversAsync(scanResult.Items, enableQuarantine: enableQuarantine);
+        var purgeResult = await RootLeftoverPurgeService.PurgeLeftoversAsync(scanResult.Items);
 
         if (outputJson)
         {
@@ -228,7 +226,6 @@ public static partial class CliRunner
                 rebootScheduledItems = purgeResult.RebootScheduledCount,
                 reclaimedBytes = purgeResult.TotalReclaimedBytes,
                 formattedReclaimed = purgeResult.FormattedReclaimed,
-                quarantineSessionId = purgeResult.QuarantineSessionId,
                 executionTimeMs = purgeResult.ExecutionTimeMs
             }, new JsonSerializerOptions { WriteIndented = true }));
         }
@@ -246,11 +243,6 @@ public static partial class CliRunner
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine($"  ⚠ Reboot Scheduled:    {purgeResult.RebootScheduledCount} locked files will be deleted on next system reboot");
-            }
-            if (!string.IsNullOrEmpty(purgeResult.QuarantineSessionId))
-            {
-                Console.ForegroundColor = ConsoleColor.DarkCyan;
-                Console.WriteLine($"  🛡 Quarantine Vault:    {purgeResult.QuarantineSessionId} (.dtq archive preserved)");
             }
             Console.ResetColor();
         }

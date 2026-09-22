@@ -1096,32 +1096,6 @@
                                                    VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
-
-                                <!-- Quarantine Vault Pill -->
-                                <Button x:Name="QuarantineVaultBtn"
-                                        Style="{DynamicResource PillButton}"
-                                        FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                        ToolTip="Quarantine Vault: View and restore files from previous cleanups"
-                                        AutomationProperties.Name="Open Quarantine Vault"
-                                        AutomationProperties.HelpText="Review and restore previous cleanup archives"
-                                        Padding="11,4.5"
-                                        FontSize="10.5"
-                                        Margin="6,0,0,0"
-                                        Click="QuarantineVaultBtn_Click">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="&#xE8B7;"
-                                                   FontFamily="{DynamicResource IconFont}"
-                                                   FontSize="10"
-                                                   Foreground="#A78BFA"
-                                                   Margin="0,0,5,0"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock x:Name="QuarantineVaultBtnText"
-                                                   Text="Quarantine"
-                                                   FontSize="10.5"
-                                                   FontWeight="SemiBold"
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -2051,29 +2025,6 @@
                                    TextWrapping="Wrap"
                                    Margin="0,0,0,20"/>
 
-                        <!-- Quarantine Option -->
-                        <Border Background="{DynamicResource SurfaceSubCardBrush}"
-                                BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="10"
-                                Padding="12,8"
-                                Margin="0,0,0,16">
-                            <CheckBox x:Name="ConfirmModalQuarantineCheckBox"
-                                      IsChecked="True"
-                                      Style="{DynamicResource ModernSwitchCheckBox}"
-                                      VerticalAlignment="Center">
-                                <StackPanel Margin="6,0,0,0">
-                                    <TextBlock Text="Archive Snapshot to Quarantine Vault"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="{DynamicResource TextHighBrush}"/>
-                                    <TextBlock Text="Enables 1-click restore if an application needs its cache back"
-                                               FontSize="10"
-                                               Foreground="{DynamicResource TextMutedBrush}"/>
-                                </StackPanel>
-                            </CheckBox>
-                        </Border>
-
                         <!-- Action Buttons -->
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -2110,97 +2061,6 @@
                             </Button>
                         </Grid>
                     </StackPanel>
-                </Border>
-            </Grid>
-
-            <!-- 7b. QUARANTINE VAULT MODAL -->
-            <Grid Grid.RowSpan="6"
-                  x:Name="QuarantineModalOverlay"
-                  Background="{DynamicResource ModalBackdropBrush}"
-                  Visibility="Collapsed"
-                  AutomationProperties.Name="Quarantine Vault Dialog">
-                <Border MinWidth="460" MaxWidth="640" MaxHeight="520" Margin="16"
-                        Background="{DynamicResource ModalSurfaceBrush}"
-                        BorderBrush="#8B5CF6"
-                        BorderThickness="1.5"
-                        CornerRadius="18"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Padding="24,20">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.4"/>
-                    </Border.Effect>
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- Header -->
-                        <Grid Grid.Row="0" Margin="0,0,0,16">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="&#xE8B7;" FontFamily="{DynamicResource IconFont}" FontSize="18" Foreground="#A78BFA" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                <StackPanel>
-                                    <TextBlock Text="Quarantine Vault" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}"/>
-                                    <TextBlock Text="Review and 1-click restore archives from previous cleanups" FontSize="11" Foreground="{DynamicResource TextMediumBrush}"/>
-                                </StackPanel>
-                            </StackPanel>
-                            <Button HorizontalAlignment="Right" VerticalAlignment="Center"
-                                    Style="{DynamicResource WindowControlButton}"
-                                    Content="&#xE711;" FontSize="11" Width="26" Height="26"
-                                    Click="CloseQuarantineModal_Click"/>
-                        </Grid>
-
-                        <!-- List of Snapshots -->
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16">
-                            <ItemsControl x:Name="QuarantineSessionsItemsControl">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="{DynamicResource SurfaceSubCardBrush}"
-                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                BorderThickness="1" CornerRadius="10"
-                                                Padding="12,10" Margin="0,0,0,8">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0">
-                                                    <TextBlock Text="{Binding ScopeName}" FontWeight="SemiBold" FontSize="12.5" Foreground="{DynamicResource TextHighBrush}"/>
-                                                    <TextBlock Text="{Binding SessionId}" FontSize="10" FontFamily="{DynamicResource MonospaceFont}" Foreground="{DynamicResource TextMutedBrush}"/>
-                                                    <TextBlock FontSize="10.5" Foreground="{DynamicResource TextMediumBrush}" Margin="0,2,0,0">
-                                                        <Run Text="{Binding FileCount}"/> files • 
-                                                        <Run Text="Archived: "/>
-                                                        <Run Text="{Binding CreatedUtc, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"/>
-                                                    </TextBlock>
-                                                </StackPanel>
-                                                <Button Grid.Column="1"
-                                                        Style="{DynamicResource PillButton}"
-                                                        Padding="12,5"
-                                                        Tag="{Binding SessionId}"
-                                                        Click="RestoreQuarantineSession_Click"
-                                                        VerticalAlignment="Center">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="&#xE777;" FontFamily="{DynamicResource IconFont}" FontSize="10" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                                        <TextBlock Text="Restore" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </Button>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-
-                        <!-- Footer -->
-                        <Grid Grid.Row="2">
-                            <TextBlock x:Name="QuarantineStatusText" Text="Stored in local AppData vault" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                            <Button HorizontalAlignment="Right" Content="Close"
-                                    Style="{DynamicResource PillButton}" Padding="16,6"
-                                    Click="CloseQuarantineModal_Click"/>
-                        </Grid>
-                    </Grid>
                 </Border>
             </Grid>
 

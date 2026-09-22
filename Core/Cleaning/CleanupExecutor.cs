@@ -87,11 +87,10 @@ public static class CleanupExecutor
         string allowedRoot,
         Action<string, LogLevel>? logAction = null,
         Action<double>? progressReport = null,
-        CancellationToken ct = default,
-        bool enableQuarantine = false)
+        CancellationToken ct = default)
     {
         var roots = string.IsNullOrEmpty(allowedRoot) ? null : new[] { allowedRoot };
-        return ExecutePlanAsync(plan, roots, logAction, progressReport, ct, enableQuarantine);
+        return ExecutePlanAsync(plan, roots, logAction, progressReport, ct);
     }
 
     public static async Task<CleanupTransactionResult> ExecutePlanAsync(
@@ -99,8 +98,7 @@ public static class CleanupExecutor
         IEnumerable<string>? allowedRoots,
         Action<string, LogLevel>? logAction = null,
         Action<double>? progressReport = null,
-        CancellationToken ct = default,
-        bool enableQuarantine = false)
+        CancellationToken ct = default)
     {
         var result = new CleanupTransactionResult
         {
@@ -117,7 +115,7 @@ public static class CleanupExecutor
 
         try
         {
-            await Task.Run(async () =>
+            await Task.Run(() =>
             {
                 int total = plan.Actions.Count;
                 var actionable = new List<PlannedFileAction>(total);
@@ -178,28 +176,6 @@ public static class CleanupExecutor
                     result.EndTimeUtc = DateTime.UtcNow;
                     progressReport?.Invoke(1.0);
                     return;
-                }
-
-                // Phase: Quarantine snapshot if requested
-                if (enableQuarantine && actionableTotal > 0)
-                {
-                    try
-                    {
-                        var snapshot = await QuarantineManager.CreateQuarantineSnapshotAsync(
-                            plan.ScopeId,
-                            plan.ScopeName,
-                            actionable.Select(a => a.FilePath),
-                            ct).ConfigureAwait(false);
-
-                        if (snapshot != null)
-                        {
-                            logAction?.Invoke($"Archived {snapshot.FileCount} items to Quarantine ({TargetFolderInfo.FormatBytes(snapshot.CompressedSizeBytes)})", LogLevel.Info);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        logAction?.Invoke($"Quarantine snapshot skipped: {ex.Message}", LogLevel.Warning);
-                    }
                 }
 
                 int processed = 0;

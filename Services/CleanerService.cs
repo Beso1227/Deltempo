@@ -790,8 +790,7 @@ public partial class CleanerService
         bool safeMode24Hours,
         Action<string, LogLevel> logAction,
         Action<double> progressReport,
-        CancellationToken ct,
-        bool enableQuarantine = false)
+        CancellationToken ct)
     {
         folder.IsCleaning = true;
         folder.StatusMessage = "Cleaning...";
@@ -946,8 +945,7 @@ public partial class CleanerService
                 directoriesToClean,
                 logAction,
                 progressReport,
-                ct,
-                enableQuarantine).ConfigureAwait(false);
+                ct).ConfigureAwait(false);
 
             freedBytes = txResult.TotalFreedBytes;
             filesDeleted = txResult.TotalItemsFreed;
