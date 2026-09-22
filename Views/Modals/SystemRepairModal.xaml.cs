@@ -24,6 +24,7 @@ public partial class SystemRepairModal : UserControl
         SoundService.PlayClickSound();
         Visibility = Visibility.Visible;
         RefreshSystemRepairAdminStatus();
+        _ = LoadRestorePointsAsync();
     }
 
     public bool CloseModal()
@@ -405,6 +406,93 @@ public partial class SystemRepairModal : UserControl
             SetSystemRepairRunning(false, opName);
             _systemRepairCts?.Dispose();
             _systemRepairCts = null;
+        }
+    }
+
+    private async void RefreshRestorePoints_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        await LoadRestorePointsAsync();
+    }
+
+    private async Task LoadRestorePointsAsync()
+    {
+        if (RefreshRestorePointsBtn != null) RefreshRestorePointsBtn.IsEnabled = false;
+        try
+        {
+            var info = await RestorePointManagerService.QueryDetailedRestorePointsAsync();
+            if (RestorePointsBadgeText != null)
+            {
+                RestorePointsBadgeText.Text = $"{info.SnapshotCount} snapshot{(info.SnapshotCount == 1 ? "" : "s")}";
+            }
+            if (RestorePointsStorageSummaryText != null)
+            {
+                RestorePointsStorageSummaryText.Text = info.SnapshotCount > 0
+                    ? $"Shadow storage active: {info.FormattedUsed} allocated across {info.SnapshotCount} restore points."
+                    : "No active restore points found or VSS shadow storage is unallocated.";
+            }
+
+            if (RestorePointsItemsControl != null)
+            {
+                RestorePointsItemsControl.ItemsSource = info.Points;
+            }
+            if (RestorePointsListBorder != null)
+            {
+                RestorePointsListBorder.Visibility = info.Points.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+            if (PruneRestorePointsBtn != null)
+            {
+                PruneRestorePointsBtn.IsEnabled = info.SnapshotCount > 1;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppendSystemRepairTerminal($"[RestorePoints] Query error: {ex.Message}");
+        }
+        finally
+        {
+            if (RefreshRestorePointsBtn != null) RefreshRestorePointsBtn.IsEnabled = true;
+        }
+    }
+
+    private async void PruneRestorePoints_Click(object sender, RoutedEventArgs e)
+    {
+        var confirm = MessageBox.Show(
+            "Safely prune legacy VSS restore points?\n\nThis will purge older snapshots while retaining the latest restore point intact for safety.",
+            "Prune Older Restore Points",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (confirm != MessageBoxResult.Yes) return;
+
+        SoundService.PlayClickSound();
+        if (PruneRestorePointsBtn != null) PruneRestorePointsBtn.IsEnabled = false;
+
+        AppendSystemRepairTerminal("\n>>> Starting VSS Restore Point Pruning (retaining newest)...");
+        try
+        {
+            var (success, reclaimed, message) = await RestorePointManagerService.PruneOlderRestorePointsAsync((msg, lvl) =>
+            {
+                Dispatcher.Invoke(() => AppendSystemRepairTerminal(msg));
+            });
+
+            if (success)
+            {
+                SoundService.PlaySuccessSound();
+                AppendSystemRepairTerminal($"<<< VSS Pruning Finished. Reclaimed: {TargetFolderInfo.FormatBytes(reclaimed)}.");
+                LogRequested?.Invoke($"[Restore Points] {message}", LogLevel.Success);
+            }
+            else
+            {
+                AppendSystemRepairTerminal($"<<< VSS Pruning: {message}");
+                LogRequested?.Invoke($"[Restore Points] {message}", LogLevel.Warning);
+            }
+
+            await LoadRestorePointsAsync();
+        }
+        finally
+        {
+            if (PruneRestorePointsBtn != null) PruneRestorePointsBtn.IsEnabled = true;
         }
     }
 }

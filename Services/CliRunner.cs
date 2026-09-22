@@ -54,6 +54,22 @@ public static partial class CliRunner
                 exitCode = await HandleRestorePointsAsync(args);
                 break;
 
+            case "duplicates":
+            case "duplicate":
+            case "dupes":
+                exitCode = await HandleDuplicatesAsync(args);
+                break;
+
+            case "schedule":
+            case "task":
+                exitCode = await HandleScheduleAsync(args);
+                break;
+
+            case "shell":
+            case "context-menu":
+                exitCode = HandleShellExtension(args);
+                break;
+
             case "clean":
             case "c":
                 exitCode = await HandleCleanAsync(args);
@@ -211,6 +227,9 @@ public static partial class CliRunner
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("\n  UTILITY & STATUS COMMANDS:");
         Console.ResetColor();
+        PrintCmdRow("duplicates [path]", "Find duplicate files via 3-stage hash matching (--delete, --strategy)");
+        PrintCmdRow("schedule", "Manage automatic weekly background maintenance in Task Scheduler");
+        PrintCmdRow("shell", "Manage Windows Explorer right-click context menu integration");
         PrintCmdRow("status", "System telemetry dashboard with visual ASCII meters & admin status");
         PrintCmdRow("update", "Check for newer releases on GitHub");
         PrintCmdRow("register", "Opt-in shell integration: user PATH, Win+R alias & PowerShell function");

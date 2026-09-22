@@ -1,50 +1,51 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Deltempo Docs — Windows Cleaner &amp; NT Memory Guide</title>
-  <meta name="description" content="Technical documentation for Deltempo: 25+ cleanup scopes, deterministic 5-tier safety engine, Windows NT kernel memory optimization, and CLI commands." />
-  <meta name="keywords" content="deltempo documentation, windows shader cache cleaner, user profile cleaner, cleaning scopes, windows 11 temp cleaner, open source disk cleaner, deltempo cli" />
-  <meta name="author" content="Beso1227" />
-  <meta name="application-name" content="Deltempo" />
-  <meta name="theme-color" content="#07090E" />
+  <meta name="description" content="Technical documentation for Deltempo: 26+ cleanup scopes, duplicate file finder, treemap visualizer, VSS manager, 5-tier safety engine, and CLI automation.">
+  <meta name="keywords" content="deltempo documentation, windows shader cache cleaner, user profile cleaner, duplicate file finder, treemap disk visualizer, vss restore points, windows 11 temp cleaner, open source disk cleaner, deltempo cli">
+  <meta name="author" content="Beso1227">
+  <meta name="application-name" content="Deltempo">
+  <meta name="theme-color" content="#07090E">
+  <meta name="google-site-verification" content="O1sRzpPpESGv7N3wCwbqzfrOy534mJ0CljA9e8zHqrg">
 
   <!-- Security Headers & Defense-in-Depth -->
-  <meta name="referrer" content="strict-origin-when-cross-origin" />
-  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://api.github.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://beso1227.github.io https://img.shields.io; media-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://api.github.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://beso1227.github.io https://img.shields.io; media-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 
-  <link rel="canonical" href="https://beso1227.github.io/Deltempo/docs/" />
+  <link rel="canonical" href="https://beso1227.github.io/Deltempo/docs/">
 
   <!-- Open Graph -->
-  <meta property="og:type" content="article" />
-  <meta property="og:url" content="https://beso1227.github.io/Deltempo/docs/" />
-  <meta property="og:site_name" content="Deltempo" />
-  <meta property="og:title" content="Deltempo Docs — Windows Cleaner &amp; NT Memory Guide" />
-  <meta property="og:description" content="Complete reference for Deltempo's 25+ cleanup scopes, Windows NT memory optimization, and CLI commands." />
-  <meta property="og:image" content="https://beso1227.github.io/Deltempo/app_icon.png" />
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://beso1227.github.io/Deltempo/docs/">
+  <meta property="og:site_name" content="Deltempo">
+  <meta property="og:title" content="Deltempo Docs — Windows Cleaner &amp; NT Memory Guide">
+  <meta property="og:description" content="Complete reference for Deltempo's 26+ cleanup scopes, duplicate finder, treemap visualizer, VSS manager, NT memory optimization, and CLI commands.">
+  <meta property="og:image" content="https://beso1227.github.io/Deltempo/app_icon.png">
 
   <!-- Twitter Meta -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:site" content="@Beso1227" />
-  <meta name="twitter:title" content="Deltempo Docs — Windows Cleaner &amp; NT Memory Guide" />
-  <meta name="twitter:description" content="Complete reference for Deltempo's 25+ cleanup scopes, Windows NT memory optimization, and CLI commands." />
-  <meta name="twitter:image" content="https://beso1227.github.io/Deltempo/app_icon.png" />
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@Beso1227">
+  <meta name="twitter:title" content="Deltempo Docs — Windows Cleaner &amp; NT Memory Guide">
+  <meta name="twitter:description" content="Complete reference for Deltempo's 26+ cleanup scopes, duplicate finder, treemap visualizer, VSS manager, NT memory optimization, and CLI commands.">
+  <meta name="twitter:image" content="https://beso1227.github.io/Deltempo/app_icon.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="../favicon-64.png" />
-  <link rel="apple-touch-icon" href="../app_icon.webp" />
+  <link rel="icon" type="image/png" href="../favicon-64.png">
+  <link rel="apple-touch-icon" href="../app_icon.webp">
 
   <!-- Fonts & Shared Style -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Core Design System -->
-  <link rel="stylesheet" href="../style.css?v=2.7.6" />
+  <link rel="stylesheet" href="../style.css?v=2.7.6">
 
   <!-- Web App Manifest (PWA installability) -->
-  <link rel="manifest" href="../manifest.json?v=2.6.1" />
+  <link rel="manifest" href="../manifest.json?v=2.6.1">
 
   <!-- Schema.org JSON-LD -->
   <script type="application/ld+json">
@@ -55,10 +56,10 @@
         "@type": "TechArticle",
         "@id": "https://beso1227.github.io/Deltempo/docs/#article",
         "headline": "Deltempo Technical Architecture and Reference Manual",
-        "description": "Comprehensive reference guide covering the 26+ cleaning scopes, 5-tier safety classification, NT memory APIs, and command-line automation.",
+        "description": "Comprehensive reference guide covering the 26+ cleaning scopes, duplicate file finder, treemap visualizer, VSS restore points, 5-tier safety classification, NT memory APIs, and command-line automation.",
         "inLanguage": "en-US",
         "datePublished": "2026-03-01",
-        "dateModified": "2026-09-12",
+        "dateModified": "2026-09-22",
         "mainEntityOfPage": "https://beso1227.github.io/Deltempo/docs/",
         "image": "https://beso1227.github.io/Deltempo/app_icon.png",
         "author": {
@@ -112,8 +113,8 @@
     <nav class="nav-island" aria-label="Main Navigation">
       <a href="../" class="nav-brand">
         <picture>
-          <source srcset="../app_icon.webp" type="image/webp" />
-          <img src="../app_icon-64.png" alt="Deltempo Logo" class="brand-logo-img" width="28" height="28" />
+          <source srcset="../app_icon.webp" type="image/webp">
+          <img src="../app_icon-64.png" alt="Deltempo Logo" class="brand-logo-img" width="28" height="28">
         </picture>
         <span>Deltempo</span>
       </a>
@@ -132,14 +133,14 @@
         <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="btn-icon" title="View Source on GitHub" aria-label="View Source on GitHub">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
         </a>
-        <button id="themeToggleBtn" class="btn-icon" aria-label="Toggle Dark or Light Theme" title="Toggle Theme">
+        <button id="themeToggleBtn" type="button" class="btn-icon" aria-label="Toggle Dark or Light Theme" title="Toggle Theme">
           <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-          <svg class="theme-icon-light" style="display: none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg class="theme-icon-light hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
         <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="btn-pill btn-pill-secondary">
           <span>GitHub</span>
         </a>
-        <button class="nav-mobile-toggle" id="mobileToggle" aria-label="Open Navigation Menu" aria-expanded="false" aria-controls="mobileMenu">
+        <button class="nav-mobile-toggle" type="button" id="mobileToggle" aria-label="Open Navigation Menu" aria-expanded="false" aria-controls="mobileMenu">
           <span></span>
           <span></span>
           <span></span>
@@ -149,7 +150,7 @@
   </header>
 
   <!-- Mobile Menu Overlay -->
-  <div class="mobile-menu-overlay" id="mobileMenu" aria-hidden="true">
+  <div class="mobile-menu-overlay" id="mobileMenu">
     <a href="../" class="mobile-nav-link">Home</a>
     <a href="../#video" class="mobile-nav-link">🎬 Launch Video (20s)</a>
     <a href="../#why" class="mobile-nav-link">Why Deltempo</a>
@@ -162,7 +163,7 @@
     <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="mobile-nav-link">GitHub Repository</a>
   </div>
 
-  <main id="main" class="container" style="padding-top: 2rem; padding-bottom: 5rem; max-width: 900px;">
+  <main id="main" class="container content-page">
     <div class="section-header reveal-on-scroll">
       <div class="section-tag">Technical Manual</div>
       <h1 class="section-title">Deltempo Architecture &amp; Reference</h1>
@@ -170,62 +171,62 @@
     </div>
 
     <!-- Section 1: Shader Caches -->
-    <div class="double-bezel reveal-on-scroll stagger-1" style="margin-bottom: 2rem;">
+    <div class="double-bezel release-card reveal-on-scroll stagger-1">
       <div class="card-inner">
-        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem;">1. GPU Shader Cache Cleaning</h2>
-        <p style="color: var(--text-med); margin-bottom: 1rem;">Modern DirectX, Vulkan, and OpenGL games pre-compile shaders to reduce in-game compilation stalls. Graphics driver updates frequently leave obsolete bytecode caches on disk that are never reclaimed by standard Windows tools.</p>
-        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem;">
-          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
+        <h2 class="doc-heading">1. GPU Shader Cache Cleaning</h2>
+        <p class="doc-lead">Modern DirectX, Vulkan, and OpenGL games pre-compile shaders to reduce in-game compilation stalls. Graphics driver updates frequently leave obsolete bytecode caches on disk that are never reclaimed by standard Windows tools.</p>
+        <div class="doc-code-card">
+          <ul class="doc-code-list">
             <li><code>%LOCALAPPDATA%\D3DSCache</code> — DirectX 11 &amp; 12 unified shader bytecode</li>
             <li><code>%LOCALAPPDATA%\NVIDIA\DXCache</code> &amp; <code>GLCache</code> — NVIDIA proprietary caches</li>
             <li><code>%LOCALAPPDATA%\AMD\DxCache</code> — AMD Radeon Adrenalin compiled shaders</li>
             <li><code>%LOCALAPPDATA%\Intel\ShaderCache</code> — Intel Arc &amp; Iris Xe shader cache</li>
           </ul>
         </div>
-        <p style="font-size: 0.875rem; color: var(--text-low);"><strong style="color: var(--accent-cyan);">Safety Mechanism:</strong> The recent file safety shield protects active shader pipelines written within the past 24 hours to prevent in-game recompilation hitches.</p>
+        <p class="doc-safety-note"><strong class="text-cyan">Safety Mechanism:</strong> The recent file safety shield protects active shader pipelines written within the past 24 hours to prevent in-game recompilation hitches.</p>
       </div>
     </div>
 
     <!-- Section 2: 5-Tier Safety Classification -->
-    <div class="double-bezel" style="margin-bottom: 2rem;">
+    <div class="double-bezel release-card">
       <div class="card-inner">
-        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem;">2. The 5-Tier Safety Classification Engine</h2>
-        <p style="color: var(--text-med); margin-bottom: 1.25rem;">Every discovered path is evaluated against protection policies, canonicalized to eliminate directory traversal, and classified into a deterministic safety tier before touching disk:</p>
+        <h2 class="doc-heading">2. The 5-Tier Safety Classification Engine</h2>
+        <p class="doc-lead-lg">Every discovered path is evaluated against protection policies, canonicalized to eliminate directory traversal, and classified into a deterministic safety tier before touching disk:</p>
 
-        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-          <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-            <div style="font-weight: 700; color: #F43F5E; margin-bottom: 0.25rem;">Tier 0: Protected (Score 0)</div>
-            <div style="font-size: 0.875rem; color: var(--text-med);">System32, SysWOW64, WinSxS, bootmgr, user personal folders (Documents, Desktop, Pictures), developer credentials (.ssh, AWS, GPG), browser login databases (passwords, cookies), and messaging authentication tokens. Never modified.</div>
+        <div class="doc-tiers-list">
+          <div class="doc-tier-item">
+            <div class="doc-tier-title text-rose">Tier 0: Protected (Score 0)</div>
+            <div class="doc-tier-desc">System32, SysWOW64, WinSxS, bootmgr, user personal folders (Documents, Desktop, Pictures), developer credentials (.ssh, AWS, GPG), browser login databases (passwords, cookies), and messaging authentication tokens. Never modified.</div>
           </div>
-          <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-            <div style="font-weight: 700; color: var(--accent-emerald); margin-bottom: 0.25rem;">Tier 1: Safe (Score 90–100)</div>
-            <div style="font-size: 0.875rem; color: var(--text-med);">DirectX/GPU shaders, Delivery Optimization cached chunks, Windows Update downloads, driver installation leftovers, and crash dumps. Safe for routine cleanup.</div>
+          <div class="doc-tier-item">
+            <div class="doc-tier-title text-emerald">Tier 1: Safe (Score 90–100)</div>
+            <div class="doc-tier-desc">DirectX/GPU shaders, Delivery Optimization cached chunks, Windows Update downloads, driver installation leftovers, and crash dumps. Safe for routine cleanup.</div>
           </div>
-          <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-            <div style="font-weight: 700; color: var(--accent-cyan); margin-bottom: 0.25rem;">Tier 2: Low Risk (Score 70–89)</div>
-            <div style="font-size: 0.875rem; color: var(--text-med);">Downloaded standalone installers older than 48 hours located in standard temp and staging download directories.</div>
+          <div class="doc-tier-item">
+            <div class="doc-tier-title text-cyan">Tier 2: Low Risk (Score 70–89)</div>
+            <div class="doc-tier-desc">Downloaded standalone installers older than 48 hours located in standard temp and staging download directories.</div>
           </div>
-          <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-            <div style="font-weight: 700; color: var(--accent-amber); margin-bottom: 0.25rem;">Tier 3: Review Required (Score 30–69)</div>
-            <div style="font-size: 0.875rem; color: var(--text-med);">Active temporary files modified within the past 24 hours or executables discovered in non-standard temp folders. Preserved in automated runs.</div>
+          <div class="doc-tier-item">
+            <div class="doc-tier-title text-amber">Tier 3: Review Required (Score 30–69)</div>
+            <div class="doc-tier-desc">Active temporary files modified within the past 24 hours or executables discovered in non-standard temp folders. Preserved in automated runs.</div>
           </div>
-          <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-            <div style="font-weight: 700; color: var(--text-low); margin-bottom: 0.25rem;">Tier 4: Unknown (Score &lt; 30)</div>
-            <div style="font-size: 0.875rem; color: var(--text-med);">Conservative fallback for unclassified files: permanently preserved without modification.</div>
+          <div class="doc-tier-item">
+            <div class="doc-tier-title text-low">Tier 4: Unknown (Score &lt; 30)</div>
+            <div class="doc-tier-desc">Conservative fallback for unclassified files: permanently preserved without modification.</div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Section 3: NT Kernel Memory -->
-    <div class="double-bezel" style="margin-bottom: 2rem;">
+    <div class="double-bezel release-card">
       <div class="card-inner">
-        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem;">3. Native Windows NT Kernel Memory Architecture</h2>
-        <p style="color: var(--text-med); margin-bottom: 1rem;">Deltempo interfaces directly with native NT kernel memory managers rather than forcing generic process termination:</p>
-        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; margin-bottom: 1rem;">
-          <li style="margin-bottom: 0.5rem;"><strong>Standby List Flush:</strong> Calls <code>NtSetSystemInformation</code> with <code>SystemMemoryListInformation</code> (class 80) to reclaim pages left in standby cache by terminated applications.</li>
-          <li style="margin-bottom: 0.5rem;"><strong>Working Set Trimming:</strong> Calls <code>EmptyWorkingSet</code> across running user processes using <code>SeProfileSingleProcessPrivilege</code>.</li>
-          <li style="margin-bottom: 0.5rem;"><strong>File Cache Reset:</strong> Calls <code>SetSystemFileCacheSize</code> to flush excessive filesystem working set pages.</li>
+        <h2 class="doc-heading">3. Native Windows NT Kernel Memory Architecture</h2>
+        <p class="doc-lead">Deltempo interfaces directly with native NT kernel memory managers rather than forcing generic process termination:</p>
+        <ul class="doc-list doc-list-mb">
+          <li class="doc-list-item"><strong>Standby List Flush:</strong> Calls <code>NtSetSystemInformation</code> with <code>SystemMemoryListInformation</code> (class 80) to reclaim pages left in standby cache by terminated applications.</li>
+          <li class="doc-list-item"><strong>Working Set Trimming:</strong> Calls <code>EmptyWorkingSet</code> across running user processes using <code>SeProfileSingleProcessPrivilege</code>.</li>
+          <li class="doc-list-item"><strong>File Cache Reset:</strong> Calls <code>SetSystemFileCacheSize</code> to flush excessive filesystem working set pages.</li>
           <li><strong>Immunity Shield:</strong> System-critical processes (<code>csrss</code>, <code>dwm</code>, <code>explorer</code>, <code>lsass</code>, <code>services</code>, <code>WindowsDefender</code>) are protected from working set reduction.</li>
         </ul>
       </div>
@@ -234,38 +235,47 @@
     <!-- Section 4: CLI Automation -->
     <div class="double-bezel">
       <div class="card-inner">
-        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem;">4. Terminal CLI Automation Reference</h2>
-        <p style="color: var(--text-med); margin-bottom: 1rem;">Both <code>Deltempo.exe</code> and <code>deltempo_cli.exe</code> offer synchronous CLI execution with deterministic exit codes (0 = Success, 1 = Error, 2 = Update Available):</p>
-        
-        <div style="padding: 1.25rem; border-radius: var(--radius-md); background: #0A0D14; border: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 0.85rem; color: #E2E8F0; line-height: 1.8; overflow-x: auto;">
-                    <div style="color: var(--text-low);"># 1. Simulate cleanup without touching disk; emit machine-readable JSON (--json)</div>
-          <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo clean --dry-run --json</div>
-          <div style="margin-top: 0.5rem; color: #E2E8F0;">{<br />&nbsp;&nbsp;"dryRun": <span style="color: var(--accent-cyan);">true</span>,<br />&nbsp;&nbsp;"safetyShieldActive": <span style="color: var(--accent-cyan);">true</span>,<br />&nbsp;&nbsp;"totalReclaimableBytes": <span style="color: var(--accent-amber);">8208188</span>,<br />&nbsp;&nbsp;"formattedTotal": <span style="color: var(--accent-emerald);">"7.8 MB"</span>,<br />&nbsp;&nbsp;"totalFiles": <span style="color: var(--accent-amber);">50</span>,<br />&nbsp;&nbsp;"categories": [<span style="color: var(--text-low);"> /* 26 live-captured scopes */</span><br />&nbsp;&nbsp;&nbsp;<span style="color: var(--accent-emerald);">"User Temp &amp; Scratchpad"</span><span style="color: var(--text-low);">: 6.5 MB / 26 files</span>,<br />&nbsp;&nbsp;&nbsp;<span style="color: var(--accent-emerald);">"DirectX &amp; GPU Shader Caches"</span><span style="color: var(--text-low);">: 260.0 KB / 5 files</span>,<br />&nbsp;&nbsp;&nbsp;<span style="color: var(--accent-emerald);">"Windows Store Apps &amp; UWP Caches"</span><span style="color: var(--text-low);">: 0.9 MB / 11 files</span>, &hellip;<br />&nbsp;&nbsp;]<br />}</div>
-          
-          <div style="color: var(--text-low); margin-top: 0.75rem;"># 2. Execute verified live cleanup across temporary files</div>
-          <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo clean temp</div>
-          
-                    <div style="color: var(--text-low); margin-top: 0.75rem;"># 3. Output structured system memory and storage telemetry in JSON</div>
-          <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo status --json</div>
-          <div style="margin-top: 0.5rem; color: #E2E8F0;">{<br />&nbsp;&nbsp;"isAdmin": <span style="color: var(--accent-cyan);">false</span>,<br />&nbsp;&nbsp;"drive": <span style="color: var(--text-low);">{ /* C: (OS) \u2014 76.1 GB free of 170.6 GB (44.6% Free) */ </span>},<br />&nbsp;&nbsp;"memory": <span style="color: var(--text-low);">{ /* 15.6 GB total | 5.0 GB available | 68.0% used */ </span>}<br />}</div>
-          
-          <div style="color: var(--text-low); margin-top: 0.75rem;"># 4. Check for official releases</div>
-          <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo update check</div>
-          
-          <div style="color: var(--text-low); margin-top: 0.75rem;"># 5. Apply official release update safely</div>
-          <div><span style="color: var(--accent-cyan);">&gt;</span> deltempo update</div>
+        <h2 class="doc-heading">4. Terminal CLI Automation Reference</h2>
+        <p class="doc-lead">Both <code>Deltempo.exe</code> and <code>deltempo_cli.exe</code> offer synchronous CLI execution with deterministic exit codes (0 = Success, 1 = Error, 2 = Update Available):</p>
+
+        <div class="doc-terminal-box">
+                    <div class="doc-cli-comment-first"># 1. Simulate cleanup without touching disk; emit machine-readable JSON (--json)</div>
+          <div><span class="text-cyan">&gt;</span> deltempo clean --dry-run --json</div>
+          <div class="doc-cli-output">{<br >&nbsp;&nbsp;"dryRun": <span class="text-cyan">true</span>,<br >&nbsp;&nbsp;"safetyShieldActive": <span class="text-cyan">true</span>,<br >&nbsp;&nbsp;"totalReclaimableBytes": <span class="text-amber">8208188</span>,<br >&nbsp;&nbsp;"formattedTotal": <span class="text-emerald">"7.8 MB"</span>,<br >&nbsp;&nbsp;"totalFiles": <span class="text-amber">50</span>,<br >&nbsp;&nbsp;"categories": [<span class="text-low"> /* 26 live-captured scopes */</span><br >&nbsp;&nbsp;&nbsp;<span class="text-emerald">"User Temp &amp; Scratchpad"</span><span class="text-low">: 6.5 MB / 26 files</span>,<br >&nbsp;&nbsp;&nbsp;<span class="text-emerald">"DirectX &amp; GPU Shader Caches"</span><span class="text-low">: 260.0 KB / 5 files</span>,<br >&nbsp;&nbsp;&nbsp;<span class="text-emerald">"Windows Store Apps &amp; UWP Caches"</span><span class="text-low">: 0.9 MB / 11 files</span>, &hellip;<br >&nbsp;&nbsp;]<br >}</div>
+
+          <div class="doc-cli-comment"># 2. Execute verified live cleanup across temporary files</div>
+          <div><span class="text-cyan">&gt;</span> deltempo clean temp</div>
+
+                    <div class="doc-cli-comment"># 3. Output structured system memory and storage telemetry in JSON</div>
+          <div><span class="text-cyan">&gt;</span> deltempo status --json</div>
+          <div class="doc-cli-output">{<br >&nbsp;&nbsp;"isAdmin": <span class="text-cyan">false</span>,<br >&nbsp;&nbsp;"drive": <span class="text-low">{ /* C: (OS) \u2014 76.1 GB free of 170.6 GB (44.6% Free) */ </span>},<br >&nbsp;&nbsp;"memory": <span class="text-low">{ /* 15.6 GB total | 5.0 GB available | 68.0% used */ </span>}<br >}</div>
+
+          <div class="doc-cli-comment"># 4. Check for official releases</div>
+          <div><span class="text-cyan">&gt;</span> deltempo update check</div>
+
+          <div class="doc-cli-comment"># 5. Apply official release update safely</div>
+          <div><span class="text-cyan">&gt;</span> deltempo update</div>
+
+          <div class="doc-cli-comment"># 6. Find byte-level duplicate files safely</div>
+          <div><span class="text-cyan">&gt;</span> deltempo duplicates "D:\Projects"</div>
+
+          <div class="doc-cli-comment"># 7. Manage Windows VSS restore points &amp; shadow copies</div>
+          <div><span class="text-cyan">&gt;</span> deltempo vss list</div>
+
+          <div class="doc-cli-comment"># 8. Configure scheduled automated maintenance</div>
+          <div><span class="text-cyan">&gt;</span> deltempo schedule install --daily</div>
         </div>
       </div>
     </div>
 
     <!-- Section 5: Lock Handling -->
-    <div class="double-bezel" style="margin-bottom: 2rem;">
+    <div class="double-bezel release-card">
       <div class="card-inner">
-        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem;">5. File Lock Transparency (Win32 Restart Manager)</h2>
-        <p style="color: var(--text-med); margin-bottom: 1rem;">When a file candidate is locked by an active process, Deltempo avoids blind failure or aggressive process termination. Instead, it queries the native Windows Restart Manager (<code>rstrtmgr.dll</code>):</p>
-        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem; margin-bottom: 1rem;">
-          <li style="margin-bottom: 0.5rem;"><strong>Lock Owner Identification:</strong> Registers a temporary Restart Manager session via <code>RmStartSession</code> and queries holding process IDs with <code>RmGetList</code>.</li>
-          <li style="margin-bottom: 0.5rem;"><strong>3-Pass Adaptive Retry:</strong> Applies exponential backoff delays (25ms, 75ms, 150ms) to accommodate transient file locks from antivirus scanners or file flushers.</li>
+        <h2 class="doc-heading">5. File Lock Transparency (Win32 Restart Manager)</h2>
+        <p class="doc-lead">When a file candidate is locked by an active process, Deltempo avoids blind failure or aggressive process termination. Instead, it queries the native Windows Restart Manager (<code>rstrtmgr.dll</code>):</p>
+        <ul class="doc-list doc-list-mb">
+          <li class="doc-list-item"><strong>Lock Owner Identification:</strong> Registers a temporary Restart Manager session via <code>RmStartSession</code> and queries holding process IDs with <code>RmGetList</code>.</li>
+          <li class="doc-list-item"><strong>3-Pass Adaptive Retry:</strong> Applies exponential backoff delays (25ms, 75ms, 150ms) to accommodate transient file locks from antivirus scanners or file flushers.</li>
           <li><strong>Non-Destructive Fail-Closed:</strong> If the file remains locked, Deltempo gracefully marks the item as skipped with lock details in the audit ledger, preserving system stability.</li>
         </ul>
       </div>
@@ -274,11 +284,11 @@
     <!-- Section 6: Architecture & Testing -->
     <div class="double-bezel">
       <div class="card-inner">
-        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem;">6. Volume Scan Coordination &amp; 598 Verification Tests</h2>
-        <p style="color: var(--text-med); margin-bottom: 1rem;">Deltempo organizes filesystem operations with drive-aware parallelism and strict verification standards:</p>
-        <ul style="list-style: square; padding-left: 1.5rem; color: var(--text-med); font-size: 0.95rem;">
-          <li style="margin-bottom: 0.5rem;"><strong>VolumeScanCoordinator:</strong> Partitions directory enumeration into per-physical-volume queues. SSDs run concurrent high-IOPS worker pools, while HDDs execute serialized traversals to prevent mechanical head thrashing.</li>
-          <li style="margin-bottom: 0.5rem;"><strong>598 Automated Tests:</strong> Full unit, integration, memory leak, and adversarial filesystem security tests pass with zero warnings before any tag is released.</li>
+        <h2 class="doc-heading">6. Volume Scan Coordination &amp; 612 Verification Tests</h2>
+        <p class="doc-lead">Deltempo organizes filesystem operations with drive-aware parallelism and strict verification standards:</p>
+        <ul class="doc-list">
+          <li class="doc-list-item"><strong>VolumeScanCoordinator:</strong> Partitions directory enumeration into per-physical-volume queues. SSDs run concurrent high-IOPS worker pools, while HDDs execute serialized traversals to prevent mechanical head thrashing.</li>
+          <li class="doc-list-item"><strong>612 Automated Tests:</strong> Full unit, integration, memory leak, and adversarial filesystem security tests pass with zero warnings before any tag is released.</li>
           <li><strong>100% Self-Contained:</strong> Zero runtime dependencies, zero external DLL requirements, and zero registry bloat.</li>
         </ul>
       </div>
@@ -289,8 +299,8 @@
     <div class="container footer-inner">
       <div class="footer-brand">
         <picture>
-          <source srcset="../app_icon.webp" type="image/webp" />
-          <img src="../app_icon-64.png" alt="Deltempo Logo" width="20" height="20" style="border-radius: 4px;" />
+          <source srcset="../app_icon.webp" type="image/webp">
+          <img src="../app_icon-64.png" alt="Deltempo Logo" width="20" height="20" class="footer-logo-img">
         </picture>
         <span>Deltempo</span>
       </div>
@@ -301,7 +311,7 @@
         <li><a href="../changelog/" class="footer-link">Changelog</a></li>
         <li><a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="footer-link">GitHub</a></li>
       </ul>
-      <div style="font-size: 0.8rem; color: var(--text-low);">
+      <div class="footer-copy">
         Copyright © 2026 Beso1227 / Deltempo Project.
       </div>
     </div>
@@ -343,7 +353,7 @@
     })();
   </script>
   <!-- Floating Back to Top Button -->
-  <button id="backToTopBtn" class="back-to-top" aria-label="Back to Top" title="Back to Top">
+  <button id="backToTopBtn" type="button" class="back-to-top" aria-label="Back to Top" title="Back to Top">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
   </button>
   <!-- Cybernetic Motion Engine -->

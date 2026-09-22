@@ -2851,6 +2851,50 @@
                                                           IsChecked="True"
                                                           VerticalAlignment="Center"/>
                                             </Grid>
+
+                                            <!-- Windows Explorer Context Menu -->
+                                            <Grid Margin="0,4,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Windows Explorer Context Menu"
+                                                               FontSize="12.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Add 'Scan with Deltempo' and 'Inspect with Deltempo' to Explorer right-click menus (HKCU)"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="SettingsShellContextMenuCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+
+                                            <!-- Silent Weekly Maintenance -->
+                                            <Grid Margin="0,4,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Silent Weekly Maintenance (Task Scheduler)"
+                                                               FontSize="12.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Register Windows Task Scheduler job to run silent background temp cleaning weekly"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="SettingsWeeklyTaskCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>
@@ -4156,7 +4200,8 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
@@ -4219,8 +4264,32 @@
                                         </ComboBox>
                                     </StackPanel>
 
+                                    <!-- View Switcher (List vs Treemap) -->
+                                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                                        <Button x:Name="LargeFileListViewBtn"
+                                                Style="{DynamicResource PillButton}"
+                                                Padding="8,5" Margin="0,0,4,0"
+                                                Click="LargeFileViewMode_Click" Tag="LIST"
+                                                ToolTip="List View">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="&#xE8D2;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="List" FontSize="10.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button x:Name="LargeFileTreemapViewBtn"
+                                                Style="{DynamicResource PillButton}"
+                                                Padding="8,5"
+                                                Click="LargeFileViewMode_Click" Tag="TREEMAP"
+                                                ToolTip="Interactive Treemap">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="&#xF0E2;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Treemap" FontSize="10.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+
                                     <!-- Rescan Button -->
-                                    <Button Grid.Column="4"
+                                    <Button Grid.Column="5"
                                             x:Name="RescanLargeFilesBtn"
                                             Style="{DynamicResource PillButton}"
                                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
@@ -4291,7 +4360,7 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Row 3: Large Files List -->
+                        <!-- Row 3: Large Files List & Treemap Visualizer -->
                         <Border Grid.Row="3"
                                 Background="{DynamicResource SurfaceSubCardBrush}"
                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
@@ -4302,7 +4371,7 @@
                                 MinHeight="140">
                             <Grid>
                                 <!-- File list -->
-                                <ScrollViewer VerticalScrollBarVisibility="Auto" CanContentScroll="True">
+                                <ScrollViewer x:Name="LargeFilesListScrollViewer" VerticalScrollBarVisibility="Auto" CanContentScroll="True">
                                     <ItemsControl x:Name="LargeFilesItemsControl">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
@@ -4504,6 +4573,17 @@
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                 </ScrollViewer>
+
+                                <!-- Treemap Container -->
+                                <Border x:Name="LargeFilesTreemapContainer"
+                                        Visibility="Collapsed"
+                                        Background="{DynamicResource SurfaceCardBrush}"
+                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="10"
+                                        Padding="4">
+                                    <Canvas x:Name="LargeFilesTreemapCanvas" ClipToBounds="True" SizeChanged="LargeFilesTreemapCanvas_SizeChanged"/>
+                                </Border>
 
                                 <!-- Empty state — shown when scan returns 0 results or scan hasn't run yet -->
                                 <StackPanel x:Name="LargeFilesEmptyState"

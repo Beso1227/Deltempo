@@ -136,9 +136,15 @@ public static partial class CliRunner
             return 1;
         }
 
-        var (used, count) = CleanerService.QueryShadowStorageInfo();
+        var detailedInfo = await RestorePointManagerService.QueryDetailedRestorePointsAsync();
+        long used = detailedInfo.UsedBytes;
+        int count = detailedInfo.SnapshotCount;
 
-        if (clean)
+        string subCmd = args.Length > 1 && !args[1].StartsWith("-") ? args[1].ToLowerInvariant() : "";
+        bool isList = subCmd == "list" || subCmd == "ls" || HasFlag(args, "--list", "-l");
+        bool isPrune = subCmd == "prune" || clean;
+
+        if (isPrune)
         {
             if (!isJson)
             {
@@ -174,7 +180,15 @@ public static partial class CliRunner
             {
                 usedBytes = used,
                 formattedUsed = TargetFolderInfo.FormatBytes(used),
-                snapshotCount = count
+                snapshotCount = count,
+                points = detailedInfo.Points.Select(p => new
+                {
+                    sequence = p.SequenceNumber,
+                    description = p.Description,
+                    eventType = p.EventType,
+                    creationTime = p.FormattedTime,
+                    shadowId = p.ShadowId
+                })
             }, new JsonSerializerOptions { WriteIndented = true }));
         }
         else
@@ -185,7 +199,18 @@ public static partial class CliRunner
             Console.WriteLine($"     Used Shadow Storage: {TargetFolderInfo.FormatBytes(used)}");
             Console.WriteLine($"     Detected Snapshots : {count}");
             Console.WriteLine();
-            Console.WriteLine("  💡 Run 'deltempo restore-points --clean' to purge older points (safely keeping latest).");
+
+            if (detailedInfo.Points.Count > 0)
+            {
+                Console.WriteLine("  Recorded Restore Points:");
+                foreach (var pt in detailedInfo.Points)
+                {
+                    Console.WriteLine($"    • [#{pt.SequenceNumber}] {pt.FormattedTime} - {pt.Description} ({pt.EventType})");
+                }
+                Console.WriteLine();
+            }
+
+            Console.WriteLine("  💡 Run 'deltempo restore-points --clean' to safely prune older points (keeping newest).");
             Console.WriteLine("  💡 Run 'deltempo restore-points --clean --all' to purge all shadow copies.");
         }
 

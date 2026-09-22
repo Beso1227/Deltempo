@@ -839,6 +839,129 @@
                                 </Border>
                             </UniformGrid>
 
+                            <!-- Tool 7: System Restore Points & VSS Snapshot Manager -->
+                            <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Padding="14,12"
+                                    Margin="0,0,0,14">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Top Row: Icon, Title, Stats & Actions -->
+                                    <Grid Grid.Row="0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Grid.Column="0"
+                                                Width="36" Height="36"
+                                                CornerRadius="9"
+                                                Background="{DynamicResource SurfaceCardBrush}"
+                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                BorderThickness="1"
+                                                Margin="0,0,12,0"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE777;"
+                                                       FontFamily="{DynamicResource IconFont}"
+                                                       FontSize="16"
+                                                       Foreground="{DynamicResource ElectricCyanBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"/>
+                                        </Border>
+
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="System Restore Points &amp; VSS Snapshots"
+                                                           FontSize="12.5"
+                                                           FontWeight="Bold"
+                                                           Foreground="{DynamicResource TextHighBrush}"/>
+                                                <Border x:Name="RestorePointsBadgeBorder"
+                                                        Background="{DynamicResource SurfaceCardBrush}"
+                                                        BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="6"
+                                                        Padding="6,1"
+                                                        Margin="8,0,0,0"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock x:Name="RestorePointsBadgeText"
+                                                               Text="0 snapshots"
+                                                               FontSize="9"
+                                                               FontWeight="Bold"
+                                                               Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock x:Name="RestorePointsStorageSummaryText"
+                                                       Text="Enumerate VSS shadow storage on C: and safely prune legacy snapshots while keeping the newest restore point."
+                                                       FontSize="10.5"
+                                                       Foreground="{DynamicResource TextMediumBrush}"
+                                                       Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                                            <Button x:Name="RefreshRestorePointsBtn"
+                                                    Content="Refresh List"
+                                                    Style="{DynamicResource PillButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="12,5"
+                                                    FontSize="10.5"
+                                                    FontWeight="SemiBold"
+                                                    Margin="0,0,8,0"
+                                                    Click="RefreshRestorePoints_Click"/>
+                                            <Button x:Name="PruneRestorePointsBtn"
+                                                    Content="Prune Older Points"
+                                                    Style="{DynamicResource PillButton}"
+                                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                    Padding="12,5"
+                                                    FontSize="10.5"
+                                                    FontWeight="Bold"
+                                                    Foreground="{DynamicResource DestructiveRedBrush}"
+                                                    ToolTip="Safely deletes older shadow copies to free tens of gigabytes, preserving the latest restore point for safety"
+                                                    Click="PruneRestorePoints_Click"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Bottom Row: Expandable / Scrollable list of restore points -->
+                                    <Border x:Name="RestorePointsListBorder"
+                                            Grid.Row="1"
+                                            Background="{DynamicResource SurfaceCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Margin="0,10,0,0"
+                                            Padding="8,6"
+                                            MaxHeight="150"
+                                            Visibility="Collapsed">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                            <ItemsControl x:Name="RestorePointsItemsControl">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Padding="6,4" Margin="0,0,0,3" Background="{DynamicResource SurfaceSubCardBrush}" CornerRadius="6">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding FormattedTime}" FontFamily="{DynamicResource MonospaceFont}" FontSize="9.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding Description}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="2" Text="{Binding EventType}" FontSize="9" Foreground="{DynamicResource ElectricCyanBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+                            </Border>
+
                             <!-- Live Diagnostic Output Terminal -->
                             <Border Background="{DynamicResource SurfaceSubCardBrush}"
                                     BorderBrush="{DynamicResource HairlineBorderBrush}"

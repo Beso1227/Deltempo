@@ -420,4 +420,120 @@ public static partial class CliRunner
             return result.ExitCode != 0 ? result.ExitCode : 1;
         }
     }
+
+    // ─── SCHEDULE COMMAND (TASK SCHEDULER) ───────────────────────────
+
+    private static Task<int> HandleScheduleAsync(string[] args)
+    {
+        bool isJson = HasFlag(args, "--json", "-j");
+        string subCmd = args.Length > 1 && !args[1].StartsWith("-") ? args[1].ToLowerInvariant() : "status";
+
+        if (HasFlag(args, "--enable", "-e") || subCmd == "enable" || subCmd == "on")
+        {
+            var (ok, msg) = TaskSchedulerService.EnableWeeklyTask();
+            if (isJson)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { success = ok, message = msg }));
+            }
+            else
+            {
+                Console.ForegroundColor = ok ? ConsoleColor.Green : ConsoleColor.Yellow;
+                Console.WriteLine($"  {(ok ? "✓" : "⚠️")} {msg}");
+                Console.ResetColor();
+            }
+            return Task.FromResult(ok ? 0 : 1);
+        }
+
+        if (HasFlag(args, "--disable", "-d") || subCmd == "disable" || subCmd == "off")
+        {
+            var (ok, msg) = TaskSchedulerService.DisableWeeklyTask();
+            if (isJson)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { success = ok, message = msg }));
+            }
+            else
+            {
+                Console.ForegroundColor = ok ? ConsoleColor.Green : ConsoleColor.Yellow;
+                Console.WriteLine($"  {(ok ? "✓" : "⚠️")} {msg}");
+                Console.ResetColor();
+            }
+            return Task.FromResult(ok ? 0 : 1);
+        }
+
+        bool isScheduled = TaskSchedulerService.IsTaskScheduled();
+        if (isJson)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { scheduled = isScheduled }));
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("  ⏱️ [Deltempo] Scheduled Background Maintenance:");
+            Console.ResetColor();
+            Console.WriteLine($"     Status: {(isScheduled ? "ENABLED (Runs weekly every Sunday at 03:00 AM)" : "DISABLED")}");
+            Console.WriteLine();
+            Console.WriteLine("  💡 Run 'deltempo schedule --enable' to configure weekly automatic maintenance.");
+            Console.WriteLine("  💡 Run 'deltempo schedule --disable' to remove the scheduled task.");
+        }
+
+        return Task.FromResult(0);
+    }
+
+    // ─── SHELL EXTENSION COMMAND (CONTEXT MENU) ──────────────────────
+
+    private static int HandleShellExtension(string[] args)
+    {
+        bool isJson = HasFlag(args, "--json", "-j");
+        string subCmd = args.Length > 1 && !args[1].StartsWith("-") ? args[1].ToLowerInvariant() : "status";
+
+        if (HasFlag(args, "--register", "-r") || subCmd == "register" || subCmd == "enable" || subCmd == "install")
+        {
+            var (ok, msg) = ShellExtensionService.Register();
+            if (isJson)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { success = ok, message = msg }));
+            }
+            else
+            {
+                Console.ForegroundColor = ok ? ConsoleColor.Green : ConsoleColor.Yellow;
+                Console.WriteLine($"  {(ok ? "✓" : "⚠️")} {msg}");
+                Console.ResetColor();
+            }
+            return ok ? 0 : 1;
+        }
+
+        if (HasFlag(args, "--unregister", "-u") || subCmd == "unregister" || subCmd == "disable" || subCmd == "remove")
+        {
+            var (ok, msg) = ShellExtensionService.Unregister();
+            if (isJson)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { success = ok, message = msg }));
+            }
+            else
+            {
+                Console.ForegroundColor = ok ? ConsoleColor.Green : ConsoleColor.Yellow;
+                Console.WriteLine($"  {(ok ? "✓" : "⚠️")} {msg}");
+                Console.ResetColor();
+            }
+            return ok ? 0 : 1;
+        }
+
+        bool isReg = ShellExtensionService.IsRegistered();
+        if (isJson)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { registered = isReg }));
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("  🖱️ [Deltempo] Windows Explorer Context Menu Integration:");
+            Console.ResetColor();
+            Console.WriteLine($"     Status: {(isReg ? "REGISTERED (Right-click files/folders to Scan)" : "NOT REGISTERED")}");
+            Console.WriteLine();
+            Console.WriteLine("  💡 Run 'deltempo shell --register' to add 'Scan with Deltempo' to Explorer context menu.");
+            Console.WriteLine("  💡 Run 'deltempo shell --unregister' to cleanly remove it.");
+        }
+
+        return 0;
+    }
 }

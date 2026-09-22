@@ -21,6 +21,189 @@ public partial class MainWindow
 {
 
     private bool _isLargeFileScanRunning;
+    private string _largeFileCurrentViewMode = "LIST";
+
+    private void LargeFileViewMode_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string mode)
+        {
+            _largeFileCurrentViewMode = mode;
+            SoundService.PlayClickSound();
+            UpdateLargeFileViewModeUI();
+        }
+    }
+
+    private void UpdateLargeFileViewModeUI()
+    {
+        bool isTreemap = _largeFileCurrentViewMode == "TREEMAP";
+        if (LargeFilesListScrollViewer != null)
+            LargeFilesListScrollViewer.Visibility = isTreemap ? Visibility.Collapsed : Visibility.Visible;
+        if (LargeFilesTreemapContainer != null)
+            LargeFilesTreemapContainer.Visibility = isTreemap ? Visibility.Visible : Visibility.Collapsed;
+
+        if (isTreemap)
+        {
+            RenderLargeFilesTreemap();
+        }
+    }
+
+    private void LargeFilesTreemapCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_largeFileCurrentViewMode == "TREEMAP")
+        {
+            RenderLargeFilesTreemap();
+        }
+    }
+
+    private void RenderLargeFilesTreemap()
+    {
+        if (!_isLoaded || LargeFilesTreemapCanvas == null || _largeFiles == null) return;
+
+        LargeFilesTreemapCanvas.Children.Clear();
+        double w = LargeFilesTreemapCanvas.ActualWidth;
+        double h = LargeFilesTreemapCanvas.ActualHeight;
+        if (w <= 20 || h <= 20) return;
+
+        var filtered = _largeFiles.Where(FilterLargeFileItem).ToList();
+        if (filtered.Count == 0) return;
+
+        var nodes = WinTempCleaner.Core.Discovery.TreemapLayoutEngine.CalculateLayout(
+            filtered,
+            f => f.SizeBytes,
+            w,
+            h,
+            maxTiles: 120);
+
+        foreach (var node in nodes)
+        {
+            var item = node.Item;
+            double tileX = Math.Max(0, node.X + 1.5);
+            double tileY = Math.Max(0, node.Y + 1.5);
+            double tileW = Math.Max(2, node.Width - 3);
+            double tileH = Math.Max(2, node.Height - 3);
+
+            var border = new Border
+            {
+                Width = tileW,
+                Height = tileH,
+                CornerRadius = new CornerRadius(6),
+                BorderThickness = new Thickness(item.IsSelected ? 2 : 1),
+                Cursor = Cursors.Hand,
+                ClipToBounds = true
+            };
+
+            if (item.IsSelected)
+            {
+                border.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF"));
+                border.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(item.IsAiSafe ? "#1E3B32" : "#3B222A"));
+            }
+            else if (item.IsAiSafe)
+            {
+                border.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2E7D32"));
+                border.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#13271E"));
+            }
+            else
+            {
+                border.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C62828"));
+                border.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#27161A"));
+            }
+
+            var tooltip = new ToolTip
+            {
+                Content = $"{item.FileName}\nSize: {item.FormattedSize}\nCategory: {item.Category}\nAI Verdict: {item.AiVerdict}\n{item.FilePath}\n\nClick to select • Double-click to reveal in Explorer"
+            };
+            border.ToolTip = tooltip;
+
+            if (tileW > 45 && tileH > 28)
+            {
+                var panel = new StackPanel
+                {
+                    Margin = new Thickness(4, 3, 4, 3),
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+
+                var nameText = new TextBlock
+                {
+                    Text = item.FileName,
+                    FontSize = tileW > 100 ? 11 : 9.5,
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC")),
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    MaxWidth = Math.Max(10, tileW - 8)
+                };
+                panel.Children.Add(nameText);
+
+                if (tileH > 46)
+                {
+                    var sizeText = new TextBlock
+                    {
+                        Text = item.FormattedSize,
+                        FontSize = 9.5,
+                        FontWeight = FontWeights.Bold,
+                        Foreground = item.IsAiSafe
+                            ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E676"))
+                            : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF8A80")),
+                        Margin = new Thickness(0, 1, 0, 0)
+                    };
+                    panel.Children.Add(sizeText);
+                }
+
+                if (tileH > 68 && tileW > 90)
+                {
+                    var catText = new TextBlock
+                    {
+                        Text = item.Category,
+                        FontSize = 8.5,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8")),
+                        Margin = new Thickness(0, 1, 0, 0)
+                    };
+                    panel.Children.Add(catText);
+                }
+
+                border.Child = panel;
+            }
+
+            border.MouseLeftButtonDown += (s, ev) =>
+            {
+                if (ev.ClickCount == 2)
+                {
+                    RevealFileInExplorer(item.FilePath);
+                    ev.Handled = true;
+                    return;
+                }
+
+                item.IsSelected = !item.IsSelected;
+                UpdateLargeFileSelectionSummary();
+                RenderLargeFilesTreemap();
+                ev.Handled = true;
+            };
+
+            Canvas.SetLeft(border, tileX);
+            Canvas.SetTop(border, tileY);
+            LargeFilesTreemapCanvas.Children.Add(border);
+        }
+    }
+
+    private void RevealFileInExplorer(string filePath)
+    {
+        try
+        {
+            if (File.Exists(filePath))
+            {
+                string safePath = filePath.Replace("\"", "");
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"/select,\"{safePath}\"",
+                    UseShellExecute = true
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
+    }
 
     private void PopulateLargeFileDrives()
     {
@@ -120,6 +303,10 @@ public partial class MainWindow
 
             UpdateLargeFileSelectionSummary();
             RefreshLargeFileHeroStats();
+            if (_largeFileCurrentViewMode == "TREEMAP")
+            {
+                RenderLargeFilesTreemap();
+            }
 
             long totalBytes = files.Sum(f => f.SizeBytes);
             int safeCount = files.Count(f => f.IsAiSafe);
@@ -193,6 +380,10 @@ public partial class MainWindow
             view.Refresh();
         }
         UpdateLargeFileSelectionSummary();
+        if (_largeFileCurrentViewMode == "TREEMAP")
+        {
+            RenderLargeFilesTreemap();
+        }
     }
 
     private void LargeFileSort_Changed(object sender, SelectionChangedEventArgs e)
@@ -221,6 +412,10 @@ public partial class MainWindow
                 break;
         }
         view.Refresh();
+        if (_largeFileCurrentViewMode == "TREEMAP")
+        {
+            RenderLargeFilesTreemap();
+        }
     }
 
     private bool FilterLargeFileItem(object obj)
@@ -253,6 +448,10 @@ public partial class MainWindow
     private void LargeFileItem_CheckChanged(object sender, RoutedEventArgs e)
     {
         UpdateLargeFileSelectionSummary();
+        if (_largeFileCurrentViewMode == "TREEMAP")
+        {
+            RenderLargeFilesTreemap();
+        }
     }
 
     private void SelectSafeLargeFiles_Click(object sender, RoutedEventArgs e)
@@ -263,6 +462,10 @@ public partial class MainWindow
             f.IsSelected = f.IsAiSafe;
         }
         UpdateLargeFileSelectionSummary();
+        if (_largeFileCurrentViewMode == "TREEMAP")
+        {
+            RenderLargeFilesTreemap();
+        }
     }
 
     private void SelectAllLargeFiles_Click(object sender, RoutedEventArgs e)
@@ -273,6 +476,10 @@ public partial class MainWindow
             f.IsSelected = true;
         }
         UpdateLargeFileSelectionSummary();
+        if (_largeFileCurrentViewMode == "TREEMAP")
+        {
+            RenderLargeFilesTreemap();
+        }
     }
 
     private void ClearLargeFilesSelection_Click(object sender, RoutedEventArgs e)
@@ -283,6 +490,10 @@ public partial class MainWindow
             f.IsSelected = false;
         }
         UpdateLargeFileSelectionSummary();
+        if (_largeFileCurrentViewMode == "TREEMAP")
+        {
+            RenderLargeFilesTreemap();
+        }
     }
 
     private void OpenRecycleBin_Click(object sender, RoutedEventArgs e)

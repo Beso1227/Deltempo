@@ -247,7 +247,9 @@ public static class TrayService
         try
         {
             var mem = MemoryOptimizerService.GetMemoryInfo();
-            string tip = $"Deltempo Guardian\nRAM: {mem.UsedPercent:0.0}% ({mem.FormattedUsed} / {mem.FormattedTotal})\nStatus: Active & Protected";
+            var drive = DriveTelemetryService.GetSystemDriveTelemetry();
+            string driveStr = $"{drive.DriveLetter} {drive.FormattedFree} free";
+            string tip = $"Deltempo Guardian\nRAM: {mem.UsedPercent:0.0}% | Storage: {driveStr}\nStatus: Active & Protected";
             return tip.Length > 120 ? tip[..120] : tip;
         }
         catch
@@ -346,6 +348,7 @@ public static class TrayService
             };
 
             var headerGrid = new Grid();
+            headerGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             headerGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             headerGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             headerGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -456,6 +459,33 @@ public static class TrayService
             pBarBorder.Child = pBar;
             Grid.SetRow(pBarBorder, 2);
             headerGrid.Children.Add(pBarBorder);
+
+            var drive = DriveTelemetryService.GetSystemDriveTelemetry();
+            var drivePanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 5, 0, 0) };
+            drivePanel.Children.Add(new TextBlock
+            {
+                Text = $"Disk ({drive.DriveLetter}): ",
+                FontSize = 10.5,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8"))
+            });
+            drivePanel.Children.Add(new TextBlock
+            {
+                Text = $"{drive.FormattedFree} free",
+                FontWeight = FontWeights.Bold,
+                FontSize = 10.5,
+                Foreground = drive.IsLowSpace
+                    ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EF4444"))
+                    : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981"))
+            });
+            drivePanel.Children.Add(new TextBlock
+            {
+                Text = $" ({drive.FormattedTotal} total)",
+                FontSize = 10,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#64748B")),
+                VerticalAlignment = VerticalAlignment.Center
+            });
+            Grid.SetRow(drivePanel, 3);
+            headerGrid.Children.Add(drivePanel);
 
             headerBorder.Child = headerGrid;
             menu.Items.Add(headerBorder);

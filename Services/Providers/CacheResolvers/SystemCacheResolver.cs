@@ -257,20 +257,32 @@ public static class SystemCacheResolver
             Path.Combine(localAppData, "Spotify", "Data"),
             Path.Combine(localAppData, "Spotify", "Storage"),
             Path.Combine(localAppData, "Spotify", "Browser", "Cache"),
+            Path.Combine(localAppData, "Spotify", "Browser", "GPUCache"),
+            Path.Combine(roamingAppData, "Spotify", "Users"),
             Path.Combine(roamingAppData, "Code", "Cache"),
             Path.Combine(roamingAppData, "Code", "CachedData"),
             Path.Combine(roamingAppData, "Code", "CachedExtensions"),
             Path.Combine(roamingAppData, "Code", "GPUCache"),
+            Path.Combine(roamingAppData, "Code", "Code Cache"),
             Path.Combine(roamingAppData, "Code", "logs"),
             Path.Combine(roamingAppData, "Cursor", "Cache"),
             Path.Combine(roamingAppData, "Cursor", "CachedData"),
             Path.Combine(roamingAppData, "Cursor", "GPUCache"),
+            Path.Combine(roamingAppData, "Cursor", "Code Cache"),
             Path.Combine(roamingAppData, "Windsurf", "Cache"),
             Path.Combine(roamingAppData, "Windsurf", "GPUCache"),
             Path.Combine(roamingAppData, "Notion", "Cache"),
             Path.Combine(roamingAppData, "Notion", "GPUCache"),
             Path.Combine(roamingAppData, "Notion", "Code Cache"),
-            Path.Combine(localAppData, "CapCut", "User Data", "Cache")
+            Path.Combine(roamingAppData, "Slack", "Cache"),
+            Path.Combine(roamingAppData, "Slack", "Code Cache"),
+            Path.Combine(roamingAppData, "Microsoft", "Teams", "Cache"),
+            Path.Combine(roamingAppData, "Microsoft", "Teams", "blob_storage"),
+            Path.Combine(localAppData, "CapCut", "User Data", "Cache"),
+            Path.Combine(localAppData, "Docker", "log"),
+            Path.Combine(localAppData, "Docker", "tmp"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "DockerDesktop", "tmp"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".wsl", "logs")
         };
 
         var jbRoot = Path.Combine(localAppData, "JetBrains");

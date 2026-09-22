@@ -19,6 +19,8 @@ public class AppSettings
     public bool SendToRecycleBin { get; set; } = false;
     public bool LowDiskAlertEnabled { get; set; } = true;
     public int LowDiskAlertThresholdGb { get; set; } = 10;
+    public bool EnableShellContextMenu { get; set; } = false;
+    public bool EnableWeeklyScheduledTask { get; set; } = false;
 
     // ─── Memory Optimizer (WinMemoryCleaner integration) ──────────────────
     public bool MemoryAutoOptimizeEnabled { get; set; } = false;

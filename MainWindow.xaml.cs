@@ -407,6 +407,14 @@ public partial class MainWindow : Window
         SettingsTrayCheckBox.IsChecked = SettingsService.Current.MinimizeToTray;
         SettingsNotifyCheckBox.IsChecked = SettingsService.Current.AutoCleanNotify;
         SettingsSoundCheckBox.IsChecked = SettingsService.Current.SoundEnabled;
+        if (SettingsShellContextMenuCheckBox != null)
+        {
+            SettingsShellContextMenuCheckBox.IsChecked = SettingsService.Current.EnableShellContextMenu || ShellExtensionService.IsRegistered();
+        }
+        if (SettingsWeeklyTaskCheckBox != null)
+        {
+            SettingsWeeklyTaskCheckBox.IsChecked = SettingsService.Current.EnableWeeklyScheduledTask || TaskSchedulerService.IsTaskScheduled();
+        }
 
         // Safety & Disk
         SettingsRecycleBinCheckBox.IsChecked = SettingsService.Current.SendToRecycleBin;

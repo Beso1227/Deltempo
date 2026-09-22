@@ -74,6 +74,8 @@ public partial class MainWindow
             s.SendToRecycleBin = defaults.SendToRecycleBin;
             s.LowDiskAlertEnabled = defaults.LowDiskAlertEnabled;
             s.LowDiskAlertThresholdGb = defaults.LowDiskAlertThresholdGb;
+            s.EnableShellContextMenu = defaults.EnableShellContextMenu;
+            s.EnableWeeklyScheduledTask = defaults.EnableWeeklyScheduledTask;
             s.CheckUpdatesOnStartup = defaults.CheckUpdatesOnStartup;
             s.AutoDownloadUpdates = defaults.AutoDownloadUpdates;
             s.UpdateChannel = defaults.UpdateChannel;
@@ -153,6 +155,8 @@ public partial class MainWindow
 
             s.SendToRecycleBin = SettingsRecycleBinCheckBox.IsChecked == true;
             s.LowDiskAlertEnabled = SettingsLowDiskAlertCheckBox.IsChecked == true;
+            s.EnableShellContextMenu = SettingsShellContextMenuCheckBox.IsChecked == true;
+            s.EnableWeeklyScheduledTask = SettingsWeeklyTaskCheckBox.IsChecked == true;
 
             if (SettingsDiskThresholdComboBox.SelectedItem is ComboBoxItem dItem && dItem.Tag is string dTag && int.TryParse(dTag, out int dGb))
             {
@@ -211,6 +215,30 @@ public partial class MainWindow
 
         AutoCleanService.Start();
         ApplyMemorySettingsToWindow();
+
+        if (SettingsShellContextMenuCheckBox != null)
+        {
+            if (SettingsShellContextMenuCheckBox.IsChecked == true)
+            {
+                ShellExtensionService.Register();
+            }
+            else
+            {
+                ShellExtensionService.Unregister();
+            }
+        }
+
+        if (SettingsWeeklyTaskCheckBox != null)
+        {
+            if (SettingsWeeklyTaskCheckBox.IsChecked == true)
+            {
+                TaskSchedulerService.EnableWeeklyTask();
+            }
+            else
+            {
+                TaskSchedulerService.DisableWeeklyTask();
+            }
+        }
 
         SettingsModalOverlay.Visibility = Visibility.Collapsed;
         SoundService.PlayClickSound();
