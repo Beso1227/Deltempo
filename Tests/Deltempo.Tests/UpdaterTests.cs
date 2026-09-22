@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using WinTempCleaner.Core.Cleaning;
 using WinTempCleaner.Core.Update;
+using WinTempCleaner.Services;
 using Xunit;
 
 namespace Deltempo.Tests;
@@ -314,6 +315,23 @@ public class TransactionJournalTests : IDisposable
     }
 
     [Fact]
+    public void NextState_Rollback_FromPreInstallStates()
+    {
+        Assert.Equal(TransactionState.RolledBack,
+            TransactionJournal.NextState(TransactionState.Discovered, TransactionState.RolledBack));
+        Assert.Equal(TransactionState.RolledBack,
+            TransactionJournal.NextState(TransactionState.Downloaded, TransactionState.RolledBack));
+        Assert.Equal(TransactionState.RolledBack,
+            TransactionJournal.NextState(TransactionState.DownloadVerified, TransactionState.RolledBack));
+        Assert.Equal(TransactionState.RolledBack,
+            TransactionJournal.NextState(TransactionState.Staged, TransactionState.RolledBack));
+        Assert.Equal(TransactionState.RolledBack,
+            TransactionJournal.NextState(TransactionState.StageVerified, TransactionState.RolledBack));
+        Assert.Equal(TransactionState.RolledBack,
+            TransactionJournal.NextState(TransactionState.BackupCreated, TransactionState.RolledBack));
+    }
+
+    [Fact]
     public void NextState_Rollback_FromInstallStarted()
     {
         Assert.Equal(TransactionState.RolledBack,
@@ -421,12 +439,29 @@ public class TransactionJournalTests : IDisposable
         var result = TransactionJournal.FindIncompleteTransactions();
         Assert.NotNull(result);
     }
+    [Fact]
+    public void ParseSha256FromChecksums_ParsesCorrectHash()
+    {
+        string sample = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  Deltempo.exe\n" +
+                        "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb  deltempo_cli.exe";
+
+        string hash = UpdateService.ParseSha256FromChecksums(sample, "Deltempo.exe");
+        Assert.Equal("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", hash);
+
+        string cliHash = UpdateService.ParseSha256FromChecksums(sample, "deltempo_cli.exe");
+        Assert.Equal("ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb", cliHash);
+
+        string missing = UpdateService.ParseSha256FromChecksums(sample, "NonExistent.exe");
+        Assert.Empty(missing);
+    }
 }
 
 public class UpdateSecurityValidatorUrlTests
 {
     [Theory]
     [InlineData("https://github.com/Beso1227/Deltempo/releases/download/v1.3.3/Deltempo.exe", true)]
+    [InlineData("https://github.com/Beso1227/Deltempo/releases/download/v1.3.3/WinTempCleaner.exe", true)]
+    [InlineData("https://github.com/Beso1227/Deltempo/releases/download/v1.3.3/checksums.sha256", true)]
     [InlineData("https://github.com/Beso1227/Deltempo/releases/download/v1.3.3/deltempo_cli.exe", true)]
     [InlineData("https://github.com/Beso1227/Deltempo/releases/download/patch/DeltempoUpdater.exe", false)]
     public void IsValidDownloadUrl_ValidGitHubReleaseUrls_ReturnsTrue(string url, bool expected)

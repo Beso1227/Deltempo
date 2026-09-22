@@ -84,6 +84,22 @@ public partial class MainWindow
                     AddLog($"New version available: {release.TagName}", LogLevel.Info);
                 });
             }
+            else if (release != null && !release.CheckSucceeded)
+            {
+                if (!silent)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        ManualCheckStatusText.Text = "Update check failed";
+                        ManualCheckStatusText.Foreground = (Brush)FindResource("RoseErrorBrush");
+                        MessageBox.Show(
+                            $"Unable to check for updates: {release.StatusMessage}",
+                            "Update Check Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning);
+                    });
+                }
+            }
             else if (!silent)
             {
                 Dispatcher.Invoke(() =>
@@ -182,7 +198,8 @@ public partial class MainWindow
             AddLog($"Starting atomic in-place update to {_pendingRelease.TagName}...", LogLevel.Info);
             await UpdateService.DownloadAndApplyUpdateAsync(
                 _pendingRelease.DownloadUrl,
-                progress);
+                progress,
+                expectedSha256: !string.IsNullOrWhiteSpace(_pendingRelease.Sha256) ? _pendingRelease.Sha256 : null);
         }
         catch (Exception ex)
         {

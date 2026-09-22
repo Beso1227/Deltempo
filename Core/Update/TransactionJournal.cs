@@ -107,14 +107,18 @@ public class TransactionJournal
             TransactionState.Installed when desired == TransactionState.Launched => desired,
             TransactionState.Launched when desired == TransactionState.HealthCheckPassed => desired,
             TransactionState.HealthCheckPassed when desired == TransactionState.Committed => desired,
-            // Rollback can be initiated from most active states
+            // Rollback can be initiated from all active pre-terminal states
+            TransactionState.Discovered when desired == TransactionState.RolledBack => desired,
+            TransactionState.Downloaded when desired == TransactionState.RolledBack => desired,
+            TransactionState.DownloadVerified when desired == TransactionState.RolledBack => desired,
+            TransactionState.Staged when desired == TransactionState.RolledBack => desired,
             TransactionState.StageVerified when desired == TransactionState.RolledBack => desired,
             TransactionState.BackupCreated when desired == TransactionState.RolledBack => desired,
             TransactionState.InstallStarted when desired == TransactionState.RolledBack => desired,
             TransactionState.Installed when desired == TransactionState.RolledBack => desired,
             TransactionState.Launched when desired == TransactionState.RolledBack => desired,
             TransactionState.HealthCheckPassed when desired == TransactionState.RolledBack => desired,
-            // Failure can be set from most states
+            // Failure can be set from any state (including rollback failure)
             _ when desired == TransactionState.Failed => desired,
             _ => null
         };
@@ -168,17 +172,27 @@ public class TransactionJournal
         if (!File.Exists(journalPath))
             return null;
 
-        try
+        for (int attempt = 0; attempt < 4; attempt++)
         {
-            string json = File.ReadAllText(journalPath);
-            TransactionJournal? journal = JsonSerializer.Deserialize<TransactionJournal>(json, JsonOptions);
-            if (journal != null) journal.StorageRoot = baseDir;
-            return journal;
+            try
+            {
+                using var fs = new FileStream(journalPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var reader = new StreamReader(fs);
+                string json = reader.ReadToEnd();
+                TransactionJournal? journal = JsonSerializer.Deserialize<TransactionJournal>(json, JsonOptions);
+                if (journal != null) journal.StorageRoot = baseDir;
+                return journal;
+            }
+            catch (IOException) when (attempt < 3)
+            {
+                Thread.Sleep(50 * (attempt + 1));
+            }
+            catch
+            {
+                return null;
+            }
         }
-        catch
-        {
-            return null;
-        }
+        return null;
     }
 
     /// <summary>

@@ -51,10 +51,10 @@ public static class UpdateSecurityValidator
 
         // Validate artifact filename
         string fileName = Path.GetFileName(path);
-        string[] allowedFileNames = ["Deltempo.exe", "deltempo_cli.exe"];
+        string[] allowedFileNames = ["Deltempo.exe", "WinTempCleaner.exe", "deltempo_cli.exe", "checksums.sha256"];
         if (!allowedFileNames.Any(f => f.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
         {
-            reason = $"Unexpected artifact filename '{fileName}'. Expected Deltempo.exe or deltempo_cli.exe.";
+            reason = $"Unexpected artifact filename '{fileName}'. Expected Deltempo.exe, WinTempCleaner.exe, deltempo_cli.exe, or checksums.sha256.";
             return false;
         }
 

@@ -25,6 +25,8 @@ public class ReleaseInfo
     public bool CheckSucceeded { get; set; }
     public DateTime? PublishedAt { get; set; }
     public string StatusMessage { get; set; } = string.Empty;
+    public string ChecksumUrl { get; set; } = string.Empty;
+    public string Sha256 { get; set; } = string.Empty;
 }
 
 public static class UpdateService
@@ -65,13 +67,58 @@ public static class UpdateService
         }
 
         var parts = cleanTag.Split('.');
-        if (parts.Length >= 2 && int.TryParse(parts[0], out var maj) && int.TryParse(parts[1], out var min))
+        if (parts.Length >= 2)
         {
-            int build = parts.Length >= 3 && int.TryParse(parts[2], out var b) ? b : 0;
-            return new Version(maj, min, build);
+            var majMatch = Regex.Match(parts[0], @"^\d+");
+            var minMatch = Regex.Match(parts[1], @"^\d+");
+            if (majMatch.Success && minMatch.Success &&
+                int.TryParse(majMatch.Value, out var maj) &&
+                int.TryParse(minMatch.Value, out var min))
+            {
+                int build = 0;
+                if (parts.Length >= 3)
+                {
+                    var buildMatch = Regex.Match(parts[2], @"^\d+");
+                    if (buildMatch.Success && int.TryParse(buildMatch.Value, out var b))
+                    {
+                        build = b;
+                    }
+                }
+                return new Version(maj, min, build);
+            }
         }
 
         return new Version(1, 0, 0);
+    }
+
+    /// <summary>
+    /// Parses the SHA-256 hash for a specified target filename from sha256sum-formatted content.
+    /// </summary>
+    public static string ParseSha256FromChecksums(string checksumsContent, string targetFileName)
+    {
+        if (string.IsNullOrWhiteSpace(checksumsContent) || string.IsNullOrWhiteSpace(targetFileName))
+            return string.Empty;
+
+        using var reader = new StringReader(checksumsContent);
+        string? line;
+        while ((line = reader.ReadLine()) != null)
+        {
+            var trimmed = line.Trim();
+            if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith('#'))
+                continue;
+
+            var tokens = trimmed.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+            if (tokens.Length >= 2)
+            {
+                string hash = tokens[0].Trim();
+                string file = tokens[1].Trim().TrimStart('*');
+                if (file.Equals(targetFileName, StringComparison.OrdinalIgnoreCase) && hash.Length == 64)
+                {
+                    return hash.ToLowerInvariant();
+                }
+            }
+        }
+        return string.Empty;
     }
 
     /// <summary>
@@ -117,6 +164,7 @@ public static class UpdateService
                         DateTime.TryParse(pubStr, out var pubDate);
 
                         string dlUrl = "";
+                        string chkUrl = "";
                         long sBytes = 0;
                         if (rel.TryGetProperty("assets", out var aEl) && aEl.ValueKind == JsonValueKind.Array)
                         {
@@ -128,9 +176,29 @@ public static class UpdateService
                                 {
                                     dlUrl = asset.TryGetProperty("browser_download_url", out var dlEl) ? dlEl.GetString() ?? "" : "";
                                     sBytes = asset.TryGetProperty("size", out var sSizeEl) ? sSizeEl.GetInt64() : 0;
-                                    break;
+                                }
+                                else if (aName.Equals("checksums.sha256", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    chkUrl = asset.TryGetProperty("browser_download_url", out var cEl) ? cEl.GetString() ?? "" : "";
                                 }
                             }
+                        }
+
+                        string parsedSha = "";
+                        if (!string.IsNullOrEmpty(chkUrl))
+                        {
+                            try
+                            {
+                                using var cResp = await ApiHttpClient.GetAsync(chkUrl, ct);
+                                if (cResp.IsSuccessStatusCode)
+                                {
+                                    string cText = await cResp.Content.ReadAsStringAsync(ct);
+                                    parsedSha = ParseSha256FromChecksums(cText, "Deltempo.exe");
+                                    if (string.IsNullOrEmpty(parsedSha))
+                                        parsedSha = ParseSha256FromChecksums(cText, "WinTempCleaner.exe");
+                                }
+                            }
+                            catch { }
                         }
 
                         bestVersion = ver;
@@ -141,6 +209,8 @@ public static class UpdateService
                             ReleaseName = string.IsNullOrWhiteSpace(rName) ? tag : rName,
                             Body = body,
                             DownloadUrl = dlUrl,
+                            ChecksumUrl = chkUrl,
+                            Sha256 = parsedSha,
                             FileSizeBytes = sBytes,
                             IsNewer = true,
                             VersionString = Regex.Replace(tag, @"^[^\d]*", ""),
@@ -183,6 +253,7 @@ public static class UpdateService
                 DateTime.TryParse(publishedAtStr, out var publishedAt);
 
                 string downloadUrl = "";
+                string checksumUrl = "";
                 long sizeBytes = 0;
 
                 if (root.TryGetProperty("assets", out var assetsEl) && assetsEl.ValueKind == JsonValueKind.Array)
@@ -195,9 +266,29 @@ public static class UpdateService
                         {
                             downloadUrl = asset.TryGetProperty("browser_download_url", out var dlEl) ? dlEl.GetString() ?? "" : "";
                             sizeBytes = asset.TryGetProperty("size", out var sEl) ? sEl.GetInt64() : 0;
-                            break;
+                        }
+                        else if (name.Equals("checksums.sha256", StringComparison.OrdinalIgnoreCase))
+                        {
+                            checksumUrl = asset.TryGetProperty("browser_download_url", out var cEl) ? cEl.GetString() ?? "" : "";
                         }
                     }
+                }
+
+                string parsedSha = "";
+                if (!string.IsNullOrEmpty(checksumUrl))
+                {
+                    try
+                    {
+                        using var cResp = await ApiHttpClient.GetAsync(checksumUrl, ct);
+                        if (cResp.IsSuccessStatusCode)
+                        {
+                            string cText = await cResp.Content.ReadAsStringAsync(ct);
+                            parsedSha = ParseSha256FromChecksums(cText, "Deltempo.exe");
+                            if (string.IsNullOrEmpty(parsedSha))
+                                parsedSha = ParseSha256FromChecksums(cText, "WinTempCleaner.exe");
+                        }
+                    }
+                    catch { }
                 }
 
                 var remoteVer = ParseReleaseVersion(tagName);
@@ -211,6 +302,8 @@ public static class UpdateService
                     ReleaseName = string.IsNullOrWhiteSpace(releaseName) ? tagName : releaseName,
                     Body = body,
                     DownloadUrl = downloadUrl,
+                    ChecksumUrl = checksumUrl,
+                    Sha256 = parsedSha,
                     FileSizeBytes = sizeBytes,
                     IsNewer = isNewer,
                     VersionString = cleanTag,
@@ -246,9 +339,15 @@ public static class UpdateService
         // 2. Create transaction journal
         string txId = Guid.NewGuid().ToString("N");
         string currentExePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "";
-        if (string.IsNullOrEmpty(currentExePath) || !File.Exists(currentExePath))
+        if (string.IsNullOrEmpty(currentExePath) ||
+            !File.Exists(currentExePath) ||
+            Path.GetFileName(currentExePath).Equals("dotnet.exe", StringComparison.OrdinalIgnoreCase) ||
+            !currentExePath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
         {
-            currentExePath = Path.Combine(AppContext.BaseDirectory, "Deltempo.exe");
+            string deltempoExe = Path.Combine(AppContext.BaseDirectory, "Deltempo.exe");
+            string winTempCleanerExe = Path.Combine(AppContext.BaseDirectory, "WinTempCleaner.exe");
+            currentExePath = File.Exists(deltempoExe) ? deltempoExe :
+                             File.Exists(winTempCleanerExe) ? winTempCleanerExe : deltempoExe;
         }
 
         string updatesDir = Path.Combine(
@@ -298,6 +397,29 @@ public static class UpdateService
 
             string updaterPath = Path.Combine(updatesDir, "DeltempoUpdater.exe");
             File.Copy(currentExePath, updaterPath, overwrite: true);
+
+            string currentDir = Path.GetDirectoryName(currentExePath) ?? AppContext.BaseDirectory;
+            string baseName = Path.GetFileNameWithoutExtension(currentExePath);
+
+            // If runtimeconfig exists, this is a non-single-file deployment: copy dependencies so updater host can execute
+            string runtimeConfig = Path.Combine(currentDir, $"{baseName}.runtimeconfig.json");
+            if (File.Exists(runtimeConfig))
+            {
+                try
+                {
+                    File.Copy(runtimeConfig, Path.Combine(updatesDir, "DeltempoUpdater.runtimeconfig.json"), overwrite: true);
+                    string depsJson = Path.Combine(currentDir, $"{baseName}.deps.json");
+                    if (File.Exists(depsJson))
+                    {
+                        File.Copy(depsJson, Path.Combine(updatesDir, "DeltempoUpdater.deps.json"), overwrite: true);
+                    }
+                    foreach (var dll in Directory.GetFiles(currentDir, "*.dll"))
+                    {
+                        try { File.Copy(dll, Path.Combine(updatesDir, Path.GetFileName(dll)), overwrite: true); } catch { }
+                    }
+                }
+                catch { }
+            }
 
             var psi = new ProcessStartInfo
             {
@@ -365,7 +487,7 @@ public static class UpdateService
                     }
                 }
 
-                // 2. Clean up stale update transactions older than 30 minutes in CommonApplicationData
+                // 2. Clean up update transactions in CommonApplicationData
                 string baseUpdatesDir = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                     "Deltempo", "Updates");
@@ -376,6 +498,33 @@ public static class UpdateService
                     {
                         try
                         {
+                            // Purge completed transactions immediately
+                            string journalPath = Path.Combine(d, "transaction.json");
+                            if (File.Exists(journalPath))
+                            {
+                                var journal = TransactionJournal.Load(Path.GetFileName(d));
+                                if (journal != null && journal.State is TransactionState.Committed or TransactionState.RolledBack or TransactionState.Failed)
+                                {
+                                    for (int retry = 0; retry < 3; retry++)
+                                    {
+                                        try
+                                        {
+                                            Directory.Delete(d, true);
+                                            break;
+                                        }
+                                        catch (IOException)
+                                        {
+                                            Thread.Sleep(200);
+                                        }
+                                        catch (UnauthorizedAccessException)
+                                        {
+                                            Thread.Sleep(200);
+                                        }
+                                    }
+                                    continue;
+                                }
+                            }
+
                             var di = new DirectoryInfo(d);
                             if (di.LastWriteTimeUtc < threshold)
                             {

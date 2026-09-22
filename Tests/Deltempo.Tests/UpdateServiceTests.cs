@@ -19,6 +19,9 @@ public class UpdateServiceTests
     [InlineData("v1.4.0", 1, 4, 0)]
     [InlineData("2.0.1", 2, 0, 1)]
     [InlineData("v3.1", 3, 1, 0)]
+    [InlineData("v1.8.0-beta.1", 1, 8, 0)]
+    [InlineData("v1.7.5-rc2", 1, 7, 5)]
+    [InlineData("2.0.0-preview", 2, 0, 0)]
     [InlineData("invalid", 1, 0, 0)]
     public void ParseReleaseVersion_ParsesTagCorrectly(string tag, int expectedMajor, int expectedMinor, int expectedBuild)
     {

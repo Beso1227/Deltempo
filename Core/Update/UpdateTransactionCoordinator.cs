@@ -106,32 +106,37 @@ public class UpdateTransactionCoordinator
             Log($"Backing up current executable to {_journal.BackupPath}");
 
             string localOldPath = $"{_journal.TargetPath}.old";
-            try
+            RetryFileAction(() =>
             {
                 if (File.Exists(localOldPath))
                     File.Delete(localOldPath);
-            }
-            catch { }
+            });
 
             try
             {
                 if (File.Exists(_journal.TargetPath))
                 {
                     // Copy to BackupPath in updatesDir for persistent disaster recovery
-                    if (File.Exists(_journal.BackupPath))
-                        File.Delete(_journal.BackupPath);
-
-                    File.Copy(_journal.TargetPath, _journal.BackupPath, true);
+                    RetryFileAction(() =>
+                    {
+                        if (File.Exists(_journal.BackupPath))
+                            File.Delete(_journal.BackupPath);
+                        File.Copy(_journal.TargetPath, _journal.BackupPath, true);
+                    });
 
                     // Rename TargetPath to TargetPath.old in same directory (frees TargetPath name immediately)
-                    try
+                    bool renamed = RetryFileAction(() =>
                     {
                         File.Move(_journal.TargetPath, localOldPath, overwrite: true);
+                    });
+
+                    if (renamed)
+                    {
                         Log($"Renamed current executable to {localOldPath}");
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        Log($"Rename to local .old fallback: {ex.Message}");
+                        Log("Rename to local .old fallback could not complete; will attempt direct overwrite in Stage 11.");
                     }
                 }
             }
@@ -146,25 +151,30 @@ public class UpdateTransactionCoordinator
             _journal.TransitionTo(TransactionState.InstallStarted);
             Log($"Installing {_journal.StagedPath} to {_journal.TargetPath}");
 
-            bool moveOk = false;
-            try
+            bool moveOk = RetryFileAction(() =>
             {
                 File.Copy(_journal.StagedPath, _journal.TargetPath, overwrite: true);
-                moveOk = true;
+            });
+
+            if (moveOk)
+            {
                 Log("File.Copy to TargetPath succeeded.");
             }
-            catch (Exception copyEx)
+            else
             {
-                Log($"File.Copy failed: {copyEx.Message}. Attempting File.Move fallback.");
-                try
+                Log("File.Copy failed. Attempting File.Move fallback.");
+                moveOk = RetryFileAction(() =>
                 {
                     File.Move(_journal.StagedPath, _journal.TargetPath, overwrite: true);
-                    moveOk = true;
+                });
+
+                if (moveOk)
+                {
                     Log("File.Move to TargetPath succeeded.");
                 }
-                catch (Exception moveEx)
+                else
                 {
-                    Log($"File.Move failed: {moveEx.Message}. Attempting MoveFileEx fallback.");
+                    Log("File.Move failed. Attempting MoveFileEx fallback.");
                     moveOk = MoveFileExW(_journal.StagedPath, _journal.TargetPath, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
                 }
             }
@@ -172,7 +182,7 @@ public class UpdateTransactionCoordinator
             if (!moveOk)
             {
                 Log("File replacement failed. Rolling back.");
-                await RollbackAsync();
+                await RollbackAsync(null);
                 return false;
             }
 
@@ -180,7 +190,7 @@ public class UpdateTransactionCoordinator
             if (!File.Exists(_journal.TargetPath))
             {
                 Log("Installed file not found after replacement.");
-                await RollbackAsync();
+                await RollbackAsync(null);
                 return false;
             }
 
@@ -188,12 +198,16 @@ public class UpdateTransactionCoordinator
             if (_journal.ExpectedSizeBytes > 0 && Math.Abs(installedInfo.Length - _journal.ExpectedSizeBytes) > 1024)
             {
                 Log($"Installed file size mismatch: expected {_journal.ExpectedSizeBytes}, got {installedInfo.Length}.");
-                await RollbackAsync();
+                await RollbackAsync(null);
                 return false;
             }
 
             _journal.TransitionTo(TransactionState.Installed);
             Log("Binary installed successfully.");
+
+            // Create health handshake named event BEFORE launching updated binary
+            string eventName = $"Local\\Deltempo_Health_{_journal.TransactionId}";
+            using var healthEvent = new EventWaitHandle(false, EventResetMode.ManualReset, eventName);
 
             // Stage 13: Launch updated binary with --update-handshake
             Log("Launching updated binary with health handshake.");
@@ -205,25 +219,26 @@ public class UpdateTransactionCoordinator
                 WorkingDirectory = Path.GetDirectoryName(_journal.TargetPath) ?? ""
             };
 
+            Process? launchedProc = null;
             try
             {
-                Process.Start(psi);
+                launchedProc = Process.Start(psi);
             }
             catch (Exception ex)
             {
                 Log($"Failed to launch updated binary: {ex.Message}");
-                await RollbackAsync();
+                await RollbackAsync(null);
                 return false;
             }
 
             _journal.TransitionTo(TransactionState.Launched);
 
-            // Wait for health check signal
-            bool healthOk = await WaitForHealthCheckAsync(ct);
+            // Wait for health check signal (EventWaitHandle or health.signal file, monitoring for early crash)
+            bool healthOk = await WaitForHealthCheckAsync(healthEvent, launchedProc, ct);
             if (!healthOk)
             {
-                Log("Health check failed or timed out. Rolling back.");
-                await RollbackAsync();
+                Log("Health check failed, timed out, or process terminated prematurely. Rolling back.");
+                await RollbackAsync(launchedProc);
                 return false;
             }
 
@@ -231,6 +246,17 @@ public class UpdateTransactionCoordinator
             _journal.TransitionTo(TransactionState.HealthCheckPassed);
             _journal.TransitionTo(TransactionState.Committed);
             Log("Transaction committed successfully.");
+
+            // Clean up staged artifact immediately upon commit
+            try
+            {
+                if (File.Exists(_journal.StagedPath))
+                    File.Delete(_journal.StagedPath);
+                string stagedDir = Path.GetDirectoryName(_journal.StagedPath)!;
+                if (Directory.Exists(stagedDir) && Directory.GetFileSystemEntries(stagedDir).Length == 0)
+                    Directory.Delete(stagedDir);
+            }
+            catch { }
 
             // Schedule backup cleanup (delayed to avoid locking)
             _ = Task.Run(async () =>
@@ -259,6 +285,27 @@ public class UpdateTransactionCoordinator
         }
     }
 
+    private static bool RetryFileAction(Action action, int maxAttempts = 5, int delayMs = 200)
+    {
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                action();
+                return true;
+            }
+            catch (IOException) when (attempt < maxAttempts)
+            {
+                Thread.Sleep(delayMs);
+            }
+            catch (UnauthorizedAccessException) when (attempt < maxAttempts)
+            {
+                Thread.Sleep(delayMs);
+            }
+        }
+        return false;
+    }
+
     private async Task<bool> WaitForCallerExitAsync(CancellationToken ct)
     {
         if (_journal.CallerPid <= 0)
@@ -272,24 +319,26 @@ public class UpdateTransactionCoordinator
 
             try
             {
-                var proc = Process.GetProcessById(_journal.CallerPid);
+                using var proc = Process.GetProcessById(_journal.CallerPid);
                 if (proc.HasExited)
                 {
                     Log($"Caller process {_journal.CallerPid} has exited.");
+                    await Task.Delay(200, ct);
                     return true;
                 }
-                proc.Dispose();
             }
             catch (ArgumentException)
             {
                 // Process no longer exists
                 Log($"Caller process {_journal.CallerPid} no longer exists (exited).");
+                await Task.Delay(200, ct);
                 return true;
             }
             catch (InvalidOperationException)
             {
                 // Process has exited but PID slot still transitioning
                 Log($"Caller process {_journal.CallerPid} no longer accessible (exited).");
+                await Task.Delay(200, ct);
                 return true;
             }
 
@@ -299,7 +348,7 @@ public class UpdateTransactionCoordinator
         return false;
     }
 
-    private async Task<bool> WaitForHealthCheckAsync(CancellationToken ct)
+    private async Task<bool> WaitForHealthCheckAsync(EventWaitHandle? healthEvent, Process? launchedProc, CancellationToken ct)
     {
         string healthSignalPath = _journal.GetHealthSignalPath();
         var sw = Stopwatch.StartNew();
@@ -309,23 +358,90 @@ public class UpdateTransactionCoordinator
             if (ct.IsCancellationRequested)
                 return false;
 
-            // Check for health.signal file
+            // 1. Check EventWaitHandle signal
+            if (healthEvent != null)
+            {
+                try
+                {
+                    if (healthEvent.WaitOne(0))
+                    {
+                        Log("Health check EventWaitHandle signaled.");
+                        return true;
+                    }
+                }
+                catch { }
+            }
+
+            // 2. Check for health.signal file
             if (File.Exists(healthSignalPath))
             {
                 Log("Health signal file detected.");
                 return true;
             }
 
-            await Task.Delay(_pollInterval, ct);
+            // 3. Check if launched process exited prematurely without health signal
+            if (launchedProc != null)
+            {
+                try
+                {
+                    if (launchedProc.HasExited)
+                    {
+                        // Check one final time if file signal exists
+                        if (File.Exists(healthSignalPath))
+                        {
+                            Log("Health signal file detected upon process exit.");
+                            return true;
+                        }
+
+                        Log($"Launched process terminated prematurely with exit code {launchedProc.ExitCode}.");
+                        return false;
+                    }
+                }
+                catch { }
+            }
+
+            if (healthEvent != null)
+            {
+                int waitIndex = WaitHandle.WaitAny([healthEvent, ct.WaitHandle], _pollInterval);
+                if (waitIndex == 0)
+                {
+                    Log("Health check EventWaitHandle signaled during wait.");
+                    return true;
+                }
+            }
+            else
+            {
+                await Task.Delay(_pollInterval, ct);
+            }
         }
 
         return false;
     }
 
-    private Task RollbackAsync()
+    public Task RollbackAsync() => RollbackAsync(null);
+
+    private Task RollbackAsync(Process? launchedProc)
     {
         Log("Initiating rollback.");
         _journal.TransitionTo(TransactionState.RolledBack);
+
+        // Terminate unresponsive or crashing updated process to release locks on TargetPath
+        if (launchedProc != null)
+        {
+            try
+            {
+                if (!launchedProc.HasExited)
+                {
+                    Log($"Terminating launched process PID {launchedProc.Id} to release target binary file lock...");
+                    launchedProc.Kill(entireProcessTree: true);
+                    launchedProc.WaitForExit(3000);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"Warning: could not terminate launched process: {ex.Message}");
+            }
+        }
 
         string localOldPath = $"{_journal.TargetPath}.old";
         string? sourceBackup = File.Exists(localOldPath) ? localOldPath :
@@ -339,16 +455,20 @@ public class UpdateTransactionCoordinator
 
         try
         {
-            try
+            bool restored = RetryFileAction(() =>
             {
                 File.Copy(sourceBackup, _journal.TargetPath, overwrite: true);
-            }
-            catch
+            });
+
+            if (!restored)
             {
                 bool ok = MoveFileExW(sourceBackup, _journal.TargetPath, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
                 if (!ok)
                 {
-                    File.Move(sourceBackup, _journal.TargetPath, overwrite: true);
+                    RetryFileAction(() =>
+                    {
+                        File.Move(sourceBackup, _journal.TargetPath, overwrite: true);
+                    });
                 }
             }
 
