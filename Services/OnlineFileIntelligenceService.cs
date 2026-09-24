@@ -483,7 +483,7 @@ public static class OnlineFileIntelligenceService
         string? modelOverride,
         CancellationToken ct)
     {
-        string cleanEndpoint = (endpoint ?? "http://localhost:11434").TrimEnd('/');
+        string cleanEndpoint = (endpoint ?? "http://localhost:11434").TrimEnd('/'); // DevSkim: ignore DS162092
         string url = $"{cleanEndpoint}/api/generate";
         string model = string.IsNullOrWhiteSpace(modelOverride) ? "llama3" : modelOverride;
 
@@ -662,7 +662,7 @@ You MUST respond with pure JSON only matching this exact structure:
                     }
 
                 case "Ollama":
-                    string oEnd = (endpoint ?? "http://localhost:11434").TrimEnd('/');
+                    string oEnd = (endpoint ?? "http://localhost:11434").TrimEnd('/'); // DevSkim: ignore DS162092
                     var oResTest = await HttpClient.GetAsync($"{oEnd}/api/tags", cts.Token);
                     if (oResTest.IsSuccessStatusCode) return (true, $"Connected successfully to local Ollama instance at {oEnd}!");
                     return (false, $"Ollama responded with HTTP {oResTest.StatusCode}");

@@ -95,6 +95,24 @@ public class CleanerServiceTests : IDisposable
     }
 
     [Fact]
+    public void ResolveDeviceDriverDirectories_ContainsAllMajorVendorCaches()
+    {
+        var dirs = CleanerService.GetDeviceDriverDirectories();
+        Assert.NotEmpty(dirs);
+        Assert.Contains(dirs, d => d.Contains("Installer2", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(dirs, d => d.Contains("DriverStore", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(dirs, d => d.Contains("AMD", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(dirs, d => d.Contains("Intel", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task WindowsDriverMaintenanceService_CanExecuteWithoutCrashing()
+    {
+        var (success, message) = await WindowsDriverMaintenanceService.RunPnpDriverCleanAsync((msg, level) => { }, CancellationToken.None);
+        Assert.NotNull(message);
+    }
+
+    [Fact]
     public async Task CleanFolderAsync_DeletesOldFiles_AndProtectsRecentFilesUnder24Hours()
     {
         // Arrange

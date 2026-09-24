@@ -38,7 +38,7 @@ public static class PathSecurity
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"[PathSecurity] Canonicalization failed for '{path}': {ex.Message}");
+            Trace.WriteLine($"[PathSecurity] Canonicalization failed: {ex.Message}");
             return string.Empty;
         }
     }
@@ -95,7 +95,7 @@ public static class PathSecurity
         catch (Exception ex)
         {
             // If attributes cannot be read safely, treat as potentially hazardous reparse point
-            Trace.WriteLine($"[PathSecurity] Attribute read failed for '{path}': treating as reparse point ({ex.GetType().Name}: {ex.Message})");
+            Trace.WriteLine($"[PathSecurity] Attribute read failed: treating as reparse point ({ex.GetType().Name}: {ex.Message})");
             return true;
         }
 
@@ -114,7 +114,7 @@ public static class PathSecurity
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"[PathSecurity] Attribute read failed for '{info.FullName}': treating as reparse point ({ex.GetType().Name}: {ex.Message})");
+            Trace.WriteLine($"[PathSecurity] Attribute read failed: treating as reparse point ({ex.GetType().Name}: {ex.Message})");
             return true;
         }
     }
@@ -144,7 +144,7 @@ public static class PathSecurity
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"[PathSecurity] URI classification failed for '{trimmed}': {ex.Message}");
+            Trace.WriteLine($"[PathSecurity] URI classification failed: {ex.Message}");
         }
 
         return false;

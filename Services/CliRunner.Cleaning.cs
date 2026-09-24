@@ -223,7 +223,7 @@ public static partial class CliRunner
     {
         bool isJson = HasFlag(args, "--json", "-j");
         bool silent = HasFlag(args, "--silent", "-s");
-        bool safeMode = !HasFlag(args, "--unsafe");
+        bool safeMode = !HasFlag(args, "--unsafe"); // DevSkim: ignore DS172412
         string? filter = GetFilterKeyword(args, 1);
 
         var allTargets = ResolveTargets();
@@ -326,7 +326,7 @@ public static partial class CliRunner
             if (totalBytes > 0)
             {
                 Console.ForegroundColor = ConsoleColor.DarkCyan;
-                Console.WriteLine($"  💡 Tip: Run 'deltempo clean{(string.IsNullOrWhiteSpace(filter) ? "" : " " + filter)}' to purge ready caches, or 'deltempo clean --unsafe' to include all files.");
+                Console.WriteLine($"  💡 Tip: Run 'deltempo clean{(string.IsNullOrWhiteSpace(filter) ? "" : " " + filter)}' to purge ready caches, or 'deltempo clean --unsafe' to include all files."); // DevSkim: ignore DS172412
                 Console.ResetColor();
             }
         }
@@ -347,7 +347,7 @@ public static partial class CliRunner
     private static async Task<int> HandleCleanAsync(string[] args)
     {
         bool isJson = HasFlag(args, "--json", "-j");
-        bool safeMode = !HasFlag(args, "--unsafe");
+        bool safeMode = !HasFlag(args, "--unsafe"); // DevSkim: ignore DS172412
         bool cleanAll = HasFlag(args, "--all");
         bool smartOnly = HasFlag(args, "--smart", "--safe-only");
         bool sendToRecycle = HasFlag(args, "--recycle-bin", "--recycle", "-r");

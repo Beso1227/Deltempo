@@ -45,7 +45,7 @@ public class AppSettings
     public string AiProvider { get; set; } = "BuiltIn"; // "BuiltIn", "Gemini", "OpenAI", "Groq", "Ollama"
     public string AiApiKey { get; set; } = string.Empty;
     public string AiModelName { get; set; } = string.Empty;
-    public string AiOllamaEndpoint { get; set; } = "http://localhost:11434";
+    public string AiOllamaEndpoint { get; set; } = "http://localhost:11434"; // DevSkim: ignore DS162092
     public bool AutoQueryAiForLargeFiles { get; set; } = false;
 }
 

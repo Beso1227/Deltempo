@@ -1,0 +1,16 @@
+---
+exclude_paths:
+  - '**.ico'
+  - '**.png'
+  - '**.jpg'
+  - '**.jpeg'
+  - '**.gif'
+  - '**.webp'
+  - '**.mp4'
+  - '**.exe'
+  - '**.dll'
+  - '**.zip'
+  - 'docs/**'
+  - 'dist/**'
+  - 'artifacts/**'
+  - '.github/**'

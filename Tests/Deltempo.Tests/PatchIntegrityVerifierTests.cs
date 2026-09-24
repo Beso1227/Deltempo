@@ -78,7 +78,7 @@ public class PatchIntegrityVerifierTests : IDisposable
     public void VerifyStagedArtifact_HashMismatch_FailsClosed()
     {
         File.WriteAllText(_tempFile, "corrupted update content");
-        string expectedHash = "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd";
+        string expectedHash = "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd"; // DevSkim: ignore DS173237
 
         bool valid = PatchIntegrityVerifier.VerifyStagedArtifact(_tempFile, expectedHash, 100, out string reason);
         Assert.False(valid);

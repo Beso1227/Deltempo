@@ -70,7 +70,7 @@ public class UpdateServiceTests
         // HTTP instead of HTTPS
         await Assert.ThrowsAsync<System.Security.SecurityException>(async () =>
         {
-            await UpdateService.DownloadAndApplyUpdateAsync("http://github.com/Beso1227/Deltempo/releases/download/v1.3.5/Deltempo.exe", progress);
+            await UpdateService.DownloadAndApplyUpdateAsync("http://github.com/Beso1227/Deltempo/releases/download/v1.3.5/Deltempo.exe", progress); // DevSkim: ignore DS137138
         });
 
         // Untrusted domain

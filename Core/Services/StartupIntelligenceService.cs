@@ -301,7 +301,7 @@ Boot Impact: {item.ImpactText}";
 
     private static async Task<StartupAiReport> QueryOllamaAsync(StartupItem item, string endpoint, string? model, CancellationToken ct)
     {
-        string host = string.IsNullOrWhiteSpace(endpoint) ? "http://localhost:11434" : endpoint.TrimEnd('/');
+        string host = string.IsNullOrWhiteSpace(endpoint) ? "http://localhost:11434" : endpoint.TrimEnd('/'); // DevSkim: ignore DS162092
         string modelName = string.IsNullOrWhiteSpace(model) ? "llama3" : model.Trim();
         string url = $"{host}/api/chat";
 

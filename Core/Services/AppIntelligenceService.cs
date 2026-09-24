@@ -335,7 +335,7 @@ public static class AppIntelligenceService
         string? modelOverride,
         CancellationToken ct)
     {
-        string endpoint = string.IsNullOrWhiteSpace(endpointOverride) ? "http://localhost:11434" : endpointOverride.TrimEnd('/');
+        string endpoint = string.IsNullOrWhiteSpace(endpointOverride) ? "http://localhost:11434" : endpointOverride.TrimEnd('/'); // DevSkim: ignore DS162092
         string model = string.IsNullOrWhiteSpace(modelOverride) ? "llama3.2" : modelOverride;
         string url = $"{endpoint}/api/generate";
 

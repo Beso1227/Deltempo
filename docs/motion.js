@@ -527,7 +527,7 @@
         pulse.style.left = e.clientX + 'px';
         pulse.style.top = e.clientY + 'px';
         document.body.appendChild(pulse);
-        setTimeout(function () {
+        setTimeout(function () { // DevSkim: ignore DS172411
           if (pulse.parentNode) pulse.parentNode.removeChild(pulse);
         }, 550);
       },
@@ -791,11 +791,11 @@
         cleanBtn.disabled = true;
         cleanBtn.textContent = 'Cleaning...';
         scanDock.innerHTML = '<span class="status-pulse-green"></span> Purging verified caches & bottom-up empty directories...';
-        setTimeout(function () {
+        setTimeout(function () { // DevSkim: ignore DS172411
           junkTotal.textContent = '0 B';
           cleanBtn.textContent = 'Cleaned!';
           scanDock.innerHTML = '✓ Reclaimed 14.8 GB • 0 locked-file errors • System Clean';
-          setTimeout(function () {
+          setTimeout(function () { // DevSkim: ignore DS172411
             cleanBtn.textContent = 'Clean Verified Junk';
             cleanBtn.disabled = true;
           }, 3000);
@@ -830,7 +830,7 @@
             ramGauge.style.background = 'conic-gradient(var(--accent-emerald) 122.4deg, ' + trackBg + ' 0deg)';
             if (ramDetail) ramDetail.textContent = '5.4 GB / 16.0 GB (Flushed 6.8 GB Standby RAM)';
             boostBtn.textContent = '✓ RAM Boosted (-6.8 GB)';
-            setTimeout(function () {
+            setTimeout(function () { // DevSkim: ignore DS172411
               boostBtn.textContent = '1-Click Boost Memory';
               boostBtn.disabled = false;
             }, 3000);

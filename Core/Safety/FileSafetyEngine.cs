@@ -358,6 +358,26 @@ public static class FileSafetyEngine
                 impact: "Zero impact — driver is already installed.");
         }
 
+        // Hardware Driver Staging & Installer Caches (NVIDIA, AMD, Intel, DriverStore Temp)
+        if (pathLower.Contains(@"\nvidia corporation\installer2\") ||
+            pathLower.Contains(@"\nvidia corporation\downloader\") ||
+            pathLower.Contains(@"\nvidia app\updateframework\ota-artifacts\") ||
+            pathLower.Contains(@"\amd_radeon_software_installer\") ||
+            pathLower.Contains(@"\amd\packages\") ||
+            pathLower.Contains(@"\intel\package cache\") ||
+            pathLower.Contains(@"\driverstore\temp\"))
+        {
+            return CreateResult(
+                SafetyRiskTier.Safe,
+                95,
+                "SAFE (Hardware Driver Package Staging)",
+                "VERIFIED DRIVER CACHE",
+                $"Hardware driver installation and update staging artifact ({FormatBytes(sizeBytes)}). Safe to purge once installed.",
+                "DriverStagingPackageRule",
+                origin: "Hardware Driver Staging / Installer Cache",
+                impact: "Zero impact — driver is already installed.");
+        }
+
         return null;
     }
 

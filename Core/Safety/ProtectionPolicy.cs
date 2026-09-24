@@ -62,6 +62,30 @@ public static class ProtectionPolicy
         "storage.json", "state.vscdb", "session.db", "persistent.conf"
     };
 
+    private static readonly HashSet<string> ForbiddenSystemBinaryExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".dll", ".sys", ".exe", ".inf", ".cat", ".ocx", ".cpl", ".msc", ".drv", ".com", ".scr", ".efi"
+    };
+
+    private static readonly string[] PermittedSystem32SubdirectoryMarkers =
+    [
+        @"system32\driverstore\temp",
+        @"system32\driverstate",
+        @"system32\logfiles",
+        @"system32\winevt\logs"
+    ];
+
+    private static bool IsPermittedSystem32Subdirectory(string pathLower)
+    {
+        string normalized = pathLower.Replace('/', '\\');
+        foreach (var marker in PermittedSystem32SubdirectoryMarkers)
+        {
+            if (normalized.Contains(marker, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
+    }
+
     /// <summary>
     /// Checks if a given file path is classified as strictly PROTECTED.
     /// If true, the file CANNOT be deleted under any circumstances.
@@ -100,8 +124,24 @@ public static class ProtectionPolicy
         string winsxs = Path.Combine(winDir, "WinSxS");
         string boot = Path.Combine(winDir, "Boot");
 
-        if (PathSecurity.IsSubpathOf(path, system32) ||
-            PathSecurity.IsSubpathOf(path, syswow64) ||
+        if (PathSecurity.IsSubpathOf(path, system32))
+        {
+            if (IsPermittedSystem32Subdirectory(pathLower))
+            {
+                if (ForbiddenSystemBinaryExtensions.Contains(ext))
+                {
+                    matchedReason = "Protected Windows system binary/driver in system directory";
+                    return true;
+                }
+                // Permitted disposable staging/log subdirectory inside System32 - proceed to downstream evaluation
+            }
+            else
+            {
+                matchedReason = "Protected Windows kernel/system directory";
+                return true;
+            }
+        }
+        else if (PathSecurity.IsSubpathOf(path, syswow64) ||
             PathSecurity.IsSubpathOf(path, winsxs) ||
             PathSecurity.IsSubpathOf(path, boot) ||
             pathLower.Contains(@"\system volume information") ||
@@ -120,7 +160,7 @@ public static class ProtectionPolicy
         }
 
         // 4. Developer & System Credentials / SSH / Cloud Keys
-        if (IsDeveloperOrCloudCredentialPath(pathLower, fileName, ext))
+        if (IsDeveloperOrCloudCredentialPath(pathLower, fileName))
         {
             matchedReason = "Developer / SSH / Cloud authentication credential or key";
             return true;
@@ -192,7 +232,7 @@ public static class ProtectionPolicy
         if (string.IsNullOrEmpty(userProfile)) return false;
 
         string[] userProtectedDirs =
-        {
+        [
             Path.Combine(userProfile, "Documents"),
             Path.Combine(userProfile, "Desktop"),
             Path.Combine(userProfile, "Pictures"),
@@ -206,7 +246,7 @@ public static class ProtectionPolicy
             Path.Combine(userProfile, "Repos"),
             Path.Combine(userProfile, "Projects"),
             Path.Combine(userProfile, "OneDrive")
-        };
+        ];
 
         foreach (var dir in userProtectedDirs)
         {
@@ -219,7 +259,7 @@ public static class ProtectionPolicy
         return false;
     }
 
-    private static bool IsDeveloperOrCloudCredentialPath(string pathLower, string fileName, string ext)
+    private static bool IsDeveloperOrCloudCredentialPath(string pathLower, string fileName)
     {
         if (pathLower.Contains(@"\.ssh\") ||
             pathLower.Contains(@"\.gnupg\") ||
@@ -332,7 +372,7 @@ public static class ProtectionPolicy
     }
 
     private static readonly string[] PackageAndScriptCachePathMarkers =
-    {
+    [
         @"\npm-cache\",
         @"\pip\cache\",
         @"\yarn\cache\",
@@ -356,7 +396,7 @@ public static class ProtectionPolicy
         @"\code cache\wasm\",
         @"\gpucache\",
         @"\scriptcache\"
-    };
+    ];
 
     public static bool IsPackageOrScriptCachePath(string pathLower)
     {

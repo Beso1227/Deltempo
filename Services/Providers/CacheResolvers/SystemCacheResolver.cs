@@ -52,24 +52,44 @@ public static class SystemCacheResolver
         var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
         var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        var progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
         var rootDrive = Path.GetPathRoot(winDir) ?? @"C:\";
 
-        return new List<string>
+        var dirs = new List<string>
         {
+            // NVIDIA installer packages, OTA framework and staging
+            Path.Combine(progFiles, "NVIDIA Corporation", "Installer2"),
+            Path.Combine(progFilesX86, "NVIDIA Corporation", "Installer2"),
             Path.Combine(progData, "NVIDIA Corporation", "NVIDIA App", "UpdateFramework", "ota-artifacts"),
             Path.Combine(progData, "NVIDIA Corporation", "Downloader"),
+            Path.Combine(progData, "NVIDIA Corporation", "GeForce Experience", "Download"),
             Path.Combine(progData, "NVIDIA", "Updates"),
+            Path.Combine(progData, "NVIDIA", "DisplayDriver"),
             Path.Combine(progData, "NVIDIA Corporation", "NetService"),
-            Path.Combine(progData, "AMD"),
-            Path.Combine(progData, "Intel"),
             Path.Combine(rootDrive, "NVIDIA", "DisplayDriver"),
+
+            // AMD packages, installers, DVR and shader caches
             Path.Combine(rootDrive, "AMD", "Packages"),
-            Path.Combine(rootDrive, "Intel", "Logs"),
+            Path.Combine(rootDrive, "AMD", "AMD_Radeon_Software_Installer"),
+            Path.Combine(progData, "AMD"),
+            Path.Combine(progData, "AMD", "DVR"),
             Path.Combine(localAppData, "AMD", "DxCache"),
             Path.Combine(localAppData, "AMD", "DVR"),
+
+            // Intel GFX installers, package caches and logs
+            Path.Combine(rootDrive, "Intel", "GFX"),
+            Path.Combine(rootDrive, "Intel", "Logs"),
+            Path.Combine(progData, "Intel"),
+            Path.Combine(progData, "Intel", "Package Cache"),
+            Path.Combine(progData, "Intel", "Logs"),
+
+            // Windows System32 DriverStore Temp & Staging
             Path.Combine(winDir, "System32", "DriverStore", "Temp"),
             Path.Combine(winDir, "System32", "DriverState")
         };
+
+        return dirs.Where(d => !string.IsNullOrWhiteSpace(d)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 
     public static List<string> ResolveDefenderDirectories()

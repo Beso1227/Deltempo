@@ -243,7 +243,7 @@ public static partial class CliRunner
         Console.ResetColor();
         PrintOptRow("--smart, --safe-only", "Target only 100% safe disposable caches (skip orphaned apps)");
         PrintOptRow("--recycle-bin, -r", "Send deleted files to the Windows Recycle Bin (undoable)");
-        PrintOptRow("--unsafe", "Disable 24-hour file modification protection (enabled by default)");
+        PrintOptRow("--unsafe", "Disable 24-hour file modification protection (enabled by default)"); // DevSkim: ignore DS172412
         PrintOptRow("--dry-run, -d", "Simulate clean actions without deleting any files");
         PrintOptRow("--yes, -y", "Bypass interactive confirmation prompts (for scripts/CI)");
         PrintOptRow("--json, -j", "Output results in structured machine-readable JSON");

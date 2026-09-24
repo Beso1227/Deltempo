@@ -156,4 +156,24 @@ public class FileSafetyEngineTests
         Assert.Equal("ExplorerThumbnailCacheRule", result.MatchedRule);
         Assert.Contains("Thumbnail", result.Verdict);
     }
+
+    [Theory]
+    [InlineData(@"C:\Program Files\NVIDIA Corporation\Installer2\Display.Driver\nvdisp.nvi")]
+    [InlineData(@"C:\ProgramData\NVIDIA Corporation\Downloader\latest_driver.exe")]
+    [InlineData(@"C:\Windows\System32\DriverStore\Temp\scratch.tmp")]
+    public void FileSafetyEngine_DriverPackageStaging_ClassifiedAsSafe(string path)
+    {
+        var result = FileSafetyEngine.Analyze(
+            path,
+            fileName: Path.GetFileName(path),
+            category: "System & Drivers",
+            sizeBytes: 1024 * 1024,
+            lastModified: DateTime.UtcNow.AddDays(-3),
+            allowedRoot: Path.GetDirectoryName(path));
+
+        Assert.Equal(SafetyRiskTier.Safe, result.Tier);
+        Assert.StartsWith("SAFE (Hardware Driver Package Staging)", result.Verdict);
+        Assert.Equal("DriverStagingPackageRule", result.MatchedRule);
+    }
 }
+

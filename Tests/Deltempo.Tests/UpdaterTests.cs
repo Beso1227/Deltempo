@@ -26,7 +26,7 @@ public class UpdateManifestTests
             Artifact = new UpdateArtifactInfo
             {
                 Name = "Deltempo.exe",
-                Sha256 = "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+                Sha256 = "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd", // DevSkim: ignore DS173237
                 SizeBytes = 52428800,
                 DownloadUrl = "https://github.com/Beso1227/Deltempo/releases/download/v1.3.3/Deltempo.exe"
             }
@@ -410,7 +410,7 @@ public class TransactionJournalTests : IDisposable
             CommitSha = "abc1234",
             TargetPath = @"C:\test\Deltempo.exe",
             BackupPath = @"C:\test\Deltempo.exe.old",
-            ExpectedSha256 = "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+            ExpectedSha256 = "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890", // DevSkim: ignore DS173237
             ExpectedSizeBytes = 52428800,
             CallerPid = 12345
         };
@@ -446,10 +446,10 @@ public class TransactionJournalTests : IDisposable
                         "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb  deltempo_cli.exe";
 
         string hash = UpdateService.ParseSha256FromChecksums(sample, "Deltempo.exe");
-        Assert.Equal("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", hash);
+        Assert.Equal("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", hash); // DevSkim: ignore DS173237
 
         string cliHash = UpdateService.ParseSha256FromChecksums(sample, "deltempo_cli.exe");
-        Assert.Equal("ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb", cliHash);
+        Assert.Equal("ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb", cliHash); // DevSkim: ignore DS173237
 
         string missing = UpdateService.ParseSha256FromChecksums(sample, "NonExistent.exe");
         Assert.Empty(missing);
@@ -472,7 +472,7 @@ public class UpdateSecurityValidatorUrlTests
     }
 
     [Theory]
-    [InlineData("http://github.com/Beso1227/Deltempo/releases/download/v1.3.3/Deltempo.exe", false)]
+    [InlineData("http://github.com/Beso1227/Deltempo/releases/download/v1.3.3/Deltempo.exe", false)] // DevSkim: ignore DS137138
     [InlineData("https://evil.com/Beso1227/Deltempo/releases/download/v1.3.3/Deltempo.exe", false)]
     [InlineData("https://github.com/attacker/Deltempo/releases/download/v1.3.3/Deltempo.exe", false)]
     [InlineData("https://github.com/Beso1227/Deltempo/releases/download/v1.3.3/malware.exe", false)]

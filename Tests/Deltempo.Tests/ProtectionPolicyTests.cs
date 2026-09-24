@@ -32,6 +32,24 @@ public class ProtectionPolicyTests
     }
 
     [Theory]
+    [InlineData(@"C:\Windows\System32\DriverStore\Temp\setup.log", false)]
+    [InlineData(@"C:\Windows\System32\DriverStore\Temp\staging.tmp", false)]
+    [InlineData(@"C:\Windows\System32\DriverState\cache.dat", false)]
+    [InlineData(@"C:\Windows\System32\DriverStore\Temp\driver.sys", true)]
+    [InlineData(@"C:\Windows\System32\DriverStore\Temp\installer.exe", true)]
+    [InlineData(@"C:\Windows\System32\DriverStore\Temp\payload.dll", true)]
+    [InlineData(@"C:\Windows\System32\DriverStore\Temp\driver.inf", true)]
+    [InlineData(@"C:\Windows\System32\DriverStore\Temp\catalog.cat", true)]
+    [InlineData(@"C:\Windows\System32\DriverStore\FileRepository\nv_dispi.inf_amd64\nv_dispi.inf", true)]
+    [InlineData(@"C:\Windows\System32\drivers\etc\hosts", true)]
+    [InlineData(@"C:\Windows\System32\kernel32.dll", true)]
+    public void ProtectionPolicy_System32SubpathSafety_HandlesSafeExceptionsCorrectly(string path, bool expectedProtected)
+    {
+        bool isProtected = ProtectionPolicy.IsProtected(path, out _);
+        Assert.Equal(expectedProtected, isProtected);
+    }
+
+    [Theory]
     [InlineData(@"C:\Users\user\.ssh\id_rsa")]
     [InlineData(@"C:\Users\user\.ssh\id_ed25519")]
     [InlineData(@"C:\Users\user\.ssh\known_hosts")]

@@ -41,6 +41,10 @@ jobs:
         uses: actions/checkout@v4
       # This step creates the Checkmarx One scan
       - name: Checkmarx One scan
+        if: env.CX_CLIENT_ID != '' && env.CX_CLIENT_SECRET != ''
+        env:
+          CX_CLIENT_ID: ${{ secrets.CX_CLIENT_ID }}
+          CX_CLIENT_SECRET: ${{ secrets.CX_CLIENT_SECRET }}
         uses: checkmarx/ast-github-action@8e887bb93dacc44e0f5b64ee2b06d5815f89d4fc
         with:
           base_uri: https://ast.checkmarx.net  # This should be replaced by your base uri for Checkmarx One
@@ -49,6 +53,7 @@ jobs:
           cx_tenant: ${{ secrets.CX_TENANT }} # This should be replaced by your tenant for Checkmarx One
           additional_params: --report-format sarif --output-path .
       - name: Upload SARIF file
+        if: hashFiles('cx_result.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           # Path to SARIF file relative to the root of the repository

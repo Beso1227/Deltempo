@@ -209,7 +209,7 @@ public partial class MainWindow
             }
             s.AiModelName = SettingsAiModelBox.Text.Trim();
             s.AiOllamaEndpoint = string.IsNullOrWhiteSpace(SettingsAiOllamaEndpointBox.Text)
-                ? "http://localhost:11434"
+                ? "http://localhost:11434" // DevSkim: ignore DS162092
                 : SettingsAiOllamaEndpointBox.Text.Trim();
         });
 

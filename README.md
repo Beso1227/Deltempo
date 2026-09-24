@@ -42,12 +42,9 @@
 
   <br />
 
-  <a href="https://github.com/Beso1227/Deltempo/blob/main/docs/deltempo.mp4" title="Click to watch full 1080p showcase video in GitHub player">
-    <img src="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/deltempo_preview.gif" alt="Deltempo Product Showcase Video Preview" width="100%" />
-  </a>
+  <video src="https://github.com/user-attachments/assets/5d5f1df1-719b-4ee2-a578-42a90b15de88" controls="controls" width="100%"></video>
   <p>
     <sub>🎬 <strong>Deltempo Product Showcase Video</strong> (34s · 1080p · 30fps) —
-      <a href="https://github.com/Beso1227/Deltempo/blob/main/docs/deltempo.mp4"><strong>▶️ Play in GitHub Video Player</strong></a> •
       <a href="https://beso1227.github.io/Deltempo/#video"><strong>🌐 Play on Official Website</strong></a> •
       <a href="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/deltempo.mp4"><strong>⬇️ Download MP4</strong></a>
     </sub>

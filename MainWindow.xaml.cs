@@ -507,7 +507,7 @@ public partial class MainWindow : Window
         SettingsAiApiKeyPasswordBox.Password = SettingsService.Current.AiApiKey;
         SettingsAiModelBox.Text = SettingsService.Current.AiModelName;
         SettingsAiOllamaEndpointBox.Text = string.IsNullOrWhiteSpace(SettingsService.Current.AiOllamaEndpoint)
-            ? "http://localhost:11434"
+            ? "http://localhost:11434" // DevSkim: ignore DS162092
             : SettingsService.Current.AiOllamaEndpoint;
         UpdateAiSettingsUiVisibility();
         SettingsAiTestStatusText.Text = $"Ready. Cached local AI reports: {OnlineFileIntelligenceService.GetCacheCount()} files.";
@@ -564,7 +564,7 @@ public partial class MainWindow : Window
     {
         var telemetry = DriveTelemetryService.GetSystemDriveTelemetry();
         string osLabel = LocalizationService.Get("DriveOsLabel");
-        DriveTelemetryLabel.Text = osLabel.Contains("C:") 
+        DriveTelemetryLabel.Text = osLabel.Contains("C:")
             ? osLabel.Replace("C:", telemetry.DriveLetter.TrimEnd('\\'))
             : $"{osLabel} ({telemetry.DriveLetter})";
         DriveTelemetryPercentage.Text = $"{telemetry.FreePercentage:F1}% {LocalizationService.Get("DriveFree")}";

@@ -1065,23 +1065,37 @@ public partial class CleanerService
                 }
             }
 
+            // Execute Windows Plug-and-Play Driver Maintenance if Device Driver Packages is cleaned
+            if (folder.Id == "DeviceDriverPackages" && ElevationService.IsRunAsAdmin())
+            {
+                try
+                {
+                    await WindowsDriverMaintenanceService.RunPnpDriverCleanAsync(logAction, ct).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    logAction?.Invoke($"Note during PnP driver maintenance: {ex.Message}", LogLevel.Warning);
+                }
+            }
+
+
             UiInvoke(() => folder.SizeBytes = Math.Max(0, folder.SizeBytes - freedBytes));
             UiInvoke(() => folder.FileCount = Math.Max(0, folder.FileCount - filesDeleted));
 
             if (freedBytes > 0)
             {
                 UiInvoke(() => folder.StatusMessage = $"Reclaimed: {TargetFolderInfo.FormatBytes(freedBytes)}");
-                logAction($"Cleaned {folder.Name}: {TargetFolderInfo.FormatBytes(freedBytes)} reclaimed ({filesDeleted:N0} files deleted, {filesSkipped:N0} skipped/protected/failed)", LogLevel.Success);
+                logAction?.Invoke($"Cleaned {folder.Name}: {TargetFolderInfo.FormatBytes(freedBytes)} reclaimed ({filesDeleted:N0} files deleted, {filesSkipped:N0} skipped/protected/failed)", LogLevel.Success);
             }
             else if (filesSkipped > 0)
             {
                 UiInvoke(() => folder.StatusMessage = $"Protected ({filesSkipped:N0} items)");
-                logAction($"Protected {folder.Name}: {filesSkipped:N0} files skipped by safety engine, protection policy, or verification", LogLevel.Info);
+                logAction?.Invoke($"Protected {folder.Name}: {filesSkipped:N0} files skipped by safety engine, protection policy, or verification", LogLevel.Info);
             }
             else
             {
                 UiInvoke(() => folder.StatusMessage = "Already Clean (0 B)");
-                logAction($"Checked {folder.Name}: Already clean (0 bytes)", LogLevel.Info);
+                logAction?.Invoke($"Checked {folder.Name}: Already clean (0 bytes)", LogLevel.Info);
             }
 
             UiInvoke(() => folder.IsCleaning = false);
