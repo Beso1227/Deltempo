@@ -1,5 +1,5 @@
 param (
-    [string]$Tag = "v1.8.0",
+    [string]$Tag = "v1.8.0.1",
     [string]$ReleaseName = "1.8.0",
     [string]$Repo = "Beso1227/Deltempo"
 )
@@ -25,36 +25,31 @@ $headers = @{
     "Accept" = "application/vnd.github.v3+json"
 }
 
-$checksumContent = (Get-Content "dist\checksums.sha256" -Raw).Trim()
-
-$bodyText = "## Deltempo v1.8.0 — UI/UX Overhaul, Deep Multi-Drive Root Leftovers & Windows RestartManager`n`n" +
-"Deltempo v1.8.0 delivers an elevated visual overhaul, deep root residual detection across all fixed storage drives, intelligent orphan application cleanup, and native Windows RestartManager integration for zero-reboot uninstallation.`n`n" +
+$bodyText = "## Deltempo 1.8.0 — Frosted Glass UI/UX, Deep Multi-Drive Root Leftovers & Windows RestartManager`n`n" +
+"Deltempo 1.8.0 delivers an elevated visual overhaul, deep root residual detection across all fixed storage drives, intelligent orphan application cleanup, and native Windows RestartManager integration for zero-reboot uninstallation.`n`n" +
 "---`n`n" +
-"### Highlights in v1.8.0`n`n" +
-"- 🎨 **Frosted Glass UI/UX Redesign:**`n" +
-"  - Modernized title bar navigation island with unified pill-style segmented tool switchers.`n" +
-"  - Elevated double-bezel cards with hairline top glass highlights and refined drop shadows.`n" +
-"  - 34pt high-visibility tabular figures for Hero, Drive C:, and RAM telemetry.`n" +
-"  - Tactile interactive filter chips and safety status badges.`n`n" +
-"- 🛡️ **Multi-Drive Deep Root Residual Cleaner:**`n" +
-"  - Expanded filesystem trace scanning across all mounted fixed drives (C:, D:, etc.) including Root, Program Files, ProgramData, AppData Local, AppData Roaming, and AppData LocalLow.`n" +
-"  - Comprehensive registry remnant sweeps across 32-bit and 64-bit hive paths.`n`n" +
-"- 🔍 **Orphaned & Broken Application Heuristics:**`n" +
-"  - Automatic detection of abandoned program installations with missing registry keys, corrupted uninstall strings, or broken executable paths.`n" +
-"  - Safe 1-click purge with quarantine vault backup protection.`n`n" +
-"- ⚡ **Windows RestartManager Zero-Reboot Engine:**`n" +
-"  - P/Invoke integration with native Win32 RestartManager (RmStartSession, RmRegisterResources, RmGetList, RmShutdown).`n" +
-"  - Gracefully terminates or prompts locking processes before uninstallation or leftover cleanup to prevent forced system reboots.`n`n" +
-"- 📦 **Quarantine Vault Architecture:**`n" +
-"  - Transactional pre-purge ZIP backups saved to LocalAppData with instant 1-click restoration.`n`n" +
-"- ✅ **Verification & Quality:**`n" +
-"  - 640 automated tests passing with 100% success rate.`n" +
-"  - Compiled under TreatWarningsAsErrors with zero compiler warnings.`n`n" +
-"---`n`n" +
-"### SHA-256 Checksums`n``````n$checksumContent`n``````n"
+"### 🎨 Frosted Glass UI/UX Redesign`n" +
+"- Modernized title bar navigation island with unified pill-style segmented tool switchers.`n" +
+"- Elevated double-bezel cards with hairline top glass highlights, calibrated borders, and refined drop shadows.`n" +
+"- 34pt high-visibility tabular figures for Hero, Drive C:, and RAM telemetry.`n" +
+"- Tactile interactive filter chips and safety status badges.`n`n" +
+"### 🛡️ Multi-Drive Deep Root Residual Cleaner`n" +
+"- Expanded filesystem trace scanning across all mounted fixed drives (C:, D:, etc.) including Root, Program Files, ProgramData, AppData Local, AppData Roaming, and AppData LocalLow.`n" +
+"- Comprehensive registry remnant sweeps across 32-bit and 64-bit hive paths.`n`n" +
+"### 🔍 Orphaned & Broken Application Heuristics`n" +
+"- Automatic detection of abandoned program installations with missing registry keys, corrupted uninstall strings, or broken executable paths.`n" +
+"- Safe 1-click purge with quarantine vault backup protection.`n`n" +
+"### ⚡ Windows RestartManager Zero-Reboot Engine`n" +
+"- Native Win32 RestartManager integration (RmStartSession, RmRegisterResources, RmGetList, RmShutdown).`n" +
+"- Detects locking processes before uninstallation or leftover cleanup, gracefully terminating or prompting to prevent forced system reboots.`n`n" +
+"### 📦 Quarantine Vault Architecture`n" +
+"- Transactional pre-purge ZIP backups saved to LocalAppData with instant 1-click restoration.`n`n" +
+"### ✅ Verification & Quality`n" +
+"- 640 automated tests passing with 100% success rate.`n" +
+"- Compiled under TreatWarningsAsErrors with zero compiler warnings.`n"
 
 # Step 1: Create as draft
-Write-Host "Creating draft release for $Tag..." -ForegroundColor Cyan
+Write-Host "Creating draft release for $Tag ($ReleaseName)..." -ForegroundColor Cyan
 $postData = @{
     tag_name = $Tag
     target_commitish = "main"
@@ -68,7 +63,7 @@ $draftRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/relea
 $releaseId = $draftRelease.id
 Write-Host "Draft Release created: ID $releaseId" -ForegroundColor Green
 
-# Step 2: Upload assets
+# Step 2: Upload assets (Deltempo.exe and deltempo_cli.exe ONLY)
 function Upload-Asset($filePath, $contentType) {
     if (-not (Test-Path $filePath)) {
         Write-Error "File not found: $filePath"
@@ -91,7 +86,6 @@ function Upload-Asset($filePath, $contentType) {
 
 Upload-Asset "dist\Deltempo.exe" "application/vnd.microsoft.portable-executable"
 Upload-Asset "dist\deltempo_cli.exe" "application/vnd.microsoft.portable-executable"
-Upload-Asset "dist\checksums.sha256" "text/plain"
 
 # Step 3: Publish release (draft = false)
 Write-Host "Publishing release $Tag..." -ForegroundColor Cyan
