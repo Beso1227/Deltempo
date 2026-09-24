@@ -107,7 +107,7 @@ jobs:
           Write-Host "Binaries signed successfully."
 
       - name: Delete Existing Assets (idempotent re-runs)
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const tag = "${{ steps.tag.outputs.value }}";
