@@ -165,4 +165,17 @@ public static class RestartManagerService
             return false;
         }
     }
+
+    public static readonly HashSet<string> ProtectedSystemProcessNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "system", "smss", "csrss", "wininit", "services", "lsass", "svchost", "fontdrvhost",
+        "winlogon", "explorer", "dwm", "sihost", "taskhostw", "RuntimeBroker", "SearchHost",
+        "StartMenuExperienceHost", "ShellExperienceHost", "Deltempo", "deltempo_cli"
+    };
+
+    public static bool IsProtectedSystemProcess(string processName)
+    {
+        if (string.IsNullOrWhiteSpace(processName)) return false;
+        return ProtectedSystemProcessNames.Contains(processName);
+    }
 }

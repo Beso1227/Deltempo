@@ -697,7 +697,12 @@ public static class InstalledAppService
         // Modern Windows Store / AppX / MSIX Package uninstallation
         if (app.IsWindowsStoreApp && !string.IsNullOrWhiteSpace(app.PackageFullName))
         {
-            return await UninstallAppxPackageAsync(app.PackageFullName);
+            bool appxSuccess = await UninstallAppxPackageAsync(app.PackageFullName);
+            if (appxSuccess)
+            {
+                await TerminateAppProcessesAsync(app);
+            }
+            return appxSuccess;
         }
 
         string cmd = silent && !string.IsNullOrWhiteSpace(app.QuietUninstallString)
@@ -706,7 +711,7 @@ public static class InstalledAppService
 
         if (string.IsNullOrWhiteSpace(cmd)) return false;
 
-        return await Task.Run(() =>
+        bool result = await Task.Run(() =>
         {
             try
             {
@@ -780,6 +785,14 @@ public static class InstalledAppService
                 return false;
             }
         });
+
+        // Terminate any lingering background helper/updater/tray processes left behind by the uninstaller
+        if (result)
+        {
+            await TerminateAppProcessesAsync(app);
+        }
+
+        return result;
     }
 
     public static async Task<bool> UninstallAppxPackageAsync(string packageFullName)

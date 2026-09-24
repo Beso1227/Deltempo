@@ -418,6 +418,9 @@ public partial class AppUninstallModal : UserControl
                 }
             }
 
+            StatusFooterText.Text = $"Capturing pre-uninstall trace snapshot for {app.DisplayName}...";
+            var snapshot = await RootLeftoverScannerService.CreateSnapshotAsync(app);
+
             StatusFooterText.Text = $"Terminating background processes and launching uninstaller for {app.DisplayName}...";
             LogRequested?.Invoke($"[App Uninstaller] Initiating deep uninstall for {app.DisplayName} ({app.UninstallEngine})...", LogLevel.Info);
 
@@ -426,7 +429,7 @@ public partial class AppUninstallModal : UserControl
             {
                 StatusFooterText.Text = $"Official uninstaller finished. Scanning roots for leftover traces...";
                 LogRequested?.Invoke($"[App Uninstaller] Uninstaller process exited. Scanning root remnants...", LogLevel.Info);
-                await InspectAppTracesAsync(app);
+                await InspectAppTracesAsync(app, snapshot);
             }
             else
             {
@@ -436,7 +439,7 @@ public partial class AppUninstallModal : UserControl
         }
     }
 
-    private async Task InspectAppTracesAsync(InstalledAppItem app)
+    private async Task InspectAppTracesAsync(InstalledAppItem app, AppTraceSnapshot? snapshot = null)
     {
         _currentInspectedApp = app;
         RootDrawerTitle.Text = $"Root Remnants: {app.DisplayName}";
@@ -445,7 +448,7 @@ public partial class AppUninstallModal : UserControl
         RootLeftoversDrawer.Visibility = Visibility.Visible;
         StatusFooterText.Text = $"Scanning registry, user profile, and system folders for {app.DisplayName}...";
 
-        var result = await RootLeftoverScannerService.ScanAppTracesAsync(app);
+        var result = await RootLeftoverScannerService.ScanAppTracesAsync(app, snapshot);
         _currentScanResult = result;
 
         RootReclaimableSizeBadge.Text = $"{result.FormattedTotalSize} ({result.Items.Count} Traces)";
@@ -466,7 +469,7 @@ public partial class AppUninstallModal : UserControl
                 queryable = queryable.Where(i => i.Type == LeftoverType.File || i.Type == LeftoverType.Directory);
                 break;
             case "Registry":
-                queryable = queryable.Where(i => i.Type == LeftoverType.RegistryKey || i.Type == LeftoverType.RegistryValue);
+                queryable = queryable.Where(i => i.Type == LeftoverType.RegistryKey || i.Type == LeftoverType.RegistryValue || i.Type == LeftoverType.EnvironmentPath);
                 break;
             case "Shortcuts":
                 queryable = queryable.Where(i => i.Type == LeftoverType.Shortcut || i.Type == LeftoverType.Service || i.Type == LeftoverType.ScheduledTask);

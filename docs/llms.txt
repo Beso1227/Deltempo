@@ -7,7 +7,7 @@
 - [Download](https://beso1227.github.io/Deltempo/download/): Standalone executable and WinGet installation
 - [Documentation](https://beso1227.github.io/Deltempo/docs/): Technical guide to 26+ scopes, safety tiers, and CLI commands
 - [FAQ](https://beso1227.github.io/Deltempo/faq/): Common questions on safety, GPU caches, NT memory, duplicate finder, and app uninstallation
-- [Changelog](https://beso1227.github.io/Deltempo/changelog/): Release notes and version history (including v1.7.5)
+- [Changelog](https://beso1227.github.io/Deltempo/changelog/): Release notes and version history (including v1.8.0)
 
 ## Overview
 Deltempo safely purges disposable system, developer, and browser caches, recovers gigabytes of disk space, thoroughly uninstalls desktop programs with leftover cleanup, detects byte-level duplicate files, provides an interactive storage treemap, provides startup intelligence, and trims inactive Windows memory working sets with zero telemetry.
@@ -20,7 +20,7 @@ Package identifier for Microsoft WinGet: `winget install Beso1227.Deltempo`
 - **Volume Shadow Copy (VSS) & Restore Point Manager**: Enumerate restore points, generate checkpoints before operations, and safely prune obsolete snapshots based on retention limits.
 - **Scheduled Maintenance Automation & Explorer Context Menu**: Windows Task Scheduler integration for automated unattended cleanups and right-click folder cleaning directly in Windows File Explorer.
 - **Low Disk Shield & Tray Guardian**: Proactive background tray telemetry alerts when free disk space falls below safety thresholds.
-- **Deep Root App Uninstaller (v1.7.5)**: Powered by BCU engine; performs silent bulk removals, registry and AppData leftover sweeps, and force-removals of corrupt/broken software.
+- **Deep Root App Uninstaller (v1.8.0)**: Powered by BCU engine; performs silent bulk removals, multi-drive root residual sweeps, registry and AppData leftover cleanup, and force-removals of corrupt/broken software.
 - **Optional System Restore Points**: Pre-uninstall restore point creation is an optional toggle, turned off by default to conserve disk and avoid freezes.
 - **Application & Startup Intelligence**: Answers "Will anything go wrong if I disable or uninstall this?" with 3-tier verdicts (SafeToDisable, CautionNeeded, EssentialKeep), offline heuristics, and multi-provider AI support (OpenAI, Anthropic, Gemini, Groq, OpenRouter, Ollama, LM Studio).
 - **Process Manager with Native Icons**: Real-time process inspection with live high-DPI icon extraction from running executables.

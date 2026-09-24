@@ -18,7 +18,8 @@ public enum LeftoverType
     RegistryValue,
     Shortcut,
     Service,
-    ScheduledTask
+    ScheduledTask,
+    EnvironmentPath
 }
 
 public enum LeftoverConfidence
@@ -35,6 +36,7 @@ public class LeftoverItem
     public string PathOrKey { get; set; } = string.Empty;
     public string SubKeyOrValueName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string? TargetPath { get; set; }
     public long SizeBytes { get; set; }
     public string FormattedSize => SizeBytes > 0 ? TargetFolderInfo.FormatBytes(SizeBytes) : string.Empty;
     public LeftoverConfidence Confidence { get; set; } = LeftoverConfidence.High;
@@ -49,6 +51,7 @@ public class LeftoverItem
         LeftoverType.Shortcut => "Shortcut",
         LeftoverType.Service => "Service",
         LeftoverType.ScheduledTask => "Task",
+        LeftoverType.EnvironmentPath => "Environment PATH",
         _ => "Item"
     };
 
@@ -61,8 +64,18 @@ public class LeftoverItem
         LeftoverType.Shortcut => "\uE71B",
         LeftoverType.Service => "\uE9F5",
         LeftoverType.ScheduledTask => "\uE823",
+        LeftoverType.EnvironmentPath => "\uE756",
         _ => "\uE74D"
     };
+}
+
+public class AppTraceSnapshot
+{
+    public string AppName { get; set; } = string.Empty;
+    public string InstallLocation { get; set; } = string.Empty;
+    public HashSet<string> ExistingFiles { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public HashSet<string> ExistingRegistryKeys { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public DateTime CapturedAtUtc { get; set; } = DateTime.UtcNow;
 }
 
 public class RootScanResult
@@ -72,7 +85,7 @@ public class RootScanResult
     public long TotalSizeBytes => Items.Where(i => i.IsSelected).Sum(i => i.SizeBytes);
     public string FormattedTotalSize => TargetFolderInfo.FormatBytes(TotalSizeBytes);
     public int FileFolderCount => Items.Count(i => i.Type == LeftoverType.File || i.Type == LeftoverType.Directory);
-    public int RegistryCount => Items.Count(i => i.Type == LeftoverType.RegistryKey || i.Type == LeftoverType.RegistryValue);
+    public int RegistryCount => Items.Count(i => i.Type == LeftoverType.RegistryKey || i.Type == LeftoverType.RegistryValue || i.Type == LeftoverType.EnvironmentPath);
     public int ShortcutCount => Items.Count(i => i.Type == LeftoverType.Shortcut);
     public int SystemCount => Items.Count(i => i.Type == LeftoverType.Service || i.Type == LeftoverType.ScheduledTask);
 }
@@ -97,9 +110,46 @@ public static class RootLeftoverScannerService
     };
 
     /// <summary>
-    /// Scans the system across file system, registry, shortcuts, and services for root leftovers of the specified application.
+    /// Captures a lightweight pre-uninstall snapshot of files and registry keys associated with the application.
+    /// Used for differential residual comparison after official uninstaller execution.
     /// </summary>
-    public static async Task<RootScanResult> ScanAppTracesAsync(InstalledAppItem app, CancellationToken ct = default)
+    public static async Task<AppTraceSnapshot> CreateSnapshotAsync(InstalledAppItem app, CancellationToken ct = default)
+    {
+        return await Task.Run(() =>
+        {
+            var snapshot = new AppTraceSnapshot
+            {
+                AppName = app.DisplayName,
+                InstallLocation = app.InstallLocation
+            };
+
+            if (!string.IsNullOrWhiteSpace(app.InstallLocation) && Directory.Exists(app.InstallLocation))
+            {
+                try
+                {
+                    foreach (var file in Directory.EnumerateFiles(app.InstallLocation, "*", SearchOption.AllDirectories))
+                    {
+                        if (ct.IsCancellationRequested) break;
+                        snapshot.ExistingFiles.Add(file);
+                    }
+                }
+                catch { }
+            }
+
+            if (!string.IsNullOrWhiteSpace(app.RegistryKeyPath))
+            {
+                snapshot.ExistingRegistryKeys.Add(app.RegistryKeyPath);
+            }
+
+            return snapshot;
+        }, ct);
+    }
+
+    /// <summary>
+    /// Scans the system across 12 distinct vectors for root leftovers of the specified application.
+    /// Supports pre-uninstall snapshot comparison to identify unremoved residuals with high precision.
+    /// </summary>
+    public static async Task<RootScanResult> ScanAppTracesAsync(InstalledAppItem app, AppTraceSnapshot? snapshot = null, CancellationToken ct = default)
     {
         return await Task.Run(() =>
         {
@@ -109,16 +159,16 @@ public static class RootLeftoverScannerService
                 return new RootScanResult { AppName = app.DisplayName, Items = items };
             }
 
-            // 1. Scan File System Leftovers
-            ScanFileSystemLeftovers(app, items);
+            // 1. Scan File System Leftovers (Candidate roots + Snapshot diffs)
+            ScanFileSystemLeftovers(app, items, snapshot);
 
-            // 2. Scan Windows Registry Leftovers
+            // 2. Scan Windows Registry Leftovers (Software, App Paths, Run)
             ScanRegistryLeftovers(app, items);
 
             // 3. Scan Shortcuts (Start Menu & Desktop)
             ScanShortcutLeftovers(app, items);
 
-            // 4. Scan Services & Scheduled Tasks
+            // 4. Scan Services, Drivers & Scheduled Tasks
             ScanServiceAndTaskLeftovers(app, items);
 
             // 5. Scan Explorer Context Menu & Shell Extension Handlers
@@ -130,9 +180,24 @@ public static class RootLeftoverScannerService
             // 7. Scan URL Protocol Schemes
             ScanProtocolSchemeLeftovers(app, items);
 
-            // Deduplicate items by PathOrKey + Type
+            // 8. Scan COM CLSID & TypeLib Registrations
+            ScanComClsidLeftovers(app, items);
+
+            // 9. Scan Environment PATH Variable Remnants
+            ScanEnvironmentPathLeftovers(app, items);
+
+            // 10. Scan Shared DLL Registrations
+            ScanSharedDllLeftovers(app, items);
+
+            // 11. Scan Windows Event Log Sources & Crash Dumps
+            ScanEventLogAndCrashDumpLeftovers(app, items);
+
+            // 12. Scan AppX / MSIX Modern Container Residues
+            ScanAppxPackageStateLeftovers(app, items);
+
+            // Deduplicate items by PathOrKey + SubKeyOrValueName + TargetPath + Type
             var distinctItems = items
-                .GroupBy(i => $"{i.Type}_{i.PathOrKey}_{i.SubKeyOrValueName}", StringComparer.OrdinalIgnoreCase)
+                .GroupBy(i => $"{i.Type}_{i.PathOrKey}_{i.SubKeyOrValueName}_{i.TargetPath}", StringComparer.OrdinalIgnoreCase)
                 .Select(g => g.First())
                 .ToList();
 
@@ -144,7 +209,7 @@ public static class RootLeftoverScannerService
         }, ct);
     }
 
-    private static void ScanFileSystemLeftovers(InstalledAppItem app, List<LeftoverItem> items)
+    private static void ScanFileSystemLeftovers(InstalledAppItem app, List<LeftoverItem> items, AppTraceSnapshot? snapshot)
     {
         // Vector 1A: Check explicit InstallLocation
         if (!string.IsNullOrWhiteSpace(app.InstallLocation) &&
@@ -175,7 +240,14 @@ public static class RootLeftoverScannerService
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Saved Games"),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VirtualStore", "Program Files"),
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VirtualStore", "Program Files (x86)")
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VirtualStore", "Program Files (x86)"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "LocalLow"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Downloaded Installations"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Downloaded Installations"),
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Public")
         };
 
         string cleanName = SanitizeIdentifier(app.DisplayName);
@@ -201,6 +273,29 @@ public static class RootLeftoverScannerService
                 if (!string.Equals(cleanPublisher, app.Publisher, StringComparison.OrdinalIgnoreCase))
                 {
                     CheckAndAddDirectory(Path.Combine(root, cleanPublisher, cleanName), "Publisher Application Folder", LeftoverConfidence.High, items);
+                }
+            }
+        }
+
+        // Vector 1C: Snapshot differential comparison
+        if (snapshot != null && snapshot.ExistingFiles.Count > 0)
+        {
+            foreach (var snapFile in snapshot.ExistingFiles)
+            {
+                if (File.Exists(snapFile) && !items.Any(i => string.Equals(i.PathOrKey, snapFile, StringComparison.OrdinalIgnoreCase)))
+                {
+                    long size = 0;
+                    try { size = new FileInfo(snapFile).Length; } catch { }
+
+                    items.Add(new LeftoverItem
+                    {
+                        Type = LeftoverType.File,
+                        PathOrKey = snapFile,
+                        Description = "Unremoved Residual (Pre-Uninstall Verified)",
+                        SizeBytes = size,
+                        Confidence = LeftoverConfidence.High,
+                        IsSelected = true
+                    });
                 }
             }
         }
@@ -233,9 +328,6 @@ public static class RootLeftoverScannerService
 
     private static void ScanRegistryLeftovers(InstalledAppItem app, List<LeftoverItem> items)
     {
-        string cleanName = SanitizeIdentifier(app.DisplayName);
-        string cleanPublisher = SanitizeIdentifier(app.Publisher);
-
         // Vector 2A: Software Keys in HKCU & HKLM
         CheckSoftwareKey(Registry.CurrentUser, @"Software", app.DisplayName, app.Publisher, items, "HKCU");
         CheckSoftwareKey(Registry.LocalMachine, @"SOFTWARE", app.DisplayName, app.Publisher, items, "HKLM");
@@ -426,34 +518,101 @@ public static class RootLeftoverScannerService
 
     private static void ScanServiceAndTaskLeftovers(InstalledAppItem app, List<LeftoverItem> items)
     {
-        // Scan Windows Services matching install path or app name
+        string cleanName = SanitizeIdentifier(app.DisplayName);
+
+        // 1. Scan Windows Services and Kernel Drivers
         try
         {
             using var servicesKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services");
-            if (servicesKey != null && !string.IsNullOrWhiteSpace(app.InstallLocation))
+            if (servicesKey != null)
             {
                 foreach (var svcName in servicesKey.GetSubKeyNames())
                 {
+                    if (ProtectedRegistryRootNames.Contains(svcName)) continue;
+
                     try
                     {
                         using var svc = servicesKey.OpenSubKey(svcName);
                         if (svc == null) continue;
 
                         string imagePath = svc.GetValue("ImagePath")?.ToString() ?? string.Empty;
-                        if (!string.IsNullOrWhiteSpace(imagePath) &&
-                            imagePath.Contains(app.InstallLocation, StringComparison.OrdinalIgnoreCase))
+                        string displayName = svc.GetValue("DisplayName")?.ToString() ?? string.Empty;
+                        int svcType = svc.GetValue("Type") is int t ? t : 0;
+                        bool isDriver = svcType == 1 || svcType == 2;
+
+                        bool pathMatches = !string.IsNullOrWhiteSpace(app.InstallLocation) &&
+                                           !string.IsNullOrWhiteSpace(imagePath) &&
+                                           imagePath.Contains(app.InstallLocation, StringComparison.OrdinalIgnoreCase);
+
+                        bool nameMatches = !string.IsNullOrWhiteSpace(cleanName) && cleanName.Length >= 4 &&
+                                           (svcName.Contains(cleanName, StringComparison.OrdinalIgnoreCase) ||
+                                            displayName.Contains(cleanName, StringComparison.OrdinalIgnoreCase));
+
+                        if (pathMatches || (nameMatches && !File.Exists(imagePath.Trim('\"', '\''))))
                         {
+                            string badge = isDriver ? "Kernel Driver" : "Windows Service";
                             items.Add(new LeftoverItem
                             {
                                 Type = LeftoverType.Service,
                                 PathOrKey = svcName,
-                                Description = $"Windows Service: {svcName}",
-                                Confidence = LeftoverConfidence.High,
+                                Description = $"{badge}: {svcName} ({displayName})",
+                                Confidence = pathMatches ? LeftoverConfidence.High : LeftoverConfidence.Medium,
                                 IsSelected = true
                             });
                         }
                     }
                     catch { }
+                }
+            }
+        }
+        catch { }
+
+        // 2. Scan Scheduled Tasks
+        try
+        {
+            string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+            string tasksDir = Path.Combine(winDir, "System32", "Tasks");
+            if (Directory.Exists(tasksDir))
+            {
+                // Check direct folder in Tasks for publisher or app
+                if (!string.IsNullOrWhiteSpace(app.Publisher) && app.Publisher.Length >= 3 && !ProtectedDirectoryNames.Contains(app.Publisher))
+                {
+                    string pubTaskDir = Path.Combine(tasksDir, app.Publisher);
+                    if (Directory.Exists(pubTaskDir))
+                    {
+                        foreach (var taskFile in Directory.GetFiles(pubTaskDir, "*", SearchOption.AllDirectories))
+                        {
+                            string taskName = $"{app.Publisher}\\{Path.GetFileName(taskFile)}";
+                            items.Add(new LeftoverItem
+                            {
+                                Type = LeftoverType.ScheduledTask,
+                                PathOrKey = taskName,
+                                Description = $"Scheduled Task: {taskName}",
+                                Confidence = LeftoverConfidence.High,
+                                IsSelected = true
+                            });
+                        }
+                    }
+                }
+
+                // Check root tasks matching app name
+                if (!string.IsNullOrWhiteSpace(cleanName) && cleanName.Length >= 4)
+                {
+                    foreach (var taskFile in Directory.GetFiles(tasksDir, "*", SearchOption.TopDirectoryOnly))
+                    {
+                        string fname = Path.GetFileName(taskFile);
+                        if (fname.Contains(cleanName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            items.Add(new LeftoverItem
+                            {
+                                Type = LeftoverType.ScheduledTask,
+                                PathOrKey = fname,
+                                Description = $"Scheduled Task: {fname}",
+                                Confidence = LeftoverConfidence.High,
+                                IsSelected = true
+                            });
+                        }
+                    }
                 }
             }
         }
@@ -600,6 +759,377 @@ public static class RootLeftoverScannerService
                             IsSelected = true
                         });
                     }
+                }
+            }
+        }
+        catch { }
+    }
+
+    private static void ScanComClsidLeftovers(InstalledAppItem app, List<LeftoverItem> items)
+    {
+        if (string.IsNullOrWhiteSpace(app.InstallLocation) && string.IsNullOrWhiteSpace(app.DisplayName)) return;
+
+        string cleanName = SanitizeIdentifier(app.DisplayName);
+        string expLocation = !string.IsNullOrWhiteSpace(app.InstallLocation)
+            ? Environment.ExpandEnvironmentVariables(app.InstallLocation.Trim('\"', '\'')).TrimEnd('\\')
+            : string.Empty;
+
+        // Vector: HKCR\CLSID and HKLM\SOFTWARE\Classes\CLSID
+        RegistryKey[] clsidRoots = [Registry.ClassesRoot, Registry.LocalMachine];
+        string[] clsidPaths = [@"CLSID", @"SOFTWARE\Classes\CLSID"];
+
+        for (int r = 0; r < clsidRoots.Length; r++)
+        {
+            try
+            {
+                using var clsidBase = clsidRoots[r].OpenSubKey(clsidPaths[r]);
+                if (clsidBase == null) continue;
+
+                string hiveName = clsidRoots[r] == Registry.ClassesRoot ? "HKCR" : "HKLM";
+
+                foreach (var clsid in clsidBase.GetSubKeyNames())
+                {
+                    if (!clsid.StartsWith("{") || !clsid.EndsWith("}")) continue;
+
+                    try
+                    {
+                        using var clsidKey = clsidBase.OpenSubKey(clsid);
+                        if (clsidKey == null) continue;
+
+                        string defaultVal = clsidKey.GetValue(null)?.ToString() ?? string.Empty;
+                        bool nameMatches = !string.IsNullOrWhiteSpace(cleanName) && cleanName.Length >= 4 &&
+                                           defaultVal.Contains(cleanName, StringComparison.OrdinalIgnoreCase);
+
+                        string serverPath = string.Empty;
+                        using (var inproc = clsidKey.OpenSubKey("InprocServer32"))
+                        {
+                            if (inproc != null)
+                            {
+                                serverPath = inproc.GetValue(null)?.ToString() ?? string.Empty;
+                            }
+                        }
+
+                        if (string.IsNullOrWhiteSpace(serverPath))
+                        {
+                            using var local = clsidKey.OpenSubKey("LocalServer32");
+                            if (local != null)
+                            {
+                                serverPath = local.GetValue(null)?.ToString() ?? string.Empty;
+                            }
+                        }
+
+                        bool pathMatches = !string.IsNullOrWhiteSpace(expLocation) &&
+                                           !string.IsNullOrWhiteSpace(serverPath) &&
+                                           serverPath.Contains(expLocation, StringComparison.OrdinalIgnoreCase);
+
+                        if (pathMatches || (nameMatches && !string.IsNullOrWhiteSpace(serverPath) && !File.Exists(serverPath.Trim('\"'))))
+                        {
+                            string desc = !string.IsNullOrWhiteSpace(defaultVal)
+                                ? $"COM CLSID Server ({defaultVal})"
+                                : $"COM CLSID Server ({clsid})";
+
+                            items.Add(new LeftoverItem
+                            {
+                                Type = LeftoverType.RegistryKey,
+                                PathOrKey = $@"{hiveName}\{clsidPaths[r]}\{clsid}",
+                                Description = desc,
+                                Confidence = pathMatches ? LeftoverConfidence.High : LeftoverConfidence.Medium,
+                                IsSelected = true
+                            });
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+        }
+    }
+
+    private static void ScanEnvironmentPathLeftovers(InstalledAppItem app, List<LeftoverItem> items)
+    {
+        if (string.IsNullOrWhiteSpace(app.InstallLocation) && string.IsNullOrWhiteSpace(app.DisplayName)) return;
+
+        string expLocation = !string.IsNullOrWhiteSpace(app.InstallLocation)
+            ? Environment.ExpandEnvironmentVariables(app.InstallLocation.Trim('\"', '\'')).TrimEnd('\\')
+            : string.Empty;
+
+        // User PATH: HKCU\Environment -> Path
+        // System PATH: HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment -> Path
+        (RegistryKey rootKey, string subKey, string hiveName)[] pathKeys =
+        [
+            (Registry.CurrentUser, @"Environment", "HKCU"),
+            (Registry.LocalMachine, @"SYSTEM\CurrentControlSet\Control\Session Manager\Environment", "HKLM")
+        ];
+
+        foreach (var (root, sub, hive) in pathKeys)
+        {
+            try
+            {
+                using var key = root.OpenSubKey(sub);
+                if (key == null) continue;
+
+                string rawPath = key.GetValue("Path", null, RegistryValueOptions.DoNotExpandEnvironmentNames)?.ToString() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(rawPath)) continue;
+
+                var segments = rawPath.Split(';', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var seg in segments)
+                {
+                    string trimmed = seg.Trim();
+                    if (string.IsNullOrWhiteSpace(trimmed)) continue;
+
+                    string expanded = Environment.ExpandEnvironmentVariables(trimmed).TrimEnd('\\');
+
+                    // Skip protected system paths
+                    if (ProtectedDirectoryNames.Any(p => string.Equals(Path.GetFileName(expanded), p, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        continue;
+                    }
+
+                    bool matchesLocation = !string.IsNullOrWhiteSpace(expLocation) &&
+                                           (expanded.Equals(expLocation, StringComparison.OrdinalIgnoreCase) ||
+                                            expanded.StartsWith(expLocation + "\\", StringComparison.OrdinalIgnoreCase));
+
+                    bool matchesNameAndMissing = !string.IsNullOrWhiteSpace(app.DisplayName) &&
+                                                 app.DisplayName.Length >= 4 &&
+                                                 expanded.Contains(app.DisplayName, StringComparison.OrdinalIgnoreCase) &&
+                                                 !Directory.Exists(expanded);
+
+                    if (matchesLocation || matchesNameAndMissing)
+                    {
+                        items.Add(new LeftoverItem
+                        {
+                            Type = LeftoverType.EnvironmentPath,
+                            PathOrKey = $@"{hive}\{sub}",
+                            SubKeyOrValueName = "Path",
+                            TargetPath = trimmed,
+                            Description = $"Environment PATH Variable: {trimmed}",
+                            Confidence = LeftoverConfidence.High,
+                            IsSelected = true
+                        });
+                    }
+                }
+            }
+            catch { }
+        }
+    }
+
+    private static void ScanSharedDllLeftovers(InstalledAppItem app, List<LeftoverItem> items)
+    {
+        if (string.IsNullOrWhiteSpace(app.InstallLocation) && string.IsNullOrWhiteSpace(app.DisplayName)) return;
+
+        string expLocation = !string.IsNullOrWhiteSpace(app.InstallLocation)
+            ? Environment.ExpandEnvironmentVariables(app.InstallLocation.Trim('\"', '\'')).TrimEnd('\\')
+            : string.Empty;
+
+        string[] sharedDllKeys =
+        [
+            @"SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs",
+            @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\SharedDLLs"
+        ];
+
+        foreach (var subKeyPath in sharedDllKeys)
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(subKeyPath);
+                if (key == null) continue;
+
+                foreach (var valName in key.GetValueNames())
+                {
+                    bool matchesLocation = !string.IsNullOrWhiteSpace(expLocation) &&
+                                           valName.Contains(expLocation, StringComparison.OrdinalIgnoreCase);
+
+                    bool matchesName = !string.IsNullOrWhiteSpace(app.DisplayName) &&
+                                       app.DisplayName.Length >= 4 &&
+                                       valName.Contains(app.DisplayName, StringComparison.OrdinalIgnoreCase) &&
+                                       !File.Exists(valName);
+
+                    if (matchesLocation || matchesName)
+                    {
+                        items.Add(new LeftoverItem
+                        {
+                            Type = LeftoverType.RegistryValue,
+                            PathOrKey = $@"HKLM\{subKeyPath}",
+                            SubKeyOrValueName = valName,
+                            Description = $"Shared DLL Registration: {Path.GetFileName(valName)}",
+                            Confidence = LeftoverConfidence.High,
+                            IsSelected = true
+                        });
+                    }
+                }
+            }
+            catch { }
+        }
+    }
+
+    private static void ScanEventLogAndCrashDumpLeftovers(InstalledAppItem app, List<LeftoverItem> items)
+    {
+        string cleanName = SanitizeIdentifier(app.DisplayName);
+        string exeName = GetAppExeName(app);
+        string exeBase = !string.IsNullOrWhiteSpace(exeName) ? Path.GetFileNameWithoutExtension(exeName) : string.Empty;
+
+        // 1. Windows Event Log Application Sources
+        try
+        {
+            const string eventLogBase = @"SYSTEM\CurrentControlSet\Services\EventLog\Application";
+            using var evKey = Registry.LocalMachine.OpenSubKey(eventLogBase);
+            if (evKey != null)
+            {
+                foreach (var srcName in evKey.GetSubKeyNames())
+                {
+                    if (ProtectedRegistryRootNames.Contains(srcName)) continue;
+
+                    bool nameMatches = (!string.IsNullOrWhiteSpace(cleanName) && cleanName.Length >= 4 &&
+                                       srcName.Contains(cleanName, StringComparison.OrdinalIgnoreCase)) ||
+                                       (!string.IsNullOrWhiteSpace(exeBase) && string.Equals(srcName, exeBase, StringComparison.OrdinalIgnoreCase));
+
+                    bool pathMatches = false;
+                    try
+                    {
+                        using var srcSub = evKey.OpenSubKey(srcName);
+                        string msgFile = srcSub?.GetValue("EventMessageFile")?.ToString() ?? string.Empty;
+                        if (!string.IsNullOrWhiteSpace(app.InstallLocation) &&
+                            !string.IsNullOrWhiteSpace(msgFile) &&
+                            msgFile.Contains(app.InstallLocation, StringComparison.OrdinalIgnoreCase))
+                        {
+                            pathMatches = true;
+                        }
+                    }
+                    catch { }
+
+                    if (nameMatches || pathMatches)
+                    {
+                        items.Add(new LeftoverItem
+                        {
+                            Type = LeftoverType.RegistryKey,
+                            PathOrKey = $@"HKLM\{eventLogBase}\{srcName}",
+                            Description = $"Windows Event Log Application Source: {srcName}",
+                            Confidence = pathMatches ? LeftoverConfidence.High : LeftoverConfidence.Medium,
+                            IsSelected = true
+                        });
+                    }
+                }
+            }
+        }
+        catch { }
+
+        // 2. Application Crash Dumps (%LOCALAPPDATA%\CrashDumps)
+        try
+        {
+            string crashDumpDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CrashDumps");
+            if (Directory.Exists(crashDumpDir))
+            {
+                var dumpFiles = Directory.GetFiles(crashDumpDir, "*.dmp");
+                foreach (var dmp in dumpFiles)
+                {
+                    string fname = Path.GetFileName(dmp);
+                    bool matches = (!string.IsNullOrWhiteSpace(exeBase) && fname.StartsWith(exeBase, StringComparison.OrdinalIgnoreCase)) ||
+                                   (!string.IsNullOrWhiteSpace(cleanName) && cleanName.Length >= 4 && fname.Contains(cleanName, StringComparison.OrdinalIgnoreCase));
+
+                    if (matches)
+                    {
+                        long size = 0;
+                        try { size = new FileInfo(dmp).Length; } catch { }
+
+                        items.Add(new LeftoverItem
+                        {
+                            Type = LeftoverType.File,
+                            PathOrKey = dmp,
+                            Description = $"Application Crash Dump: {fname}",
+                            SizeBytes = size,
+                            Confidence = LeftoverConfidence.High,
+                            IsSelected = true
+                        });
+                    }
+                }
+            }
+        }
+        catch { }
+
+        // 3. Windows Error Reporting (WER) ReportArchive
+        try
+        {
+            string[] werRoots =
+            [
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "Windows", "WER", "ReportArchive"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "WER", "ReportArchive")
+            ];
+
+            foreach (var werRoot in werRoots)
+            {
+                if (!Directory.Exists(werRoot)) continue;
+
+                foreach (var reportDir in Directory.GetDirectories(werRoot))
+                {
+                    string dirName = Path.GetFileName(reportDir);
+                    bool matches = (!string.IsNullOrWhiteSpace(exeBase) && dirName.Contains(exeBase, StringComparison.OrdinalIgnoreCase)) ||
+                                   (!string.IsNullOrWhiteSpace(cleanName) && cleanName.Length >= 4 && dirName.Contains(cleanName, StringComparison.OrdinalIgnoreCase));
+
+                    if (matches && InstalledAppService.IsSafeToDeleteResidual(reportDir))
+                    {
+                        long size = CalculateDirectorySizeSafe(reportDir);
+                        items.Add(new LeftoverItem
+                        {
+                            Type = LeftoverType.Directory,
+                            PathOrKey = reportDir,
+                            Description = $"WER Crash Report Archive: {dirName}",
+                            SizeBytes = size,
+                            Confidence = LeftoverConfidence.High,
+                            IsSelected = true
+                        });
+                    }
+                }
+            }
+        }
+        catch { }
+    }
+
+    private static void ScanAppxPackageStateLeftovers(InstalledAppItem app, List<LeftoverItem> items)
+    {
+        string packagesRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages");
+        if (!Directory.Exists(packagesRoot)) return;
+
+        try
+        {
+            string targetFamily = string.Empty;
+            if (!string.IsNullOrWhiteSpace(app.PackageFullName))
+            {
+                int firstUnderscore = app.PackageFullName.IndexOf('_');
+                int lastUnderscore = app.PackageFullName.LastIndexOf('_');
+                if (firstUnderscore > 0 && lastUnderscore > firstUnderscore)
+                {
+                    string namePrefix = app.PackageFullName.Substring(0, firstUnderscore);
+                    string publisherId = app.PackageFullName.Substring(lastUnderscore + 1);
+                    targetFamily = $"{namePrefix}_{publisherId}";
+                }
+            }
+
+            string cleanName = SanitizeIdentifier(app.DisplayName).Replace(" ", "");
+
+            foreach (var pkgDir in Directory.GetDirectories(packagesRoot))
+            {
+                string dirName = Path.GetFileName(pkgDir);
+
+                bool matchesFamily = !string.IsNullOrWhiteSpace(targetFamily) &&
+                                     dirName.StartsWith(targetFamily, StringComparison.OrdinalIgnoreCase);
+
+                bool matchesName = app.IsWindowsStoreApp &&
+                                   !string.IsNullOrWhiteSpace(cleanName) &&
+                                   cleanName.Length >= 4 &&
+                                   dirName.StartsWith(cleanName, StringComparison.OrdinalIgnoreCase);
+
+                if ((matchesFamily || matchesName) && InstalledAppService.IsSafeToDeleteResidual(pkgDir))
+                {
+                    long size = CalculateDirectorySizeSafe(pkgDir);
+                    items.Add(new LeftoverItem
+                    {
+                        Type = LeftoverType.Directory,
+                        PathOrKey = pkgDir,
+                        Description = $"Windows Store App Container State & Cache: {dirName}",
+                        SizeBytes = size,
+                        Confidence = LeftoverConfidence.High,
+                        IsSelected = true
+                    });
                 }
             }
         }

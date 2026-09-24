@@ -95,6 +95,12 @@ public static class ThemeService
             innerGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#121622"), 0.0));
             innerGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#0C0F18"), 1.0));
             res["DoubleBezelInnerBrush"] = innerGrad;
+
+            var glassActive = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
+            glassActive.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#2800E5FF"), 0.0));
+            glassActive.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#140284C7"), 0.6));
+            glassActive.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#0D2563EB"), 1.0));
+            res["GlassSurfaceActiveBrush"] = glassActive;
         }
         else
         {
@@ -181,6 +187,11 @@ public static class ThemeService
             innerGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FFFFFF"), 0.0));
             innerGrad.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#F8FAFC"), 1.0));
             res["DoubleBezelInnerBrush"] = innerGrad;
+
+            var glassActiveLight = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
+            glassActiveLight.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#1E0284C7"), 0.0));
+            glassActiveLight.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#0F2563EB"), 1.0));
+            res["GlassSurfaceActiveBrush"] = glassActiveLight;
         }
     }
 }

@@ -894,6 +894,34 @@ public partial class CleanerService
                         long initialSize = folder.SizeBytes;
                         int initialFiles = folder.FileCount;
                         bool ok = LargeFileHunterService.MoveToRecycleBin(folder.FolderPath);
+                        if (!ok)
+                        {
+                            // Proactively inspect file lockers and terminate non-system helper processes
+                            try
+                            {
+                                var di = new DirectoryInfo(folder.FolderPath);
+                                foreach (var file in di.EnumerateFiles("*", SearchOption.AllDirectories))
+                                {
+                                    var lockers = WinTempCleaner.Core.Safety.RestartManagerService.GetLockingProcesses(file.FullName);
+                                    foreach (var locker in lockers)
+                                    {
+                                        if (!WinTempCleaner.Core.Safety.RestartManagerService.IsProtectedSystemProcess(locker.ProcessName))
+                                        {
+                                            try
+                                            {
+                                                using var proc = System.Diagnostics.Process.GetProcessById(locker.ProcessId);
+                                                proc.Kill(entireProcessTree: true);
+                                                proc.WaitForExit(1000);
+                                            }
+                                            catch { }
+                                        }
+                                    }
+                                }
+                                ok = LargeFileHunterService.MoveToRecycleBin(folder.FolderPath);
+                            }
+                            catch { }
+                        }
+
                         if (ok)
                         {
                             freedBytes = initialSize;

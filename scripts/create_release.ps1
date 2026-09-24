@@ -4,8 +4,8 @@
 
 [CmdletBinding()]
 param (
-    [string]$Tag = "v1.7.5",
-    [string]$ReleaseName = "1.7.5"
+    [string]$Tag = "v1.8.0",
+    [string]$ReleaseName = "1.8.0"
 )
 
 $ErrorActionPreference = "Stop"

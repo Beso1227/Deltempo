@@ -139,8 +139,11 @@ public static partial class CliRunner
         }
 
         // 2. Official Uninstaller Execution
+        AppTraceSnapshot? snapshot = null;
         if (!isDryRun)
         {
+            snapshot = await RootLeftoverScannerService.CreateSnapshotAsync(targetApp);
+
             if (!outputJson)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -168,10 +171,10 @@ public static partial class CliRunner
         if (!outputJson)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write("  [3/4] Scanning root remnants (Registry, AppData, Shell, Firewall, Tasks)... ");
+            Console.Write("  [3/4] Scanning root remnants (Registry, COM, AppData, Shell, PATH, Tasks)... ");
         }
 
-        var scanResult = await RootLeftoverScannerService.ScanAppTracesAsync(targetApp);
+        var scanResult = await RootLeftoverScannerService.ScanAppTracesAsync(targetApp, snapshot);
         if (!outputJson)
         {
             Console.ForegroundColor = ConsoleColor.Green;

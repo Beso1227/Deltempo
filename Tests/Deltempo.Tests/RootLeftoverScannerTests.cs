@@ -127,4 +127,94 @@ public class RootLeftoverScannerTests
         var result = await WinTempCleaner.Core.Safety.SystemRestorePointService.CreateRestorePointAsync("");
         Assert.NotNull(result.Message);
     }
+
+    [Fact]
+    public async Task CreateSnapshotAsync_WithNonExistentPath_ReturnsEmptySnapshot()
+    {
+        var app = new InstalledAppItem
+        {
+            DisplayName = "SnapshotTestApp",
+            InstallLocation = @"C:\NonExistent_Snapshot_Dir_123"
+        };
+
+        var snapshot = await RootLeftoverScannerService.CreateSnapshotAsync(app);
+        Assert.NotNull(snapshot);
+        Assert.Equal("SnapshotTestApp", snapshot.AppName);
+        Assert.Empty(snapshot.ExistingFiles);
+    }
+
+    [Fact]
+    public async Task ScanAppTraces_WithSnapshot_IdentifiesDifferentialResiduals()
+    {
+        // Create a temporary directory with a test file
+        string tempDir = Path.Combine(Path.GetTempPath(), $"DeltempoSnapTest_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        string testFile = Path.Combine(tempDir, "unremoved_component.dll");
+        File.WriteAllText(testFile, "test-content");
+
+        try
+        {
+            var app = new InstalledAppItem
+            {
+                DisplayName = "SnapResidualApp",
+                InstallLocation = tempDir
+            };
+
+            var snapshot = new AppTraceSnapshot
+            {
+                AppName = app.DisplayName,
+                InstallLocation = app.InstallLocation
+            };
+            snapshot.ExistingFiles.Add(testFile);
+
+            var scanResult = await RootLeftoverScannerService.ScanAppTracesAsync(app, snapshot);
+
+            Assert.NotNull(scanResult);
+            Assert.Contains(scanResult.Items, i => string.Equals(i.PathOrKey, testFile, StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
+        }
+    }
+
+    [Fact]
+    public void LeftoverItem_EnvironmentPath_PropertiesAndBadgesAreCorrect()
+    {
+        var item = new LeftoverItem
+        {
+            Type = LeftoverType.EnvironmentPath,
+            PathOrKey = @"HKCU\Environment",
+            SubKeyOrValueName = "Path",
+            TargetPath = @"C:\Program Files\TestApp\bin",
+            Description = "PATH Variable Orphan"
+        };
+
+        Assert.Equal("Environment PATH", item.TypeBadge);
+        Assert.Equal("\uE756", item.IconGlyph);
+        Assert.Equal(@"C:\Program Files\TestApp\bin", item.TargetPath);
+    }
+
+    [Fact]
+    public async Task PurgeLeftovers_EnvironmentPath_HandlesEmptyOrMissingGracefully()
+    {
+        var items = new List<LeftoverItem>
+        {
+            new LeftoverItem
+            {
+                Type = LeftoverType.EnvironmentPath,
+                PathOrKey = @"HKCU\NonExistentSubKey_123",
+                SubKeyOrValueName = "Path",
+                TargetPath = @"C:\Fake\Path",
+                IsSelected = true
+            }
+        };
+
+        var result = await RootLeftoverPurgeService.PurgeLeftoversAsync(items);
+        Assert.NotNull(result);
+        Assert.Equal(0, result.ItemsPurgedCount);
+    }
 }

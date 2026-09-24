@@ -543,6 +543,22 @@ public class CleanerServiceTests : IDisposable
     }
 
     [Fact]
+    public void OrphanedAppService_NeverFlagsCorePlatformVendors()
+    {
+        var orphans = OrphanedAppService.ScanVerifiedOrphanedFolders();
+        string[] protectedVendors = ["Intel", "NVIDIA", "AMD", "Realtek", "Git", "Docker", "Python", "JetBrains"];
+
+        foreach (var orphan in orphans)
+        {
+            foreach (var vendor in protectedVendors)
+            {
+                Assert.False(string.Equals(orphan.Name, $"{vendor} (Residual Files)", StringComparison.OrdinalIgnoreCase),
+                    $"Protected vendor '{vendor}' must never be flagged as an orphaned folder.");
+            }
+        }
+    }
+
+    [Fact]
     public void FileSafetyEngine_DownloadsInstaller_ClassifiesAsSafeToClean()
     {
         string path = @"C:\Users\JohnDoe\Downloads\Win11_23H2_English_x64.iso";
