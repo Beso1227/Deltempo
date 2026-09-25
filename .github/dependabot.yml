@@ -5,6 +5,15 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "Beso1227"
+    labels:
+      - "dependencies"
+      - "area/ci"
     commit-message:
       prefix: "ci"
       include: "scope"
@@ -14,6 +23,15 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "Beso1227"
+    labels:
+      - "dependencies"
+      - "area/build"
     commit-message:
       prefix: "chore"
       include: "scope"

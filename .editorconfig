@@ -1,4 +1,4 @@
-# Top-most EditorConfig file
+# Top-most EditorConfig file for Deltempo
 root = true
 
 # Default all files
@@ -9,18 +9,66 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
+# -----------------------------------------------------------------------------
 # C# files
+# -----------------------------------------------------------------------------
 [*.cs]
+indent_style = space
 indent_size = 4
 
+# Indentation preferences
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+
+# Space preferences
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_between_parentheses = false
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_after_colon_in_inheritance_clause = true
+
+# Modern syntax & null safety
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
+csharp_style_inlined_variable_declaration = true:suggestion
+csharp_style_throw_expression = true:suggestion
+csharp_style_conditional_delegate_call = true:suggestion
+csharp_style_coalesce_expression = true:suggestion
+csharp_style_null_propagation = true:suggestion
+
+# -----------------------------------------------------------------------------
 # XAML / XML files
-[*.{xaml,xml,props,targets,csproj,sln}]
+# -----------------------------------------------------------------------------
+[*.{xaml,xml,props,targets,csproj,sln,manifest}]
+indent_style = space
 indent_size = 4
 
+# -----------------------------------------------------------------------------
 # JSON and YAML
+# -----------------------------------------------------------------------------
 [*.{json,yml,yaml}]
+indent_style = space
 indent_size = 2
 
+# -----------------------------------------------------------------------------
+# Shell and PowerShell Scripts
+# -----------------------------------------------------------------------------
+[*.sh]
+indent_style = space
+indent_size = 2
+
+[*.{ps1,psm1,psd1}]
+indent_style = space
+indent_size = 4
+
+[*.{cmd,bat}]
+indent_style = space
+indent_size = 2
+
+# -----------------------------------------------------------------------------
 # Markdown files
+# -----------------------------------------------------------------------------
 [*.md]
+indent_style = space
+indent_size = 2
 trim_trailing_whitespace = false

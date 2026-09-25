@@ -1,0 +1,71 @@
+# Deltempo Git Attributes Configuration
+# Sets default behavior to handle line endings and binary files automatically.
+
+# Auto-detect text files and normalize line endings in the repository
+* text=auto
+
+# -----------------------------------------------------------------------------
+# C# & Windows .NET Source Files
+# -----------------------------------------------------------------------------
+*.cs text diff=csharp
+*.xaml text
+*.sln text
+*.csproj text
+*.props text
+*.targets text
+*.manifest text
+app.manifest text
+*.config text
+*.resw text
+*.resx text
+
+# -----------------------------------------------------------------------------
+# Scripts
+# -----------------------------------------------------------------------------
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text
+*.sh text eol=lf
+
+# -----------------------------------------------------------------------------
+# Documentation & Configuration Files
+# -----------------------------------------------------------------------------
+*.md text
+*.txt text
+*.json text
+*.yml text
+*.yaml text
+*.editorconfig text
+.gitignore text
+.gitattributes text
+LICENSE text
+
+# -----------------------------------------------------------------------------
+# Binary & Compiled Files (Prevent corruption)
+# -----------------------------------------------------------------------------
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.mp4 binary
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.zip binary
+*.tar.gz binary
+*.7z binary
+*.pfx binary
+*.cer binary
+*.snk binary
+*.dmp binary
+
+# -----------------------------------------------------------------------------
+# GitHub Linguist Overrides
+# -----------------------------------------------------------------------------
+docs/** linguist-documentation
+Tests/** linguist-test
+winget/** linguist-vendored
+dist/** linguist-vendored

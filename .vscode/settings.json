@@ -1,3 +1,64 @@
 {
-    "dotnet.defaultSolution": "deltempo.sln"
+  "dotnet.defaultSolution": "deltempo.sln",
+
+  // Formatting & Clean Editing
+  "editor.formatOnSave": true,
+  "editor.insertFinalNewline": true,
+  "editor.trimTrailingWhitespace": true,
+
+  // C# and .NET Experience
+  "csharp.format.enable": true,
+  "dotnet.inlayHints.enableInlayHintsForParameters": true,
+  "dotnet.inlayHints.enableInlayHintsForLiteralParameters": true,
+  "csharp.inlayHints.enableInlayHintsForTypes": true,
+  "csharp.inlayHints.enableInlayHintsForImplicitObjectCreation": true,
+
+  // Explorer File Nesting for Clean Hierarchy
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "MainWindow.xaml": "MainWindow.xaml.cs, MainWindow.*.cs",
+    "App.xaml": "App.xaml.cs",
+    "Directory.Build.props": "Directory.Packages.props",
+    "README.md": "CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, LICENSE, UI_UX_RATING.md"
+  },
+
+  // Workspace Cleanliness - Hide build artifacts and local scratch from Explorer
+  "files.exclude": {
+    "**/bin": true,
+    "**/obj": true,
+    "**/.vs": true,
+    "**/.kilo": true,
+    "**/.obsidian": true,
+    "**/*.suo": true,
+    "**/*.user": true
+  },
+
+  // Search Optimization - Avoid indexing compiled binaries and publish outputs
+  "search.exclude": {
+    "**/bin": true,
+    "**/obj": true,
+    "**/dist": true,
+    "**/publish": true,
+    "**/publish_*": true,
+    "**/artifacts": true,
+    "**/vault": true,
+    "**/brag-output": true
+  },
+
+  // Language Specific Overrides
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.tabSize": 2
+  },
+  "[yaml]": {
+    "editor.tabSize": 2
+  },
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "files.trimTrailingWhitespace": false
+  }
 }

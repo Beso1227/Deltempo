@@ -1,7 +1,7 @@
 <Project>
 
   <!--
-    Single source of truth for Deltempo versioning.
+    Single source of truth for Deltempo versioning and build governance.
     Applies to GUI (WinTempCleaner), CLI (Deltempo.Cli), Core, and Tests.
     Bump here only; individual csproj files must not override Version/FileVersion/AssemblyVersion.
   -->
@@ -11,6 +11,14 @@
     <AssemblyVersion>1.8.0.0</AssemblyVersion>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <Authors>Beso1227</Authors>
+    <Company>Deltempo Open Source Project</Company>
+    <Copyright>Copyright (c) 2026 Beso1227 / Deltempo Project. MIT Licensed.</Copyright>
+    <RepositoryUrl>https://github.com/Beso1227/Deltempo</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <NeutralLanguage>en-US</NeutralLanguage>
   </PropertyGroup>
 
 </Project>
