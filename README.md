@@ -1,6 +1,10 @@
 <div align="center">
 
-  <img src="docs/app_icon.png" alt="Deltempo Logo" width="88" height="88" />
+  <a href="https://beso1227.github.io/Deltempo/">
+    <img src="docs/social-preview.png" alt="Deltempo - Pure Precision Windows Cleaner & Memory Optimizer" width="100%" />
+  </a>
+
+  <br />
 
   # Deltempo: Open-Source Windows Cleaner, App Uninstaller & Memory Optimizer
 
