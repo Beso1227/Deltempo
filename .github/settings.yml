@@ -3,19 +3,29 @@
 
 repository:
   name: Deltempo
-  description: "High-performance, zero-telemetry Windows cache cleaner and memory optimizer with GUI & CLI."
+  description: "High-performance Windows & user profile cleaner, memory optimizer, and deep root uninstaller. Safely reclaim 10–40+ GB of hidden AppData, GPU shader caches & leftover junk with zero telemetry. Open-source, portable GUI & CLI."
   homepage: https://beso1227.github.io/Deltempo/
   topics:
     - windows
-    - wpf
-    - dotnet
-    - cleaner
-    - disk-cleanup
-    - memory-optimizer
-    - zero-telemetry
     - csharp
+    - dotnet
+    - wpf
+    - cleaner
+    - windows-cleaner
+    - disk-cleanup
+    - ccleaner-alternative
+    - memory-optimizer
+    - uninstaller
+    - temp-cleaner
+    - appdata-cleaner
+    - shader-cache
+    - windows-optimizer
+    - zero-telemetry
+    - open-source
+    - portable-app
     - cli
-    - desktop-app
+    - windows11
+    - windows10
 
   has_issues: true
   has_projects: false

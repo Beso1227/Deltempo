@@ -1,4 +1,6 @@
-# Build & Output Directories
+# ==============================================================================
+# Build & Output Artifacts (.NET / C# / MSBuild)
+# ==============================================================================
 bin/
 obj/
 publish/
@@ -8,19 +10,7 @@ TestResults/
 [Bb]uildLog.*
 *.binlog
 
-# User-specific Visual Studio & MSBuild files
-*.user
-*.suo
-*.userosscache
-*.sln.docstates
-*.userprefs
-*.opendb
-*.VC.db
-UpgradeLog*.XML
-UpgradeLog*.htm
-_UpgradeReport_Files/
-
-# Compiled Binaries & Debug Symbols
+# Compiled Binaries, Libraries & Symbols
 *.exe
 *.dll
 *.pdb
@@ -32,10 +22,11 @@ _UpgradeReport_Files/
 *.msix
 *.appx
 
-# NuGet Packages & Local Caches
+# NuGet Packages & Restores
 *.nupkg
 *.snupkg
 project.lock.json
+project.assets.json
 
 # Archives & Compressed Files
 *.zip
@@ -46,7 +37,9 @@ project.lock.json
 *.rar
 *.cab
 
-# Certificates, Keys, Secrets & Environment
+# ==============================================================================
+# Secrets, Certificates & Environment Variables
+# ==============================================================================
 *.cer
 *.pfx
 *.pem
@@ -68,23 +61,46 @@ appsettings.Development.json
 !*.env.example
 !*.env.template
 
-# IDE & Editor files
+# ==============================================================================
+# IDE, Editor & User Preferences
+# ==============================================================================
+# Visual Studio / MSBuild User State
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.opendb
+*.VC.db
 .vs/
+UpgradeLog*.XML
+UpgradeLog*.htm
+_UpgradeReport_Files/
+
+# JetBrains Rider / Resharper
+.idea/
+*.DotSettings.user
+_ReSharper*/
+*.rsuser
+
+# Visual Studio Code (track shared config, ignore user scratch)
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-.idea/
-*.DotSettings.user
-_ReSharper*/
-*.rsuser
+
+# Generic Editor Buffers & Backups
 *.swp
 *.lock
 *.bak
 *.orig
+*~
 
-# OS Generated
+# ==============================================================================
+# Operating System Generated Files
+# ==============================================================================
+# Windows
 Thumbs.db
 ehthumbs.db
 ehthumbs_vista.db
@@ -92,28 +108,32 @@ ehthumbs_vista.db
 $RECYCLE.BIN/
 nul
 NUL
+
+# macOS
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
 
-# Crash dumps, logs & temporary files
+# ==============================================================================
+# Diagnostic Dumps, Logs & Performance Benchmarks
+# ==============================================================================
 *.log
 *.dmp
 *.tmp
+*.crash
 *.stackdump
-
-# Test Coverage & Benchmarks
 coverage/
 *.coverage
 *.coveragexml
 *.cobertura.xml
 BenchmarkDotNet.Artifacts/
 
-# AI Tooling, Sessions & Workspace Scratch
+# ==============================================================================
+# Local Automation, AI Tools & Workspace Scratch
+# ==============================================================================
 .gemini/
-.agents/
 .claude/
 .cursor/
 .windsurf/
@@ -133,14 +153,14 @@ brag-output/
 ci_runs.json
 ci_*.json
 
-# Web & Node Scratch (if any)
+# Web & Package Manager Scratch
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Python & Local Automation Scratch
+# Python Scratch
 .venv/
 venv/
 __pycache__/
@@ -148,3 +168,4 @@ __pycache__/
 *.pyo
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
