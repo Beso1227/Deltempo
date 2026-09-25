@@ -356,11 +356,11 @@ p, .section-subtitle, .hero-subtext, .card-desc, .faq-answer, .scope-desc {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 1040px;
+  max-width: 1080px;
   margin: 0 auto;
   height: 56px;
-  padding: 0 0.65rem 0 1.15rem;
-  background: rgba(10, 13, 20, 0.82);
+  padding: 0 0.75rem 0 1.25rem;
+  background: rgba(10, 13, 20, 0.85);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1623,6 +1623,10 @@ html.light .mobile-menu-overlay {
   }
 
   .nav-divider {
+    display: none;
+  }
+
+  .nav-github-btn {
     display: none;
   }
 

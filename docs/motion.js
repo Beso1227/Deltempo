@@ -1510,6 +1510,16 @@
     initWorkspaceSimulator();
     initReclaimCalculator();
     initScrollSpy();
+    // Scroll reveal observer check in case elements in new view are already in viewport
+    const revealElements = document.querySelectorAll('.reveal-on-scroll:not(.revealed)');
+    if (revealElements.length && window.scrollY === 0) {
+      revealElements.forEach(function (el) {
+        const r = el.getBoundingClientRect();
+        if (r.top < window.innerHeight) {
+          el.classList.add('revealed');
+        }
+      });
+    }
   }
 
   function navigateTo(url, isPopState) {
@@ -1535,15 +1545,18 @@
         const newDesc = doc.querySelector('meta[name="description"]');
         if (oldDesc && newDesc) oldDesc.content = newDesc.content;
 
-        // Replace main content
+        // Replace main content and update container classes (e.g. content-page, download-main, faq-main)
+        oldMain.className = newMain.className;
         oldMain.innerHTML = newMain.innerHTML;
 
         // Update active navigation links
         const navLinks = document.querySelectorAll('.nav-link');
+        const targetPathNorm = targetUrl.pathname.replace(/\/+$/, '') || '/';
         navLinks.forEach(function (l) {
           try {
             const lUrl = new URL(l.href, window.location.href);
-            if (lUrl.pathname === targetUrl.pathname) {
+            const lPathNorm = lUrl.pathname.replace(/\/+$/, '') || '/';
+            if (lPathNorm === targetPathNorm) {
               l.classList.add('active');
             } else {
               l.classList.remove('active');
@@ -1636,8 +1649,12 @@
 
       const targetUrl = new URL(link.href, window.location.href);
 
-      // Same-page hash anchor: smooth scroll
-      if (targetUrl.pathname === window.location.pathname) {
+      // Normalize paths for reliable comparison (trailing slash agnostic)
+      const currentNorm = window.location.pathname.replace(/\/+$/, '') || '/';
+      const targetNorm = targetUrl.pathname.replace(/\/+$/, '') || '/';
+
+      // Same-page navigation check
+      if (targetNorm === currentNorm) {
         if (targetUrl.hash) {
           const targetEl = document.querySelector(targetUrl.hash);
           if (targetEl) {
@@ -1645,6 +1662,10 @@
             targetEl.scrollIntoView({ behavior: 'smooth' });
             history.pushState(null, '', targetUrl.href);
           }
+        } else {
+          // Clicking a link to the exact same page without hash: scroll to top smoothly, avoid refetching/glitching
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         return;
       }
