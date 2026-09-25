@@ -94,7 +94,7 @@ public partial class MainWindow
 
             if (item.IsSelected)
             {
-                border.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF"));
+                border.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00F2B0"));
                 border.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(item.IsAiSafe ? "#1E3B32" : "#3B222A"));
             }
             else if (item.IsAiSafe)

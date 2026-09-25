@@ -8,16 +8,16 @@
         <converters:BoolToBrushConverter x:Key="BoolToBrushConverter"/>
         <converters:BoolToThicknessConverter x:Key="BoolToThicknessConverter"/>
 
-        <!-- High-End Dynamic Palette Tokens (Initial Dark State) -->
+        <!-- High-End Dynamic Palette Tokens (Initial Dark State: Luxury Obsidian & Cyber Mint) -->
         <!-- Canvas & base layers -->
-        <SolidColorBrush x:Key="CanvasDarkBrush" Color="#090B10"/>
-        <SolidColorBrush x:Key="HeaderDockBrush" Color="#0D1017"/>
-        <SolidColorBrush x:Key="SurfaceCardBrush" Color="#111520"/>
-        <SolidColorBrush x:Key="SurfaceCardHoverBrush" Color="#171D2C"/>
-        <SolidColorBrush x:Key="SurfaceCardSelectedBrush" Color="#141A28"/>
-        <SolidColorBrush x:Key="SurfaceSubCardBrush" Color="#141926"/>
-        <SolidColorBrush x:Key="HairlineBorderBrush" Color="#1E2538"/>
-        <SolidColorBrush x:Key="AccentBorderBrush" Color="#26354D"/>
+        <SolidColorBrush x:Key="CanvasDarkBrush" Color="#06080B"/>
+        <SolidColorBrush x:Key="HeaderDockBrush" Color="#0A0E13"/>
+        <SolidColorBrush x:Key="SurfaceCardBrush" Color="#0E1318"/>
+        <SolidColorBrush x:Key="SurfaceCardHoverBrush" Color="#131B22"/>
+        <SolidColorBrush x:Key="SurfaceCardSelectedBrush" Color="#101820"/>
+        <SolidColorBrush x:Key="SurfaceSubCardBrush" Color="#0A0F14"/>
+        <SolidColorBrush x:Key="HairlineBorderBrush" Color="#16212B"/>
+        <SolidColorBrush x:Key="AccentBorderBrush" Color="#1A3B35"/>
 
         <!-- Typography -->
         <SolidColorBrush x:Key="TextHighBrush" Color="#F8FAFC"/>
@@ -25,75 +25,78 @@
         <SolidColorBrush x:Key="TextMutedBrush" Color="#64748B"/>
 
         <!-- Pills & controls -->
-        <SolidColorBrush x:Key="PillButtonBgBrush" Color="#151D2A"/>
-        <SolidColorBrush x:Key="PillButtonHoverBrush" Color="#1E293B"/>
-        <SolidColorBrush x:Key="PillButtonBorderBrush" Color="#26354D"/>
+        <SolidColorBrush x:Key="PillButtonBgBrush" Color="#0F161C"/>
+        <SolidColorBrush x:Key="PillButtonHoverBrush" Color="#152028"/>
+        <SolidColorBrush x:Key="PillButtonBorderBrush" Color="#1E2E38"/>
+        <SolidColorBrush x:Key="HeroActionBtnTextBrush" Color="#030D0C"/>
 
         <!-- Track & scroll -->
-        <SolidColorBrush x:Key="TrackBgBrush" Color="#1A2333"/>
+        <SolidColorBrush x:Key="TrackBgBrush" Color="#0E141C"/>
         <SolidColorBrush x:Key="TrackThumbBrush" Color="#64748B"/>
-        <SolidColorBrush x:Key="ScrollThumbBrush" Color="#1E2B2B"/>
+        <SolidColorBrush x:Key="ScrollThumbBrush" Color="#1A242E"/>
         <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#00F2B0"/>
 
         <!-- Badges -->
-        <SolidColorBrush x:Key="AdminBadgeBgBrush" Color="#09241B"/>
+        <SolidColorBrush x:Key="AdminBadgeBgBrush" Color="#081D17"/>
         <SolidColorBrush x:Key="AdminBadgeBorderBrush" Color="#00F2B0"/>
         <SolidColorBrush x:Key="AdminBadgeTextBrush" Color="#00F2B0"/>
 
-        <SolidColorBrush x:Key="SafetyBadgeBgBrush" Color="#09241B"/>
+        <SolidColorBrush x:Key="SafetyBadgeBgBrush" Color="#081D17"/>
         <SolidColorBrush x:Key="SafetyBadgeBorderBrush" Color="#00F2B0"/>
         <SolidColorBrush x:Key="SafetyBadgeTextBrush" Color="#00F2B0"/>
 
-        <SolidColorBrush x:Key="WarningBadgeBgBrush" Color="#2A1E16"/>
+        <SolidColorBrush x:Key="WarningBadgeBgBrush" Color="#261C0D"/>
         <SolidColorBrush x:Key="WarningBadgeBorderBrush" Color="#F59E0B"/>
         <SolidColorBrush x:Key="WarningBadgeTextBrush" Color="#F59E0B"/>
 
         <!-- Modals -->
-        <SolidColorBrush x:Key="ModalSurfaceBrush" Color="#0C1217"/>
-        <SolidColorBrush x:Key="ModalBackdropBrush" Color="#5503070A"/>
+        <SolidColorBrush x:Key="ModalSurfaceBrush" Color="#0B0F14"/>
+        <SolidColorBrush x:Key="ModalBackdropBrush" Color="#77030608"/>
 
-        <!-- Brand Accents — Cyber Mint primary (#00F2B0), Electric Teal (#0DD3BA) & Cyan (#00E5FF) -->
+        <!-- Brand Accents — Cyber Mint primary (#00F2B0), Electric Teal (#0DD3BA) & Cyan (#06B6D4) -->
         <SolidColorBrush x:Key="ElectricCyanBrush" Color="#00F2B0"/>
         <SolidColorBrush x:Key="AccentBlueBrush" Color="#0DD3BA"/>
-        <SolidColorBrush x:Key="AccentIndigoBrush" Color="#0284C7"/>
+        <SolidColorBrush x:Key="AccentIndigoBrush" Color="#06B6D4"/>
         <SolidColorBrush x:Key="AccentVioletBrush" Color="#8B5CF6"/>
         <SolidColorBrush x:Key="EmeraldGreenBrush" Color="#00F2B0"/>
+        <SolidColorBrush x:Key="SuccessGlowBrush" Color="#00F2B0"/>
         <SolidColorBrush x:Key="AmberWarningBrush" Color="#F59E0B"/>
         <SolidColorBrush x:Key="RoseErrorBrush" Color="#F43F5E"/>
+        <SolidColorBrush x:Key="DestructiveRedBrush" Color="#F43F5E"/>
 
         <!-- Gradients -->
         <LinearGradientBrush x:Key="BrandHeroGradientBrush" StartPoint="0,0" EndPoint="1,1">
             <GradientStop Color="#00F2B0" Offset="0.0"/>
             <GradientStop Color="#0DD3BA" Offset="0.5"/>
-            <GradientStop Color="#0284C7" Offset="1.0"/>
+            <GradientStop Color="#06B6D4" Offset="1.0"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="BrandHeroGradientBrushTop" StartPoint="0,0" EndPoint="0,1">
             <GradientStop Color="#00F2B0" Offset="0.0"/>
             <GradientStop Color="#0DD3BA" Offset="0.5"/>
-            <GradientStop Color="#0284C7" Offset="1.0"/>
+            <GradientStop Color="#06B6D4" Offset="1.0"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="DoubleBezelOuterBrush" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#162624" Offset="0.0"/>
-            <GradientStop Color="#0E1A1A" Offset="1.0"/>
+            <GradientStop Color="#121C20" Offset="0.0"/>
+            <GradientStop Color="#091014" Offset="1.0"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="DoubleBezelInnerBrush" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#0F1D1C" Offset="0.0"/>
-            <GradientStop Color="#081112" Offset="1.0"/>
+            <GradientStop Color="#0D161A" Offset="0.0"/>
+            <GradientStop Color="#060A0D" Offset="1.0"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="HeroActionBtnBrush" StartPoint="0,0" EndPoint="1,0">
             <GradientStop Color="#00F2B0" Offset="0.0"/>
-            <GradientStop Color="#00D4BD" Offset="0.5"/>
-            <GradientStop Color="#0098A6" Offset="1.0"/>
+            <GradientStop Color="#0DD3BA" Offset="0.5"/>
+            <GradientStop Color="#00BFA5" Offset="1.0"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="HeroActionBtnPressedBrush" StartPoint="0,0" EndPoint="1,0">
-            <GradientStop Color="#00C48F" Offset="0.0"/>
-            <GradientStop Color="#00A896" Offset="0.5"/>
-            <GradientStop Color="#007782" Offset="1.0"/>
+            <GradientStop Color="#00D49B" Offset="0.0"/>
+            <GradientStop Color="#0BB8A2" Offset="0.5"/>
+            <GradientStop Color="#00A38D" Offset="1.0"/>
         </LinearGradientBrush>
 
         <!-- Glass Highlights & Glow Effects -->
@@ -104,15 +107,15 @@
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="GlassTopBorderBrush" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#3338BDF8" Offset="0.0"/>
-            <GradientStop Color="#0D38BDF8" Offset="0.5"/>
+            <GradientStop Color="#3300F2B0" Offset="0.0"/>
+            <GradientStop Color="#0D0DD3BA" Offset="0.5"/>
             <GradientStop Color="#00000000" Offset="1.0"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="GlassSurfaceActiveBrush" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#2800E5FF" Offset="0.0"/>
-            <GradientStop Color="#140284C7" Offset="0.6"/>
-            <GradientStop Color="#0D2563EB" Offset="1.0"/>
+            <GradientStop Color="#2000F2B0" Offset="0.0"/>
+            <GradientStop Color="#100DD3BA" Offset="0.6"/>
+            <GradientStop Color="#0800BFA5" Offset="1.0"/>
         </LinearGradientBrush>
 
         <!-- WCAG 2.2 AA Focus Visual Style -->
@@ -276,10 +279,10 @@
         <!-- Primary Action Button (Sleek Tech CTA) -->
         <Style x:Key="HeroCTAButton" TargetType="Button">
             <Setter Property="FocusVisualStyle" Value="{StaticResource AccessibleFocusVisualStyle}"/>
-            <Setter Property="Background" Value="{StaticResource HeroActionBtnBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource HeroActionBtnBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource HeroActionBtnTextBrush}"/>
             <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Padding" Value="24,11"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -318,7 +321,7 @@
                                 </Setter>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="outerBorder" Property="Background" Value="{StaticResource HeroActionBtnPressedBrush}"/>
+                                <Setter TargetName="outerBorder" Property="Background" Value="{DynamicResource HeroActionBtnPressedBrush}"/>
                                 <Setter TargetName="outerBorder" Property="Opacity" Value="0.88"/>
                                 <Setter TargetName="outerBorder" Property="RenderTransform">
                                     <Setter.Value>
@@ -421,7 +424,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="Tag" Value="Active">
                                 <Setter TargetName="border" Property="Background" Value="{DynamicResource GlassSurfaceActiveBrush}"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="#6600E5FF"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#6600F2B0"/>
                                 <Setter Property="Foreground" Value="{DynamicResource ElectricCyanBrush}"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -438,8 +441,8 @@
                                     <Condition Property="Tag" Value="Active"/>
                                     <Condition Property="IsMouseOver" Value="True"/>
                                 </MultiTrigger.Conditions>
-                                <Setter TargetName="border" Property="Background" Value="#3800E5FF"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="#AA00E5FF"/>
+                                <Setter TargetName="border" Property="Background" Value="#3800F2B0"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#AA00F2B0"/>
                             </MultiTrigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="{DynamicResource PillButtonBorderBrush}"/>
@@ -785,16 +788,16 @@
         <Style x:Key="LuxuryTrayContextMenu" TargetType="ContextMenu">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
             <Setter Property="SnapsToDevicePixels" Value="True"/>
-            <Setter Property="Background" Value="#0C1017"/>
-            <Setter Property="BorderBrush" Value="#1E293B"/>
+            <Setter Property="Background" Value="#0A0E13"/>
+            <Setter Property="BorderBrush" Value="#17222C"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="6"/>
             <Setter Property="MinWidth" Value="270"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ContextMenu">
-                        <Border Background="#0C1017"
-                                BorderBrush="#1E293B"
+                        <Border Background="#0A0E13"
+                                BorderBrush="#17222C"
                                 BorderThickness="1"
                                 CornerRadius="12"
                                 Padding="6">
@@ -836,7 +839,7 @@
                                 <Border Grid.Column="0"
                                         Width="24" Height="24"
                                         CornerRadius="6"
-                                        Background="#141B28"
+                                        Background="#111820"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Center">
                                     <ContentPresenter ContentSource="Icon" VerticalAlignment="Center" HorizontalAlignment="Center"/>
@@ -849,8 +852,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsHighlighted" Value="True">
-                                <Setter TargetName="ItemBorder" Property="Background" Value="#172133"/>
-                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#25354F"/>
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#152028"/>
+                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#1A3B35"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.45"/>
@@ -866,11 +869,25 @@
             <Setter Property="OverridesDefaultStyle" Value="True"/>
             <Setter Property="Height" Value="1"/>
             <Setter Property="Margin" Value="4,4,4,4"/>
-            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="Background" Value="#17222C"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Separator">
-                        <Border Height="1" Background="#1E293B" Margin="{TemplateBinding Margin}"/>
+                        <Border Height="1" Background="#17222C" Margin="{TemplateBinding Margin}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Hairline Inset Separator Style -->
+        <Style x:Key="HairlineSeparator" TargetType="Separator">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="Background" Value="{DynamicResource HairlineBorderBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Border Height="1" Background="{TemplateBinding Background}" Margin="{TemplateBinding Margin}"/>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>

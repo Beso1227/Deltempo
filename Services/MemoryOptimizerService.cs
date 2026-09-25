@@ -57,7 +57,7 @@ public class MemoryAreaSnapshot
     // pressure. Frozen brushes are thread-safe and skip change-notification overhead.
     private static readonly Brush HighUsageBrush = CreateFrozenBrush("#EF4444");     // red
     private static readonly Brush ElevatedUsageBrush = CreateFrozenBrush("#F59E0B"); // amber
-    private static readonly Brush NormalUsageBrush = CreateFrozenBrush("#00E5FF");   // cyan
+    private static readonly Brush NormalUsageBrush = CreateFrozenBrush("#00F2B0");   // cyber mint
 
     private static SolidColorBrush CreateFrozenBrush(string hex)
     {

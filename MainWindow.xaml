@@ -78,7 +78,7 @@
                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="14" ShadowDepth="0" Color="#00E5FF" Opacity="0.45"/>
+                                <DropShadowEffect BlurRadius="14" ShadowDepth="0" Color="#00F2B0" Opacity="0.45"/>
                             </Border.Effect>
                             <Image Source="app.ico"
                                    RenderOptions.BitmapScalingMode="HighQuality"
@@ -91,7 +91,7 @@
                                            FontSize="15.5"
                                            FontWeight="Bold"
                                            Foreground="{DynamicResource TextHighBrush}"/>
-                                <Border BorderBrush="#2600E5FF"
+                                <Border BorderBrush="#2600F2B0"
                                         BorderThickness="1"
                                         CornerRadius="5"
                                         Padding="6,1.5"
@@ -99,7 +99,7 @@
                                         VerticalAlignment="Center">
                                     <Border.Background>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                            <GradientStop Color="#2200E5FF" Offset="0"/>
+                                            <GradientStop Color="#2200F2B0" Offset="0"/>
                                             <GradientStop Color="#158B5CF6" Offset="1"/>
                                         </LinearGradientBrush>
                                     </Border.Background>
@@ -109,7 +109,7 @@
                                                    Text="v1.6.0"
                                                    FontSize="9"
                                                    FontWeight="Bold"
-                                                   Foreground="#00E5FF"
+                                                   Foreground="{DynamicResource ElectricCyanBrush}"
                                                    RenderOptions.ClearTypeHint="Enabled"/>
                                         <Border BorderBrush="#26FFFFFF"
                                                 BorderThickness="1"
@@ -551,19 +551,20 @@
                                                    Text="&#xE721;"
                                                    FontFamily="{DynamicResource IconFont}"
                                                    FontSize="12.5"
-                                                   Foreground="#FFFFFF"
+                                                   Foreground="{DynamicResource HeroActionBtnTextBrush}"
                                                    Margin="0,0,7,0"
                                                    VerticalAlignment="Center"/>
                                         <TextBlock x:Name="HeroScanBtnText"
                                                    Text="Scan Now"
                                                    FontSize="12"
                                                    FontWeight="Bold"
-                                                   Foreground="#FFFFFF"
+                                                   Foreground="{DynamicResource HeroActionBtnTextBrush}"
                                                    VerticalAlignment="Center"/>
                                         <TextBlock Text="F5"
                                                    FontSize="9"
                                                    FontFamily="{DynamicResource MonospaceFont}"
-                                                   Foreground="#FFFFFF80"
+                                                   Foreground="{DynamicResource HeroActionBtnTextBrush}"
+                                                   Opacity="0.72"
                                                    Margin="6,0,0,0"
                                                    VerticalAlignment="Center"/>
                                     </StackPanel>
@@ -978,7 +979,7 @@
                             <!-- Left: Active Scope Indicator -->
                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Border Background="{DynamicResource GlassSurfaceActiveBrush}"
-                                        BorderBrush="#3300E5FF"
+                                        BorderBrush="#3300F2B0"
                                         BorderThickness="1"
                                         CornerRadius="6"
                                         Padding="8,2.5"
@@ -1648,7 +1649,8 @@
                                     <TextBlock Text="Ctrl+Enter"
                                                FontSize="9"
                                                FontFamily="{DynamicResource MonospaceFont}"
-                                               Foreground="#FFFFFF80"
+                                               Foreground="{DynamicResource HeroActionBtnTextBrush}"
+                                               Opacity="0.72"
                                                Margin="6,0,0,0"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
@@ -2501,7 +2503,7 @@
                                                     Margin="0,0,12,0"
                                                     VerticalAlignment="Center">
                                                 <Border.Effect>
-                                                    <DropShadowEffect BlurRadius="12" ShadowDepth="0" Color="#00E5FF" Opacity="0.3"/>
+                                                    <DropShadowEffect BlurRadius="12" ShadowDepth="0" Color="#00F2B0" Opacity="0.3"/>
                                                 </Border.Effect>
                                                 <Image Source="app.ico" Margin="4" RenderOptions.BitmapScalingMode="HighQuality"/>
                                             </Border>

@@ -265,7 +265,7 @@ public class InstalledAppItem : INotifyPropertyChanged
         "System & Hardware" => "#F59E0B",
         "Runtimes" => "#EF4444",
         "Networking & Security" => "#6366F1",
-        "Utilities" => "#00E5FF",
+        "Utilities" => "#00F2B0",
         _ => "#94A3B8"
     };
 
@@ -279,7 +279,7 @@ public class InstalledAppItem : INotifyPropertyChanged
         "System & Hardware" => "#14F59E0B",
         "Runtimes" => "#14EF4444",
         "Networking & Security" => "#146366F1",
-        "Utilities" => "#1400E5FF",
+        "Utilities" => "#1400F2B0",
         _ => "#1494A3B8"
     };
 

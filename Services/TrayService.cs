@@ -363,8 +363,8 @@ public static class TrayService
                 Width = 20,
                 Height = 20,
                 CornerRadius = new CornerRadius(5),
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10242B")),
-                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF")),
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0A1C16")),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00F2B0")),
                 BorderThickness = new Thickness(1),
                 Margin = new Thickness(0, 0, 7, 0)
             };
@@ -373,7 +373,7 @@ public static class TrayService
                 Text = "\uEA86",
                 FontFamily = Application.Current.TryFindResource("IconFont") as FontFamily,
                 FontSize = 10.5,
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF")),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00F2B0")),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -427,7 +427,7 @@ public static class TrayService
                 FontSize = 10.5,
                 Foreground = mem.UsedPercent > 80
                     ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EF4444"))
-                    : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF"))
+                    : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00F2B0"))
             });
             ramPanel.Children.Add(new TextBlock
             {
@@ -443,7 +443,7 @@ public static class TrayService
             {
                 Height = 4,
                 CornerRadius = new CornerRadius(2),
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E293B")),
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#16212B")),
                 ClipToBounds = true
             };
             var pBar = new ProgressBar
@@ -491,7 +491,7 @@ public static class TrayService
             menu.Items.Add(headerBorder);
 
             // 2. Open Dashboard
-            var openItem = CreateMenuItem("\uE80F", "Open Deltempo Dashboard", () => RestoreMainWindow(), new SolidColorBrush((Color)ColorConverter.ConvertFromString("#38BDF8")));
+            var openItem = CreateMenuItem("\uE80F", "Open Deltempo Dashboard", () => RestoreMainWindow(), new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00F2B0")));
             menu.Items.Add(openItem);
 
             // 3. Boost RAM (Working Sets)
@@ -503,7 +503,7 @@ public static class TrayService
                     ShowNotification("RAM Engine Optimization", $"Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} tasks in {res.ExecutionTimeMs}ms!");
                     UpdateTooltip();
                 }
-            }, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E5FF")));
+            }, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00F2B0")));
             menu.Items.Add(boostItem);
 
             // 4. Purge Standby Memory (Kernel)
