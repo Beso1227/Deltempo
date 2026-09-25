@@ -32,68 +32,68 @@
         <!-- Track & scroll -->
         <SolidColorBrush x:Key="TrackBgBrush" Color="#1A2333"/>
         <SolidColorBrush x:Key="TrackThumbBrush" Color="#64748B"/>
-        <SolidColorBrush x:Key="ScrollThumbBrush" Color="#2A3448"/>
-        <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#06B6D4"/>
+        <SolidColorBrush x:Key="ScrollThumbBrush" Color="#1E2B2B"/>
+        <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#00F2B0"/>
 
         <!-- Badges -->
-        <SolidColorBrush x:Key="AdminBadgeBgBrush" Color="#10241B"/>
-        <SolidColorBrush x:Key="AdminBadgeBorderBrush" Color="#10B981"/>
-        <SolidColorBrush x:Key="AdminBadgeTextBrush" Color="#10B981"/>
+        <SolidColorBrush x:Key="AdminBadgeBgBrush" Color="#09241B"/>
+        <SolidColorBrush x:Key="AdminBadgeBorderBrush" Color="#00F2B0"/>
+        <SolidColorBrush x:Key="AdminBadgeTextBrush" Color="#00F2B0"/>
 
-        <SolidColorBrush x:Key="SafetyBadgeBgBrush" Color="#10241B"/>
-        <SolidColorBrush x:Key="SafetyBadgeBorderBrush" Color="#10B981"/>
-        <SolidColorBrush x:Key="SafetyBadgeTextBrush" Color="#10B981"/>
+        <SolidColorBrush x:Key="SafetyBadgeBgBrush" Color="#09241B"/>
+        <SolidColorBrush x:Key="SafetyBadgeBorderBrush" Color="#00F2B0"/>
+        <SolidColorBrush x:Key="SafetyBadgeTextBrush" Color="#00F2B0"/>
 
         <SolidColorBrush x:Key="WarningBadgeBgBrush" Color="#2A1E16"/>
         <SolidColorBrush x:Key="WarningBadgeBorderBrush" Color="#F59E0B"/>
         <SolidColorBrush x:Key="WarningBadgeTextBrush" Color="#F59E0B"/>
 
         <!-- Modals -->
-        <SolidColorBrush x:Key="ModalSurfaceBrush" Color="#0F131E"/>
-        <SolidColorBrush x:Key="ModalBackdropBrush" Color="#55050A14"/>
+        <SolidColorBrush x:Key="ModalSurfaceBrush" Color="#0C1217"/>
+        <SolidColorBrush x:Key="ModalBackdropBrush" Color="#5503070A"/>
 
-        <!-- Brand Accents — electric cyan primary, blue→indigo→violet gradient -->
-        <SolidColorBrush x:Key="ElectricCyanBrush" Color="#00E5FF"/>
-        <SolidColorBrush x:Key="AccentBlueBrush" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="AccentIndigoBrush" Color="#6366F1"/>
+        <!-- Brand Accents — Cyber Mint primary (#00F2B0), Electric Teal (#0DD3BA) & Cyan (#00E5FF) -->
+        <SolidColorBrush x:Key="ElectricCyanBrush" Color="#00F2B0"/>
+        <SolidColorBrush x:Key="AccentBlueBrush" Color="#0DD3BA"/>
+        <SolidColorBrush x:Key="AccentIndigoBrush" Color="#0284C7"/>
         <SolidColorBrush x:Key="AccentVioletBrush" Color="#8B5CF6"/>
-        <SolidColorBrush x:Key="EmeraldGreenBrush" Color="#10B981"/>
+        <SolidColorBrush x:Key="EmeraldGreenBrush" Color="#00F2B0"/>
         <SolidColorBrush x:Key="AmberWarningBrush" Color="#F59E0B"/>
         <SolidColorBrush x:Key="RoseErrorBrush" Color="#F43F5E"/>
 
         <!-- Gradients -->
         <LinearGradientBrush x:Key="BrandHeroGradientBrush" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#00E5FF" Offset="0.0"/>
-            <GradientStop Color="#0284C7" Offset="0.5"/>
-            <GradientStop Color="#2563EB" Offset="1.0"/>
+            <GradientStop Color="#00F2B0" Offset="0.0"/>
+            <GradientStop Color="#0DD3BA" Offset="0.5"/>
+            <GradientStop Color="#0284C7" Offset="1.0"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="BrandHeroGradientBrushTop" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#00E5FF" Offset="0.0"/>
-            <GradientStop Color="#0284C7" Offset="0.5"/>
-            <GradientStop Color="#2563EB" Offset="1.0"/>
+            <GradientStop Color="#00F2B0" Offset="0.0"/>
+            <GradientStop Color="#0DD3BA" Offset="0.5"/>
+            <GradientStop Color="#0284C7" Offset="1.0"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="DoubleBezelOuterBrush" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#1A2234" Offset="0.0"/>
-            <GradientStop Color="#111624" Offset="1.0"/>
+            <GradientStop Color="#162624" Offset="0.0"/>
+            <GradientStop Color="#0E1A1A" Offset="1.0"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="DoubleBezelInnerBrush" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#121622" Offset="0.0"/>
-            <GradientStop Color="#0C0F18" Offset="1.0"/>
+            <GradientStop Color="#0F1D1C" Offset="0.0"/>
+            <GradientStop Color="#081112" Offset="1.0"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="HeroActionBtnBrush" StartPoint="0,0" EndPoint="1,0">
-            <GradientStop Color="#00C7E5" Offset="0.0"/>
-            <GradientStop Color="#0284C7" Offset="0.5"/>
-            <GradientStop Color="#0369A1" Offset="1.0"/>
+            <GradientStop Color="#00F2B0" Offset="0.0"/>
+            <GradientStop Color="#00D4BD" Offset="0.5"/>
+            <GradientStop Color="#0098A6" Offset="1.0"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="HeroActionBtnPressedBrush" StartPoint="0,0" EndPoint="1,0">
-            <GradientStop Color="#00A3BC" Offset="0.0"/>
-            <GradientStop Color="#0369A1" Offset="0.5"/>
-            <GradientStop Color="#075985" Offset="1.0"/>
+            <GradientStop Color="#00C48F" Offset="0.0"/>
+            <GradientStop Color="#00A896" Offset="0.5"/>
+            <GradientStop Color="#007782" Offset="1.0"/>
         </LinearGradientBrush>
 
         <!-- Glass Highlights & Glow Effects -->
