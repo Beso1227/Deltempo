@@ -171,7 +171,7 @@
     <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="mobile-nav-link">GitHub Repository</a>
   </div>
 
-  <main id="main" class="container" style="padding-top: 2rem; padding-bottom: 5rem;">
+  <main id="main" class="container download-main">
     <div class="section-header reveal-on-scroll">
       <div class="section-tag">Download Center</div>
       <h1 class="section-title">Download Deltempo for Windows</h1>
@@ -179,21 +179,21 @@
     </div>
 
     <!-- Download Cards Grid -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+    <div class="download-grid">
       <!-- GUI Card -->
       <div class="double-bezel reveal-on-scroll stagger-1">
-        <div class="card-inner" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="card-inner download-card-body">
           <div>
-            <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 0.5rem;">PRIMARY DESKTOP APP</div>
-            <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">Deltempo.exe (GUI)</h2>
-            <p style="color: var(--text-med); font-size: 0.95rem; margin-bottom: 1.5rem;">Complete desktop interface with 26+ scopes, live memory optimizer, startup manager, and system tray guardian.</p>
+            <div class="download-badge-gui">PRIMARY DESKTOP APP</div>
+            <h2 class="download-card-title">Deltempo.exe (GUI)</h2>
+            <p class="download-card-desc">Complete desktop interface with 26+ scopes, live memory optimizer, startup manager, and system tray guardian.</p>
           </div>
           <div>
-            <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-pill btn-pill-primary" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 1rem;">
+            <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-pill btn-pill-primary download-btn-full">
               <span>Download Deltempo.exe</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             </a>
-            <div style="font-size: 0.8rem; color: var(--text-low); margin-top: 0.75rem; text-align: center;">
+            <div class="download-card-meta">
               64-bit Windows • Self-Contained Binary
             </div>
           </div>
@@ -202,18 +202,18 @@
 
       <!-- CLI Card -->
       <div class="double-bezel reveal-on-scroll stagger-2">
-        <div class="card-inner" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="card-inner download-card-body">
           <div>
-            <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent-emerald); text-transform: uppercase; margin-bottom: 0.5rem;">HEADLESS TERMINAL TOOL</div>
-            <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">deltempo_cli.exe</h2>
-            <p style="color: var(--text-med); font-size: 0.95rem; margin-bottom: 1.5rem;">Synchronous console binary designed for PowerShell, Command Prompt, batch scripts, and automated CI pipelines.</p>
+            <div class="download-badge-cli">HEADLESS TERMINAL TOOL</div>
+            <h2 class="download-card-title">deltempo_cli.exe</h2>
+            <p class="download-card-desc">Synchronous console binary designed for PowerShell, Command Prompt, batch scripts, and automated CI pipelines.</p>
           </div>
           <div>
-            <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/deltempo_cli.exe" class="btn-pill btn-pill-secondary" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 1rem;">
+            <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/deltempo_cli.exe" class="btn-pill btn-pill-secondary download-btn-full">
               <span>Download deltempo_cli.exe</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             </a>
-            <div style="font-size: 0.8rem; color: var(--text-low); margin-top: 0.75rem; text-align: center;">
+            <div class="download-card-meta">
               64-bit Windows • Headless Console CLI
             </div>
           </div>
@@ -222,53 +222,53 @@
     </div>
 
     <!-- WinGet Section -->
-    <div class="double-bezel" style="margin-bottom: 3rem;">
-      <div class="card-inner" style="display: flex; flex-direction: column; gap: 1rem;">
-        <h3 style="font-size: 1.25rem; font-weight: 800;">Install via Microsoft WinGet</h3>
-        <p style="color: var(--text-med); font-size: 0.95rem;">Install, update, and manage Deltempo directly through the official Windows Package Manager:</p>
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-          <button type="button" class="hero-winget" id="wingetBtn" title="Click to copy WinGet command" aria-label="Copy WinGet install command" style="margin-bottom: 0;">
-            <span style="color: var(--accent-cyan);">$</span>
+    <div class="double-bezel download-winget-box">
+      <div class="card-inner download-winget-inner">
+        <h3 class="download-winget-title">Install via Microsoft WinGet</h3>
+        <p class="download-card-desc">Install, update, and manage Deltempo directly through the official Windows Package Manager:</p>
+        <div class="download-winget-row">
+          <button type="button" class="hero-winget" id="wingetBtn" title="Click to copy WinGet command" aria-label="Copy WinGet install command">
+            <span class="accent-cyan-text">$</span>
             <span>winget install Beso1227.Deltempo</span>
             <span class="hero-winget-copy" id="wingetBadge">Copy</span>
           </button>
-          <span style="font-size: 0.8rem; color: var(--text-low); font-family: var(--font-mono);"># PowerShell or Command Prompt</span>
+          <span class="download-winget-hint"># PowerShell or Command Prompt</span>
         </div>
       </div>
     </div>
 
     <!-- Technical Specifications -->
-    <div class="double-bezel" style="margin-bottom: 3rem;">
-      <div class="card-inner" style="padding: 0; overflow: hidden;">
-        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(0, 242, 176, 0.16); font-weight: 800; font-size: 1.15rem; color: var(--text-high); display: flex; align-items: center; justify-content: space-between;">
+    <div class="double-bezel specs-card">
+      <div class="card-inner specs-card-inner">
+        <div class="specs-header">
           <span>Technical System Requirements</span>
-          <span style="font-size: 0.75rem; font-family: var(--font-mono); font-weight: 700; color: var(--accent-emerald); background: rgba(0, 242, 176, 0.1); border: 1px solid rgba(0, 242, 176, 0.25); padding: 3px 8px; border-radius: var(--radius-sm);">STANDALONE BINARY</span>
+          <span class="specs-badge">STANDALONE BINARY</span>
         </div>
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.92rem;">
+        <table class="specs-table">
           <tbody>
-            <tr style="border-bottom: 1px solid rgba(0, 242, 176, 0.08);">
-              <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600; width: 35%;">Operating System</td>
-              <td style="padding: 1rem 1.5rem; color: var(--text-high);">Windows 10 (Build 1809+) or Windows 11 (64-bit)</td>
+            <tr class="specs-row">
+              <td class="specs-label">Operating System</td>
+              <td class="specs-val">Windows 10 (Build 1809+) or Windows 11 (64-bit)</td>
             </tr>
-            <tr style="border-bottom: 1px solid rgba(0, 242, 176, 0.08);">
-              <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">Architecture</td>
-              <td style="padding: 1rem 1.5rem; color: var(--text-high);">win-x64 (Native 64-bit)</td>
+            <tr class="specs-row">
+              <td class="specs-label">Architecture</td>
+              <td class="specs-val">win-x64 (Native 64-bit)</td>
             </tr>
-            <tr style="border-bottom: 1px solid rgba(0, 242, 176, 0.08);">
-              <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">Framework / Runtime</td>
-              <td style="padding: 1rem 1.5rem; color: var(--text-high);">.NET 10 (Self-contained, no external runtime required)</td>
+            <tr class="specs-row">
+              <td class="specs-label">Framework / Runtime</td>
+              <td class="specs-val">.NET 10 (Self-contained, no external runtime required)</td>
             </tr>
-            <tr style="border-bottom: 1px solid rgba(0, 242, 176, 0.08);">
-              <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">Installation Mode</td>
-              <td style="padding: 1rem 1.5rem; color: var(--text-high);">Portable (Single-file executable)</td>
+            <tr class="specs-row">
+              <td class="specs-label">Installation Mode</td>
+              <td class="specs-val">Portable (Single-file executable)</td>
             </tr>
-            <tr style="border-bottom: 1px solid rgba(0, 242, 176, 0.08);">
-              <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">Telemetry</td>
-              <td style="padding: 1rem 1.5rem; color: var(--text-high);">No analytics or telemetry. Core operations run offline.</td>
+            <tr class="specs-row">
+              <td class="specs-label">Telemetry</td>
+              <td class="specs-val">No analytics or telemetry. Core operations run offline.</td>
             </tr>
             <tr>
-              <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">License</td>
-              <td style="padding: 1rem 1.5rem; color: var(--text-high);">MIT Open Source License</td>
+              <td class="specs-label">License</td>
+              <td class="specs-val">MIT Open Source License</td>
             </tr>
           </tbody>
         </table>
@@ -281,7 +281,7 @@
       <div class="footer-brand">
         <picture>
           <source srcset="../app_icon.webp" type="image/webp">
-          <img src="../app_icon-64.png" alt="Deltempo Logo" width="20" height="20" style="border-radius: 4px;">
+          <img src="../app_icon-64.png" alt="Deltempo Logo" width="20" height="20" class="footer-logo-img">
         </picture>
         <span>Deltempo</span>
       </div>
@@ -292,7 +292,7 @@
         <li><a href="../changelog/" class="footer-link">Changelog</a></li>
         <li><a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="footer-link">GitHub</a></li>
       </ul>
-      <div style="font-size: 0.8rem; color: var(--text-low);">
+      <div class="footer-copy">
         Copyright © 2026 Beso1227 / Deltempo Project.
       </div>
     </div>
