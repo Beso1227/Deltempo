@@ -353,7 +353,7 @@ p, .section-subtitle, .hero-subtext, .card-desc, .faq-answer, .scope-desc {
   top: 1rem;
   z-index: 1000;
   padding: 0 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -366,31 +366,31 @@ p, .section-subtitle, .hero-subtext, .card-desc, .faq-answer, .scope-desc {
   width: 100%;
   max-width: 1240px;
   margin: 0 auto;
-  height: 58px;
-  padding: 0 0.75rem 0 1.25rem;
-  background: linear-gradient(180deg, rgba(14, 20, 22, 0.88) 0%, rgba(11, 15, 16, 0.94) 100%);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid var(--border-subtle);
+  height: 54px;
+  padding: 0 0.5rem 0 1rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.03) 50%, rgba(255, 255, 255, 0.06) 100%), rgba(10, 14, 16, 0.58);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.13);
   border-radius: var(--radius-pill);
-  box-shadow: inset 0 1px 0 rgba(0, 242, 176, 0.16), 0 16px 40px -8px rgba(0, 0, 0, 0.65), 0 0 24px -6px rgba(0, 242, 176, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(255, 255, 255, 0.07), inset 0 0 24px rgba(255, 255, 255, 0.04), 0 16px 40px -8px rgba(0, 0, 0, 0.55), 0 0 24px -6px rgba(0, 242, 176, 0.1);
   transition: border-color var(--transition-fast), background-color var(--transition-normal), box-shadow var(--transition-normal);
 }
 
 .nav-island:hover {
-  border-color: rgba(0, 242, 176, 0.24);
-  box-shadow: inset 0 1px 0 rgba(0, 242, 176, 0.22), 0 20px 48px -8px rgba(0, 0, 0, 0.75), 0 0 32px -4px rgba(0, 242, 176, 0.14);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38), inset 0 -1px 0 rgba(255, 255, 255, 0.09), inset 0 0 24px rgba(255, 255, 255, 0.05), 0 20px 48px -8px rgba(0, 0, 0, 0.6), 0 0 32px -4px rgba(0, 242, 176, 0.14);
 }
 
 html.light .nav-island {
-  background: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.64) 50%, rgba(255, 255, 255, 0.78) 100%);
   border: 1px solid var(--border-subtle);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 12px 32px -4px rgba(0, 0, 0, 0.08), 0 0 20px -4px rgba(5, 150, 105, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(0, 0, 0, 0.03), 0 12px 32px -4px rgba(0, 0, 0, 0.09), 0 0 20px -4px rgba(5, 150, 105, 0.07);
 }
 
 html.light .nav-island:hover {
   border-color: var(--border-strong);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 16px 36px -4px rgba(0, 0, 0, 0.12), 0 0 24px -2px rgba(5, 150, 105, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(0, 0, 0, 0.04), 0 16px 36px -4px rgba(0, 0, 0, 0.13), 0 0 24px -2px rgba(5, 150, 105, 0.11);
 }
 
 .nav-brand {
@@ -432,7 +432,7 @@ html.light .brand-logo-img {
   list-style: none;
   gap: 0.15rem;
   margin: 0 auto;
-  padding: 0 0.5rem;
+  padding: 0;
   flex: 1 1 auto;
 }
 
@@ -486,7 +486,7 @@ html.light .nav-link.active {
   width: 1px;
   height: 20px;
   background: var(--border-subtle);
-  margin: 0 0.35rem;
+  margin: 0 0.2rem;
   flex-shrink: 0;
 }
 
@@ -501,14 +501,14 @@ html.light .nav-divider {
   width: 34px;
   height: 34px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--border-subtle);
-  background: rgba(18, 25, 28, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text-med);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 html.light .btn-icon {
-  background: rgba(0, 0, 0, 0.03);
+  background: rgba(255, 255, 255, 0.65);
   border: 1px solid var(--border-subtle);
 }
 
