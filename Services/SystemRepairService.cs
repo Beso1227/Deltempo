@@ -118,8 +118,9 @@ public static class SystemRepairService
         Log("[Fast Diagnostics] 2/4 Checking NTFS/ReFS filesystem dirty bit...");
         try
         {
+            string fsutilPath = Path.Combine(system32, "fsutil.exe");
             var dirtyResult = await ExecuteProcessWithTelemetryAsync(
-                "fsutil.exe",
+                File.Exists(fsutilPath) ? fsutilPath : "fsutil.exe",
                 "dirty query C:",
                 RepairToolType.ChkdskScan,
                 onOutput,
@@ -505,19 +506,25 @@ public static class SystemRepairService
             onOutput?.Invoke(msg);
         }
 
+        string system32 = Environment.GetFolderPath(Environment.SpecialFolder.System);
+        string netshPath = Path.Combine(system32, "netsh.exe");
+        string ipconfigPath = Path.Combine(system32, "ipconfig.exe");
+        string netshExe = File.Exists(netshPath) ? netshPath : "netsh.exe";
+        string ipconfigExe = File.Exists(ipconfigPath) ? ipconfigPath : "ipconfig.exe";
+
         Log("[Network Engine] Resetting Winsock catalog...");
         onProgress?.Invoke(0.20);
-        var winsockResult = await ExecuteProcessWithTelemetryAsync("netsh.exe", "winsock reset", RepairToolType.NetworkStackReset, onOutput, null, ct, timeout: TimeSpan.FromMinutes(5));
+        var winsockResult = await ExecuteProcessWithTelemetryAsync(netshExe, "winsock reset", RepairToolType.NetworkStackReset, onOutput, null, ct, timeout: TimeSpan.FromMinutes(5));
         if (!winsockResult.Success) failures++;
 
         Log("[Network Engine] Resetting TCP/IP protocol stack...");
         onProgress?.Invoke(0.50);
-        var tcpResult = await ExecuteProcessWithTelemetryAsync("netsh.exe", "int ip reset", RepairToolType.NetworkStackReset, onOutput, null, ct, timeout: TimeSpan.FromMinutes(5));
+        var tcpResult = await ExecuteProcessWithTelemetryAsync(netshExe, "int ip reset", RepairToolType.NetworkStackReset, onOutput, null, ct, timeout: TimeSpan.FromMinutes(5));
         if (!tcpResult.Success) failures++;
 
         Log("[Network Engine] Purging and refreshing DNS resolver cache...");
         onProgress?.Invoke(0.80);
-        var dnsResult = await ExecuteProcessWithTelemetryAsync("ipconfig.exe", "/flushdns", RepairToolType.NetworkStackReset, onOutput, null, ct, timeout: TimeSpan.FromMinutes(2));
+        var dnsResult = await ExecuteProcessWithTelemetryAsync(ipconfigExe, "/flushdns", RepairToolType.NetworkStackReset, onOutput, null, ct, timeout: TimeSpan.FromMinutes(2));
         if (!dnsResult.Success) failures++;
 
         onProgress?.Invoke(1.0);

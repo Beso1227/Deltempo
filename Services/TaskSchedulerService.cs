@@ -8,13 +8,20 @@ public static class TaskSchedulerService
 {
     private const string TaskName = "DeltempoWeeklyMaintenance";
 
+    private static string GetSchtasksPath()
+    {
+        string system32 = Environment.GetFolderPath(Environment.SpecialFolder.System);
+        string fullPath = Path.Combine(system32, "schtasks.exe");
+        return File.Exists(fullPath) ? fullPath : "schtasks.exe";
+    }
+
     public static bool IsTaskScheduled()
     {
         try
         {
             var psi = new ProcessStartInfo
             {
-                FileName = "schtasks.exe",
+                FileName = GetSchtasksPath(),
                 Arguments = $"/query /tn \"{TaskName}\"",
                 UseShellExecute = false,
                 CreateNoWindow = true,
@@ -48,7 +55,7 @@ public static class TaskSchedulerService
 
             var psi = new ProcessStartInfo
             {
-                FileName = "schtasks.exe",
+                FileName = GetSchtasksPath(),
                 Arguments = args,
                 UseShellExecute = false,
                 CreateNoWindow = true,
@@ -80,7 +87,7 @@ public static class TaskSchedulerService
         {
             var psi = new ProcessStartInfo
             {
-                FileName = "schtasks.exe",
+                FileName = GetSchtasksPath(),
                 Arguments = $"/delete /tn \"{TaskName}\" /f",
                 UseShellExecute = false,
                 CreateNoWindow = true,
