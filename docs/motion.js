@@ -144,7 +144,7 @@
     const colorsDark = [
       { r: 0, g: 242, b: 176 },   // Cyber Mint #00F2B0
       { r: 13, g: 211, b: 186 },  // Electric Teal #0DD3BA
-      { r: 0, g: 229, b: 255 },   // Luminous Cyan #00E5FF
+      { r: 52, g: 211, b: 153 },  // Pure Spring Mint #34D399
       { r: 16, g: 185, b: 129 },  // Neon Emerald #10B981
       { r: 240, g: 253, b: 249 }, // Star Crystal White
     ];
@@ -152,10 +152,12 @@
     const colorsLight = [
       { r: 5, g: 150, b: 105 },   // Deep Emerald #059669
       { r: 13, g: 148, b: 136 },  // Deep Teal #0D9488
-      { r: 2, g: 132, b: 199 },   // Azure #0284C7
+      { r: 4, g: 120, b: 87 },    // Forest Mint #047857
       { r: 16, g: 185, b: 129 },  // Jade #10B981
       { r: 51, g: 65, b: 85 },    // Slate #334155
     ];
+
+    let frameCount = 0;
 
     class Particle {
       constructor() {
@@ -168,6 +170,9 @@
         
         // 3D Depth layer: 0.45 (far background) to 1.65 (foreground)
         this.z = Math.random() * 1.2 + 0.45;
+        this.zPhase = Math.random() * Math.PI * 2;
+        this.zSpeed = Math.random() * 0.016 + 0.008;
+        this.currentZ = this.z;
         this.renderX = this.x;
         this.renderY = this.y;
 
@@ -177,31 +182,37 @@
         
         // 15% are Holographic Shield Nexus nodes; 85% are Faceted Clean Sparkles (✦)
         this.isNexus = Math.random() < 0.15;
-        this.baseRadius = (this.isNexus ? Math.random() * 1.5 + 3.8 : Math.random() * 1.4 + 2.0) * this.z;
+        this.baseRadius = (this.isNexus ? Math.random() * 1.5 + 4.0 : Math.random() * 1.4 + 2.2) * this.z;
         this.radius = this.baseRadius;
         this.colorIdx = Math.floor(Math.random() * colorsDark.length);
         this.pulseSpeed = Math.random() * 0.03 + 0.015;
         this.pulseAngle = Math.random() * Math.PI * 2;
         this.rot = Math.random() * Math.PI * 2;
-        this.rotSpeed = (Math.random() - 0.5) * (this.isNexus ? 0.012 : 0.025);
-        this.alpha = (this.isNexus ? Math.random() * 0.2 + 0.8 : Math.random() * 0.3 + 0.55) * Math.min(1, this.z);
+        this.rotSpeed = (Math.random() - 0.5) * (this.isNexus ? 0.012 : 0.024);
+        this.alpha = (this.isNexus ? Math.random() * 0.2 + 0.82 : Math.random() * 0.3 + 0.58) * Math.min(1, this.z);
       }
 
       update() {
         this.pulseAngle += this.pulseSpeed;
         this.rot += this.rotSpeed;
-        this.radius = this.baseRadius + Math.sin(this.pulseAngle) * (this.isNexus ? 0.8 : 0.4) * this.z;
+        this.zPhase += this.zSpeed;
 
-        // Interaction with mouse proximity in 3D
+        // Dynamic 3D breathing Z oscillation
+        this.currentZ = Math.max(0.35, this.z + Math.sin(this.zPhase) * 0.22);
+        this.radius = this.baseRadius * (this.currentZ / this.z) + Math.sin(this.pulseAngle) * (this.isNexus ? 0.9 : 0.45) * this.currentZ;
+
+        // Interaction with mouse proximity in 3D: elastic fluid force field
         if (mouse.active && mouse.x > 0 && mouse.y > 0) {
           const dx = mouse.x - this.renderX;
           const dy = mouse.y - this.renderY;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < mouse.radius && dist > 0) {
-            const force = (1 - dist / mouse.radius) * this.z;
+            const normDist = dist / mouse.radius;
+            const force = (1 - normDist) * this.currentZ;
             const angle = Math.atan2(dy, dx);
-            const push = dist < 70 ? force * 2.4 : -force * 0.65;
+            // Dynamic elastic curve: repulsion inside core, gentle orbital attraction at boundary
+            const push = normDist < 0.42 ? force * 3.2 : -force * 0.75;
             this.x -= Math.cos(angle) * push;
             this.y -= Math.sin(angle) * push;
           }
@@ -217,7 +228,7 @@
 
           if (Math.abs(diff) < sw.waveWidth) {
             const wavePhase = (diff / sw.waveWidth) * (Math.PI / 2);
-            const impulse = Math.cos(wavePhase) * sw.strength * sw.alpha * this.z;
+            const impulse = Math.cos(wavePhase) * sw.strength * sw.alpha * this.currentZ;
             const angle = Math.atan2(sdy, sdx);
             this.x += Math.cos(angle) * impulse;
             this.y += Math.sin(angle) * impulse;
@@ -228,14 +239,14 @@
         this.y += this.vy;
 
         // Wrap around viewport boundaries smoothly
-        if (this.x < -40) this.x = width + 40;
-        else if (this.x > width + 40) this.x = -40;
-        if (this.y < -40) this.y = height + 40;
-        else if (this.y > height + 40) this.y = -40;
+        if (this.x < -50) this.x = width + 50;
+        else if (this.x > width + 50) this.x = -50;
+        if (this.y < -50) this.y = height + 50;
+        else if (this.y > height + 50) this.y = -50;
 
         // Calculate 3D Parallax Screen Position
-        this.renderX = this.x + tiltX * (this.z - 1) * 40;
-        this.renderY = this.y + tiltY * (this.z - 1) * 40;
+        this.renderX = this.x + tiltX * (this.currentZ - 1) * 45;
+        this.renderY = this.y + tiltY * (this.currentZ - 1) * 45;
       }
 
       draw(isLight) {
@@ -243,23 +254,42 @@
         const effAlpha = this.alpha * (isLight ? 0.75 : 1);
         const px = this.renderX;
         const py = this.renderY;
+        const cz = this.currentZ;
 
         ctx.save();
         ctx.translate(px, py);
         ctx.rotate(this.rot);
 
         if (this.isNexus) {
-          // 3D Holographic Micro-Shield with Rotating Orbital Ring
+          // 3D Holographic Micro-Shield with Counter-Rotating Dual Perspective Orbital Rings
           const s = this.radius * 1.5;
 
-          // 1. Orbital Ring
+          // 1. Primary Orbital Ring (perspective foreshortened)
           ctx.beginPath();
-          ctx.ellipse(0, 0, s * 2.2, s * 0.9, this.pulseAngle, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.45})`;
+          ctx.ellipse(0, 0, s * 2.3, s * 0.85, this.pulseAngle, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.5})`;
           ctx.lineWidth = 1;
           ctx.stroke();
 
-          // 2. Shield Crest Path
+          // 2. Secondary Counter-Rotating Orbital Ring
+          ctx.beginPath();
+          ctx.ellipse(0, 0, s * 1.75, s * 0.6, -this.pulseAngle * 1.3, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.35})`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+
+          // 3. Four Quantum Orbital Ticks on Ring
+          for (let k = 0; k < 4; k++) {
+            const oAngle = this.pulseAngle + (k * Math.PI) / 2;
+            const tx = Math.cos(oAngle) * (s * 2.3);
+            const ty = Math.sin(oAngle) * (s * 0.85);
+            ctx.beginPath();
+            ctx.arc(tx, ty, 1.2 * cz, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.9})`;
+            ctx.fill();
+          }
+
+          // 4. Shield Crest Silhouette
           ctx.beginPath();
           ctx.moveTo(0, -s);
           ctx.lineTo(s * 0.85, -s * 0.45);
@@ -272,22 +302,26 @@
           // Outer luminous glow
           ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.35})`;
           ctx.shadowColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${isLight ? 0.6 : 0.95})`;
-          ctx.shadowBlur = 14 * this.z;
+          ctx.shadowBlur = 16 * cz;
           ctx.fill();
 
-          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.9})`;
-          ctx.lineWidth = 1.35;
+          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.95})`;
+          ctx.lineWidth = 1.4;
           ctx.stroke();
 
-          // 3. Bright core center
+          // 5. Pulsating Diamond Core Crystal
           ctx.beginPath();
-          ctx.arc(0, 0, s * 0.25, 0, Math.PI * 2);
+          ctx.moveTo(0, -s * 0.35);
+          ctx.lineTo(s * 0.3, 0);
+          ctx.lineTo(0, s * 0.35);
+          ctx.lineTo(-s * 0.3, 0);
+          ctx.closePath();
           ctx.fillStyle = '#FFFFFF';
           ctx.fill();
         } else {
-          // 3D Faceted Clean Sparkle / Cyber Shard (✦)
+          // 3D Faceted Clean Sparkle / Quantum Diamond Shard (✦)
           const r = this.radius;
-          const inner = r * 0.34;
+          const inner = r * 0.32;
 
           ctx.beginPath();
           for (let k = 0; k < 4; k++) {
@@ -300,15 +334,24 @@
           ctx.closePath();
 
           ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha})`;
-          ctx.shadowColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${isLight ? 0.45 : 0.85})`;
-          ctx.shadowBlur = 7 * this.z;
+          ctx.shadowColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${isLight ? 0.5 : 0.9})`;
+          ctx.shadowBlur = 8 * cz;
           ctx.fill();
 
-          // Specular high-light core for near particles
-          if (this.z > 0.95) {
+          // Facet internal cross-refraction lines for true gem sparkle
+          if (cz > 0.8) {
             ctx.beginPath();
-            ctx.arc(0, 0, inner * 0.65, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${effAlpha * 0.85})`;
+            ctx.moveTo(-r * 0.7, 0);
+            ctx.lineTo(r * 0.7, 0);
+            ctx.moveTo(0, -r * 0.7);
+            ctx.lineTo(0, r * 0.7);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${effAlpha * 0.45})`;
+            ctx.lineWidth = 0.75;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(0, 0, inner * 0.6, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${effAlpha * 0.95})`;
             ctx.fill();
           }
         }
@@ -346,6 +389,8 @@
       animationFrameId = requestAnimationFrame(render);
 
       if (document.hidden) return;
+
+      frameCount++;
 
       // Update 3D Camera Tilt
       if (mouse.active) {
@@ -401,7 +446,7 @@
 
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j];
-          const depthDiff = Math.abs(p1.z - p2.z);
+          const depthDiff = Math.abs(p1.currentZ - p2.currentZ);
 
           // Only connect particles that inhabit similar 3D spatial depth
           if (depthDiff > 0.55) continue;
@@ -411,7 +456,7 @@
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < maxConnectionDistance) {
-            const avgZ = (p1.z + p2.z) / 2;
+            const avgZ = (p1.currentZ + p2.currentZ) / 2;
             const alpha = (1 - dist / maxConnectionDistance) * (1 - depthDiff / 0.55) * (isLight ? 0.22 : 0.38) * avgZ;
             ctx.beginPath();
             ctx.moveTo(p1.renderX, p1.renderY);
@@ -420,23 +465,36 @@
             ctx.strokeStyle = `rgba(${strokeColor}, ${alpha})`;
             ctx.lineWidth = 0.9 * avgZ;
             ctx.stroke();
+
+            // Animated photon packet travelling along active constellation lines
+            if (alpha > 0.18 && ((i + j) % 3 === 0)) {
+              const t = (frameCount * 0.012 + (i * 0.17)) % 1;
+              const px = p1.renderX + (p2.renderX - p1.renderX) * t;
+              const py = p1.renderY + (p2.renderY - p1.renderY) * t;
+              ctx.beginPath();
+              ctx.arc(px, py, 1.4 * avgZ, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(240, 253, 249, ${alpha * 1.5})`;
+              ctx.shadowColor = isLight ? '#059669' : '#00F2B0';
+              ctx.shadowBlur = 6;
+              ctx.fill();
+            }
           }
         }
 
         // 4. Interactive energetic laser filaments connecting to mouse cursor
-        if (mouse.active && mouse.x > 0 && mouse.y > 0 && p1.z > 0.8) {
+        if (mouse.active && mouse.x > 0 && mouse.y > 0 && p1.currentZ > 0.75) {
           const mdx = p1.renderX - mouse.x;
           const mdy = p1.renderY - mouse.y;
           const mDist = Math.sqrt(mdx * mdx + mdy * mdy);
 
           if (mDist < maxMouseDistance) {
-            const mAlpha = (1 - mDist / maxMouseDistance) * (isLight ? 0.45 : 0.78) * p1.z;
+            const mAlpha = (1 - mDist / maxMouseDistance) * (isLight ? 0.45 : 0.78) * p1.currentZ;
             ctx.beginPath();
             ctx.moveTo(p1.renderX, p1.renderY);
             ctx.lineTo(mouse.x, mouse.y);
             const mColor = isLight ? '13, 148, 136' : '0, 242, 176';
             ctx.strokeStyle = `rgba(${mColor}, ${mAlpha})`;
-            ctx.lineWidth = 1.35 * p1.z;
+            ctx.lineWidth = 1.35 * p1.currentZ;
             ctx.stroke();
           }
         }
@@ -605,7 +663,7 @@
         dot.classList.add('cursor-active');
         ring.classList.add('cursor-active');
 
-        // Spawn kinetic click pulse
+        // Spawn kinetic click pulse in Cyber Mint
         const pulse = document.createElement('div');
         pulse.className = 'cursor-click-pulse';
         pulse.style.left = e.clientX + 'px';
@@ -652,6 +710,7 @@
           const magneticTarget = target.closest(magneticQuery);
           if (magneticTarget) {
             currentMagneticEl = magneticTarget;
+            ring.classList.add('cursor-magnetic');
           }
         }
       },
@@ -667,6 +726,7 @@
           ring.classList.remove('cursor-hover');
           ring.classList.remove('cursor-text');
           dot.classList.remove('cursor-text');
+          ring.classList.remove('cursor-magnetic');
 
           if (currentMagneticEl) {
             currentMagneticEl.style.transform = '';
@@ -691,27 +751,41 @@
           const deltaX = mouseX - centerX;
           const deltaY = mouseY - centerY;
 
-          targetX = mouseX * 0.52 + centerX * 0.48;
-          targetY = mouseY * 0.52 + centerY * 0.48;
+          targetX = mouseX * 0.48 + centerX * 0.52;
+          targetY = mouseY * 0.48 + centerY * 0.52;
 
-          const maxTranslate = 4.0;
-          const transX = Math.max(-maxTranslate, Math.min(maxTranslate, deltaX * 0.14));
-          const transY = Math.max(-maxTranslate, Math.min(maxTranslate, deltaY * 0.14));
+          const maxTranslate = 4.5;
+          const transX = Math.max(-maxTranslate, Math.min(maxTranslate, deltaX * 0.16));
+          const transY = Math.max(-maxTranslate, Math.min(maxTranslate, deltaY * 0.16));
           currentMagneticEl.style.transform =
             'translate3d(' + transX.toFixed(2) + 'px, ' + transY.toFixed(2) + 'px, 0)';
         }
 
-        // Smooth spring interpolation (0.32 factor for responsive tracking)
-        ringX += (targetX - ringX) * 0.32;
-        ringY += (targetY - ringY) * 0.32;
+        // Smooth spring interpolation (0.35 factor for responsive tracking)
+        ringX += (targetX - ringX) * 0.35;
+        ringY += (targetY - ringY) * 0.35;
 
-        // Compute velocity vector for aerodynamic stretch
+        // Compute velocity vector for aerodynamic stretch & kinetic ember trail
         const dX = ringX - lastRingX;
         const dY = ringY - lastRingY;
         const speed = Math.sqrt(dX * dX + dY * dY);
 
         if (speed > 1.2 && !currentMagneticEl) {
           currentAngle = Math.atan2(dY, dX) * (180 / Math.PI);
+        }
+
+        // Spawn kinetic cyber embers when moving with high velocity
+        if (speed > 5.5 && !currentMagneticEl && Math.random() < 0.35 && document.querySelectorAll('.cursor-ember').length < 8) {
+          const ember = document.createElement('div');
+          ember.className = 'cursor-ember';
+          ember.style.left = ringX + 'px';
+          ember.style.top = ringY + 'px';
+          ember.style.setProperty('--tx', (-(dX * 0.4) + (Math.random() - 0.5) * 8).toFixed(1) + 'px');
+          ember.style.setProperty('--ty', (-(dY * 0.4) + (Math.random() - 0.5) * 8).toFixed(1) + 'px');
+          document.body.appendChild(ember);
+          setTimeout(function () {
+            if (ember.parentNode) ember.parentNode.removeChild(ember);
+          }, 360);
         }
 
         const targetStretch = currentMagneticEl ? 1 : 1 + Math.min(speed * 0.012, 0.4);

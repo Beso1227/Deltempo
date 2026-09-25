@@ -33,7 +33,7 @@ Benchmarks reside under `Tests/Deltempo.Tests/CleanEngineBenchmarks.cs` and `Tes
    UI telemetry gauges refresh every 1,000 ms. Creating new `SolidColorBrush` instances on each tick causes continuous Gen0 garbage collection churn. All brushes are created with `.Freeze()`:
    ```csharp
    private static readonly Brush HighUsageBrush = CreateFrozenBrush("#EF4444");
-   private static readonly Brush NormalUsageBrush = CreateFrozenBrush("#00E5FF");
+   private static readonly Brush NormalUsageBrush = CreateFrozenBrush("#00F2B0");
    ```
 2. **Bounded Concurrency in Deletion Engine**:
    Rather than unconstrained `Task.Run` loops that exhaust thread pools and thrash storage controllers, the parallel engine bounds concurrent disk operations:
