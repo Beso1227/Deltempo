@@ -132,25 +132,29 @@
       mouse.active = false;
     });
 
-    // Particle pool setup
+    // Particle pool setup with 3D depth layers
     const isMobile = window.innerWidth < 768;
     const particleCount = isMobile ? 48 : 100;
     const particles = [];
 
+    // Smooth camera / field 3D parallax tilt state
+    let tiltX = 0;
+    let tiltY = 0;
+
     const colorsDark = [
-      { r: 0, g: 229, b: 255 },   // Electric Cyan #00E5FF
-      { r: 168, g: 85, b: 247 },  // Neon Violet #A855F7
-      { r: 56, g: 189, b: 248 },  // Sky Blue #38BDF8
-      { r: 16, g: 185, b: 129 },  // Cyber Emerald #10B981
-      { r: 255, g: 255, b: 255 }, // Star White
+      { r: 0, g: 242, b: 176 },   // Cyber Mint #00F2B0
+      { r: 13, g: 211, b: 186 },  // Electric Teal #0DD3BA
+      { r: 0, g: 229, b: 255 },   // Luminous Cyan #00E5FF
+      { r: 16, g: 185, b: 129 },  // Neon Emerald #10B981
+      { r: 240, g: 253, b: 249 }, // Star Crystal White
     ];
 
     const colorsLight = [
-      { r: 2, g: 132, b: 199 },   // Azure #0284C7
-      { r: 124, g: 58, b: 237 },  // Royal Purple #7C3AED
-      { r: 14, g: 165, b: 233 },  // Deep Sky #0EA5E9
       { r: 5, g: 150, b: 105 },   // Deep Emerald #059669
-      { r: 71, g: 85, b: 105 },   // Slate
+      { r: 13, g: 148, b: 136 },  // Deep Teal #0D9488
+      { r: 2, g: 132, b: 199 },   // Azure #0284C7
+      { r: 16, g: 185, b: 129 },  // Jade #10B981
+      { r: 51, g: 65, b: 85 },    // Slate #334155
     ];
 
     class Particle {
@@ -161,52 +165,59 @@
       reset(initRandom) {
         this.x = initRandom ? Math.random() * width : (Math.random() > 0.5 ? 0 : width);
         this.y = initRandom ? Math.random() * height : Math.random() * height;
-        const speedScale = isReducedMotion ? 0.15 : 0.65;
+        
+        // 3D Depth layer: 0.45 (far background) to 1.65 (foreground)
+        this.z = Math.random() * 1.2 + 0.45;
+        this.renderX = this.x;
+        this.renderY = this.y;
+
+        const speedScale = (isReducedMotion ? 0.12 : 0.55) * this.z;
         this.vx = (Math.random() - 0.5) * speedScale;
         this.vy = (Math.random() - 0.5) * speedScale;
         
-        // 15% are larger Star Nexus nodes with luminous aura
+        // 15% are Holographic Shield Nexus nodes; 85% are Faceted Clean Sparkles (✦)
         this.isNexus = Math.random() < 0.15;
-        this.baseRadius = this.isNexus ? Math.random() * 1.5 + 3.2 : Math.random() * 1.4 + 1.8;
+        this.baseRadius = (this.isNexus ? Math.random() * 1.5 + 3.8 : Math.random() * 1.4 + 2.0) * this.z;
         this.radius = this.baseRadius;
         this.colorIdx = Math.floor(Math.random() * colorsDark.length);
         this.pulseSpeed = Math.random() * 0.03 + 0.015;
         this.pulseAngle = Math.random() * Math.PI * 2;
-        this.alpha = this.isNexus ? Math.random() * 0.2 + 0.75 : Math.random() * 0.3 + 0.55;
+        this.rot = Math.random() * Math.PI * 2;
+        this.rotSpeed = (Math.random() - 0.5) * (this.isNexus ? 0.012 : 0.025);
+        this.alpha = (this.isNexus ? Math.random() * 0.2 + 0.8 : Math.random() * 0.3 + 0.55) * Math.min(1, this.z);
       }
 
       update() {
         this.pulseAngle += this.pulseSpeed;
-        this.radius = this.baseRadius + Math.sin(this.pulseAngle) * (this.isNexus ? 0.8 : 0.4);
+        this.rot += this.rotSpeed;
+        this.radius = this.baseRadius + Math.sin(this.pulseAngle) * (this.isNexus ? 0.8 : 0.4) * this.z;
 
-        // Interaction with mouse proximity
+        // Interaction with mouse proximity in 3D
         if (mouse.active && mouse.x > 0 && mouse.y > 0) {
-          const dx = mouse.x - this.x;
-          const dy = mouse.y - this.y;
+          const dx = mouse.x - this.renderX;
+          const dy = mouse.y - this.renderY;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < mouse.radius && dist > 0) {
-            // Gentle elastic repulsion when very close, light magnetic attraction when at perimeter
-            const force = (1 - dist / mouse.radius);
+            const force = (1 - dist / mouse.radius) * this.z;
             const angle = Math.atan2(dy, dx);
-            const push = dist < 70 ? force * 2.2 : -force * 0.6;
+            const push = dist < 70 ? force * 2.4 : -force * 0.65;
             this.x -= Math.cos(angle) * push;
             this.y -= Math.sin(angle) * push;
           }
         }
 
-        // Apply smooth fluid wave displacement when wavefront passes
+        // Apply smooth 3D fluid wave displacement
         for (let i = shockwaves.length - 1; i >= 0; i--) {
           const sw = shockwaves[i];
-          const sdx = this.x - sw.x;
-          const sdy = this.y - sw.y;
+          const sdx = this.renderX - sw.x;
+          const sdy = this.renderY - sw.y;
           const sDist = Math.sqrt(sdx * sdx + sdy * sdy);
           const diff = sDist - sw.radius;
 
           if (Math.abs(diff) < sw.waveWidth) {
-            // Sinusoidal wave ripple: lifts particles outward and eases them smoothly
             const wavePhase = (diff / sw.waveWidth) * (Math.PI / 2);
-            const impulse = Math.cos(wavePhase) * sw.strength * sw.alpha;
+            const impulse = Math.cos(wavePhase) * sw.strength * sw.alpha * this.z;
             const angle = Math.atan2(sdy, sdx);
             this.x += Math.cos(angle) * impulse;
             this.y += Math.sin(angle) * impulse;
@@ -217,36 +228,92 @@
         this.y += this.vy;
 
         // Wrap around viewport boundaries smoothly
-        if (this.x < -30) this.x = width + 30;
-        else if (this.x > width + 30) this.x = -30;
-        if (this.y < -30) this.y = height + 30;
-        else if (this.y > height + 30) this.y = -30;
+        if (this.x < -40) this.x = width + 40;
+        else if (this.x > width + 40) this.x = -40;
+        if (this.y < -40) this.y = height + 40;
+        else if (this.y > height + 40) this.y = -40;
+
+        // Calculate 3D Parallax Screen Position
+        this.renderX = this.x + tiltX * (this.z - 1) * 40;
+        this.renderY = this.y + tiltY * (this.z - 1) * 40;
       }
 
       draw(isLight) {
         const c = (isLight ? colorsLight : colorsDark)[this.colorIdx];
         const effAlpha = this.alpha * (isLight ? 0.75 : 1);
+        const px = this.renderX;
+        const py = this.renderY;
 
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(this.rot);
 
         if (this.isNexus) {
-          // Radiant glowing halo for Star Nexus nodes
-          const haloRadius = this.radius * 3.5;
-          const grad = ctx.createRadialGradient(this.x, this.y, this.radius * 0.5, this.x, this.y, haloRadius);
-          grad.addColorStop(0, `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.6})`);
-          grad.addColorStop(1, `rgba(${c.r}, ${c.g}, ${c.b}, 0)`);
-          ctx.fillStyle = grad;
+          // 3D Holographic Micro-Shield with Rotating Orbital Ring
+          const s = this.radius * 1.5;
+
+          // 1. Orbital Ring
+          ctx.beginPath();
+          ctx.ellipse(0, 0, s * 2.2, s * 0.9, this.pulseAngle, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.45})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          // 2. Shield Crest Path
+          ctx.beginPath();
+          ctx.moveTo(0, -s);
+          ctx.lineTo(s * 0.85, -s * 0.45);
+          ctx.lineTo(s * 0.85, s * 0.2);
+          ctx.quadraticCurveTo(s * 0.7, s * 0.85, 0, s * 1.2);
+          ctx.quadraticCurveTo(-s * 0.7, s * 0.85, -s * 0.85, s * 0.2);
+          ctx.lineTo(-s * 0.85, -s * 0.45);
+          ctx.closePath();
+
+          // Outer luminous glow
+          ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.35})`;
+          ctx.shadowColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${isLight ? 0.6 : 0.95})`;
+          ctx.shadowBlur = 14 * this.z;
           ctx.fill();
+
+          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.9})`;
+          ctx.lineWidth = 1.35;
+          ctx.stroke();
+
+          // 3. Bright core center
+          ctx.beginPath();
+          ctx.arc(0, 0, s * 0.25, 0, Math.PI * 2);
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fill();
+        } else {
+          // 3D Faceted Clean Sparkle / Cyber Shard (✦)
+          const r = this.radius;
+          const inner = r * 0.34;
+
+          ctx.beginPath();
+          for (let k = 0; k < 4; k++) {
+            const a1 = (k * Math.PI) / 2;
+            const a2 = a1 + Math.PI / 4;
+            if (k === 0) ctx.moveTo(Math.cos(a1) * r, Math.sin(a1) * r);
+            else ctx.lineTo(Math.cos(a1) * r, Math.sin(a1) * r);
+            ctx.quadraticCurveTo(0, 0, Math.cos(a2) * inner, Math.sin(a2) * inner);
+          }
+          ctx.closePath();
+
+          ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha})`;
+          ctx.shadowColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${isLight ? 0.45 : 0.85})`;
+          ctx.shadowBlur = 7 * this.z;
+          ctx.fill();
+
+          // Specular high-light core for near particles
+          if (this.z > 0.95) {
+            ctx.beginPath();
+            ctx.arc(0, 0, inner * 0.65, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${effAlpha * 0.85})`;
+            ctx.fill();
+          }
         }
 
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha})`;
-        ctx.shadowColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${isLight ? 0.5 : 0.9})`;
-        ctx.shadowBlur = this.isNexus ? 12 : 6;
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        ctx.restore();
       }
     }
 
@@ -280,11 +347,22 @@
 
       if (document.hidden) return;
 
+      // Update 3D Camera Tilt
+      if (mouse.active) {
+        const targetTiltX = (mouse.x - width / 2) / (width / 2);
+        const targetTiltY = (mouse.y - height / 2) / (height / 2);
+        tiltX += (targetTiltX - tiltX) * 0.05;
+        tiltY += (targetTiltY - tiltY) * 0.05;
+      } else {
+        tiltX += (0 - tiltX) * 0.03;
+        tiltY += (0 - tiltY) * 0.03;
+      }
+
       ctx.clearRect(0, 0, width, height);
 
       const isLight = document.documentElement.classList.contains('light');
 
-      // 1. Update and render soft ethereal light wave (wide smooth gradient wash, NO sharp stroked outline)
+      // 1. Update and render soft ethereal light wave in Cyber Mint
       for (let i = shockwaves.length - 1; i >= 0; i--) {
         const sw = shockwaves[i];
         sw.radius += sw.speed;
@@ -298,8 +376,8 @@
         const innerR = Math.max(0, sw.radius - sw.waveWidth);
         const outerR = sw.radius + sw.waveWidth;
         const waveGrad = ctx.createRadialGradient(sw.x, sw.y, innerR, sw.x, sw.y, outerR);
-        const waveColor = isLight ? '2, 132, 199' : '0, 229, 255';
-        const waveAlpha = sw.alpha * (isLight ? 0.15 : 0.26);
+        const waveColor = isLight ? '5, 150, 105' : '0, 242, 176';
+        const waveAlpha = sw.alpha * (isLight ? 0.15 : 0.28);
 
         waveGrad.addColorStop(0, `rgba(${waveColor}, 0)`);
         waveGrad.addColorStop(0.5, `rgba(${waveColor}, ${waveAlpha})`);
@@ -311,60 +389,66 @@
         ctx.fill();
       }
 
-      // 1. Update and render particles
+      // 2. Update and render 3D particles
       for (let i = 0; i < particles.length; i++) {
         particles[i].update();
         particles[i].draw(isLight);
       }
 
-      // 3. Draw constellation filament lines between nearby particles
+      // 3. Draw 3D constellation filament lines between depth-matched particles
       for (let i = 0; i < particles.length; i++) {
         const p1 = particles[i];
 
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j];
-          const dx = p1.x - p2.x;
-          const dy = p1.y - p2.y;
+          const depthDiff = Math.abs(p1.z - p2.z);
+
+          // Only connect particles that inhabit similar 3D spatial depth
+          if (depthDiff > 0.55) continue;
+
+          const dx = p1.renderX - p2.renderX;
+          const dy = p1.renderY - p2.renderY;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < maxConnectionDistance) {
-            const alpha = (1 - dist / maxConnectionDistance) * (isLight ? 0.22 : 0.38);
+            const avgZ = (p1.z + p2.z) / 2;
+            const alpha = (1 - dist / maxConnectionDistance) * (1 - depthDiff / 0.55) * (isLight ? 0.22 : 0.38) * avgZ;
             ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            const strokeColor = isLight ? '124, 58, 237' : '0, 229, 255';
+            ctx.moveTo(p1.renderX, p1.renderY);
+            ctx.lineTo(p2.renderX, p2.renderY);
+            const strokeColor = isLight ? '5, 150, 105' : '0, 242, 176';
             ctx.strokeStyle = `rgba(${strokeColor}, ${alpha})`;
-            ctx.lineWidth = 1.0;
+            ctx.lineWidth = 0.9 * avgZ;
             ctx.stroke();
           }
         }
 
         // 4. Interactive energetic laser filaments connecting to mouse cursor
-        if (mouse.active && mouse.x > 0 && mouse.y > 0) {
-          const mdx = p1.x - mouse.x;
-          const mdy = p1.y - mouse.y;
+        if (mouse.active && mouse.x > 0 && mouse.y > 0 && p1.z > 0.8) {
+          const mdx = p1.renderX - mouse.x;
+          const mdy = p1.renderY - mouse.y;
           const mDist = Math.sqrt(mdx * mdx + mdy * mdy);
 
           if (mDist < maxMouseDistance) {
-            const mAlpha = (1 - mDist / maxMouseDistance) * (isLight ? 0.45 : 0.75);
+            const mAlpha = (1 - mDist / maxMouseDistance) * (isLight ? 0.45 : 0.78) * p1.z;
             ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
+            ctx.moveTo(p1.renderX, p1.renderY);
             ctx.lineTo(mouse.x, mouse.y);
-            const mColor = isLight ? '2, 132, 199' : '168, 85, 247';
+            const mColor = isLight ? '13, 148, 136' : '0, 242, 176';
             ctx.strokeStyle = `rgba(${mColor}, ${mAlpha})`;
-            ctx.lineWidth = 1.35;
+            ctx.lineWidth = 1.35 * p1.z;
             ctx.stroke();
           }
         }
       }
 
-      // 5. Ambient glowing energy aura at mouse cursor coordinates
+      // 5. Ambient glowing energy aura at mouse cursor coordinates in Cyber Mint
       if (mouse.active && mouse.x > 0 && mouse.y > 0) {
-        const mouseGrad = ctx.createRadialGradient(mouse.x, mouse.y, 2, mouse.x, mouse.y, 50);
-        mouseGrad.addColorStop(0, `rgba(${isLight ? '2, 132, 199' : '0, 229, 255'}, ${isLight ? 0.25 : 0.4})`);
-        mouseGrad.addColorStop(1, 'rgba(0, 229, 255, 0)');
+        const mouseGrad = ctx.createRadialGradient(mouse.x, mouse.y, 2, mouse.x, mouse.y, 52);
+        mouseGrad.addColorStop(0, `rgba(${isLight ? '5, 150, 105' : '0, 242, 176'}, ${isLight ? 0.22 : 0.38})`);
+        mouseGrad.addColorStop(1, 'rgba(0, 242, 176, 0)');
         ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, 50, 0, Math.PI * 2);
+        ctx.arc(mouse.x, mouse.y, 52, 0, Math.PI * 2);
         ctx.fillStyle = mouseGrad;
         ctx.fill();
       }
