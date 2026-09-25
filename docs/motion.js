@@ -82,7 +82,12 @@
     const mouse = {
       x: -1000,
       y: -1000,
-      radius: window.innerWidth < 768 ? 190 : 280,
+      lastX: -1000,
+      lastY: -1000,
+      vx: 0,
+      vy: 0,
+      speed: 0,
+      radius: window.innerWidth < 768 ? 160 : 250,
       active: false,
     };
 
@@ -98,14 +103,23 @@
       canvas.style.width = width + 'px';
       canvas.style.height = height + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      mouse.radius = width < 768 ? 190 : 280;
+      mouse.radius = width < 768 ? 160 : 250;
     }
 
     resize();
     window.addEventListener('resize', resize, { passive: true });
 
-    // Track pointer position across entire viewport
+    // Track pointer position across entire viewport with fluid velocity derivation
     function updatePointer(x, y) {
+      if (mouse.x > -500 && mouse.y > -500) {
+        const dx = x - mouse.x;
+        const dy = y - mouse.y;
+        mouse.vx = mouse.vx * 0.35 + dx * 0.65;
+        mouse.vy = mouse.vy * 0.35 + dy * 0.65;
+        mouse.speed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
+      }
+      mouse.lastX = mouse.x;
+      mouse.lastY = mouse.y;
       mouse.x = x;
       mouse.y = y;
       mouse.active = true;
@@ -122,6 +136,9 @@
     document.addEventListener('mouseleave', function () {
       mouse.x = -1000;
       mouse.y = -1000;
+      mouse.vx = 0;
+      mouse.vy = 0;
+      mouse.speed = 0;
       mouse.active = false;
     });
 
@@ -166,6 +183,7 @@
         this.zPhase = Math.random() * Math.PI * 2;
         this.zSpeed = Math.random() * 0.016 + 0.008;
         this.currentZ = this.z;
+        this.zLift = 0;
         this.renderX = this.x;
         this.renderY = this.y;
 
@@ -184,7 +202,8 @@
         this.pulseSpeed = Math.random() * 0.03 + 0.015;
         this.pulseAngle = Math.random() * Math.PI * 2;
         this.rot = Math.random() * Math.PI * 2;
-        this.rotSpeed = (Math.random() - 0.5) * (this.isNexus ? 0.012 : 0.024);
+        this.baseRotSpeed = (Math.random() - 0.5) * (this.isNexus ? 0.012 : 0.024);
+        this.rotSpeed = this.baseRotSpeed;
         this.alpha = (this.isNexus ? Math.random() * 0.2 + 0.82 : Math.random() * 0.3 + 0.58) * Math.min(1, this.z);
       }
 
@@ -193,55 +212,72 @@
         this.rot += this.rotSpeed;
         this.zPhase += this.zSpeed;
 
-        // Dynamic 3D breathing Z oscillation
-        this.currentZ = Math.max(0.35, this.z + Math.sin(this.zPhase) * 0.22);
-        this.radius = this.baseRadius * (this.currentZ / this.z) + Math.sin(this.pulseAngle) * (this.isNexus ? 0.9 : 0.45) * this.currentZ;
+        let proximity = 0;
+        let targetZLift = 0;
 
-        // Enhanced magnetic gravitational attraction & celestial orbital swirl around cursor
-        if (mouse.active && mouse.x > 0 && mouse.y > 0) {
-          const dx = mouse.x - this.renderX;
-          const dy = mouse.y - this.renderY;
+        // Enhanced organic 3D fluid deflection & celestial orbital swirl around cursor
+        if (mouse.active && mouse.x > -500 && mouse.y > -500) {
+          const dx = this.renderX - mouse.x;
+          const dy = this.renderY - mouse.y;
           const distSq = dx * dx + dy * dy;
           const magnetRadius = mouse.radius;
           const magnetRadiusSq = magnetRadius * magnetRadius;
 
-          if (distSq < magnetRadiusSq && distSq > 4) {
+          if (distSq < magnetRadiusSq && distSq > 0.01) {
             const dist = Math.sqrt(distSq);
-            const normDist = dist / magnetRadius; // 0 (cursor center) to 1 (outer boundary)
-            const angle = Math.atan2(dy, dx);
+            proximity = 1 - (dist / magnetRadius);
+            const angle = Math.atan2(dy, dx); // Vector pointing outward from mouse
 
-            if (dist > 45) {
-              // Smooth gravitational pull curve with celestial swirling drift
-              const pullForce = Math.pow(1 - normDist, 1.35) * (isReducedMotion ? 0.4 : 2.2) * this.currentZ;
-              const swirlFactor = Math.sin(normDist * Math.PI) * (this.isNexus ? 0.8 : 0.55);
-              const swirlAngle = angle + (Math.PI * 0.5 * this.swirlDir);
-
-              this.vx += (Math.cos(angle) * pullForce * 0.45 + Math.cos(swirlAngle) * swirlFactor * 0.35);
-              this.vy += (Math.sin(angle) * pullForce * 0.45 + Math.sin(swirlAngle) * swirlFactor * 0.35);
+            // 1. Core deflection cushion (dist < 85px): particles gently part away, preventing clumping
+            if (dist < 85) {
+              const pushFactor = Math.pow(1 - dist / 85, 1.4) * (isReducedMotion ? 0.8 : 3.6) * this.z;
+              this.vx += Math.cos(angle) * pushFactor;
+              this.vy += Math.sin(angle) * pushFactor;
             } else {
-              // Protective inner cushion around cursor: establishes a dynamic orbiting halo
-              const cushionNorm = 1 - (dist / 45);
-              const repulseForce = cushionNorm * 0.9;
-              const orbitAngle = angle + (Math.PI * 0.5 * this.swirlDir);
+              // 2. Orbital swirl & streamline flow (85px <= dist < magnetRadius)
+              const swirlFactor = Math.sin(proximity * Math.PI) * (isReducedMotion ? 0.2 : 0.85) * this.z;
+              const swirlAngle = angle + (Math.PI * 0.5 * this.swirlDir);
+              this.vx += Math.cos(swirlAngle) * swirlFactor * 0.45;
+              this.vy += Math.sin(swirlAngle) * swirlFactor * 0.45;
 
-              this.vx -= Math.cos(angle) * repulseForce * 0.45;
-              this.vy -= Math.sin(angle) * repulseForce * 0.45;
-              this.vx += Math.cos(orbitAngle) * (1 - cushionNorm) * 0.6;
-              this.vy += Math.sin(orbitAngle) * (1 - cushionNorm) * 0.6;
+              // Gentle radial cushioning keeps particles circulating in a spacious orbit
+              const gentleRepel = (1 - proximity) * proximity * 0.35 * this.z;
+              this.vx += Math.cos(angle) * gentleRepel;
+              this.vy += Math.sin(angle) * gentleRepel;
             }
 
-            // Magnetic damping inside active field prevents runaway velocity or jitter
-            this.vx *= 0.935;
-            this.vy *= 0.935;
+            // 3. Dynamic mouse motion wake: sweeping cursor imparts aerodynamic wake behind it
+            if (mouse.speed > 0.4) {
+              const wakePower = Math.pow(proximity, 1.3) * Math.min(mouse.speed, 20) * 0.045 * this.z;
+              this.vx += mouse.vx * wakePower;
+              this.vy += mouse.vy * wakePower;
+            }
+
+            // 4. 3D depth pop & specular spin acceleration
+            targetZLift = proximity * 0.45 * this.z;
+            const spinBoost = this.swirlDir * proximity * 0.035 * (1 + mouse.speed * 0.04);
+            this.rotSpeed = this.baseRotSpeed + spinBoost;
+
+            // Fluid damping inside cursor influence zone
+            this.vx *= 0.93;
+            this.vy *= 0.93;
           } else {
-            // Smooth natural decay back to tranquil ambient drift
+            this.rotSpeed = this.rotSpeed * 0.94 + this.baseRotSpeed * 0.06;
             this.vx = this.vx * 0.985 + this.baseVx * 0.015;
             this.vy = this.vy * 0.985 + this.baseVy * 0.015;
           }
         } else {
+          this.rotSpeed = this.rotSpeed * 0.94 + this.baseRotSpeed * 0.06;
           this.vx = this.vx * 0.985 + this.baseVx * 0.015;
           this.vy = this.vy * 0.985 + this.baseVy * 0.015;
         }
+
+        // Smoothly interpolate 3D Z lift
+        this.zLift += (targetZLift - this.zLift) * 0.12;
+
+        // Dynamic 3D breathing Z oscillation + cursor 3D lift
+        this.currentZ = Math.max(0.35, this.z + Math.sin(this.zPhase) * 0.22 + this.zLift);
+        this.radius = this.baseRadius * (this.currentZ / this.z) + Math.sin(this.pulseAngle) * (this.isNexus ? 0.9 : 0.45) * this.currentZ;
 
         // Cap maximum velocity for silky smooth visual consistency
         const maxSpeed = (isReducedMotion ? 0.6 : 3.8) * this.currentZ;
@@ -278,9 +314,9 @@
         if (this.y < -50) this.y = height + 50;
         else if (this.y > height + 50) this.y = -50;
 
-        // Calculate 3D Parallax Screen Position
-        this.renderX = this.x + tiltX * (this.currentZ - 1) * 45;
-        this.renderY = this.y + tiltY * (this.currentZ - 1) * 45;
+        // Calculate 3D Parallax Screen Position with enhanced depth travel
+        this.renderX = this.x + tiltX * (this.currentZ - 1) * 55;
+        this.renderY = this.y + tiltY * (this.currentZ - 1) * 55;
       }
 
       draw(isLight) {
@@ -444,8 +480,6 @@
 
     const maxConnectionDistance = isMobile ? 95 : 140;
     const maxConnectionDistanceSq = maxConnectionDistance * maxConnectionDistance;
-    const maxMouseDistance = isMobile ? 140 : 200;
-    const maxMouseDistanceSq = maxMouseDistance * maxMouseDistance;
 
     function render() {
       animationFrameId = requestAnimationFrame(render);
@@ -454,12 +488,17 @@
 
       frameCount++;
 
+      // Decay mouse movement velocity each frame
+      mouse.vx *= 0.88;
+      mouse.vy *= 0.88;
+      mouse.speed *= 0.88;
+
       // Update 3D Camera Tilt
       if (mouse.active) {
         const targetTiltX = (mouse.x - width / 2) / (width / 2);
         const targetTiltY = (mouse.y - height / 2) / (height / 2);
-        tiltX += (targetTiltX - tiltX) * 0.05;
-        tiltY += (targetTiltY - tiltY) * 0.05;
+        tiltX += (targetTiltX - tiltX) * 0.06;
+        tiltY += (targetTiltY - tiltY) * 0.06;
       } else {
         tiltX += (0 - tiltX) * 0.03;
         tiltY += (0 - tiltY) * 0.03;
@@ -496,13 +535,38 @@
         ctx.fill();
       }
 
-      // 2. Update and render 3D particles
+      // 2. Pairwise particle relaxation: prevents particles from ever clumping or overlapping
+      const sepDist = 38;
+      const sepDistSq = sepDist * sepDist;
+      for (let i = 0; i < particles.length; i++) {
+        const p1 = particles[i];
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const pdx = p1.x - p2.x;
+          if (Math.abs(pdx) > sepDist) continue;
+          const pdy = p1.y - p2.y;
+          if (Math.abs(pdy) > sepDist) continue;
+          const distSq = pdx * pdx + pdy * pdy;
+          if (distSq < sepDistSq && distSq > 0.04) {
+            const d = Math.sqrt(distSq);
+            const force = (1 - d / sepDist) * 0.28;
+            const fx = (pdx / d) * force;
+            const fy = (pdy / d) * force;
+            p1.vx += fx;
+            p1.vy += fy;
+            p2.vx -= fx;
+            p2.vy -= fy;
+          }
+        }
+      }
+
+      // 3. Update and render 3D particles
       for (let i = 0; i < particles.length; i++) {
         particles[i].update();
         particles[i].draw(isLight);
       }
 
-      // 3. Draw 3D constellation filament lines between depth-matched particles
+      // 4. Draw 3D constellation filament lines between depth-matched particles
       for (let i = 0; i < particles.length; i++) {
         const p1 = particles[i];
 
@@ -524,7 +588,18 @@
 
           const dist = Math.sqrt(distSq);
           const avgZ = (p1.currentZ + p2.currentZ) / 2;
-          const alpha = (1 - dist / maxConnectionDistance) * (1 - depthDiff / 0.55) * (isLight ? 0.22 : 0.38) * avgZ;
+          let alpha = (1 - dist / maxConnectionDistance) * (1 - depthDiff / 0.55) * (isLight ? 0.22 : 0.38) * avgZ;
+
+          // Cursor electromagnetic resonance: lines passing near active cursor glow brighter in 3D
+          if (mouse.active && mouse.x > 0 && mouse.y > 0) {
+            const midX = (p1.renderX + p2.renderX) * 0.5;
+            const midY = (p1.renderY + p2.renderY) * 0.5;
+            const mDist = Math.hypot(midX - mouse.x, midY - mouse.y);
+            if (mDist < 130) {
+              alpha *= 1 + (1 - mDist / 130) * 0.85;
+            }
+          }
+
           ctx.beginPath();
           ctx.moveTo(p1.renderX, p1.renderY);
           ctx.lineTo(p2.renderX, p2.renderY);
@@ -552,37 +627,16 @@
             ctx.fill();
           }
         }
-
-        // 4. Interactive energetic laser filaments connecting to mouse cursor
-        if (mouse.active && mouse.x > 0 && mouse.y > 0 && p1.currentZ > 0.75) {
-          const mdx = p1.renderX - mouse.x;
-          if (Math.abs(mdx) <= maxMouseDistance) {
-            const mdy = p1.renderY - mouse.y;
-            if (Math.abs(mdy) <= maxMouseDistance) {
-              const mDistSq = mdx * mdx + mdy * mdy;
-              if (mDistSq < maxMouseDistanceSq) {
-                const mDist = Math.sqrt(mDistSq);
-                const mAlpha = (1 - mDist / maxMouseDistance) * (isLight ? 0.45 : 0.85) * p1.currentZ;
-                ctx.beginPath();
-                ctx.moveTo(p1.renderX, p1.renderY);
-                ctx.lineTo(mouse.x, mouse.y);
-                const mColor = isLight ? '13, 148, 136' : '0, 242, 176';
-                ctx.strokeStyle = `rgba(${mColor}, ${mAlpha})`;
-                ctx.lineWidth = 1.35 * p1.currentZ;
-                ctx.stroke();
-              }
-            }
-          }
-        }
       }
 
       // 5. Ambient glowing energy aura at mouse cursor coordinates in Cyber Mint
       if (mouse.active && mouse.x > 0 && mouse.y > 0) {
-        const mouseGrad = ctx.createRadialGradient(mouse.x, mouse.y, 2, mouse.x, mouse.y, 52);
-        mouseGrad.addColorStop(0, `rgba(${isLight ? '5, 150, 105' : '0, 242, 176'}, ${isLight ? 0.22 : 0.38})`);
+        const mouseGrad = ctx.createRadialGradient(mouse.x, mouse.y, 2, mouse.x, mouse.y, 56);
+        mouseGrad.addColorStop(0, `rgba(${isLight ? '5, 150, 105' : '0, 242, 176'}, ${isLight ? 0.22 : 0.32})`);
+        mouseGrad.addColorStop(0.35, `rgba(${isLight ? '5, 150, 105' : '0, 242, 176'}, ${isLight ? 0.08 : 0.12})`);
         mouseGrad.addColorStop(1, 'rgba(0, 242, 176, 0)');
         ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, 52, 0, Math.PI * 2);
+        ctx.arc(mouse.x, mouse.y, 56, 0, Math.PI * 2);
         ctx.fillStyle = mouseGrad;
         ctx.fill();
       }
