@@ -288,7 +288,7 @@
           this.vy = (this.vy / currentSpeed) * maxSpeed;
         }
 
-        // Apply smooth 3D fluid wave displacement from clicks
+        // Apply 3D Gravitational Harmonic Wave from clicks
         for (let i = shockwaves.length - 1; i >= 0; i--) {
           const sw = shockwaves[i];
           const sdx = this.renderX - sw.x;
@@ -298,10 +298,19 @@
 
           if (Math.abs(diff) < sw.waveWidth) {
             const wavePhase = (diff / sw.waveWidth) * (Math.PI / 2);
-            const impulse = Math.cos(wavePhase) * sw.strength * sw.alpha * this.currentZ;
+            const impulseFactor = Math.cos(wavePhase) * sw.alpha;
+
+            // 1. Radial elastic velocity kick
+            const impulse = impulseFactor * sw.strength * this.z;
             const angle = Math.atan2(sdy, sdx);
-            this.x += Math.cos(angle) * impulse;
-            this.y += Math.sin(angle) * impulse;
+            this.vx += Math.cos(angle) * impulse * 0.45;
+            this.vy += Math.sin(angle) * impulse * 0.45;
+
+            // 2. 3D Gravitational Z-bounce (jumping toward the screen like acoustic ripples on liquid)
+            this.zLift += impulseFactor * 0.55 * this.z;
+
+            // 3. Excitation spin surge
+            this.rotSpeed += this.swirlDir * impulseFactor * 0.045;
           }
         }
 
@@ -460,7 +469,7 @@
       particles.push(new Particle());
     }
 
-    // Trigger fluid wave ripple on click (soft radiant wave band + sinusoidal particle undulation, ZERO hard circle line)
+    // Trigger 3D Gravitational Harmonic Wave on pointer click (compact dual-ring + diamond micro-flare)
     window.addEventListener(
       'pointerdown',
       function (e) {
@@ -468,11 +477,12 @@
           x: e.clientX,
           y: e.clientY,
           radius: 0,
-          maxRadius: Math.max(width, height) * 0.55,
-          speed: 8.5,
-          waveWidth: 48,
-          strength: 4.8,
+          maxRadius: Math.min(width, height) * 0.35 + 130, // Contained, snappy ~270-320px
+          speed: 10.5,                                      // Fast propagation ~400ms duration
+          waveWidth: 32,
+          strength: 4.6,
           alpha: 1.0,
+          age: 0,
         });
       },
       { passive: true }
@@ -508,9 +518,10 @@
 
       const isLight = document.documentElement.classList.contains('light');
 
-      // 1. Update and render soft ethereal light wave in Cyber Mint
+      // 1. Update and render 3D Gravitational Harmonic Waves in Cyber Mint
       for (let i = shockwaves.length - 1; i >= 0; i--) {
         const sw = shockwaves[i];
+        sw.age++;
         sw.radius += sw.speed;
         sw.alpha = Math.max(0, 1 - sw.radius / sw.maxRadius);
 
@@ -519,20 +530,78 @@
           continue;
         }
 
-        const innerR = Math.max(0, sw.radius - sw.waveWidth);
-        const outerR = sw.radius + sw.waveWidth;
-        const waveGrad = ctx.createRadialGradient(sw.x, sw.y, innerR, sw.x, sw.y, outerR);
         const waveColor = isLight ? '5, 150, 105' : '0, 242, 176';
-        const waveAlpha = sw.alpha * (isLight ? 0.15 : 0.28);
+        const innerColor = isLight ? '13, 148, 136' : '13, 211, 186';
 
-        waveGrad.addColorStop(0, `rgba(${waveColor}, 0)`);
-        waveGrad.addColorStop(0.5, `rgba(${waveColor}, ${waveAlpha})`);
-        waveGrad.addColorStop(1, `rgba(${waveColor}, 0)`);
+        // 1a. Pinpoint Diamond Micro-Flare at click epicenter during initial birth (first 14 frames)
+        if (sw.age < 14) {
+          const flareProgress = sw.age / 14;
+          const flareAlpha = (1 - flareProgress) * (isLight ? 0.7 : 0.95);
+          const flareSize = (1 - flareProgress * 0.6) * 16;
+          const flareRot = flareProgress * 1.5;
+
+          ctx.save();
+          ctx.translate(sw.x, sw.y);
+          ctx.rotate(flareRot);
+
+          // Ethereal flare core
+          ctx.beginPath();
+          ctx.arc(0, 0, flareSize * 0.55, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(240, 253, 249, ${flareAlpha})`;
+          ctx.fill();
+
+          // 4-point diamond prism rays
+          ctx.beginPath();
+          ctx.moveTo(0, -flareSize * 1.5);
+          ctx.lineTo(flareSize * 0.3, 0);
+          ctx.lineTo(0, flareSize * 1.5);
+          ctx.lineTo(-flareSize * 0.3, 0);
+          ctx.closePath();
+          ctx.fillStyle = `rgba(${waveColor}, ${flareAlpha * 0.75})`;
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.moveTo(-flareSize * 1.5, 0);
+          ctx.lineTo(0, flareSize * 0.3);
+          ctx.lineTo(flareSize * 1.5, 0);
+          ctx.lineTo(0, -flareSize * 0.3);
+          ctx.closePath();
+          ctx.fillStyle = `rgba(${waveColor}, ${flareAlpha * 0.75})`;
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        // 1b. Primary Luminous Wavefront (sleek vector ring + soft inner gradient)
+        const primaryGrad = ctx.createRadialGradient(
+          sw.x, sw.y, Math.max(0, sw.radius - sw.waveWidth),
+          sw.x, sw.y, sw.radius + 6
+        );
+        primaryGrad.addColorStop(0, `rgba(${waveColor}, 0)`);
+        primaryGrad.addColorStop(0.7, `rgba(${waveColor}, ${sw.alpha * (isLight ? 0.16 : 0.25)})`);
+        primaryGrad.addColorStop(1, `rgba(240, 253, 249, ${sw.alpha * (isLight ? 0.35 : 0.55)})`);
 
         ctx.beginPath();
-        ctx.arc(sw.x, sw.y, outerR, 0, Math.PI * 2);
-        ctx.fillStyle = waveGrad;
+        ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+        ctx.fillStyle = primaryGrad;
         ctx.fill();
+
+        // Crisp leading edge filament
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${waveColor}, ${sw.alpha * (isLight ? 0.55 : 0.85)})`;
+        ctx.lineWidth = 1.35;
+        ctx.stroke();
+
+        // 1c. Secondary Harmonic Echo Wave (trailing at 72% radius with soft harmonic resonance)
+        if (sw.radius > 32) {
+          const echoRadius = sw.radius * 0.72;
+          ctx.beginPath();
+          ctx.arc(sw.x, sw.y, echoRadius, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${innerColor}, ${sw.alpha * (isLight ? 0.22 : 0.35)})`;
+          ctx.lineWidth = 0.85;
+          ctx.stroke();
+        }
       }
 
       // 2. Pairwise particle relaxation: prevents particles from ever clumping or overlapping
@@ -590,13 +659,24 @@
           const avgZ = (p1.currentZ + p2.currentZ) / 2;
           let alpha = (1 - dist / maxConnectionDistance) * (1 - depthDiff / 0.55) * (isLight ? 0.22 : 0.38) * avgZ;
 
-          // Cursor electromagnetic resonance: lines passing near active cursor glow brighter in 3D
+          // Cursor and shockwave electromagnetic resonance: lines passing near wavefront or cursor glow with 3D energy
           if (mouse.active && mouse.x > 0 && mouse.y > 0) {
             const midX = (p1.renderX + p2.renderX) * 0.5;
             const midY = (p1.renderY + p2.renderY) * 0.5;
             const mDist = Math.hypot(midX - mouse.x, midY - mouse.y);
             if (mDist < 130) {
               alpha *= 1 + (1 - mDist / 130) * 0.85;
+            }
+          }
+
+          for (let s = 0; s < shockwaves.length; s++) {
+            const sw = shockwaves[s];
+            const midX = (p1.renderX + p2.renderX) * 0.5;
+            const midY = (p1.renderY + p2.renderY) * 0.5;
+            const sDist = Math.hypot(midX - sw.x, midY - sw.y);
+            const sDiff = Math.abs(sDist - sw.radius);
+            if (sDiff < sw.waveWidth) {
+              alpha *= 1 + (1 - sDiff / sw.waveWidth) * sw.alpha * 1.5;
             }
           }
 
