@@ -1699,10 +1699,6 @@ html.light .mobile-menu-overlay {
     display: none;
   }
 
-  .nav-github-btn {
-    display: none;
-  }
-
   .nav-download-btn span:first-child {
     display: none;
   }

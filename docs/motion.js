@@ -901,7 +901,7 @@
     const interactiveQuery =
       'a, button, input, textarea, select, [role="button"], [role="tab"], .btn-pill, .btn-icon, .hero-winget, .card-inner, .faq-item, .mobile-nav-link, .nav-link, summary, .calc-profile-btn, .cmd-pill';
     const magneticQuery =
-      '.btn-pill-primary, .hero-winget, #themeToggleBtn, .btn-icon, .nav-github-btn, .dl-btn-primary, .app-tab';
+      '.btn-pill-primary, .hero-winget, #themeToggleBtn, .btn-icon, .dl-btn-primary, .app-tab';
 
     document.addEventListener(
       'pointerover',
