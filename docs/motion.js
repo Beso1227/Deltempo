@@ -730,7 +730,7 @@
      ========================================================================== */
   function initCardInteractivity() {
     const cards = document.querySelectorAll(
-      '.double-bezel, .card-inner, .feature-card, .cap-item, .hero-winget, .showcase-wrapper, .arch-card, .dl-card, .faq-item'
+      '.double-bezel, .card-inner, .feature-card, .cap-item, .hero-winget, .showcase-wrapper, .arch-card, .dl-card, .faq-item, .scope-card, .tier-card, .doc-code-card, .download-card, .trust-banner'
     );
 
     if (!cards.length) return;
@@ -754,7 +754,9 @@
             !isReducedMotion &&
             (card.classList.contains('double-bezel') ||
               card.classList.contains('showcase-wrapper') ||
-              card.classList.contains('feature-card'))
+              card.classList.contains('feature-card') ||
+              card.classList.contains('tier-card') ||
+              card.classList.contains('scope-card'))
           ) {
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
@@ -1461,6 +1463,204 @@
     updateActiveNav();
   }
 
+  /* ==========================================================================
+     9. Ultra-Smooth Page Transportation & Instant Prefetching Engine
+     SPA-grade instant page transitions across GitHub Pages without full reloads
+     ========================================================================== */
+  const pageCache = new Map();
+
+  function prefetchPage(url) {
+    if (!url || !window.location.protocol.startsWith('http')) return;
+    try {
+      const parsed = new URL(url, window.location.href);
+      if (parsed.origin !== window.location.origin) return;
+      if (pageCache.has(parsed.pathname)) return;
+      if (parsed.pathname === window.location.pathname && !parsed.hash) return;
+
+      fetch(parsed.href, { priority: 'low' })
+        .then(function (res) {
+          if (res.ok) return res.text();
+          throw new Error('Network response not ok');
+        })
+        .then(function (html) {
+          pageCache.set(parsed.pathname, html);
+        })
+        .catch(function () {});
+    } catch (_) {}
+  }
+
+  function isInternalNavigationLink(link) {
+    if (!link || !link.href) return false;
+    try {
+      const u = new URL(link.href, window.location.href);
+      if (u.origin !== window.location.origin) return false;
+      const path = u.pathname.toLowerCase();
+      if (path.endsWith('.exe') || path.endsWith('.zip') || path.endsWith('.pdf') || path.endsWith('.mp4') || path.endsWith('.jpg') || path.endsWith('.png')) {
+        return false;
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function reinitPageModules() {
+    initScrollReveals();
+    initCardInteractivity();
+    initWorkspaceSimulator();
+    initReclaimCalculator();
+    initScrollSpy();
+  }
+
+  function navigateTo(url, isPopState) {
+    const targetUrl = new URL(url, window.location.href);
+    const cachedHtml = pageCache.get(targetUrl.pathname);
+
+    function applyHtml(html) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      const newMain = doc.querySelector('main');
+      const oldMain = document.querySelector('main');
+
+      if (!newMain || !oldMain) {
+        window.location.href = url;
+        return;
+      }
+
+      const performSwap = function () {
+        // Update document title & metadata
+        document.title = doc.title;
+        const oldDesc = document.querySelector('meta[name="description"]');
+        const newDesc = doc.querySelector('meta[name="description"]');
+        if (oldDesc && newDesc) oldDesc.content = newDesc.content;
+
+        // Replace main content
+        oldMain.innerHTML = newMain.innerHTML;
+
+        // Update active navigation links
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(function (l) {
+          try {
+            const lUrl = new URL(l.href, window.location.href);
+            if (lUrl.pathname === targetUrl.pathname) {
+              l.classList.add('active');
+            } else {
+              l.classList.remove('active');
+            }
+          } catch (_) {}
+        });
+
+        if (!isPopState) {
+          history.pushState(null, '', targetUrl.href);
+        }
+
+        // Scroll position
+        if (targetUrl.hash) {
+          const targetEl = document.querySelector(targetUrl.hash);
+          if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
+          else window.scrollTo({ top: 0, behavior: 'instant' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+
+        // Re-initialize interactive modules on new page content
+        reinitPageModules();
+      };
+
+      if (document.startViewTransition) {
+        document.startViewTransition(performSwap);
+      } else {
+        oldMain.classList.add('page-transporting');
+        setTimeout(function () {
+          performSwap();
+          oldMain.classList.remove('page-transporting');
+          oldMain.classList.add('page-transported');
+          setTimeout(function () {
+            oldMain.classList.remove('page-transported');
+          }, 250);
+        }, 120);
+      }
+    }
+
+    if (cachedHtml) {
+      applyHtml(cachedHtml);
+    } else {
+      fetch(targetUrl.href)
+        .then(function (res) {
+          if (!res.ok) throw new Error('Fetch failed');
+          return res.text();
+        })
+        .then(function (html) {
+          pageCache.set(targetUrl.pathname, html);
+          applyHtml(html);
+        })
+        .catch(function () {
+          window.location.href = url;
+        });
+    }
+  }
+
+  function initPageTransportation() {
+    // 1. Prefetch internal links on hover / focus
+    document.addEventListener(
+      'pointerover',
+      function (e) {
+        const link = e.target.closest('a[href]');
+        if (link && isInternalNavigationLink(link)) {
+          prefetchPage(link.href);
+        }
+      },
+      { passive: true }
+    );
+
+    document.addEventListener(
+      'focusin',
+      function (e) {
+        const link = e.target.closest('a[href]');
+        if (link && isInternalNavigationLink(link)) {
+          prefetchPage(link.href);
+        }
+      },
+      { passive: true }
+    );
+
+    // 2. Intercept internal navigation clicks for instant, seamless transitions
+    document.addEventListener('click', function (e) {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+        return;
+      }
+
+      const link = e.target.closest('a[href]');
+      if (!link || !isInternalNavigationLink(link)) return;
+
+      const targetUrl = new URL(link.href, window.location.href);
+
+      // Same-page hash anchor: smooth scroll
+      if (targetUrl.pathname === window.location.pathname) {
+        if (targetUrl.hash) {
+          const targetEl = document.querySelector(targetUrl.hash);
+          if (targetEl) {
+            e.preventDefault();
+            targetEl.scrollIntoView({ behavior: 'smooth' });
+            history.pushState(null, '', targetUrl.href);
+          }
+        }
+        return;
+      }
+
+      // External or download link: allow default
+      if (link.hasAttribute('download') || link.target === '_blank') return;
+
+      e.preventDefault();
+      navigateTo(targetUrl.href);
+    });
+
+    window.addEventListener('popstate', function () {
+      navigateTo(window.location.href, true);
+    });
+  }
+
   function initializeAll() {
     initScrollReveals();
     initInteractiveBackground();
@@ -1472,6 +1672,7 @@
     initBackToTop();
     initMobileMenu();
     initScrollSpy();
+    initPageTransportation();
   }
 
   if (document.readyState === 'loading') {

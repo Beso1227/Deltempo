@@ -238,38 +238,41 @@
     </div>
 
     <!-- Technical Specifications -->
-    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden;">
-      <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle); font-weight: 800; font-size: 1.1rem;">
-        Technical System Requirements
+    <div class="double-bezel" style="margin-bottom: 3rem;">
+      <div class="card-inner" style="padding: 0; overflow: hidden;">
+        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(0, 242, 176, 0.16); font-weight: 800; font-size: 1.15rem; color: var(--text-high); display: flex; align-items: center; justify-content: space-between;">
+          <span>Technical System Requirements</span>
+          <span style="font-size: 0.75rem; font-family: var(--font-mono); font-weight: 700; color: var(--accent-emerald); background: rgba(0, 242, 176, 0.1); border: 1px solid rgba(0, 242, 176, 0.25); padding: 3px 8px; border-radius: var(--radius-sm);">STANDALONE BINARY</span>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.92rem;">
+          <tbody>
+            <tr style="border-bottom: 1px solid rgba(0, 242, 176, 0.08);">
+              <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600; width: 35%;">Operating System</td>
+              <td style="padding: 1rem 1.5rem; color: var(--text-high);">Windows 10 (Build 1809+) or Windows 11 (64-bit)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(0, 242, 176, 0.08);">
+              <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">Architecture</td>
+              <td style="padding: 1rem 1.5rem; color: var(--text-high);">win-x64 (Native 64-bit)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(0, 242, 176, 0.08);">
+              <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">Framework / Runtime</td>
+              <td style="padding: 1rem 1.5rem; color: var(--text-high);">.NET 10 (Self-contained, no external runtime required)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(0, 242, 176, 0.08);">
+              <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">Installation Mode</td>
+              <td style="padding: 1rem 1.5rem; color: var(--text-high);">Portable (Single-file executable)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(0, 242, 176, 0.08);">
+              <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">Telemetry</td>
+              <td style="padding: 1rem 1.5rem; color: var(--text-high);">No analytics or telemetry. Core operations run offline.</td>
+            </tr>
+            <tr>
+              <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">License</td>
+              <td style="padding: 1rem 1.5rem; color: var(--text-high);">MIT Open Source License</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.92rem;">
-        <tbody>
-          <tr style="border-bottom: 1px solid var(--border-subtle);">
-            <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600; width: 35%;">Operating System</td>
-            <td style="padding: 1rem 1.5rem; color: var(--text-high);">Windows 10 (Build 1809+) or Windows 11 (64-bit)</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border-subtle);">
-            <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">Architecture</td>
-            <td style="padding: 1rem 1.5rem; color: var(--text-high);">win-x64 (Native 64-bit)</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border-subtle);">
-            <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">Framework / Runtime</td>
-            <td style="padding: 1rem 1.5rem; color: var(--text-high);">.NET 10 (Self-contained, no external runtime required)</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border-subtle);">
-            <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">Installation Mode</td>
-            <td style="padding: 1rem 1.5rem; color: var(--text-high);">Portable (Single-file executable)</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border-subtle);">
-            <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">Telemetry</td>
-            <td style="padding: 1rem 1.5rem; color: var(--text-high);">No analytics or telemetry. Core operations run offline.</td>
-          </tr>
-          <tr>
-            <td style="padding: 1rem 1.5rem; color: var(--text-med); font-weight: 600;">License</td>
-            <td style="padding: 1rem 1.5rem; color: var(--text-high);">MIT Open Source License</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
   </main>
 
