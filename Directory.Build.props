@@ -6,9 +6,9 @@
     Bump here only; individual csproj files must not override Version/FileVersion/AssemblyVersion.
   -->
   <PropertyGroup>
-    <Version>1.8.0</Version>
-    <FileVersion>1.8.0.0</FileVersion>
-    <AssemblyVersion>1.8.0.0</AssemblyVersion>
+    <Version>2.0.0</Version>
+    <FileVersion>2.0.0.0</FileVersion>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>

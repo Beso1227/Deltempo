@@ -33,7 +33,7 @@
   </p>
 
   <p>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest">Download v1.8.0</a> •
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest">Download v2.0.0</a> •
     <a href="https://beso1227.github.io/Deltempo/"><strong>Deltempo Official Website</strong></a> •
     <a href="docs/ARCHITECTURE.md">Architecture</a> •
     <a href="docs/THREAT_MODEL.md">Threat Model</a> •
@@ -64,7 +64,7 @@
 | :--- | :--- |
 | **Official Website** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **Platform** | Windows 10 & 11 (64-bit / x64) |
-| **Version** | v1.8.0 (Production Release) |
+| **Version** | v2.0.0 (Production Release) |
 | **License** | Open Source ([MIT](LICENSE)) |
 | **Interfaces** | Modern Desktop GUI (WPF Fluent) and Headless Terminal CLI |
 | **Distribution** | Portable single-file executable (self-contained, no installer required) |

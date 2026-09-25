@@ -44,10 +44,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../style.css?v=2.7.13">
+    <link rel="stylesheet" href="../style.css?v=2.7.14">
 
   <!-- Web App Manifest (PWA installability) -->
-  <link rel="manifest" href="../manifest.json?v=2.6.1">
+  <link rel="manifest" href="../manifest.json?v=2.7.14">
 
   <!-- Schema.org JSON-LD -->
   <script type="application/ld+json">
@@ -171,12 +171,30 @@
       <p class="section-subtitle">Complete version history, feature additions, and security improvements.</p>
     </div>
 
+    <!-- v2.0.0 -->
+    <div class="double-bezel release-card reveal-on-scroll stagger-1">
+      <div class="card-inner">
+        <div class="release-header">
+          <h2 class="release-version">v2.0.0 (Latest Stable)</h2>
+          <span class="release-tag release-tag-stable">CURRENT STABLE</span>
+        </div>
+        <ul class="release-list">
+          <li><strong>Cyber Mint &amp; Electric Teal Branding:</strong> Full palette transition across app and website, refreshed high-resolution icon suite, and a 1280&times;640 social preview banner.</li>
+          <li><strong>Security Hardening:</strong> Restricted binary execution paths in repair and scheduler modules, and tightened Content-Security-Policy <code>script-src</code> directives on the GitHub Pages site.</li>
+          <li><strong>Legacy UI Cleanup:</strong> Eliminated legacy blue backgrounds and improved text contrast across the entire application for a consistent, accessible interface.</li>
+          <li><strong>Website Liquid Glass Top Bar:</strong> Rebuilt floating navigation as a translucent glass island with refraction highlights, tighter spacing, and a content-hugging layout; full light-mode parity for hero, safety pipeline, app window, and trust banner.</li>
+          <li><strong>Native Multi-Page Navigation:</strong> Removed the experimental SPA page-transportation engine - routing is now standard multi-page with no 404 risk on GitHub Pages.</li>
+          <li><strong>Verified Quality:</strong> Full automated test suite passing in CI with zero compiler warnings under <code>TreatWarningsAsErrors</code>.</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- v1.8.0 -->
     <div class="double-bezel release-card reveal-on-scroll stagger-1">
       <div class="card-inner">
         <div class="release-header">
-          <h2 class="release-version">v1.8.0 (Latest Stable)</h2>
-          <span class="release-tag release-tag-stable">CURRENT STABLE</span>
+          <h2 class="release-version">v1.8.0</h2>
+          <span class="release-tag release-tag-prev">PREVIOUS</span>
         </div>
         <ul class="release-list">
           <li><strong>Frosted Glass UI/UX Redesign:</strong> Elevated double-bezel visual hierarchy, ambient glow brand badge, unified title bar navigation island, 34pt tabular telemetry metrics, and tactile filter chip capsules.</li>
@@ -536,6 +554,6 @@
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
   </button>
   <!-- Cybernetic Motion Engine -->
-  <script src="../motion.js?v=2.7.13" defer></script>
+  <script src="../motion.js?v=2.7.14" defer></script>
 </body>
 </html>
