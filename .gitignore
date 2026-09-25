@@ -5,33 +5,68 @@ publish/
 publish_*/
 dist/
 TestResults/
+[Bb]uildLog.*
+*.binlog
+
+# User-specific Visual Studio & MSBuild files
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
+*.userprefs
+*.opendb
+*.VC.db
+UpgradeLog*.XML
+UpgradeLog*.htm
+_UpgradeReport_Files/
 
-# Compiled Binaries & Certificates
+# Compiled Binaries & Debug Symbols
 *.exe
+*.dll
+*.pdb
 *.old
 *.com
+*.so
+*.dylib
+*.msi
+*.msix
+*.appx
+
+# NuGet Packages & Local Caches
+*.nupkg
+*.snupkg
+project.lock.json
+
+# Archives & Compressed Files
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.cab
+
+# Certificates, Keys, Secrets & Environment
 *.cer
 *.pfx
-
-# Developer Visualizations & Generated Artifacts
-graphify-out/
-GRAPHIFY.md
-vault/
-brag-output/
-
-# Python & Local Automation Scratch
-.venv/
-venv/
-__pycache__/
-*.pyc
-
-# Secrets & Environment
+*.pem
+*.key
+*.p12
+*.crt
+*.der
+*.snk
+*.kdbx
+*.credentials
+credentials.json
+*.token
+secrets.json
+appsettings*.local.json
+appsettings.Development.json
 .env
 .env.*
+*.env
+!*.env.example
+!*.env.template
 
 # IDE & Editor files
 .vs/
@@ -43,26 +78,73 @@ __pycache__/
 .idea/
 *.DotSettings.user
 _ReSharper*/
+*.rsuser
 *.swp
 *.lock
 *.bak
+*.orig
 
 # OS Generated
 Thumbs.db
 ehthumbs.db
-Desktop.ini
+ehthumbs_vista.db
+[Dd]esktop.ini
 $RECYCLE.BIN/
 nul
 NUL
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 
-# Crash dumps & logs
+# Crash dumps, logs & temporary files
 *.log
 *.dmp
 *.tmp
+*.stackdump
 
-# Local workspace scratch
+# Test Coverage & Benchmarks
+coverage/
+*.coverage
+*.coveragexml
+*.cobertura.xml
+BenchmarkDotNet.Artifacts/
+
+# AI Tooling, Sessions & Workspace Scratch
+.gemini/
+.agents/
+.claude/
+.cursor/
+.windsurf/
+.roo/
+.continue/
+.aider*
 .obsidian/
 .kilo/
+scratch/
+temp/
+tmp/
+graphify-out/
+GRAPHIFY.md
+vault/
+brag-output/
 .deploy*.cmd
 ci_runs.json
 ci_*.json
+
+# Web & Node Scratch (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python & Local Automation Scratch
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
