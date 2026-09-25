@@ -364,19 +364,29 @@ p, .section-subtitle, .hero-subtext, .card-desc, .faq-answer, .scope-desc {
   margin: 0 auto;
   height: 58px;
   padding: 0 0.75rem 0 1.25rem;
-  background: rgba(10, 13, 20, 0.88);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(14, 20, 22, 0.88) 0%, rgba(11, 15, 16, 0.94) 100%);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 12px 36px rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 1px 0 rgba(0, 242, 176, 0.16), 0 16px 40px -8px rgba(0, 0, 0, 0.65), 0 0 24px -6px rgba(0, 242, 176, 0.08);
   transition: border-color var(--transition-fast), background-color var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.nav-island:hover {
+  border-color: rgba(0, 242, 176, 0.24);
+  box-shadow: inset 0 1px 0 rgba(0, 242, 176, 0.22), 0 20px 48px -8px rgba(0, 0, 0, 0.75), 0 0 32px -4px rgba(0, 242, 176, 0.14);
 }
 
 html.light .nav-island {
   background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 10px 28px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-subtle);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 12px 32px -4px rgba(0, 0, 0, 0.08), 0 0 20px -4px rgba(5, 150, 105, 0.06);
+}
+
+html.light .nav-island:hover {
+  border-color: var(--border-strong);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 16px 36px -4px rgba(0, 0, 0, 0.12), 0 0 24px -2px rgba(5, 150, 105, 0.1);
 }
 
 .nav-brand {
@@ -386,8 +396,14 @@ html.light .nav-island {
   font-weight: 800;
   font-size: 1.05rem;
   letter-spacing: -0.025em;
+  color: var(--text-high);
   white-space: nowrap !important;
   flex-shrink: 0;
+  transition: opacity 0.2s ease;
+}
+
+.nav-brand:hover {
+  opacity: 0.9;
 }
 
 .brand-logo-img {
@@ -395,9 +411,14 @@ html.light .nav-island {
   height: 26px;
   border-radius: 6px;
   object-fit: cover;
-  outline: 1px solid rgba(255, 255, 255, 0.14);
+  outline: 1px solid var(--border-subtle);
   outline-offset: -1px;
-  box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+  box-shadow: 0 0 12px rgba(0, 242, 176, 0.3);
+}
+
+html.light .brand-logo-img {
+  outline: 1px solid var(--border-subtle);
+  box-shadow: 0 0 10px rgba(5, 150, 105, 0.2);
 }
 
 .nav-links {
@@ -419,28 +440,35 @@ html.light .nav-island {
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-med);
+  border: 1px solid transparent;
   white-space: nowrap !important;
-  transition: color 0.18s ease, background-color 0.18s ease;
+  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .nav-link:hover {
   color: var(--text-high);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 242, 176, 0.06);
+  border-color: rgba(0, 242, 176, 0.14);
 }
 
 .nav-link.active {
   color: var(--accent-cyan);
   background: var(--accent-cyan-bg);
+  border-color: var(--accent-cyan-border);
+  box-shadow: 0 0 14px rgba(0, 242, 176, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 html.light .nav-link:hover {
   color: var(--text-high);
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(5, 150, 105, 0.06);
+  border-color: rgba(5, 150, 105, 0.14);
 }
 
 html.light .nav-link.active {
   color: var(--accent-cyan);
   background: var(--accent-cyan-bg);
+  border-color: var(--accent-cyan-border);
+  box-shadow: 0 0 12px rgba(5, 150, 105, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .nav-actions {
@@ -453,13 +481,13 @@ html.light .nav-link.active {
 .nav-divider {
   width: 1px;
   height: 20px;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border-subtle);
   margin: 0 0.35rem;
   flex-shrink: 0;
 }
 
 html.light .nav-divider {
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--border-subtle);
 }
 
 .btn-icon {
@@ -469,27 +497,30 @@ html.light .nav-divider {
   width: 34px;
   height: 34px;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  background: rgba(18, 25, 28, 0.6);
   color: var(--text-med);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 html.light .btn-icon {
   background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-subtle);
 }
 
 .btn-icon:hover {
-  color: var(--text-high);
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.09);
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan-border);
+  background: var(--accent-cyan-bg);
   transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(0, 242, 176, 0.2);
 }
 
 html.light .btn-icon:hover {
-  background: rgba(0, 0, 0, 0.06);
-  border-color: rgba(0, 0, 0, 0.16);
+  color: var(--accent-cyan);
+  background: var(--accent-cyan-bg);
+  border-color: var(--accent-cyan-border);
+  box-shadow: 0 0 10px rgba(5, 150, 105, 0.15);
 }
 
 .btn-icon:active {
@@ -525,7 +556,7 @@ html.light .btn-icon:hover {
 }
 
 .btn-pill-primary {
-  background: linear-gradient(135deg, #00F2B0 0%, #00D4BD 100%);
+  background: linear-gradient(135deg, var(--accent-cyan) 0%, #00D4BD 100%);
   color: #03080A;
   box-shadow: 0 2px 14px rgba(0, 242, 176, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   font-weight: 700;
@@ -535,6 +566,16 @@ html.light .btn-icon:hover {
   filter: brightness(1.08);
   transform: translateY(-1.5px);
   box-shadow: 0 6px 22px rgba(0, 242, 176, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+html.light .btn-pill-primary {
+  background: linear-gradient(135deg, var(--accent-cyan) 0%, #047857 100%);
+  color: #FFFFFF;
+  box-shadow: 0 2px 14px rgba(5, 150, 105, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+html.light .btn-pill-primary:hover {
+  box-shadow: 0 6px 22px rgba(5, 150, 105, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .btn-icon-bubble {
@@ -554,18 +595,33 @@ html.light .btn-icon:hover {
 }
 
 .btn-pill-secondary {
-  background: rgba(19, 25, 27, 0.7);
+  background: rgba(14, 20, 22, 0.72);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-subtle);
   color: var(--text-high);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(0, 242, 176, 0.08);
 }
 
 .btn-pill-secondary:hover {
   background: var(--bg-card-hover);
-  border-color: var(--border-strong);
+  border-color: var(--accent-cyan-border);
+  color: var(--accent-cyan);
   transform: translateY(-1.5px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 14px rgba(0, 242, 176, 0.12), inset 0 1px 0 rgba(0, 242, 176, 0.14);
+}
+
+html.light .btn-pill-secondary {
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--text-high);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+html.light .btn-pill-secondary:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-cyan-border);
+  color: var(--accent-cyan);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 0 12px rgba(5, 150, 105, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
 /* Mobile Nav Toggle */
@@ -1591,9 +1647,9 @@ html.light .faq-item:hover {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(11, 15, 16, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(11, 15, 16, 0.96);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
   z-index: 999;
   padding: 6rem 2rem 2rem;
   flex-direction: column;
@@ -1611,8 +1667,20 @@ html.light .mobile-menu-overlay {
 .mobile-nav-link {
   font-size: 1.25rem;
   font-weight: 700;
+  color: var(--text-high);
   padding: 0.5rem 0;
   border-bottom: 1px solid var(--border-subtle);
+  transition: color 0.18s ease, border-color 0.18s ease, padding-left 0.18s ease;
+}
+
+.mobile-nav-link:hover {
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan-border);
+  padding-left: 0.35rem;
+}
+
+.mobile-nav-link.active {
+  color: var(--accent-cyan);
 }
 
 /* Responsive Breakpoints */
