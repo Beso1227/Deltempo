@@ -142,6 +142,9 @@ BenchmarkDotNet.Artifacts/
 .aider*
 .obsidian/
 .kilo/
+.kiro/
+.lean-ctx/
+.cline/
 scratch/
 temp/
 tmp/

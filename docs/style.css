@@ -4087,3 +4087,13 @@ html.light .theme-icon-dark {
   color: var(--accent-purple);
   font-weight: 700;
 }
+
+.text-accent-link {
+  color: var(--accent-cyan);
+  text-decoration: underline;
+}
+.sim-card-val-amber {
+  font-size: 0.75rem;
+  color: var(--accent-amber);
+  font-weight: 700;
+}

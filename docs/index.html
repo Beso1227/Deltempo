@@ -357,7 +357,7 @@
         </a>
         <button type="button" id="themeToggleBtn" class="btn-icon" aria-label="Toggle Dark or Light Theme" title="Toggle Theme">
           <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-          <svg class="theme-icon-light" style="display: none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
         <a href="download/" class="btn-pill btn-pill-primary nav-download-btn">
           <span>Download</span>
@@ -519,17 +519,17 @@
               <div class="app-content">
                 <!-- TAB 1: CLEANER -->
                 <div class="tab-pane active" id="pane-cleaner">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                  <div class="pane-header">
                     <div>
-                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Volume-Aware Parallel Engine (v2.0.0)</div>
-                      <div style="font-size: 1.25rem; font-weight: 800;">Target Scopes Verified by Protection Policy</div>
+                      <div class="pane-subtitle">Volume-Aware Parallel Engine (v2.0.0)</div>
+                      <div class="pane-title">Target Scopes Verified by Protection Policy</div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                      <span style="font-size: 0.95rem; font-weight: 700; color: var(--accent-emerald);" id="simJunkTotal">14.8 GB</span>
-                      <button type="button" class="btn-pill btn-pill-secondary" id="simScanBtn" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">
+                    <div class="pane-actions">
+                      <span class="sim-junk-total" id="simJunkTotal">14.8 GB</span>
+                      <button type="button" class="btn-pill btn-pill-secondary pane-btn-sm" id="simScanBtn">
                         Simulate Scan
                       </button>
-                      <button type="button" class="btn-pill btn-pill-primary" id="simCleanBtn" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">
+                      <button type="button" class="btn-pill btn-pill-primary pane-btn-sm" id="simCleanBtn">
                         Clean Verified Junk
                       </button>
                     </div>
@@ -589,41 +589,41 @@
 
                 <!-- TAB 2: MEMORY -->
                 <div class="tab-pane" id="pane-memory">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                  <div class="pane-header-lg">
                     <div>
-                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">NT Kernel Memory Optimization</div>
-                      <div style="font-size: 1.25rem; font-weight: 800;">Working Set Trimming &amp; Standby List Purge</div>
+                      <div class="pane-subtitle">NT Kernel Memory Optimization</div>
+                      <div class="pane-title">Working Set Trimming &amp; Standby List Purge</div>
                     </div>
-                    <button type="button" class="btn-pill btn-pill-primary" id="simBoostBtn" style="padding: 0.5rem 1.2rem; font-size: 0.85rem;">
+                    <button type="button" class="btn-pill btn-pill-primary pane-btn-md" id="simBoostBtn">
                       ⚡ 1-Click Boost Memory
                     </button>
                   </div>
 
-                  <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; align-items: center;">
+                  <div class="sim-ram-layout">
                     <!-- Circular RAM Meter -->
                     <div class="sim-ram-box">
                       <div id="simRamGauge" class="sim-ram-gauge">
-                        <div style="width: 82px; height: 82px; border-radius: 50%; background: var(--bg-card); display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                          <div id="simRamPercent" style="font-size: 1.4rem; font-weight: 800; color: var(--text-high);">76%</div>
-                          <div style="font-size: 0.65rem; color: var(--text-low); font-weight: 600;">RAM LOAD</div>
+                        <div class="sim-ram-meter">
+                          <div id="simRamPercent" class="sim-ram-percent">76%</div>
+                          <div class="sim-ram-label">RAM LOAD</div>
                         </div>
                       </div>
-                      <div id="simRamDetail" style="font-size: 0.75rem; color: var(--text-med); font-family: var(--font-mono); text-align: center;">
+                      <div id="simRamDetail" class="sim-ram-detail">
                         12.2 GB / 16.0 GB (5.8 GB Standby)
                       </div>
                     </div>
 
                     <!-- NT Memory Zones -->
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
-                      <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-                        <div style="font-size: 0.7rem; color: var(--accent-cyan); font-weight: 700; margin-bottom: 0.25rem;">STANDBY LIST PURGE</div>
-                        <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem;">ntdll!NtSetSystemInformation</div>
-                        <p style="font-size: 0.8rem; color: var(--text-med);">Reclaims inactive standby pages cached by closed games and apps.</p>
+                    <div class="sim-mem-grid">
+                      <div class="sim-card">
+                        <div class="sim-card-tag-cyan">STANDBY LIST PURGE</div>
+                        <div class="sim-card-heading">ntdll!NtSetSystemInformation</div>
+                        <p class="sim-card-desc">Reclaims inactive standby pages cached by closed games and apps.</p>
                       </div>
-                      <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-                        <div style="font-size: 0.7rem; color: var(--accent-emerald); font-weight: 700; margin-bottom: 0.25rem;">WORKING SET TRIM</div>
-                        <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem;">psapi!EmptyWorkingSet</div>
-                        <p style="font-size: 0.8rem; color: var(--text-med);">Safely trims bloated background processes while shielding Windows OS core.</p>
+                      <div class="sim-card">
+                        <div class="sim-card-tag-emerald">WORKING SET TRIM</div>
+                        <div class="sim-card-heading">psapi!EmptyWorkingSet</div>
+                        <p class="sim-card-desc">Safely trims bloated background processes while shielding Windows OS core.</p>
                       </div>
                     </div>
                   </div>
@@ -631,88 +631,88 @@
 
                 <!-- TAB 3: LARGE FILES -->
                 <div class="tab-pane" id="pane-largefiles">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                  <div class="pane-header">
                     <div>
-                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Transparent Disk Consumption</div>
-                      <div style="font-size: 1.25rem; font-weight: 800;">Large File Hunter with Recycle Bin Undo Safety</div>
+                      <div class="pane-subtitle">Transparent Disk Consumption</div>
+                      <div class="pane-title">Large File Hunter with Recycle Bin Undo Safety</div>
                     </div>
                     <span class="tier-badge safe">♻️ Windows Recycle Bin Protected</span>
                   </div>
 
-                  <div style="display: flex; flex-direction: column; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.85rem;">
-                    <div style="display: flex; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+                  <div class="sim-list-mono">
+                    <div class="sim-list-row">
                       <span>📁 C:\Users\Admin\Downloads\UnrealEngine-5.4-Setup.exe</span>
-                      <span style="color: var(--accent-amber); font-weight: 700;">8.4 GB</span>
+                      <span class="text-accent-amber">8.4 GB</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+                    <div class="sim-list-row">
                       <span>📁 C:\Users\Admin\AppData\Local\NVIDIA\DXCache\dx_48102.bin</span>
-                      <span style="color: var(--accent-cyan); font-weight: 700;">2.1 GB</span>
+                      <span class="text-accent-cyan">2.1 GB</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+                    <div class="sim-list-row">
                       <span>📁 C:\Windows\Temp\stale_driver_package.cab</span>
-                      <span style="color: var(--accent-emerald); font-weight: 700;">1.6 GB</span>
+                      <span class="text-accent-emerald">1.6 GB</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- TAB 4: STARTUP -->
                 <div class="tab-pane" id="pane-startup">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                  <div class="pane-header">
                     <div>
-                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Boot Acceleration</div>
-                      <div style="font-size: 1.25rem; font-weight: 800;">Startup Manager with Core OS Process Immunity</div>
+                      <div class="pane-subtitle">Boot Acceleration</div>
+                      <div class="pane-title">Startup Manager with Core OS Process Immunity</div>
                     </div>
                     <span class="tier-badge protected">🛡️ Windows Defender &amp; Security Protected</span>
                   </div>
 
-                  <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); flex-wrap: wrap; gap: 0.5rem;">
+                  <div class="sim-list-regular">
+                    <div class="sim-list-row-center">
                       <div>
-                        <strong>Discord</strong> <span style="color: var(--text-low); font-size: 0.8rem; margin-left: 0.5rem;">Registry HKCU</span>
-                        <div style="font-size: 0.76rem; color: var(--accent-emerald); margin-top: 2px;">🤖 AI Verdict: SafeToDisable • Won't affect voice or messaging when launched manually</div>
+                        <strong>Discord</strong> <span class="sim-sub-scope">Registry HKCU</span>
+                        <div class="sim-sub-impact-good">🤖 AI Verdict: SafeToDisable • Won't affect voice or messaging when launched manually</div>
                       </div>
-                      <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="font-size: 0.75rem; color: var(--accent-amber); font-weight: 700;">HIGH IMPACT</span> <span style="color: var(--accent-emerald); font-weight: 700;">ENABLED</span></div>
+                      <div class="sim-row-actions"><span class="text-accent-amber">HIGH IMPACT</span> <span class="text-accent-emerald">ENABLED</span></div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); flex-wrap: wrap; gap: 0.5rem;">
+                    <div class="sim-list-row-center">
                       <div>
-                        <strong>Spotify</strong> <span style="color: var(--text-low); font-size: 0.8rem; margin-left: 0.5rem;">Startup Folder</span>
-                        <div style="font-size: 0.76rem; color: var(--accent-emerald); margin-top: 2px;">🤖 AI Verdict: SafeToDisable • Disabling cuts ~1.8s boot delay</div>
+                        <strong>Spotify</strong> <span class="sim-sub-scope">Startup Folder</span>
+                        <div class="sim-sub-impact-good">🤖 AI Verdict: SafeToDisable • Disabling cuts ~1.8s boot delay</div>
                       </div>
-                      <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700;">MEDIUM IMPACT</span> <span style="color: var(--accent-emerald); font-weight: 700;">ENABLED</span></div>
+                      <div class="sim-row-actions"><span class="text-accent-cyan">MEDIUM IMPACT</span> <span class="text-accent-emerald">ENABLED</span></div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); flex-wrap: wrap; gap: 0.5rem;">
+                    <div class="sim-list-row-center">
                       <div>
-                        <strong>Windows Security Tray</strong> <span style="color: var(--text-low); font-size: 0.8rem; margin-left: 0.5rem;">Registry HKLM</span>
-                        <div style="font-size: 0.76rem; color: #EF4444; margin-top: 2px;">🛡️ AI Verdict: EssentialKeep • Protected core Windows security component</div>
+                        <strong>Windows Security Tray</strong> <span class="sim-sub-scope">Registry HKLM</span>
+                        <div class="sim-sub-impact-bad">🛡️ AI Verdict: EssentialKeep • Protected core Windows security component</div>
                       </div>
-                      <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="font-size: 0.75rem; color: var(--accent-emerald); font-weight: 700;">CORE OS</span> <span style="color: var(--accent-emerald); font-weight: 700;">PROTECTED</span></div>
+                      <div class="sim-row-actions"><span class="text-accent-emerald">CORE OS</span> <span class="text-accent-emerald">PROTECTED</span></div>
                     </div>
                   </div>
                 </div>
 
                 <!-- TAB 5: RUNNING PROCESSES -->
                 <div class="tab-pane" id="pane-procs">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                  <div class="pane-header">
                     <div>
-                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Active Memory Inspector</div>
-                      <div style="font-size: 1.25rem; font-weight: 800;">Heavy Background Process Trim &amp; Management</div>
+                      <div class="pane-subtitle">Active Memory Inspector</div>
+                      <div class="pane-title">Heavy Background Process Trim &amp; Management</div>
                     </div>
-                    <span style="font-size: 0.8rem; color: var(--text-low);">Filtering processes &gt; 20 MB</span>
+                    <span class="comp-subtext-plain">Filtering processes &gt; 20 MB</span>
                   </div>
 
-                  <div style="display: flex; flex-direction: column; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.85rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+                  <div class="sim-list-mono">
+                    <div class="sim-list-row-center">
                       <span>🌐 msedge.exe (PID 14208)</span>
-                      <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="color: var(--accent-cyan); font-weight: 700;">842 MB</span>
-                        <span style="font-size: 0.7rem; padding: 2px 6px; background: var(--accent-cyan-bg); color: var(--accent-cyan); border: 1px solid var(--accent-cyan-border); border-radius: 4px;">TRIMMED</span>
+                      <div class="pane-actions">
+                        <span class="text-accent-cyan">842 MB</span>
+                        <span class="sim-badge-cyan">TRIMMED</span>
                       </div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+                    <div class="sim-list-row-center">
                       <span>🎮 steamwebhelper.exe (PID 8904)</span>
-                      <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="color: var(--accent-amber); font-weight: 700;">418 MB</span>
-                        <span style="font-size: 0.7rem; padding: 2px 6px; background: rgba(245,158,11,0.1); color: var(--accent-amber); border-radius: 4px;">ACTIVE</span>
+                      <div class="pane-actions">
+                        <span class="text-accent-amber">418 MB</span>
+                        <span class="sim-badge-amber">ACTIVE</span>
                       </div>
                     </div>
                   </div>
@@ -720,110 +720,110 @@
 
                 <!-- TAB 6: SYSTEM REPAIR -->
                 <div class="tab-pane" id="pane-repair">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                  <div class="pane-header">
                     <div>
-                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Autonomous Integrity Engine</div>
-                      <div style="font-size: 1.25rem; font-weight: 800;">Windows Servicing Stack &amp; Corruption Repair</div>
+                      <div class="pane-subtitle">Autonomous Integrity Engine</div>
+                      <div class="pane-title">Windows Servicing Stack &amp; Corruption Repair</div>
                     </div>
                     <span class="tier-badge safe">🛡️ DISM &amp; SFC Servicing Stack</span>
                   </div>
 
-                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem;">
-                    <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-                      <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem;">SFC Scannow</div>
-                      <p style="font-size: 0.8rem; color: var(--text-med); margin-bottom: 0.5rem;">Scans and repairs corrupted system files.</p>
-                      <div style="font-size: 0.75rem; color: var(--accent-emerald); font-weight: 700;">✓ Healthy</div>
+                  <div class="sim-grid-tweaks">
+                    <div class="sim-card">
+                      <div class="sim-card-heading-sm">SFC Scannow</div>
+                      <p class="sim-card-desc-sm">Scans and repairs corrupted system files.</p>
+                      <div class="sim-card-val-emerald">✓ Healthy</div>
                     </div>
-                    <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-                      <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem;">DISM Component Store</div>
-                      <p style="font-size: 0.8rem; color: var(--text-med); margin-bottom: 0.5rem;">Restores corrupted Windows system packages.</p>
-                      <div style="font-size: 0.75rem; color: var(--accent-emerald); font-weight: 700;">✓ Ready</div>
+                    <div class="sim-card">
+                      <div class="sim-card-heading-sm">DISM Component Store</div>
+                      <p class="sim-card-desc-sm">Restores corrupted Windows system packages.</p>
+                      <div class="sim-card-val-emerald">✓ Ready</div>
                     </div>
-                    <div style="padding: 1rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-                      <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem;">WinSxS Scavenge</div>
-                      <p style="font-size: 0.8rem; color: var(--text-med); margin-bottom: 0.5rem;">Purges superseded component versions.</p>
-                      <div style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700;">Reclaims ~4 GB</div>
+                    <div class="sim-card">
+                      <div class="sim-card-heading-sm">WinSxS Scavenge</div>
+                      <p class="sim-card-desc-sm">Purges superseded component versions.</p>
+                      <div class="sim-card-val-cyan">Reclaims ~4 GB</div>
                     </div>
                   </div>
                 </div>
 
                 <!-- TAB 7: APP UNINSTALLER (v1.7.0 BCU ENGINE) -->
                 <div class="tab-pane" id="pane-uninstaller">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                  <div class="pane-header">
                     <div>
-                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Deep Root App Uninstaller • v2.0.0</div>
-                      <div style="font-size: 1.25rem; font-weight: 800;">Silent Batch Removal &amp; Residual Leftover Sweeper</div>
+                      <div class="pane-subtitle">Deep Root App Uninstaller • v2.0.0</div>
+                      <div class="pane-title">Silent Batch Removal &amp; Residual Leftover Sweeper</div>
                     </div>
-                    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <div class="sim-header-tags">
                       <span class="tier-badge safe">🛡️ Deep Root Tracing</span>
-                      <span style="font-size: 0.72rem; padding: 4px 8px; border-radius: 4px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); color: var(--accent-emerald); font-weight: 700;">Restore Point: Optional (Off by Default)</span>
+                      <span class="sim-safe-tag">Restore Point: Optional (Off by Default)</span>
                     </div>
                   </div>
 
-                  <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 240px; max-width: 420px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); padding: 0.4rem 0.85rem; font-size: 0.82rem; color: var(--text-med);">
+                  <div class="sim-filter-bar">
+                    <div class="sim-search-box">
                       <span>🔍</span>
                       <span>Filter 78 installed applications...</span>
                     </div>
-                    <div style="display: flex; gap: 0.5rem;">
-                      <button type="button" class="btn-pill btn-pill-secondary" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; pointer-events: none;">Scan Residuals</button>
-                      <button type="button" class="btn-pill btn-pill-primary" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; pointer-events: none;">Purge Leftovers (1.8 GB)</button>
+                    <div class="sim-action-btns">
+                      <button type="button" class="btn-pill btn-pill-secondary sim-btn-disabled-pill">Scan Residuals</button>
+                      <button type="button" class="btn-pill btn-pill-primary sim-btn-disabled-pill">Purge Leftovers (1.8 GB)</button>
                     </div>
                   </div>
 
-                  <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.88rem;">
+                  <div class="sim-tweaks-list">
                     <!-- App 1: Epic Games Launcher -->
-                    <div style="padding: 0.85rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-                      <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="font-size: 1.25rem;">🎮</span>
+                    <div class="sim-tweak-row">
+                      <div class="pane-actions">
+                        <span class="sim-tweak-icon">🎮</span>
                         <div>
-                          <div style="font-weight: 700; color: var(--text-high);">Epic Games Launcher</div>
-                          <div style="font-size: 0.76rem; color: var(--text-low); font-family: var(--font-mono);">Epic Games Inc. • 1.84 GB • Win32 Registry</div>
+                          <div class="sim-tweak-title">Epic Games Launcher</div>
+                          <div class="sim-tweak-scope">Epic Games Inc. • 1.84 GB • Win32 Registry</div>
                         </div>
                       </div>
-                      <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="font-size: 0.72rem; padding: 3px 8px; background: rgba(245, 158, 11, 0.12); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 4px; font-weight: 700;">14 LEFTOVERS FOUND</span>
-                        <span style="font-size: 0.76rem; color: var(--accent-cyan); font-weight: 700;">HKCU + AppData</span>
+                      <div class="pane-actions">
+                        <span class="sim-tag-amber">14 LEFTOVERS FOUND</span>
+                        <span class="sim-status-cyan">HKCU + AppData</span>
                       </div>
                     </div>
 
                     <!-- App 2: Visual Studio Preview -->
-                    <div style="padding: 0.85rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-                      <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="font-size: 1.25rem;">💻</span>
+                    <div class="sim-tweak-row">
+                      <div class="pane-actions">
+                        <span class="sim-tweak-icon">💻</span>
                         <div>
-                          <div style="font-weight: 700; color: var(--text-high);">Microsoft Visual Studio 2022 Preview</div>
-                          <div style="font-size: 0.76rem; color: var(--text-low); font-family: var(--font-mono);">Microsoft Corporation • 14.2 GB • ProgramData Residuals</div>
+                          <div class="sim-tweak-title">Microsoft Visual Studio 2022 Preview</div>
+                          <div class="sim-tweak-scope">Microsoft Corporation • 14.2 GB • ProgramData Residuals</div>
                         </div>
                       </div>
-                      <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="font-size: 0.72rem; padding: 3px 8px; background: rgba(239, 68, 68, 0.12); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 4px; font-weight: 700;">82 LEFTOVERS DETECTED</span>
-                        <span style="font-size: 0.76rem; color: var(--text-med); font-weight: 700;">ProgramData + Registry</span>
+                      <div class="pane-actions">
+                        <span class="sim-tag-danger">82 LEFTOVERS DETECTED</span>
+                        <span class="sim-status-muted">ProgramData + Registry</span>
                       </div>
                     </div>
 
                     <!-- App 3: Spotify -->
-                    <div style="padding: 0.85rem 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-                      <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="font-size: 1.25rem;">🎵</span>
+                    <div class="sim-tweak-row">
+                      <div class="pane-actions">
+                        <span class="sim-tweak-icon">🎵</span>
                         <div>
-                          <div style="font-weight: 700; color: var(--text-high);">Spotify Music Desktop</div>
-                          <div style="font-size: 0.76rem; color: var(--text-low); font-family: var(--font-mono);">Spotify AB • 312 MB • Roaming AppData</div>
+                          <div class="sim-tweak-title">Spotify Music Desktop</div>
+                          <div class="sim-tweak-scope">Spotify AB • 312 MB • Roaming AppData</div>
                         </div>
                       </div>
-                      <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="font-size: 0.72rem; padding: 3px 8px; background: rgba(16, 185, 129, 0.12); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 4px; font-weight: 700;">CLEAN STATE</span>
-                        <span style="font-size: 0.76rem; color: var(--accent-emerald); font-weight: 700;">Safe Removal Ready</span>
+                      <div class="pane-actions">
+                        <span class="sim-tag-emerald">CLEAN STATE</span>
+                        <span class="sim-status-emerald">Safe Removal Ready</span>
                       </div>
                     </div>
 
                     <!-- App Intelligence Briefing Card -->
-                    <div style="padding: 0.85rem 1rem; background: rgba(0, 242, 176, 0.05); border: 1px solid rgba(0, 242, 176, 0.2); border-radius: var(--radius-md); margin-top: 0.25rem;">
-                      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
-                        <span style="color: var(--accent-cyan); font-size: 0.95rem;">💡</span>
-                        <strong style="font-size: 0.82rem; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px;">Expandable Application Intelligence</strong>
+                    <div class="sim-tweak-callout">
+                      <div class="sim-callout-header">
+                        <span class="sim-callout-icon">💡</span>
+                        <strong class="sim-callout-title">Expandable Application Intelligence</strong>
                       </div>
-                      <p style="font-size: 0.8rem; color: var(--text-med); margin: 0; line-height: 1.5;">
+                      <p class="sim-callout-text">
                         Deltempo deep-scans AppData, ProgramData, and registry keys for orphaned leftovers after silent uninstallation. Pre-deletion revalidation guarantees zero collateral damage to adjacent developer or user files.
                       </p>
                     </div>
@@ -832,12 +832,12 @@
 
                 <!-- TAB 8: CLI -->
                 <div class="tab-pane" id="pane-cli">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+                  <div class="pane-header-sm">
                     <div>
-                      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-low); text-transform: uppercase;">Synchronous Console Binary (v2.0.0)</div>
-                      <div style="font-size: 1.25rem; font-weight: 800;">Click Commands to Test Live Output</div>
+                      <div class="pane-subtitle">Synchronous Console Binary (v2.0.0)</div>
+                      <div class="pane-title">Click Commands to Test Live Output</div>
                     </div>
-                    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                    <div class="sim-cli-tags">
                       <button type="button" class="cmd-pill active" data-cmd="deltempo status">deltempo status</button>
                       <button type="button" class="cmd-pill" data-cmd="deltempo boost --all">deltempo boost --all</button>
                       <button type="button" class="cmd-pill" data-cmd="deltempo smart --dry-run">deltempo smart --dry-run</button>
@@ -845,9 +845,9 @@
                     </div>
                   </div>
 
-                  <pre id="simCliOutput" style="padding: 1.25rem; border-radius: var(--radius-md); background: #0A0D14; border: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 0.82rem; color: #E2E8F0; line-height: 1.6; white-space: pre-wrap; margin: 0;"><span style="color:var(--accent-cyan);">$</span> deltempo status
+                  <pre id="simCliOutput" class="sim-terminal-pre"><span class="text-accent-cyan">$</span> deltempo status
 
-<span style="color:var(--accent-cyan);font-weight:700;">>>> Deltempo System Telemetry (v2.0.0)</span>
+<span class="text-accent-cyan">>>> Deltempo System Telemetry (v2.0.0)</span>
   OS Platform: Windows 11 Pro 64-bit (24H2)
   Privileges: Standard Invoker (Restart Manager available)
   Physical Memory: 15.9 GB total | 5.2 GB active | 5.8 GB standby
@@ -862,11 +862,11 @@
     </section>
 
     <!-- 20-SECOND LAUNCH FILM SHOWCASE -->
-    <section class="section-py video-section" id="video" style="border-top: 1px solid var(--border-subtle); background: radial-gradient(circle at 50% 10%, rgba(0, 242, 176, 0.05) 0%, transparent 65%);">
+    <section class="section-py video-section section-glow-emerald" id="video">
       <div class="container">
         <div class="section-header reveal-on-scroll">
-          <div class="section-tag" style="display: inline-flex; align-items: center; gap: 8px;">
-            <span style="width: 8px; height: 8px; border-radius: 50%; background: #00F2B0; box-shadow: 0 0 10px #00F2B0; display: inline-block;"></span>
+          <div class="section-tag status-live-indicator">
+            <span class="status-live-dot"></span>
             <span>Official Launch Film • 20 Seconds</span>
           </div>
           <h2 class="section-title">See Deltempo in motion.</h2>
@@ -908,7 +908,7 @@
     </section>
 
     <!-- INTERACTIVE SPACE RECLAIM CALCULATOR (NEW 10/10 EXPERIENCE) -->
-    <section class="section-py" id="calculator" style="border-top: 1px solid var(--border-subtle); background: radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.04) 0%, transparent 60%);">
+    <section class="section-py section-glow-cyan" id="calculator">
       <div class="container">
         <div class="section-header reveal-on-scroll">
           <div class="section-tag">Interactive Reclaim Estimator</div>
@@ -952,32 +952,32 @@
             </div>
 
             <!-- Breakdown Visual Bars -->
-            <div style="display: flex; flex-direction: column; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+            <div class="telemetry-bars">
               <div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem;">
+                <div class="telemetry-bar-label">
                   <span>DirectX &amp; GPU Shader Caches</span>
-                  <span style="color: var(--accent-cyan);">High Density</span>
+                  <span class="text-accent-cyan">High Density</span>
                 </div>
                 <div class="calc-bar-container">
-                  <div class="calc-bar-fill" id="calcBarShader" style="width: 45%; background: linear-gradient(90deg, #00F2B0, #059669);"></div>
+                  <div class="calc-bar-fill bar-fill-cyan" id="calcBarShader"></div>
                 </div>
               </div>
               <div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem;">
+                <div class="telemetry-bar-label">
                   <span>Temp &amp; Scratch Data (&gt;24h Old)</span>
-                  <span style="color: var(--accent-emerald);">Verified Disposable</span>
+                  <span class="text-accent-emerald">Verified Disposable</span>
                 </div>
                 <div class="calc-bar-container">
-                  <div class="calc-bar-fill" id="calcBarTemp" style="width: 35%; background: linear-gradient(90deg, #10B981, #059669);"></div>
+                  <div class="calc-bar-fill bar-fill-emerald" id="calcBarTemp"></div>
                 </div>
               </div>
               <div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem;">
+                <div class="telemetry-bar-label">
                   <span>Package &amp; Build Staging</span>
-                  <span style="color: var(--accent-purple);">Safe Clean</span>
+                  <span class="text-accent-purple">Safe Clean</span>
                 </div>
                 <div class="calc-bar-container">
-                  <div class="calc-bar-fill" id="calcBarDev" style="width: 20%; background: linear-gradient(90deg, #A855F7, #7C3AED);"></div>
+                  <div class="calc-bar-fill bar-fill-purple" id="calcBarDev"></div>
                 </div>
               </div>
             </div>
@@ -987,7 +987,7 @@
     </section>
 
     <!-- WHY DELTEMPO (CORE VALUE PROPOSITION) -->
-    <section class="section-py" id="why" style="border-top: 1px solid var(--border-subtle);">
+    <section class="section-py section-bordered" id="why">
       <div class="container">
         <div class="section-header reveal-on-scroll">
           <div class="section-tag">Core Principles</div>
@@ -1048,7 +1048,7 @@
     </section>
 
     <!-- DELTEMPO VS TRADITIONAL CLEANERS (COMPARISON & SEARCH RELEVANCE) -->
-    <section class="section-py" id="compare" style="border-top: 1px solid var(--border-subtle);">
+    <section class="section-py section-bordered" id="compare">
       <div class="container">
         <div class="section-header reveal-on-scroll">
           <div class="section-tag">Competitive Matrix</div>
@@ -1057,80 +1057,80 @@
         </div>
 
         <div class="double-bezel reveal-on-scroll stagger-1">
-          <div class="card-inner comparison-wrapper" style="padding: 0;">
+          <div class="card-inner comparison-wrapper comp-table-wrap">
             <table class="compare-table" aria-label="Feature comparison matrix between Deltempo and major Windows clean-up alternatives">
               <thead>
                 <tr>
-                  <th scope="col" style="width: 20%;">Feature / Capability</th>
-                  <th scope="col" class="highlight" style="width: 24%;">⚡ Deltempo (v2.0.0)</th>
-                  <th scope="col" style="width: 19%;">CCleaner</th>
-                  <th scope="col" style="width: 19%;">BleachBit</th>
-                  <th scope="col" style="width: 18%;">Bulk Crap Uninstaller</th>
+                  <th scope="col" class="col-w20">Feature / Capability</th>
+                  <th scope="col" class="highlight col-w24">⚡ Deltempo (v2.0.0)</th>
+                  <th scope="col" class="col-w19">CCleaner</th>
+                  <th scope="col" class="col-w19">BleachBit</th>
+                  <th scope="col" class="col-w18">Bulk Crap Uninstaller</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td><strong>License &amp; Source</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ 100% MIT Open Source</span><br ><span style="font-size: 0.8rem; color: var(--text-low); font-weight: 400;">C# &amp; modern .NET, 612 tests</span></td>
-                  <td><span class="badge-tag-bad">✕ Proprietary</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Closed source / Gen Digital</span></td>
-                  <td><span class="badge-tag-safe">✓ GPLv3 Open Source</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Python GTK codebase</span></td>
-                  <td><span class="badge-tag-safe">✓ Apache 2.0</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">C# WinForms</span></td>
+                  <td class="highlight"><span class="badge-tag-safe">✓ 100% MIT Open Source</span><br ><span class="comp-subtext">C# &amp; modern .NET, 612 tests</span></td>
+                  <td><span class="badge-tag-bad">✕ Proprietary</span><br ><span class="comp-subtext-plain">Closed source / Gen Digital</span></td>
+                  <td><span class="badge-tag-safe">✓ GPLv3 Open Source</span><br ><span class="comp-subtext-plain">Python GTK codebase</span></td>
+                  <td><span class="badge-tag-safe">✓ Apache 2.0</span><br ><span class="comp-subtext-plain">C# WinForms</span></td>
                 </tr>
                 <tr>
                   <td><strong>Telemetry &amp; Privacy</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ 0 Telemetry / Offline</span><br ><span style="font-size: 0.8rem; color: var(--text-low); font-weight: 400;">100% local, zero tracking IDs</span></td>
-                  <td><span class="badge-tag-bad">✕ Heavy Telemetry</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Active tracking &amp; upsell popups</span></td>
-                  <td><span class="badge-tag-safe">✓ Zero Telemetry</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Local execution only</span></td>
-                  <td><span class="badge-tag-safe">✓ Zero Telemetry</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Manual check updates</span></td>
+                  <td class="highlight"><span class="badge-tag-safe">✓ 0 Telemetry / Offline</span><br ><span class="comp-subtext">100% local, zero tracking IDs</span></td>
+                  <td><span class="badge-tag-bad">✕ Heavy Telemetry</span><br ><span class="comp-subtext-plain">Active tracking &amp; upsell popups</span></td>
+                  <td><span class="badge-tag-safe">✓ Zero Telemetry</span><br ><span class="comp-subtext-plain">Local execution only</span></td>
+                  <td><span class="badge-tag-safe">✓ Zero Telemetry</span><br ><span class="comp-subtext-plain">Manual check updates</span></td>
                 </tr>
                 <tr>
                   <td><strong>Cache &amp; Junk Scopes</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ 26+ Verified Scopes</span><br ><span style="font-size: 0.8rem; color: var(--text-low); font-weight: 400;">GPU Shaders, Dumps, Delivery Opt</span></td>
-                  <td><span class="badge-tag-bad">△ Basic Temp &amp; Registry</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Misses GPU shader bytecode</span></td>
-                  <td><span class="badge-tag-safe">✓ Deep App Cleaning</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">XML-driven app cleaners</span></td>
-                  <td><span class="badge-tag-bad">✕ Uninstaller Only</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">No disk/cache cleaners</span></td>
+                  <td class="highlight"><span class="badge-tag-safe">✓ 26+ Verified Scopes</span><br ><span class="comp-subtext">GPU Shaders, Dumps, Delivery Opt</span></td>
+                  <td><span class="badge-tag-bad">△ Basic Temp &amp; Registry</span><br ><span class="comp-subtext-plain">Misses GPU shader bytecode</span></td>
+                  <td><span class="badge-tag-safe">✓ Deep App Cleaning</span><br ><span class="comp-subtext-plain">XML-driven app cleaners</span></td>
+                  <td><span class="badge-tag-bad">✕ Uninstaller Only</span><br ><span class="comp-subtext-plain">No disk/cache cleaners</span></td>
                 </tr>
                 <tr>
                   <td><strong>Deep Root Uninstaller</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ Built-In Deep Sweeper</span><br ><span style="font-size: 0.8rem; color: var(--text-low); font-weight: 400;">Sweeps AppData, registry &amp; shortcuts</span></td>
-                  <td><span class="badge-tag-bad">△ Standard Uninstall</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Leaves residual files &amp; keys</span></td>
-                  <td><span class="badge-tag-bad">✕ No Uninstaller</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Cache wipe only</span></td>
-                  <td><span class="badge-tag-safe">✓ Advanced Uninstaller</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Deep quiet batch uninstallation</span></td>
+                  <td class="highlight"><span class="badge-tag-safe">✓ Built-In Deep Sweeper</span><br ><span class="comp-subtext">Sweeps AppData, registry &amp; shortcuts</span></td>
+                  <td><span class="badge-tag-bad">△ Standard Uninstall</span><br ><span class="comp-subtext-plain">Leaves residual files &amp; keys</span></td>
+                  <td><span class="badge-tag-bad">✕ No Uninstaller</span><br ><span class="comp-subtext-plain">Cache wipe only</span></td>
+                  <td><span class="badge-tag-safe">✓ Advanced Uninstaller</span><br ><span class="comp-subtext-plain">Deep quiet batch uninstallation</span></td>
                 </tr>
                 <tr>
                   <td><strong>System Restore Points</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ Optional (Off by Default)</span><br ><span style="font-size: 0.8rem; color: var(--text-low); font-weight: 400;">User toggle, zero surprise freeze</span></td>
-                  <td><span class="badge-tag-bad">✕ Persistent Prompts</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Nag screens &amp; warnings</span></td>
-                  <td><span class="badge-tag-bad">✕ Not Supported</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">No restore integration</span></td>
-                  <td><span class="badge-tag-bad">△ Auto / Dialog Prompts</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Prompts on each removal</span></td>
+                  <td class="highlight"><span class="badge-tag-safe">✓ Optional (Off by Default)</span><br ><span class="comp-subtext">User toggle, zero surprise freeze</span></td>
+                  <td><span class="badge-tag-bad">✕ Persistent Prompts</span><br ><span class="comp-subtext-plain">Nag screens &amp; warnings</span></td>
+                  <td><span class="badge-tag-bad">✕ Not Supported</span><br ><span class="comp-subtext-plain">No restore integration</span></td>
+                  <td><span class="badge-tag-bad">△ Auto / Dialog Prompts</span><br ><span class="comp-subtext-plain">Prompts on each removal</span></td>
                 </tr>
                 <tr>
                   <td><strong>NT Kernel Standby Memory</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ Native NT APIs (&lt;50ms)</span><br ><span style="font-size: 0.8rem; color: var(--text-low); font-weight: 400;">Flushes standby list without kill</span></td>
-                  <td><span class="badge-tag-bad">✕ Placebo Optimizer</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Freezes apps or fakes RAM</span></td>
-                  <td><span class="badge-tag-bad">✕ Not Supported</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">No memory optimization</span></td>
-                  <td><span class="badge-tag-bad">✕ Not Supported</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">No memory management</span></td>
+                  <td class="highlight"><span class="badge-tag-safe">✓ Native NT APIs (&lt;50ms)</span><br ><span class="comp-subtext">Flushes standby list without kill</span></td>
+                  <td><span class="badge-tag-bad">✕ Placebo Optimizer</span><br ><span class="comp-subtext-plain">Freezes apps or fakes RAM</span></td>
+                  <td><span class="badge-tag-bad">✕ Not Supported</span><br ><span class="comp-subtext-plain">No memory optimization</span></td>
+                  <td><span class="badge-tag-bad">✕ Not Supported</span><br ><span class="comp-subtext-plain">No memory management</span></td>
                 </tr>
                 <tr>
                   <td><strong>Safety &amp; Protection</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ 5-Tier Engine + TOCTOU</span><br ><span style="font-size: 0.8rem; color: var(--text-low); font-weight: 400;">Pre-delete recheck + 2-Phase Safety</span></td>
-                  <td><span class="badge-tag-bad">✕ Risky Registry Edits</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Blind wildcard deletes</span></td>
-                  <td><span class="badge-tag-safe">✓ Regex Exclusions</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Safe path exclusions</span></td>
-                  <td><span class="badge-tag-safe">✓ Confidence Ratings</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Certificate &amp; safety rating</span></td>
+                  <td class="highlight"><span class="badge-tag-safe">✓ 5-Tier Engine + TOCTOU</span><br ><span class="comp-subtext">Pre-delete recheck + 2-Phase Safety</span></td>
+                  <td><span class="badge-tag-bad">✕ Risky Registry Edits</span><br ><span class="comp-subtext-plain">Blind wildcard deletes</span></td>
+                  <td><span class="badge-tag-safe">✓ Regex Exclusions</span><br ><span class="comp-subtext-plain">Safe path exclusions</span></td>
+                  <td><span class="badge-tag-safe">✓ Confidence Ratings</span><br ><span class="comp-subtext-plain">Certificate &amp; safety rating</span></td>
                 </tr>
                 <tr>
                   <td><strong>Visual Design &amp; RTL</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ Fluent Glass &amp; Arabic RTL</span><br ><span style="font-size: 0.8rem; color: var(--text-low); font-weight: 400;">Obsidian / Porcelain eye-comfort</span></td>
-                  <td><span class="badge-tag-bad">✕ Ad-Cluttered Legacy</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Annoying upgrade banners</span></td>
-                  <td><span class="badge-tag-bad">△ Legacy GTK Linux Port</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Dated utility styling</span></td>
-                  <td><span class="badge-tag-bad">△ Dense WinForms</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Complex spreadsheet layout</span></td>
+                  <td class="highlight"><span class="badge-tag-safe">✓ Fluent Glass &amp; Arabic RTL</span><br ><span class="comp-subtext">Obsidian / Porcelain eye-comfort</span></td>
+                  <td><span class="badge-tag-bad">✕ Ad-Cluttered Legacy</span><br ><span class="comp-subtext-plain">Annoying upgrade banners</span></td>
+                  <td><span class="badge-tag-bad">△ Legacy GTK Linux Port</span><br ><span class="comp-subtext-plain">Dated utility styling</span></td>
+                  <td><span class="badge-tag-bad">△ Dense WinForms</span><br ><span class="comp-subtext-plain">Complex spreadsheet layout</span></td>
                 </tr>
                 <tr>
                   <td><strong>Pricing &amp; Upsells</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ 100% Free Forever</span><br ><span style="font-size: 0.8rem; color: var(--text-low); font-weight: 400;">Zero ads, zero subscriptions</span></td>
-                  <td><span class="badge-tag-bad">✕ $29.95/yr Subscription</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Features paywalled in Pro</span></td>
-                  <td><span class="badge-tag-safe">✓ Free (GPLv3)</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Donation supported</span></td>
-                  <td><span class="badge-tag-safe">✓ Free (Apache 2.0)</span><br ><span style="font-size: 0.8rem; color: var(--text-low);">Donation supported</span></td>
+                  <td class="highlight"><span class="badge-tag-safe">✓ 100% Free Forever</span><br ><span class="comp-subtext">Zero ads, zero subscriptions</span></td>
+                  <td><span class="badge-tag-bad">✕ $29.95/yr Subscription</span><br ><span class="comp-subtext-plain">Features paywalled in Pro</span></td>
+                  <td><span class="badge-tag-safe">✓ Free (GPLv3)</span><br ><span class="comp-subtext-plain">Donation supported</span></td>
+                  <td><span class="badge-tag-safe">✓ Free (Apache 2.0)</span><br ><span class="comp-subtext-plain">Donation supported</span></td>
                 </tr>
               </tbody>
             </table>
@@ -1140,7 +1140,7 @@
     </section>
 
     <!-- SAFETY ARCHITECTURE (MAJOR DIFFERENTIATOR) -->
-    <section class="section-py" id="safety" style="background: var(--bg-surface); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);">
+    <section class="section-py section-surface" id="safety">
       <div class="container">
         <div class="section-header reveal-on-scroll">
           <div class="section-tag">Safety First</div>
@@ -1182,9 +1182,9 @@
         </div>
 
         <!-- 5 Safety Risk Tiers -->
-        <div class="section-header" style="margin-bottom: 2rem;">
-          <h3 style="font-size: 1.5rem; font-weight: 800;">Formal 5-Tier Safety Classification</h3>
-          <p style="color: var(--text-med); font-size: 0.95rem;">Every candidate path is categorized deterministically into one of five verified tiers:</p>
+        <div class="section-header arch-header">
+          <h3 class="arch-title">Formal 5-Tier Safety Classification</h3>
+          <p class="arch-desc">Every candidate path is categorized deterministically into one of five verified tiers:</p>
         </div>
 
         <div class="tier-cards">
@@ -1234,7 +1234,7 @@
           <!-- COLUMN 1: CLEAN -->
           <div class="cap-column">
             <div class="cap-col-header">
-              <span style="color: var(--accent-cyan);">🧹</span>
+              <span class="text-accent-cyan">🧹</span>
               <span>CLEAN</span>
             </div>
             <ul class="cap-list">
@@ -1276,7 +1276,7 @@
           <!-- COLUMN 2: OPTIMIZE -->
           <div class="cap-column">
             <div class="cap-col-header">
-              <span style="color: var(--accent-emerald);">⚡</span>
+              <span class="text-accent-emerald">⚡</span>
               <span>OPTIMIZE</span>
             </div>
             <ul class="cap-list">
@@ -1314,7 +1314,7 @@
           <!-- COLUMN 3: CONTROL -->
           <div class="cap-column">
             <div class="cap-col-header">
-              <span style="color: var(--accent-purple);">🛡️</span>
+              <span class="text-accent-purple">🛡️</span>
               <span>CONTROL</span>
             </div>
             <ul class="cap-list">
@@ -1361,7 +1361,7 @@
     </section>
 
     <!-- HOW IT WORKS (3 SIMPLE STEPS) -->
-    <section class="section-py" id="how-it-works" style="background: var(--bg-surface); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);">
+    <section class="section-py section-surface" id="how-it-works">
       <div class="container">
         <div class="section-header reveal-on-scroll">
           <div class="section-tag">Workflow</div>
@@ -1372,7 +1372,7 @@
         <div class="features-grid">
           <div class="double-bezel reveal-on-scroll stagger-1">
             <div class="card-inner feature-card">
-              <div style="font-family: var(--font-mono); font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan); margin-bottom: 1rem;">01</div>
+              <div class="stat-mono-val">01</div>
               <h3 class="feature-title">Scan</h3>
               <p class="feature-body">Deltempo scans selected scopes without touching anything on disk. It calculates candidates and identifies disposable cache structures.</p>
             </div>
@@ -1380,7 +1380,7 @@
 
           <div class="double-bezel">
             <div class="card-inner feature-card">
-              <div style="font-family: var(--font-mono); font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan); margin-bottom: 1rem;">02</div>
+              <div class="stat-mono-val">02</div>
               <h3 class="feature-title">Review</h3>
               <p class="feature-body">See exactly what was found by category and safety tier. Protected directories are locked out, and simulation mode lets you preview actions safely.</p>
             </div>
@@ -1388,7 +1388,7 @@
 
           <div class="double-bezel">
             <div class="card-inner feature-card">
-              <div style="font-family: var(--font-mono); font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan); margin-bottom: 1rem;">03</div>
+              <div class="stat-mono-val">03</div>
               <h3 class="feature-title">Clean</h3>
               <p class="feature-body">Applies the cleanup plan with pre-deletion revalidation. Files are either permanently unlinked or moved safely to the Recycle Bin.</p>
             </div>
@@ -1406,36 +1406,36 @@
           <p class="section-subtitle">Clear facts about what Deltempo requires, what it modifies, and its operational boundaries.</p>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
-          <div style="padding: 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 0.25rem;">PLATFORM SUPPORT</div>
-            <div style="font-weight: 800; margin-bottom: 0.5rem;">64-bit Windows 10 &amp; 11 Only</div>
-            <p style="font-size: 0.875rem; color: var(--text-med); line-height: 1.5;">Deltempo is built for <code>win-x64</code> architecture. Legacy 32-bit Windows and older releases (Windows 7/8.1) are not supported.</p>
+        <div class="specs-grid">
+          <div class="spec-card">
+            <div class="spec-badge-cyan">PLATFORM SUPPORT</div>
+            <div class="spec-title">64-bit Windows 10 &amp; 11 Only</div>
+            <p class="spec-desc">Deltempo is built for <code>win-x64</code> architecture. Legacy 32-bit Windows and older releases (Windows 7/8.1) are not supported.</p>
           </div>
 
-          <div style="padding: 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-emerald); margin-bottom: 0.25rem;">ADMIN ELEVATION</div>
-            <div style="font-weight: 800; margin-bottom: 0.5rem;">System Scopes Require UAC</div>
-            <p style="font-size: 0.875rem; color: var(--text-med); line-height: 1.5;">User temp and caches clean without elevation. OS-level scopes (Windows Temp, Prefetch, Servicing logs) require running as Administrator.</p>
+          <div class="spec-card">
+            <div class="spec-badge-emerald">ADMIN ELEVATION</div>
+            <div class="spec-title">System Scopes Require UAC</div>
+            <p class="spec-desc">User temp and caches clean without elevation. OS-level scopes (Windows Temp, Prefetch, Servicing logs) require running as Administrator.</p>
           </div>
 
-          <div style="padding: 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-amber); margin-bottom: 0.25rem;">FILE LOCKS</div>
-            <div style="font-weight: 800; margin-bottom: 0.5rem;">Win32 Restart Manager Engine</div>
-            <p style="font-size: 0.875rem; color: var(--text-med); line-height: 1.5;">Files held by running apps trigger native <code>rstrtmgr.dll</code> inspection to identify locking processes (PID and application title) and schedule deferred boot-time removal.</p>
+          <div class="spec-card">
+            <div class="spec-badge-amber">FILE LOCKS</div>
+            <div class="spec-title">Win32 Restart Manager Engine</div>
+            <p class="spec-desc">Files held by running apps trigger native <code>rstrtmgr.dll</code> inspection to identify locking processes (PID and application title) and schedule deferred boot-time removal.</p>
           </div>
 
-          <div style="padding: 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-purple); margin-bottom: 0.25rem;">MEMORY REALISM</div>
-            <div style="font-weight: 800; margin-bottom: 0.5rem;">Cache Recovery, Not Magic Hardware</div>
-            <p style="font-size: 0.875rem; color: var(--text-med); line-height: 1.5;">Memory trimming flushes standby and working set pages to free pools; it does not expand physical RAM or guarantee higher frame rates.</p>
+          <div class="spec-card">
+            <div class="spec-badge-purple">MEMORY REALISM</div>
+            <div class="spec-title">Cache Recovery, Not Magic Hardware</div>
+            <p class="spec-desc">Memory trimming flushes standby and working set pages to free pools; it does not expand physical RAM or guarantee higher frame rates.</p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- TRUST & OPEN SOURCE SECTION -->
-    <section class="section-py" id="trust" style="background: var(--bg-surface); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);">
+    <section class="section-py section-surface" id="trust">
       <div class="container">
         <div class="trust-banner">
           <h2 class="trust-title">Built in the open. Fully verifiable.</h2>
@@ -1460,7 +1460,7 @@
             </div>
           </div>
 
-          <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+          <div class="faq-cta-wrap">
             <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="btn-pill btn-pill-secondary">
               <span>Explore Source on GitHub</span>
             </a>
@@ -1636,28 +1636,28 @@
     </section>
 
     <!-- DOWNLOAD CALL TO ACTION -->
-    <section class="section-py" id="download" style="border-top: 1px solid var(--border-subtle);">
+    <section class="section-py section-bordered" id="download">
       <div class="container">
         <div class="download-card">
           <h2 class="download-title">Get Deltempo Today</h2>
           <p class="download-subtext">Open source, portable, and free forever. No installation required.</p>
 
           <div class="download-options">
-            <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-pill btn-pill-primary" style="padding: 0.75rem 1.75rem 0.75rem 2rem; font-size: 1.05rem;">
+            <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-pill btn-pill-primary cta-btn-primary">
               <span>Download Deltempo.exe (GUI)</span>
-              <span class="btn-icon-bubble" style="width: 28px; height: 28px;">
+              <span class="btn-icon-bubble cta-icon-box">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               </span>
             </a>
-            <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/deltempo_cli.exe" class="btn-pill btn-pill-secondary" style="padding: 0.85rem 1.75rem; font-size: 1.05rem;">
+            <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/deltempo_cli.exe" class="btn-pill btn-pill-secondary cta-btn-secondary">
               <span>Download deltempo_cli.exe (CLI)</span>
             </a>
           </div>
 
           <div class="download-meta">
             <p><strong>Platform:</strong> Windows 10 / 11 (64-bit) • <strong>Type:</strong> Portable Single-File Binary • <strong>Latest Release:</strong> GitHub Releases</p>
-            <p style="margin-top: 0.5rem;">Or install via Microsoft WinGet: <code>winget install Beso1227.Deltempo</code></p>
-            <p style="margin-top: 0.5rem;"><a href="download/" style="color: var(--accent-cyan); text-decoration: underline;">View Checksums &amp; Verification Guide →</a></p>
+            <p class="mt-2">Or install via Microsoft WinGet: <code>winget install Beso1227.Deltempo</code></p>
+            <p class="mt-2"><a href="download/" class="text-accent-link">View Checksums &amp; Verification Guide →</a></p>
           </div>
         </div>
       </div>
@@ -1670,10 +1670,10 @@
       <div class="footer-brand">
         <picture>
           <source srcset="app_icon.webp" type="image/webp">
-                    <img src="app_icon-64.png" alt="Deltempo Logo" width="20" height="20" style="border-radius: 4px;">
+                    <img src="app_icon-64.png" alt="Deltempo Logo" width="20" height="20" class="footer-logo-img">
         </picture>
         <span>Deltempo</span>
-        <span style="font-weight: 400; color: var(--text-low); margin-left: 0.5rem;">Open Source Windows Cleaner</span>
+        <span class="footer-version-tag">Open Source Windows Cleaner</span>
       </div>
 
       <ul class="footer-links">
@@ -1686,7 +1686,7 @@
         <li><a href="https://github.com/Beso1227/Deltempo/blob/main/LICENSE" target="_blank" rel="noopener" class="footer-link">MIT License</a></li>
       </ul>
 
-      <div style="font-size: 0.8rem; color: var(--text-low);">
+      <div class="footer-copy-text">
         Copyright © 2026 Beso1227 / Deltempo Project.
       </div>
     </div>
