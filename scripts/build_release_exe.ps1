@@ -73,5 +73,15 @@ if (Test-Path "$projectRoot\scripts\generate_checksums.ps1") {
     & "$projectRoot\scripts\generate_checksums.ps1" -TargetDir "$projectRoot\publish"
 }
 
+# 3. Synchronize dist folder
+if (Test-Path "$projectRoot\dist") {
+    Write-Host ">>> Synchronizing dist directory..." -ForegroundColor Cyan
+    Safe-CopyExecutable "$projectRoot\publish\Deltempo.exe" "$projectRoot\dist\Deltempo.exe"
+    Safe-CopyExecutable "$projectRoot\publish_cli\deltempo_cli.exe" "$projectRoot\dist\deltempo_cli.exe"
+    if (Test-Path "$projectRoot\scripts\generate_checksums.ps1") {
+        & "$projectRoot\scripts\generate_checksums.ps1" -TargetDir "$projectRoot\dist"
+    }
+}
+
 Write-Host ""
 Write-Host "SUCCESS: All standalone binaries are freshly built and synchronized!" -ForegroundColor Green
