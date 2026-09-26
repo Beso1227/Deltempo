@@ -47,6 +47,13 @@ public class AppSettings
     public string AiModelName { get; set; } = string.Empty;
     public string AiOllamaEndpoint { get; set; } = "http://localhost:11434"; // DevSkim: ignore DS162092
     public bool AutoQueryAiForLargeFiles { get; set; } = false;
+
+    // ─── Custom Exclusions & Advanced Maintenance ──────────────────────────
+    public List<string> CustomPathExclusions { get; set; } = new();
+    public List<string> CustomExtensionExclusions { get; set; } = new();
+    public bool AggressiveEmptyFolderPrune { get; set; } = true;
+    public bool AutoCleanOnIdle { get; set; } = false;
+    public int AutoCleanIdleMinutes { get; set; } = 15;
 }
 
 public static class SettingsService
@@ -130,5 +137,10 @@ public static class SettingsService
         settings.LowDiskAlertThresholdGb = Math.Clamp(settings.LowDiskAlertThresholdGb, 1, 500);
         settings.MemoryAutoOptimizeIntervalHours = Math.Clamp(settings.MemoryAutoOptimizeIntervalHours, 1, 72);
         settings.MemoryAutoOptimizeFreeRamThresholdPercent = Math.Clamp(settings.MemoryAutoOptimizeFreeRamThresholdPercent, 5, 95);
+        settings.AutoCleanIdleMinutes = Math.Clamp(settings.AutoCleanIdleMinutes, 1, 120);
+        settings.CustomPathExclusions ??= new List<string>();
+        settings.CustomExtensionExclusions ??= new List<string>();
+
+        WinTempCleaner.Core.Safety.ProtectionPolicy.SetCustomExclusions(settings.CustomPathExclusions, settings.CustomExtensionExclusions);
     }
 }

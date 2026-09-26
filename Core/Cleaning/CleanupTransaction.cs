@@ -132,4 +132,24 @@ public class CleanupTransactionResult
     }
 
     public bool Success => CompletionStatus is CleanupCompletionStatus.Clean or CleanupCompletionStatus.CompletedWithWarnings;
+
+    /// <summary>
+    /// Total count of items that could not be deleted because an active process held a lock or sharing violation occurred.
+    /// </summary>
+    public int InUseLockedCount => AuditRecords.Count(r => r.ErrorCategory == CleanupErrorCategory.FileLocked);
+
+    /// <summary>
+    /// Total count of items safely preserved because they were created/modified within the 24-hour protection window.
+    /// </summary>
+    public int RecentShieldedCount => AuditRecords.Count(r => r.MatchedRule == "RecentModificationShield");
+
+    /// <summary>
+    /// Total count of items preserved because they matched safety protection policies (sensitive files, exclusions).
+    /// </summary>
+    public int PolicyProtectedCount => AuditRecords.Count(r => r.Status == DeletionAuditStatus.SkippedPolicy && r.MatchedRule != "RecentModificationShield");
+
+    /// <summary>
+    /// Total count of items that failed during deletion due to permission, system, or unexpected errors (excluding in-use locks).
+    /// </summary>
+    public int FailedExecutionCount => AuditRecords.Count(r => r.Status == DeletionAuditStatus.Failed && r.ErrorCategory != CleanupErrorCategory.FileLocked);
 }

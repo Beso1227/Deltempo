@@ -75,13 +75,46 @@ public static class RestartManagerService
     #endregion
 
     /// <summary>
+    /// Fast non-invasive probe to test if a file handle is actively locked by another process with exclusive share.
+    /// Returns true if a sharing violation or active handle lock prevents access.
+    /// </summary>
+    public static bool IsFileLocked(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            return false;
+        }
+        catch (IOException ex)
+        {
+            int hr = ex.HResult & 0xFFFF;
+            if (hr == 32 || hr == 33) return true;
+            return true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            var lockers = GetLockingProcesses(filePath);
+            return lockers.Count > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Inspects an active file lock using Windows Restart Manager and returns the holding processes.
     /// Returns empty list if file is unlocked or query cannot be fulfilled.
     /// </summary>
     public static List<LockingProcessInfo> GetLockingProcesses(string filePath)
     {
         var result = new List<LockingProcessInfo>();
-        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        if (string.IsNullOrWhiteSpace(filePath) || (!File.Exists(filePath) && !Directory.Exists(filePath)))
         {
             return result;
         }

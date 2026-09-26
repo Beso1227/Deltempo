@@ -49,6 +49,7 @@ public partial class MainWindow : Window
         MemoryModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
         AppUninstallModalOverlay.LogRequested += AddLog;
         AppUninstallModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
+        LockedFilesModalOverlay.LogRequested += AddLog;
 
         _targetsCollectionView = CollectionViewSource.GetDefaultView(_targets);
         _targetsCollectionView.Filter = FilterTargetPredicate;
@@ -419,6 +420,19 @@ public partial class MainWindow : Window
         // Safety & Disk
         SettingsRecycleBinCheckBox.IsChecked = SettingsService.Current.SendToRecycleBin;
         SettingsLowDiskAlertCheckBox.IsChecked = SettingsService.Current.LowDiskAlertEnabled;
+        if (SettingsAggressivePruneCheckBox != null)
+        {
+            SettingsAggressivePruneCheckBox.IsChecked = SettingsService.Current.AggressiveEmptyFolderPrune;
+        }
+
+        if (SettingsExcludedPathsListBox != null)
+        {
+            SettingsExcludedPathsListBox.ItemsSource = new ObservableCollection<string>(SettingsService.Current.CustomPathExclusions);
+        }
+        if (SettingsExcludedExtensionsListBox != null)
+        {
+            SettingsExcludedExtensionsListBox.ItemsSource = new ObservableCollection<string>(SettingsService.Current.CustomExtensionExclusions);
+        }
 
         foreach (ComboBoxItem candidate in SettingsDiskThresholdComboBox.Items)
         {
@@ -426,6 +440,23 @@ public partial class MainWindow : Window
             {
                 SettingsDiskThresholdComboBox.SelectedItem = candidate;
                 break;
+            }
+        }
+
+        // AutoPilot Idle Cleaning
+        if (SettingsIdleCleanCheckBox != null)
+        {
+            SettingsIdleCleanCheckBox.IsChecked = SettingsService.Current.AutoCleanOnIdle;
+        }
+        if (SettingsIdleMinutesComboBox != null)
+        {
+            foreach (ComboBoxItem candidate in SettingsIdleMinutesComboBox.Items)
+            {
+                if (candidate.Tag is string itag && int.TryParse(itag, out int ival) && ival == SettingsService.Current.AutoCleanIdleMinutes)
+                {
+                    SettingsIdleMinutesComboBox.SelectedItem = candidate;
+                    break;
+                }
             }
         }
 
@@ -849,6 +880,11 @@ public partial class MainWindow : Window
                 AppUninstallModalOverlay.CloseModal();
                 e.Handled = true;
             }
+            else if (LockedFilesModalOverlay.Visibility == Visibility.Visible)
+            {
+                LockedFilesModalOverlay.CloseModal();
+                e.Handled = true;
+            }
         }
         else if (e.Key == Key.Tab)
         {
@@ -865,6 +901,7 @@ public partial class MainWindow : Window
             else if (MemoryModalOverlay.Visibility == Visibility.Visible) activeModal = MemoryModalOverlay;
             else if (SystemRepairModalOverlay.Visibility == Visibility.Visible) activeModal = SystemRepairModalOverlay;
             else if (AppUninstallModalOverlay.Visibility == Visibility.Visible) activeModal = AppUninstallModalOverlay;
+            else if (LockedFilesModalOverlay.Visibility == Visibility.Visible) activeModal = LockedFilesModalOverlay;
             else if (AboutModalOverlay.Visibility == Visibility.Visible) activeModal = AboutModalOverlay;
 
             if (activeModal != null)

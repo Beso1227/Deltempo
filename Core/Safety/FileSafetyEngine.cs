@@ -194,8 +194,7 @@ public static class FileSafetyEngine
             (!string.IsNullOrEmpty(allowedRoot) && PathSecurity.IsSubpathOf(canonicalPath, allowedRoot));
 
         bool isKnownDisposableFormat = KnownDisposableExtensions.Contains(ext) ||
-                                       pathLower.Contains("cache") ||
-                                       category.Contains("cache", StringComparison.OrdinalIgnoreCase);
+                                       (string.IsNullOrEmpty(ext) && (pathLower.Contains(@"\temp\") || pathLower.Contains("cache")));
 
         if (isDesignatedTempOrCacheLocation && isKnownDisposableFormat)
         {
@@ -224,10 +223,20 @@ public static class FileSafetyEngine
 
     private static readonly HashSet<string> KnownDisposableExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".tmp", ".temp", ".log", ".old", ".bak", ".dmp", ".mdmp", ".wer", ".chk",
-        ".cache", ".etl", ".crdownload", ".partial", ".dir", ".sqm",
-        ".dat", ".bin", ".data", ".blob", ".chunk", ".idx", ".pack", ".index",
-        ".lock", ".swp", ".etag"
+        // Temporary, Scratch & Cache
+        ".tmp", ".temp", ".cache", ".chk", ".swp", ".lock", ".etag", ".part", ".partial", ".crdownload",
+        // Logs, Dumps & Diagnostic Traces
+        ".log", ".old", ".bak", ".dmp", ".mdmp", ".wer", ".etl", ".sqm", ".out", ".err", ".log1", ".log2",
+        // Binary, Data & Index Chunks
+        ".dat", ".bin", ".data", ".blob", ".chunk", ".idx", ".pack", ".index", ".dir", ".node", ".wasm",
+        // Text, Structured & Markup in Temp/Cache
+        ".txt", ".xml", ".json", ".yaml", ".yml", ".csv",
+        // Setup Configurations & Archive Chunks in Temp
+        ".ini", ".cfg", ".inf", ".cab", ".7z", ".zip", ".tar", ".gz", ".uuid",
+        // Database cache fragments in designated cache folders
+        ".db", ".sqlite", ".sqlite-wal", ".sqlite-shm",
+        // Extensionless files
+        ""
     };
 
     private static SafetyAnalysisResult? EvaluateVerifiedCachePatterns(string pathLower, string fileName, string ext, long sizeBytes)

@@ -56,6 +56,9 @@
     <Compile Update="Views\**\*.xaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
+    <Page Update="Views\Modals\LockedFilesModal.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 
   <ItemGroup>

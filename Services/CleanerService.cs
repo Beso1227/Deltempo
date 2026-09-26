@@ -981,7 +981,9 @@ public partial class CleanerService
 
             // Clean empty subdirectories safely (Targeted bottom-up pruning from affected directories)
             var candidateDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            if (txResult.AffectedParentDirectories.Count > 0)
+            bool aggressivePrune = SettingsService.Current.AggressiveEmptyFolderPrune;
+
+            if (txResult.AffectedParentDirectories.Count > 0 && !aggressivePrune)
             {
                 foreach (var parentDir in txResult.AffectedParentDirectories)
                 {
@@ -1017,7 +1019,7 @@ public partial class CleanerService
             }
             else
             {
-                // Fallback for edge cases
+                // Aggressive mode or fallback: inspect entire target directory trees for empty folders
                 foreach (var targetPath in directoriesToClean)
                 {
                     if (ct.IsCancellationRequested) break;
@@ -1107,18 +1109,33 @@ public partial class CleanerService
             }
 
 
+            folder.LastTransactionResult = txResult;
+
             UiInvoke(() => folder.SizeBytes = Math.Max(0, folder.SizeBytes - freedBytes));
             UiInvoke(() => folder.FileCount = Math.Max(0, folder.FileCount - filesDeleted));
 
             if (freedBytes > 0)
             {
                 UiInvoke(() => folder.StatusMessage = $"Reclaimed: {TargetFolderInfo.FormatBytes(freedBytes)}");
-                logAction?.Invoke($"Cleaned {folder.Name}: {TargetFolderInfo.FormatBytes(freedBytes)} reclaimed ({filesDeleted:N0} files deleted, {filesSkipped:N0} skipped/protected/failed)", LogLevel.Success);
+                logAction?.Invoke($"Cleaned {folder.Name}: {TargetFolderInfo.FormatBytes(freedBytes)} reclaimed ({filesDeleted:N0} deleted, {txResult.InUseLockedCount:N0} in use, {txResult.RecentShieldedCount:N0} shielded <24h, {txResult.PolicyProtectedCount:N0} protected)", LogLevel.Success);
             }
             else if (filesSkipped > 0)
             {
-                UiInvoke(() => folder.StatusMessage = $"Protected ({filesSkipped:N0} items)");
-                logAction?.Invoke($"Protected {folder.Name}: {filesSkipped:N0} files skipped by safety engine, protection policy, or verification", LogLevel.Info);
+                if (txResult.InUseLockedCount > 0 && txResult.RecentShieldedCount == 0 && txResult.PolicyProtectedCount == 0)
+                {
+                    UiInvoke(() => folder.StatusMessage = $"In Use ({txResult.InUseLockedCount:N0} locked)");
+                    logAction?.Invoke($"Notice {folder.Name}: {txResult.InUseLockedCount:N0} files currently held open by active running applications", LogLevel.Info);
+                }
+                else if (txResult.RecentShieldedCount > 0)
+                {
+                    UiInvoke(() => folder.StatusMessage = $"Shielded ({txResult.RecentShieldedCount:N0} <24h)");
+                    logAction?.Invoke($"Protected {folder.Name}: {txResult.RecentShieldedCount:N0} files preserved by 24h safety shield", LogLevel.Info);
+                }
+                else
+                {
+                    UiInvoke(() => folder.StatusMessage = $"Protected ({filesSkipped:N0} items)");
+                    logAction?.Invoke($"Protected {folder.Name}: {filesSkipped:N0} files preserved by safety policy or verification", LogLevel.Info);
+                }
             }
             else
             {

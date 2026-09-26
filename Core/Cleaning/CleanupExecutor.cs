@@ -270,6 +270,9 @@ public static class CleanupExecutor
 
                             bool success = false;
 
+                            int permWin32Err = 0;
+                            string? permFailDetail = null;
+
                             if (action.Action == IntendedCleanupAction.MoveToRecycleBin)
                             {
                                 success = IFileOperationHelper.RecycleFile(action.FilePath);
@@ -281,7 +284,7 @@ public static class CleanupExecutor
                             }
                             else
                             {
-                                success = DeletePermanently(action.FilePath);
+                                success = DeletePermanently(action.FilePath, out permWin32Err, out permFailDetail);
                                 if (success)
                                 {
                                     Interlocked.Increment(ref deletedCount);
@@ -361,7 +364,7 @@ public static class CleanupExecutor
                                 Interlocked.Increment(ref failedCount);
                                 Interlocked.Add(ref failedBytes, actualBytes);
 
-                                string failReason = $"Deletion failed ({action.Action}): {action.FilePath}";
+                                string failReason = !string.IsNullOrEmpty(permFailDetail) ? permFailDetail : $"Deletion failed ({action.Action}): {action.FilePath}";
                                 var errorCategory = CleanupErrorCategory.AccessDenied;
 
                                 var lockingProcesses = RestartManagerService.GetLockingProcesses(action.FilePath);
@@ -371,6 +374,17 @@ public static class CleanupExecutor
                                     failReason = $"In use by: {procNames}";
                                     errorCategory = CleanupErrorCategory.FileLocked;
                                     logAction?.Invoke($"Notice: '{action.FileName}' is in use by {procNames}", LogLevel.Info);
+                                }
+                                else if (permWin32Err == 32 || permWin32Err == 33 || RestartManagerService.IsFileLocked(action.FilePath))
+                                {
+                                    failReason = "In use: active handle held by running application";
+                                    errorCategory = CleanupErrorCategory.FileLocked;
+                                    logAction?.Invoke($"Notice: '{action.FileName}' is in use by an active application", LogLevel.Info);
+                                }
+                                else if (permWin32Err == 5)
+                                {
+                                    failReason = "Access denied: file requires elevated administrator rights";
+                                    errorCategory = CleanupErrorCategory.AccessDenied;
                                 }
 
                                 lock (syncLock)
@@ -400,19 +414,24 @@ public static class CleanupExecutor
                             Interlocked.Increment(ref failedCount);
                             Interlocked.Add(ref failedBytes, action.SizeBytes);
 
+                            int hr = ex.HResult & 0xFFFF;
+                            bool isLocked = ex is IOException || hr == 32 || hr == 33 || RestartManagerService.IsFileLocked(action.FilePath);
                             string errReason = ex.Message;
-                            var errCategory = ex is UnauthorizedAccessException ? CleanupErrorCategory.AccessDenied : (ex is IOException ? CleanupErrorCategory.FileLocked : CleanupErrorCategory.Unknown);
+                            var errCategory = isLocked ? CleanupErrorCategory.FileLocked : (ex is UnauthorizedAccessException ? CleanupErrorCategory.AccessDenied : CleanupErrorCategory.Unknown);
 
-                            if (ex is IOException or UnauthorizedAccessException)
+                            var lockingProcesses = RestartManagerService.GetLockingProcesses(action.FilePath);
+                            if (lockingProcesses.Count > 0)
                             {
-                                var lockingProcesses = RestartManagerService.GetLockingProcesses(action.FilePath);
-                                if (lockingProcesses.Count > 0)
-                                {
-                                    string procNames = string.Join(", ", lockingProcesses.Select(p => $"{p.ProcessName} (PID {p.ProcessId})"));
-                                    errReason = $"Locked by {procNames}: {ex.Message}";
-                                    errCategory = CleanupErrorCategory.FileLocked;
-                                    logAction?.Invoke($"Notice: '{action.FileName}' is in use by {procNames}", LogLevel.Info);
-                                }
+                                string procNames = string.Join(", ", lockingProcesses.Select(p => $"{p.ProcessName} (PID {p.ProcessId})"));
+                                errReason = $"Locked by {procNames}: {ex.Message}";
+                                errCategory = CleanupErrorCategory.FileLocked;
+                                logAction?.Invoke($"Notice: '{action.FileName}' is in use by {procNames}", LogLevel.Info);
+                            }
+                            else if (isLocked)
+                            {
+                                errReason = $"In use: {ex.Message}";
+                                errCategory = CleanupErrorCategory.FileLocked;
+                                logAction?.Invoke($"Notice: '{action.FileName}' is in use by an active application", LogLevel.Info);
                             }
 
                             lock (syncLock)
@@ -630,10 +649,31 @@ public static class CleanupExecutor
         }
     }
 
-    public static bool DeletePermanently(string path)
+    public static bool DeletePermanently(string path) => DeletePermanently(path, out _, out _);
+
+    public static bool DeletePermanently(string path, out int win32Error, out string? failureDetail)
     {
+        win32Error = 0;
+        failureDetail = null;
+
         try
         {
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                return true;
+            }
+
+            // Normalize attributes: remove ReadOnly, Hidden, and System attributes so DeleteFileW and File.Delete succeed
+            try
+            {
+                var currentAttrs = File.GetAttributes(path);
+                if ((currentAttrs & (FileAttributes.ReadOnly | FileAttributes.Hidden | FileAttributes.System)) != 0)
+                {
+                    File.SetAttributes(path, FileAttributes.Normal);
+                }
+            }
+            catch { }
+
             // Primary: Attempt modern Win10+ POSIX semantics delete (atomic, ignores read-only attribute, unlinks in-use handles)
             try
             {
@@ -671,34 +711,42 @@ public static class CleanupExecutor
                 // Fall back to standard Win32 DeleteFileW below
             }
 
-            var fi = new FileInfo(path);
-            if (fi.Exists)
-            {
-                if ((fi.Attributes & FileAttributes.ReadOnly) != 0)
-                {
-                    fi.Attributes &= ~FileAttributes.ReadOnly;
-                }
-                if ((fi.Attributes & (FileAttributes.System | FileAttributes.Hidden)) != 0 &&
-                    path.Contains(@"\Microsoft\Windows\Explorer\", StringComparison.OrdinalIgnoreCase))
-                {
-                    fi.Attributes = FileAttributes.Normal;
-                }
-            }
-
             if (DeleteFileW(path))
             {
                 return true;
             }
 
+            win32Error = Marshal.GetLastWin32Error();
+
             if (File.Exists(path))
             {
-                File.Delete(path);
+                try
+                {
+                    File.Delete(path);
+                }
+                catch (Exception ex)
+                {
+                    failureDetail = ex.Message;
+                }
             }
 
-            return !File.Exists(path);
+            bool deleted = !File.Exists(path);
+            if (!deleted && string.IsNullOrEmpty(failureDetail))
+            {
+                failureDetail = win32Error switch
+                {
+                    32 => "File is actively in use by another process (sharing violation).",
+                    33 => "File range is locked by another process (lock violation).",
+                    5 => "Access is denied (requires elevated permissions).",
+                    _ => $"Native delete returned Win32 error code {win32Error}."
+                };
+            }
+
+            return deleted;
         }
         catch (Exception ex)
         {
+            failureDetail = ex.Message;
             Trace.WriteLine($"[Cleanup] Permanent delete failed for '{path}': {ex.Message}");
             return false;
         }

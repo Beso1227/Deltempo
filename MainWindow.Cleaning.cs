@@ -220,6 +220,10 @@ public partial class MainWindow
         int totalFilesDeleted = 0;
         int totalFoldersDeleted = 0;
         int totalFilesSkipped = 0;
+        int totalFilesInUse = 0;
+        int totalFilesShielded = 0;
+        int totalFilesPolicy = 0;
+        int totalFilesFailed = 0;
 
         AddLog($"Starting cleanup with Safety Shield {(safeMode ? "ENABLED (>24h old only)" : "DISABLED (all files)")}...", LogLevel.Info);
 
@@ -262,6 +266,14 @@ public partial class MainWindow
                 totalFilesDeleted += filesDel;
                 totalFoldersDeleted += foldersDel;
                 totalFilesSkipped += filesSkip;
+
+                if (target.LastTransactionResult != null)
+                {
+                    totalFilesInUse += target.LastTransactionResult.InUseLockedCount;
+                    totalFilesShielded += target.LastTransactionResult.RecentShieldedCount;
+                    totalFilesPolicy += target.LastTransactionResult.PolicyProtectedCount;
+                    totalFilesFailed += target.LastTransactionResult.FailedExecutionCount;
+                }
             }
 
             stopwatch.Stop();
@@ -293,17 +305,29 @@ public partial class MainWindow
                 TotalFilesDeleted = totalFilesDeleted,
                 TotalFoldersDeleted = totalFoldersDeleted,
                 TotalFilesSkipped = totalFilesSkipped,
+                TotalFilesInUse = totalFilesInUse,
+                TotalFilesRecentShielded = totalFilesShielded,
+                TotalFilesPolicyProtected = totalFilesPolicy,
+                TotalFilesFailed = totalFilesFailed,
                 ElapsedTime = stopwatch.Elapsed
             };
 
             ProgressStatusText.Text = "Cleanup complete!";
-            AddLog($"Cleanup Finished: Freed {_lastSummary.FormattedFreedSize} ({totalFilesDeleted:N0} deleted, {totalFilesSkipped:N0} protected) in {stopwatch.Elapsed.TotalSeconds:N1}s", LogLevel.Success);
+            
+            var skipDetails = new List<string>();
+            if (totalFilesInUse > 0) skipDetails.Add($"{totalFilesInUse:N0} in use");
+            if (totalFilesShielded > 0) skipDetails.Add($"{totalFilesShielded:N0} shielded <24h");
+            if (totalFilesPolicy > 0) skipDetails.Add($"{totalFilesPolicy:N0} protected");
+            if (totalFilesFailed > 0) skipDetails.Add($"{totalFilesFailed:N0} failed");
+            string skipDetailStr = skipDetails.Count > 0 ? $" ({string.Join(", ", skipDetails)})" : string.Empty;
+
+            AddLog($"Cleanup Finished: Freed {_lastSummary.FormattedFreedSize} ({totalFilesDeleted:N0} deleted{skipDetailStr}) in {stopwatch.Elapsed.TotalSeconds:N1}s", LogLevel.Success);
 
             // Show Animated Celebration Modal Dialog
             if (totalFilesSkipped > 0)
             {
-                CelebrationModalTitleText.Text = "Cleanup Completed with Exceptions";
-                CelebrationReclaimedText.Text = $"Reclaimed {_lastSummary.FormattedFreedSize} ({totalFilesSkipped:N0} in-use/protected files safely skipped)";
+                CelebrationModalTitleText.Text = totalFilesInUse > 0 ? "Cleanup Completed (Some Files In Use)" : "Cleanup Completed";
+                CelebrationReclaimedText.Text = $"Reclaimed {_lastSummary.FormattedFreedSize}{skipDetailStr}";
             }
             else
             {
@@ -314,6 +338,17 @@ public partial class MainWindow
             CelebrationFoldersText.Text = $"{totalFoldersDeleted:N0}";
             CelebrationRamText.Text = "-- MB";
             CelebrationTimeText.Text = $"{stopwatch.Elapsed.TotalSeconds:N1}s";
+
+            if (totalFilesInUse > 0)
+            {
+                CelebrationViewLockedBtn.Visibility = Visibility.Visible;
+                CelebrationViewLockedBtn.Content = $"View Locked Files ({totalFilesInUse:N0})";
+            }
+            else
+            {
+                CelebrationViewLockedBtn.Visibility = Visibility.Collapsed;
+            }
+
             CelebrationModalOverlay.Visibility = Visibility.Visible;
         }
         catch (OperationCanceledException)
@@ -332,6 +367,53 @@ public partial class MainWindow
             CancelButton.Visibility = Visibility.Collapsed;
             SetControlsEnabled(true);
         }
+    }
+
+    private void CelebrationViewLocked_Click(object sender, RoutedEventArgs e)
+    {
+        CelebrationModalOverlay.Visibility = Visibility.Collapsed;
+
+        var lockedRecords = new List<LockedFileItem>();
+        if (_targets != null)
+        {
+            foreach (var target in _targets)
+            {
+                if (target.LastTransactionResult?.AuditRecords == null) continue;
+
+                foreach (var rec in target.LastTransactionResult.AuditRecords)
+                {
+                    if (rec.ErrorCategory == Core.Cleaning.CleanupErrorCategory.FileLocked)
+                    {
+                        string procName = string.Empty;
+                        int procId = 0;
+                        if (!string.IsNullOrEmpty(rec.ErrorOrSkipReason))
+                        {
+                            var match = System.Text.RegularExpressions.Regex.Match(
+                                rec.ErrorOrSkipReason,
+                                @"process:\s*([^\s(]+)(?:\s*\(PID:\s*(\d+)\))?",
+                                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                            if (match.Success)
+                            {
+                                procName = match.Groups[1].Value;
+                                if (int.TryParse(match.Groups[2].Value, out int pid)) procId = pid;
+                            }
+                        }
+
+                        lockedRecords.Add(new LockedFileItem
+                        {
+                            FilePath = rec.FilePath,
+                            FileName = System.IO.Path.GetFileName(rec.FilePath),
+                            SizeBytes = rec.SizeBytes,
+                            LockingProcessName = procName,
+                            LockingProcessId = procId,
+                            LockReason = rec.ErrorOrSkipReason ?? "File currently in use by active process."
+                        });
+                    }
+                }
+            }
+        }
+
+        LockedFilesModalOverlay.PopulateAndOpen(lockedRecords);
     }
 
     private void CloseCelebration_Click(object sender, RoutedEventArgs e)

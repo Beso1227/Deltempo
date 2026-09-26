@@ -86,6 +86,45 @@ public static class ProtectionPolicy
         return false;
     }
 
+    private static readonly object CustomExclusionsLock = new();
+    private static readonly HashSet<string> CustomPathExclusions = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly HashSet<string> CustomExtensionExclusions = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Updates custom exclusions atomically in a thread-safe manner.
+    /// </summary>
+    public static void SetCustomExclusions(IEnumerable<string>? paths, IEnumerable<string>? extensions)
+    {
+        lock (CustomExclusionsLock)
+        {
+            CustomPathExclusions.Clear();
+            if (paths != null)
+            {
+                foreach (var p in paths)
+                {
+                    if (!string.IsNullOrWhiteSpace(p))
+                    {
+                        CustomPathExclusions.Add(p.Trim().Replace('/', '\\').TrimEnd('\\'));
+                    }
+                }
+            }
+
+            CustomExtensionExclusions.Clear();
+            if (extensions != null)
+            {
+                foreach (var ext in extensions)
+                {
+                    if (!string.IsNullOrWhiteSpace(ext))
+                    {
+                        string e = ext.Trim();
+                        if (!e.StartsWith('.')) e = "." + e;
+                        CustomExtensionExclusions.Add(e);
+                    }
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Checks if a given file path is classified as strictly PROTECTED.
     /// If true, the file CANNOT be deleted under any circumstances.
@@ -109,6 +148,31 @@ public static class ProtectionPolicy
         string pathLower = path.ToLowerInvariant();
         string fileName = Path.GetFileName(pathLower);
         string ext = Path.GetExtension(pathLower);
+
+        // 0. User Configured Custom Exclusions (Paths & Extensions)
+        lock (CustomExclusionsLock)
+        {
+            if (CustomPathExclusions.Count > 0)
+            {
+                foreach (var exclusion in CustomPathExclusions)
+                {
+                    if (pathLower.StartsWith(exclusion.ToLowerInvariant()) || PathSecurity.IsSubpathOf(path, exclusion))
+                    {
+                        matchedReason = $"User custom excluded path: {exclusion}";
+                        return true;
+                    }
+                }
+            }
+
+            if (CustomExtensionExclusions.Count > 0)
+            {
+                if (CustomExtensionExclusions.Contains(ext))
+                {
+                    matchedReason = $"User custom excluded file extension: {ext}";
+                    return true;
+                }
+            }
+        }
 
         // 1. Root OS Critical Files (pagefile, hiberfil, bootmgr)
         if (ProtectedRootFileNames.Contains(fileName))
@@ -394,8 +458,22 @@ public static class ProtectionPolicy
         @"\temp\.net\",
         @"\code cache\js\",
         @"\code cache\wasm\",
+        @"\code cache\",
         @"\gpucache\",
-        @"\scriptcache\"
+        @"\scriptcache\",
+        @"\appdata\local\temp\",
+        @"\windows\temp\",
+        @"\local\temp\",
+        @"\inetcache\",
+        @"\temporary internet files\",
+        @"\deliveryoptimization\",
+        @"\softwaredistribution\download\",
+        @"\webcache\",
+        @"\cache_data\",
+        @"\crashdumps\",
+        @"\crashpad\",
+        @"\logs\",
+        @"\temp\"
     ];
 
     public static bool IsPackageOrScriptCachePath(string pathLower)

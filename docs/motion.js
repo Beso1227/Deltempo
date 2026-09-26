@@ -996,7 +996,7 @@
           ember.style.setProperty('--tx', (-(dX * 0.4) + (Math.random() - 0.5) * 8).toFixed(1) + 'px');
           ember.style.setProperty('--ty', (-(dY * 0.4) + (Math.random() - 0.5) * 8).toFixed(1) + 'px');
           document.body.appendChild(ember);
-          setTimeout(function () {
+          setTimeout(function () { // DevSkim: ignore DS172411
             if (ember.parentNode) ember.parentNode.removeChild(ember);
             activeEmberCount = Math.max(0, activeEmberCount - 1);
           }, 360);

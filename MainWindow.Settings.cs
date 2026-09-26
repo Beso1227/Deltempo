@@ -94,6 +94,11 @@ public partial class MainWindow
             s.AiApiKey = defaults.AiApiKey;
             s.AiModelName = defaults.AiModelName;
             s.AiOllamaEndpoint = defaults.AiOllamaEndpoint;
+            s.AutoCleanOnIdle = defaults.AutoCleanOnIdle;
+            s.AutoCleanIdleMinutes = defaults.AutoCleanIdleMinutes;
+            s.AggressiveEmptyFolderPrune = defaults.AggressiveEmptyFolderPrune;
+            s.CustomPathExclusions = new List<string>(defaults.CustomPathExclusions);
+            s.CustomExtensionExclusions = new List<string>(defaults.CustomExtensionExclusions);
         });
 
         LoadSettingsIntoUI();
@@ -211,6 +216,29 @@ public partial class MainWindow
             s.AiOllamaEndpoint = string.IsNullOrWhiteSpace(SettingsAiOllamaEndpointBox.Text)
                 ? "http://localhost:11434" // DevSkim: ignore DS162092
                 : SettingsAiOllamaEndpointBox.Text.Trim();
+
+            if (SettingsIdleCleanCheckBox != null)
+            {
+                s.AutoCleanOnIdle = SettingsIdleCleanCheckBox.IsChecked == true;
+            }
+            if (SettingsIdleMinutesComboBox?.SelectedItem is ComboBoxItem idItem && idItem.Tag is string idTag && int.TryParse(idTag, out int idMins))
+            {
+                s.AutoCleanIdleMinutes = idMins;
+            }
+
+            if (SettingsAggressivePruneCheckBox != null)
+            {
+                s.AggressiveEmptyFolderPrune = SettingsAggressivePruneCheckBox.IsChecked == true;
+            }
+
+            if (SettingsExcludedPathsListBox?.ItemsSource is IEnumerable<string> paths)
+            {
+                s.CustomPathExclusions = paths.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            }
+            if (SettingsExcludedExtensionsListBox?.ItemsSource is IEnumerable<string> exts)
+            {
+                s.CustomExtensionExclusions = exts.Where(e => !string.IsNullOrWhiteSpace(e)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            }
         });
 
         AutoCleanService.Start();
@@ -360,6 +388,82 @@ public partial class MainWindow
         catch (Exception ex)
         {
             System.Diagnostics.Trace.WriteLine($"[Deltempo] ApplyMemorySettingsToWindow suppressed: {ex.Message}");
+        }
+    }
+
+    private void SettingsBrowseExcludeFolder_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var dialog = new Microsoft.Win32.OpenFolderDialog
+            {
+                Title = "Select Folder to Protect from Cleaning",
+                Multiselect = false
+            };
+
+            if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.FolderName))
+            {
+                SettingsNewPathBox.Text = dialog.FolderName;
+            }
+        }
+        catch (Exception ex)
+        {
+            AddLog($"Folder selection error: {ex.Message}", LogLevel.Warning);
+        }
+    }
+
+    private void SettingsAddExcludePath_Click(object sender, RoutedEventArgs e)
+    {
+        string path = SettingsNewPathBox.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(path)) return;
+
+        var items = SettingsExcludedPathsListBox.ItemsSource as ObservableCollection<string> 
+                    ?? new ObservableCollection<string>();
+
+        if (!items.Any(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase)))
+        {
+            items.Add(path);
+            SettingsExcludedPathsListBox.ItemsSource = items;
+            SettingsNewPathBox.Clear();
+            SoundService.PlayClickSound();
+        }
+    }
+
+    private void SettingsRemoveExcludePath_Click(object sender, RoutedEventArgs e)
+    {
+        if (SettingsExcludedPathsListBox.SelectedItem is string selected && 
+            SettingsExcludedPathsListBox.ItemsSource is ObservableCollection<string> items)
+        {
+            items.Remove(selected);
+            SoundService.PlayClickSound();
+        }
+    }
+
+    private void SettingsAddExcludeExtension_Click(object sender, RoutedEventArgs e)
+    {
+        string ext = SettingsNewExtensionBox.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(ext)) return;
+        if (!ext.StartsWith('.')) ext = "." + ext;
+
+        var items = SettingsExcludedExtensionsListBox.ItemsSource as ObservableCollection<string>
+                    ?? new ObservableCollection<string>();
+
+        if (!items.Any(x => string.Equals(x, ext, StringComparison.OrdinalIgnoreCase)))
+        {
+            items.Add(ext);
+            SettingsExcludedExtensionsListBox.ItemsSource = items;
+            SettingsNewExtensionBox.Clear();
+            SoundService.PlayClickSound();
+        }
+    }
+
+    private void SettingsRemoveExcludeExtension_Click(object sender, RoutedEventArgs e)
+    {
+        if (SettingsExcludedExtensionsListBox.SelectedItem is string selected &&
+            SettingsExcludedExtensionsListBox.ItemsSource is ObservableCollection<string> items)
+        {
+            items.Remove(selected);
+            SoundService.PlayClickSound();
         }
     }
 }

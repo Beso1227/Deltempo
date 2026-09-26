@@ -51,6 +51,7 @@ public class TargetFolderInfo : INotifyPropertyChanged
     public bool IsSafeModeEligible { get; set; } = true;
     public bool IsOrphanedAppFolder { get; set; }
     public List<string>? ResolvedDirectoriesOverride { get; set; }
+    public WinTempCleaner.Core.Cleaning.CleanupTransactionResult? LastTransactionResult { get; set; }
 
     private string _discoveryTag = string.Empty;
     public string DiscoveryTag

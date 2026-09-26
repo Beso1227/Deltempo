@@ -104,6 +104,28 @@ public class FileSafetyEngineTests
         Assert.Equal("DesignatedCacheFileRule", result.MatchedRule);
     }
 
+    [Theory]
+    [InlineData(@"C:\Users\JohnDoe\AppData\Local\Temp\scoped_dir123\install_log.txt", "install_log.txt")]
+    [InlineData(@"C:\Users\JohnDoe\AppData\Local\Temp\scoped_dir123\setup_manifest.xml", "setup_manifest.xml")]
+    [InlineData(@"C:\Users\JohnDoe\AppData\Local\Temp\scoped_dir123\state_dump.json", "state_dump.json")]
+    [InlineData(@"C:\Users\JohnDoe\AppData\Local\Temp\scoped_dir123\temp_archive.cab", "temp_archive.cab")]
+    [InlineData(@"C:\Windows\Temp\scoped_dir123\setup.ini", "setup.ini")]
+    [InlineData(@"C:\Users\JohnDoe\AppData\Local\Temp\scoped_dir123\{3A75C0FA-4F1E-4B02-8692-06E5BEF6B750}", "{3A75C0FA-4F1E-4B02-8692-06E5BEF6B750}")]
+    public void Analyze_StaleTempFilesWithCommonExtensions_ReturnsSafe(string filePath, string fileName)
+    {
+        var result = FileSafetyEngine.Analyze(
+            filePath,
+            fileName: fileName,
+            category: "General",
+            sizeBytes: 8192,
+            lastModified: DateTime.UtcNow.AddDays(-3),
+            apply24HourThreshold: true);
+
+        Assert.Equal(SafetyRiskTier.Safe, result.Tier);
+        Assert.True(result.SafetyScore >= 90);
+        Assert.Equal("DesignatedCacheFileRule", result.MatchedRule);
+    }
+
     [Fact]
     public void Analyze_WithMultipleAllowedRoots_AcceptsValidSubpath()
     {

@@ -2157,6 +2157,15 @@
 
                         <!-- Action Buttons -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button x:Name="CelebrationViewLockedBtn"
+                                    Content="View Locked Files (0)"
+                                    Style="{DynamicResource PillButton}"
+                                    FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                    Foreground="{DynamicResource AmberWarningBrush}"
+                                    Padding="16,9"
+                                    Margin="0,0,10,0"
+                                    Visibility="Collapsed"
+                                    Click="CelebrationViewLocked_Click"/>
                             <Button x:Name="CelebrationExportBtn"
                                     Content="Export Report"
                                     Style="{DynamicResource PillButton}"
@@ -2780,6 +2789,49 @@
                                                     <ComboBoxItem Content="Every 24 Hours" Tag="24"/>
                                                 </ComboBox>
                                             </Grid>
+
+                                            <!-- Idle Cleaning Trigger -->
+                                            <Grid Margin="0,8,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Clean While System is Idle"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Silently reclaim background junk when computer is untouched"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="SettingsIdleCleanCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+
+                                            <Grid Margin="0,4,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0"
+                                                           Text="Idle Wait Time"
+                                                           FontSize="11.5"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <ComboBox Grid.Column="1"
+                                                          x:Name="SettingsIdleMinutesComboBox"
+                                                          Style="{DynamicResource ModernComboBox}"
+                                                          Width="140" Height="26">
+                                                    <ComboBoxItem Content="After 5 Minutes" Tag="5"/>
+                                                    <ComboBoxItem Content="After 15 Minutes" Tag="15" IsSelected="True"/>
+                                                    <ComboBoxItem Content="After 30 Minutes" Tag="30"/>
+                                                    <ComboBoxItem Content="After 60 Minutes" Tag="60"/>
+                                                </ComboBox>
+                                            </Grid>
                                         </StackPanel>
                                     </Border>
 
@@ -3176,6 +3228,160 @@
                                                     <ComboBoxItem Content="Below 30 GB" Tag="30"/>
                                                     <ComboBoxItem Content="Below 50 GB" Tag="50"/>
                                                 </ComboBox>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Aggressive Empty Directory Pruning -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="16,12"
+                                            Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Aggressive Empty Directory Pruning"
+                                                               FontSize="12.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Recursively delete leftover empty subdirectories within cleanup targets"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="1"
+                                                          x:Name="SettingsAggressivePruneCheckBox"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Custom Exclusions & Whitelist (Paths & Extensions) -->
+                                    <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="16,12"
+                                            Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Custom Exclusions &amp; Whitelist"
+                                                               FontSize="12.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                                    <TextBlock Text="Permanently protect specific directories or file extensions from deletion"
+                                                               FontSize="10.5"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Excluded Folders -->
+                                            <TextBlock Text="Protected Folder Paths:"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextMediumBrush}"
+                                                       Margin="0,4,0,3"/>
+                                            <ListBox x:Name="SettingsExcludedPathsListBox"
+                                                     MaxHeight="70"
+                                                     MinHeight="36"
+                                                     Background="{DynamicResource SurfaceCardBrush}"
+                                                     BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                     BorderThickness="1"
+                                                     Foreground="{DynamicResource TextHighBrush}"
+                                                     FontSize="10.5"
+                                                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                                            <Grid Margin="0,4,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox x:Name="SettingsNewPathBox"
+                                                         Grid.Column="0"
+                                                         Height="26"
+                                                         Background="{DynamicResource SurfaceCardBrush}"
+                                                         Foreground="{DynamicResource TextHighBrush}"
+                                                         BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                         Padding="6,3"
+                                                         FontSize="10.5"
+                                                         Margin="0,0,5,0"/>
+                                                <Button Grid.Column="1"
+                                                        Content="Browse..."
+                                                        Style="{DynamicResource PillButton}"
+                                                        Padding="9,3"
+                                                        FontSize="10"
+                                                        Margin="0,0,5,0"
+                                                        Click="SettingsBrowseExcludeFolder_Click"/>
+                                                <Button Grid.Column="2"
+                                                        Content="Add"
+                                                        Style="{DynamicResource PillButton}"
+                                                        Padding="9,3"
+                                                        FontSize="10"
+                                                        Margin="0,0,5,0"
+                                                        Click="SettingsAddExcludePath_Click"/>
+                                                <Button Grid.Column="3"
+                                                        Content="Remove"
+                                                        Style="{DynamicResource PillButton}"
+                                                        Padding="8,3"
+                                                        FontSize="10"
+                                                        Click="SettingsRemoveExcludePath_Click"/>
+                                            </Grid>
+
+                                            <!-- Excluded Extensions -->
+                                            <TextBlock Text="Protected File Extensions (e.g. .log, .bak):"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextMediumBrush}"
+                                                       Margin="0,4,0,3"/>
+                                            <ListBox x:Name="SettingsExcludedExtensionsListBox"
+                                                     MaxHeight="55"
+                                                     MinHeight="32"
+                                                     Background="{DynamicResource SurfaceCardBrush}"
+                                                     BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                     BorderThickness="1"
+                                                     Foreground="{DynamicResource TextHighBrush}"
+                                                     FontSize="10.5"
+                                                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                                            <Grid Margin="0,4,0,2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox x:Name="SettingsNewExtensionBox"
+                                                         Grid.Column="0"
+                                                         Height="26"
+                                                         Background="{DynamicResource SurfaceCardBrush}"
+                                                         Foreground="{DynamicResource TextHighBrush}"
+                                                         BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                         Padding="6,3"
+                                                         FontSize="10.5"
+                                                         Margin="0,0,5,0"/>
+                                                <Button Grid.Column="1"
+                                                        Content="Add"
+                                                        Style="{DynamicResource PillButton}"
+                                                        Padding="9,3"
+                                                        FontSize="10"
+                                                        Margin="0,0,5,0"
+                                                        Click="SettingsAddExcludeExtension_Click"/>
+                                                <Button Grid.Column="2"
+                                                        Content="Remove"
+                                                        Style="{DynamicResource PillButton}"
+                                                        Padding="8,3"
+                                                        FontSize="10"
+                                                        Click="SettingsRemoveExcludeExtension_Click"/>
                                             </Grid>
                                         </StackPanel>
                                     </Border>
@@ -4935,6 +5141,11 @@
         <modals:AppUninstallModal x:Name="AppUninstallModalOverlay"
                                   Grid.Row="1" Grid.RowSpan="4"
                                   Visibility="Collapsed"/>
+
+        <!-- IN-USE & LOCKED FILES INSPECTOR MODAL -->
+        <modals:LockedFilesModal x:Name="LockedFilesModalOverlay"
+                                 Grid.Row="1" Grid.RowSpan="4"
+                                 Visibility="Collapsed"/>
     </Grid>
 </Border>
 </Border>

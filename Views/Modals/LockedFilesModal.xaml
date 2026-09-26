@@ -1,0 +1,238 @@
+<UserControl x:Class="WinTempCleaner.Views.Modals.LockedFilesModal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
+    <Grid Background="Transparent">
+        <Border Margin="24,14,24,14"
+                Background="{DynamicResource DoubleBezelOuterBrush}"
+                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="16"
+                Padding="2"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource ModalSurfaceBrush}"
+                    CornerRadius="14"
+                    Padding="22,18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- 0: Header -->
+                        <RowDefinition Height="Auto"/> <!-- 1: Subtitle / Summary bar -->
+                        <RowDefinition Height="*"/>    <!-- 2: Locked Files ItemsControl -->
+                        <RowDefinition Height="Auto"/> <!-- 3: Footer Actions -->
+                    </Grid.RowDefinitions>
+
+                    <!-- 0: Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="40" Height="40"
+                                    CornerRadius="12"
+                                    Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource AmberWarningBrush}"
+                                    BorderThickness="1"
+                                    Margin="0,0,12,0">
+                                <TextBlock Text="&#xE7BA;"
+                                           FontFamily="{DynamicResource IconFont}"
+                                           FontSize="18"
+                                           Foreground="{DynamicResource AmberWarningBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="In-Use &amp; Locked Files Inspector"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource TextHighBrush}"/>
+                                <TextBlock Text="Files held open by active running applications during cleanup"
+                                           FontSize="11.5"
+                                           Foreground="{DynamicResource TextMediumBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button Style="{DynamicResource WindowCloseButton}"
+                                Content="&#xE8BB;"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Click="Close_Click"/>
+                    </Grid>
+
+                    <!-- 1: Summary Bar -->
+                    <Border Grid.Row="1"
+                            Background="{DynamicResource SurfaceSubCardBrush}"
+                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="14,10"
+                            Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock x:Name="LockedSummaryText"
+                                           Text="0 files currently held open"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextHighBrush}"/>
+                                <TextBlock Text="You can close the locking application, or schedule files for automatic deletion on next reboot."
+                                           FontSize="10.5"
+                                           Foreground="{DynamicResource TextMutedBrush}"
+                                           Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    x:Name="ScheduleAllRebootBtn"
+                                    Style="{DynamicResource PillButton}"
+                                    Padding="14,6"
+                                    FontSize="11"
+                                    Click="ScheduleAllReboot_Click"
+                                    ToolTip="Registers all in-use files with Windows Session Manager (MoveFileEx) for deletion upon reboot">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE777;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,5,0" Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                    <TextBlock Text="Schedule All for Reboot Purge" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- 2: Items List -->
+                    <Border Grid.Row="2"
+                            Background="{DynamicResource SurfaceSubCardBrush}"
+                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="12,8"
+                            Margin="0,0,0,12">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="LockedFilesItemsControl">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{DynamicResource SurfaceCardBrush}"
+                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="10"
+                                                Padding="12,10"
+                                                Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Icon -->
+                                                <Border Grid.Column="0" Width="36" Height="36"
+                                                        CornerRadius="8"
+                                                        Background="{DynamicResource SurfaceSubCardBrush}"
+                                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                        BorderThickness="1"
+                                                        Margin="0,0,12,0"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="&#xE7BA;"
+                                                               FontFamily="{DynamicResource IconFont}"
+                                                               FontSize="14"
+                                                               Foreground="{DynamicResource AmberWarningBrush}"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"/>
+                                                </Border>
+
+                                                <!-- File Name, Path & Locker Process -->
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding FileName}"
+                                                                   FontSize="12"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource TextHighBrush}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   MaxWidth="380"/>
+                                                        <Border Background="#2A1E16"
+                                                                BorderBrush="{DynamicResource AmberWarningBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="5"
+                                                                Padding="6,1.5"
+                                                                Margin="8,0,0,0">
+                                                            <TextBlock Text="{Binding DisplayProcessInfo}"
+                                                                       FontSize="9.5"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="{DynamicResource AmberWarningBrush}"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding FilePath}"
+                                                               FontSize="9.5"
+                                                               FontFamily="{DynamicResource MonospaceFont}"
+                                                               Foreground="{DynamicResource TextMutedBrush}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               MaxWidth="440"
+                                                               Margin="0,2,0,0"/>
+                                                </StackPanel>
+
+                                                <!-- File Size -->
+                                                <Border Grid.Column="2"
+                                                        Background="{DynamicResource SurfaceSubCardBrush}"
+                                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="6"
+                                                        Padding="8,4"
+                                                        Margin="0,0,10,0"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding FormattedSize}"
+                                                               FontSize="11"
+                                                               FontWeight="Bold"
+                                                               Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                </Border>
+
+                                                <!-- Status Badge -->
+                                                <Border Grid.Column="3"
+                                                        Background="{DynamicResource SurfaceSubCardBrush}"
+                                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="6"
+                                                        Padding="8,4"
+                                                        Margin="0,0,8,0"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding StatusText}"
+                                                               FontSize="10.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                                </Border>
+
+                                                <!-- Actions: Schedule Reboot Purge -->
+                                                <Button Grid.Column="4"
+                                                        Content="Schedule Reboot Delete"
+                                                        Style="{DynamicResource PillButton}"
+                                                        Padding="10,5"
+                                                        FontSize="10.5"
+                                                        VerticalAlignment="Center"
+                                                        Click="ScheduleSingleReboot_Click"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- 3: Footer Actions -->
+                    <Grid Grid.Row="3">
+                        <TextBlock x:Name="RebootFooterNotice"
+                                   Text="Reboot purge utilizes native Windows MoveFileExW Session Manager registration"
+                                   FontSize="10.5"
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"/>
+                        <Button Content="Close"
+                                Style="{DynamicResource HeroCTAButton}"
+                                HorizontalAlignment="Right"
+                                Padding="26,7.5"
+                                FontSize="12"
+                                Click="Close_Click"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

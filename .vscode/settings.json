@@ -60,5 +60,38 @@
   "[markdown]": {
     "editor.wordWrap": "on",
     "files.trimTrailingWhitespace": false
-  }
+  },
+
+  // Code Spell Checker Dictionary
+  "cSpell.words": [
+    "Beso",
+    "bleachbit",
+    "bootmgr",
+    "Bruls",
+    "ccleaner",
+    "csrss",
+    "Deltempo",
+    "deltempo",
+    "DELTEMPO",
+    "Huizing",
+    "largefiles",
+    "ntdll",
+    "paywalled",
+    "procs",
+    "psapi",
+    "rstrtmgr",
+    "Scannow",
+    "squarified",
+    "Squarified",
+    "steamwebhelper",
+    "TOCTOU",
+    "treemap",
+    "Treemap",
+    "upsell",
+    "upsells",
+    "Upsells",
+    "Wijk",
+    "winget",
+    "winutil"
+  ]
 }

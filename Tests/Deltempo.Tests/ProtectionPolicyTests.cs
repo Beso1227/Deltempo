@@ -130,4 +130,59 @@ public class ProtectionPolicyTests
         Assert.True(protectedFile);
         Assert.True(reason.Contains("Cryptographic Key") || reason.Contains("Developer / SSH / Cloud"));
     }
+
+    [Theory]
+    [InlineData(@"C:\Users\user\AppData\Local\Temp\install.txt")]
+    [InlineData(@"C:\Users\user\AppData\Local\Temp\setup_log.csv")]
+    [InlineData(@"C:\Users\user\AppData\Local\Temp\bundle.js")]
+    [InlineData(@"C:\Windows\Temp\setup.log.txt")]
+    [InlineData(@"C:\Users\user\AppData\Local\Microsoft\Windows\INetCache\style.css")]
+    [InlineData(@"C:\Users\user\AppData\Local\Google\Chrome\User Data\Default\Cache\Cache_Data\index.html")]
+    public void IsProtected_TextAndScriptFilesInTempAndWebCache_Permitted(string tempPath)
+    {
+        bool protectedFile = ProtectionPolicy.IsProtected(tempPath, out _);
+        Assert.False(protectedFile);
+    }
+
+    private static readonly string[] SampleCustomPathExclusions = [@"C:\MyProtectedFolder"];
+    private static readonly string[] SampleCustomExtensionExclusions = [".mycustomext", "backup"];
+
+    [Fact]
+    public void IsProtected_CustomPathExclusions_ProtectsCustomFolder()
+    {
+        try
+        {
+            ProtectionPolicy.SetCustomExclusions(SampleCustomPathExclusions, null);
+            bool isProtected = ProtectionPolicy.IsProtected(@"C:\MyProtectedFolder\SubFolder\temp.tmp", out string reason);
+            Assert.True(isProtected);
+            Assert.Contains("User custom excluded path", reason);
+        }
+        finally
+        {
+            ProtectionPolicy.SetCustomExclusions(null, null);
+        }
+    }
+
+    [Fact]
+    public void IsProtected_CustomExtensionExclusions_ProtectsMatchingExtension()
+    {
+        try
+        {
+            ProtectionPolicy.SetCustomExclusions(null, SampleCustomExtensionExclusions);
+            bool isProtected1 = ProtectionPolicy.IsProtected(@"C:\Users\user\AppData\Local\Temp\data.mycustomext", out string reason1);
+            Assert.True(isProtected1);
+            Assert.Contains("User custom excluded file extension", reason1);
+
+            bool isProtected2 = ProtectionPolicy.IsProtected(@"C:\Users\user\AppData\Local\Temp\data.backup", out string reason2);
+            Assert.True(isProtected2);
+            Assert.Contains("User custom excluded file extension", reason2);
+
+            bool notProtected = ProtectionPolicy.IsProtected(@"C:\Users\user\AppData\Local\Temp\data.tmp", out _);
+            Assert.False(notProtected);
+        }
+        finally
+        {
+            ProtectionPolicy.SetCustomExclusions(null, null);
+        }
+    }
 }
