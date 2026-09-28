@@ -186,7 +186,7 @@ public static class ForceDeleteEngine
             HasReadOnlyOrSystemAttributes = isReadOnly,
             IsReparsePoint = isReparse,
             LockingProcesses = lockers,
-            SummaryIssues = issues.Count > 0 ? string.Join(" â€¢ ", issues) : "Ready for removal"
+            SummaryIssues = issues.Count > 0 ? string.Join(" • ", issues) : "Ready for removal"
         };
     }
 
@@ -362,7 +362,11 @@ public static class ForceDeleteEngine
                     Thread.Sleep(50);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                // Non-fatal: the delete still proceeds and may succeed without lock termination.
+                System.Diagnostics.Trace.WriteLine($"[ForceDelete] Lock termination failed for '{filePath}': {ex.GetType().Name}: {ex.Message}");
+            }
         }
 
         bool deleted = CleanupExecutor.DeletePermanently(filePath, out int win32Err, out string? failDetail);
@@ -481,7 +485,11 @@ public static class ForceDeleteEngine
             SetFileAttributesW(longPath, FILE_ATTRIBUTE_NORMAL);
             File.SetAttributes(path, FileAttributes.Normal);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            // Non-fatal: the native delete path below re-strips attributes itself.
+            System.Diagnostics.Trace.WriteLine($"[ForceDelete] StripAttributes failed for '{path}': {ex.GetType().Name}: {ex.Message}");
+        }
     }
 
     private static void ForceGrantPermissions(string path, bool isDirectory)
@@ -516,6 +524,10 @@ public static class ForceDeleteEngine
                 fi.SetAccessControl(fs);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            // Non-fatal: deletion is retried and ultimately falls back to reboot scheduling.
+            System.Diagnostics.Trace.WriteLine($"[ForceDelete] Ownership grant failed for '{path}' (isDir={isDirectory}): {ex.GetType().Name}: {ex.Message}");
+        }
     }
 }

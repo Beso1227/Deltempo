@@ -158,7 +158,11 @@ public static class RootLeftoverPurgeService
                             proc.Kill(entireProcessTree: true);
                             proc.WaitForExit(1000);
                         }
-                        catch { }
+                        catch (Exception killEx)
+                        {
+                            // Non-fatal: the process may have already exited (harmless race).
+                            System.Diagnostics.Trace.WriteLine($"[RootPurge] Could not kill locker {locker.ProcessName} (PID {locker.ProcessId}): {killEx.GetType().Name}");
+                        }
                     }
                 }
 
@@ -170,7 +174,11 @@ public static class RootLeftoverPurgeService
                     resolved = true;
                 }
             }
-            catch { }
+            catch
+            {
+                // Non-fatal: falls through to reboot scheduling when locks cannot be cleared.
+                System.Diagnostics.Trace.WriteLine($"[RootPurge] Locked-file purge fallback for '{item.PathOrKey}' did not resolve in place.");
+            }
 
             if (!resolved)
             {
@@ -205,10 +213,17 @@ public static class RootLeftoverPurgeService
             long size = RootLeftoverScannerService.CalculateDirectorySizeSafe(item.PathOrKey);
 
             // Strip attributes on all files and directories
-            var di = new DirectoryInfo(item.PathOrKey);
-            foreach (var f in di.EnumerateFiles("*", SearchOption.AllDirectories))
+            try
             {
-                try { File.SetAttributes(f.FullName, FileAttributes.Normal); } catch { }
+                var di = new DirectoryInfo(item.PathOrKey);
+                foreach (var f in di.EnumerateFiles("*", SearchOption.AllDirectories).ToList())
+                {
+                    SafeOps.Try($"RootPurge/strip '{f.FullName}'", () => File.SetAttributes(f.FullName, FileAttributes.Normal));
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[RootPurge] Attribute sweep skipped for '{item.PathOrKey}': {ex.Message}");
             }
 
             Directory.Delete(item.PathOrKey, recursive: true);
@@ -228,7 +243,11 @@ public static class RootLeftoverPurgeService
                     parent.Delete();
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                // Non-fatal: the leftover parent folder is cosmetic; the payload was already purged.
+                System.Diagnostics.Trace.WriteLine($"[RootPurge] Parent cleanup skipped for '{item.PathOrKey}': {ex.GetType().Name}: {ex.Message}");
+            }
         }
         catch
         {
@@ -251,12 +270,19 @@ public static class RootLeftoverPurgeService
                                 proc.WaitForExit(1000);
                                 unlockedAny = true;
                             }
-                            catch { }
+                            catch (Exception ex)
+                            {
+                                // Non-fatal: the process may have already exited (harmless race).
+                                System.Diagnostics.Trace.WriteLine($"[RootPurge] Could not kill locker {locker.ProcessName} (PID {locker.ProcessId}): {ex.GetType().Name}");
+                            }
                         }
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[RootPurge] Locker sweep failed for '{item.PathOrKey}': {ex.Message}");
+            }
 
             // If lockers were terminated, attempt directory deletion again
             if (unlockedAny)
@@ -269,7 +295,11 @@ public static class RootLeftoverPurgeService
                     res.ItemsPurgedCount++;
                     return;
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    // Non-fatal: the reboot-scheduling fallback below still applies.
+                    System.Diagnostics.Trace.WriteLine($"[RootPurge] Retry delete failed for '{item.PathOrKey}': {ex.Message}");
+                }
             }
 
             // Fallback: schedule remaining files and directory for reboot deletion via MoveFileEx
@@ -291,7 +321,10 @@ public static class RootLeftoverPurgeService
                     res.RebootScheduledItems.Add(item.PathOrKey);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[RootPurge] Reboot scheduling failed for '{item.PathOrKey}': {ex.Message}");
+            }
 
             if (scheduledAny)
             {

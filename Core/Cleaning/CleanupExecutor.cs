@@ -720,7 +720,11 @@ public static class CleanupExecutor
                     File.SetAttributes(path, FileAttributes.Normal);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                // The native path below re-strips attributes itself, so this is non-fatal.
+                Trace.WriteLine($"[Cleanup] Attribute normalization skipped for '{path}': {ex.GetType().Name}: {ex.Message}");
+            }
 
             // Primary: Attempt modern Win10+ POSIX semantics delete (atomic, ignores read-only attribute, unlinks in-use handles)
             try
