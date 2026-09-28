@@ -417,7 +417,7 @@ public partial class MainWindow
         string path = SettingsNewPathBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(path)) return;
 
-        var items = SettingsExcludedPathsListBox.ItemsSource as ObservableCollection<string> 
+        var items = SettingsExcludedPathsListBox.ItemsSource as ObservableCollection<string>
                     ?? new ObservableCollection<string>();
 
         if (!items.Any(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase)))
@@ -431,7 +431,7 @@ public partial class MainWindow
 
     private void SettingsRemoveExcludePath_Click(object sender, RoutedEventArgs e)
     {
-        if (SettingsExcludedPathsListBox.SelectedItem is string selected && 
+        if (SettingsExcludedPathsListBox.SelectedItem is string selected &&
             SettingsExcludedPathsListBox.ItemsSource is ObservableCollection<string> items)
         {
             items.Remove(selected);
