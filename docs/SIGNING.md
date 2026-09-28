@@ -33,16 +33,35 @@ Two practical consequences:
 
 | Option | Cost | Best for |
 | :--- | :--- | :--- |
-| **SignPath Foundation** | **Free** | Open-source projects — Deltempo's recommended path |
+| **SignPath Foundation (OV)** | **Free** | Open source — Deltempo's recommended path |
 | Azure Artifact Signing | ~$9.99/mo | Non-Store distribution, no hardware token |
 | Microsoft Store (MSIX) | Free | Guaranteed zero warnings |
 | OV certificate | $150–300/yr | Outside Artifact Signing's supported regions |
 | EV certificate | $400+/yr | Enterprise procurement only — not for SmartScreen |
+| SignPath self-signed | Free | **Pipeline testing only** — see below |
 
-Deltempo is a public MIT-licensed repository, so it qualifies for the
-**SignPath Foundation** free signing program.
+Deltempo is a public MIT-licensed repository, so it is eligible to apply for the
+**SignPath Foundation** OV program.
 
-## Option A — SignPath Foundation (free, recommended for Deltempo)
+> ### ⚠️ Self-signed certificates do not help end users
+>
+> SignPath's Community tier offers self-signed certificates. Their own
+> documentation states these are *"not signed by any certificate authority and
+> therefore not trusted"* and are intended *"for testing your release
+> process."*
+>
+> Because Windows does not trust the root, a self-signed build behaves the same
+> as an unsigned one for a normal end user: they still get a blocking warning,
+> and would additionally have to install the certificate as a trusted root
+> manually — which no ordinary user will do.
+>
+> They are still worth creating, to validate the signing pipeline before
+> committing to a real certificate. Swapping to an OV certificate later requires
+> no workflow change.
+
+## Option A — SignPath (recommended for Deltempo)
+
+### A1. SignPath Foundation (OV) — what you want
 
 1. Apply at <https://about.signpath.io/opensource>.
 2. Once approved, create an **artifact configuration** for `*.exe`.
@@ -57,6 +76,16 @@ Deltempo is a public MIT-licensed repository, so it qualifies for the
 4. Push a `v*` tag. **`.github/workflows/release-signpath.yml`** handles the rest.
 
 Use this workflow *instead of* `release.yml` — both trigger on `v*` tags.
+
+### A2. Self-signed — to validate the pipeline now
+
+You can create one immediately under **Manage Certificates → Create Self-Signed
+X.509**. Do this to prove the pipeline works end to end. It will **not** change
+what end users see (see the warning above), and it needs no approval, so it is
+worth doing while the Foundation application is pending.
+
+The private key is generated inside SignPath's HSM and never leaves it, which is
+why the workflow signs through the SignPath action rather than importing a PFX.
 
 ## Option B — Traditional certificate (PFX)
 
