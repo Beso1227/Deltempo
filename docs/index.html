@@ -1730,39 +1730,17 @@
     (function () {
       'use strict';
 
-      // 1. Theme Switcher (Dark / Light) with Persistence
-      const themeToggleBtn = document.getElementById('themeToggleBtn');
-      const htmlEl = document.documentElement;
-      const iconDark = themeToggleBtn.querySelector('.theme-icon-dark');
-      const iconLight = themeToggleBtn.querySelector('.theme-icon-light');
-
-      function setTheme(theme) {
-        if (theme === 'light') {
-          htmlEl.classList.remove('dark');
-          htmlEl.classList.add('light');
-          iconDark.style.display = 'none';
-          iconLight.style.display = 'block';
-          themeToggleBtn.setAttribute('aria-label', 'Switch to dark theme');
-          localStorage.setItem('deltempo-theme', 'light');
-        } else {
-          htmlEl.classList.remove('light');
-          htmlEl.classList.add('dark');
-          iconDark.style.display = 'block';
-          iconLight.style.display = 'none';
-          themeToggleBtn.setAttribute('aria-label', 'Switch to light theme');
-          localStorage.setItem('deltempo-theme', 'dark');
-        }
+      // Storage helpers: localStorage throws (SecurityError) in some
+      // sandboxed/private-mode contexts. Never let that kill this IIFE —
+      // the copy button lives in the same closure.
+      function storageGet(key) {
+        try { return window.localStorage ? window.localStorage.getItem(key) : null; }
+        catch (err) { return null; }
       }
-
-      // Initialize theme from storage or system preference
-      const savedTheme = localStorage.getItem('deltempo-theme') ||
-        (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-      setTheme(savedTheme);
-
-      themeToggleBtn.addEventListener('click', function () {
-        const current = htmlEl.classList.contains('light') ? 'light' : 'dark';
-        setTheme(current === 'light' ? 'dark' : 'light');
-      });
+      function storageSet(key, value) {
+        try { if (window.localStorage) window.localStorage.setItem(key, value); }
+        catch (err) { /* private mode / blocked storage: theme just won't persist */ }
+      }
 
       // 2. FAQ Accordion
       const faqButtons = document.querySelectorAll('.faq-question');
@@ -1785,10 +1763,11 @@
       });
 
       // 4. One-Liner Command Copy Button
-      // uBlock Origin's ClickFix mitigation (the `prevent-clipboard-write`
-      // scriptlet) matches `irm ... | iex` and *returns undefined* instead of a
-      // Promise when it blocks the write. Detect that case explicitly and fall
-      // back to selecting the text, so the button is never a silent no-op.
+      // Robust copy: navigator.clipboard.writeText can silently fail when an
+      // extension (e.g. uBlock Origin's ClickFix `prevent-clipboard-write`
+      // scriptlet for `irm ... | iex`) replaces it, or when permissions /
+      // transient activation are denied. So: try Clipboard API -> legacy
+      // execCommand fallback -> manual-select last resort. Never silent.
       const onelinerBtn = document.getElementById('onelinerBtn');
       const onelinerBadge = document.getElementById('onelinerBadge');
       const onelinerCmd = document.querySelector('.hero-oneshot-cmd');
@@ -1833,19 +1812,36 @@
       }
 
       function tryLegacyExecCopy(text) {
+        // Legacy fallback: a temporarily focused+selected textarea plus
+        // document.execCommand('copy'). Must run synchronously inside the
+        // click handler's user activation. Not focusable-safe: keep the
+        // element in-viewport-sized workarounds out — offscreen fixed + tiny
+        // is enough in Chrome/Edge/Firefox. Returns true on success.
         try {
-          if (!document.execCommand) return false;
+          if (typeof document.execCommand !== 'function') return false;
+          // execCommand('copy') requires a selection in the document; build
+          // a throwaway textarea synchronously in the click handler.
           var ta = document.createElement('textarea');
           ta.value = text;
           ta.setAttribute('readonly', '');
+          // Keep it focusable but invisible: fixed at 0,0 with 1px size.
+          // (Some browsers refuse to copy from display:none elements.)
           ta.style.position = 'fixed';
-          ta.style.top = '-9999px';
-          ta.style.left = '-9999px';
-          ta.style.opacity = '0';
+          ta.style.top = '0';
+          ta.style.left = '0';
+          ta.style.width = '1px';
+          ta.style.height = '1px';
+          ta.style.padding = '0';
+          ta.style.border = 'none';
+          ta.style.outline = 'none';
+          ta.style.boxShadow = 'none';
+          ta.style.background = 'transparent';
+          ta.style.opacity = '0.01';
+          ta.style.fontSize = '12pt';
           document.body.appendChild(ta);
-          ta.focus();
+          ta.focus({ preventScroll: true });
           ta.select();
-          ta.setSelectionRange(0, ta.value.length);
+          try { ta.setSelectionRange(0, ta.value.length); } catch (err) { /* older browsers */ }
           var ok = false;
           try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
           if (ta.parentNode) ta.parentNode.removeChild(ta);
@@ -1868,9 +1864,10 @@
       }
 
       function handleOnelinerCopyBlocked() {
-        // Clipboard API failed/blocked: try the legacy execCommand path
-        // (uBlock's ClickFix scriptlet only hooks navigator.clipboard.writeText,
-        // so execCommand still succeeds). Only show "Ctrl+C" if that fails too.
+        // Clipboard API failed/blocked/timed-out: run the synchronous legacy
+        // execCommand path NOW, inside the original user gesture. uBlock's
+        // ClickFix scriptlet only hooks navigator.clipboard.writeText, so
+        // execCommand still succeeds. Only show "Ctrl+C" if that fails too.
         if (tryLegacyExecCopy(ONE_LINER_CMD)) {
           handleOnelinerCopied();
           return;
@@ -1883,26 +1880,102 @@
 
       if (onelinerBtn && onelinerBadge) {
         onelinerBtn.title = ONE_LINER_TITLE;
-        onelinerBtn.addEventListener('click', function () {
-          let pending = null;
-          try {
-            pending = navigator.clipboard && navigator.clipboard.writeText
-              ? navigator.clipboard.writeText(ONE_LINER_CMD)
-              : null;
-          } catch (err) {
-            pending = null;
-          }
 
-          if (pending && typeof pending.then === 'function') {
-            pending.then(handleOnelinerCopied).catch(handleOnelinerCopyBlocked);
+        // Keyboard accessibility: Enter/Space on the button triggers the
+        // same copy path (some setups only activate via keyboard).
+        onelinerBtn.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            copyOnelinerNow();
+          }
+        });
+
+        // THE FIX: run execCommand SYNCHRONOUSLY in the click handler.
+        // The old code called navigator.clipboard.writeText() first and only
+        // ran execCommand later inside a promise .catch() — by then the
+        // browser's transient user activation had expired, so execCommand
+        // silently returned false and users saw text selected but nothing in
+        // the clipboard. Synchronous-first always works.
+        function copyOnelinerNow() {
+          // 1) Synchronous legacy path first — inside user activation.
+          if (tryLegacyExecCopy(ONE_LINER_CMD)) {
+            handleOnelinerCopied();
             return;
           }
+          // 2) Legacy failed: try the async Clipboard API as backup.
+          var pending = null;
+          try {
+            pending = (navigator.clipboard && navigator.clipboard.writeText)
+              ? navigator.clipboard.writeText(ONE_LINER_CMD)
+              : null;
+          } catch (err) { pending = null; }
+          if (pending && typeof pending.then === 'function') {
+            var timer = setTimeout(function () { handleOnelinerCopyBlockedRetry(); }, 900);
+            pending.then(
+              function () { clearTimeout(timer); handleOnelinerCopied(); },
+              function () { clearTimeout(timer); handleOnelinerCopyBlockedRetry(); });
+            return;
+          }
+          // 3) Nothing worked: leave text selected for manual Ctrl+C.
+          selectOnelinerCmd();
+          setOnelinerBadge('Ctrl+C', 'warn');
+          onelinerBtn.title = ONE_LINER_BLOCKED_TITLE;
+          resetOnelinerBadge();
+        }
 
-          // No Promise came back: either the Clipboard API is unavailable
-          // (insecure context) or an extension replaced writeText to block it.
-          handleOnelinerCopyBlocked();
+        function handleOnelinerCopyBlockedRetry() {
+          // Clipboard API path failed after click activation expired, so
+          // execCommand would fail too. Just leave the text selected.
+          selectOnelinerCmd();
+          setOnelinerBadge('Ctrl+C', 'warn');
+          onelinerBtn.title = ONE_LINER_BLOCKED_TITLE;
+          resetOnelinerBadge();
+        }
+
+        onelinerBtn.addEventListener('click', function (ev) {
+          if (ev && ev.preventDefault) ev.preventDefault();
+          copyOnelinerNow();
         });
       }
+
+      // 1. Theme Switcher (Dark / Light) with Persistence
+      (function initTheme() {
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      if (!themeToggleBtn) return;
+      const htmlEl = document.documentElement;
+      const iconDark = themeToggleBtn.querySelector('.theme-icon-dark');
+      const iconLight = themeToggleBtn.querySelector('.theme-icon-light');
+
+      function setTheme(theme) {
+        if (theme === 'light') {
+          htmlEl.classList.remove('dark');
+          htmlEl.classList.add('light');
+          if (iconDark) iconDark.style.display = 'none';
+          if (iconLight) iconLight.style.display = 'block';
+          themeToggleBtn.setAttribute('aria-label', 'Switch to dark theme');
+          storageSet('deltempo-theme', 'light');
+        } else {
+          htmlEl.classList.remove('light');
+          htmlEl.classList.add('dark');
+          if (iconDark) iconDark.style.display = 'block';
+          if (iconLight) iconLight.style.display = 'none';
+          themeToggleBtn.setAttribute('aria-label', 'Switch to light theme');
+          storageSet('deltempo-theme', 'dark');
+        }
+      }
+
+      // Initialize theme from storage or system preference
+      var savedTheme = storageGet('deltempo-theme') ||
+        (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      try { setTheme(savedTheme); } catch (err) { /* never break the page */ }
+
+      themeToggleBtn.addEventListener('click', function () {
+        try {
+        const current = htmlEl.classList.contains('light') ? 'light' : 'dark';
+        setTheme(current === 'light' ? 'dark' : 'light');
+        } catch (err) { /* cosmetic only */ }
+      });
+      })();
     })();
   </script>
 
