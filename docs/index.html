@@ -1832,7 +1832,49 @@
         }
       }
 
+      function tryLegacyExecCopy(text) {
+        try {
+          if (!document.execCommand) return false;
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          ta.setAttribute('readonly', '');
+          ta.style.position = 'fixed';
+          ta.style.top = '-9999px';
+          ta.style.left = '-9999px';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          ta.setSelectionRange(0, ta.value.length);
+          var ok = false;
+          try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+          if (ta.parentNode) ta.parentNode.removeChild(ta);
+          return !!ok;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function handleOnelinerCopied() {
+        selectOnelinerCmd();
+        // Clear the selection right away so the box doesn't look "stuck"
+        // highlighted after a successful copy.
+        try {
+          if (window.getSelection) window.getSelection().removeAllRanges();
+          if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+        } catch (err) { /* cosmetic only */ }
+        setOnelinerBadge('Copied!', 'ok');
+        resetOnelinerBadge();
+      }
+
       function handleOnelinerCopyBlocked() {
+        // Clipboard API failed/blocked: try the legacy execCommand path
+        // (uBlock's ClickFix scriptlet only hooks navigator.clipboard.writeText,
+        // so execCommand still succeeds). Only show "Ctrl+C" if that fails too.
+        if (tryLegacyExecCopy(ONE_LINER_CMD)) {
+          handleOnelinerCopied();
+          return;
+        }
         selectOnelinerCmd();
         setOnelinerBadge('Ctrl+C', 'warn');
         onelinerBtn.title = ONE_LINER_BLOCKED_TITLE;
@@ -1852,10 +1894,7 @@
           }
 
           if (pending && typeof pending.then === 'function') {
-            pending.then(function () {
-              setOnelinerBadge('Copied!', 'ok');
-              resetOnelinerBadge();
-            }).catch(handleOnelinerCopyBlocked);
+            pending.then(handleOnelinerCopied).catch(handleOnelinerCopyBlocked);
             return;
           }
 

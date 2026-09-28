@@ -152,6 +152,8 @@ BenchmarkDotNet.Artifacts/
 scratch/
 temp/
 tmp/
+.tmp_*.js
+.tmp_*
 graphify-out/
 GRAPHIFY.md
 vault/
