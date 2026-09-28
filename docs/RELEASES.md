@@ -16,8 +16,8 @@ All official releases are tagged in git using `vX.Y.Z` and triggered through Git
 | Channel | Format | Destination | Description |
 | :--- | :--- | :--- | :--- |
 | **GitHub Releases** | Single-File Executable (`Deltempo-vX.Y.Z-win-x64.zip`) | GitHub Release Assets | Self-contained x64 binary with embedded runtime. Includes `.sha256` checksum and `.sig` Ed25519 signature. |
-| **WinGet** | Package Manifest (`Beso1227.Deltempo`) | `microsoft/winget-pkgs` | Official Windows Package Manager repository for one-line installation (`winget install deltempo`). |
 | **Direct Binary** | Portable executable | Release bundle | Zero installer requirement; fully portable. |
+| **Terminal One-Liner** | PowerShell bootstrap script | `https://beso1227.github.io/Deltempo/win` | `irm .../win | iex` downloads, SHA-256 verifies, caches, and launches the latest release. |
 
 ---
 

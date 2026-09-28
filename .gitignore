@@ -53,6 +53,9 @@ project.assets.json
 *.credentials
 credentials.json
 *.token
+# GitHub Personal Access Token — local only, never commit, never share.
+# Usage: $env:GITHUB_TOKEN = (Get-Content .\github.token -Raw).Trim()
+github.token
 secrets.json
 appsettings*.local.json
 appsettings.Development.json

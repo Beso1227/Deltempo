@@ -85,7 +85,11 @@ jobs:
             $lines += "$hash  $name"
             Write-Host "$hash  $name"
           }
-          $lines | Out-File -FilePath "./dist/checksums.sha256" -Encoding utf8 -NoNewline
+          # Out-File -NoNewline on an ARRAY concatenates elements with no
+          # separator, producing a single unparseable line. Join explicitly.
+          $manifest = ($lines -join "`n") + "`n"
+          $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+          [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'dist/checksums.sha256'), $manifest, $utf8NoBom)
 
       # Signing is skipped only when a maintainer explicitly opts out via
       # REQUIRE_SIGNING == 'false'. Otherwise a missing certificate is a hard
@@ -201,3 +205,20 @@ jobs:
             ./dist/checksums.sha256
           draft: false
           prerelease: false
+
+      # softprops has been observed to silently skip checksums.sha256 (every
+      # release from v1.6.1 through v3.0.0 shipped only the two EXEs despite
+      # it being listed in `files:` above), so attach the manifest explicitly.
+      # The one-line installer treats this as the trust anchor and refuses to
+      # run when it is missing or does not match.
+      - name: Upload Checksum Manifest
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ steps.tag.outputs.value }}" ./dist/checksums.sha256 --clobber
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "::error::checksums.sha256 could not be attached to ${{ steps.tag.outputs.value }}. The one-line installer will fail closed until this is fixed."
+            exit 1
+          }
+          Write-Host "checksums.sha256 attached to ${{ steps.tag.outputs.value }}."

@@ -67,5 +67,4 @@ LICENSE text
 # -----------------------------------------------------------------------------
 docs/** linguist-documentation
 Tests/** linguist-test
-winget/** linguist-vendored
 dist/** linguist-vendored

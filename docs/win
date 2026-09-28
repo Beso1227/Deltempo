@@ -1,0 +1,136 @@
+<#
+    Deltempo one-line installer
+    ==========================================================================
+    GUI   irm https://beso1227.github.io/Deltempo/win | iex
+    CLI   irm https://beso1227.github.io/Deltempo/win-cli | iex
+
+    Downloads the latest published release binary, verifies it against the
+    SHA-256 manifest, caches it in %LOCALAPPDATA%\Deltempo\bin and launches it.
+
+    Trust anchor
+      1. checksums.sha256 attached to the GitHub release  (authoritative)
+      2. https://beso1227.github.io/Deltempo/checksums.sha256 (fallback)
+
+    If neither can be read, or the computed hash does not match, this script
+    aborts and executes nothing it downloaded. Verification is never skipped.
+#>
+
+& {
+    $ErrorActionPreference = 'Stop'
+    $ProgressPreference = 'SilentlyContinue'   # 70 MB without a progress bar
+
+    # --- Resolve target (hint is consumed so later runs default to GUI) ---
+    $target = 'gui'
+    if ($env:DELTEMPO_TARGET -match '^(gui|cli)$') { $target = $Matches[1] }
+    Remove-Item -Path Env:DELTEMPO_TARGET -ErrorAction SilentlyContinue
+
+    $name = if ($target -eq 'cli') { 'deltempo_cli.exe' } else { 'Deltempo.exe' }
+
+    $base  = 'https://github.com/Beso1227/Deltempo/releases/latest/download'
+    $pages = 'https://beso1227.github.io/Deltempo'
+    $local = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA }
+             else { [Environment]::GetFolderPath('LocalApplicationData') }
+    $cache = Join-Path $local 'Deltempo\bin'
+    $dest  = Join-Path $cache $name
+
+    # Windows PowerShell 5.1 can still default to TLS 1.0.
+    try {
+        [Net.ServicePointManager]::SecurityProtocol =
+            [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    } catch { }
+
+    function Stop-Install([string]$why) {
+        Write-Host ''
+        Write-Host '  ! FAILED  ' -NoNewline -ForegroundColor Red
+        Write-Host $why -ForegroundColor Red
+        throw "Deltempo install aborted: $why"
+    }
+
+    Write-Host 'Deltempo one-line installer' -ForegroundColor Cyan
+    Write-Host "  target      : $target" -ForegroundColor DarkGray
+
+    # --- 1. Read the published SHA-256 manifest ---------------------------
+    $manifest = $null
+    $origin   = $null
+
+    foreach ($src in @(
+        @{ Url = "$base/checksums.sha256"; From = 'release asset' },
+        @{ Url = "$pages/checksums.sha256"; From = 'GitHub Pages' }
+    )) {
+        $tmp = [IO.Path]::GetTempFileName()
+        try {
+            Invoke-WebRequest -Uri $src.Url -OutFile $tmp -UseBasicParsing -TimeoutSec 60 | Out-Null
+            $text = [IO.File]::ReadAllText($tmp)
+            if ($text -match '[0-9a-fA-F]{64}') { $manifest = $text; $origin = $src.From; break }
+        } catch { } finally { Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue }
+    }
+
+    if (-not $manifest) {
+        Stop-Install "no SHA-256 manifest found (release asset or $pages/checksums.sha256). Refusing to run an unverified download."
+    }
+    Write-Host "  manifest    : $origin" -ForegroundColor DarkGray
+
+    # --- 2. Pick out the expected digest for this binary -------------------
+    $expected = $null
+    foreach ($line in ($manifest -split "`r?`n")) {
+        if ($line -match '^\s*([0-9a-fA-F]{64})\s+(\S+)\s*$' -and $Matches[2] -ieq $name) {
+            $expected = $Matches[1].ToLower()
+            break
+        }
+    }
+    if (-not $expected) {
+        Stop-Install "the manifest has no entry for $name. Refusing to run an unverified download."
+    }
+
+    # --- 3. Reuse the cache when it already matches ------------------------
+    $cached = $false
+    if (Test-Path -LiteralPath $dest) {
+        $cached = ((Get-FileHash -LiteralPath $dest -Algorithm SHA256).Hash.ToLower() -eq $expected)
+    }
+
+    if (-not $cached) {
+        [void][IO.Directory]::CreateDirectory($cache)
+        $part = "$dest.part"
+        Write-Host "  downloading : $name" -ForegroundColor DarkGray
+
+        try {
+            Invoke-WebRequest -Uri "$base/$name" -OutFile $part -UseBasicParsing -TimeoutSec 900 | Out-Null
+        } catch {
+            Remove-Item -LiteralPath $part -Force -ErrorAction SilentlyContinue
+            Stop-Install "download failed: $($_.Exception.Message)"
+        }
+
+        $actual = (Get-FileHash -LiteralPath $part -Algorithm SHA256).Hash.ToLower()
+        if ($actual -ne $expected) {
+            Remove-Item -LiteralPath $part -Force -ErrorAction SilentlyContinue
+            Stop-Install @"
+SHA-256 mismatch for $name - the download was deleted and nothing was executed.
+               expected: $expected
+               actual  : $actual
+"@
+        }
+
+        try {
+            Move-Item -LiteralPath $part -Destination $dest -Force
+        } catch {
+            Remove-Item -LiteralPath $part -Force -ErrorAction SilentlyContinue
+            Stop-Install "verified, but the cache could not be updated (is Deltempo still running?): $($_.Exception.Message)"
+        }
+
+        Write-Host '  verified    : SHA-256 match' -ForegroundColor Green
+    } else {
+        Write-Host '  cache       : already verified' -ForegroundColor DarkGray
+    }
+
+    # --- 4. Launch ---------------------------------------------------------
+    Write-Host "  binary      : $dest" -ForegroundColor Green
+
+    if ($target -eq 'cli') {
+        Write-Host ''
+        & $dest
+    } else {
+        Start-Process -FilePath $dest
+        Write-Host '  launched    : Deltempo' -ForegroundColor Green
+        Write-Host ''
+    }
+}

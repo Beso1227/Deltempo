@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Download Deltempo — Windows Cleaner &amp; Memory Optimizer</title>
-  <meta name="description" content="Download official Deltempo standalone binaries for Windows 10 &amp; 11 (64-bit). Clean disposable caches, flush NT standby memory, zero telemetry, WinGet ready.">
-  <meta name="keywords" content="download deltempo, deltempo windows cleaner download, deltempo pc cleaner, deltempo exe, winget deltempo, portable windows cleaner, open source windows cleaner">
+  <meta name="description" content="Download official Deltempo standalone binaries for Windows 10 &amp; 11 (64-bit). Clean disposable caches, flush NT standby memory, zero telemetry, one-line PowerShell install.">
+  <meta name="keywords" content="download deltempo, deltempo windows cleaner download, deltempo pc cleaner, deltempo exe, portable windows cleaner, open source windows cleaner">
   <meta name="author" content="Beso1227">
   <meta name="application-name" content="Deltempo">
   <meta name="theme-color" content="#0B0F10">
@@ -69,8 +69,7 @@
         "codeRepository": "https://github.com/Beso1227/Deltempo",
         "sameAs": [
           "https://github.com/Beso1227/Deltempo",
-          "https://github.com/Beso1227",
-          "https://winget.run/pkg/Beso1227.Deltempo"
+          "https://github.com/Beso1227"
         ],
         "applicationCategory": "UtilitiesApplication, SystemOptimizer",
         "operatingSystem": "Windows 10, Windows 11 (64-bit)",
@@ -231,18 +230,18 @@
       </div>
     </div>
 
-    <!-- WinGet Section -->
-    <div class="double-bezel download-winget-box">
-      <div class="card-inner download-winget-inner">
-        <h3 class="download-winget-title">Install via Microsoft WinGet</h3>
-        <p class="download-card-desc">Install, update, and manage Deltempo directly through the official Windows Package Manager:</p>
-        <div class="download-winget-row">
-          <button type="button" class="hero-winget" id="wingetBtn" title="Click to copy WinGet command" aria-label="Copy WinGet install command">
+    <!-- One-Liner Section -->
+    <div class="double-bezel download-oneliner-box">
+      <div class="card-inner download-oneliner-inner">
+        <h3 class="download-oneliner-title">Install from the Terminal</h3>
+        <p class="download-card-desc">Fetch, verify, and launch the latest release in a single PowerShell command:</p>
+        <div class="download-oneliner-row">
+          <button type="button" class="hero-oneshot" id="onelinerBtn" title="Click to copy the one-line install command" aria-label="Copy one-line install command">
             <span class="accent-cyan-text">$</span>
-            <span>winget install Beso1227.Deltempo</span>
-            <span class="hero-winget-copy" id="wingetBadge">Copy</span>
+            <span>irm https://beso1227.github.io/Deltempo/win | iex</span>
+            <span class="hero-oneshot-copy" id="onelinerBadge">Copy</span>
           </button>
-          <span class="download-winget-hint"># PowerShell or Command Prompt</span>
+          <span class="download-oneliner-hint"># PowerShell 5.1+ or PowerShell 7</span>
         </div>
       </div>
     </div>
@@ -342,19 +341,19 @@
         setTheme(current === 'light' ? 'dark' : 'light');
       });
 
-      // WinGet Command Copy Button
-      const wingetBtn = document.getElementById('wingetBtn');
-      const wingetBadge = document.getElementById('wingetBadge');
-      if (wingetBtn && wingetBadge) {
-        wingetBtn.addEventListener('click', function () {
-          navigator.clipboard.writeText('winget install Beso1227.Deltempo').then(function () {
-            wingetBadge.textContent = 'Copied!';
-            wingetBadge.style.background = 'var(--accent-emerald-bg)';
-            wingetBadge.style.color = 'var(--accent-emerald)';
+      // One-Liner Command Copy Button
+      const onelinerBtn = document.getElementById('onelinerBtn');
+      const onelinerBadge = document.getElementById('onelinerBadge');
+      if (onelinerBtn && onelinerBadge) {
+        onelinerBtn.addEventListener('click', function () {
+          navigator.clipboard.writeText('irm https://beso1227.github.io/Deltempo/win | iex').then(function () {
+            onelinerBadge.textContent = 'Copied!';
+            onelinerBadge.style.background = 'var(--accent-emerald-bg)';
+            onelinerBadge.style.color = 'var(--accent-emerald)';
             setTimeout(function () { // DevSkim: ignore DS172411
-              wingetBadge.textContent = 'Copy';
-              wingetBadge.style.background = 'var(--accent-cyan-bg)';
-              wingetBadge.style.color = 'var(--accent-cyan)';
+              onelinerBadge.textContent = 'Copy';
+              onelinerBadge.style.background = 'var(--accent-cyan-bg)';
+              onelinerBadge.style.color = 'var(--accent-cyan)';
             }, 2000);
           }).catch(function () {
             // Fallback for non-secure contexts

@@ -7,7 +7,7 @@ namespace WinTempCleaner.Core.Abstractions;
 public record ProcessExecutionResult(int ExitCode, string StandardOutput, string StandardError);
 
 /// <summary>
-/// Abstraction for invoking external processes (e.g. dism, cleanmgr, sfc, winget).
+/// Abstraction for invoking external processes (e.g. dism, cleanmgr, sfc).
 /// </summary>
 public interface IProcessRunner
 {

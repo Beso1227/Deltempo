@@ -4,14 +4,14 @@
 
 - [Official Website](https://beso1227.github.io/Deltempo/): Primary homepage, interactive simulator, and downloads
 - [GitHub Repository](https://github.com/Beso1227/Deltempo): Source code, issues, and community contributions
-- [Download](https://beso1227.github.io/Deltempo/download/): Standalone executable and WinGet installation
+- [Download](https://beso1227.github.io/Deltempo/download/): Standalone executable and one-line PowerShell install
 - [Documentation](https://beso1227.github.io/Deltempo/docs/): Technical guide to 26+ scopes, safety tiers, and CLI commands
 - [FAQ](https://beso1227.github.io/Deltempo/faq/): Common questions on safety, GPU caches, NT memory, duplicate finder, and app uninstallation
 - [Changelog](https://beso1227.github.io/Deltempo/changelog/): Release notes and version history (including v1.8.0)
 
 ## Overview
 Deltempo safely purges disposable system, developer, and browser caches, recovers gigabytes of disk space, thoroughly uninstalls desktop programs with leftover cleanup, detects byte-level duplicate files, provides an interactive storage treemap, provides startup intelligence, and trims inactive Windows memory working sets with zero telemetry.
-Package identifier for Microsoft WinGet: `winget install Beso1227.Deltempo`
+One-line install: `irm https://beso1227.github.io/Deltempo/win | iex`
 
 ## Core Capabilities
 - **26+ Cleaning Scopes**: System temp, driver installers, DirectX/GPU shader caches, browser caches, dev artifacts (NuGet, npm, pip, Cargo, Gradle), and crash dumps.

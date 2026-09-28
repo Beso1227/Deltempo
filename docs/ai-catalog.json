@@ -9,7 +9,7 @@
   "download": {
     "gui": "https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe",
     "cli": "https://github.com/Beso1227/Deltempo/releases/latest/download/deltempo_cli.exe",
-    "winget": "winget install Beso1227.Deltempo"
+    "oneliner": "irm https://beso1227.github.io/Deltempo/win | iex"
   },
   "documentation": "https://beso1227.github.io/Deltempo/docs/",
   "llms_context": "https://beso1227.github.io/Deltempo/llms.txt",

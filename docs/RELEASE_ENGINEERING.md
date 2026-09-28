@@ -103,15 +103,13 @@ signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a ./publi
 - Include SHA256 checksums file `checksums.sha256`.
 - Include generated `sbom-packages.json`.
 
-### 4.2 Windows Package Manager (Winget)
-Submit package manifest to [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs):
-```powershell
-wingetcreate new https://github.com/Beso1227/Deltempo/releases/download/v1.5.2/Deltempo.exe
-```
-Or validate existing manifest under `winget/manifests/b/Beso1227/Deltempo/`:
-```powershell
-winget validate --manifest winget/manifests/b/Beso1227/Deltempo/1.5.2
-```
+### 4.2 Terminal One-Liner
+Served from GitHub Pages as two extensionless PowerShell scripts: `docs/win` (GUI) and `docs/win-cli` (headless CLI).
+- `docs/.nojekyll` disables Jekyll, so both are served raw as `application/octet-stream`. `Invoke-RestMethod` still returns a string for that content type, which is what makes `| iex` work — verified against PowerShell 7.6.6.
+- Bootstrap flow: read `checksums.sha256` → download the chosen binary → verify SHA-256 → cache in `%LOCALAPPDATA%\Deltempo\bin` → launch.
+- Trust anchor, in order of preference: the `checksums.sha256` release asset (authoritative, attached by the `Upload Checksum Manifest` step), then `docs/checksums.sha256` published on Pages as a bootstrap fallback. A missing manifest or a digest mismatch aborts the install; verification is never skipped or downgraded to a warning.
+- `Invoke-Expression` accepts no arguments, so `win-cli` passes the target through `DELTEMPO_TARGET`. `win` consumes that variable, so a later run defaults back to the GUI.
+- Re-running the command always pulls the newest published release.
 
 ---
 
