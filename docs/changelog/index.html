@@ -175,12 +175,33 @@
       <p class="section-subtitle">Complete version history, feature additions, and security improvements.</p>
     </div>
 
+    <!-- v3.0.0 -->
+    <div class="double-bezel release-card reveal-on-scroll stagger-1">
+      <div class="card-inner">
+        <div class="release-header">
+          <h2 class="release-version">v3.0.0 (Latest Stable)</h2>
+          <span class="release-tag release-tag-stable">CURRENT STABLE</span>
+        </div>
+        <ul class="release-list">
+          <li><strong>Force Delete &amp; Stubborn Purge Engine:</strong> Permanently removes locked, read-only, hidden, system-attributed, and permission-denied files and folders. Bypasses file locks, strips attributes, takes ownership, resets ACLs, terminates locking applications, and falls back to Windows Session Manager <code>MoveFileEx</code> reboot scheduling when a handle cannot be released (<code>ForceDeleteEngine</code>).</li>
+          <li><strong>Interactive Purge Workbench:</strong> New modal reachable from the header toolbar. Pick files and folders with native dialogs, review a staged list showing each target's stubbornness, lock owners, and safety tier, then dry-run or execute. Target profiling runs off the UI thread so large selections never freeze the window.</li>
+          <li><strong>Two-Tier Deletion Authorization Gate:</strong> Tier A (<code>AbsoluteBlock</code>) permanently shields drive roots, the Windows directory, System32, WinSxS, boot files, registry hives, Program Files, and ProgramData. Tier B (<code>OverrideRequired</code>) demands explicit consent for installed applications and personal data.</li>
+          <li><strong>BREAKING CLI CHANGE &mdash; <code>--force-override</code>:</strong> Policy-protected (Tier B) targets now require the new <code>--force-override</code> flag. <code>--yes</code> alone no longer authorizes them: protected targets are shielded, the command exits non-zero, and it explains how to proceed. Update any scripts that previously relied on <code>--yes</code> to remove application directories.</li>
+          <li><strong>Safety Gate Hardening:</strong> Fixed a bypass where the Program Files, Program Files (x86), and Program Data <em>roots</em> escaped validation and were reported as safe to delete. Critical Windows directories are now anchored to the real Windows root instead of substring-matched, so a user folder that happens to be named <code>windows\system32</code> is no longer permanently undeletable.</li>
+          <li><strong>CLI Argument Parsing Fix:</strong> Option values are no longer collected as deletion targets &mdash; <code>--retry 5</code> previously resolved the bare <code>5</code> against the working directory and staged it for removal.</li>
+          <li><strong>Resilient Recursive Deletion:</strong> Directory traversal now ignores inaccessible entries so one locked or ACL-denied subfolder no longer aborts deletion of its healthy siblings. Junction and symlink targets have their attributes stripped before unlinking.</li>
+          <li><strong>Destructive-Failure Diagnostics:</strong> Best-effort operations that are deliberately ignored now record evidence in the rolling local log (<code>%LOCALAPPDATA%\Deltempo\deltempo.log</code>) instead of failing silently, so a purge that quietly skipped an item can be diagnosed. Still local-file only, preserving the zero-telemetry promise.</li>
+          <li><strong>Verified Quality:</strong> 692 automated tests passing with zero compiler warnings under <code>TreatWarningsAsErrors</code>, including dedicated regression coverage for the safety gate, dry-run accounting, and shielded-path immutability.</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- v2.0.0 -->
     <div class="double-bezel release-card reveal-on-scroll stagger-1">
       <div class="card-inner">
         <div class="release-header">
-          <h2 class="release-version">v2.0.0 (Latest Stable)</h2>
-          <span class="release-tag release-tag-stable">CURRENT STABLE</span>
+          <h2 class="release-version">v2.0.0</h2>
+          <span class="release-tag release-tag-prev">PREVIOUS</span>
         </div>
         <ul class="release-list">
           <li><strong>Cyber Mint &amp; Electric Teal Branding:</strong> Full palette transition across app and website, refreshed high-resolution icon suite, and a 1280&times;640 social preview banner.</li>
