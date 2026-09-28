@@ -352,9 +352,15 @@ public static class FileSafetyEngine
                 impact: "Zero impact.");
         }
 
-        // Hardware Driver Extractor Leftovers (NVIDIA, AMD, Intel)
-        if (pathLower.StartsWith(@"c:\nvidia\") || pathLower.StartsWith(@"c:\amd\") ||
-            pathLower.StartsWith(@"c:\intel\") || pathLower.Contains(@"\nvidia\displaydriver\"))
+        // Hardware Driver Extractor Leftovers (NVIDIA, AMD, Intel, Realtek) on any drive
+        bool isDriverExtractorRoot = (pathLower.Length >= 3 && pathLower[1] == ':' && (
+            pathLower.Substring(2).StartsWith(@"\nvidia\") ||
+            pathLower.Substring(2).StartsWith(@"\amd\") ||
+            pathLower.Substring(2).StartsWith(@"\intel\") ||
+            pathLower.Substring(2).StartsWith(@"\realtek\"))) ||
+            pathLower.Contains(@"\nvidia\displaydriver\");
+
+        if (isDriverExtractorRoot)
         {
             return CreateResult(
                 SafetyRiskTier.Safe,
@@ -371,10 +377,21 @@ public static class FileSafetyEngine
         if (pathLower.Contains(@"\nvidia corporation\installer2\") ||
             pathLower.Contains(@"\nvidia corporation\downloader\") ||
             pathLower.Contains(@"\nvidia app\updateframework\ota-artifacts\") ||
+            pathLower.Contains(@"\nvidia app\installer\") ||
+            pathLower.Contains(@"\geforce experience\download\") ||
+            pathLower.Contains(@"\nvidia\updates\") ||
+            pathLower.Contains(@"\nvidia\displaydriver\") ||
+            pathLower.Contains(@"\nvidia corporation\netservice\") ||
             pathLower.Contains(@"\amd_radeon_software_installer\") ||
             pathLower.Contains(@"\amd\packages\") ||
+            pathLower.Contains(@"\amd\dvr\") ||
             pathLower.Contains(@"\intel\package cache\") ||
-            pathLower.Contains(@"\driverstore\temp\"))
+            pathLower.Contains(@"\intel\dsa\") ||
+            pathLower.Contains(@"\intel\gfx\") ||
+            pathLower.Contains(@"\intel\logs\") ||
+            pathLower.Contains(@"\intel(r) processor diagnostic tool\") ||
+            pathLower.Contains(@"\driverstore\temp\") ||
+            pathLower.Contains(@"\driverstate\"))
         {
             return CreateResult(
                 SafetyRiskTier.Safe,

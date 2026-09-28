@@ -138,9 +138,25 @@ public class ProtectionPolicyTests
     [InlineData(@"C:\Windows\Temp\setup.log.txt")]
     [InlineData(@"C:\Users\user\AppData\Local\Microsoft\Windows\INetCache\style.css")]
     [InlineData(@"C:\Users\user\AppData\Local\Google\Chrome\User Data\Default\Cache\Cache_Data\index.html")]
+    [InlineData(@"C:\Users\user\AppData\Local\Microsoft\Edge\User Data\Default\EBWebView\Default\Cache\data_0")]
+    [InlineData(@"C:\Users\user\AppData\Local\Packages\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\LocalCache\Spotify\Data\index.json")]
+    [InlineData(@"C:\Users\user\AppData\Local\Discord\Cache\Cache_Data\f_000001")]
+    [InlineData(@"C:\Users\user\AppData\Local\D3DSCache\hash\cache.bin")]
     public void IsProtected_TextAndScriptFilesInTempAndWebCache_Permitted(string tempPath)
     {
         bool protectedFile = ProtectionPolicy.IsProtected(tempPath, out _);
+        Assert.False(protectedFile);
+    }
+
+    [Theory]
+    [InlineData(@"C:\Program Files (x86)\Steam\steamapps\downloading\1086940\chunk.pak")]
+    [InlineData(@"D:\SteamLibrary\steamapps\shadercache\1086940\DX12.bin")]
+    [InlineData(@"C:\Program Files (x86)\Steam\steamapps\temp\staging.tmp")]
+    [InlineData(@"C:\Program Files\Epic Games\Launcher\Portal\Saved\webcache\data_0")]
+    [InlineData(@"C:\Program Files\Epic Games\Launcher\Portal\Saved\Logs\launcher.log")]
+    public void IsProtected_GamingLauncherCachesAndDownloads_Permitted(string gamingCachePath)
+    {
+        bool protectedFile = ProtectionPolicy.IsProtected(gamingCachePath, out _);
         Assert.False(protectedFile);
     }
 

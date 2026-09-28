@@ -206,9 +206,55 @@ public static class RestartManagerService
         "StartMenuExperienceHost", "ShellExperienceHost", "Deltempo", "deltempo_cli"
     };
 
+    public static readonly HashSet<string> DisposableBackgroundHelperProcesses = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "crashpad_handler", "GoogleUpdate", "MicrosoftEdgeUpdate", "identity_helper",
+        "setup", "msiexec", "updater", "update", "browser_broker",
+        "filecoauth", "microsoftedgesh"
+    };
+
     public static bool IsProtectedSystemProcess(string processName)
     {
         if (string.IsNullOrWhiteSpace(processName)) return false;
         return ProtectedSystemProcessNames.Contains(processName);
+    }
+
+    /// <summary>
+    /// Attempts to terminate non-critical helper processes locking disposable files.
+    /// Strictly protects critical Windows kernel, shell, and security processes.
+    /// </summary>
+    public static int TerminateLockingProcesses(string filePath, bool backgroundHelpersOnly = true)
+    {
+        var lockers = GetLockingProcesses(filePath);
+        int terminated = 0;
+        int currentPid = Environment.ProcessId;
+
+        foreach (var locker in lockers)
+        {
+            if (locker.ProcessId <= 4 || locker.ProcessId == currentPid) continue;
+            if (IsProtectedSystemProcess(locker.ProcessName)) continue;
+
+            if (backgroundHelpersOnly && !DisposableBackgroundHelperProcesses.Contains(locker.ProcessName))
+            {
+                continue;
+            }
+
+            try
+            {
+                using var proc = Process.GetProcessById(locker.ProcessId);
+                if (!proc.HasExited)
+                {
+                    proc.Kill(entireProcessTree: false);
+                    proc.WaitForExit(150);
+                    terminated++;
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[RestartManager] Failed terminating locker '{locker.ProcessName}' (PID {locker.ProcessId}): {ex.Message}");
+            }
+        }
+
+        return terminated;
     }
 }

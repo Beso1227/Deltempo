@@ -56,38 +56,71 @@ public static class SystemCacheResolver
         var progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
         var rootDrive = Path.GetPathRoot(winDir) ?? @"C:\";
 
+        var fixedDrives = new List<string> { rootDrive };
+        try
+        {
+            var drives = DriveInfo.GetDrives()
+                .Where(d => d.DriveType == DriveType.Fixed && d.IsReady)
+                .Select(d => d.RootDirectory.FullName);
+            foreach (var d in drives)
+            {
+                if (!fixedDrives.Contains(d, StringComparer.OrdinalIgnoreCase))
+                {
+                    fixedDrives.Add(d);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] Drive enumeration warning: {ex.Message}");
+        }
+
         var dirs = new List<string>
         {
             // NVIDIA installer packages, OTA framework and staging
             Path.Combine(progFiles, "NVIDIA Corporation", "Installer2"),
             Path.Combine(progFilesX86, "NVIDIA Corporation", "Installer2"),
             Path.Combine(progData, "NVIDIA Corporation", "NVIDIA App", "UpdateFramework", "ota-artifacts"),
+            Path.Combine(progData, "NVIDIA Corporation", "NVIDIA App", "Installer"),
             Path.Combine(progData, "NVIDIA Corporation", "Downloader"),
             Path.Combine(progData, "NVIDIA Corporation", "GeForce Experience", "Download"),
             Path.Combine(progData, "NVIDIA", "Updates"),
             Path.Combine(progData, "NVIDIA", "DisplayDriver"),
             Path.Combine(progData, "NVIDIA Corporation", "NetService"),
-            Path.Combine(rootDrive, "NVIDIA", "DisplayDriver"),
+            Path.Combine(localAppData, "NVIDIA", "DXCache"),
+            Path.Combine(localAppData, "NVIDIA", "GLCache"),
 
             // AMD packages, installers, DVR and shader caches
-            Path.Combine(rootDrive, "AMD", "Packages"),
-            Path.Combine(rootDrive, "AMD", "AMD_Radeon_Software_Installer"),
-            Path.Combine(progData, "AMD"),
+            Path.Combine(progData, "AMD", "Packages"),
             Path.Combine(progData, "AMD", "DVR"),
             Path.Combine(localAppData, "AMD", "DxCache"),
             Path.Combine(localAppData, "AMD", "DVR"),
 
-            // Intel GFX installers, package caches and logs
-            Path.Combine(rootDrive, "Intel", "GFX"),
-            Path.Combine(rootDrive, "Intel", "Logs"),
-            Path.Combine(progData, "Intel"),
+            // Intel GFX installers, package caches, DSA downloads and logs
             Path.Combine(progData, "Intel", "Package Cache"),
             Path.Combine(progData, "Intel", "Logs"),
+            Path.Combine(progData, "Intel", "DSA"),
+            Path.Combine(progData, "Intel", "Installer"),
+            Path.Combine(localAppData, "Intel", "DSA"),
 
             // Windows System32 DriverStore Temp & Staging
             Path.Combine(winDir, "System32", "DriverStore", "Temp"),
             Path.Combine(winDir, "System32", "DriverState")
         };
+
+        // Driver unpack locations across all fixed drives (e.g. C:\NVIDIA, D:\AMD, C:\Intel)
+        foreach (var drive in fixedDrives)
+        {
+            dirs.Add(Path.Combine(drive, "NVIDIA", "DisplayDriver"));
+            dirs.Add(Path.Combine(drive, "NVIDIA"));
+            dirs.Add(Path.Combine(drive, "AMD", "Packages"));
+            dirs.Add(Path.Combine(drive, "AMD", "AMD_Radeon_Software_Installer"));
+            dirs.Add(Path.Combine(drive, "AMD"));
+            dirs.Add(Path.Combine(drive, "Intel", "GFX"));
+            dirs.Add(Path.Combine(drive, "Intel", "Logs"));
+            dirs.Add(Path.Combine(drive, "Intel"));
+            dirs.Add(Path.Combine(drive, "Realtek"));
+        }
 
         return dirs.Where(d => !string.IsNullOrWhiteSpace(d)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
@@ -162,17 +195,22 @@ public static class SystemCacheResolver
     public static List<string> ResolveGpuShaderDirectories()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
         var rootDrive = Path.GetPathRoot(winDir) ?? @"C:\";
+        var localLow = Path.Combine(userProfile, "AppData", "LocalLow");
 
         return new List<string>
         {
             Path.Combine(localAppData, "D3DSCache"),
             Path.Combine(localAppData, "NVIDIA", "DXCache"),
             Path.Combine(localAppData, "NVIDIA", "GLCache"),
+            Path.Combine(localLow, "NVIDIA", "PerDriverVersion", "DXCache"),
             Path.Combine(localAppData, "AMD", "DxCache"),
             Path.Combine(localAppData, "AMD", "GLCache"),
+            Path.Combine(localLow, "AMD", "DxCache"),
             Path.Combine(localAppData, "Intel", "ShaderCache"),
+            Path.Combine(localAppData, "Intel", "D3DSCache"),
             Path.Combine(rootDrive, "ProgramData", "NVIDIA Corporation", "NV_Cache")
         };
     }
@@ -259,11 +297,15 @@ public static class SystemCacheResolver
     public static List<string> ResolveDeliveryOptimizationDirectories()
     {
         var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         return new List<string>
         {
             Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "Microsoft", "Windows", "DeliveryOptimization", "Cache"),
             Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "Microsoft", "Windows", "DeliveryOptimization", "Logs"),
-            Path.Combine(winDir, "SoftwareDistribution", "DeliveryOptimization")
+            Path.Combine(winDir, "SoftwareDistribution", "DeliveryOptimization"),
+            Path.Combine(progData, "Microsoft", "Network", "Downloader"),
+            Path.Combine(localAppData, "Microsoft", "Windows", "DeliveryOptimization")
         };
     }
 

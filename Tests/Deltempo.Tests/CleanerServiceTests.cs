@@ -80,6 +80,16 @@ public class CleanerServiceTests : IDisposable
         Assert.NotEmpty(devDirs);
         Assert.Contains(devDirs, d => d.Contains("pip", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(devDirs, d => d.Contains("npm", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(devDirs, d => d.Contains("WinGet", StringComparison.OrdinalIgnoreCase));
+
+        var doDirs = CleanerService.GetDeliveryOptimizationDirectories();
+        Assert.NotEmpty(doDirs);
+        Assert.Contains(doDirs, d => d.Contains("Downloader", StringComparison.OrdinalIgnoreCase));
+
+        var gpuDirs = CleanerService.GetGpuShaderDirectories();
+        Assert.NotEmpty(gpuDirs);
+        Assert.Contains(gpuDirs, d => d.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(gpuDirs, d => d.Contains("AMD", StringComparison.OrdinalIgnoreCase));
 
         var appDirs = CleanerService.GetAppCacheDirectories();
         Assert.NotEmpty(appDirs);
@@ -110,6 +120,94 @@ public class CleanerServiceTests : IDisposable
     {
         var (success, message) = await WindowsDriverMaintenanceService.RunPnpDriverCleanAsync((msg, level) => { }, CancellationToken.None);
         Assert.NotNull(message);
+    }
+
+    [Fact]
+    public void WindowsDriverMaintenanceService_ParsePnpUtilOutput_ParsesVersionsAndDatesCorrectly()
+    {
+        string sampleOutput = @"
+Microsoft PnP Utility
+
+Published Name:     oem66.inf
+Original Name:      alderlakesystem.inf
+Provider Name:      INTEL
+Class Name:         System
+Class GUID:         {4d36e97d-e325-11ce-bfc1-08002be10318}
+Driver Version:     07/18/1968 10.1.45.9
+Signer Name:        Microsoft Windows Hardware Compatibility Publisher
+
+Published Name:     oem93.inf
+Original Name:      alderlakesystem.inf
+Provider Name:      INTEL
+Class Name:         System
+Class GUID:         {4d36e97d-e325-11ce-bfc1-08002be10318}
+Driver Version:     07/18/1968 10.1.45.10
+Signer Name:        Microsoft Windows Hardware Compatibility Publisher
+
+Published Name:     oem146.inf
+Original Name:      ibtusb.inf
+Provider Name:      Intel Corporation
+Class Name:         Bluetooth
+Class GUID:         {e0cbf06c-cdb3-4647-bb8a-263b43f0f974}
+Driver Version:     07/31/2026 24.70.0.4
+Signer Name:        Microsoft Windows Hardware Compatibility Publisher
+";
+        var parsed = WindowsDriverMaintenanceService.ParsePnpUtilOutput(sampleOutput);
+        Assert.Equal(3, parsed.Count);
+
+        var oem66 = parsed.First(p => p.PublishedName == "oem66.inf");
+        Assert.Equal("alderlakesystem.inf", oem66.OriginalName);
+        Assert.Equal("INTEL", oem66.ProviderName);
+        Assert.Equal("System", oem66.ClassName);
+        Assert.Equal(new Version(10, 1, 45, 9), oem66.ParsedVersion);
+
+        var oem93 = parsed.First(p => p.PublishedName == "oem93.inf");
+        Assert.Equal(new Version(10, 1, 45, 10), oem93.ParsedVersion);
+
+        var groups = parsed.GroupBy(p => p.OriginalName, StringComparer.OrdinalIgnoreCase).ToList();
+        var alderlakeGroup = groups.First(g => g.Key.Equals("alderlakesystem.inf", StringComparison.OrdinalIgnoreCase));
+        var sorted = alderlakeGroup.OrderByDescending(p => p.DriverDate ?? DateTime.MinValue)
+                                   .ThenByDescending(p => p.ParsedVersion ?? new Version(0, 0))
+                                   .ToList();
+
+        // The newest version (10.1.45.10) must be first (active keeper)
+        Assert.Equal("oem93.inf", sorted[0].PublishedName);
+        // The older version (10.1.45.9) must be second (superseded)
+        Assert.Equal("oem66.inf", sorted[1].PublishedName);
+    }
+
+    [Fact]
+    public async Task WindowsDriverMaintenanceService_ScanSupersededDriverPackagesAsync_ExecutesSafely()
+    {
+        var result = await WindowsDriverMaintenanceService.ScanSupersededDriverPackagesAsync(CancellationToken.None);
+        Assert.NotNull(result);
+        Assert.NotNull(result.SupersededPackages);
+        Assert.True(result.TotalSupersededBytes >= 0);
+        Assert.True(result.SupersededPackageCount >= 0);
+    }
+
+    [Fact]
+    public void WindowsDriverMaintenanceService_GetActiveDeviceDriverInfs_ExecutesSafely()
+    {
+        var activeInfs = WindowsDriverMaintenanceService.GetActiveDeviceDriverInfs();
+        Assert.NotNull(activeInfs);
+        // All collected INFs should start with "oem"
+        Assert.All(activeInfs, inf => Assert.StartsWith("oem", inf, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Theory]
+    [InlineData(@"D:\NVIDIA\DisplayDriver\setup.exe")]
+    [InlineData(@"E:\AMD\AMD_Radeon_Software_Installer\setup.exe")]
+    [InlineData(@"C:\ProgramData\Intel\DSA\Intel-Driver-Support-Assistant.exe")]
+    [InlineData(@"C:\ProgramData\NVIDIA Corporation\GeForce Experience\Download\driver_update.exe")]
+    public void FileSafetyEngine_VendorDriverPackages_ClassifiedAsSafe(string path)
+    {
+        var result = WinTempCleaner.Core.Safety.FileSafetyEngine.Analyze(
+            path,
+            fileName: Path.GetFileName(path),
+            sizeBytes: 1024 * 1024,
+            allowedRoot: Path.GetDirectoryName(path));
+        Assert.Equal(WinTempCleaner.Core.Safety.SafetyRiskTier.Safe, result.Tier);
     }
 
     [Fact]

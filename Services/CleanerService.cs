@@ -556,7 +556,7 @@ public partial class CleanerService
             return;
         }
 
-        await Task.Run(() =>
+        await Task.Run(async () =>
         {
             EnableFileManagementPrivileges();
 
@@ -570,6 +570,51 @@ public partial class CleanerService
             if (folder.Id == "SystemRestorePoints")
             {
                 ScanRestorePoints(folder, logAction);
+                UiInvoke(() => folder.IsScanning = false);
+                return;
+            }
+
+            if (folder.Id == "DeviceDriverPackages")
+            {
+                var targetDirs = ResolveDirectoriesForFolder(folder);
+                if (targetDirs.Count > 0)
+                {
+                    ScanDirectoryList(folder, targetDirs, folder.Name, logAction, ct, safeMode24Hours);
+                }
+
+                try
+                {
+                    var driverStoreResult = await WindowsDriverMaintenanceService.ScanSupersededDriverPackagesAsync(ct).ConfigureAwait(false);
+                    if (driverStoreResult.TotalSupersededBytes > 0 || driverStoreResult.SupersededPackageCount > 0)
+                    {
+                        UiInvoke(() =>
+                        {
+                            folder.SizeBytes += driverStoreResult.TotalSupersededBytes;
+                            folder.FileCount += driverStoreResult.SupersededPackageCount;
+
+                            var currentTop = folder.TopFiles?.ToList() ?? new List<JunkFileItem>();
+                            foreach (var pkg in driverStoreResult.SupersededPackages.OrderByDescending(p => p.EstimatedSizeBytes).Take(15))
+                            {
+                                currentTop.Add(new JunkFileItem
+                                {
+                                    FileName = $"{pkg.PublishedName} ({pkg.OriginalName})",
+                                    FilePath = string.IsNullOrEmpty(pkg.FolderPath) ? $"DriverStore\\{pkg.PublishedName}" : pkg.FolderPath,
+                                    SizeBytes = pkg.EstimatedSizeBytes,
+                                    LastModified = pkg.DriverDate?.ToLocalTime() ?? DateTime.Now
+                                });
+                            }
+                            folder.TopFiles = currentTop.OrderByDescending(f => f.SizeBytes).Take(30).ToList();
+                            folder.StatusMessage = $"Ready: {TargetFolderInfo.FormatBytes(folder.SizeBytes)}";
+                        });
+
+                        logAction($"DriverStore Analysis: Found {driverStoreResult.SupersededPackageCount:N0} superseded driver packages ({TargetFolderInfo.FormatBytes(driverStoreResult.TotalSupersededBytes)})", LogLevel.Info);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logAction($"Note during DriverStore inspection: {ex.Message}", LogLevel.Info);
+                }
+
                 UiInvoke(() => folder.IsScanning = false);
                 return;
             }
@@ -1100,7 +1145,15 @@ public partial class CleanerService
             {
                 try
                 {
-                    await WindowsDriverMaintenanceService.RunPnpDriverCleanAsync(logAction, ct).ConfigureAwait(false);
+                    var driverResult = await WindowsDriverMaintenanceService.RunPnpDriverCleanAsync(logAction, ct).ConfigureAwait(false);
+                    if (driverResult.BytesFreed > 0)
+                    {
+                        freedBytes += driverResult.BytesFreed;
+                    }
+                    if (driverResult.PackagesPurged > 0)
+                    {
+                        filesDeleted += driverResult.PackagesPurged;
+                    }
                 }
                 catch (Exception ex)
                 {

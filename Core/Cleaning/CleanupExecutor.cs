@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using WinTempCleaner.Core.Safety;
 using WinTempCleaner.Models;
 
@@ -45,6 +47,11 @@ public static class CleanupExecutor
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool MoveFileExW(string lpExistingFileName, string? lpNewFileName, uint dwFlags);
 
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetFileAttributesW(string lpFileName, uint dwFileAttributes);
+
+    private const uint FILE_ATTRIBUTE_NORMAL = 0x00000080;
     public const uint MOVEFILE_DELAY_UNTIL_REBOOT = 0x00000004;
 
     [StructLayout(LayoutKind.Sequential)]
@@ -112,6 +119,9 @@ public static class CleanupExecutor
         };
 
         var rootsList = allowedRoots?.Where(r => !string.IsNullOrWhiteSpace(r)).ToList();
+
+        // Enforce maximum file management privileges (Backup, Restore, TakeOwnership, Debug)
+        ProcessPrivilegeService.EnableRequiredPrivileges();
 
         try
         {
@@ -361,30 +371,33 @@ public static class CleanupExecutor
                             }
                             else
                             {
-                                Interlocked.Increment(ref failedCount);
-                                Interlocked.Add(ref failedBytes, actualBytes);
-
                                 string failReason = !string.IsNullOrEmpty(permFailDetail) ? permFailDetail : $"Deletion failed ({action.Action}): {action.FilePath}";
                                 var errorCategory = CleanupErrorCategory.AccessDenied;
 
                                 var lockingProcesses = RestartManagerService.GetLockingProcesses(action.FilePath);
-                                if (lockingProcesses.Count > 0)
+                                bool isLockedOrInUse = lockingProcesses.Count > 0 ||
+                                                       permWin32Err == 32 || permWin32Err == 33 ||
+                                                       RestartManagerService.IsFileLocked(action.FilePath);
+
+                                // In Win32, loaded DLLs, EXEs, and memory-mapped files return Error 5 (Access Denied).
+                                // When running elevated with DACL permissions granted, remaining Error 5 indicates active kernel/module lock.
+                                if (permWin32Err == 5 && !isLockedOrInUse)
                                 {
-                                    string procNames = string.Join(", ", lockingProcesses.Select(p => $"{p.ProcessName} (PID {p.ProcessId})"));
-                                    failReason = $"In use by: {procNames}";
-                                    errorCategory = CleanupErrorCategory.FileLocked;
-                                    logAction?.Invoke($"Notice: '{action.FileName}' is in use by {procNames}", LogLevel.Info);
+                                    isLockedOrInUse = true;
                                 }
-                                else if (permWin32Err == 32 || permWin32Err == 33 || RestartManagerService.IsFileLocked(action.FilePath))
+
+                                Interlocked.Increment(ref failedCount);
+                                Interlocked.Add(ref failedBytes, actualBytes);
+
+                                if (isLockedOrInUse)
                                 {
-                                    failReason = "In use: active handle held by running application";
+                                    RestartManagerService.ScheduleRebootDeletion(action.FilePath);
                                     errorCategory = CleanupErrorCategory.FileLocked;
-                                    logAction?.Invoke($"Notice: '{action.FileName}' is in use by an active application", LogLevel.Info);
-                                }
-                                else if (permWin32Err == 5)
-                                {
-                                    failReason = "Access denied: file requires elevated administrator rights";
-                                    errorCategory = CleanupErrorCategory.AccessDenied;
+                                    failReason = lockingProcesses.Count > 0
+                                        ? $"In use by: {string.Join(", ", lockingProcesses.Select(p => $"{p.ProcessName} (PID {p.ProcessId})"))} (scheduled for reboot removal)"
+                                        : "In use: active handle or loaded module held by running application (scheduled for reboot removal)";
+
+                                    logAction?.Invoke($"Notice: '{action.FileName}' is in use - scheduled for reboot cleanup", LogLevel.Info);
                                 }
 
                                 lock (syncLock)
@@ -415,30 +428,38 @@ public static class CleanupExecutor
                             Interlocked.Add(ref failedBytes, action.SizeBytes);
 
                             int hr = ex.HResult & 0xFFFF;
-                            bool isLocked = ex is IOException || hr == 32 || hr == 33 || RestartManagerService.IsFileLocked(action.FilePath);
+                            bool isLocked = ex is IOException || hr == 32 || hr == 33 ||
+                                            RestartManagerService.IsFileLocked(action.FilePath) ||
+                                            ex is UnauthorizedAccessException;
+
                             string errReason = ex.Message;
-                            var errCategory = isLocked ? CleanupErrorCategory.FileLocked : (ex is UnauthorizedAccessException ? CleanupErrorCategory.AccessDenied : CleanupErrorCategory.Unknown);
+                            var errCategory = isLocked ? CleanupErrorCategory.FileLocked : CleanupErrorCategory.Unknown;
 
                             var lockingProcesses = RestartManagerService.GetLockingProcesses(action.FilePath);
                             if (lockingProcesses.Count > 0)
                             {
                                 string procNames = string.Join(", ", lockingProcesses.Select(p => $"{p.ProcessName} (PID {p.ProcessId})"));
-                                errReason = $"Locked by {procNames}: {ex.Message}";
+                                errReason = $"Locked by {procNames}: {ex.Message} (scheduled for reboot removal)";
                                 errCategory = CleanupErrorCategory.FileLocked;
-                                logAction?.Invoke($"Notice: '{action.FileName}' is in use by {procNames}", LogLevel.Info);
+                                logAction?.Invoke($"Notice: '{action.FileName}' is in use by {procNames} - scheduled for reboot cleanup", LogLevel.Info);
                             }
                             else if (isLocked)
                             {
-                                errReason = $"In use: {ex.Message}";
+                                errReason = $"In use: {ex.Message} (scheduled for reboot removal)";
                                 errCategory = CleanupErrorCategory.FileLocked;
-                                logAction?.Invoke($"Notice: '{action.FileName}' is in use by an active application", LogLevel.Info);
+                                logAction?.Invoke($"Notice: '{action.FileName}' is in use - scheduled for reboot cleanup", LogLevel.Info);
+                            }
+
+                            if (errCategory == CleanupErrorCategory.FileLocked)
+                            {
+                                RestartManagerService.ScheduleRebootDeletion(action.FilePath);
                             }
 
                             lock (syncLock)
                             {
                                 if (result.ErrorMessages.Count < 50)
                                 {
-                                    result.ErrorMessages.Add($"Exception deleting {action.FileName}: {errReason}");
+                                    result.ErrorMessages.Add($"Notice for {action.FileName}: {errReason}");
                                 }
                                 result.AuditRecords.Add(new DeletionAuditRecord
                                 {
@@ -649,6 +670,32 @@ public static class CleanupExecutor
         }
     }
 
+    private static void ForceGrantPermissions(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                var fi = new FileInfo(path);
+                var fs = fi.GetAccessControl();
+                using var identity = WindowsIdentity.GetCurrent();
+                if (identity.User != null)
+                {
+                    fs.SetOwner(identity.User);
+                    fs.AddAccessRule(new FileSystemAccessRule(
+                        identity.User,
+                        FileSystemRights.FullControl,
+                        AccessControlType.Allow));
+                    fi.SetAccessControl(fs);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Cleanup] ForceGrantPermissions failed for '{path}': {ex.Message}");
+        }
+    }
+
     public static bool DeletePermanently(string path) => DeletePermanently(path, out _, out _);
 
     public static bool DeletePermanently(string path, out int win32Error, out string? failureDetail)
@@ -663,7 +710,8 @@ public static class CleanupExecutor
                 return true;
             }
 
-            // Normalize attributes: remove ReadOnly, Hidden, and System attributes so DeleteFileW and File.Delete succeed
+            // Normalize attributes natively: remove ReadOnly, Hidden, and System attributes
+            SetFileAttributesW(path, FILE_ATTRIBUTE_NORMAL);
             try
             {
                 var currentAttrs = File.GetAttributes(path);
@@ -718,6 +766,24 @@ public static class CleanupExecutor
 
             win32Error = Marshal.GetLastWin32Error();
 
+            // If Access Denied (Error 5), aggressively grant FullControl DACL, take ownership, reset attributes, and retry
+            if (win32Error == 5)
+            {
+                ForceGrantPermissions(path);
+                SetFileAttributesW(path, FILE_ATTRIBUTE_NORMAL);
+                if (DeleteFileW(path)) return true;
+            }
+
+            // If still locked, attempt terminating disposable background helper processes (crashpad, updater)
+            if (File.Exists(path))
+            {
+                if (RestartManagerService.TerminateLockingProcesses(path, backgroundHelpersOnly: true) > 0)
+                {
+                    SetFileAttributesW(path, FILE_ATTRIBUTE_NORMAL);
+                    if (DeleteFileW(path)) return true;
+                }
+            }
+
             if (File.Exists(path))
             {
                 try
@@ -737,7 +803,7 @@ public static class CleanupExecutor
                 {
                     32 => "File is actively in use by another process (sharing violation).",
                     33 => "File range is locked by another process (lock violation).",
-                    5 => "Access is denied (requires elevated permissions).",
+                    5 => "Access is denied (held by active application, loaded module, or system service).",
                     _ => $"Native delete returned Win32 error code {win32Error}."
                 };
             }

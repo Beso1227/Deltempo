@@ -245,10 +245,21 @@ public static class ProtectionPolicy
         }
 
         // 7. Gaming Platform Assets & Libraries (Steam, Epic Games, GOG, Riot, Ubisoft, EA)
-        if (pathLower.Contains(@"\steamapps\") || pathLower.Contains(@"\steamlibrary\") ||
+        // Exempt disposable cache, temp download chunks, compiled shaders, webcaches, crashdumps, and logs:
+        bool isGamingCacheOrTemp =
+            pathLower.Contains(@"\steamapps\downloading\", StringComparison.OrdinalIgnoreCase) ||
+            pathLower.Contains(@"\steamapps\temp\", StringComparison.OrdinalIgnoreCase) ||
+            pathLower.Contains(@"\steamapps\shadercache\", StringComparison.OrdinalIgnoreCase) ||
+            pathLower.Contains(@"\saved\webcache\", StringComparison.OrdinalIgnoreCase) ||
+            pathLower.Contains(@"\saved\logs\", StringComparison.OrdinalIgnoreCase) ||
+            pathLower.Contains(@"\saved\crashes\", StringComparison.OrdinalIgnoreCase) ||
+            pathLower.Contains(@"\saved\crashreportclient\", StringComparison.OrdinalIgnoreCase);
+
+        if (!isGamingCacheOrTemp && (
+            pathLower.Contains(@"\steamapps\") || pathLower.Contains(@"\steamlibrary\") ||
             pathLower.Contains(@"\epic games\") || pathLower.Contains(@"\gog games\") ||
             pathLower.Contains(@"\gog galaxy\") || pathLower.Contains(@"\riot games\") ||
-            pathLower.Contains(@"\ea games\") || pathLower.Contains(@"\origin games\"))
+            pathLower.Contains(@"\ea games\") || pathLower.Contains(@"\origin games\")))
         {
             matchedReason = "Steam / Gaming Platform Assets";
             return true;
@@ -460,7 +471,9 @@ public static class ProtectionPolicy
         @"\code cache\wasm\",
         @"\code cache\",
         @"\gpucache\",
+        @"\dawncache\",
         @"\scriptcache\",
+        @"\shadercache\",
         @"\appdata\local\temp\",
         @"\windows\temp\",
         @"\local\temp\",
@@ -468,12 +481,42 @@ public static class ProtectionPolicy
         @"\temporary internet files\",
         @"\deliveryoptimization\",
         @"\softwaredistribution\download\",
+        @"\softwaredistribution\",
         @"\webcache\",
         @"\cache_data\",
+        @"\cache2\entries\",
+        @"\cache2\",
         @"\crashdumps\",
         @"\crashpad\",
+        @"\dumps\",
         @"\logs\",
-        @"\temp\"
+        @"\logfiles\",
+        @"\temp\",
+        @"\tmp\",
+        @"\nvidia corporation\installer2\",
+        @"\nvidia corporation\downloader\",
+        @"\nvidia app\",
+        @"\nvidia\",
+        @"\amd\",
+        @"\intel\",
+        @"\realtek\",
+        @"\driverstore\temp\",
+        @"\driverstore\",
+        @"\driverstate\",
+        @"\ebwebview\",
+        @"\cef\",
+        @"\chromium\",
+        @"\spotify\",
+        @"\discord\",
+        @"\slack\",
+        @"\packages\",
+        @"\tempstate\",
+        @"\localcache\",
+        @"\d3dscache\",
+        @"\dxcache\",
+        @"\steamapps\downloading\",
+        @"\steamapps\temp\",
+        @"\steamapps\shadercache\"
     ];
 
     public static bool IsPackageOrScriptCachePath(string pathLower)
@@ -483,6 +526,15 @@ public static class ProtectionPolicy
             if (pathLower.Contains(marker, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
+
+        // Also recognize standard cache or temporary folder segments
+        if (pathLower.Contains(@"\cache\") || pathLower.Contains(@"\caches\") ||
+            pathLower.Contains(@"\temp\") || pathLower.Contains(@"\tmp\") ||
+            pathLower.Contains(@"\logs\") || pathLower.Contains(@"\webcache\"))
+        {
+            return true;
+        }
+
         return false;
     }
 }
