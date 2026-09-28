@@ -64,18 +64,26 @@ Deltempo is a public MIT-licensed repository, so it is eligible to apply for the
 ### A1. SignPath Foundation (OV) — what you want
 
 1. Apply at <https://about.signpath.io/opensource>.
-2. Once approved, create an **artifact configuration** for `*.exe`.
-3. Add repository secrets:
+2. In the SignPath dashboard, set up:
+   - an **Artifact Configuration** whose root element is a `<zip-file>`
+   - a **Signing Policy** (note both slugs)
+   - a **Trusted Build System** for `GitHub.com`
+3. Install the **SignPath GitHub App** and grant it access to this repository.
+   This is required for the audit-log checks the connector performs.
+4. Add repository secrets:
 
-   | Secret | Value |
+   | Secret | Where to find it |
    | :--- | :--- |
-   | `SIGNPATH_TOKEN` | SignPath API token |
-   | `SIGNPATH_ORG_ID` | Organisation id |
-   | `SIGNPATH_PROJECT_ID` | Certificate configuration project id |
+   | `SIGNPATH_API_TOKEN` | Account → API Tokens |
+   | `SIGNPATH_ORGANIZATION_ID` | Organization settings |
+   | `SIGNPATH_PROJECT_SLUG` | Project slug |
+   | `SIGNPATH_SIGNING_POLICY` | Signing Policy slug |
+   | `SIGNPATH_ARTIFACT_CONFIG` | Artifact Configuration slug *(optional)* |
 
-4. Push a `v*` tag. **`.github/workflows/release-signpath.yml`** handles the rest.
+5. Push a `v*` tag. **`.github/workflows/release-signpath.yml`** handles the rest.
 
-Use this workflow *instead of* `release.yml` — both trigger on `v*` tags.
+Use this workflow *instead of* `release.yml` — both trigger on `v*` tags, so only
+one should have a `v*` tag trigger active at a time.
 
 ### A2. Self-signed — to validate the pipeline now
 
