@@ -9,6 +9,7 @@ dist/
 TestResults/
 [Bb]uildLog.*
 *.binlog
+*.old
 
 # Compiled Binaries, Libraries & Symbols
 *.exe
