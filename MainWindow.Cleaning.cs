@@ -313,7 +313,7 @@ public partial class MainWindow
             };
 
             ProgressStatusText.Text = "Cleanup complete!";
-            
+
             var skipDetails = new List<string>();
             if (totalFilesInUse > 0) skipDetails.Add($"{totalFilesInUse:N0} in use");
             if (totalFilesShielded > 0) skipDetails.Add($"{totalFilesShielded:N0} shielded <24h");

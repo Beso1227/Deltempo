@@ -39,7 +39,7 @@
     <priority>0.95</priority>
     <image:image>
       <image:loc>https://beso1227.github.io/Deltempo/app_icon.png</image:loc>
-      <image:title>Download Deltempo Standalone Executable and WinGet Package</image:title>
+      <image:title>Download Deltempo Standalone Executable or Install via One-Liner</image:title>
       <image:caption>Direct download of official Deltempo portable binary for Windows 10 and 11</image:caption>
     </image:image>
   </url>

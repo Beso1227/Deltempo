@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Deltempo — Open-Source Windows Cleaner &amp; Memory Optimizer</title>
   <meta name="description" content="Official site of Deltempo: fast, portable, open-source Windows cleaner, deep root app uninstaller, duplicate file finder, and native NT memory optimizer. Clean 26+ scopes with zero telemetry.">
-  <meta name="keywords" content="Deltempo, deltempo cleaner, deltempo app, deltempo download, deltempo windows cleaner, deltempo memory optimizer, deep root app uninstaller, duplicate file finder, windows duplicate cleaner, treemap disk visualizer, vss restore point manager, windows uninstaller, bulk uninstaller, leftover cleaner, startup manager ai, bcu alternative, chris titus winutil, ctt tool, ram cleaner, deltempo github, portable pc cleaner, open source windows cleaner, clear shader cache windows 11, winget deltempo, ccleaner alternative, bleachbit alternative, bulk crap uninstaller alternative, system restore point, task scheduler windows cleaner">
+  <meta name="keywords" content="Deltempo, deltempo cleaner, deltempo app, deltempo download, deltempo windows cleaner, deltempo memory optimizer, deep root app uninstaller, duplicate file finder, windows duplicate cleaner, treemap disk visualizer, vss restore point manager, windows uninstaller, bulk uninstaller, leftover cleaner, startup manager ai, bcu alternative, chris titus winutil, ctt tool, ram cleaner, deltempo github, portable pc cleaner, open source windows cleaner, clear shader cache windows 11, ccleaner alternative, bleachbit alternative, bulk crap uninstaller alternative, system restore point, task scheduler windows cleaner">
   <meta name="author" content="Beso1227">
   <meta name="application-name" content="Deltempo">
   <meta name="apple-mobile-web-app-title" content="Deltempo">
@@ -49,6 +49,9 @@
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Latest-release lookup (inline script at the end of <body>) reuses this socket
+       instead of paying DNS + TCP + TLS after motion.js has already parsed. -->
+  <link rel="preconnect" href="https://api.github.com">
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript>
@@ -94,8 +97,7 @@
         "sameAs": [
           "https://github.com/Beso1227/Deltempo",
           "https://github.com/Beso1227",
-          "https://github.com/Beso1227/Deltempo/releases",
-          "https://winget.run/pkg/Beso1227.Deltempo"
+          "https://github.com/Beso1227/Deltempo/releases"
         ],
         "featureList": [
           "Deep Root App Uninstaller with BCU engine and deep residual leftover trace scanning (filesystem, registry, shortcuts)",
@@ -124,7 +126,7 @@
           "Startup Process Manager with Windows Core Process Immunity",
           "Pro Eye-Comfort Porcelain Slate Light mode and Obsidian Dark mode",
           "Native Multilingual RTL Safety across English, Arabic, Spanish, French, and German",
-          "Microsoft WinGet Package Manager Support (winget install Beso1227.Deltempo)",
+          "One-Line PowerShell Install (irm https://beso1227.github.io/Deltempo/win | iex)",
           "Portable Standalone Single-File Executable",
           "Deterministic 5-Tier Safety Engine with Pre-Deletion Revalidation",
           "Zero Telemetry, Local Operation, Open Source (MIT, 612 Verified Tests)"
@@ -303,7 +305,7 @@
             "name": "Is installation required for Deltempo?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "No. Deltempo is a portable, self-contained single-file executable. It does not require an installer or background services. You can also install it via Microsoft WinGet: winget install Beso1227.Deltempo."
+              "text": "No. Deltempo is a portable, self-contained single-file executable. It does not require an installer or background services. You can also fetch and run the latest release in one line with: irm https://beso1227.github.io/Deltempo/win | iex."
             }
           },
           {
@@ -429,11 +431,11 @@
           </a>
         </div>
 
-        <!-- WinGet Command Copy -->
-        <button type="button" class="hero-winget reveal-on-scroll stagger-4" id="wingetBtn" title="Click to copy WinGet command" aria-label="Copy WinGet install command">
+        <!-- One-Liner Command Copy -->
+        <button type="button" class="hero-oneshot reveal-on-scroll stagger-4" id="onelinerBtn" title="Click to copy the one-line install command">
           <span class="accent-cyan-text">$</span>
-          <span>winget install Beso1227.Deltempo</span>
-          <span class="hero-winget-copy" id="wingetBadge">Copy</span>
+          <span class="hero-oneshot-cmd">irm https://beso1227.github.io/Deltempo/win | iex</span>
+          <span class="hero-oneshot-copy" id="onelinerBadge">Copy</span>
         </button>
 
         <!-- Proof Row -->
@@ -864,6 +866,33 @@
           </div>
         </div>
       </div>
+    <script>
+      /* Reveal above-the-fold content while the document is still parsing.
+         motion.js is deferred, so without this the hero stays at opacity:0
+         until that file has downloaded, which delays FCP, LCP and Speed Index.
+         Gated on document.fonts.ready: revealing before the webfont swap
+         makes the fallback->webfont reflow count toward CLS, so keep the
+         hero hidden until glyphs settle (timeout fallback keeps FCP safe).
+         Anything still below the fold keeps its scroll-reveal (motion.js). */
+      (function () {
+        function revealAboveFold() {
+          var els = document.querySelectorAll('.reveal-on-scroll');
+          for (var i = 0; i < els.length; i++) {
+            if (els[i].getBoundingClientRect().top < window.innerHeight) {
+              els[i].classList.add('revealed');
+            }
+          }
+        }
+        var done = false;
+        function once() { if (!done) { done = true; revealAboveFold(); } }
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(once);
+          setTimeout(once, 1200);
+        } else {
+          once();
+        }
+      })();
+    </script>
     </section>
 
     <!-- 20-SECOND LAUNCH FILM SHOWCASE -->
@@ -885,7 +914,7 @@
             <div class="video-player-container">
               <video
                 id="launchVideo" controls preload="none"
-                poster="deltempo.jpg"
+                poster="deltempo-poster.webp"
                 playsinline
                 class="responsive-launch-video"
                 aria-label="Deltempo 20-second official launch overview video"
@@ -1608,11 +1637,11 @@
 
           <div class="faq-item">
             <button type="button" class="faq-question" aria-expanded="false">
-              <span>How do I install or update Deltempo using WinGet?</span>
+              <span>How do I install or update Deltempo from the terminal?</span>
               <span class="faq-icon">+</span>
             </button>
             <div class="faq-answer">
-              You can install Deltempo directly via the Microsoft Windows Package Manager by opening PowerShell or Command Prompt and executing: <code>winget install Beso1227.Deltempo</code>. Updates can be performed with <code>winget upgrade Beso1227.Deltempo</code>.
+              Open PowerShell and run: <code>irm https://beso1227.github.io/Deltempo/win | iex</code>. The script downloads the latest release, verifies its SHA-256 checksum, caches it locally, and launches it. Re-running the same command always pulls the newest published version, so update is identical to install. For the headless CLI binary, run <code>irm https://beso1227.github.io/Deltempo/win-cli | iex</code> instead. If the checksum manifest cannot be read or does not match, the install aborts and nothing is executed.
             </div>
           </div>
 
@@ -1660,7 +1689,7 @@
 
           <div class="download-meta">
             <p><strong>Platform:</strong> Windows 10 / 11 (64-bit) • <strong>Type:</strong> Portable Single-File Binary • <strong>Latest Release:</strong> GitHub Releases</p>
-            <p class="mt-2">Or install via Microsoft WinGet: <code>winget install Beso1227.Deltempo</code></p>
+            <p class="mt-2">Or launch straight from PowerShell: <code>irm https://beso1227.github.io/Deltempo/win | iex</code></p>
             <p class="mt-2"><a href="download/" class="text-accent-link">View Checksums &amp; Verification Guide →</a></p>
           </div>
         </div>
@@ -1755,23 +1784,123 @@
         });
       });
 
-      // 4. WinGet Command Copy Button
-      const wingetBtn = document.getElementById('wingetBtn');
-      const wingetBadge = document.getElementById('wingetBadge');
-      if (wingetBtn && wingetBadge) {
-        wingetBtn.addEventListener('click', function () {
-          navigator.clipboard.writeText('winget install Beso1227.Deltempo').then(function () {
-            wingetBadge.textContent = 'Copied!';
-            wingetBadge.style.background = 'var(--accent-emerald-bg)';
-            wingetBadge.style.color = 'var(--accent-emerald)';
-            setTimeout(function () { // DevSkim: ignore DS172411
-              wingetBadge.textContent = 'Copy';
-              wingetBadge.style.background = 'var(--accent-cyan-bg)';
-              wingetBadge.style.color = 'var(--accent-cyan)';
-            }, 2000);
-          }).catch(function () {
-            // Fallback for non-secure contexts
-          });
+      // 4. One-Liner Command Copy Button
+      // uBlock Origin's ClickFix mitigation (the `prevent-clipboard-write`
+      // scriptlet) matches `irm ... | iex` and *returns undefined* instead of a
+      // Promise when it blocks the write. Detect that case explicitly and fall
+      // back to selecting the text, so the button is never a silent no-op.
+      const onelinerBtn = document.getElementById('onelinerBtn');
+      const onelinerBadge = document.getElementById('onelinerBadge');
+      const onelinerCmd = document.querySelector('.hero-oneshot-cmd');
+      const ONE_LINER_CMD = 'irm https://beso1227.github.io/Deltempo/win | iex'; // DevSkim: ignore DS172411
+      const ONE_LINER_TITLE = 'Click to copy the one-line install command';
+      const ONE_LINER_BLOCKED_TITLE = 'Auto-copy was blocked by your browser or an extension. The command is selected — press Ctrl+C.';
+      let oneLinerBadgeTimer = null;
+
+      function setOnelinerBadge(text, tone) {
+        if (tone === 'ok') {
+          onelinerBadge.style.background = 'var(--accent-emerald-bg)';
+          onelinerBadge.style.color = 'var(--accent-emerald)';
+        } else if (tone === 'warn') {
+          onelinerBadge.style.background = 'rgba(255, 196, 0, 0.18)';
+          onelinerBadge.style.color = '#FFC400';
+        } else {
+          onelinerBadge.style.background = 'var(--accent-cyan-bg)';
+          onelinerBadge.style.color = 'var(--accent-cyan)';
+        }
+        onelinerBadge.textContent = text;
+      }
+
+      function resetOnelinerBadge() {
+        clearTimeout(oneLinerBadgeTimer);
+        oneLinerBadgeTimer = setTimeout(function () {
+          setOnelinerBadge('Copy', 'idle');
+          onelinerBtn.title = ONE_LINER_TITLE;
+        }, 2400);
+      }
+
+      function selectOnelinerCmd() {
+        if (!onelinerCmd || !document.createRange || !window.getSelection) return;
+        try {
+          const range = document.createRange();
+          range.selectNodeContents(onelinerCmd);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+        } catch (err) {
+          // Selection is a convenience only; never break the click handler.
+        }
+      }
+
+      function tryLegacyExecCopy(text) {
+        try {
+          if (!document.execCommand) return false;
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          ta.setAttribute('readonly', '');
+          ta.style.position = 'fixed';
+          ta.style.top = '-9999px';
+          ta.style.left = '-9999px';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          ta.setSelectionRange(0, ta.value.length);
+          var ok = false;
+          try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+          if (ta.parentNode) ta.parentNode.removeChild(ta);
+          return !!ok;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function handleOnelinerCopied() {
+        selectOnelinerCmd();
+        // Clear the selection right away so the box doesn't look "stuck"
+        // highlighted after a successful copy.
+        try {
+          if (window.getSelection) window.getSelection().removeAllRanges();
+          if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+        } catch (err) { /* cosmetic only */ }
+        setOnelinerBadge('Copied!', 'ok');
+        resetOnelinerBadge();
+      }
+
+      function handleOnelinerCopyBlocked() {
+        // Clipboard API failed/blocked: try the legacy execCommand path
+        // (uBlock's ClickFix scriptlet only hooks navigator.clipboard.writeText,
+        // so execCommand still succeeds). Only show "Ctrl+C" if that fails too.
+        if (tryLegacyExecCopy(ONE_LINER_CMD)) {
+          handleOnelinerCopied();
+          return;
+        }
+        selectOnelinerCmd();
+        setOnelinerBadge('Ctrl+C', 'warn');
+        onelinerBtn.title = ONE_LINER_BLOCKED_TITLE;
+        resetOnelinerBadge();
+      }
+
+      if (onelinerBtn && onelinerBadge) {
+        onelinerBtn.title = ONE_LINER_TITLE;
+        onelinerBtn.addEventListener('click', function () {
+          let pending = null;
+          try {
+            pending = navigator.clipboard && navigator.clipboard.writeText
+              ? navigator.clipboard.writeText(ONE_LINER_CMD)
+              : null;
+          } catch (err) {
+            pending = null;
+          }
+
+          if (pending && typeof pending.then === 'function') {
+            pending.then(handleOnelinerCopied).catch(handleOnelinerCopyBlocked);
+            return;
+          }
+
+          // No Promise came back: either the Clipboard API is unavailable
+          // (insecure context) or an extension replaced writeText to block it.
+          handleOnelinerCopyBlocked();
         });
       }
     })();

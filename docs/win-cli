@@ -1,0 +1,13 @@
+<#
+    Deltempo one-line installer - headless CLI target
+    ==========================================================================
+    CLI   irm https://beso1227.github.io/Deltempo/win-cli | iex
+    GUI   irm https://beso1227.github.io/Deltempo/win     | iex
+
+    Invoke-Expression accepts no arguments, so the target is passed to the
+    shared installer through DELTEMPO_TARGET. The installer consumes that
+    variable, so a later run defaults back to the GUI.
+#>
+
+$env:DELTEMPO_TARGET = 'cli'
+iex (irm https://beso1227.github.io/Deltempo/win)

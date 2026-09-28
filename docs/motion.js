@@ -733,7 +733,7 @@
   function initCardInteractivity() {
     if (!isFinePointer.matches) return;
     const cards = document.querySelectorAll(
-      '.double-bezel, .card-inner, .feature-card, .cap-item, .hero-winget, .showcase-wrapper, .arch-card, .dl-card, .faq-item, .scope-card, .tier-card, .doc-code-card, .download-card, .trust-banner'
+      '.double-bezel, .card-inner, .feature-card, .cap-item, .hero-oneshot, .showcase-wrapper, .arch-card, .dl-card, .faq-item, .scope-card, .tier-card, .doc-code-card, .download-card, .trust-banner'
     );
 
     if (!cards.length) return;
@@ -902,9 +902,9 @@
 
     // Interactive element hover & magnetic detection
     const interactiveQuery =
-      'a, button, input, textarea, select, [role="button"], [role="tab"], .btn-pill, .btn-icon, .hero-winget, .card-inner, .faq-item, .mobile-nav-link, .nav-link, summary, .calc-profile-btn, .cmd-pill';
+      'a, button, input, textarea, select, [role="button"], [role="tab"], .btn-pill, .btn-icon, .hero-oneshot, .card-inner, .faq-item, .mobile-nav-link, .nav-link, summary, .calc-profile-btn, .cmd-pill';
     const magneticQuery =
-      '.btn-pill-primary, .hero-winget, #themeToggleBtn, .btn-icon, .dl-btn-primary, .app-tab';
+      '.btn-pill-primary, .hero-oneshot, #themeToggleBtn, .btn-icon, .dl-btn-primary, .app-tab';
 
     document.addEventListener(
       'pointerover',

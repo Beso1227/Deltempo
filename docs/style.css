@@ -21,7 +21,10 @@
 
   --text-high: #F8FAFC;
   --text-med: #94A3B8;
-  --text-low: #475569;
+  /* Dark theme needs a LIGHT low-emphasis ink: #475569 is the light-theme value
+     and only reaches 2.5:1 on #0B0F10/#12191C (WCAG AA needs 4.5:1).
+     #7C8CA1 measures 5.6:1 on --bg-canvas, 5.2:1 on --bg-card, 4.7:1 on hover. */
+  --text-low: #7C8CA1;
 
   --accent-cyan: #00F2B0;
   --accent-cyan-bg: rgba(0, 242, 176, 0.1);
@@ -329,7 +332,7 @@ p, .section-subtitle, .hero-subtext, .card-desc, .faq-answer, .scope-desc {
   text-wrap: pretty;
 }
 
-.hero-winget, .hero-proof-item, .stat-number, kbd, code {
+.hero-oneshot, .hero-proof-item, .stat-number, kbd, code {
   font-variant-numeric: tabular-nums;
 }
 
@@ -938,7 +941,7 @@ html.light .text-gradient {
   flex-wrap: wrap;
 }
 
-.hero-winget {
+.hero-oneshot {
   display: inline-flex;
   align-items: center;
   gap: 0.85rem;
@@ -957,35 +960,43 @@ html.light .text-gradient {
   user-select: none;
 }
 
-.hero-winget:hover {
+.hero-oneshot:hover {
   border-color: rgba(0, 242, 176, 0.4);
   color: var(--text-high);
   transform: translateY(-1.5px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 24px rgba(0, 242, 176, 0.18);
 }
 
-.hero-winget:active {
+.hero-oneshot:active {
   transform: scale(0.98);
 }
 
-html.light .hero-winget {
+/* The command itself must stay selectable so users can fall back to a manual
+   Ctrl+C when an extension blocks navigator.clipboard.writeText. */
+.hero-oneshot-cmd {
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+html.light .hero-oneshot {
   background: rgba(255, 255, 255, 0.85);
   border: 1px solid var(--border-subtle);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 16px rgba(0, 0, 0, 0.06);
   color: var(--text-med);
 }
 
-html.light .hero-winget:hover {
+html.light .hero-oneshot:hover {
   border-color: var(--accent-cyan-border);
   color: var(--text-high);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 8px 24px rgba(5, 150, 105, 0.12);
 }
 
-html.light .hero-winget:hover .hero-winget-copy {
+html.light .hero-oneshot:hover .hero-oneshot-copy {
   color: #FFFFFF;
 }
 
-.hero-winget-copy {
+.hero-oneshot-copy {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -999,7 +1010,7 @@ html.light .hero-winget:hover .hero-winget-copy {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.hero-winget:hover .hero-winget-copy {
+.hero-oneshot:hover .hero-oneshot-copy {
   background: var(--accent-cyan);
   color: #040810;
 }
@@ -2846,7 +2857,7 @@ html.light .video-direct-link:hover {
     font-size: 0.95rem !important;
   }
 
-  .hero-winget {
+  .hero-oneshot {
     width: 100%;
     max-width: 100%;
     justify-content: space-between;
@@ -2965,7 +2976,7 @@ html.light .video-direct-link:hover {
     grid-template-columns: 1fr;
   }
 
-  .hero-winget {
+  .hero-oneshot {
     font-size: 0.72rem;
     padding: 0.5rem 0.75rem;
   }
@@ -3317,22 +3328,22 @@ html.light .text-rose {
   text-align: center;
 }
 
-.download-winget-box {
+.download-oneliner-box {
   margin-bottom: 3rem;
 }
 
-.download-winget-inner {
+.download-oneliner-inner {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.download-winget-title {
+.download-oneliner-title {
   font-size: 1.25rem;
   font-weight: 800;
 }
 
-.download-winget-row {
+.download-oneliner-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3340,7 +3351,7 @@ html.light .text-rose {
   gap: 1rem;
 }
 
-.download-winget-hint {
+.download-oneliner-hint {
   font-size: 0.8rem;
   color: var(--text-med);
   font-family: var(--font-mono);

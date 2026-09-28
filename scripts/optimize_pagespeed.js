@@ -117,7 +117,7 @@ html.light .tier-badge.unknown {
   );
 }
 
-// Footer, download card meta, and winget text contrast
+// Footer, download card meta, and one-liner text contrast
 styleContent = styleContent.replace(
   /\.footer-copy-text \{\r?\n\s*font-size: 0\.8rem;\r?\n\s*color: var\(--text-low\);/g,
   '.footer-copy-text {\n  font-size: 0.8rem;\n  color: var(--text-med);'
@@ -131,8 +131,8 @@ styleContent = styleContent.replace(
   '.download-card-meta {\n  font-size: 0.8rem;\n  color: var(--text-med);'
 );
 styleContent = styleContent.replace(
-  /\.download-winget-hint \{\r?\n\s*font-size: 0\.8rem;\r?\n\s*color: var\(--text-low\);/g,
-  '.download-winget-hint {\n  font-size: 0.8rem;\n  color: var(--text-med);'
+  /\.download-oneliner-hint \{\r?\n\s*font-size: 0\.8rem;\r?\n\s*color: var\(--text-low\);/g,
+  '.download-oneliner-hint {\n  font-size: 0.8rem;\n  color: var(--text-med);'
 );
 
 // Prevent image aspect-ratio distortion in flex boxes

@@ -13,7 +13,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?label=Release&color=00F2B0" alt="Latest Release" /></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&label=CI%20Build" alt="CI Build Status" /></a>
-    <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/Tests-596%20Passed%20(0%20failed)-00F2B0" alt="Tests: 596 Passed" /></a>
+    <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/Tests-692%20Passed%20(0%20failed)-00F2B0" alt="Tests: 692 Passed" /></a>
     <a href="docs/THREAT_MODEL.md"><img src="https://img.shields.io/badge/Security-STRIDE%20Hardened-8B5CF6" alt="STRIDE Hardened" /></a>
     <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 10" /></a>
     <a href="https://learn.microsoft.com/dotnet/csharp/"><img src="https://img.shields.io/badge/C%23-13-239120?logo=csharp&logoColor=white" alt="C# 13" /></a>
@@ -24,7 +24,7 @@
   <p>
     <a href="#telemetry--offline-guarantee"><img src="https://img.shields.io/badge/Telemetry-Zero%20%7C%20100%25%20Offline-00F2B0" alt="Zero Telemetry" /></a>
     <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/Memory%20Engine-NT%20Kernel%20Native-0DD3BA" alt="NT Kernel Native" /></a>
-    <a href="#installation"><img src="https://img.shields.io/badge/winget-Beso1227.Deltempo-0078D4" alt="winget package" /></a>
+    <a href="#installation"><img src="https://img.shields.io/badge/Install-irm%20%7C%20iex-00F2B0" alt="One-liner install" /></a>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/badge/Binary-Portable%20Single--File-F59E0B" alt="Portable Single File" /></a>
     <a href="docs/ARCHITECTURE.md#safety-pipeline"><img src="https://img.shields.io/badge/Safety%20Model-Two--Phase%20Verified-8B5CF6" alt="Two Phase Verified Safety" /></a>
     <a href="https://github.com/Beso1227/Deltempo/releases"><img src="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?color=00F2B0&label=Downloads&logo=github" alt="GitHub Downloads" /></a>
@@ -282,11 +282,21 @@ deltempo status --json
 2. Run `Deltempo.exe` directly (no installer required, self-contained single-file).
 3. Click **Scan Now** or **1-Click Deep Clean** to reclaim space.
 
-### Option 2: Windows Package Manager (WinGet)
+### Option 2: Terminal One-Liner (PowerShell)
+
+Launch the latest release directly from your terminal — no browser, no installer:
 
 ```powershell
-winget install Beso1227.Deltempo
+irm https://beso1227.github.io/Deltempo/win | iex
 ```
+
+The bootstrap script downloads the latest `Deltempo.exe`, verifies its SHA-256 against the published `checksums.sha256`, caches it in `%LOCALAPPDATA%\Deltempo\bin`, and launches it. For the headless CLI binary, use the `win-cli` entry point:
+
+```powershell
+irm https://beso1227.github.io/Deltempo/win-cli | iex
+```
+
+If the manifest cannot be read, or the hash does not match, the installer aborts and runs nothing it downloaded — verification is never skipped. Note that `Invoke-Expression` accepts no arguments, so the target is selected by the entry point rather than a `-Cli` switch.
 
 ### Option 3: Terminal Registration
 
@@ -332,7 +342,7 @@ cd Deltempo
 # Compile the entire solution in Release configuration
 dotnet build deltempo.sln -c Release
 
-# Execute the automated test suite (596 passing unit & integration tests)
+# Execute the automated test suite (692 passing unit & integration tests)
 dotnet test deltempo.sln -c Release
 
 # Package the standalone single-file release binaries (GUI & CLI)
