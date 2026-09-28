@@ -18,7 +18,7 @@ All official releases are tagged in git using `vX.Y.Z` and triggered through Git
 | :--- | :--- | :--- | :--- |
 | **GitHub Releases** | Single-File Executable (`Deltempo-vX.Y.Z-win-x64.zip`) | GitHub Release Assets | Self-contained x64 binary with embedded runtime. Includes `.sha256` checksum and `.sig` Ed25519 signature. |
 | **Direct Binary** | Portable executable | Release bundle | Zero installer requirement; fully portable. |
-| **Terminal One-Liner** | PowerShell bootstrap script | `https://beso1227.github.io/Deltempo/win` | `irm .../win | iex` downloads, SHA-256 verifies, caches, and launches the latest release. |
+| **Terminal One-Liner** | PowerShell bootstrap script | `https://beso1227.github.io/Deltempo/win` | `irm .../win \| iex` downloads, SHA-256 verifies, caches, and launches the latest release. |
 
 ---
 

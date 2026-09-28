@@ -4,7 +4,7 @@
 
 Deltempo is built as a modular, high-reliability Windows maintenance, cache cleanup, and NT kernel memory optimization suite. The system strictly separates low-level system safety and deletion logic from UI presentation concerns.
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        Presentation Layer                              │
 │   ┌───────────────────────────────┐   ┌────────────────────────────┐   │
@@ -66,7 +66,7 @@ Deltempo is built as a modular, high-reliability Windows maintenance, cache clea
 
 Every file evaluated for cleanup passes through an unbypassable sequential verification pipeline:
 
-```
+```text
 [Target Path]
       │
       ▼

@@ -90,7 +90,7 @@ expiring within 30 days, and sets:
 unsigned release cannot ship by accident. To deliberately ship unsigned, set the
 repository **variable**:
 
-```
+```text
 REQUIRE_SIGNING = false
 ```
 

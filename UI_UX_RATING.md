@@ -63,7 +63,7 @@
 
 **Grid structure (6 rows):**
 
-```
+```text
 Row 0: Seamless Header / Title Bar
 Row 1: Double-Bezel Hero & Drive Telemetry
 Row 2: Unified Command, Search & Filter Strip

@@ -25,7 +25,11 @@
       "thead",
       "tr",
       "th",
-      "td"
+      "td",
+      "video",
+      "source",
+      "sub",
+      "sup"
     ]
   },
   "MD041": false,
