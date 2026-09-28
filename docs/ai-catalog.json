@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Deltempo",
+  "version": "2.0.0",
+  "description": "Fast, portable, open-source Windows cleaner, uninstaller, duplicate finder, and NT memory optimizer.",
+  "license": "MIT",
+  "homepage": "https://beso1227.github.io/Deltempo/",
+  "repository": "https://github.com/Beso1227/Deltempo",
+  "download": {
+    "gui": "https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe",
+    "cli": "https://github.com/Beso1227/Deltempo/releases/latest/download/deltempo_cli.exe",
+    "winget": "winget install Beso1227.Deltempo"
+  },
+  "documentation": "https://beso1227.github.io/Deltempo/docs/",
+  "llms_context": "https://beso1227.github.io/Deltempo/llms.txt",
+  "capabilities": [
+    "26+ cleaning scopes including driver installers and GPU shader caches",
+    "Native NT kernel standby memory trim (EmptyWorkingSet, NtSetSystemInformation)",
+    "Deep root application uninstallation with leftover cleanup",
+    "Cryptographic SHA-256 duplicate file detection",
+    "Interactive storage treemap disk visualizer",
+    "CLI headless automation for CI/CD and PowerShell",
+    "Zero telemetry, 100% offline and local"
+  ]
+}

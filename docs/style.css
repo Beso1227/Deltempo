@@ -21,7 +21,7 @@
 
   --text-high: #F8FAFC;
   --text-med: #94A3B8;
-  --text-low: #64748B;
+  --text-low: #475569;
 
   --accent-cyan: #00F2B0;
   --accent-cyan-bg: rgba(0, 242, 176, 0.1);
@@ -31,12 +31,12 @@
   --accent-emerald-bg: rgba(0, 242, 176, 0.1);
   --accent-emerald-border: rgba(0, 242, 176, 0.35);
 
-  --accent-amber: #F59E0B;
-  --accent-amber-bg: rgba(245, 158, 11, 0.1);
-  --accent-amber-border: rgba(245, 158, 11, 0.3);
+  --accent-amber: #FBBF24;
+  --accent-amber-bg: rgba(251, 191, 36, 0.12);
+  --accent-amber-border: rgba(251, 191, 36, 0.35);
 
-  --accent-purple: #8B5CF6;
-  --accent-purple-bg: rgba(139, 92, 246, 0.1);
+  --accent-purple: #A78BFA;
+  --accent-purple-bg: rgba(167, 139, 250, 0.12);
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -62,26 +62,26 @@ html.light {
 
   --border-subtle: rgba(0, 0, 0, 0.08);
   --border-strong: rgba(0, 0, 0, 0.18);
-  --border-focus: #059669;
+  --border-focus: #047857;
 
   --text-high: #0F172A;
-  --text-med: #475569;
-  --text-low: #94A3B8;
+  --text-med: #334155;
+  --text-low: #475569;
 
-  --accent-cyan: #059669;
-  --accent-cyan-bg: rgba(5, 150, 105, 0.08);
-  --accent-cyan-border: rgba(5, 150, 105, 0.25);
+  --accent-cyan: #047857;
+  --accent-cyan-bg: rgba(4, 120, 87, 0.08);
+  --accent-cyan-border: rgba(4, 120, 87, 0.25);
 
-  --accent-emerald: #059669;
-  --accent-emerald-bg: rgba(5, 150, 105, 0.08);
-  --accent-emerald-border: rgba(5, 150, 105, 0.25);
+  --accent-emerald: #047857;
+  --accent-emerald-bg: rgba(4, 120, 87, 0.08);
+  --accent-emerald-border: rgba(4, 120, 87, 0.25);
 
-  --accent-amber: #D97706;
-  --accent-amber-bg: rgba(217, 119, 6, 0.08);
-  --accent-amber-border: rgba(217, 119, 6, 0.25);
+  --accent-amber: #B45309;
+  --accent-amber-bg: rgba(180, 83, 9, 0.08);
+  --accent-amber-border: rgba(180, 83, 9, 0.25);
 
-  --accent-purple: #7C3AED;
-  --accent-purple-bg: rgba(124, 58, 237, 0.08);
+  --accent-purple: #6D28D9;
+  --accent-purple-bg: rgba(109, 40, 217, 0.08);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
@@ -1382,13 +1382,13 @@ html.light .tier-card:hover {
 
 .tier-badge.protected {
   background: rgba(244, 63, 94, 0.12);
-  color: #F43F5E;
+  color: #FB7185;
   border: 1px solid rgba(244, 63, 94, 0.3);
 }
 
 html.light .tier-badge.protected {
   background: rgba(225, 29, 72, 0.08);
-  color: #E11D48;
+  color: #BE123C;
   border: 1px solid rgba(225, 29, 72, 0.25);
 }
 
@@ -1412,8 +1412,14 @@ html.light .tier-badge.protected {
 
 .tier-badge.unknown {
   background: rgba(148, 163, 184, 0.12);
-  color: var(--text-low);
+  color: #CBD5E1;
   border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+html.light .tier-badge.unknown {
+  background: rgba(100, 116, 139, 0.1);
+  color: #334155;
+  border: 1px solid rgba(100, 116, 139, 0.25);
 }
 
 .tier-title {
@@ -1643,7 +1649,7 @@ html.light .trust-banner {
 
 .download-meta {
   font-size: 0.85rem;
-  color: var(--text-low);
+  color: var(--text-med);
   line-height: 1.6;
 }
 
@@ -3306,7 +3312,7 @@ html.light .text-rose {
 
 .download-card-meta {
   font-size: 0.8rem;
-  color: var(--text-low);
+  color: var(--text-med);
   margin-top: 0.75rem;
   text-align: center;
 }
@@ -3336,7 +3342,7 @@ html.light .text-rose {
 
 .download-winget-hint {
   font-size: 0.8rem;
-  color: var(--text-low);
+  color: var(--text-med);
   font-family: var(--font-mono);
 }
 
@@ -3671,7 +3677,7 @@ html.light .theme-icon-dark {
 }
 .footer-copy-text {
   font-size: 0.8rem;
-  color: var(--text-low);
+  color: var(--text-med);
 }
 
 /* Showcase Component & Pane Classes */
@@ -4096,4 +4102,28 @@ html.light .theme-icon-dark {
   font-size: 0.75rem;
   color: var(--accent-amber);
   font-weight: 700;
+}
+
+
+/* Strict 1:1 aspect ratio enforcement for brand & app icons */
+.brand-logo-img,
+.footer-logo-img,
+.window-title img {
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.window-title picture {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.window-title picture img {
+  width: 16px;
+  height: 16px;
 }

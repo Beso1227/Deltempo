@@ -43,7 +43,11 @@
   <!-- Fonts & Shared Style -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  </noscript>
     <link rel="stylesheet" href="../style.css?v=2.7.14">
 
   <!-- Web App Manifest (PWA installability) -->
@@ -109,7 +113,7 @@
     <nav class="nav-island" aria-label="Main Navigation">
       <a href="../" class="nav-brand">
         <picture>
-          <source srcset="../app_icon.webp" type="image/webp">
+          <source srcset="../app_icon-64.webp" type="image/webp">
           <img src="../app_icon-64.png" alt="Deltempo Logo" class="brand-logo-img" width="28" height="28">
         </picture>
         <span>Deltempo</span>
@@ -134,7 +138,7 @@
           <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
           <svg class="theme-icon-light hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
-        <a href="../download/" class="btn-pill btn-pill-primary nav-download-btn">
+        <a href="../download/" class="btn-pill btn-pill-primary nav-download-btn" aria-label="Download Deltempo">
           <span>Download</span>
           <span class="btn-icon-bubble">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -496,7 +500,7 @@
     <div class="container footer-inner">
       <div class="footer-brand">
         <picture>
-          <source srcset="../app_icon.webp" type="image/webp">
+          <source srcset="../app_icon-64.webp" type="image/webp">
           <img src="../app_icon-64.png" alt="Deltempo Logo" width="20" height="20" class="footer-logo-img">
         </picture>
         <span>Deltempo</span>

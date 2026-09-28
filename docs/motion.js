@@ -73,10 +73,13 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let width = 0;
-    let height = 0;
-    let dpr = 1;
+    let width = window.innerWidth || 360;
+    let height = window.innerHeight || 640;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
     let animationFrameId = null;
+
+    const isMobile = width < 768;
+    const particleCount = isMobile ? 18 : 100;
 
     // Interactive mouse coordinates and shockwave state
     const mouse = {
@@ -87,23 +90,23 @@
       vx: 0,
       vy: 0,
       speed: 0,
-      radius: window.innerWidth < 768 ? 160 : 250,
+      radius: isMobile ? 160 : 250,
       active: false,
     };
 
-    // Kinetic shockwave impulses for particle reaction (physics only, no visible circle drawn)
+    // Kinetic shockwave impulses for particle reaction
     const shockwaves = [];
 
     function resize() {
-      width = window.innerWidth;
-      height = window.innerHeight;
+      width = window.innerWidth || 360;
+      height = window.innerHeight || 640;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
+      mouse.radius = width < 768 ? 160 : 250;
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       canvas.style.width = width + 'px';
       canvas.style.height = height + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      mouse.radius = width < 768 ? 160 : 250;
     }
 
     resize();
@@ -142,9 +145,6 @@
       mouse.active = false;
     });
 
-    // Particle pool setup with 3D depth layers
-    const isMobile = window.innerWidth < 768;
-    const particleCount = isMobile ? 48 : 100;
     const particles = [];
 
     // Smooth camera / field 3D parallax tilt state
@@ -604,7 +604,8 @@
         }
       }
 
-      // 2. Pairwise particle relaxation: prevents particles from ever clumping or overlapping
+      // 2. Pairwise particle relaxation: desktop only to keep mobile main-thread light
+      if (!isMobile) {
       const sepDist = 38;
       const sepDistSq = sepDist * sepDist;
       for (let i = 0; i < particles.length; i++) {
@@ -627,6 +628,7 @@
             p2.vy -= fy;
           }
         }
+      }
       }
 
       // 3. Update and render 3D particles
@@ -729,6 +731,7 @@
      4. Card Reactive Surface Lighting & Micro 3D Tilt
      ========================================================================== */
   function initCardInteractivity() {
+    if (!isFinePointer.matches) return;
     const cards = document.querySelectorAll(
       '.double-bezel, .card-inner, .feature-card, .cap-item, .hero-winget, .showcase-wrapper, .arch-card, .dl-card, .faq-item, .scope-card, .tier-card, .doc-code-card, .download-card, .trust-banner'
     );
@@ -1460,7 +1463,11 @@
     }
 
     window.addEventListener('scroll', updateActiveNav, { passive: true });
-    updateActiveNav();
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(updateActiveNav);
+    } else {
+      setTimeout(updateActiveNav, 100);
+    }
   }
 
 // SPA-grade instant page transitions across GitHub Pages without full reloads
