@@ -4,7 +4,8 @@
 
 **Goal:** Modernize Deltempo's cleaning, scanning, and safety measurement engines to achieve feature parity with Microsoft PC Manager, specifically enabling perfect detection, safe vetting, and full cleanup of Device Driver Packages and vendor GPU/hardware update staging caches.
 
-**Architecture:** 
+**Architecture:**
+
 1. Refine `ProtectionPolicy` to whitelist verified, disposable System32 sub-caches (`DriverStore\Temp`, `DriverState`, `LogFiles`) while maintaining strict defense against OS kernel files and system executable binaries (`.sys`, `.dll`, `.exe`, `.inf`, `.cat`).
 2. Enhance `FileSafetyEngine` with deterministic cache rules for driver staging packages.
 3. Expand `SystemCacheResolver` to discover comprehensive NVIDIA, AMD, and Intel installer unpacker directories.
@@ -15,6 +16,7 @@
 **Spec:** In-chat approved design from superpowers:brainstorming session on 2026-09-24.
 
 ## Global Constraints
+
 - Target Framework: `net10.0-windows10.0.19041.0` (and `net10.0-windows` for Core).
 - Never allow deletion of `.sys`, `.dll`, `.exe`, `.inf`, `.cat`, or `.kdbx` from protected Windows system directories or driver stores outside official APIs.
 - Fail closed: If any path cannot be verified as safely disposable, preserve it by default (`SafetyRiskTier.Unknown` or `SafetyRiskTier.Protected`).
@@ -25,10 +27,12 @@
 ### Task 1: System32 Safe Cache Exception & Binary Guard in ProtectionPolicy
 
 **Files:**
+
 - Modify: `Core/Safety/ProtectionPolicy.cs`
 - Test: `Tests/Deltempo.Tests/ProtectionPolicyTests.cs`
 
 **Interfaces:**
+
 - `ProtectionPolicy.IsProtected(string filePath, out string matchedReason)`
 - `ProtectionPolicy.IsSafeSystemSubdirectory(string path, out string matchedCategory)`
 
@@ -58,6 +62,7 @@ Expected: FAIL (because `DriverStore\Temp\setup.log` currently returns `true` / 
 - [ ] **Step 3: Implement safe System32 exception handling in `ProtectionPolicy.cs`**
 
 Add helper to distinguish safe System32 disposable staging locations:
+
 ```csharp
 private static readonly HashSet<string> PermittedSystem32Subdirectories = new(StringComparer.OrdinalIgnoreCase)
 {
@@ -72,7 +77,9 @@ private static readonly HashSet<string> ForbiddenSystemExtensions = new(StringCo
     ".dll", ".sys", ".exe", ".inf", ".cat", ".ocx", ".cpl", ".msc", ".drv"
 };
 ```
+
 In `ProtectionPolicy.IsProtected`, check if path is in `PermittedSystem32Subdirectories`:
+
 - If file extension is in `ForbiddenSystemExtensions`, it remains strictly `PROTECTED`.
 - If inside a permitted sub-directory and NOT a forbidden system binary, permit it to proceed to safety tier evaluation.
 
@@ -91,10 +98,12 @@ Expected: PASS (all tests pass).
 ### Task 2: Driver Staging Cache Rules in FileSafetyEngine
 
 **Files:**
+
 - Modify: `Core/Safety/FileSafetyEngine.cs`
 - Test: `Tests/Deltempo.Tests/ProtectionPolicyTests.cs` (or new test method)
 
 **Interfaces:**
+
 - `FileSafetyEngine.EvaluateVerifiedCachePatterns(string pathLower, string fileName, string ext, long sizeBytes)`
 
 - [ ] **Step 1: Write failing test for driver package staging recognition**
@@ -120,6 +129,7 @@ Expected: FAIL.
 - [ ] **Step 3: Implement driver package staging patterns in `FileSafetyEngine.cs`**
 
 Add rule in `EvaluateVerifiedCachePatterns`:
+
 ```csharp
 // Hardware Driver Staging & Installer Caches (NVIDIA, AMD, Intel, DriverStore Temp)
 if (pathLower.Contains(@"\nvidia corporation\installer2\") ||
@@ -152,10 +162,12 @@ Expected: PASS.
 ### Task 3: Comprehensive Driver Staging Locations in SystemCacheResolver
 
 **Files:**
+
 - Modify: `Services/Providers/CacheResolvers/SystemCacheResolver.cs`
 - Test: `Tests/Deltempo.Tests/CleanerServiceTests.cs`
 
 **Interfaces:**
+
 - `SystemCacheResolver.ResolveDeviceDriverDirectories()`
 
 - [ ] **Step 1: Write test verifying all required vendor driver directories are resolved**
@@ -180,6 +192,7 @@ Expected: FAIL (because `Installer2` is not currently in the returned list).
 - [ ] **Step 3: Update `ResolveDeviceDriverDirectories` in `SystemCacheResolver.cs`**
 
 Expand with:
+
 - `Path.Combine(progFiles, "NVIDIA Corporation", "Installer2")`
 - `Path.Combine(progFilesX86, "NVIDIA Corporation", "Installer2")`
 - `Path.Combine(progData, "NVIDIA Corporation", "GeForce Experience", "Download")`
@@ -200,11 +213,13 @@ Expected: PASS.
 ### Task 4: Windows Native PnP Driver Maintenance Integration
 
 **Files:**
+
 - Create: `Services/WindowsDriverMaintenanceService.cs`
 - Modify: `Services/CleanerService.cs`
 - Test: `Tests/Deltempo.Tests/CleanerServiceTests.cs`
 
 **Interfaces:**
+
 - `WindowsDriverMaintenanceService.RunPnpDriverCleanAsync(Action<string, LogLevel> logAction, CancellationToken ct)`
 
 - [ ] **Step 1: Write failing unit test for `WindowsDriverMaintenanceService`**
@@ -227,6 +242,7 @@ Expected: FAIL (class does not exist yet).
 - [ ] **Step 3: Implement `WindowsDriverMaintenanceService.cs`**
 
 Create `Services/WindowsDriverMaintenanceService.cs`:
+
 - Check `ElevationService.IsRunAsAdmin()`. If not admin, report requiring admin.
 - Launch `rundll32.exe pnpclean.dll,RunDLL_PnpClean /DRIVERS /MAXCLEAN` with a 30-second timeout, `CreateNoWindow = true`, `UseShellExecute = false`.
 - Log output and execution status safely.
@@ -235,6 +251,7 @@ Create `Services/WindowsDriverMaintenanceService.cs`:
 
 In `CleanerService.CleanFolderAsync`:
 When `folder.Id == "DeviceDriverPackages"` and running as Admin:
+
 - In addition to cleaning the resolved directories via `CleanupPlanner`, invoke `await WindowsDriverMaintenanceService.RunPnpDriverCleanAsync(logAction, ct);`.
 - Log success: `"Windows PnP Driver Maintenance executed: Obsolete driver packages safely purged from DriverStore."`
 
@@ -248,6 +265,7 @@ Expected: PASS.
 ### Task 5: Full Regression Testing & Localization Verification
 
 **Files:**
+
 - Modify: `Services/LocalizationService.cs` (if needed for new messages)
 - Test: Full `Tests/Deltempo.Tests` suite
 

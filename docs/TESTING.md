@@ -32,21 +32,28 @@ Because Deltempo is a Windows maintenance and deletion utility operating near se
 ## 3. Running Tests Locally
 
 ### 3.1 Standard Test Suite (CI Equivalent)
+
 Run all functional, security, and architectural tests (excluding timing benchmarks):
+
 ```bash
 dotnet test deltempo.sln -c Release --filter "Category!=Benchmark"
 ```
 
 ### 3.2 Running Performance Benchmarks
+
 Run throughput and memory engine benchmarks explicitly:
+
 ```bash
 dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --filter "Category=Benchmark"
 ```
 
 ### 3.3 Running with Code Coverage
+
 To run with code coverage collection and report generation:
+
 ```powershell
 dotnet tool install --global dotnet-coverage --version 18.*
 dotnet-coverage collect "dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --filter Category!=Benchmark --no-restore" -f cobertura -o Tests/Deltempo.Tests/TestResults/coverage.cobertura.xml
 ```
+
 Enforced minimum line coverage threshold in CI: **65%**.

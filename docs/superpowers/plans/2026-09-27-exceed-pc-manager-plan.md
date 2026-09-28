@@ -11,6 +11,7 @@
 **Spec:** `docs/superpowers/specs/2026-09-27-exceed-pc-manager-design.md`
 
 ## Global Constraints
+
 - Target platform: Windows 10/11 x64, .NET 10.
 - All 660+ existing tests must continue to pass without regression.
 - Zero external bloatware/telemetry: 100% native C# and Win32 P/Invoke.
@@ -21,10 +22,12 @@
 ### Task 1: Native RAM & Working Set Optimizer Service
 
 **Files:**
+
 - Create: `Services/SystemMemoryOptimizationService.cs`
 - Test: `Tests/Deltempo.Tests/SystemMemoryOptimizationServiceTests.cs`
 
 **Interfaces:**
+
 - Produces: `public record MemoryOptimizationResult(long InitialWorkingSetBytes, long FinalWorkingSetBytes, long BytesReclaimed, int ProcessesTrimmed)`
 - Produces: `public static MemoryOptimizationResult OptimizeWorkingSet(Action<string, LogLevel>? logAction = null)`
 
@@ -45,11 +48,13 @@ Run the tests again and verify passing.
 ### Task 2: Deep Storage Resolver Extensions (Delivery Optimization, CBS, WinGet)
 
 **Files:**
+
 - Modify: `Services/SystemCacheResolver.cs`
 - Modify: `Services/CleanerService.cs`
 - Test: `Tests/Deltempo.Tests/CleanerServiceTests.cs`
 
 **Interfaces:**
+
 - Produces: `CleanerService.GetDeliveryOptimizationDirectories()`
 - Produces: `CleanerService.GetServicingLogDirectories()`
 - Produces: `CleanerService.GetWinGetAndAppStagingDirectories()`
@@ -72,6 +77,7 @@ Verify all tests pass.
 ### Task 3: CLI & GUI Integration for Memory Boost
 
 **Files:**
+
 - Modify: `Cli/Program.cs`
 - Modify: `MainWindow.xaml.cs` (or view model / quick action button)
 - Test: `Tests/Deltempo.Tests/CliTests.cs` (if existing) or manual verification

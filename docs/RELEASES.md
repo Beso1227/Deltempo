@@ -3,6 +3,7 @@
 ## 1. Versioning & Tagging Policy
 
 Deltempo follows Semantic Versioning (`MAJOR.MINOR.PATCH`):
+
 * **MAJOR**: Architectural changes, breaking CLI arguments, or schema modifications.
 * **MINOR**: New cleanup scopes, performance enhancements, or new repair modules.
 * **PATCH**: Bug fixes, security hardening, or updated protection lists.
@@ -27,9 +28,11 @@ Every official release artifact is verified through automated pipelines:
 
 1. **SHA-256 Checksums**:
    Published alongside each release in `SHA256SUMS.txt`. Users can verify integrity manually:
+
    ```powershell
    (Get-FileHash -Algorithm SHA256 .\Deltempo.exe).Hash
    ```
+
 2. **Ed25519 Signatures**:
    The self-updater (`UpdateService`) checks Ed25519 cryptographic signatures using a pinned root public key before executing staged updates.
 3. **Software Bill of Materials (SBOM)**:
@@ -40,18 +43,24 @@ Every official release artifact is verified through automated pipelines:
 ## 4. Release Checklist for Maintainers
 
 1. Verify working directory is clean and all tests pass:
+
    ```powershell
    dotnet test deltempo.sln -c Release --filter "Category!=Benchmark"
    ```
+
 2. Verify zero high or critical NuGet vulnerabilities:
+
    ```powershell
    dotnet list package --vulnerable --include-transitive
    ```
+
 3. Update version number in `Directory.Build.props`.
 4. Update `docs/changelog/index.html` with release notes and highlights.
 5. Create and push signed git tag:
+
    ```bash
    git tag -s vX.Y.Z -m "Release vX.Y.Z"
    git push origin vX.Y.Z
    ```
+
 6. Verify CI build completion, download generated binaries, and verify SHA-256 signatures before publishing the GitHub release.

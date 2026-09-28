@@ -43,16 +43,19 @@ Deltempo is built as a modular, high-reliability Windows maintenance, cache clea
 ## 2. Layer Responsibilities & Isolation Invariants
 
 ### 2.1 Core Engine (`Core/`)
+
 * **Zero UI Dependency**: Contains no references to WPF, `System.Windows`, or XAML controls. Compiles as pure net10.0 logic reusable across desktop, console, and background daemon agents.
 * **Deterministic Execution**: All safety evaluations are algorithmic and rule-based. AI intelligence reports, heuristics, or external telemetry can flag files for review but can **never** override deterministic safety rules or whitelist policies.
 * **Fail-Closed Principle**: Unrecognized file formats, inaccessible paths, or ambiguous attributes default unconditionally to `SafetyRiskTier.Unknown` and are preserved.
 
 ### 2.2 Services Layer (`Services/`)
+
 * **Memory Optimizer**: Ported and hardened from `WinMemoryCleaner`. Directly interfaces with Windows NT kernel APIs via `ntdll.dll!NtSetSystemInformation` and `psapi.dll!EmptyWorkingSet`. Employs fine-grained Windows token privilege elevation (`SeProfileSingleProcessPrivilege`, `SeIncreaseQuotaPrivilege`, `SeDebugPrivilege`) with automated post-operation privilege revocation.
 * **System Repair**: Automates servicing stack recovery (`SFC /scannow`, `DISM /Online /Cleanup-Image /RestoreHealth`, `WinSxS /StartComponentCleanup`, volume `CHKDSK /scan`).
 * **Update Verification**: Enforces cryptographic integrity on self-updates using dual SHA-256 payload matching and Ed25519 digital signature verification.
 
 ### 2.3 Presentation Layer (`ViewModels/`, `Views/`, `Cli/`)
+
 * **MVVM Architecture**: ViewModels expose `ICommand` bindings, thread-safe observable collections, and immutable progress snapshots.
 * **Non-Blocking Execution**: All I/O operations (scanning, cleaning, memory flushing, repair execution) run strictly asynchronously (`Task.Run` with bounded parallelism and `CancellationToken` support).
 * **CLI Parity**: `Deltempo.Cli` exposes full engine functionality headlessly, outputting structured JSON streams and deterministic process exit codes for integration into automated administration scripts and CI pipelines.

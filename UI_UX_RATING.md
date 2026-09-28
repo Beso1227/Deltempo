@@ -9,7 +9,7 @@
 ## Overall Score: 4.2 / 5
 
 | Category | Score | Key Strength | Key Risk |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Visual Design | 4.5 / 5 | Layered dark theme, micro-interactions on all buttons, consistent corner radius scale | No light-theme token overrides (all brushes are dark-only in `App.xaml`) |
 | Information Architecture | 4.5 / 5 | 6-zone grid layout, clear visual hierarchy, well-structured modals | Category list lacks progressive disclosure for 25+ scopes |
 | Interaction Model | 4.25 / 5 | 3-tier actions (Smart / 1-Click / Custom), confirmation modal, elevation awareness | No keyboard navigation map; tab order not verified |
@@ -24,6 +24,7 @@
 ### Evidence
 
 **Theming & Color System (`App.xaml`):**
+
 - Canvas gradient from `#090B10` → `#0D1017` (header) → `#111520` (cards) → `#141926` (sub-cards), creating subtle depth.
 - Brand accent: electric cyan `#00E5FF` with a blue→indigo→violet gradient (`BrandHeroGradientBrush`) applied to primary CTAs.
 - Status color tokens are semantically mapped: `#10B981` (green, safe/admin), `#F59E0B` (amber, warning), `#F43F5E` (rose, error), `#00E5FF` (cyan, info/action).
@@ -31,6 +32,7 @@
 - `AccessibleFocusVisualStyle` defined globally — cyan dashed outline (`StrokeThickness=2`, `StrokeDashArray="2 1"`) for WCAG 2.2 AA compliance.
 
 **Component Polish:**
+
 - `HeroCTAButton` template includes: scale transform on hover (`1.015`), translate-up micro-interaction, pressed-state scale-down (`0.985`), opacity shift, and dual-layer shadow (`#000000` at 0.28 opacity, `BlurRadius=12`).
 - `PillButton` has subtle Y-translate on hover/press (`-1` / `+1` pixels), background shift on hover.
 - `ModernSwitchCheckBox` — custom toggle pill with 20px track, 14px thumb, thumb slides left-to-right on check.
@@ -40,6 +42,7 @@
 - Corner radius system: `RadSm=6`, `RadMd=10`, `RadLg=14`, `RadXl=18`, `Rad2xl=20` — applied consistently across all surfaces.
 
 **Visual Hierarchy in `MainWindow.xaml`:**
+
 - Master shell: `CornerRadius="20"`, `Margin="12"`, ambient `DropShadowEffect BlurRadius=36`.
 - Inner clipping shell with `ClipToBounds="True"` and `CornerRadius="19"` for flawless bottom rounding.
 - 6-row grid: header (title bar with admin badge + language selector) → hero telemetry strip (double-bezel ring) → filter/search bar → category cards → action dock → activity log.
@@ -47,6 +50,7 @@
 - Category cards: glyph orb (38px), name + category badge + safety badge + error badge row, description, monospace folder path, bold size text, muted stats line, status message, and context-dependent Inspect/Retry buttons.
 
 ### Recommendations
+
 1. **Define light-theme overrides** for all brushes in `App.xaml`. Currently every `SolidColorBrush` is dark-mode-only. The light theme toggle exists in code (`MainWindow.Ui.cs` line 64) but no light brushes are present in the resource dictionary.
 2. **Verify contrast ratios** for `#00E5FF` (electric cyan) against the dark surfaces it overlays — especially on `SurfaceSubCardBrush` (`#141926`) and `TrackBgBrush` (`#1A2333`). Tools: Windows Accessibility Insights.
 3. **Add a shimmer animation** to skeleton loaders. Currently the 3 skeleton rows are static gray bars (`#1E2538` equivalent via `TrackBgBrush`). A subtle left-to-right opacity animation would communicate "loading" more effectively.
@@ -58,6 +62,7 @@
 ### Evidence
 
 **Grid structure (6 rows):**
+
 ```
 Row 0: Seamless Header / Title Bar
 Row 1: Double-Bezel Hero & Drive Telemetry
@@ -68,34 +73,41 @@ Row 5: Collapsible Log Stream
 ```
 
 **Header (Row 0):**
+
 - Left: App logo (32×32 orb with cyan glow), brand name "Deltempo", version badge (`v1.5.2`), MIT license tag.
 - Center: Segmented tool island with 5 icon-buttons (Large Files, Startup, Processes, Memory, System Repair) separated by hairline dividers.
 - Right: Admin elevation capsule (green `#10B981` badge, clickable for UAC re-launch), About button, Quick Preferences Pod (language combobox, sound toggle, theme toggle, settings button), window controls (minimize/maximize/close).
 
 **Hero & Telemetry (Row 1):**
+
 - Left: "RECLAIMABLE JUNK & APPDATA" label (10pt), 32pt bold size figure, scan scope subtext, primary "Scan Now" (F5) CTA + "1-Click Deep Clean" pill.
 - Right: Two telemetry cards — Drive C: (usage bar + "Large Files" button + "Calculating..." state) and RAM Memory (progress bar + percentage + "Quick Boost" inline button).
 
 **Filter & Selection (Row 2):**
+
 - Tier 1: 5 filter chips (All Scopes / Safe Only / System & Drivers / Gaming / Media & Apps) + search box with placeholder, clear button, magnifying-glass icon.
 - Tier 2: "25+ DEEP SCOPES" indicator, helper text, connected selection pills (Safe / All / None), "Smart Clean" 1-click pill (green check icon), "Rescan" button (F5).
 
 **Category Cards (Row 3):**
+
 - Empty state: icon "No scan data yet" placeholder with descriptive text.
 - Skeleton loading: 3 placeholder cards with gray blocks mimicking the card layout.
 - ItemsControl bound to `TargetFolderInfo` collection; each card has: checkbox (modern toggle), glyph orb, name + category badge + safety/error badge, description, folder path (monospace), size (15pt bold), stats (11pt muted), status message with scanning/cleaning/error states, "Inspect" button (conditional on `HasTopFiles`), "Retry" button (conditional on `HasError`).
 - Error state: card border turns `#EF4444` at 1.5px thickness; error text in `#FCA5A5`.
 
 **Bottom Action Dock (Row 4):**
+
 - Three-pillar layout: (1) Safety Shield toggle with checkbox + shield icon + "Safety Shield (>24h)" label, (2) Diagnostics pod with Activity Log toggle (with notification dot) + Audit Report export, (3) Action group with Cancel (conditional), 1-Click Deep Clean, and primary "Clean Selected" CTA (gradient background, Ctrl+Enter shortcut badge).
 
 **Modals (overlay grids):**
+
 - Confirmation modal: icon header, 26pt size callout, Safety Shield badge, deletion mode callout (Recycle Bin vs permanent), summary sentence, Cancel + "Clean Selected Items" CTA.
 - Celebration modal: 60px glowing orb, "Cleanup Completed!" title, reclaimed space (15pt cyan), 4-column stats card (Files / Folders / RAM / Time), Export Report + Awesome buttons.
 - Settings modal: 4-tab radio button navigation (Updates / General / Memory / Safety), search bar, content view, Save/Cancel/Discard footer.
 - About modal: Trust & Safety checklist (5 bullet points), publisher info with GitHub link, SmartScreen explanation.
 
 ### Recommendations
+
 1. **Progressive disclosure for 25+ scopes:** With 25+ categories, consider a "Show More" affordance or lazy-loading virtualizing panel. Currently `ItemsControl` is used — switching to a `VirtualizingStackPanel` would improve scroll performance.
 2. **Search filter by path:** The search currently matches `Name`, `Description`, `Category`, and `FolderPath` (confirmed in `CleaningPipelineViewModel.MatchesFilter`). Consider adding status-based filtering (e.g., "show only errors" or "show only safe").
 3. **Settings tab search:** The settings modal has a search bar placeholder but no visible search handler. Wire `TextBox.TextChanged` to filter settings items.
@@ -107,33 +119,39 @@ Row 5: Collapsible Log Stream
 ### Evidence
 
 **Action Hierarchy:**
+
 - `MainWindow.xaml` lines 467–519: Hero CTA buttons — "Scan Now" (primary, `HeroCTAButton`), "1-Click Deep Clean" (secondary, `PillButton`).
 - Lines 868–913: "Smart Clean" (1-click safe selection + immediate clean), "Rescan" — positioned in the selection command bar.
 - Lines 1399–1446: Footer action group — "1-Click Deep Clean" (all 26 scopes + DISM + RAM), "Clean Selected" (primary, gradient CTA with Ctrl+Enter hint).
 - Two-modal confirmation flow: `ConfirmModalOverlay` shows estimated size, Safety Shield status, deletion mode, and a summary sentence before proceeding.
 
 **Per-Item Interactions:**
+
 - Category card checkbox (`IsChecked="{Binding IsSelected, Mode=TwoWay}"`) with `TargetCheckBox_Changed` handler.
 - "Inspect" button (visible only when `HasTopFiles`) → opens `InspectorModalOverlay` with a list of top files (filename, path, size, date, monospace).
 - "Retry" button (visible only when `HasError`) → per-category scan retry.
 - Safety Shield checkbox in bottom dock: `AutomationProperties.HelpText="Protects files created or modified within the last 24 hours"`, with `Checked`/`Unchecked` → `SafeModeCheckBox_Changed` handler.
 
 **Elevation Awareness:**
+
 - Header admin badge: `AdminBadgeText.Text = "Admin"` (green), clickable → `AdminElevationButton_Click` → UAC prompt.
 - `CleaningPipelineViewModel.GetElevationRequirement` filters selected targets where `RequiresAdmin && !HasAccess` → drives UAC re-launch before clean.
 - SystemRepairModal: elevation warning banner (amber, `Visibility="Collapsed"` when already elevated) with "Elevate Privileges" button.
 
 **Modal Patterns:**
+
 - SystemRepairModal: 6 bento tool cards (SFC, DISM, WinSxS, CHKDSK, Update Reset, Network Reset), each with name, description, duration, and "Run" button. Hero card for autonomous repair with progress bar + live terminal output. Footer: Cancel (disabled until running) + Close.
 - MemoryOptimizerModal: 3 telemetry pods (Total RAM, Reclaimable Standby Cache, Kernel Isolation Shield), selection toolbar (Select All / Deselect All), bento list of 8 memory zones with per-zone Flush buttons, footer with "Quick Trim" + "Purge Selected Zones" (hero).
 
 **Keyboard & Shortcuts:**
+
 - F5: Scan (`ToolTip="Shortcut: F5"` on `HeroScanBtn`)
 - Ctrl+Enter: Clean (`AutomationProperties.HelpText="Shortcut: Ctrl+Enter"` on `CleanButton`)
 - Esc: Close inspector (`Content="Close Inspector (Esc)"`)
 - Theme toggle: `&#xE708;` (moon) / `&#xE706;` (sun) icon swap
 
 ### Recommendations
+
 1. **Implement `ICommand` binding** in the ViewModel instead of code-behind `Click` handlers. This is MVVM Phase 1 migration territory — the `CleaningPipelineViewModel` is already extracted as a static class, but the View still wires events in code. Completing MVVM Phase 2 (per the comment on lines 9–10) would make all interactions unit-testable.
 2. **Add tab navigation map**: Verify that `TabIndex` flows logically through the header tools → scan button → filter chips → category cards → action dock → settings/about/close. WPF's default tab order follows declaration order, but custom-chrome windows (`WindowStyle=None`) must set `TabNavigation="Local"` on focusable containers.
 3. **Implement focus traps in modals**: When a modal overlay is visible, ensure keyboard focus is trapped within the modal boundary. Currently `FocusVisualStyle` is applied, but there's no `MoveFocus` or `PreviewKeyDown` handler to contain focus.
@@ -165,6 +183,7 @@ Row 5: Collapsible Log Stream
 - **Monospace font in log stream**: The activity log uses `Cascadia Code` monospace. While appropriate for technical logs, the fixed character width may reduce readability for users with cognitive disabilities.
 
 ### Recommendations
+
 1. **Run Windows Accessibility Insights** on the rendered app and verify all cyan-on-dark contrast ratios meet 4.5:1. Adjust either the surface color or the accent color as needed.
 2. **Add `AutomationProperties.GroupName`** to logical containers: wrap the filter chip group in a labeled panel, tag the category cards list, and label the bottom action dock.
 3. **Implement modal focus traps**: Add a `PreviewKeyDown` handler on modal overlays that intercepts `Tab`/`Shift+Tab` and cycles focus within the modal's focusable children.
@@ -188,6 +207,7 @@ Row 5: Collapsible Log Stream
 - **Celebration modal**: "14.2s" elapsed time, "14,280" files deleted, "412" folders purged — concrete metrics reinforce a sense of accomplishment.
 
 ### Recommendations
+
 1. **Add shimmer animation to skeleton loaders**: Currently the 3 placeholder cards are static. A left-to-right opacity or background-position animation (2–3 seconds, looping) would visually communicate "still loading" and reduce perceived wait time.
 2. **Add indeterminate progress to terminal output**: The `SystemRepairTerminalTextBox` in SystemRepairModal starts with "[Diagnostic Terminal Initialized] Ready..." — add a subtle spinner or pulsing cursor indicator during active scans.
 3. **Pre-warm telemetry timers**: The drive/RAM telemetry updates use `Dispatcher.Invoke` — ensure the timer interval is not too aggressive (causing CPU wake-ups) nor too slow (stale data).
@@ -199,6 +219,7 @@ Row 5: Collapsible Log Stream
 ### Evidence
 
 **Code organization (partial class split):**
+
 - `MainWindow.xaml.cs` — entry point, window lifecycle (`Loaded`, `StateChanged`, `KeyDown`)
 - `MainWindow.Ui.cs` — log stream, theme/sound/language toggles, search/filter
 - `MainWindow.Cleaning.cs` — scan/clean pipeline, skeleton loading, progress UI
@@ -210,6 +231,7 @@ Row 5: Collapsible Log Stream
 - `MainWindow.Updates.cs` — update discovery and release-notes flow
 
 **MVVM progression:**
+
 - `CleaningPipelineViewModel` (lines 12–184): static class with three methods:
   - `ComputeSelectionSummary` — aggregates selected targets into hero size, button label, subtext.
   - `BuildConfirmationPreview` — builds confirmation modal content (size, shield, deletion mode, category summary).
@@ -218,18 +240,22 @@ Row 5: Collapsible Log Stream
 - `MainWindow.Ui.cs` line 162: `FilterTargetPredicate` delegates to `CleaningPipelineViewModel.MatchesFilter` — clean integration point.
 
 **Model quality:**
+
 - `TargetFolderInfo` implements `INotifyPropertyChanged` with `CallerMemberName` attribute on `OnPropertyChanged` — no magic strings in property-changed calls. Computed properties (`FormattedSize`, `FormattedStats`) trigger `PropertyChanged` on dependent fields. `FormatBytes` is a static helper with proper rounding (1 decimal place, binary suffixes).
 - `LogEntry` model: `LogLevel` enum (Info/Success/Warning/Error), `BadgeColor` computed via switch expression (theme-aware via `ThemeService.IsDarkMode`), `LevelGlyph` with Unicode symbols.
 
 **Resource management:**
+
 - All brushes, styles, converters, and fonts registered as `Application.Resources` in `App.xaml` — single source of truth for the design system.
 - `DynamicResource` usage throughout (not `StaticResource`) so theme changes propagate at runtime.
 - `ThemeService` referenced by `LogEntry.BadgeColor` — clean service dependency.
 
 **Test coverage:**
+
 - `Tests/Deltempo.Tests/CleaningPipelineViewModelTests.cs` exists — covers `MatchesFilter` tag filtering, search matching, and `ComputeSelectionSummary` (zero-byte selection, mixed safe/review, all-safe).
 
 ### Recommendations
+
 1. **Complete MVVM Phase 2**: Convert `MainWindow` code-behind `Click` handlers to `ICommand` bindings on a proper ViewModel. Bind `SelectedItem`/`IsSelected` through `ICollectionView` with sorting/grouping. Remove all `x:Name`-based code-behind manipulation in favor of binding.
 2. **Add `DesignerProperties.GetIsInDesignMode` guards** to data templates so the Visual Studio designer can render category cards with sample data without crashing.
 3. **Extract modal UserControls into View+ViewModel pairs**: Currently `SystemRepairModal` and `MemoryOptimizerModal` are UserControls with code-behind. Move their logic into ViewModels with `ICommand` bindings and inject them as `DataTemplate`s in the main window's resource dictionary.
@@ -240,7 +266,7 @@ Row 5: Collapsible Log Stream
 ## Appendix: Rating Criteria Legend
 
 | Score | Meaning |
-|---|---|
+| --- | --- |
 | 5 | Exemplary — exceeds industry standards, no meaningful gaps |
 | 4.5 | Excellent — minor refinements possible |
 | 4 | Strong — solid foundation with clear improvement areas |
