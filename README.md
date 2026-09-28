@@ -13,7 +13,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?label=Release&color=00F2B0" alt="Latest Release" /></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&label=CI%20Build" alt="CI Build Status" /></a>
-    <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/Tests-596%20Passed%20(0%20failed)-00F2B0" alt="Tests: 596 Passed" /></a>
+    <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/Tests-692%20Passed%20(0%20failed)-00F2B0" alt="Tests: 692 Passed" /></a>
     <a href="docs/THREAT_MODEL.md"><img src="https://img.shields.io/badge/Security-STRIDE%20Hardened-8B5CF6" alt="STRIDE Hardened" /></a>
     <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 10" /></a>
     <a href="https://learn.microsoft.com/dotnet/csharp/"><img src="https://img.shields.io/badge/C%23-13-239120?logo=csharp&logoColor=white" alt="C# 13" /></a>
@@ -332,7 +332,7 @@ cd Deltempo
 # Compile the entire solution in Release configuration
 dotnet build deltempo.sln -c Release
 
-# Execute the automated test suite (596 passing unit & integration tests)
+# Execute the automated test suite (692 passing unit & integration tests)
 dotnet test deltempo.sln -c Release
 
 # Package the standalone single-file release binaries (GUI & CLI)
