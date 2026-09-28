@@ -416,6 +416,14 @@ public partial class MainWindow
         LockedFilesModalOverlay.PopulateAndOpen(lockedRecords);
     }
 
+    /// <summary>
+    /// Opens the Force Delete modal with an empty list so the user can pick files/folders to purge.
+    /// </summary>
+    private void OpenForceDeleteModal_Click(object sender, RoutedEventArgs e)
+    {
+        ForceDeleteModalOverlay.OpenEmpty();
+    }
+
     private void CloseCelebration_Click(object sender, RoutedEventArgs e)
     {
         CelebrationModalOverlay.Visibility = Visibility.Collapsed;

@@ -1,0 +1,407 @@
+<UserControl x:Class="WinTempCleaner.Views.Modals.ForceDeleteModal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:safety="clr-namespace:WinTempCleaner.Core.Safety;assembly=Deltempo.Core"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="860">
+    <Grid Background="Transparent">
+        <Border Margin="24,14,24,14"
+                Background="{DynamicResource DoubleBezelOuterBrush}"
+                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="16"
+                Padding="2"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource ModalSurfaceBrush}"
+                    CornerRadius="14"
+                    Padding="22,18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- 0: Header -->
+                        <RowDefinition Height="Auto"/> <!-- 1: Picker bar -->
+                        <RowDefinition Height="Auto"/> <!-- 2: Summary + Options -->
+                        <RowDefinition Height="*"/>    <!-- 3: Target list -->
+                        <RowDefinition Height="Auto"/> <!-- 4: Footer actions -->
+                    </Grid.RowDefinitions>
+
+                    <!-- 0: Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="40" Height="40"
+                                    CornerRadius="12"
+                                    Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource DestructiveRedBrush}"
+                                    BorderThickness="1"
+                                    Margin="0,0,12,0">
+                                <TextBlock Text="&#xE74D;"
+                                           FontFamily="{DynamicResource IconFont}"
+                                           FontSize="18"
+                                           Foreground="{DynamicResource DestructiveRedBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Force Delete &amp; Stubborn Purge"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource TextHighBrush}"/>
+                                <TextBlock Text="Bypass locks, attributes, ownership and ACLs to permanently remove stubborn files and folders"
+                                           FontSize="11.5"
+                                           Foreground="{DynamicResource TextMediumBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button Style="{DynamicResource WindowCloseButton}"
+                                Content="&#xE8BB;"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Click="Close_Click"/>
+                    </Grid>
+                    <!-- 1: Picker Bar -->
+                    <Border Grid.Row="1"
+                            Background="{DynamicResource SurfaceSubCardBrush}"
+                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="12,9"
+                            Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button x:Name="AddFilesBtn"
+                                    Grid.Column="0"
+                                    Style="{DynamicResource PillButton}"
+                                    Padding="14,6"
+                                    FontSize="11.5"
+                                    Margin="0,0,8,0"
+                                    Click="AddFiles_Click"
+                                    ToolTip="Choose one or more files to permanently force delete">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE8E5;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="11"
+                                               Margin="0,0,5,0"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                    <TextBlock Text="Add Files" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="AddFolderBtn"
+                                    Grid.Column="1"
+                                    Style="{DynamicResource PillButton}"
+                                    Padding="14,6"
+                                    FontSize="11.5"
+                                    Margin="0,0,12,0"
+                                    Click="AddFolder_Click"
+                                    ToolTip="Choose a folder to recursively force delete">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE8B7;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="11"
+                                               Margin="0,0,5,0"
+                                               Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                    <TextBlock Text="Add Folder" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+
+                            <TextBlock Grid.Column="2"
+                                       x:Name="PickerHintText"
+                                       Text="Pick files or folders to purge. Add as many as you need before running."
+                                       FontSize="10.5"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       VerticalAlignment="Center"
+                                       TextWrapping="Wrap"/>
+
+                            <Button x:Name="ClearAllBtn"
+                                    Grid.Column="3"
+                                    Style="{DynamicResource PillButton}"
+                                    Padding="12,6"
+                                    FontSize="11.5"
+                                    Click="ClearAll_Click"
+                                    ToolTip="Remove every staged target from the list">
+                                <TextBlock Text="Clear All"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- 2: Summary Bar + Options -->
+                    <Border Grid.Row="2"
+                            Background="{DynamicResource SurfaceSubCardBrush}"
+                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="14,10"
+                            Margin="0,0,0,12">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="TargetSummaryText"
+                                               Text="0 target(s) queued"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextHighBrush}"/>
+                                    <TextBlock x:Name="GateSummaryText"
+                                               Text="Absolute-blocked system paths are shielded and can never be removed."
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource TextMutedBrush}"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <CheckBox x:Name="TerminateLockersToggle"
+                                              Style="{DynamicResource ModernSwitchCheckBox}"
+                                              Content="Terminate lockers"
+                                              IsChecked="True"
+                                              Margin="0,0,16,0"
+                                              FontSize="11.5"
+                                              ToolTip="Force-kill the applications holding a handle on the target before deleting"/>
+                                    <CheckBox x:Name="RecycleToggle"
+                                              Style="{DynamicResource ModernSwitchCheckBox}"
+                                              Content="Recycle bin"
+                                              IsChecked="False"
+                                              FontSize="11.5"
+                                              ToolTip="Send items to the Recycle Bin instead of a permanent purge"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Protected target notice -->
+                            <Border x:Name="ProtectedNoticePanel"
+                                    Visibility="Collapsed"
+                                    Background="{DynamicResource WarningBadgeBgBrush}"
+                                    BorderBrush="{DynamicResource WarningBadgeBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="10,6"
+                                    Margin="0,10,0,0">
+                                <TextBlock x:Name="ProtectedNoticeText"
+                                           FontSize="10.5"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource WarningBadgeTextBrush}"
+                                           TextWrapping="Wrap"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    <!-- 3: Target List -->
+                    <Border Grid.Row="3"
+                            Background="{DynamicResource SurfaceSubCardBrush}"
+                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="12,8"
+                            Margin="0,0,0,12">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="ForceDeleteItemsControl">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{DynamicResource SurfaceCardBrush}"
+                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="10"
+                                                Padding="12,10"
+                                                Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Selection Checkbox -->
+                                                <CheckBox Grid.Column="0"
+                                                          Style="{DynamicResource ModernSwitchCheckBox}"
+                                                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                          VerticalAlignment="Center"
+                                                          Margin="0,0,12,0"
+                                                          ToolTip="Include this target in the purge"/>
+
+                                                <!-- Name, Path & Issues -->
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding FileName}"
+                                                                   FontSize="12"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource TextHighBrush}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   MaxWidth="330"/>
+                                                        <Border Background="{DynamicResource SurfaceSubCardBrush}"
+                                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="5"
+                                                                Padding="6,1.5"
+                                                                Margin="8,0,0,0">
+                                                            <TextBlock Text="{Binding KindLabel}"
+                                                                       FontSize="9.5"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="{DynamicResource TextMediumBrush}"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding FilePath}"
+                                                               FontSize="9.5"
+                                                               FontFamily="{DynamicResource MonospaceFont}"
+                                                               Foreground="{DynamicResource TextMutedBrush}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               MaxWidth="420"
+                                                               Margin="0,2,0,0"/>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                        <TextBlock Text="{Binding IssueSummary}"
+                                                                   FontSize="9.5"
+                                                                   Foreground="{DynamicResource AmberWarningBrush}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   MaxWidth="330"/>
+                                                        <TextBlock Text="{Binding DisplayProcessInfo}"
+                                                                   FontSize="9.5"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource RoseErrorBrush}"
+                                                                   Margin="8,0,0,0"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+
+                                                <!-- Size -->
+                                                <Border Grid.Column="2"
+                                                        Background="{DynamicResource SurfaceSubCardBrush}"
+                                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="6"
+                                                        Padding="8,4"
+                                                        Margin="0,0,10,0"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding FormattedSize}"
+                                                               FontSize="11"
+                                                               FontWeight="Bold"
+                                                               Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                </Border>
+
+                                                <!-- Safety Gate Badge -->
+                                                <!-- NOTE: Background/BorderBrush and Text/Foreground are set ONLY via the
+                                                     styles below. Local attribute values would win over Style setters
+                                                     and silently disable the DataTriggers. -->
+                                                <Border Grid.Column="3"
+                                                        CornerRadius="6"
+                                                        Padding="8,4"
+                                                        Margin="0,0,8,0"
+                                                        VerticalAlignment="Center"
+                                                        BorderThickness="1">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="{DynamicResource SurfaceSubCardBrush}"/>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource HairlineBorderBrush}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding GateTier}" Value="{x:Static safety:ForceDeleteTier.AbsoluteBlock}">
+                                                                    <Setter Property="Background" Value="{DynamicResource WarningBadgeBgBrush}"/>
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource DestructiveRedBrush}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding GateTier}" Value="{x:Static safety:ForceDeleteTier.OverrideRequired}">
+                                                                    <Setter Property="Background" Value="{DynamicResource WarningBadgeBgBrush}"/>
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource WarningBadgeBorderBrush}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock FontSize="10"
+                                                               FontWeight="SemiBold">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Text" Value="Safe"/>
+                                                                <Setter Property="Foreground" Value="{DynamicResource EmeraldGreenBrush}"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding GateTier}" Value="{x:Static safety:ForceDeleteTier.AbsoluteBlock}">
+                                                                        <Setter Property="Text" Value="Shielded"/>
+                                                                        <Setter Property="Foreground" Value="{DynamicResource DestructiveRedBrush}"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding GateTier}" Value="{x:Static safety:ForceDeleteTier.OverrideRequired}">
+                                                                        <Setter Property="Text" Value="Confirm"/>
+                                                                        <Setter Property="Foreground" Value="{DynamicResource WarningBadgeTextBrush}"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Border>
+
+                                                <!-- Status -->
+                                                <Border Grid.Column="4"
+                                                        Background="{DynamicResource SurfaceSubCardBrush}"
+                                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="6"
+                                                        Padding="8,4"
+                                                        Margin="0,0,8,0"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding StatusText}"
+                                                               FontSize="10.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                    <!-- 4: Footer Actions -->
+                    <Grid Grid.Row="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   x:Name="FooterHintText"
+                                   Text="A confirmation prompt appears before anything is deleted."
+                                   FontSize="10.5"
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="Wrap"/>
+
+                        <Button x:Name="DryRunBtn"
+                                Grid.Column="1"
+                                Content="Dry Run"
+                                Style="{DynamicResource PillButton}"
+                                Padding="16,6"
+                                FontSize="11.5"
+                                Margin="0,0,8,0"
+                                VerticalAlignment="Center"
+                                Click="DryRun_Click"/>
+
+                        <Button x:Name="ExecuteBtn"
+                                Grid.Column="2"
+                                Content="Force Delete"
+                                Style="{DynamicResource HeroCTAButton}"
+                                Padding="24,7.5"
+                                FontSize="12"
+                                Margin="0,0,8,0"
+                                VerticalAlignment="Center"
+                                IsEnabled="False"
+                                Click="Execute_Click"
+                                ToolTip="Permanently removes the selected targets. You will be asked to confirm before anything is deleted."/>
+
+                        <Button Grid.Column="3"
+                                Content="Close"
+                                Style="{DynamicResource PillButton}"
+                                Padding="18,6"
+                                FontSize="11.5"
+                                VerticalAlignment="Center"
+                                Click="Close_Click"/>
+                    </Grid>
+
+
+                </Grid>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

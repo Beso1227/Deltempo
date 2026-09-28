@@ -305,6 +305,33 @@
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
+
+                            <!-- Subtle Vertical Separator -->
+                            <Border Width="1" Height="14"
+                                    Background="{DynamicResource HairlineBorderBrush}"
+                                    Margin="3,0"/>
+
+                            <!-- Advanced Group: Force Delete Stubborn Files -->
+                            <Button x:Name="ToolForceDeleteBtn"
+                                    Style="{DynamicResource HeaderToolButton}"
+                                    ToolTip="Pick stubborn files or folders (locked, read-only, permission-denied) and permanently force delete them"
+                                    AutomationProperties.Name="Force Delete Tool"
+                                    Margin="0"
+                                    Click="OpenForceDeleteModal_Click">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE74D;"
+                                               FontFamily="{DynamicResource IconFont}"
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource DestructiveRedBrush}"
+                                               Margin="0,0,5,0"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="ToolForceDeleteText"
+                                               Text="Force Delete"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                     </Border>
 
@@ -5144,6 +5171,11 @@
 
         <!-- IN-USE & LOCKED FILES INSPECTOR MODAL -->
         <modals:LockedFilesModal x:Name="LockedFilesModalOverlay"
+                                 Grid.Row="1" Grid.RowSpan="4"
+                                 Visibility="Collapsed"/>
+
+        <!-- FORCE DELETE & STUBBORN PURGE MODAL -->
+        <modals:ForceDeleteModal x:Name="ForceDeleteModalOverlay"
                                  Grid.Row="1" Grid.RowSpan="4"
                                  Visibility="Collapsed"/>
     </Grid>

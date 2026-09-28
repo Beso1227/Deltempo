@@ -50,6 +50,7 @@ public partial class MainWindow : Window
         AppUninstallModalOverlay.LogRequested += AddLog;
         AppUninstallModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
         LockedFilesModalOverlay.LogRequested += AddLog;
+        ForceDeleteModalOverlay.LogRequested += AddLog;
 
         _targetsCollectionView = CollectionViewSource.GetDefaultView(_targets);
         _targetsCollectionView.Filter = FilterTargetPredicate;
