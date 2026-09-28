@@ -49,6 +49,9 @@
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Latest-release lookup (inline script at the end of <body>) reuses this socket
+       instead of paying DNS + TCP + TLS after motion.js has already parsed. -->
+  <link rel="preconnect" href="https://api.github.com">
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript>
@@ -429,9 +432,9 @@
         </div>
 
         <!-- One-Liner Command Copy -->
-        <button type="button" class="hero-oneshot reveal-on-scroll stagger-4" id="onelinerBtn" title="Click to copy the one-line install command" aria-label="Copy one-line install command">
+        <button type="button" class="hero-oneshot reveal-on-scroll stagger-4" id="onelinerBtn" title="Click to copy the one-line install command">
           <span class="accent-cyan-text">$</span>
-          <span>irm https://beso1227.github.io/Deltempo/win | iex</span>
+          <span class="hero-oneshot-cmd">irm https://beso1227.github.io/Deltempo/win | iex</span>
           <span class="hero-oneshot-copy" id="onelinerBadge">Copy</span>
         </button>
 
@@ -863,6 +866,33 @@
           </div>
         </div>
       </div>
+    <script>
+      /* Reveal above-the-fold content while the document is still parsing.
+         motion.js is deferred, so without this the hero stays at opacity:0
+         until that file has downloaded, which delays FCP, LCP and Speed Index.
+         Gated on document.fonts.ready: revealing before the webfont swap
+         makes the fallback->webfont reflow count toward CLS, so keep the
+         hero hidden until glyphs settle (timeout fallback keeps FCP safe).
+         Anything still below the fold keeps its scroll-reveal (motion.js). */
+      (function () {
+        function revealAboveFold() {
+          var els = document.querySelectorAll('.reveal-on-scroll');
+          for (var i = 0; i < els.length; i++) {
+            if (els[i].getBoundingClientRect().top < window.innerHeight) {
+              els[i].classList.add('revealed');
+            }
+          }
+        }
+        var done = false;
+        function once() { if (!done) { done = true; revealAboveFold(); } }
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(once);
+          setTimeout(once, 1200);
+        } else {
+          once();
+        }
+      })();
+    </script>
     </section>
 
     <!-- 20-SECOND LAUNCH FILM SHOWCASE -->
@@ -884,7 +914,7 @@
             <div class="video-player-container">
               <video
                 id="launchVideo" controls preload="none"
-                poster="deltempo.jpg"
+                poster="deltempo-poster.webp"
                 playsinline
                 class="responsive-launch-video"
                 aria-label="Deltempo 20-second official launch overview video"
@@ -1755,22 +1785,83 @@
       });
 
       // 4. One-Liner Command Copy Button
+      // uBlock Origin's ClickFix mitigation (the `prevent-clipboard-write`
+      // scriptlet) matches `irm ... | iex` and *returns undefined* instead of a
+      // Promise when it blocks the write. Detect that case explicitly and fall
+      // back to selecting the text, so the button is never a silent no-op.
       const onelinerBtn = document.getElementById('onelinerBtn');
       const onelinerBadge = document.getElementById('onelinerBadge');
+      const onelinerCmd = document.querySelector('.hero-oneshot-cmd');
+      const ONE_LINER_CMD = 'irm https://beso1227.github.io/Deltempo/win | iex'; // DevSkim: ignore DS172411
+      const ONE_LINER_TITLE = 'Click to copy the one-line install command';
+      const ONE_LINER_BLOCKED_TITLE = 'Auto-copy was blocked by your browser or an extension. The command is selected — press Ctrl+C.';
+      let oneLinerBadgeTimer = null;
+
+      function setOnelinerBadge(text, tone) {
+        if (tone === 'ok') {
+          onelinerBadge.style.background = 'var(--accent-emerald-bg)';
+          onelinerBadge.style.color = 'var(--accent-emerald)';
+        } else if (tone === 'warn') {
+          onelinerBadge.style.background = 'rgba(255, 196, 0, 0.18)';
+          onelinerBadge.style.color = '#FFC400';
+        } else {
+          onelinerBadge.style.background = 'var(--accent-cyan-bg)';
+          onelinerBadge.style.color = 'var(--accent-cyan)';
+        }
+        onelinerBadge.textContent = text;
+      }
+
+      function resetOnelinerBadge() {
+        clearTimeout(oneLinerBadgeTimer);
+        oneLinerBadgeTimer = setTimeout(function () {
+          setOnelinerBadge('Copy', 'idle');
+          onelinerBtn.title = ONE_LINER_TITLE;
+        }, 2400);
+      }
+
+      function selectOnelinerCmd() {
+        if (!onelinerCmd || !document.createRange || !window.getSelection) return;
+        try {
+          const range = document.createRange();
+          range.selectNodeContents(onelinerCmd);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+        } catch (err) {
+          // Selection is a convenience only; never break the click handler.
+        }
+      }
+
+      function handleOnelinerCopyBlocked() {
+        selectOnelinerCmd();
+        setOnelinerBadge('Ctrl+C', 'warn');
+        onelinerBtn.title = ONE_LINER_BLOCKED_TITLE;
+        resetOnelinerBadge();
+      }
+
       if (onelinerBtn && onelinerBadge) {
+        onelinerBtn.title = ONE_LINER_TITLE;
         onelinerBtn.addEventListener('click', function () {
-          navigator.clipboard.writeText('irm https://beso1227.github.io/Deltempo/win | iex').then(function () {
-            onelinerBadge.textContent = 'Copied!';
-            onelinerBadge.style.background = 'var(--accent-emerald-bg)';
-            onelinerBadge.style.color = 'var(--accent-emerald)';
-            setTimeout(function () { // DevSkim: ignore DS172411
-              onelinerBadge.textContent = 'Copy';
-              onelinerBadge.style.background = 'var(--accent-cyan-bg)';
-              onelinerBadge.style.color = 'var(--accent-cyan)';
-            }, 2000);
-          }).catch(function () {
-            // Fallback for non-secure contexts
-          });
+          let pending = null;
+          try {
+            pending = navigator.clipboard && navigator.clipboard.writeText
+              ? navigator.clipboard.writeText(ONE_LINER_CMD)
+              : null;
+          } catch (err) {
+            pending = null;
+          }
+
+          if (pending && typeof pending.then === 'function') {
+            pending.then(function () {
+              setOnelinerBadge('Copied!', 'ok');
+              resetOnelinerBadge();
+            }).catch(handleOnelinerCopyBlocked);
+            return;
+          }
+
+          // No Promise came back: either the Clipboard API is unavailable
+          // (insecure context) or an extension replaced writeText to block it.
+          handleOnelinerCopyBlocked();
         });
       }
     })();

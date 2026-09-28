@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>font metric probe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+</head>
+<body>
+<pre id="out">PENDING</pre>
+<script>
+function widthOf(font, size, weight, text) {
+  var c = document.createElement('canvas').getContext('2d');
+  c.font = weight + ' ' + size + 'px ' + font;
+  var m = c.measureText(text);
+  return { w: m.width, asc: m.fontBoundingBoxAscent, desc: m.fontBoundingBoxDescent };
+}
+
+function run() {
+  var lines = [];
+  var probe = 'The quick brown fox jumps over the lazy dog 0123456789 Deltempo';
+
+  // sans stack: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
+  var targetSans = '"Plus Jakarta Sans"';
+  var fallbackSans = '"Segoe UI"';   // what Windows Chrome actually resolves to
+  for (var w of [400, 500, 600, 700, 800]) {
+    var t = widthOf(targetSans, 100, w, probe);
+    var f = widthOf(fallbackSans, 100, w, probe);
+    lines.push('SANS weight=' + w +
+      ' targetW=' + t.w.toFixed(3) + ' fallbackW=' + f.w.toFixed(3) +
+      ' ratio=' + (t.w / f.w).toFixed(5) +
+      ' | targetAsc=' + t.asc.toFixed(2) + ' targetDesc=' + t.desc.toFixed(2) +
+      ' fallbackAsc=' + f.asc.toFixed(2) + ' fallbackDesc=' + f.desc.toFixed(2));
+  }
+
+  // mono stack: 'JetBrains Mono', Consolas, Monaco, 'Courier New', monospace
+  var targetMono = '"JetBrains Mono"';
+  var fallbackMono = 'Consolas';
+  for (var w2 of [400, 600]) {
+    var t2 = widthOf(targetMono, 100, w2, probe);
+    var f2 = widthOf(fallbackMono, 100, w2, probe);
+    lines.push('MONO weight=' + w2 +
+      ' targetW=' + t2.w.toFixed(3) + ' fallbackW=' + f2.w.toFixed(3) +
+      ' ratio=' + (t2.w / f2.w).toFixed(5) +
+      ' | targetAsc=' + t2.asc.toFixed(2) + ' targetDesc=' + t2.desc.toFixed(2) +
+      ' fallbackAsc=' + f2.asc.toFixed(2) + ' fallbackDesc=' + f2.desc.toFixed(2));
+  }
+
+  // Which family did the browser actually use?
+  lines.push('check loaded pjs=' + document.fonts.check('700 16px "Plus Jakarta Sans"') +
+             ' jbmono=' + document.fonts.check('400 16px "JetBrains Mono"'));
+  lines.push('PROBE_DONE');
+  document.getElementById('out').textContent = lines.join('\n');
+}
+
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(run);
+  setTimeout(run, 6000);
+} else {
+  run();
+}
+</script>
+</body>
+</html>
