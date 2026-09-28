@@ -24,9 +24,9 @@
     .\scripts\prepare_signing_secret.ps1 -PfxPath .\deltempo.pfx -SetSecret
 
 .NOTES
-    Obtain a certificate via SignPath Foundation (free, open source),
-    Azure Artifact Signing (~$9.99/mo), or a traditional OV certificate
-    ($150-300/yr). Self-signed certificates do NOT suppress SmartScreen.
+    Obtain a certificate via Azure Artifact Signing (~$9.99/mo) or a
+    traditional OV certificate ($150-300/yr). Self-signed certificates do NOT
+    suppress SmartScreen.
 #>
 [CmdletBinding()]
 param(

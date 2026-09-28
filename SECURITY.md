@@ -61,5 +61,12 @@ The Deltempo project maintains the following security practices and considers th
 
 ## Code Signing
 
-Deltempo is actively pursuing free code signing through the [SignPath Foundation](https://signpath.org/) to eliminate Windows SmartScreen warnings and provide cryptographic proof of publisher identity. Once approved, all release binaries will be signed automatically via SignPath's CI integration.
+Release binaries are **not currently Authenticode-signed**. Until a certificate
+provider is in place, Windows SmartScreen may warn end users, and the publisher
+will be shown as `Unknown`.
+
+The release pipeline already supports signing: `release.yml` fails the build if
+signing is expected but no certificate is configured, so an unsigned release
+cannot ship by accident. See [`docs/SIGNING.md`](docs/SIGNING.md) for available
+options and the current limitations of SmartScreen reputation.
 
