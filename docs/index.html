@@ -126,7 +126,7 @@
           "Startup Process Manager with Windows Core Process Immunity",
           "Pro Eye-Comfort Porcelain Slate Light mode and Obsidian Dark mode",
           "Native Multilingual RTL Safety across English, Arabic, Spanish, French, and German",
-          "One-Line PowerShell Install (irm https://beso1227.github.io/Deltempo/win | iex)",
+          "One-Line PowerShell Install (irm https://beso1227.github.io/Deltempo/win | Invoke-Expression)",
           "Portable Standalone Single-File Executable",
           "Deterministic 5-Tier Safety Engine with Pre-Deletion Revalidation",
           "Zero Telemetry, Local Operation, Open Source (MIT, 612 Verified Tests)"
@@ -305,7 +305,7 @@
             "name": "Is installation required for Deltempo?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "No. Deltempo is a portable, self-contained single-file executable. It does not require an installer or background services. You can also fetch and run the latest release in one line with: irm https://beso1227.github.io/Deltempo/win | iex."
+              "text": "No. Deltempo is a portable, self-contained single-file executable. It does not require an installer or background services. You can also fetch and run the latest release in one line with: irm https://beso1227.github.io/Deltempo/win | Invoke-Expression."
             }
           },
           {
@@ -434,7 +434,7 @@
         <!-- One-Liner Command Copy -->
         <button type="button" class="hero-oneshot reveal-on-scroll stagger-4" id="onelinerBtn" title="Click to copy the one-line install command">
           <span class="accent-cyan-text">$</span>
-          <span class="hero-oneshot-cmd">irm https://beso1227.github.io/Deltempo/win | iex</span>
+          <span class="hero-oneshot-cmd">irm https://beso1227.github.io/Deltempo/win | Invoke-Expression</span>
           <span class="hero-oneshot-copy" id="onelinerBadge">Copy</span>
         </button>
 
@@ -1641,7 +1641,7 @@
               <span class="faq-icon">+</span>
             </button>
             <div class="faq-answer">
-              Open PowerShell and run: <code>irm https://beso1227.github.io/Deltempo/win | iex</code>. The script downloads the latest release, verifies its SHA-256 checksum, caches it locally, and launches it. Re-running the same command always pulls the newest published version, so update is identical to install. For the headless CLI binary, run <code>irm https://beso1227.github.io/Deltempo/win-cli | iex</code> instead. If the checksum manifest cannot be read or does not match, the install aborts and nothing is executed.
+              Open PowerShell and run: <code>irm https://beso1227.github.io/Deltempo/win | Invoke-Expression</code>. The script downloads the latest release, verifies its SHA-256 checksum, caches it locally, and launches it. Re-running the same command always pulls the newest published version, so update is identical to install. For the headless CLI binary, run <code>irm https://beso1227.github.io/Deltempo/win-cli | Invoke-Expression</code> instead. If the checksum manifest cannot be read or does not match, the install aborts and nothing is executed.
             </div>
           </div>
 
@@ -1689,7 +1689,7 @@
 
           <div class="download-meta">
             <p><strong>Platform:</strong> Windows 10 / 11 (64-bit) • <strong>Type:</strong> Portable Single-File Binary • <strong>Latest Release:</strong> GitHub Releases</p>
-            <p class="mt-2">Or launch straight from PowerShell: <code>irm https://beso1227.github.io/Deltempo/win | iex</code></p>
+            <p class="mt-2">Or launch straight from PowerShell: <code>irm https://beso1227.github.io/Deltempo/win | Invoke-Expression</code></p>
             <p class="mt-2"><a href="download/" class="text-accent-link">View Checksums &amp; Verification Guide →</a></p>
           </div>
         </div>
@@ -1771,7 +1771,7 @@
       const onelinerBtn = document.getElementById('onelinerBtn');
       const onelinerBadge = document.getElementById('onelinerBadge');
       const onelinerCmd = document.querySelector('.hero-oneshot-cmd');
-      const ONE_LINER_CMD = 'irm https://beso1227.github.io/Deltempo/win | iex'; // DevSkim: ignore DS172411
+      const ONE_LINER_CMD = 'irm https://beso1227.github.io/Deltempo/win | Invoke-Expression'; // DevSkim: ignore DS172411
       const ONE_LINER_TITLE = 'Click to copy the one-line install command';
       const ONE_LINER_BLOCKED_TITLE = 'Auto-copy was blocked by your browser or an extension. The command is selected — press Ctrl+C.';
       let oneLinerBadgeTimer = null;
