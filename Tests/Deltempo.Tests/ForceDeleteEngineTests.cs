@@ -52,6 +52,88 @@ public class ForceDeleteEngineTests : IDisposable
     }
 
     [Fact]
+    public void Gate_ProtectsProgramFilesRoot()
+    {
+        // Regression: the root escaped the StartsWith(root + "\\") check and evaluated
+        // as Allowed, which would have let a user queue the whole Program Files tree.
+        string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        var decision = ForceDeleteGate.Evaluate(programFiles);
+        Assert.Equal(ForceDeleteTier.AbsoluteBlock, decision.Tier);
+    }
+
+    [Fact]
+    public void Gate_ProtectsProgramDataRoot()
+    {
+        string programData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        var decision = ForceDeleteGate.Evaluate(programData);
+        Assert.Equal(ForceDeleteTier.AbsoluteBlock, decision.Tier);
+    }
+
+    [Fact]
+    public void Gate_DoesNotBlockUserFolderThatMerelySharesSystemNames()
+    {
+        // Regression: substring matching treated any "...\windows\system32" path as
+        // system-critical, permanently blocking legitimate user directories.
+        string decoy = Path.Combine(_sandbox, "windows", "system32");
+        Directory.CreateDirectory(decoy);
+
+        var decision = ForceDeleteGate.Evaluate(decoy);
+
+        Assert.Equal(ForceDeleteTier.Allowed, decision.Tier);
+    }
+
+    [Fact]
+    public void Gate_StillBlocksRealWindowsSubdirectories()
+    {
+        // Counterpart to the decoy test: anchoring must not weaken the real protection.
+        string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+
+        foreach (string relative in new[] { "System32", "WinSxS", @"System32\config" })
+        {
+            var decision = ForceDeleteGate.Evaluate(Path.Combine(winDir, relative));
+            Assert.Equal(ForceDeleteTier.AbsoluteBlock, decision.Tier);
+        }
+    }
+
+    [Fact]
+    public async Task ForceDelete_DryRun_DoesNotDeleteAndCountsDirectoriesSeparately()
+    {
+        string dir = Path.Combine(_sandbox, "dryrun_dir");
+        Directory.CreateDirectory(dir);
+        string file = Path.Combine(_sandbox, "dryrun_file.tmp");
+        File.WriteAllText(file, "x");
+
+        var res = await ForceDeleteEngine.ForceDeleteAsync(
+            new[] { file, dir },
+            new ForceDeleteOptions { DryRun = true });
+
+        Assert.Equal(1, res.FilesDeleted);
+        Assert.Equal(1, res.DirectoriesDeleted);
+        Assert.True(File.Exists(file), "Dry run must not delete.");
+        Assert.True(Directory.Exists(dir), "Dry run must not delete.");
+    }
+
+    [Fact]
+    public async Task ForceDelete_ShieldedTargetIsNeverDeleted()
+    {
+        // Even with every aggressive option enabled, Tier A paths stay put.
+        var options = new ForceDeleteOptions
+        {
+            StripReadOnlySystemHidden = true,
+            TakeOwnershipAndResetAcl = true,
+            TerminateLockingProcesses = true,
+            ScheduleRebootIfLocked = false,
+            ExplicitOverrideConfirmed = true
+        };
+
+        var res = await ForceDeleteEngine.ForceDeleteAsync(new[] { @"C:\" }, options);
+
+        Assert.Equal(0, res.FilesDeleted);
+        Assert.Equal(0, res.DirectoriesDeleted);
+        Assert.True(Directory.Exists(@"C:\"));
+    }
+
+    [Fact]
     public async Task ForceDelete_DeletesReadOnlyFile()
     {
         string roFile = Path.Combine(_sandbox, "readonly.tmp");

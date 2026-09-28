@@ -220,11 +220,22 @@
 
                                                 <!-- Selection Checkbox -->
                                                 <CheckBox Grid.Column="0"
-                                                          Style="{DynamicResource ModernSwitchCheckBox}"
                                                           IsChecked="{Binding IsSelected, Mode=TwoWay}"
                                                           VerticalAlignment="Center"
                                                           Margin="0,0,12,0"
-                                                          ToolTip="Include this target in the purge"/>
+                                                          ToolTip="Include this target in the purge">
+                                                    <CheckBox.Style>
+                                                        <Style TargetType="CheckBox" BasedOn="{DynamicResource ModernSwitchCheckBox}">
+                                                            <Style.Triggers>
+                                                                <!-- Shielded paths are filtered out of execution, so the toggle is inert. -->
+                                                                <DataTrigger Binding="{Binding GateTier}" Value="{x:Static safety:ForceDeleteTier.AbsoluteBlock}">
+                                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                                    <Setter Property="ToolTip" Value="Shielded by the safety gate — this target can never be deleted"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </CheckBox.Style>
+                                                </CheckBox>
 
                                                 <!-- Name, Path & Issues -->
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">

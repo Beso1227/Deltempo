@@ -268,7 +268,14 @@ public static class ForceDeleteEngine
         if (options.DryRun)
         {
             log?.Invoke($"[DryRun] Would force delete: {normalized}", LogLevel.Info);
-            result.FilesDeleted++;
+            if (Directory.Exists(normalized))
+            {
+                result.DirectoriesDeleted++;
+            }
+            else
+            {
+                result.FilesDeleted++;
+            }
             result.Attempts.Add(new ForceDeleteAttempt(normalized, ForceDeleteStage.Delete, true, 0, "Dry run simulated."));
             return;
         }
@@ -311,6 +318,10 @@ public static class ForceDeleteEngine
     {
         try
         {
+            // A read-only/system attribute on the link itself blocks Directory.Delete/File.Delete,
+            // so strip it first. Only the link is touched — never its target.
+            StripAttributes(path);
+
             if (isDirectory)
             {
                 Directory.Delete(path, recursive: false);
@@ -419,12 +430,21 @@ public static class ForceDeleteEngine
 
             var di = new DirectoryInfo(dirPath);
 
-            foreach (var fi in di.EnumerateFiles())
+            // Snapshot children with inaccessible entries ignored, so one locked or
+            // ACL-denied subfolder cannot abort deletion of its healthy siblings.
+            var enumerationOptions = new EnumerationOptions
+            {
+                RecurseSubdirectories = false,
+                IgnoreInaccessible = true,
+                AttributesToSkip = 0
+            };
+
+            foreach (var fi in di.EnumerateFiles("*", enumerationOptions))
             {
                 DeleteFileWithEscalation(fi.FullName, options, result, log);
             }
 
-            foreach (var sub in di.EnumerateDirectories())
+            foreach (var sub in di.EnumerateDirectories("*", enumerationOptions))
             {
                 if (PathSecurity.IsReparsePointOrLink(sub.FullName))
                 {

@@ -35,19 +35,7 @@ public partial class ForceDeleteModal : UserControl
         SoundService.PlayClickSound();
     }
 
-    /// <summary>
-    /// Profiles each supplied path through the safety gate and stages it for review.
-    /// </summary>
-    public void PopulateAndOpen(IEnumerable<string> paths)
-    {
-        _items.Clear();
-        AddPaths(paths);
-        UpdateSummary();
-        Visibility = Visibility.Visible;
-        SoundService.PlayClickSound();
-    }
-
-    private void AddFiles_Click(object sender, RoutedEventArgs e)
+    private async void AddFiles_Click(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -61,7 +49,7 @@ public partial class ForceDeleteModal : UserControl
 
             if (dialog.ShowDialog() == true && dialog.FileNames.Length > 0)
             {
-                AddPaths(dialog.FileNames);
+                await AddPathsAsync(dialog.FileNames);
                 SoundService.PlayClickSound();
             }
         }
@@ -71,7 +59,7 @@ public partial class ForceDeleteModal : UserControl
         }
     }
 
-    private void AddFolder_Click(object sender, RoutedEventArgs e)
+    private async void AddFolder_Click(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -83,7 +71,7 @@ public partial class ForceDeleteModal : UserControl
 
             if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.FolderName))
             {
-                AddPaths(new[] { dialog.FolderName });
+                await AddPathsAsync(new[] { dialog.FolderName });
                 SoundService.PlayClickSound();
             }
         }
@@ -102,57 +90,102 @@ public partial class ForceDeleteModal : UserControl
 
     /// <summary>
     /// Profiles and appends paths, skipping duplicates and anything already staged.
+    /// Profiling walks the target tree to measure size, so it runs off the UI thread
+    /// to keep the window responsive when a large folder is selected.
     /// </summary>
-    private void AddPaths(IEnumerable<string> paths)
+    private async Task AddPathsAsync(IEnumerable<string> paths)
     {
-        int added = 0;
-        int skipped = 0;
-
-        foreach (string path in paths.Where(p => !string.IsNullOrWhiteSpace(p)))
-        {
+        var candidates = paths
+            .Where(p => !string.IsNullOrWhiteSpace(p))
             // Skip paths already staged (case-insensitive, so the same file picked twice is a no-op).
-            if (_items.Any(i => string.Equals(i.FilePath, path, StringComparison.OrdinalIgnoreCase)))
-            {
-                skipped++;
-                continue;
-            }
+            .Where(p => !_items.Any(i => string.Equals(i.FilePath, p, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
 
-            try
-            {
-                StubbornTargetProfile profile = ForceDeleteService.InspectPath(path);
+        if (candidates.Count == 0)
+        {
+            UpdateSummary();
+            return;
+        }
 
-                _items.Add(new ForceDeleteTargetItem
+        SetBusy(true);
+
+        List<ForceDeleteTargetItem> staged = new();
+        List<string> errors = new();
+
+        try
+        {
+            // ForceDeleteService.InspectPath does synchronous filesystem/Restart Manager work.
+            var outcome = await Task.Run(() =>
+            {
+                var results = new List<ForceDeleteTargetItem>();
+                var failures = new List<string>();
+
+                foreach (string path in candidates)
                 {
-                    FilePath = profile.Path,
-                    FileName = string.IsNullOrEmpty(profile.Name)
-                        ? System.IO.Path.GetFileName(profile.Path)
-                        : profile.Name,
-                    SizeBytes = profile.SizeBytes,
-                    IsDirectory = profile.IsDirectory,
-                    IssueSummary = profile.SummaryIssues,
-                    LockingProcessName = profile.LockingProcesses.Count > 0 ? profile.LockingProcesses[0].ProcessName : string.Empty,
-                    LockingProcessId = profile.LockingProcesses.Count > 0 ? profile.LockingProcesses[0].ProcessId : 0,
-                    GateTier = profile.GateDecision.Tier,
-                    // Shielded targets are pre-deselected so they can never be purged.
-                    IsSelected = profile.GateDecision.Tier != ForceDeleteTier.AbsoluteBlock
-                });
-                added++;
-            }
-            catch (Exception ex)
+                    try
+                    {
+                        StubbornTargetProfile profile = ForceDeleteService.InspectPath(path);
+
+                        results.Add(new ForceDeleteTargetItem
+                        {
+                            FilePath = profile.Path,
+                            FileName = string.IsNullOrEmpty(profile.Name)
+                                ? System.IO.Path.GetFileName(profile.Path)
+                                : profile.Name,
+                            SizeBytes = profile.SizeBytes,
+                            IsDirectory = profile.IsDirectory,
+                            IssueSummary = profile.SummaryIssues,
+                            LockingProcessName = profile.LockingProcesses.Count > 0 ? profile.LockingProcesses[0].ProcessName : string.Empty,
+                            LockingProcessId = profile.LockingProcesses.Count > 0 ? profile.LockingProcesses[0].ProcessId : 0,
+                            GateTier = profile.GateDecision.Tier,
+                            // Shielded targets are pre-deselected so they can never be purged.
+                            IsSelected = profile.GateDecision.Tier != ForceDeleteTier.AbsoluteBlock
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        failures.Add($"Could not inspect '{path}': {ex.Message}");
+                    }
+                }
+
+                return (Results: results, Failures: failures);
+            });
+
+            staged = outcome.Results;
+            errors = outcome.Failures;
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+
+        foreach (string error in errors)
+        {
+            LogRequested?.Invoke(error, LogLevel.Error);
+        }
+
+        foreach (var item in staged)
+        {
+            // Toggling a row's checkbox must re-evaluate the footer buttons.
+            item.PropertyChanged += (_, e) =>
             {
-                skipped++;
-                LogRequested?.Invoke($"Could not inspect '{path}': {ex.Message}", LogLevel.Error);
-            }
+                if (e.PropertyName == nameof(ForceDeleteTargetItem.IsSelected))
+                {
+                    RefreshFooterState();
+                }
+            };
+
+            _items.Add(item);
         }
 
-        if (added > 0)
+        if (staged.Count > 0)
         {
-            LogRequested?.Invoke($"Staged {added} target{((added == 1) ? "" : "s")} for force delete.", LogLevel.Info);
+            LogRequested?.Invoke($"Staged {staged.Count} target{((staged.Count == 1) ? "" : "s")} for force delete.", LogLevel.Info);
         }
 
-        if (skipped > 0)
+        if (errors.Count > 0)
         {
-            LogRequested?.Invoke($"{skipped} selection{((skipped == 1) ? " was" : "s were")} skipped (already staged or unreadable).", LogLevel.Warning);
+            LogRequested?.Invoke($"{errors.Count} selection{((errors.Count == 1) ? " was" : "s were")} skipped (unreadable or inaccessible).", LogLevel.Warning);
         }
 
         PickerHintText.Visibility = _items.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
@@ -167,6 +200,18 @@ public partial class ForceDeleteModal : UserControl
     }
 
     private void Close_Click(object sender, RoutedEventArgs e) => CloseModal();
+
+    /// <summary>
+    /// Disables the interactive controls while a background operation is running.
+    /// </summary>
+    private void SetBusy(bool busy)
+    {
+        AddFilesBtn.IsEnabled = !busy;
+        AddFolderBtn.IsEnabled = !busy;
+        ClearAllBtn.IsEnabled = !busy;
+        DryRunBtn.IsEnabled = !busy;
+        ExecuteBtn.IsEnabled = !busy && EligibleTargets().Count > 0;
+    }
 
     private void UpdateSummary()
     {
@@ -279,6 +324,26 @@ public partial class ForceDeleteModal : UserControl
         sb.AppendLine("This bypasses read-only/hidden/system attributes, takes ownership, and grants full access.");
         sb.Append("This action CANNOT be undone.");
 
+        // Tier B targets sit in a different risk class (installed applications, user
+        // documents). Say so explicitly rather than lumping them in with temp files.
+        var protectedTargets = targets.Where(t => t.GateTier == ForceDeleteTier.OverrideRequired).ToList();
+        if (protectedTargets.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine($"WARNING: {protectedTargets.Count} of these {targets.Count} item(s) are PROTECTED by the safety policy:");
+            foreach (var item in protectedTargets.Take(5))
+            {
+                sb.AppendLine($"  • {item.FileName}{(item.IsDirectory ? "\\" : string.Empty)}");
+            }
+            if (protectedTargets.Count > 5)
+            {
+                sb.AppendLine($"  • …and {protectedTargets.Count - 5} more");
+            }
+            sb.AppendLine();
+            sb.Append("These may be installed applications or personal data. Review the list carefully.");
+        }
+
         if (TerminateLockersToggle.IsChecked == true)
         {
             sb.AppendLine();
@@ -339,9 +404,19 @@ public partial class ForceDeleteModal : UserControl
                     result.Attempts.Where(a => a.Stage == ForceDeleteStage.Delete && a.Success).Select(a => a.Path),
                     StringComparer.OrdinalIgnoreCase);
 
+                // A target registered with the Session Manager WILL be removed on the next
+                // reboot — that is a success, not a failure.
+                var scheduledForReboot = new HashSet<string>(
+                    result.Attempts.Where(a => a.Stage == ForceDeleteStage.ScheduleReboot && a.Success).Select(a => a.Path),
+                    StringComparer.OrdinalIgnoreCase);
+
                 foreach (var item in targets)
                 {
-                    item.StatusText = succeeded.Contains(item.FilePath) ? "✓ Deleted" : "Failed";
+                    item.StatusText = succeeded.Contains(item.FilePath)
+                        ? "✓ Deleted"
+                        : scheduledForReboot.Contains(item.FilePath)
+                            ? "Reboot Purge"
+                            : "Failed";
                 }
 
                 LogRequested?.Invoke(

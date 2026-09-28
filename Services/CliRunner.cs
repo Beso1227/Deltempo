@@ -360,12 +360,23 @@ public static partial class CliRunner
 
         var targets = new List<string>();
         int startIndex = (subCmd == "now" || subCmd == "delete" || subCmd == "purge" || subCmd == "shred") ? 2 : 1;
+
+        // Options that consume a following value. Without this, "--retry 5" would treat "5"
+        // as a deletion target and resolve it against the current working directory.
+        var valuedOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "--retry" };
+
         for (int i = startIndex; i < args.Length; i++)
         {
-            if (!args[i].StartsWith("-"))
+            if (args[i].StartsWith("-"))
             {
-                targets.Add(args[i].Trim('"', '\''));
+                if (valuedOptions.Contains(args[i]))
+                {
+                    i++; // Skip this option's value so it is never treated as a path.
+                }
+                continue;
             }
+
+            targets.Add(args[i].Trim('"', '\''));
         }
 
         if (targets.Count == 0)
@@ -373,6 +384,7 @@ public static partial class CliRunner
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("  [!] Usage: deltempo force-delete [now|scan] <file_or_folder_path> [options]");
             Console.WriteLine("      Options: --terminate-lockers, --recycle, --dry-run, --yes, --retry <N>, --json");
+            Console.WriteLine("               --force-override  (required to delete policy-protected targets)");
             Console.ResetColor();
             return 1;
         }
@@ -428,6 +440,38 @@ public static partial class CliRunner
             return 1;
         }
 
+        // Tier B (OverrideRequired) targets are shielded unless the operator explicitly
+        // opts in with --force-override. --yes alone only means "yes, delete the eligible items".
+        bool forceOverride = HasFlag(args, "--force-override", "-F");
+        int overrideRequired = profiles.Count(p => p.GateDecision.Tier == ForceDeleteTier.OverrideRequired);
+
+        if (overrideRequired > 0 && !forceOverride)
+        {
+            if (isJson)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new
+                {
+                    status = "error",
+                    message = $"{overrideRequired} target(s) are protected by the safety policy and require --force-override.",
+                    overrideRequired
+                }));
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"  [!] {overrideRequired} target(s) are protected by the safety policy and will be SHIELDED:");
+                foreach (var p in profiles.Where(p => p.GateDecision.Tier == ForceDeleteTier.OverrideRequired))
+                {
+                    Console.WriteLine($"        * {p.Path}");
+                    Console.WriteLine($"          {p.GateDecision.Rationale}");
+                }
+                Console.WriteLine();
+                Console.WriteLine("      Re-run with --force-override to delete these as well.");
+                Console.ResetColor();
+            }
+            return 1;
+        }
+
         if (!yesPrompt)
         {
             Console.ForegroundColor = ConsoleColor.Red;
@@ -450,7 +494,7 @@ public static partial class CliRunner
             SendToRecycleBinInstead = recycle,
             DeleteRetryPasses = retries,
             DryRun = dryRun,
-            ExplicitOverrideConfirmed = true
+            ExplicitOverrideConfirmed = forceOverride
         };
 
         var result = await ForceDeleteService.ExecuteForceDeleteAsync(

@@ -45,15 +45,23 @@ public static class ForceDeleteGate
         "usrclass.dat"
     };
 
+    /// <summary>
+    /// Directories that are strictly off-limits, expressed RELATIVE to the Windows
+    /// directory (Environment.SpecialFolder.Windows, i.e. C:\Windows). They are
+    /// resolved with Path.Combine against that root, so a user folder that merely
+    /// shares a name (e.g. D:\backup\windows\system32) is never caught by them.
+    /// </summary>
     private static readonly string[] AbsoluteBlockedDirectories =
     [
-        @"windows\system32",
-        @"windows\syswow64",
-        @"windows\winsxs",
-        @"windows\boot",
-        @"windows\fonts",
-        @"windows\system",
-        @"windows\servicing"
+        "System32",
+        "SysWOW64",
+        "WinSxS",
+        "Boot",
+        "Fonts",
+        "System32\\config",
+        "System32\\DriverStore",
+        "assembly",
+        "servicing"
     ];
 
     public static ForceDeleteGateDecision Evaluate(string? targetPath)
@@ -102,10 +110,13 @@ public static class ForceDeleteGate
             return new ForceDeleteGateDecision(ForceDeleteTier.AbsoluteBlock, normalized, "Windows directory root cannot be deleted.");
         }
 
-        // 5. Tier A: Critical Windows core directories
-        foreach (var blocked in AbsoluteBlockedDirectories)
+        // 5. Tier A: Critical Windows core directories.
+        // Anchored to the real Windows directory (not a substring match) so a user folder
+        // such as D:\backup\windows\system32 is NOT falsely treated as system-critical.
+        foreach (string relative in AbsoluteBlockedDirectories)
         {
-            if (lower.Contains(blocked, StringComparison.OrdinalIgnoreCase))
+            string blocked = Path.Combine(winDir, relative).ToLowerInvariant();
+            if (lower == blocked || lower.StartsWith(blocked + "\\"))
             {
                 return new ForceDeleteGateDecision(ForceDeleteTier.AbsoluteBlock, normalized, $"System-critical path '{blocked}' is strictly protected from deletion.");
             }
@@ -126,14 +137,26 @@ public static class ForceDeleteGate
             return new ForceDeleteGateDecision(ForceDeleteTier.OverrideRequired, normalized, $"Protected by safety policy: {policyReason}. Explicit confirmation required.");
         }
 
-        // 8. If under Program Files or ProgramData without being a standard cache path, require explicit override
+        // 8. Program Files / ProgramData.
+        // The ROOT directories are Tier A: deleting them would uninstall most of Windows.
+        // Descendants outside known package caches are Tier B (explicit confirmation).
         string progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles).TrimEnd('\\').ToLowerInvariant();
         string progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86).TrimEnd('\\').ToLowerInvariant();
         string progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData).TrimEnd('\\').ToLowerInvariant();
 
-        if (lower.StartsWith(progFiles + "\\") || lower.StartsWith(progFilesX86 + "\\") || lower.StartsWith(progData + "\\"))
+        foreach (string rootDir in new[] { progFiles, progFilesX86, progData })
         {
-            if (!ProtectionPolicy.IsPackageOrScriptCachePath(lower))
+            if (string.IsNullOrEmpty(rootDir))
+            {
+                continue;
+            }
+
+            if (lower == rootDir)
+            {
+                return new ForceDeleteGateDecision(ForceDeleteTier.AbsoluteBlock, normalized, $"'{rootDir}' is an OS application root and can never be deleted.");
+            }
+
+            if (lower.StartsWith(rootDir + "\\") && !ProtectionPolicy.IsPackageOrScriptCachePath(lower))
             {
                 return new ForceDeleteGateDecision(ForceDeleteTier.OverrideRequired, normalized, "Application directory requires explicit confirmation to delete.");
             }
