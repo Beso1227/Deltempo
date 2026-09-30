@@ -258,18 +258,22 @@ public static class RootLeftoverScannerService
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Public")
         };
 
-        string cleanName = SanitizeIdentifier(app.DisplayName);
-        string cleanPublisher = SanitizeIdentifier(app.Publisher);
-
-        foreach (var root in candidateRoots)
+foreach (var root in candidateRoots)
         {
             if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root)) continue;
 
-            // Pattern: Root\<App>
-            CheckAndAddDirectory(Path.Combine(root, app.DisplayName), "Application Cache/Data Folder", LeftoverConfidence.Medium, items);
-            if (!string.Equals(cleanName, app.DisplayName, StringComparison.OrdinalIgnoreCase))
+            // Pattern: Root\<App>. The DisplayName is a marketing string, so "PDFgear 1.2.3" ships a
+            // folder called "PDFgear" and an exact join would miss it. Probe every folder name the
+            // app plausibly owns, version suffixes stripped. A single-token candidate ("Adobe" from
+            // "Adobe Acrobat Reader") matches many unrelated folders, so it is emitted Low
+            // confidence and left unselected for explicit review.
+            foreach (var candidate in AppIdentity.FolderNameCandidates(app.DisplayName))
             {
-                CheckAndAddDirectory(Path.Combine(root, cleanName), "Application Data Folder", LeftoverConfidence.Medium, items);
+                CheckAndAddDirectory(
+                    Path.Combine(root, candidate.Name),
+                    candidate.IsWeak ? "Possible Application Data Folder" : "Application Cache/Data Folder",
+                    candidate.IsWeak ? LeftoverConfidence.Low : LeftoverConfidence.Medium,
+                    items);
             }
 
             // Pattern: Root\<Publisher>\<App>
@@ -277,10 +281,13 @@ public static class RootLeftoverScannerService
                 app.Publisher.Length >= 3 &&
                 !ProtectedDirectoryNames.Contains(app.Publisher))
             {
-                CheckAndAddDirectory(Path.Combine(root, app.Publisher, app.DisplayName), "Publisher Application Data Folder", LeftoverConfidence.High, items);
-                if (!string.Equals(cleanPublisher, app.Publisher, StringComparison.OrdinalIgnoreCase))
+                foreach (var candidate in AppIdentity.FolderNameCandidates(app.DisplayName))
                 {
-                    CheckAndAddDirectory(Path.Combine(root, cleanPublisher, cleanName), "Publisher Application Folder", LeftoverConfidence.High, items);
+                    CheckAndAddDirectory(
+                        Path.Combine(root, app.Publisher, candidate.Name),
+                        candidate.IsWeak ? "Possible Publisher Application Folder" : "Publisher Application Data Folder",
+                        candidate.IsWeak ? LeftoverConfidence.Low : LeftoverConfidence.High,
+                        items);
                 }
             }
         }

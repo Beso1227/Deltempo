@@ -25,6 +25,11 @@ public static class OrphanedAppService
         "D3DSCache", "Publishers", "PlaceholderTileLogoFolder", "CrashDumps", "Temp", "Programs",
         "Application Data", "Documents", "Start Menu", "Desktop", "Common",
 
+        // Windows platform services that keep state under the user profile (Comms holds the
+        // communications/backup service data; PeerDistRepub is the BITS/WSUS peer store).
+        // Both are live OS infrastructure, not residue of an uninstalled app.
+        "Comms", "PeerDistRepub", "PeerDist", "WSUS", "WindowsSelfHost",
+
         // Hardware, Drivers, Chipsets, GPU vendors
         "Intel", "NVIDIA", "NVIDIA Corporation", "AMD", "Realtek", "ASUS", "Dell", "HP", "Lenovo",
         "Logitech", "Corsair", "Razer", "SteelSeries", "Synaptics", "Dolby", "Broadcom", "Qualcomm",
@@ -41,6 +46,98 @@ public static class OrphanedAppService
         "Code", "GitHubDesktop", "BraveSoftware", "Mozilla", "Zoom", "Notion",
         "Figma", "Cursor", "Windsurf", "Deltempo", "deltempo_cli"
     };
+
+    /// <summary>
+    /// Folder names that must never be proposed as orphaned app folders: package-manager stores,
+    /// skill/plugin/MCP vocabulary, and user-data roots. These are live tool infrastructure or
+    /// user content — not residue of an uninstalled application — so classification refuses them
+    /// up front (fail-closed) instead of relying on age/size shields that lapse the moment a
+    /// folder goes quiet.
+    /// </summary>
+    private static readonly HashSet<string> NeverProposedFolderNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Package-manager stores & language toolchains (shared by every installed tool)
+        "npm-cache", "node-gyp", "node_modules", "corepack", "pnpm", "pnpm-store",
+        "pip", "pipx", "pypa", "PSResourceGet", "uv", "scoop", "cargo", "NuGet", "yarn",
+        "ms-playwright", "ms-playwright-go", "fontconfig", "kotlin", "Dart",
+
+        // Portable CLI tool installs: registry-absent binaries that are infrastructure, not residue
+        "gk", "csdevkit",
+
+        // Skill / plugin / MCP / agent namespaces — the goal forbids deleting these outright
+        "skills", "agents", "plugins", "commands", "mcp", "hooks", "workspace", "extensions",
+
+        // User data roots that are never app residue
+        "Backup", "Backups", "Saved Games", "My Games"
+    };
+
+    /// <summary>
+    /// Folder-name prefixes identifying agent/tool namespaces regardless of suffix
+    /// (claude*, gemini*, codex*, copilot*, ...). Structural, not machine-specific.
+    /// </summary>
+    private static readonly string[] ToolNamespacePrefixes =
+    {
+        "claude", "gemini", "codex", "copilot", "openai", "anthropic", "opencode", "hermes"
+    };
+
+    /// <summary>
+    /// True when <paramref name="dirName"/> is a package-manager store, agent namespace, or
+    /// skill/plugin/MCP vocabulary rather than an application's own folder. Fail-closed guard
+    /// used by orphan classification and the residual-safety shield: these names are never
+    /// proposed for deletion, regardless of age or size evidence.
+    /// </summary>
+    public static bool IsNeverProposedFolderName(string? dirName)
+    {
+        if (string.IsNullOrWhiteSpace(dirName)) return false;
+
+        if (NeverProposedFolderNames.Contains(dirName)) return true;
+
+        // Unix-style hidden tool config (.claude, .gemini, .codex, ...) and npm scope folders (@org/pkg).
+        if (dirName.StartsWith(".", StringComparison.Ordinal)) return true;
+        if (dirName.StartsWith("@", StringComparison.Ordinal)) return true;
+
+        // Suffix conventions used by agent/CLI/extension installers.
+        if (dirName.EndsWith("-updater", StringComparison.OrdinalIgnoreCase) ||
+            dirName.EndsWith("-mcp", StringComparison.OrdinalIgnoreCase) ||
+            dirName.EndsWith("-cli", StringComparison.OrdinalIgnoreCase) ||
+            dirName.EndsWith("-extension", StringComparison.OrdinalIgnoreCase) ||
+            dirName.EndsWith("-skills", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        foreach (var prefix in ToolNamespacePrefixes)
+        {
+            if (dirName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Folder identity match: a candidate is live when it equals an installed identity or when
+    /// EITHER side contains the other (both bounded to 4+ chars so short generic names cannot
+    /// suppress unrelated folders). The reverse direction covers versioned and suffixed identities —
+    /// folder <c>PDFgear</c> vs <c>PDFgear 1.2.3</c>, folder <c>lean-ctx</c> vs <c>lean-ctx-bin</c> —
+    /// which the old folder-contains-identity test alone never matched. Direction-agnostic by
+    /// design: a missed match risks a false-positive proposal, an over-match only skips cleanup.
+    /// </summary>
+    internal static bool IsActiveDirectory(string dirName, IEnumerable<string> activeApps)
+    {
+        if (string.IsNullOrWhiteSpace(dirName) || activeApps == null) return false;
+
+        foreach (var app in activeApps)
+        {
+            if (string.IsNullOrWhiteSpace(app)) continue;
+
+            if (app.Equals(dirName, StringComparison.OrdinalIgnoreCase)) return true;
+            if (app.Length >= 4 && dirName.Contains(app, StringComparison.OrdinalIgnoreCase)) return true;
+            if (dirName.Length >= 4 && app.Contains(dirName, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        return false;
+    }
+
 
     public static HashSet<string> GetComprehensiveActiveAppKeywords()
     {
@@ -240,8 +337,155 @@ public static class OrphanedAppService
         }
         catch { }
 
+        // 8. Package-managed & portable tool identities (npm/pip/cargo/scoop/winget/PATH).
+        //    Registry absence is not evidence of uninstall for these tools: a live uv, lean-ctx,
+        //    or npm-global folder would otherwise classify as an orphan once its age shield lapses.
+        AddInstalledToolIdentities(activeKeywords);
+
         return activeKeywords;
     }
+
+    /// <summary>
+    /// Adds folder/exe identities for installed tooling that never appears in the registry:
+    /// npm/pnpm global packages, pip user scripts, cargo binaries, scoop apps, winget links,
+    /// and PATH-resolved executables.
+    /// </summary>
+    private static void AddInstalledToolIdentities(HashSet<string> keywords)
+    {
+        string profile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+        // npm global packages and their command shims (%APPDATA%\npm)
+        string npmPrefix = Path.Combine(appData, "npm");
+        AddChildDirectoryNames(keywords, Path.Combine(npmPrefix, "node_modules"), includeScopeChildren: true);
+        AddFileBaseNames(keywords, npmPrefix, "*.cmd");
+        AddFileBaseNames(keywords, npmPrefix, "*.ps1");
+
+        // pip user scripts (<PythonRoot>\Scripts) and pipx virtualenvs
+        foreach (string pyRoot in new[]
+                 {
+                     Path.Combine(appData, "Python"),
+                     Path.Combine(localAppData, "Programs", "Python")
+                 })
+        {
+            try
+            {
+                if (!Directory.Exists(pyRoot)) continue;
+                foreach (var ver in Directory.EnumerateDirectories(pyRoot))
+                {
+                    AddFileBaseNames(keywords, Path.Combine(ver, "Scripts"), "*.exe");
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            }
+        }
+        AddChildDirectoryNames(keywords, Path.Combine(localAppData, "pipx", "venvs"));
+
+        // cargo installed binaries + scoop application installs
+        AddFileBaseNames(keywords, Path.Combine(profile, ".cargo", "bin"), "*.exe");
+        AddChildDirectoryNames(keywords, Path.Combine(profile, "scoop", "apps"));
+
+        // winget app execution links + portable package dirs
+        AddFileBaseNames(keywords, Path.Combine(localAppData, "Microsoft", "WinGet", "Links"), "*.exe");
+        AddChildDirectoryNames(keywords, Path.Combine(localAppData, "Microsoft", "WinGet", "Packages"));
+
+        // PATH-resolved executables (portable CLIs live here), excluding Windows system dirs
+        AddPathExecutableIdentities(keywords);
+    }
+
+    private static void AddChildDirectoryNames(HashSet<string> keywords, string root, bool includeScopeChildren = false)
+    {
+        try
+        {
+            if (!Directory.Exists(root)) return;
+            var opt = new EnumerationOptions
+            {
+                IgnoreInaccessible = true,
+                RecurseSubdirectories = false,
+                AttributesToSkip = FileAttributes.ReparsePoint
+            };
+
+            foreach (var d in new DirectoryInfo(root).EnumerateDirectories("*", opt))
+            {
+                keywords.Add(d.Name);
+
+                // npm scope folders (@org/pkg): identity lives in the scoped package name.
+                if (includeScopeChildren && d.Name.StartsWith("@", StringComparison.Ordinal))
+                {
+                    foreach (var child in d.EnumerateDirectories("*", opt))
+                    {
+                        keywords.Add(child.Name);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
+    }
+
+    private static void AddFileBaseNames(HashSet<string> keywords, string root, string pattern)
+    {
+        try
+        {
+            if (!Directory.Exists(root)) return;
+            var opt = new EnumerationOptions
+            {
+                IgnoreInaccessible = true,
+                RecurseSubdirectories = false,
+                // Include reparse-point files: winget app execution aliases are links, and only
+                // their NAMES are consumed here — enumeration never descends into a link.
+                AttributesToSkip = 0
+            };
+
+            foreach (var f in new DirectoryInfo(root).EnumerateFiles(pattern, opt))
+            {
+                string name = Path.GetFileNameWithoutExtension(f.Name);
+                if (!string.IsNullOrWhiteSpace(name)) keywords.Add(name);
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
+    }
+
+    private static void AddPathExecutableIdentities(HashSet<string> keywords)
+    {
+        try
+        {
+            string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+            string path = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+
+            int entries = 0;
+            foreach (string raw in path.Split(';', StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (++entries > 200) break;
+
+                string dir = raw.Trim().Trim('"');
+                if (dir.Length == 0) continue;
+
+                // System directories drown the set with generic names and are already covered
+                // by ProtectedSystemFolderNames.
+                if (dir.StartsWith(winDir, StringComparison.OrdinalIgnoreCase)) continue;
+                if (!Directory.Exists(dir)) continue;
+
+                string leaf = Path.GetFileName(dir.TrimEnd('\\', '/'));
+                if (!string.IsNullOrWhiteSpace(leaf)) keywords.Add(leaf);
+
+                AddFileBaseNames(keywords, dir, "*.exe");
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+        }
+    }
+
 
     private static void ExtractNamesFromKey(RegistryKey? key, HashSet<string> keywords)
     {
@@ -385,6 +629,12 @@ public static class OrphanedAppService
         // Safety Rule 1: Protected system names and hardware vendors
         if (ProtectedSystemFolderNames.Contains(dirName)) return;
 
+        // Safety Rule 1b: package-manager stores, agent namespaces, and skill/plugin/MCP vocabulary
+        // are never orphan candidates. These hold live shared tool state — deleting one breaks
+        // every installed tool that uses it — so they are refused before any age/size evidence
+        // is even considered.
+        if (IsNeverProposedFolderName(dirName)) return;
+
         // Safety Rule 2: Explicit system component blocks
         if (dirName.Contains("Windows", StringComparison.OrdinalIgnoreCase) ||
             dirName.Contains("Microsoft", StringComparison.OrdinalIgnoreCase) ||
@@ -403,9 +653,7 @@ public static class OrphanedAppService
         if (!InstalledAppService.IsSafeToDeleteResidual(dir.FullName)) return;
 
         // Safety Rule 5: Match against active installed applications, running processes, services, shortcuts
-        bool isActive = activeApps.Any(app =>
-            app.Equals(dirName, StringComparison.OrdinalIgnoreCase) ||
-            (app.Length >= 4 && dirName.Contains(app, StringComparison.OrdinalIgnoreCase)));
+        bool isActive = IsActiveDirectory(dirName, activeApps);
 
         if (isActive)
         {
@@ -429,6 +677,19 @@ public static class OrphanedAppService
             }
             return;
         }
+
+        // Safety Rule 6: User data and active working roots are never residue. Documents /
+        // OneDrive / My Games / Saved Games hold user content, and a folder holding a project
+        // manifest (.git, package.json, *.sln) is someone's active work — not an uninstalled
+        // app's leftovers. Checked before any file enumeration so 100s of MB are never walked.
+        if (OrphanEvidenceClassifier.IsUserDataOrWorkingRoot(dir.FullName)) return;
+
+        // Safety Rule 7: Live-reference proof. A running process, registered service, startup
+        // entry, uninstall record, shortcut target, or PATH entry that resolves inside this
+        // folder means it is in use. This is the evidence that separates a quiet-but-live tool
+        // folder (Antigravity IDE, Qoder, a *.cache tool store) from genuine residue, which
+        // age and size alone cannot do.
+        if (OrphanEvidenceClassifier.HasLiveReference(dir.FullName)) return;
 
         try
         {
@@ -476,30 +737,28 @@ public static class OrphanedAppService
             // If it has an active uninstaller or multiple functional executables, it's still an installed app!
             if (hasUninstaller || exeCount > 1) return;
 
-            // If a single exe exists, verify it doesn't match any active keywords
+            // Single exe: accept unbounded reverse containment (identity contains folder name) as
+            // still-installed evidence. This intentionally has NO 4-char floor — a 2-3 char folder
+            // ("vlc", "gk") holding exactly one executable and named inside an installed identity is
+            // far more likely that app's own payload than an orphan. The bounded bidirectional match
+            // in Safety Rule 5 only covers folder names of 4+ chars, so this remains reachable for
+            // short names.
             if (exeCount == 1 && activeApps.Any(a => a.Contains(dirName, StringComparison.OrdinalIgnoreCase)))
             {
                 return;
             }
 
-            // Adaptive Modification Age Shield:
-            // - Broken uninstaller leftovers (unins*.dat without unins*.exe): 1 hour
-            // - Pure cache / configuration files with 0 executables & 0 DLLs: 24 hours
-            // - Abandoned inactive binary trees: 7 days
+            // Age shield, now anchored on evidence rather than silence:
+            // - Broken uninstaller leftovers (unins*.dat without unins*.exe): 1 hour. This is
+            //   POSITIVE evidence of a partial uninstall, so it may clear fast.
+            // - Everything else: 7 days. Rules 6/7 already proved the folder is not user data and
+            //   that nothing references it; a full quiet week is then the remaining bar. The old
+            //   24-hour allowance for pure cache/config trees let a live tool nobody happened to
+            //   touch over a weekend be proposed as "residual from uninstalled app".
             var age = DateTime.Now - dir.LastWriteTime;
-            TimeSpan requiredAge;
-            if (hasBrokenUninstaller)
-            {
-                requiredAge = TimeSpan.FromHours(1);
-            }
-            else if (exeCount == 0 && dllCount == 0)
-            {
-                requiredAge = TimeSpan.FromHours(24);
-            }
-            else
-            {
-                requiredAge = TimeSpan.FromDays(7);
-            }
+            TimeSpan requiredAge = hasBrokenUninstaller
+                ? TimeSpan.FromHours(1)
+                : TimeSpan.FromDays(7);
 
             if (age < requiredAge) return;
 

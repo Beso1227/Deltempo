@@ -899,7 +899,7 @@ public static class StartupManagerService
     /// <summary>
     /// Binary parser for Shell Link (.lnk) files to extract local basePath without external COM dependencies.
     /// </summary>
-    private static string ResolveShortcutTarget(string lnkPath)
+    internal static string ResolveShortcutTarget(string lnkPath)
     {
         try
         {

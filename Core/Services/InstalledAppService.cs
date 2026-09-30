@@ -558,26 +558,35 @@ public static class InstalledAppService
             Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)
         };
 
-        foreach (var root in targetRoots)
+foreach (var root in targetRoots)
         {
             if (!Directory.Exists(root)) continue;
 
             try
             {
-                var candidate = Path.Combine(root, app.DisplayName);
-                if (Directory.Exists(candidate) && IsSafeToDeleteResidual(candidate))
+                // The DisplayName is a marketing string: "PDFgear 1.2.3" ships a folder called
+                // "PDFgear". Probe every folder name the app plausibly owns instead of only the
+                // exact DisplayName, so versioned installs stop leaving residue behind.
+                foreach (var candidate in AppIdentity.FolderNameCandidates(app.DisplayName))
                 {
-                    leftovers.Add(candidate);
+                    string candidatePath = Path.Combine(root, candidate.Name);
+                    if (Directory.Exists(candidatePath) && IsSafeToDeleteResidual(candidatePath))
+                    {
+                        leftovers.Add(candidatePath);
+                    }
                 }
 
                 if (!string.IsNullOrWhiteSpace(app.Publisher) &&
                     app.Publisher.Length >= 4 &&
                     !ProtectedDirectoryNames.Contains(app.Publisher))
                 {
-                    var pubCandidate = Path.Combine(root, app.Publisher, app.DisplayName);
-                    if (Directory.Exists(pubCandidate) && IsSafeToDeleteResidual(pubCandidate))
+                    foreach (var candidate in AppIdentity.FolderNameCandidates(app.DisplayName))
                     {
-                        leftovers.Add(pubCandidate);
+                        string pubCandidatePath = Path.Combine(root, app.Publisher, candidate.Name);
+                        if (Directory.Exists(pubCandidatePath) && IsSafeToDeleteResidual(pubCandidatePath))
+                        {
+                            leftovers.Add(pubCandidatePath);
+                        }
                     }
                 }
             }
@@ -615,6 +624,11 @@ public static class InstalledAppService
             // Must not match protected core directories
             string dirName = Path.GetFileName(fullPath);
             if (ProtectedDirectoryNames.Contains(dirName)) return false;
+
+            // Package-manager stores, agent namespaces, and skill/plugin/MCP vocabulary are never
+            // deletion targets, no matter which scan surfaced them. They hold live state shared by
+            // every installed tool (npm cache, MCP servers, agent skills) -- not app residue.
+            if (OrphanedAppService.IsNeverProposedFolderName(dirName)) return false;
 
             string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows).TrimEnd('\\', '/');
             string progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles).TrimEnd('\\', '/');
