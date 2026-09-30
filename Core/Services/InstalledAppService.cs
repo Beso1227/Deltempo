@@ -602,6 +602,16 @@ public static class InstalledAppService
             var root = Path.GetPathRoot(fullPath)?.TrimEnd('\\', '/');
             if (string.Equals(fullPath, root, StringComparison.OrdinalIgnoreCase)) return false;
 
+            // Never treat a reparse point (junction, symlink, mount point) as a safe deletion
+            // target. Recursing through one deletes the TARGET's contents rather than the link
+            // itself -- on a typical developer profile dozens of agent folders junction to one
+            // shared skill store, so a single mistaken recursive delete would wipe every
+            // installed skill at once. Links are structural; they are never "residual".
+            if (WinTempCleaner.Core.Safety.PathSecurity.IsReparsePointOrLink(fullPath))
+            {
+                return false;
+            }
+
             // Must not match protected core directories
             string dirName = Path.GetFileName(fullPath);
             if (ProtectedDirectoryNames.Contains(dirName)) return false;

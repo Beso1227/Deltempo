@@ -483,14 +483,21 @@ public static class LargeFileHunterService
         {
             if (!File.Exists(filePath) && !Directory.Exists(filePath)) return false;
 
-            // Strict TOCTOU pre-deletion revalidation
-            if (File.Exists(filePath))
+            // Never recycle a reparse point. SHFileOperation without FOF_NORECURSION recurses
+            // into a junction and deletes the TARGET's contents, not the link. The link itself
+            // is filesystem structure rather than a cleaning target, so refuse either way.
+            if (WinTempCleaner.Core.Safety.PathSecurity.IsReparsePointOrLink(filePath))
             {
-                if (!WinTempCleaner.Core.Cleaning.CleanupExecutor.RevalidateBeforeDeletion(filePath, allowedRoot: string.Empty, expectedSize: -1, out string failureReason))
-                {
-                    Trace.WriteLine($"[Deltempo] MoveToRecycleBin blocked by safety revalidation: {failureReason} for {filePath}");
-                    return false;
-                }
+                Trace.WriteLine($"[Deltempo] MoveToRecycleBin refused reparse point: {filePath}");
+                return false;
+            }
+
+            // Strict TOCTOU pre-deletion revalidation. Previously this ran only for files, so a
+            // directory reached SHFileOperation with no revalidation at all.
+            if (!WinTempCleaner.Core.Cleaning.CleanupExecutor.RevalidateBeforeDeletion(filePath, allowedRoot: string.Empty, expectedSize: -1, out string failureReason))
+            {
+                Trace.WriteLine($"[Deltempo] MoveToRecycleBin blocked by safety revalidation: {failureReason} for {filePath}");
+                return false;
             }
 
             var shf = new SHFILEOPSTRUCT

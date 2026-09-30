@@ -925,12 +925,24 @@ public partial class CleanerService
                 {
                     if (Directory.Exists(folder.FolderPath))
                     {
+                        // Enumerate without descending into reparse points. Two reasons, both
+                        // real on a developer profile: a junction to a shared store (installed
+                        // skills, plugins) is counted once per link, inflating the reported
+                        // reclaimable size by the same amount repeatedly; and traversal would
+                        // enter linked trees that this folder does not actually own.
+                        var residualEnum = new EnumerationOptions
+                        {
+                            IgnoreInaccessible = true,
+                            RecurseSubdirectories = true,
+                            AttributesToSkip = FileAttributes.ReparsePoint
+                        };
+
                         if (folder.SizeBytes == 0)
                         {
                             try
                             {
                                 var di = new DirectoryInfo(folder.FolderPath);
-                                var files = di.EnumerateFiles("*", SearchOption.AllDirectories).ToList();
+                                var files = di.EnumerateFiles("*", residualEnum).ToList();
                                 folder.SizeBytes = files.Sum(f => f.Length);
                                 folder.FileCount = files.Count;
                             }
@@ -945,7 +957,7 @@ public partial class CleanerService
                             try
                             {
                                 var di = new DirectoryInfo(folder.FolderPath);
-                                foreach (var file in di.EnumerateFiles("*", SearchOption.AllDirectories))
+                                foreach (var file in di.EnumerateFiles("*", residualEnum))
                                 {
                                     var lockers = WinTempCleaner.Core.Safety.RestartManagerService.GetLockingProcesses(file.FullName);
                                     foreach (var locker in lockers)

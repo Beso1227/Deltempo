@@ -127,7 +127,15 @@ public static class RootLeftoverScannerService
             {
                 try
                 {
-                    foreach (var file in Directory.EnumerateFiles(app.InstallLocation, "*", SearchOption.AllDirectories))
+                    // Skip reparse points: the baseline snapshot is an inventory of files the app actually owns,
+                    // and following a link would record files from a shared tree it does not own
+                    // (duplicated once per link).
+                    foreach (var file in Directory.EnumerateFiles(app.InstallLocation, "*", new EnumerationOptions
+                    {
+                        IgnoreInaccessible = true,
+                        RecurseSubdirectories = true,
+                        AttributesToSkip = FileAttributes.ReparsePoint
+                    }))
                     {
                         if (ct.IsCancellationRequested) break;
                         snapshot.ExistingFiles.Add(file);
@@ -1143,7 +1151,15 @@ public static class RootLeftoverScannerService
         try
         {
             var dirInfo = new DirectoryInfo(dirPath);
-            return dirInfo.EnumerateFiles("*", SearchOption.AllDirectories)
+            // Skip reparse points while measuring. A junction to a shared store is otherwise
+            // counted once per link, so the same bytes are reported repeatedly across a profile
+            // that links one skill store into dozens of agent folders.
+            return dirInfo.EnumerateFiles("*", new EnumerationOptions
+                   {
+                       IgnoreInaccessible = true,
+                       RecurseSubdirectories = true,
+                       AttributesToSkip = FileAttributes.ReparsePoint
+                   })
                           .Sum(fi => fi.Length);
         }
         catch

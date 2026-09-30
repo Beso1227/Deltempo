@@ -197,6 +197,69 @@ public static class RootLeftoverPurgeService
         }
     }
 
+    /// <summary>
+    /// Collects junction/symlink entries beneath <paramref name="root"/> without ever descending
+    /// into one. Recursive delete and recursive enumeration both traverse into a link's target,
+    /// so any link found here means the tree cannot be removed safely as a unit. The walk is
+    /// iterative and checks the attribute before descending, which also makes it immune to
+    /// junction cycles.
+    /// </summary>
+    private static List<string> FindNestedReparsePoints(string root, int cap = 10)
+    {
+        var found = new List<string>();
+        var pending = new Stack<string>();
+        pending.Push(root);
+
+        var opts = new EnumerationOptions
+        {
+            IgnoreInaccessible = true,
+            RecurseSubdirectories = false,
+            AttributesToSkip = 0
+        };
+
+        while (pending.Count > 0)
+        {
+            var current = pending.Pop();
+
+            IEnumerable<FileSystemInfo> entries;
+            try
+            {
+                entries = new DirectoryInfo(current).EnumerateFileSystemInfos("*", opts);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[RootPurge] Link scan skipped '{current}': {ex.Message}");
+                continue;
+            }
+
+            foreach (var entry in entries)
+            {
+                bool isLink;
+                bool isDir;
+                try
+                {
+                    isLink = (entry.Attributes & FileAttributes.ReparsePoint) != 0;
+                    isDir = entry is DirectoryInfo;
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (isLink)
+                {
+                    found.Add(entry.FullName);
+                    if (found.Count >= cap) return found;
+                    continue; // never descend into a link
+                }
+
+                if (isDir) pending.Push(entry.FullName);
+            }
+        }
+
+        return found;
+    }
+
     private static void PurgeDirectory(LeftoverItem item, PurgeResult res)
     {
         if (string.IsNullOrWhiteSpace(item.PathOrKey) || !Directory.Exists(item.PathOrKey)) return;
@@ -212,11 +275,31 @@ public static class RootLeftoverPurgeService
         {
             long size = RootLeftoverScannerService.CalculateDirectorySizeSafe(item.PathOrKey);
 
+            // Directory.Delete(recursive: true) follows junctions and removes the TARGET's
+            // contents, not the link. Refuse the folder outright when it contains any link: on a
+            // developer profile one leftover agent folder can hold a junction to a shared store of
+            // installed skills, and deleting through it would destroy data this scan does not own.
+            var nestedLinks = FindNestedReparsePoints(item.PathOrKey);
+            if (nestedLinks.Count > 0)
+            {
+                res.ErrorsCount++;
+                res.ErrorMessages.Add(
+                    $"Safety shield blocked recursive delete of '{item.PathOrKey}': contains " +
+                    $"{nestedLinks.Count} junction/symlink entr{(nestedLinks.Count == 1 ? "y" : "ies")} " +
+                    $"(e.g. '{nestedLinks[0]}'). Remove or repoint the link manually, then retry.");
+                return;
+            }
+
             // Strip attributes on all files and directories
             try
             {
                 var di = new DirectoryInfo(item.PathOrKey);
-                foreach (var f in di.EnumerateFiles("*", SearchOption.AllDirectories).ToList())
+                foreach (var f in di.EnumerateFiles("*", new EnumerationOptions
+                {
+                    IgnoreInaccessible = true,
+                    RecurseSubdirectories = true,
+                    AttributesToSkip = FileAttributes.ReparsePoint
+                }).ToList())
                 {
                     SafeOps.Try($"RootPurge/strip '{f.FullName}'", () => File.SetAttributes(f.FullName, FileAttributes.Normal));
                 }

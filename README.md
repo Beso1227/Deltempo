@@ -64,11 +64,11 @@
     </sub>
   </p>
 
+  <br />
+
+  <video src="docs/deltempo.mp4" poster="docs/deltempo.webp" controls preload="metadata" width="100%"></video>
+
 </div>
-
----
-
-https://github.com/user-attachments/assets/c3f9b5a4-8b8e-4e44-90fa-791066b57807
 
 ---
 
