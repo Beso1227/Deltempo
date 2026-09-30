@@ -161,6 +161,8 @@ brag-output/
 .deploy*.cmd
 ci_runs.json
 ci_*.json
+.megamemory/
+mcp_config.json
 
 # Web & Package Manager Scratch
 node_modules/
