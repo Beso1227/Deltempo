@@ -11,25 +11,28 @@
   <p><strong>Fast, privacy-first Windows cleaner, deep root uninstaller, startup intelligence engine, and NT memory optimizer for Windows 10 & 11.</strong></p>
 
   <p>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?label=Release&color=00F2B0" alt="Latest Release" /></a>
-    <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&label=CI%20Build" alt="CI Build Status" /></a>
-    <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/Tests-715%20Passed%20(0%20failed)-00F2B0" alt="Tests: 715 Passed" /></a>
-    <a href="docs/THREAT_MODEL.md"><img src="https://img.shields.io/badge/Security-STRIDE%20Hardened-8B5CF6" alt="STRIDE Hardened" /></a>
-    <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 10" /></a>
-    <a href="https://learn.microsoft.com/dotnet/csharp/"><img src="https://img.shields.io/badge/C%23-13-239120?logo=csharp&logoColor=white" alt="C# 13" /></a>
-    <a href="#at-a-glance"><img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20(x64)-0078D4?logo=windows" alt="Platform Support" /></a>
-    <a href="LICENSE"><img src="https://img.shields.io/github/license/Beso1227/Deltempo?color=00F2B0" alt="License: MIT" /></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" alt="Latest Release" height="28" /></a>
+    <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" alt="CI Build Status" height="28" /></a>
+    <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/tests-715_passed-00F2B0?style=for-the-badge&label=QUALITY" alt="Tests: 715 passed, 0 failed" height="28" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" alt="License: MIT" height="28" /></a>
+    <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&label=RUNTIME&logo=dotnet&logoColor=white" alt=".NET 10" height="28" /></a>
+    <a href="https://learn.microsoft.com/dotnet/csharp/"><img src="https://img.shields.io/badge/C%23-13-239120?style=for-the-badge&label=LANGUAGE&logo=csharp&logoColor=white" alt="C# 13" height="28" /></a>
   </p>
 
   <p>
-    <a href="#privacy"><img src="https://img.shields.io/badge/Telemetry-Zero%20%7C%20100%25%20Offline-00F2B0" alt="Zero Telemetry" /></a>
-    <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/Memory%20Engine-NT%20Kernel%20Native-0DD3BA" alt="NT Kernel Native" /></a>
-    <a href="#quick-start"><img src="https://img.shields.io/badge/Install-irm%20%7C%20iex-00F2B0" alt="One-liner install" /></a>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/badge/Binary-Portable%20Single--File-F59E0B" alt="Portable Single File" /></a>
-    <a href="docs/ARCHITECTURE.md#safety-pipeline"><img src="https://img.shields.io/badge/Safety%20Model-Two--Phase%20Verified-8B5CF6" alt="Two Phase Verified Safety" /></a>
-    <a href="https://github.com/Beso1227/Deltempo/releases"><img src="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?color=00F2B0&label=Downloads&logo=github" alt="GitHub Downloads" /></a>
-    <a href="https://github.com/Beso1227/Deltempo/stargazers"><img src="https://img.shields.io/github/stars/Beso1227/Deltempo?style=flat&color=F59E0B&logo=github" alt="GitHub Stars" /></a>
-    <a href="https://github.com/Beso1227/Deltempo/pulls"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen" alt="PRs Welcome" /></a>
+    <a href="#at-a-glance"><img src="https://img.shields.io/badge/windows_10_%2F_11_x64-0078D4?style=for-the-badge&label=PLATFORM&logo=windows" alt="Platform Support" height="28" /></a>
+    <a href="#privacy"><img src="https://img.shields.io/badge/zero_telemetry-00F2B0?style=for-the-badge&label=PRIVACY" alt="Zero Telemetry, 100% Offline" height="28" /></a>
+    <a href="docs/THREAT_MODEL.md"><img src="https://img.shields.io/badge/STRIDE_hardened-8B5CF6?style=for-the-badge&label=SECURITY" alt="STRIDE Hardened" height="28" /></a>
+    <a href="docs/ARCHITECTURE.md#safety-pipeline"><img src="https://img.shields.io/badge/two--phase_verified-8B5CF6?style=for-the-badge&label=SAFETY" alt="Two-Phase Verified Safety" height="28" /></a>
+    <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/NT_kernel_native-0DD3BA?style=for-the-badge&label=MEMORY" alt="NT Kernel Native Memory Engine" height="28" /></a>
+    <a href="#quick-start"><img src="https://img.shields.io/badge/one--line_install-00F2B0?style=for-the-badge&label=SETUP" alt="One-line install" height="28" /></a>
+  </p>
+
+  <p>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/badge/portable_single--file-F59E0B?style=for-the-badge&label=BINARY" alt="Portable Single-File" height="28" /></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases"><img src="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=DOWNLOADS&color=00F2B0&logo=github" alt="GitHub Downloads" height="28" /></a>
+    <a href="https://github.com/Beso1227/Deltempo/stargazers"><img src="https://img.shields.io/github/stars/Beso1227/Deltempo?style=for-the-badge&label=STARS&color=F59E0B&logo=github" alt="GitHub Stars" height="28" /></a>
+    <a href="https://github.com/Beso1227/Deltempo/pulls"><img src="https://img.shields.io/badge/PRs_welcome-00F2B0?style=for-the-badge&label=CONTRIBUTING" alt="PRs Welcome" height="28" /></a>
   </p>
 
   <p>
