@@ -421,7 +421,10 @@ public partial class MainWindow
     /// </summary>
     private void OpenForceDeleteModal_Click(object sender, RoutedEventArgs e)
     {
-        ForceDeleteModalOverlay.OpenEmpty();
+        // Route through the workspace switch so Force Delete behaves like every other top-bar
+        // tab: it closes whatever is open, highlights its own button, and toggles off when the
+        // active tab is clicked again.
+        SwitchWorkspaceView(WorkspaceView.ForceDelete);
     }
 
     private void CloseCelebration_Click(object sender, RoutedEventArgs e)

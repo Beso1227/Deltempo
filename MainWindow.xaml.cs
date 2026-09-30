@@ -51,6 +51,20 @@ public partial class MainWindow : Window
         AppUninstallModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
         LockedFilesModalOverlay.LogRequested += AddLog;
         ForceDeleteModalOverlay.LogRequested += AddLog;
+        ForceDeleteModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
+
+        // Keep the most recently opened overlay painted on top, regardless of the order the
+        // overlays are declared in the XAML. Without this, a modal declared late (Force Delete)
+        // stays above every earlier sibling and swallows the next tab the user clicks.
+        foreach (var overlay in WorkspaceOverlays()) KeepNewestOverlayOnTop(overlay);
+        foreach (var overlay in new FrameworkElement?[]
+                 {
+                     SettingsModalOverlay, ConfirmModalOverlay, CelebrationModalOverlay,
+                     InspectorModalOverlay, AboutModalOverlay, UpdateModalOverlay, LockedFilesModalOverlay
+                 })
+        {
+            KeepNewestOverlayOnTop(overlay);
+        }
 
         _targetsCollectionView = CollectionViewSource.GetDefaultView(_targets);
         _targetsCollectionView.Filter = FilterTargetPredicate;
@@ -886,6 +900,11 @@ public partial class MainWindow : Window
                 LockedFilesModalOverlay.CloseModal();
                 e.Handled = true;
             }
+            else if (ForceDeleteModalOverlay.Visibility == Visibility.Visible)
+            {
+                ForceDeleteModalOverlay.CloseModal();
+                e.Handled = true;
+            }
         }
         else if (e.Key == Key.Tab)
         {
@@ -903,6 +922,7 @@ public partial class MainWindow : Window
             else if (SystemRepairModalOverlay.Visibility == Visibility.Visible) activeModal = SystemRepairModalOverlay;
             else if (AppUninstallModalOverlay.Visibility == Visibility.Visible) activeModal = AppUninstallModalOverlay;
             else if (LockedFilesModalOverlay.Visibility == Visibility.Visible) activeModal = LockedFilesModalOverlay;
+            else if (ForceDeleteModalOverlay.Visibility == Visibility.Visible) activeModal = ForceDeleteModalOverlay;
             else if (AboutModalOverlay.Visibility == Visibility.Visible) activeModal = AboutModalOverlay;
 
             if (activeModal != null)
@@ -985,8 +1005,35 @@ public partial class MainWindow : Window
         Processes,
         Memory,
         SystemRepair,
-        Apps
+        Apps,
+        ForceDelete
     }
+
+    /// <summary>
+    /// Every overlay that participates in top-bar navigation, in the order they should be
+    /// stacked when more than one is visible (transient dialogs first, workspace last).
+    /// </summary>
+    private IEnumerable<FrameworkElement> WorkspaceOverlays()
+    {
+        yield return LargeFilesModalOverlay;
+        yield return StartupModalOverlay;
+        yield return ProcessModalOverlay;
+        yield return MemoryModalOverlay;
+        yield return SystemRepairModalOverlay;
+        yield return AppUninstallModalOverlay;
+        yield return ForceDeleteModalOverlay;
+    }
+
+/// <summary>
+    /// WPF paints later siblings on top, so an overlay that merely opens can end up *under*
+    /// another one that happens to be declared after it in the XAML. Promoting the overlay that
+    /// just became visible keeps the most recently opened surface on top regardless of the
+    /// declaration order, so this class of bug cannot come back when a modal is added.
+    /// </summary>
+    private static void RaiseOverlayToFront(FrameworkElement overlay) => OverlayStack.RaiseToTop(overlay);
+
+    /// <summary>Hooks overlay visibility changes so the newest overlay always paints on top.</summary>
+    private void KeepNewestOverlayOnTop(FrameworkElement? overlay) => OverlayStack.TrackNewestOnTop(overlay);
 
     private WorkspaceView _currentWorkspace = WorkspaceView.Cleaner;
 
@@ -1027,6 +1074,12 @@ public partial class MainWindow : Window
         if (AppUninstallModalOverlay != null)
             AppUninstallModalOverlay.Visibility = (view == WorkspaceView.Apps) ? Visibility.Visible : Visibility.Collapsed;
 
+        // Force Delete is a top-bar tab like the others. It used to be opened directly without
+        // participating in the workspace switch, so it stayed visible over every other surface
+        // and — being declared last in the XAML — swallowed the tab the user clicked next.
+        if (ForceDeleteModalOverlay != null)
+            ForceDeleteModalOverlay.Visibility = (view == WorkspaceView.ForceDelete) ? Visibility.Visible : Visibility.Collapsed;
+
         UpdateWorkspaceNavButtons(view);
 
         switch (view)
@@ -1053,6 +1106,9 @@ public partial class MainWindow : Window
             case WorkspaceView.Apps:
                 AppUninstallModalOverlay?.Open();
                 break;
+            case WorkspaceView.ForceDelete:
+                ForceDeleteModalOverlay?.OpenEmpty();
+                break;
         }
     }
 
@@ -1065,6 +1121,7 @@ public partial class MainWindow : Window
         if (ToolMemoryBtn != null) ToolMemoryBtn.Tag = (view == WorkspaceView.Memory) ? "Active" : null;
         if (ToolSystemRepairBtn != null) ToolSystemRepairBtn.Tag = (view == WorkspaceView.SystemRepair) ? "Active" : null;
         if (ToolAppUninstallBtn != null) ToolAppUninstallBtn.Tag = (view == WorkspaceView.Apps) ? "Active" : null;
+        if (ToolForceDeleteBtn != null) ToolForceDeleteBtn.Tag = (view == WorkspaceView.ForceDelete) ? "Active" : null;
     }
 
     private void OpenAppUninstallModal_Click(object sender, RoutedEventArgs e)
