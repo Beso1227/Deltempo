@@ -126,11 +126,24 @@ SHA-256 mismatch for $name - the download was deleted and nothing was executed.
     Write-Host "  binary      : $dest" -ForegroundColor Green
 
     if ($target -eq 'cli') {
+        # The caller explicitly asked for the CLI, so wire up the `deltempo` command right away
+        # instead of waiting for a GUI launch that may never happen. The binary is already
+        # verified above, so provisioning is a no-op copy and only the shell integration runs.
+        & $dest register *> $null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host '  registered  : deltempo command' -ForegroundColor Green
+        } else {
+            Write-Host '  registered  : FAILED - the binary is installed but `deltempo` is not on PATH.' -ForegroundColor Yellow
+            Write-Host '               run "& ''{0}'' register" to retry.' -ForegroundColor DarkGray -ArgumentList $dest
+        }
+        Write-Host '  note        : open a NEW terminal window, then run: deltempo' -ForegroundColor DarkGray
         Write-Host ''
         & $dest
     } else {
         Start-Process -FilePath $dest
         Write-Host '  launched    : Deltempo' -ForegroundColor Green
+        Write-Host '  cli         : the app installs the `deltempo` command on launch.' -ForegroundColor DarkGray
+        Write-Host '               open a NEW terminal window, then run: deltempo' -ForegroundColor DarkGray
         Write-Host ''
     }
 }
