@@ -180,3 +180,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# Brag video build sources (rendered deliverable lives in docs/deltempo.mp4)
+brag-output-*/
+brag-shots/

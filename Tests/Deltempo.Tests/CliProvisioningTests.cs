@@ -230,9 +230,13 @@ public class CliProvisioningTests : IDisposable
     public void ChecksumManifest_ParsesTheCliDigest()
     {
         const string manifest = "40cb6d2d662d21441ab91fca8c796a6fbe4b708260a7719c34c3f3e9d95bedfd  Deltempo.exe\n" +
-                                "f87e8f38cac29cb448a7117b497f6dc3f163b3efafd482504d762ec698dea49c  deltempo_cli.exe\n";
+            // This is a SHA-256 checksum of the official CLI binary, not a credential.
+            // devskim:ignore DS173237
+            "f87e8f38cac29cb448a7117b497f6dc3f163b3efafd482504d762ec698dea49c  deltempo_cli.exe\n";
 
         Assert.Equal(
+            // SHA-256 digest of the official CLI binary; a checksum, not a credential.
+            // devskim:ignore DS173237
             "f87e8f38cac29cb448a7117b497f6dc3f163b3efafd482504d762ec698dea49c",
             UpdateService.ParseSha256FromChecksums(manifest, "deltempo_cli.exe"));
     }
