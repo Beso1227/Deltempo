@@ -66,7 +66,7 @@
 
   <br />
 
-  <video src="https://beso1227.github.io/Deltempo/deltempo.mp4" poster="https://beso1227.github.io/Deltempo/deltempo.webp" controls preload="metadata" width="100%"></video>
+  <video src="docs/deltempo.mp4" poster="docs/deltempo.webp" controls preload="metadata" width="100%"></video>
 
 </div>
 
