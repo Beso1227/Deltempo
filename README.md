@@ -11,6 +11,22 @@
   <p><strong>Fast, privacy-first Windows cleaner, deep root uninstaller, startup intelligence engine, and NT memory optimizer for Windows 10 & 11.</strong></p>
 
   <p>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/DOWNLOAD%20FOR%20WINDOWS-00F2B0?style=for-the-badge&label=DELTEMPO&labelColor=16212B&height=48"><img alt="Download the latest Deltempo for Windows" src="https://img.shields.io/badge/DOWNLOAD%20FOR%20WINDOWS-00F2B0?style=for-the-badge&label=DELTEMPO&labelColor=16212B&height=48" height="48" /></picture></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/deltempo_cli.exe"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/CLI%20INSTALLER-0DD3BA?style=for-the-badge&label=HEADLESS&labelColor=16212B&height=48"><img alt="Download the Deltempo headless CLI" src="https://img.shields.io/badge/CLI%20INSTALLER-0DD3BA?style=for-the-badge&label=HEADLESS&labelColor=16212B&height=48" height="48" /></picture></a>
+    <a href="https://github.com/Beso1227/Deltempo"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/STAR%20THE%20REPO-F59E0B?style=for-the-badge&label=GITHUB&labelColor=16212B&height=48"><img alt="Star Deltempo on GitHub" src="https://img.shields.io/badge/STAR%20THE%20REPO-F59E0B?style=for-the-badge&label=GITHUB&labelColor=16212B&height=48" height="48" /></picture></a>
+  </p>
+
+  <p>
+    <sub>Prefer the terminal? One line installs and verifies the latest release &mdash;
+      <code>irm https://beso1227.github.io/Deltempo/win | Invoke-Expression</code></sub>
+  </p>
+
+  <p>
+    <sub>If Deltempo gave you back some disk space, a <a href="https://github.com/Beso1227/Deltempo"><strong>star</strong></a> genuinely helps other people find it.
+    Found a bug, or have an idea for a feature? <a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>Open an issue</strong></a> &mdash; every request is read, and feature requests are welcome.</sub>
+  </p>
+
+  <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Latest Release" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI Build Status" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
     <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-715_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 715 passed, 0 failed" src="https://img.shields.io/badge/tests-715_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
@@ -31,7 +47,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/portable_single--file-F59E0B?style=for-the-badge&label=BINARY&labelColor=16212B"><img alt="Portable Single-File" src="https://img.shields.io/badge/portable_single--file-F59E0B?style=for-the-badge&label=BINARY" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/releases"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=DOWNLOADS&color=00F2B0&logo=github&labelColor=16212B"><img alt="GitHub Downloads" src="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=DOWNLOADS&color=00F2B0&logo=github" height="28" /></picture></a>
-    <a href="https://github.com/Beso1227/Deltempo/stargazers"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/Beso1227/Deltempo?style=for-the-badge&label=STARS&color=F59E0B&logo=github&labelColor=16212B"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/Beso1227/Deltempo?style=for-the-badge&label=STARS&color=F59E0B&logo=github" height="28" /></picture></a>
+    <a href="https://github.com/Beso1227/Deltempo"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/Beso1227/Deltempo?style=for-the-badge&label=STARS&color=F59E0B&logo=github&labelColor=16212B"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/Beso1227/Deltempo?style=for-the-badge&label=STARS&color=F59E0B&logo=github" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/pulls"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/PRs_welcome-00F2B0?style=for-the-badge&label=CONTRIBUTING&labelColor=16212B"><img alt="PRs Welcome" src="https://img.shields.io/badge/PRs_welcome-00F2B0?style=for-the-badge&label=CONTRIBUTING" height="28" /></picture></a>
   </p>
 
@@ -49,7 +65,7 @@
 
   <br />
 
-  <video src="https://github.com/user-attachments/assets/5d5f1df1-719b-4ee2-a578-42a90b15de88" controls="controls" width="100%"></video>
+  <video src="https://beso1227.github.io/Deltempo/deltempo.mp4" poster="https://beso1227.github.io/Deltempo/deltempo.webp" controls="controls" width="100%"></video>
   <p>
     <sub>🎬 <strong>Deltempo Product Showcase Video</strong> (34s · 1080p · 30fps) —
       <a href="https://beso1227.github.io/Deltempo/#video"><strong>🌐 Play on Official Website</strong></a> •
