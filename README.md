@@ -66,12 +66,6 @@
   <br />
 
   <video src="https://beso1227.github.io/Deltempo/deltempo.mp4" poster="https://beso1227.github.io/Deltempo/deltempo.webp" controls="controls" width="100%"></video>
-  <p>
-    <sub>🎬 <strong>Deltempo Product Showcase Video</strong> (34s · 1080p · 30fps) —
-      <a href="https://beso1227.github.io/Deltempo/#video"><strong>🌐 Play on Official Website</strong></a> •
-      <a href="https://raw.githubusercontent.com/Beso1227/Deltempo/main/docs/deltempo.mp4"><strong>⬇️ Download MP4</strong></a>
-    </sub>
-  </p>
 
 </div>
 
