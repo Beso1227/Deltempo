@@ -13,18 +13,18 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/github/v/release/Beso1227/Deltempo?label=Release&color=00F2B0" alt="Latest Release" /></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?branch=main&label=CI%20Build" alt="CI Build Status" /></a>
-    <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/Tests-692%20Passed%20(0%20failed)-00F2B0" alt="Tests: 692 Passed" /></a>
+    <a href="docs/TESTING.md"><img src="https://img.shields.io/badge/Tests-715%20Passed%20(0%20failed)-00F2B0" alt="Tests: 715 Passed" /></a>
     <a href="docs/THREAT_MODEL.md"><img src="https://img.shields.io/badge/Security-STRIDE%20Hardened-8B5CF6" alt="STRIDE Hardened" /></a>
     <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 10" /></a>
     <a href="https://learn.microsoft.com/dotnet/csharp/"><img src="https://img.shields.io/badge/C%23-13-239120?logo=csharp&logoColor=white" alt="C# 13" /></a>
-    <a href="#supported-platforms"><img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20(x64)-0078D4?logo=windows" alt="Platform Support" /></a>
+    <a href="#at-a-glance"><img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20(x64)-0078D4?logo=windows" alt="Platform Support" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/github/license/Beso1227/Deltempo?color=00F2B0" alt="License: MIT" /></a>
   </p>
 
   <p>
-    <a href="#telemetry--offline-guarantee"><img src="https://img.shields.io/badge/Telemetry-Zero%20%7C%20100%25%20Offline-00F2B0" alt="Zero Telemetry" /></a>
+    <a href="#privacy"><img src="https://img.shields.io/badge/Telemetry-Zero%20%7C%20100%25%20Offline-00F2B0" alt="Zero Telemetry" /></a>
     <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/Memory%20Engine-NT%20Kernel%20Native-0DD3BA" alt="NT Kernel Native" /></a>
-    <a href="#installation"><img src="https://img.shields.io/badge/Install-irm%20%7C%20iex-00F2B0" alt="One-liner install" /></a>
+    <a href="#quick-start"><img src="https://img.shields.io/badge/Install-irm%20%7C%20iex-00F2B0" alt="One-liner install" /></a>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><img src="https://img.shields.io/badge/Binary-Portable%20Single--File-F59E0B" alt="Portable Single File" /></a>
     <a href="docs/ARCHITECTURE.md#safety-pipeline"><img src="https://img.shields.io/badge/Safety%20Model-Two--Phase%20Verified-8B5CF6" alt="Two Phase Verified Safety" /></a>
     <a href="https://github.com/Beso1227/Deltempo/releases"><img src="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?color=00F2B0&label=Downloads&logo=github" alt="GitHub Downloads" /></a>
@@ -33,7 +33,7 @@
   </p>
 
   <p>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest">Download v2.0.0</a> •
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest">Download v3.0.0</a> •
     <a href="https://beso1227.github.io/Deltempo/"><strong>Deltempo Official Website</strong></a> •
     <a href="docs/ARCHITECTURE.md">Architecture</a> •
     <a href="docs/THREAT_MODEL.md">Threat Model</a> •
@@ -64,11 +64,12 @@
 | :--- | :--- |
 | **Official Website** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **Platform** | Windows 10 & 11 (64-bit / x64) |
-| **Version** | v2.0.0 (Production Release) |
+| **Version** | v3.0.0 (Production Release) |
 | **License** | Open Source ([MIT](LICENSE)) |
 | **Interfaces** | Modern Desktop GUI (WPF Fluent) and Headless Terminal CLI |
 | **Distribution** | Portable single-file executable (self-contained, no installer required) |
-| **Test Coverage** | 640 automated tests (100% pass rate, 0 failed, 0 skipped), adversarial filesystem fuzzing |
+| **Test Coverage** | 715 automated tests (100% pass rate, 0 failed, 0 skipped), adversarial filesystem fuzzing |
+| **CLI Availability** | The `deltempo` command self-installs on first GUI launch — no manual setup |
 | **Telemetry** | Zero telemetry. Scan, clean, memory, and uninstaller operations execute 100% offline |
 | **Safety Engine** | Two-phase planning (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) with 5 risk tiers & transaction journaling |
 | **App Uninstaller** | Bulk silent uninstaller, BCU engine, leftover AppData/Registry trace cleanup, forced wipe for broken apps |
@@ -268,13 +269,35 @@ deltempo status --json
 | `deltempo startup enable <app>` | Restore a disabled startup program | N/A |
 | `deltempo repair [subcommand]` | Windows integrity check & servicing repair | `sfc`, `dism`, `winsxs`, `chkdsk`, `update`, `network` |
 | `deltempo status` | Display system telemetry and memory info | `--json` |
+| `deltempo test` | Self-check the engine (memory API, discovered scopes) | N/A |
+| `deltempo help` | Print the full command reference | N/A |
 | `deltempo update [check]` | Check for official releases or apply update | `check`, `--dry-run` |
-| `deltempo register` | Opt-in shell integration (PATH, Win+R alias) | `--status`, `--remove` |
-| `deltempo unregister` | Remove all shell integration | N/A |
+| `deltempo register` | Install / inspect the `deltempo` command itself | `--status`, `--remove` |
+| `deltempo unregister` | Remove every artifact `register` created | N/A |
 
 ---
 
 ## 🚀 Quick Start
+
+> ### ⚡ Run it in one line
+>
+> ```powershell
+> irm https://beso1227.github.io/Deltempo/win | Invoke-Expression
+> ```
+>
+> Downloads the latest release, verifies its SHA-256, caches it in `%LOCALAPPDATA%\Deltempo\bin`, and launches it.
+> Prefer the headless console binary? Swap `win` for [`win-cli`](https://beso1227.github.io/Deltempo/).
+>
+> ### 💻 …and the CLI is ready too
+>
+> The first launch installs the `deltempo` command for you — `cmd.exe`, PowerShell, and <kbd>Win</kbd>+<kbd>R</kbd> all work.
+> Open a **new** terminal window afterwards, then:
+>
+> ```powershell
+> deltempo test        # self-check the engine
+> deltempo status      # live disk + RAM telemetry
+> deltempo register --status
+> ```
 
 ### Option 1: Portable Standalone Executable (Recommended)
 
@@ -287,22 +310,42 @@ deltempo status --json
 Launch the latest release directly from your terminal — no browser, no installer:
 
 ```powershell
-irm https://beso1227.github.io/Deltempo/win | iex
+irm https://beso1227.github.io/Deltempo/win | Invoke-Expression
 ```
 
 The bootstrap script downloads the latest `Deltempo.exe`, verifies its SHA-256 against the published `checksums.sha256`, caches it in `%LOCALAPPDATA%\Deltempo\bin`, and launches it. For the headless CLI binary, use the `win-cli` entry point:
 
 ```powershell
-irm https://beso1227.github.io/Deltempo/win-cli | iex
+irm https://beso1227.github.io/Deltempo/win-cli | Invoke-Expression
 ```
 
 If the manifest cannot be read, or the hash does not match, the installer aborts and runs nothing it downloaded — verification is never skipped. Note that `Invoke-Expression` accepts no arguments, so the target is selected by the entry point rather than a `-Cli` switch.
 
-### Option 3: Terminal Registration
+### Option 3: The `deltempo` Command
 
-Running `Deltempo.exe` automatically registers user-level App Paths so you can press <kbd>Win</kbd> + <kbd>R</kbd> and type `deltempo`, or use `deltempo` directly in any PowerShell or Command Prompt terminal.
+You never have to wire this up by hand. The first time you launch Deltempo, it provisions a
+console-subsystem CLI binary, adds it to your user `PATH`, registers the <kbd>Win</kbd>+<kbd>R</kbd>
+alias, and installs a `deltempo` function into your PowerShell profiles — repairing a stale
+registration left behind by an older install if it finds one.
+
+Two things worth knowing:
+
+- **Open a new terminal window.** Already-open shells keep the `PATH` they started with.
+- **Offline first run?** If the console binary cannot be provisioned, nothing is registered and no
+  half-installed command is left behind. The desktop app is completely unaffected — the next
+  successful launch retries.
+
+Prefer to manage it yourself? `deltempo register` does the same thing on demand, and
+`deltempo unregister` removes every artifact it created. Use `deltempo register --status` to see
+exactly what is installed and which binary it points at.
+
+> Commands that touch protected system state (`restore-points`, the DISM stage of `deep-clean`)
+> return a clear error and a non-zero exit code when run from a standard, non-elevated terminal.
+> Run them from an Administrator shell, or use the desktop app.
 
 ---
+
+<a id="privacy"></a>
 
 ## 🔒 Privacy & Security Guarantee
 
@@ -342,7 +385,7 @@ cd Deltempo
 # Compile the entire solution in Release configuration
 dotnet build deltempo.sln -c Release
 
-# Execute the automated test suite (692 passing unit & integration tests)
+# Execute the automated test suite (715 passing unit & integration tests)
 dotnet test deltempo.sln -c Release
 
 # Package the standalone single-file release binaries (GUI & CLI)

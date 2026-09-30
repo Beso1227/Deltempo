@@ -134,7 +134,7 @@ SHA-256 mismatch for $name - the download was deleted and nothing was executed.
             Write-Host '  registered  : deltempo command' -ForegroundColor Green
         } else {
             Write-Host '  registered  : FAILED - the binary is installed but `deltempo` is not on PATH.' -ForegroundColor Yellow
-            Write-Host '               run "& ''{0}'' register" to retry.' -ForegroundColor DarkGray -ArgumentList $dest
+            Write-Host ("               run `"& '{0}'`" register to retry." -f $dest) -ForegroundColor DarkGray
         }
         Write-Host '  note        : open a NEW terminal window, then run: deltempo' -ForegroundColor DarkGray
         Write-Host ''
