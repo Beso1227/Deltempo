@@ -1155,11 +1155,11 @@ public static class RootLeftoverScannerService
             // counted once per link, so the same bytes are reported repeatedly across a profile
             // that links one skill store into dozens of agent folders.
             return dirInfo.EnumerateFiles("*", new EnumerationOptions
-                   {
-                       IgnoreInaccessible = true,
-                       RecurseSubdirectories = true,
-                       AttributesToSkip = FileAttributes.ReparsePoint
-                   })
+            {
+                IgnoreInaccessible = true,
+                RecurseSubdirectories = true,
+                AttributesToSkip = FileAttributes.ReparsePoint
+            })
                           .Sum(fi => fi.Length);
         }
         catch
