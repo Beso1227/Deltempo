@@ -9,7 +9,7 @@
         Title="Deltempo"
         Icon="pack://application:,,,/app.ico"
         Width="1360" Height="840"
-        MinWidth="1160" MinHeight="700"
+        MinWidth="960" MinHeight="640"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -17,6 +17,10 @@
         ResizeMode="CanResize"
         KeyDown="Window_KeyDown"
         StateChanged="Window_StateChanged"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
         AutomationProperties.Name="Deltempo"
         FontFamily="{DynamicResource AppFont}">
@@ -107,7 +111,7 @@
                                         <!-- Design-time placeholder; runtime value is assigned from BuildInfo in MainWindow_Loaded -->
                                         <TextBlock x:Name="AppVersionHeaderBadge"
                                                    Text="v1.6.0"
-                                                   FontSize="9"
+                                                   FontSize="10"
                                                    FontWeight="Bold"
                                                    Foreground="{DynamicResource ElectricCyanBrush}"
                                                    RenderOptions.ClearTypeHint="Enabled"/>
@@ -118,7 +122,7 @@
                                                 Margin="6,0,0,0"
                                                 VerticalAlignment="Center">
                                             <TextBlock Text="MIT"
-                                                       FontSize="8"
+                                                       FontSize="10"
                                                        FontWeight="Bold"
                                                        Foreground="#94A3B8"
                                                        RenderOptions.ClearTypeHint="Enabled"/>
@@ -588,7 +592,7 @@
                                                    Foreground="{DynamicResource HeroActionBtnTextBrush}"
                                                    VerticalAlignment="Center"/>
                                         <TextBlock Text="F5"
-                                                   FontSize="9"
+                                                   FontSize="10"
                                                    FontFamily="{DynamicResource MonospaceFont}"
                                                    Foreground="{DynamicResource HeroActionBtnTextBrush}"
                                                    Opacity="0.72"
@@ -719,7 +723,7 @@
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                     <TextBlock Text="&#xE8B7;"
                                                                FontFamily="{DynamicResource IconFont}"
-                                                               FontSize="9.5"
+                                                               FontSize="10.5"
                                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                                Margin="0,0,4,0"
                                                                VerticalAlignment="Center"/>
@@ -759,14 +763,14 @@
                                                     Padding="5,1"
                                                     Margin="0,0,6,0"
                                                     ToolTip="NVMe / SSD Controller S.M.A.R.T. Health Status">
-                                                <TextBlock x:Name="DriveHealthText" Text="SSD 100%" FontSize="8.5" FontWeight="Bold" Foreground="#10B981"/>
+                                                <TextBlock x:Name="DriveHealthText" Text="SSD 100%" FontSize="10" FontWeight="Bold" Foreground="#10B981"/>
                                             </Border>
                                             <Button x:Name="DriveBenchmarkBtn"
                                                     Content="Speed Test"
                                                     Style="{DynamicResource PillButton}"
                                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                     Padding="6,2"
-                                                    FontSize="9"
+                                                    FontSize="10"
                                                     FontWeight="SemiBold"
                                                     ToolTip="Run non-destructive sequential read speed test"
                                                     Click="DriveBenchmarkBtn_Click"/>
@@ -817,7 +821,7 @@
                                                     ToolTip="Open Deep Kernel Memory &amp; Cache Cleaner"
                                                     Click="OpenMemoryCleanerModal_Click">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <TextBlock Text="&#xE950;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="&#xE950;" FontFamily="{DynamicResource IconFont}" FontSize="10.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
                                                     <TextBlock x:Name="HeroRamBtnText"
                                                                Text="RAM Cleaner"
                                                                FontSize="10"
@@ -852,7 +856,7 @@
                                                 Style="{DynamicResource PillButton}"
                                                 FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                 Padding="8,2"
-                                                FontSize="9.5"
+                                                FontSize="10.5"
                                                 HorizontalAlignment="Right"
                                                 VerticalAlignment="Center"
                                                 Click="HeroBoostRamBtn_Click"/>
@@ -980,10 +984,11 @@
                                            Opacity="0.75"/>
                                 <Button Grid.Column="2"
                                         x:Name="ClearSearchBtn"
+                                        AutomationProperties.Name="Clear search filters"
                                         Content="&#xE711;"
                                         Style="{DynamicResource WindowControlButton}"
                                         Width="18" Height="18"
-                                        FontSize="8.5"
+                                        FontSize="10"
                                         Visibility="Collapsed"
                                         Click="ClearSearchBtn_Click"/>
                             </Grid>
@@ -1012,7 +1017,7 @@
                                         Padding="8,2.5"
                                         Margin="0,0,10,0">
                                     <TextBlock Text="25+ DEEP SCOPES"
-                                               FontSize="9.5"
+                                               FontSize="10.5"
                                                FontWeight="Bold"
                                                Foreground="{DynamicResource ElectricCyanBrush}"/>
                                 </Border>
@@ -1033,6 +1038,7 @@
                                         Margin="0,0,8,0">
                                     <StackPanel Orientation="Horizontal">
                                         <Button x:Name="SelectSafeBtn"
+                                                AutomationProperties.Name="Select safe targets only"
                                                 Style="{DynamicResource PillButton}"
                                                 FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                 ToolTip="Select 100% safe junk targets"
@@ -1043,7 +1049,7 @@
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBlock Text="&#xE73E;"
                                                            FontFamily="{DynamicResource IconFont}"
-                                                           FontSize="9.5"
+                                                           FontSize="10.5"
                                                            Foreground="{DynamicResource EmeraldGreenBrush}"
                                                            Margin="0,0,4,0"
                                                            VerticalAlignment="Center"/>
@@ -1294,7 +1300,7 @@
                                                         Margin="8,0,0,0"
                                                         VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding Category}"
-                                                               FontSize="9"
+                                                               FontSize="10"
                                                                FontWeight="Bold"
                                                                Foreground="{Binding CategoryColor}"/>
                                                 </Border>
@@ -1308,7 +1314,7 @@
                                                         Margin="6,0,0,0"
                                                         VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding SafetyBadge}"
-                                                               FontSize="9"
+                                                               FontSize="10"
                                                                FontWeight="Bold"
                                                                Foreground="{DynamicResource SafetyBadgeTextBrush}"/>
                                                 </Border>
@@ -1323,7 +1329,7 @@
                                                         VerticalAlignment="Center"
                                                         Visibility="{Binding HasError, Converter={StaticResource BoolToVisConverter}}">
                                                     <TextBlock Text="ERROR"
-                                                               FontSize="9"
+                                                               FontSize="10"
                                                                FontWeight="Bold"
                                                                Foreground="#FCA5A5"/>
                                                 </Border>
@@ -1338,7 +1344,7 @@
                                                         VerticalAlignment="Center"
                                                         Visibility="{Binding HasDiscoveryTag, Converter={StaticResource BoolToVisConverter}}">
                                                     <TextBlock Text="{Binding DisplayDiscoveryTag}"
-                                                               FontSize="9"
+                                                               FontSize="10"
                                                                FontWeight="Bold"
                                                                Foreground="#A5B4FC"/>
                                                 </Border>
@@ -1406,7 +1412,7 @@
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <TextBlock Text="&#xE721;"
                                                                    FontFamily="{DynamicResource IconFont}"
-                                                                   FontSize="9"
+                                                                   FontSize="10"
                                                                    Foreground="{DynamicResource ElectricCyanBrush}"
                                                                    Margin="0,0,4,0"
                                                                    VerticalAlignment="Center"/>
@@ -1430,7 +1436,7 @@
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <TextBlock Text="&#xE72C;"
                                                                    FontFamily="{DynamicResource IconFont}"
-                                                                   FontSize="9"
+                                                                   FontSize="10"
                                                                    Foreground="{DynamicResource EmeraldGreenBrush}"
                                                                    Margin="0,0,4,0"
                                                                    VerticalAlignment="Center"/>
@@ -1633,6 +1639,7 @@
                                     Visibility="Collapsed"/>
 
                             <Button x:Name="FooterOneClickBtn"
+                                    AutomationProperties.Name="Run one-click deep clean"
                                     Style="{DynamicResource PillButton}"
                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     ToolTip="1-Click Autonomous Deep Clean (All 26 Scopes, DISM &amp; RAM)"
@@ -1674,7 +1681,7 @@
                                                FontWeight="Bold"
                                                VerticalAlignment="Center"/>
                                     <TextBlock Text="Ctrl+Enter"
-                                               FontSize="9"
+                                               FontSize="10"
                                                FontFamily="{DynamicResource MonospaceFont}"
                                                Foreground="{DynamicResource HeroActionBtnTextBrush}"
                                                Opacity="0.72"
@@ -2074,6 +2081,7 @@
                                     Click="CancelConfirmModal_Click"/>
                             <Button Grid.Column="2"
                                     x:Name="ConfirmModalProceedBtn"
+                                    AutomationProperties.Name="Confirm and proceed"
                                     Style="{DynamicResource HeroCTAButton}"
                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                     Padding="22,9"
@@ -2161,22 +2169,22 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                                    <TextBlock x:Name="CelebrationFilesLabel" Text="FILES DELETED" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationFilesLabel" Text="FILES DELETED" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
                                     <TextBlock x:Name="CelebrationFilesText" Text="14,280" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                                    <TextBlock x:Name="CelebrationFoldersLabel" Text="FOLDERS PURGED" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationFoldersLabel" Text="FOLDERS PURGED" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
                                     <TextBlock x:Name="CelebrationFoldersText" Text="412" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                                    <TextBlock x:Name="CelebrationRamLabel" Text="RAM RECOVERED" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationRamLabel" Text="RAM RECOVERED" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
                                     <TextBlock x:Name="CelebrationRamText" Text="-- MB" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="3" HorizontalAlignment="Center">
-                                    <TextBlock x:Name="CelebrationTimeLabel" Text="TIME ELAPSED" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <TextBlock x:Name="CelebrationTimeLabel" Text="TIME ELAPSED" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
                                     <TextBlock x:Name="CelebrationTimeText" Text="14.2s" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Grid>
@@ -2440,7 +2448,7 @@
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE72C;"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="9"
+                                               FontSize="10"
                                                Foreground="{DynamicResource AmberWarningBrush}"
                                                Margin="0,0,4,0"
                                                VerticalAlignment="Center"/>
@@ -2580,6 +2588,7 @@
                                             <!-- Actions: Check Now & Release Notes -->
                                             <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                                 <Button x:Name="ManualCheckUpdateBtn"
+                                                        AutomationProperties.Name="Check for updates now"
                                                         Style="{DynamicResource HeroCTAButton}"
                                                         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                         Padding="14,6"
@@ -2616,7 +2625,7 @@
                                             Margin="0,0,0,10">
                                         <StackPanel>
                                             <TextBlock Text="AUTOMATIC UPDATE SCHEDULE &amp; TRIGGERS"
-                                                       FontSize="9.5"
+                                                       FontSize="10.5"
                                                        FontWeight="Bold"
                                                        Foreground="{DynamicResource ElectricCyanBrush}"
                                                        Margin="0,0,0,10"/>
@@ -2705,7 +2714,7 @@
                                             Margin="0,0,0,6">
                                         <StackPanel>
                                             <TextBlock Text="DOWNLOAD &amp; INTEGRITY PREFERENCES"
-                                                       FontSize="9.5"
+                                                       FontSize="10.5"
                                                        FontWeight="Bold"
                                                        Foreground="{DynamicResource ElectricCyanBrush}"
                                                        Margin="0,0,0,10"/>
@@ -3829,7 +3838,7 @@
                                         Padding="12,7"
                                         Margin="0,0,3,0">
                                     <StackPanel>
-                                        <TextBlock Text="TOTAL APPS" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                        <TextBlock Text="TOTAL APPS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
                                         <TextBlock x:Name="StartupTotalAppsHeroText" Text="0 apps" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
                                     </StackPanel>
                                 </Border>
@@ -3845,7 +3854,7 @@
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <Ellipse Width="6" Height="6" Fill="#F59E0B" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="HIGH IMPACT" FontSize="9" FontWeight="Bold" Foreground="#F59E0B" VerticalAlignment="Center"/>
+                                            <TextBlock Text="HIGH IMPACT" FontSize="10" FontWeight="Bold" Foreground="#F59E0B" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock x:Name="StartupHighImpactHeroText" Text="0 high impact" FontSize="13" FontWeight="Bold" Foreground="#FBBF24" Margin="0,2,0,0"/>
                                     </StackPanel>
@@ -3860,7 +3869,7 @@
                                         Padding="12,7"
                                         Margin="2,0,3,0">
                                     <StackPanel>
-                                        <TextBlock Text="EST. BOOT DELAY" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                        <TextBlock Text="EST. BOOT DELAY" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
                                         <TextBlock x:Name="StartupBootDelayHeroText" Text="~0.0s delay" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,2,0,0"/>
                                     </StackPanel>
                                 </Border>
@@ -3876,7 +3885,7 @@
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <Ellipse Width="6" Height="6" Fill="#EF4444" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="ORPHANED BROKEN" FontSize="9" FontWeight="Bold" Foreground="#F87171" VerticalAlignment="Center"/>
+                                            <TextBlock Text="ORPHANED BROKEN" FontSize="10" FontWeight="Bold" Foreground="#F87171" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock x:Name="StartupOrphanedHeroText" Text="0 cleanable" FontSize="13" FontWeight="Bold" Foreground="#FCA5A5" Margin="0,2,0,0"/>
                                     </StackPanel>
@@ -3885,6 +3894,7 @@
                                 <!-- Action: 1-Click Optimize Boot -->
                                 <Button Grid.Column="4"
                                         x:Name="StartupOptimizeBootBtn"
+                                        AutomationProperties.Name="Optimize boot configuration"
                                         Style="{DynamicResource HeroCTAButton}"
                                         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                         Padding="14,7"
@@ -3968,6 +3978,7 @@
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                 <!-- AI Analyze All Button -->
                                 <Button x:Name="StartupBatchAiBtn"
+                                        AutomationProperties.Name="Batch analyze startup entries with AI"
                                         Style="{DynamicResource HeaderToolButton}"
                                         ToolTip="Analyze unknown startup entries with AI to assess boot &amp; system disable consequences"
                                         Margin="8,0,0,0"
@@ -3989,6 +4000,7 @@
 
                                 <!-- Refresh Button -->
                                 <Button x:Name="RefreshStartupBtn"
+                                        AutomationProperties.Name="Refresh startup entries"
                                         Style="{DynamicResource HeaderToolButton}"
                                         ToolTip="Refresh Startup List"
                                         Margin="8,0,0,0"
@@ -4086,7 +4098,7 @@
                                                                             Margin="7,0,0,0"
                                                                             VerticalAlignment="Center">
                                                                         <TextBlock Text="{Binding DisableVerdictDisplay}"
-                                                                                   FontSize="8.5"
+                                                                                   FontSize="10"
                                                                                    FontWeight="Bold"
                                                                                    Foreground="{Binding DisableBadgeColor}"/>
                                                                     </Border>
@@ -4102,7 +4114,7 @@
                                                                             Visibility="{Binding IsAiEnriched, Converter={StaticResource BoolToVisConverter}}"
                                                                             ToolTip="{Binding AiProviderUsed, StringFormat='Analyzed by {0}'}">
                                                                         <TextBlock Text="AI BRIEFED"
-                                                                                   FontSize="8"
+                                                                                   FontSize="10"
                                                                                    FontWeight="Bold"
                                                                                    Foreground="#10B981"/>
                                                                     </Border>
@@ -4120,15 +4132,15 @@
                                                                 <!-- Publisher & Hive Location Subtitle -->
                                                                 <StackPanel Orientation="Horizontal" Margin="0,1,0,0">
                                                                     <TextBlock Text="{Binding Publisher}"
-                                                                               FontSize="9.5"
+                                                                               FontSize="10.5"
                                                                                Foreground="{DynamicResource TextMutedBrush}"
                                                                                TextTrimming="CharacterEllipsis"
                                                                                MaxWidth="220"/>
                                                                     <TextBlock Text=" • "
-                                                                               FontSize="9.5"
+                                                                               FontSize="10.5"
                                                                                Foreground="{DynamicResource TextMutedBrush}"/>
                                                                     <TextBlock Text="{Binding LocationDisplay}"
-                                                                               FontSize="9.5"
+                                                                               FontSize="10.5"
                                                                                Foreground="{DynamicResource ElectricCyanBrush}"/>
                                                                 </StackPanel>
                                                             </StackPanel>
@@ -4205,7 +4217,7 @@
                                                                     Margin="0,0,6,0"
                                                                     ToolTip="Essential Windows system component. Modifying this entry may affect system stability.">
                                                                 <TextBlock Text="⊘ Protected"
-                                                                           FontSize="9.5"
+                                                                           FontSize="10.5"
                                                                            FontWeight="SemiBold"
                                                                            Foreground="#34D399"/>
                                                             </Border>
@@ -4241,13 +4253,13 @@
                                                                     <TextBlock Text="&#xE946;" FontFamily="{DynamicResource IconFont}" FontSize="11" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                                                     <TextBlock Text="Startup Intelligence Briefing" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}"/>
                                                                     <Border Background="#143B82F6" CornerRadius="3" Padding="5,1" Margin="6,0,0,0" VerticalAlignment="Center">
-                                                                        <TextBlock Text="{Binding AiProviderUsed, FallbackValue='Offline Intelligence'}" FontSize="8.5" FontWeight="SemiBold" Foreground="#60A5FA"/>
+                                                                        <TextBlock Text="{Binding AiProviderUsed, FallbackValue='Offline Intelligence'}" FontSize="10" FontWeight="SemiBold" Foreground="#60A5FA"/>
                                                                     </Border>
                                                                 </StackPanel>
                                                                 <Button Style="{DynamicResource WindowCloseButton}"
                                                                         Content="&#xE8BB;"
                                                                         FontFamily="{DynamicResource IconFont}"
-                                                                        FontSize="9"
+                                                                        FontSize="10"
                                                                         HorizontalAlignment="Right"
                                                                         Width="18"
                                                                         Height="18"
@@ -4382,7 +4394,7 @@
                                         Padding="14,8"
                                         Margin="0,0,4,0">
                                     <StackPanel>
-                                        <TextBlock Text="TOTAL SCANNED VOLUME" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                        <TextBlock Text="TOTAL SCANNED VOLUME" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
                                         <TextBlock x:Name="LargeFilesTotalStorageText" Text="0 B (0 files)" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,3,0,0"/>
                                     </StackPanel>
                                 </Border>
@@ -4398,7 +4410,7 @@
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <Ellipse Width="6" Height="6" Fill="#10B981" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="100% SAFE TO RECLAIM" FontSize="9" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center"/>
+                                            <TextBlock Text="100% SAFE TO RECLAIM" FontSize="10" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock x:Name="LargeFilesSafeStorageText" Text="0 B (0 safe)" FontSize="13.5" FontWeight="Bold" Foreground="#34D399" Margin="0,3,0,0"/>
                                     </StackPanel>
@@ -4415,7 +4427,7 @@
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <Ellipse Width="6" Height="6" Fill="#EF4444" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="PROTECTED APP &amp; SYSTEM" FontSize="9" FontWeight="Bold" Foreground="#F87171" VerticalAlignment="Center"/>
+                                            <TextBlock Text="PROTECTED APP &amp; SYSTEM" FontSize="10" FontWeight="Bold" Foreground="#F87171" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock x:Name="LargeFilesProtectedStorageText" Text="0 B (0 protected)" FontSize="13.5" FontWeight="Bold" Foreground="#FCA5A5" Margin="0,3,0,0"/>
                                     </StackPanel>
@@ -4505,6 +4517,7 @@
                                     <!-- View Switcher (List vs Treemap) -->
                                     <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
                                         <Button x:Name="LargeFileListViewBtn"
+                                                AutomationProperties.Name="Large files list view"
                                                 Style="{DynamicResource PillButton}"
                                                 Padding="8,5" Margin="0,0,4,0"
                                                 Click="LargeFileViewMode_Click" Tag="LIST"
@@ -4515,6 +4528,7 @@
                                             </StackPanel>
                                         </Button>
                                         <Button x:Name="LargeFileTreemapViewBtn"
+                                                AutomationProperties.Name="Large files treemap view"
                                                 Style="{DynamicResource PillButton}"
                                                 Padding="8,5"
                                                 Click="LargeFileViewMode_Click" Tag="TREEMAP"
@@ -4529,6 +4543,7 @@
                                     <!-- Rescan Button -->
                                     <Button Grid.Column="5"
                                             x:Name="RescanLargeFilesBtn"
+                                            AutomationProperties.Name="Rescan large files"
                                             Style="{DynamicResource PillButton}"
                                             FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                             Padding="12,5"
@@ -4549,6 +4564,7 @@
                                     <Grid>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <Button x:Name="SelectSafeLargeFilesBtn"
+                                                    AutomationProperties.Name="Select safe large files only"
                                                     Style="{DynamicResource PillButton}"
                                                     Padding="12,4"
                                                     FontSize="10.5"
@@ -4574,6 +4590,7 @@
                                                     Margin="0,0,4,0"
                                                     Click="ClearLargeFilesSelection_Click"/>
                                             <Button x:Name="AskAiSelectedLargeFilesBtn"
+                                                    AutomationProperties.Name="Ask AI about the selected large files"
                                                     Style="{DynamicResource PillButton}"
                                                     Padding="10,3"
                                                     FontSize="10.5"
@@ -4681,7 +4698,7 @@
                                                                          CornerRadius="5"
                                                                          Padding="6,2"
                                                                          VerticalAlignment="Center">
-                                                                     <TextBlock Text="{Binding Category}" FontSize="9" FontWeight="SemiBold"
+                                                                     <TextBlock Text="{Binding Category}" FontSize="10" FontWeight="SemiBold"
                                                                                 Foreground="{DynamicResource TextMediumBrush}"/>
                                                                  </Border>
 
@@ -4695,7 +4712,7 @@
                                                                          VerticalAlignment="Center">
                                                                      <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                                          <Ellipse Width="6" Height="6" Fill="{Binding AiBadgeColor}" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                                                         <TextBlock Text="{Binding AiVerdict}" FontSize="9" FontWeight="Bold"
+                                                                         <TextBlock Text="{Binding AiVerdict}" FontSize="10" FontWeight="Bold"
                                                                                     Foreground="{Binding AiBadgeColor}" VerticalAlignment="Center"/>
                                                                      </StackPanel>
                                                                  </Border>
@@ -4708,14 +4725,14 @@
                                                                          CornerRadius="5"
                                                                          Padding="6,2"
                                                                          VerticalAlignment="Center">
-                                                                     <TextBlock Text="{Binding AiProviderLabel}" FontSize="8.5" FontWeight="SemiBold"
+                                                                     <TextBlock Text="{Binding AiProviderLabel}" FontSize="10" FontWeight="SemiBold"
                                                                                 Foreground="{DynamicResource ElectricCyanBrush}" VerticalAlignment="Center"/>
                                                                  </Border>
                                                              </WrapPanel>
 
                                                              <!-- Row 2: File Path in clean Monospace -->
                                                              <TextBlock Text="{Binding FilePath}"
-                                                                        FontSize="9.5"
+                                                                        FontSize="10.5"
                                                                         FontFamily="{DynamicResource MonospaceFont}"
                                                                         Foreground="{DynamicResource TextMutedBrush}"
                                                                         TextTrimming="CharacterEllipsis"
@@ -4732,17 +4749,17 @@
                                                                      MaxWidth="510">
                                                                  <StackPanel>
                                                                      <TextBlock Text="{Binding AiOrigin}"
-                                                                                FontSize="9.5"
+                                                                                FontSize="10.5"
                                                                                 FontWeight="SemiBold"
                                                                                 Foreground="{DynamicResource ElectricCyanBrush}"
                                                                                 Margin="0,0,0,2"/>
                                                                      <TextBlock Text="{Binding AiExplanation}"
-                                                                                FontSize="9.5"
+                                                                                FontSize="10.5"
                                                                                 Foreground="{DynamicResource TextMediumBrush}"
                                                                                 TextWrapping="Wrap"/>
                                                                      <!-- AI Actionable Recommendation -->
                                                                      <TextBlock Text="{Binding AiRecommendation}"
-                                                                                FontSize="9"
+                                                                                FontSize="10"
                                                                                 Foreground="{DynamicResource EmeraldGreenBrush}"
                                                                                 Margin="0,3,0,0"
                                                                                 TextWrapping="Wrap"/>
@@ -4996,6 +5013,7 @@
                             </Border>
                             <Button Grid.Column="1"
                                     x:Name="RefreshProcessBtn"
+                                    AutomationProperties.Name="Refresh background processes"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Refresh Active Processes"
                                     Margin="8,0,0,0"

@@ -78,7 +78,7 @@
                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1" CornerRadius="10" Padding="12,10">
                             <StackPanel>
-                                <TextBlock Text="TOTAL PHYSICAL RAM" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                <TextBlock Text="TOTAL PHYSICAL RAM" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
                                 <TextBlock x:Name="ModalTotalRamText" Text="16.0 GB" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
                                 <TextBlock x:Name="ModalUsedRamText" Text="7.8 GB (49%) In Use" FontSize="10.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,1,0,0"/>
                             </StackPanel>
@@ -90,7 +90,7 @@
                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1" CornerRadius="10" Padding="12,10">
                             <StackPanel>
-                                <TextBlock Text="RECLAIMABLE STANDBY CACHE" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                <TextBlock Text="RECLAIMABLE STANDBY CACHE" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
                                 <TextBlock x:Name="ModalStandbyCacheText" Text="4.2 GB" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource SuccessGlowBrush}" Margin="0,2,0,0"/>
                                 <TextBlock Text="Cached inactive pages" FontSize="10.5" Foreground="{DynamicResource SuccessGlowBrush}" Margin="0,1,0,0"/>
                             </StackPanel>
@@ -102,7 +102,7 @@
                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1" CornerRadius="10" Padding="12,10">
                             <StackPanel>
-                                <TextBlock Text="KERNEL ISOLATION SHIELD" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                <TextBlock Text="KERNEL ISOLATION SHIELD" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
                                 <TextBlock Text="100% IMMUNE" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}" Margin="0,2,0,0"/>
                                 <TextBlock Text="Windows, Explorer &amp; Security protected" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" Margin="0,1,0,0"/>
                             </StackPanel>
@@ -210,7 +210,7 @@
                                                         Margin="8,0"
                                                         VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding SafetyBadge}"
-                                                               FontSize="9"
+                                                               FontSize="10"
                                                                FontWeight="Bold"
                                                                Foreground="{DynamicResource ElectricCyanBrush}"/>
                                                 </Border>

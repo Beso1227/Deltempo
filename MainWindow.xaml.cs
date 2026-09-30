@@ -332,14 +332,20 @@ public partial class MainWindow : Window
             var workArea = SystemParameters.WorkArea;
             if (workArea.Width > 0 && workArea.Height > 0)
             {
-                if (Width > workArea.Width)
-                {
-                    Width = Math.Max(MinWidth, workArea.Width - 32);
-                }
-                if (Height > workArea.Height)
-                {
-                    Height = Math.Max(MinHeight, workArea.Height - 32);
-                }
+                // Under PerMonitorV2 the work area is in DIPs, so on a 150% laptop a 1360 DIP
+                // window is 2040 physical pixels — wider than the screen. Clamp both the size AND
+                // the minimums: a MinWidth that exceeds the work area would otherwise force the
+                // window partly offscreen no matter how small the requested size is.
+                const double margin = 32;
+
+                double maxWidth = workArea.Width - margin;
+                double maxHeight = workArea.Height - margin;
+
+                if (MinWidth > maxWidth) MinWidth = Math.Max(720, maxWidth);
+                if (MinHeight > maxHeight) MinHeight = Math.Max(520, maxHeight);
+
+                if (Width > maxWidth) Width = Math.Max(MinWidth, maxWidth);
+                if (Height > maxHeight) Height = Math.Max(MinHeight, maxHeight);
             }
         }
         catch { }

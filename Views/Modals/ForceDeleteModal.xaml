@@ -76,6 +76,7 @@
                             </Grid.ColumnDefinitions>
 
                             <Button x:Name="AddFilesBtn"
+                                    AutomationProperties.Name="Add files to the force delete list"
                                     Grid.Column="0"
                                     Style="{DynamicResource PillButton}"
                                     Padding="14,6"
@@ -94,6 +95,7 @@
                             </Button>
 
                             <Button x:Name="AddFolderBtn"
+                                    AutomationProperties.Name="Add a folder to the force delete list"
                                     Grid.Column="1"
                                     Style="{DynamicResource PillButton}"
                                     Padding="14,6"
@@ -253,13 +255,13 @@
                                                                 Padding="6,1.5"
                                                                 Margin="8,0,0,0">
                                                             <TextBlock Text="{Binding KindLabel}"
-                                                                       FontSize="9.5"
+                                                                       FontSize="10.5"
                                                                        FontWeight="SemiBold"
                                                                        Foreground="{DynamicResource TextMediumBrush}"/>
                                                         </Border>
                                                     </StackPanel>
                                                     <TextBlock Text="{Binding FilePath}"
-                                                               FontSize="9.5"
+                                                               FontSize="10.5"
                                                                FontFamily="{DynamicResource MonospaceFont}"
                                                                Foreground="{DynamicResource TextMutedBrush}"
                                                                TextTrimming="CharacterEllipsis"
@@ -267,12 +269,12 @@
                                                                Margin="0,2,0,0"/>
                                                     <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                                                         <TextBlock Text="{Binding IssueSummary}"
-                                                                   FontSize="9.5"
+                                                                   FontSize="10.5"
                                                                    Foreground="{DynamicResource AmberWarningBrush}"
                                                                    TextTrimming="CharacterEllipsis"
                                                                    MaxWidth="330"/>
                                                         <TextBlock Text="{Binding DisplayProcessInfo}"
-                                                                   FontSize="9.5"
+                                                                   FontSize="10.5"
                                                                    FontWeight="SemiBold"
                                                                    Foreground="{DynamicResource RoseErrorBrush}"
                                                                    Margin="8,0,0,0"/>

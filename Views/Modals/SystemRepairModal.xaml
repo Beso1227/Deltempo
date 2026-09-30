@@ -58,7 +58,7 @@
                                             VerticalAlignment="Center">
                                         <TextBlock x:Name="SystemRepairAdminBadgeText"
                                                    Text="Administrator"
-                                                   FontSize="9.5"
+                                                   FontSize="10.5"
                                                    FontWeight="Bold"
                                                    Foreground="#10B981"/>
                                     </Border>
@@ -180,7 +180,7 @@
                                                         Margin="8,0,0,0"
                                                         VerticalAlignment="Center">
                                                     <TextBlock Text="RECOMMENDED"
-                                                               FontSize="9"
+                                                               FontSize="10"
                                                                FontWeight="Bold"
                                                                Foreground="{DynamicResource ElectricCyanBrush}"/>
                                                 </Border>
@@ -298,7 +298,7 @@
                                                 </Grid>
                                                 <TextBlock x:Name="ComponentStoreStatusText"
                                                            Text="DISM Intact"
-                                                           FontSize="9.5"
+                                                           FontSize="10.5"
                                                            Foreground="{DynamicResource TextMediumBrush}"
                                                            Margin="0,3,0,0"/>
                                             </StackPanel>
@@ -325,7 +325,7 @@
                                                 </Grid>
                                                 <TextBlock x:Name="SystemFilesStatusText"
                                                            Text="SFC / Protected"
-                                                           FontSize="9.5"
+                                                           FontSize="10.5"
                                                            Foreground="{DynamicResource TextMediumBrush}"
                                                            Margin="0,3,0,0"/>
                                             </StackPanel>
@@ -352,7 +352,7 @@
                                                 </Grid>
                                                 <TextBlock x:Name="FilesystemStatusText"
                                                            Text="Clean / Unflagged"
-                                                           FontSize="9.5"
+                                                           FontSize="10.5"
                                                            Foreground="{DynamicResource TextMediumBrush}"
                                                            Margin="0,3,0,0"/>
                                             </StackPanel>
@@ -379,7 +379,7 @@
                                                 </Grid>
                                                 <TextBlock x:Name="ServicingStackStatusText"
                                                            Text="WUA &amp; CBS Active"
-                                                           FontSize="9.5"
+                                                           FontSize="10.5"
                                                            Foreground="{DynamicResource TextMediumBrush}"
                                                            Margin="0,3,0,0"/>
                                             </StackPanel>
@@ -475,7 +475,7 @@
                                                     Margin="8,0,0,0"
                                                     VerticalAlignment="Center">
                                                 <TextBlock Text="OPEN SOURCE"
-                                                           FontSize="8.5"
+                                                           FontSize="10"
                                                            FontWeight="Bold"
                                                            Foreground="{DynamicResource ElectricCyanBrush}"/>
                                             </Border>
@@ -541,7 +541,7 @@
                                                        TextWrapping="Wrap"
                                                        Margin="0,2,0,0"/>
                                             <TextBlock Text="Est: ~5-10 min • No restart required"
-                                                       FontSize="9"
+                                                       FontSize="10"
                                                        Foreground="{DynamicResource ElectricCyanBrush}"
                                                        Margin="0,2,0,0"/>
                                         </StackPanel>
@@ -597,7 +597,7 @@
                                                        TextWrapping="Wrap"
                                                        Margin="0,2,0,0"/>
                                             <TextBlock Text="Est: ~10-15 min • No restart required"
-                                                       FontSize="9"
+                                                       FontSize="10"
                                                        Foreground="{DynamicResource ElectricCyanBrush}"
                                                        Margin="0,2,0,0"/>
                                         </StackPanel>
@@ -653,7 +653,7 @@
                                                        TextWrapping="Wrap"
                                                        Margin="0,2,0,0"/>
                                             <TextBlock Text="Est: ~5-10 min • No restart required"
-                                                       FontSize="9"
+                                                       FontSize="10"
                                                        Foreground="{DynamicResource ElectricCyanBrush}"
                                                        Margin="0,2,0,0"/>
                                         </StackPanel>
@@ -709,7 +709,7 @@
                                                        TextWrapping="Wrap"
                                                        Margin="0,2,0,0"/>
                                             <TextBlock Text="Est: ~2-5 min • Online scan (No restart)"
-                                                       FontSize="9"
+                                                       FontSize="10"
                                                        Foreground="{DynamicResource ElectricCyanBrush}"
                                                        Margin="0,2,0,0"/>
                                         </StackPanel>
@@ -765,7 +765,7 @@
                                                        TextWrapping="Wrap"
                                                        Margin="0,2,0,0"/>
                                             <TextBlock Text="Est: ~1-2 min • No restart required"
-                                                       FontSize="9"
+                                                       FontSize="10"
                                                        Foreground="{DynamicResource ElectricCyanBrush}"
                                                        Margin="0,2,0,0"/>
                                         </StackPanel>
@@ -821,7 +821,7 @@
                                                        TextWrapping="Wrap"
                                                        Margin="0,2,0,0"/>
                                             <TextBlock Text="Est: ~30 sec • Auto-reconnects"
-                                                       FontSize="9"
+                                                       FontSize="10"
                                                        Foreground="{DynamicResource ElectricCyanBrush}"
                                                        Margin="0,2,0,0"/>
                                         </StackPanel>
@@ -892,7 +892,7 @@
                                                         VerticalAlignment="Center">
                                                     <TextBlock x:Name="RestorePointsBadgeText"
                                                                Text="0 snapshots"
-                                                               FontSize="9"
+                                                               FontSize="10"
                                                                FontWeight="Bold"
                                                                Foreground="{DynamicResource ElectricCyanBrush}"/>
                                                 </Border>
@@ -949,9 +949,9 @@
                                                                     <ColumnDefinition Width="*"/>
                                                                     <ColumnDefinition Width="Auto"/>
                                                                 </Grid.ColumnDefinitions>
-                                                                <TextBlock Grid.Column="0" Text="{Binding FormattedTime}" FontFamily="{DynamicResource MonospaceFont}" FontSize="9.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                                <TextBlock Grid.Column="0" Text="{Binding FormattedTime}" FontFamily="{DynamicResource MonospaceFont}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                                                 <TextBlock Grid.Column="1" Text="{Binding Description}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                                                <TextBlock Grid.Column="2" Text="{Binding EventType}" FontSize="9" Foreground="{DynamicResource ElectricCyanBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                                <TextBlock Grid.Column="2" Text="{Binding EventType}" FontSize="10" Foreground="{DynamicResource ElectricCyanBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                                             </Grid>
                                                         </Border>
                                                     </DataTemplate>

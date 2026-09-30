@@ -84,6 +84,7 @@
                             </StackPanel>
                             <Button Grid.Column="1"
                                     x:Name="ScheduleAllRebootBtn"
+                                    AutomationProperties.Name="Schedule all locked files for deletion on reboot"
                                     Style="{DynamicResource PillButton}"
                                     Padding="14,6"
                                     FontSize="11"
@@ -156,13 +157,13 @@
                                                                 Padding="6,1.5"
                                                                 Margin="8,0,0,0">
                                                             <TextBlock Text="{Binding DisplayProcessInfo}"
-                                                                       FontSize="9.5"
+                                                                       FontSize="10.5"
                                                                        FontWeight="SemiBold"
                                                                        Foreground="{DynamicResource AmberWarningBrush}"/>
                                                         </Border>
                                                     </StackPanel>
                                                     <TextBlock Text="{Binding FilePath}"
-                                                               FontSize="9.5"
+                                                               FontSize="10.5"
                                                                FontFamily="{DynamicResource MonospaceFont}"
                                                                Foreground="{DynamicResource TextMutedBrush}"
                                                                TextTrimming="CharacterEllipsis"

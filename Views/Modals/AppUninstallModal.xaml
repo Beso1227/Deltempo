@@ -90,7 +90,7 @@
                                             Margin="8,0,0,0"
                                             VerticalAlignment="Center">
                                         <TextBlock Text="BCU Engine"
-                                                   FontSize="9"
+                                                   FontSize="10"
                                                    FontWeight="Bold"
                                                    Foreground="{DynamicResource ElectricCyanBrush}"/>
                                     </Border>
@@ -162,6 +162,7 @@
                         <!-- Refresh, AI & Count Group -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                             <Button x:Name="FetchAllAiBtn"
+                                    AutomationProperties.Name="Analyze all app leftovers with AI"
                                     Style="{DynamicResource PillButton}"
                                     Padding="10,4"
                                     Margin="0,0,8,0"
@@ -296,7 +297,7 @@
                                                             Margin="6,0,0,0"
                                                             VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding Category}"
-                                                                   FontSize="8.5"
+                                                                   FontSize="10"
                                                                    FontWeight="Bold"
                                                                    Foreground="{Binding CategoryBadgeColor}"/>
                                                     </Border>
@@ -309,7 +310,7 @@
                                                             Margin="4,0,0,0"
                                                             VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding UninstallEngine}"
-                                                                   FontSize="8.5"
+                                                                   FontSize="10"
                                                                    FontWeight="Bold"
                                                                    Foreground="{DynamicResource ElectricCyanBrush}"/>
                                                     </Border>
@@ -323,7 +324,7 @@
                                                             VerticalAlignment="Center"
                                                             Visibility="{Binding IsCoreRuntime, Converter={StaticResource BoolToVisConverter}}">
                                                         <TextBlock Text="CORE RUNTIME"
-                                                                   FontSize="8"
+                                                                   FontSize="10"
                                                                    FontWeight="Bold"
                                                                    Foreground="#EF4444"/>
                                                     </Border>
@@ -338,7 +339,7 @@
                                                             Visibility="{Binding IsAiEnriched, Converter={StaticResource BoolToVisConverter}}"
                                                             ToolTip="{Binding AiProviderUsed, StringFormat='Enriched by {0}'}">
                                                         <TextBlock Text="AI VERIFIED"
-                                                                   FontSize="8"
+                                                                   FontSize="10"
                                                                    FontWeight="Bold"
                                                                    Foreground="#10B981"/>
                                                     </Border>
@@ -353,7 +354,7 @@
                                                         <!-- Chevron indicator -->
                                                         <TextBlock Text="{Binding ExpandGlyph}"
                                                                    FontFamily="{DynamicResource IconFont}"
-                                                                   FontSize="9.5"
+                                                                   FontSize="10.5"
                                                                    Foreground="{DynamicResource ElectricCyanBrush}"
                                                                    Margin="0,0,5,0"
                                                                    VerticalAlignment="Center"/>
@@ -384,7 +385,7 @@
                                                                 Margin="6,0,0,0"
                                                                 VerticalAlignment="Center">
                                                             <TextBlock Text="DETAILS ▾"
-                                                                       FontSize="8"
+                                                                       FontSize="10"
                                                                        FontWeight="Bold"
                                                                        Foreground="{DynamicResource ElectricCyanBrush}"/>
                                                         </Border>
@@ -427,7 +428,7 @@
                                                         ToolTip="Query AI to analyze what this app is, its safety rating, and uninstall impact"
                                                         Click="FetchSingleAppAi_Click">
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="&#xE946;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="&#xE946;" FontFamily="{DynamicResource IconFont}" FontSize="10.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,3,0" VerticalAlignment="Center"/>
                                                         <TextBlock Text="AI Info" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>
                                                     </StackPanel>
                                                 </Button>
@@ -439,7 +440,7 @@
                                                         ToolTip="Scan files, registry keys, and shortcuts without uninstalling"
                                                         Click="ScanTracesBtn_Click">
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="&#xE721;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="&#xE721;" FontFamily="{DynamicResource IconFont}" FontSize="10.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,3,0" VerticalAlignment="Center"/>
                                                         <TextBlock Text="Traces" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>
                                                     </StackPanel>
                                                 </Button>
@@ -451,7 +452,7 @@
                                                         ToolTip="Force wipe all files, registry entries, and shortcuts without running official uninstaller"
                                                         Click="ForceRootCleanBtn_Click">
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="&#xE74D;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource AmberWarningBrush}" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="&#xE74D;" FontFamily="{DynamicResource IconFont}" FontSize="10.5" Foreground="{DynamicResource AmberWarningBrush}" Margin="0,0,3,0" VerticalAlignment="Center"/>
                                                         <TextBlock Text="Force" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AmberWarningBrush}"/>
                                                     </StackPanel>
                                                 </Button>
@@ -462,7 +463,7 @@
                                                         ToolTip="Terminate locked processes, launch uninstaller, and automatically purge all leftover traces"
                                                         Click="DeepUninstallBtn_Click">
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="&#xE71D;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="#FFFFFF" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="&#xE71D;" FontFamily="{DynamicResource IconFont}" FontSize="10.5" Foreground="#FFFFFF" Margin="0,0,3,0" VerticalAlignment="Center"/>
                                                         <TextBlock Text="Uninstall" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF"/>
                                                     </StackPanel>
                                                 </Button>
@@ -510,7 +511,7 @@
                                                                 Margin="10,0,0,0"
                                                                 VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding Category}"
-                                                                       FontSize="9"
+                                                                       FontSize="10"
                                                                        FontWeight="Bold"
                                                                        Foreground="{Binding CategoryBadgeColor}"/>
                                                         </Border>
@@ -524,7 +525,7 @@
                                                                 Margin="6,0,0,0"
                                                                 VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding AiProviderDisplay}"
-                                                                       FontSize="9"
+                                                                       FontSize="10"
                                                                        FontWeight="SemiBold"
                                                                        Foreground="#60A5FA"/>
                                                         </Border>
@@ -534,7 +535,7 @@
                                                     <Button Style="{DynamicResource WindowCloseButton}"
                                                             Content="&#xE8BB;"
                                                             FontFamily="{DynamicResource IconFont}"
-                                                            FontSize="9"
+                                                            FontSize="10"
                                                             HorizontalAlignment="Right"
                                                             Width="20"
                                                             Height="20"
@@ -546,7 +547,7 @@
                                                 <Border Grid.Row="1" Background="#0AFFFFFF" CornerRadius="6" Padding="10,8" Margin="0,0,0,8">
                                                     <StackPanel>
                                                         <TextBlock Text="DESCRIPTION &amp; FUNCTION"
-                                                                   FontSize="9"
+                                                                   FontSize="10"
                                                                    FontWeight="Bold"
                                                                    Foreground="{DynamicResource TextMutedBrush}"
                                                                    Margin="0,0,0,4"/>
@@ -580,11 +581,11 @@
                                                         <StackPanel Grid.Column="1">
                                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
                                                                 <TextBlock Text="REMOVAL IMPACT: "
-                                                                           FontSize="9.5"
+                                                                           FontSize="10.5"
                                                                            FontWeight="Bold"
                                                                            Foreground="{DynamicResource TextMutedBrush}"/>
                                                                 <TextBlock Text="{Binding SafetyVerdict}"
-                                                                           FontSize="9.5"
+                                                                           FontSize="10.5"
                                                                            FontWeight="Bold"
                                                                            Foreground="{Binding SafetyBadgeColor}"/>
                                                             </StackPanel>
@@ -616,8 +617,8 @@
                                                         <TextBlock Grid.Column="1" Text="{Binding InstallLocationDisplay}" FontSize="10.5" Foreground="{DynamicResource TextMediumBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding InstallLocation}" VerticalAlignment="Center"/>
                                                         <Button Grid.Column="2" Style="{DynamicResource PillButton}" Padding="7,2" Margin="8,0,0,0" ToolTip="Open install folder in File Explorer" Visibility="{Binding OpenFolderVisibility}" Click="OpenInstallLocation_Click">
                                                             <StackPanel Orientation="Horizontal">
-                                                                <TextBlock Text="&#xED25;" FontFamily="{DynamicResource IconFont}" FontSize="9.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
-                                                                <TextBlock Text="Open Folder" FontSize="9.5" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>
+                                                                <TextBlock Text="&#xED25;" FontFamily="{DynamicResource IconFont}" FontSize="10.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Open Folder" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>
                                                             </StackPanel>
                                                         </Button>
                                                     </Grid>
@@ -717,7 +718,7 @@
                                     <TextBlock Text="&#xE7E8;" FontFamily="{DynamicResource IconFont}" FontSize="13" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                     <TextBlock x:Name="RootDrawerTitle" Text="Deep Root Leftover Inspector" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}"/>
                                     <Border Background="#1A00E5FF" BorderBrush="#3300E5FF" BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock x:Name="RootReclaimableSizeBadge" Text="0 MB Found" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                        <TextBlock x:Name="RootReclaimableSizeBadge" Text="0 MB Found" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource ElectricCyanBrush}"/>
                                     </Border>
                                 </StackPanel>
                                 <Button Style="{DynamicResource WindowCloseButton}" Content="&#xE8BB;" FontFamily="{DynamicResource IconFont}" FontSize="10" HorizontalAlignment="Right" Width="22" Height="22" Click="CloseRootDrawer_Click"/>
@@ -771,13 +772,13 @@
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBlock x:Name="DrawerAppNameText" Text="Application Name" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}"/>
                                                 <Border x:Name="DrawerCategoryBadge" Background="#1400E5FF" CornerRadius="3" Padding="5,1" Margin="6,0,0,0">
-                                                    <TextBlock x:Name="DrawerCategoryText" Text="General" FontSize="8.5" FontWeight="Bold" Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                                    <TextBlock x:Name="DrawerCategoryText" Text="General" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource ElectricCyanBrush}"/>
                                                 </Border>
                                                 <Border x:Name="DrawerSafetyBadge" Background="#0D2818" BorderBrush="#10B981" BorderThickness="1" CornerRadius="3" Padding="5,1" Margin="6,0,0,0">
-                                                    <TextBlock x:Name="DrawerSafetyText" Text="Safe to Remove" FontSize="8.5" FontWeight="Bold" Foreground="#10B981"/>
+                                                    <TextBlock x:Name="DrawerSafetyText" Text="Safe to Remove" FontSize="10" FontWeight="Bold" Foreground="#10B981"/>
                                                 </Border>
                                                 <Border x:Name="DrawerProviderBadge" Background="#143B82F6" CornerRadius="3" Padding="5,1" Margin="6,0,0,0">
-                                                    <TextBlock x:Name="DrawerProviderText" Text="Offline Catalog" FontSize="8.5" FontWeight="SemiBold" Foreground="#60A5FA"/>
+                                                    <TextBlock x:Name="DrawerProviderText" Text="Offline Catalog" FontSize="10" FontWeight="SemiBold" Foreground="#60A5FA"/>
                                                 </Border>
                                             </StackPanel>
                                             <TextBlock x:Name="DrawerAppDescriptionText" Text="Description of application" FontSize="10.5" Foreground="{DynamicResource TextMediumBrush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
@@ -785,6 +786,7 @@
                                         </StackPanel>
                                     </Grid>
                                     <Button x:Name="DrawerFetchAiBtn"
+                                            AutomationProperties.Name="Analyze with AI"
                                             Grid.Column="1"
                                             Style="{DynamicResource PillButton}"
                                             Padding="10,4"
@@ -836,15 +838,15 @@
                                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBlock Text="{Binding IconGlyph}" FontFamily="{DynamicResource IconFont}" FontSize="10" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                                                <TextBlock Text="{Binding TypeBadge}" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                                                <TextBlock Text="{Binding Description}" FontSize="9.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding TypeBadge}" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding Description}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                                             </StackPanel>
                                                             <TextBlock Text="{Binding PathOrKey}" FontSize="10" Foreground="{DynamicResource TextHighBrush}" TextTrimming="CharacterEllipsis" Margin="15,1,0,0"/>
                                                         </StackPanel>
 
                                                         <!-- Confidence Badge -->
                                                         <Border Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="5,1" CornerRadius="3" Background="#1410B981" BorderBrush="#3310B981" BorderThickness="1">
-                                                            <TextBlock Text="{Binding Confidence}" FontSize="9" FontWeight="SemiBold" Foreground="#10B981"/>
+                                                            <TextBlock Text="{Binding Confidence}" FontSize="10" FontWeight="SemiBold" Foreground="#10B981"/>
                                                         </Border>
 
                                                         <!-- Size -->
@@ -861,6 +863,7 @@
                             <Grid Grid.Row="4" Margin="0,10,0,0">
                                 <TextBlock x:Name="RootDrawerSelectionSummary" Text="0 items selected for root purge" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                 <Button x:Name="PurgeRootTracesBtn"
+                                        AutomationProperties.Name="Permanently remove the selected root traces"
                                         Style="{DynamicResource HeroCTAButton}"
                                         Padding="14,6"
                                         HorizontalAlignment="Right"

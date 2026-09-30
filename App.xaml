@@ -1,6 +1,7 @@
 <Application x:Class="WinTempCleaner.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              xmlns:converters="clr-namespace:WinTempCleaner.Converters">
     <Application.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
@@ -19,10 +20,13 @@
         <SolidColorBrush x:Key="HairlineBorderBrush" Color="#16212B"/>
         <SolidColorBrush x:Key="AccentBorderBrush" Color="#1A3B35"/>
 
-        <!-- Typography -->
+        <!-- Typography. Contrast is verified against the surfaces these are actually used on:
+             TextHigh 17.8-19.2:1, TextMedium 7.3-7.8:1, TextMuted 5.2-5.6:1 — all clear
+             WCAG AA 4.5:1 for body text. The previous TextMuted (#64748B) measured 3.9:1 on
+             SurfaceCardBrush and was the single most common failing pair in the UI. -->
         <SolidColorBrush x:Key="TextHighBrush" Color="#F8FAFC"/>
         <SolidColorBrush x:Key="TextMediumBrush" Color="#94A3B8"/>
-        <SolidColorBrush x:Key="TextMutedBrush" Color="#64748B"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#78899D"/>
 
         <!-- Pills & controls -->
         <SolidColorBrush x:Key="PillButtonBgBrush" Color="#0F161C"/>
@@ -30,10 +34,12 @@
         <SolidColorBrush x:Key="PillButtonBorderBrush" Color="#1E2E38"/>
         <SolidColorBrush x:Key="HeroActionBtnTextBrush" Color="#030D0C"/>
 
-        <!-- Track & scroll -->
+        <!-- Track & scroll. The scrollbar thumb is an interactive control, so it must meet the
+             3:1 non-text contrast bar (WCAG 1.4.11): #1A242E measured 1.28:1 and was
+             effectively invisible on the canvas. -->
         <SolidColorBrush x:Key="TrackBgBrush" Color="#0E141C"/>
         <SolidColorBrush x:Key="TrackThumbBrush" Color="#64748B"/>
-        <SolidColorBrush x:Key="ScrollThumbBrush" Color="#1A242E"/>
+        <SolidColorBrush x:Key="ScrollThumbBrush" Color="#4E6478"/>
         <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#00F2B0"/>
 
         <!-- Badges -->
@@ -136,6 +142,20 @@
         <!-- Global Typography -->
         <FontFamily x:Key="AppFont">Segoe UI Variable Display, Segoe UI, -apple-system, BlinkMacSystemFont, sans-serif</FontFamily>
         <FontFamily x:Key="MonospaceFont">Cascadia Code, Consolas, monospace</FontFamily>
+
+        <!-- Type scale. The shell previously mixed 24 ad-hoc FontSize values between 8 and 36,
+             which is why text looked inconsistent: there was no scale, only one-off numbers.
+             These seven steps are the whole scale — pick a step by role, never invent a value.
+             Nothing below TextSizeCaption (11) is legible at 100% on a HiDPI panel, so 11 is the
+             floor for anything a user is expected to read. -->
+        <sys:Double x:Key="TextSizeMicro">10</sys:Double>      <!-- metadata/axis labels only -->
+        <sys:Double x:Key="TextSizeCaption">11</sys:Double>    <!-- small labels, table headers -->
+        <sys:Double x:Key="TextSizeBody">12</sys:Double>       <!-- default body text -->
+        <sys:Double x:Key="TextSizeBodyLarge">13.5</sys:Double>
+        <sys:Double x:Key="TextSizeSubtitle">15</sys:Double>
+        <sys:Double x:Key="TextSizeTitle">18</sys:Double>
+        <sys:Double x:Key="TextSizeDisplay">24</sys:Double>
+        <sys:Double x:Key="MinTouchTarget">34</sys:Double>    <!-- 34 DIP: above the 24 DIP WCAG 2.5.8 minimum, comfortable for a mouse-driven desktop tool -->
         <FontFamily x:Key="MonoFont">Cascadia Code, Consolas, monospace</FontFamily>
         <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets, Segoe UI Symbol</FontFamily>
 
@@ -402,8 +422,13 @@
             <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
             <Setter Property="FontFamily" Value="{DynamicResource AppFont}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Padding" Value="7,3.5"/>
+            <!-- Type-scale step, and a real hit target. This is the primary navigation control and
+                 was previously 11px text on 3.5px vertical padding: roughly a 20px tall target,
+                 under the 24 DIP WCAG 2.5.8 minimum and hard to hit. -->
+            <Setter Property="FontSize" Value="{DynamicResource TextSizeBody}"/>
+            <Setter Property="Padding" Value="13,6"/>
+            <Setter Property="MinHeight" Value="{DynamicResource MinTouchTarget}"/>
+            <Setter Property="MinWidth" Value="{DynamicResource MinTouchTarget}"/>
             <Setter Property="Margin" Value="1,0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
@@ -650,7 +675,7 @@
                                                 <TextBlock Grid.Column="1"
                                                            Text="&#xE70D;"
                                                            FontFamily="{StaticResource IconFont}"
-                                                           FontSize="9"
+                                                           FontSize="10"
                                                            Foreground="{DynamicResource ElectricCyanBrush}"
                                                            Margin="5,0,0,0"
                                                            VerticalAlignment="Center"/>
