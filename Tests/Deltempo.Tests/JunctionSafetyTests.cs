@@ -106,7 +106,8 @@ public class JunctionSafetyTests : IDisposable
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var payload = new byte[bytes];
-        new Random(42).NextBytes(payload);
+        // Arbitrary filler bytes for test data; not security material, so a seeded PRNG is appropriate.
+        new Random(42).NextBytes(payload); // devskim:ignore DS148264
         File.WriteAllBytes(path, payload);
         return bytes;
     }
