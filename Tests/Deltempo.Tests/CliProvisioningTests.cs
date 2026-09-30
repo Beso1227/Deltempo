@@ -237,6 +237,39 @@ public class CliProvisioningTests : IDisposable
             UpdateService.ParseSha256FromChecksums(manifest, "deltempo_cli.exe"));
     }
 
+    [Fact]
+    public void ChecksumManifest_MissingCliEntry_FailsClosed()
+    {
+        // A manifest that only covers the GUI must never yield a digest for the CLI; provisioning
+        // would otherwise stage an unverified binary.
+        const string manifest = "40cb6d2d662d21441ab91fca8c796a6fbe4b708260a7719c34c3f3e9d95bedfd  Deltempo.exe\n";
+
+        Assert.Equal(string.Empty, UpdateService.ParseSha256FromChecksums(manifest, "deltempo_cli.exe"));
+    }
+
+    [Fact]
+    public void ChecksumManifest_PrefersReleaseAssetAndFallsBackToPages()
+    {
+        const string releaseAsset = "https://github.com/Beso1227/Deltempo/releases/download/v3.0.0/checksums.sha256";
+
+        // Release asset is authoritative when present.
+        Assert.Equal(releaseAsset, UpdateService.SelectChecksumManifestUrl(releaseAsset));
+
+        // Releases that predate the asset must still resolve, exactly like the one-line installer.
+        Assert.Equal(UpdateService.ChecksumManifestFallbackUrl, UpdateService.SelectChecksumManifestUrl(null));
+        Assert.Equal(UpdateService.ChecksumManifestFallbackUrl, UpdateService.SelectChecksumManifestUrl(""));
+    }
+
+    [Fact]
+    public void ChecksumManifestFallback_IsAHardcodedHttpsEndpoint()
+    {
+        // Not attacker-influenced, so it bypasses the SSRF allowlist by construction; pin the
+        // properties that make that safe so a future edit cannot quietly weaken it.
+        Assert.StartsWith("https://", UpdateService.ChecksumManifestFallbackUrl, StringComparison.Ordinal);
+        Assert.Equal("beso1227.github.io", new Uri(UpdateService.ChecksumManifestFallbackUrl).Host);
+        Assert.EndsWith("checksums.sha256", UpdateService.ChecksumManifestFallbackUrl, StringComparison.Ordinal);
+    }
+
     // ── Registration status ──
 
     [Fact]

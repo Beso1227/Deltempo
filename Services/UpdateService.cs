@@ -322,6 +322,20 @@ public static class UpdateService
     }
 
     /// <summary>
+    /// Bootstrap copy of the checksum manifest, mirroring the trust anchor documented in
+    /// docs/RELEASE_ENGINEERING.md and implemented by the one-line installer: the release asset is
+    /// authoritative, the published Pages copy is the fallback for releases that predate it.
+    /// </summary>
+    internal const string ChecksumManifestFallbackUrl = "https://beso1227.github.io/Deltempo/checksums.sha256";
+
+    /// <summary>
+    /// Picks the checksum manifest to trust: the release asset when the release publishes one,
+    /// otherwise the published fallback.
+    /// </summary>
+    internal static string SelectChecksumManifestUrl(string? releaseAssetUrl) =>
+        !string.IsNullOrWhiteSpace(releaseAssetUrl) ? releaseAssetUrl : ChecksumManifestFallbackUrl;
+
+    /// <summary>
     /// Resolves the console CLI companion from the latest published release together with its
     /// expected SHA-256 digest.
     /// </summary>
@@ -366,17 +380,29 @@ public static class UpdateService
                 }
             }
 
-            if (string.IsNullOrEmpty(cliUrl) || string.IsNullOrEmpty(checksumUrl)) return null;
+            if (string.IsNullOrEmpty(cliUrl)) return null;
+
+            // Same trust anchor the one-line installer uses: the release asset is authoritative,
+            // the published Pages copy is the bootstrap fallback. Both are fixed HTTPS endpoints
+            // under the project's own control, so neither carries attacker-influenced input; the
+            // digest is still verified before anything is staged.
+            string manifestUrl = SelectChecksumManifestUrl(checksumUrl);
 
             string manifest;
-            using (var cResp = await ApiHttpClient.GetAsync(checksumUrl, ct))
+            using (var cResp = await ApiHttpClient.GetAsync(manifestUrl, ct))
             {
                 if (!cResp.IsSuccessStatusCode) return null;
                 manifest = await cResp.Content.ReadAsStringAsync(ct);
             }
 
             string sha = ParseSha256FromChecksums(manifest, CliProvisioningService.CliFileName);
-            if (string.IsNullOrEmpty(sha)) return null;
+            if (string.IsNullOrEmpty(sha))
+            {
+                Trace.WriteLine(
+                    $"[Deltempo] Checksum manifest at {manifestUrl} has no entry for " +
+                    $"{CliProvisioningService.CliFileName}; refusing to stage an unverified binary.");
+                return null;
+            }
 
             return new CliReleaseAsset(cliUrl, sha, sizeBytes, tagName);
         }
