@@ -5,6 +5,15 @@ using System.Runtime.InteropServices;
 
 namespace WinTempCleaner.Services;
 
+/// <summary>
+/// Installs and removes the shell integration that makes the <c>deltempo</c> command work in
+/// cmd.exe, PowerShell, and Win+R.
+/// </summary>
+/// <remarks>
+/// Every artifact this class creates points at a console-subsystem (CUI) binary, never at the
+/// GUI executable. See <see cref="CliProvisioningService"/> for why the GUI binary cannot serve
+/// as an in-terminal command target.
+/// </remarks>
 public static class CliRegistrationService
 {
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
@@ -21,34 +30,67 @@ public static class CliRegistrationService
     private const uint WM_SETTINGCHANGE = 0x001A;
     private const uint SMTO_ABORTIFHUNG = 0x0002;
 
+    /// <summary>
+    /// The console binary every artifact is wired to, or <c>null</c> when it has not been
+    /// provisioned yet. Call <see cref="CliProvisioningService.EnsureCliBinaryAsync"/> first.
+    /// </summary>
+    private static string? ResolveCliBinary() =>
+        CliProvisioningService.IsUsableCliBinary(CliProvisioningService.StagedCliPath)
+            ? CliProvisioningService.StagedCliPath
+            : CliProvisioningService.FindLocalCliBinary();
+
+    /// <summary>
+    /// Registers shell integration only when a console binary is already present. Safe to call on
+    /// every launch; it is a no-op when there is nothing to wire up and never touches the machine
+    /// otherwise.
+    /// </summary>
     public static void EnsureCliRegistered()
+    {
+        string? cliPath = ResolveCliBinary();
+        if (cliPath == null) return;
+
+        Apply(cliPath);
+    }
+
+    /// <summary>
+    /// Provisions the console binary if needed, then registers shell integration against it.
+    /// This is the entry point that makes <c>deltempo</c> usable after a single app launch.
+    /// </summary>
+    public static async Task<bool> EnsureCliRegisteredAsync(CancellationToken ct = default)
+    {
+        var provisioning = await CliProvisioningService.EnsureCliBinaryAsync(ct).ConfigureAwait(false);
+        if (!provisioning.Success || !CliProvisioningService.IsUsableCliBinary(provisioning.BinaryPath))
+        {
+            Trace.WriteLine($"[Deltempo] CLI provisioning failed: {provisioning.Message}");
+            return false;
+        }
+
+        Apply(provisioning.BinaryPath);
+        return true;
+    }
+
+    private static void Apply(string cliPath)
     {
         try
         {
-            var currentExePath = Process.GetCurrentProcess().MainModule?.FileName;
-            if (string.IsNullOrEmpty(currentExePath) || !File.Exists(currentExePath))
-                return;
+            Directory.CreateDirectory(CliProvisioningService.ToolDirectory);
 
-            var exeDir = Path.GetDirectoryName(currentExePath);
-            if (string.IsNullOrEmpty(exeDir))
-                return;
+            // 1. Console shims next to the binary, resolved through PATH in cmd.exe.
+            EnsureCliWrapperFiles(cliPath);
 
-            // 1. Create native console wrappers in the app directory for synchronous terminal execution
-            EnsureCliWrapperFiles(exeDir, currentExePath);
+            // 2. PowerShell function, which also repairs a stale path from an older install.
+            RegisterPowerShellProfile(cliPath);
 
-            // 2. Register PowerShell profile function for 100% synchronous execution in all PowerShell sessions
-            RegisterPowerShellProfile(exeDir, currentExePath);
+            // 3. Win+R / Windows Shell aliases.
+            RegisterAppPaths("deltempo.exe", cliPath);
+            RegisterAppPaths("deltempo", cliPath);
 
-            // 3. Register in Windows App Paths (Enables Win+R "deltempo" & Windows Shell execution)
-            RegisterAppPaths("deltempo.exe", currentExePath, exeDir);
-            RegisterAppPaths("deltempo", currentExePath, exeDir);
-
-            // 4. Ensure current folder is in User PATH environment variable
-            RegisterToUserPath(exeDir);
+            // 4. Tool directory on the user PATH.
+            RegisterToUserPath(CliProvisioningService.ToolDirectory);
         }
-        catch
+        catch (Exception ex)
         {
-            // Non-critical background registration failure
+            Trace.WriteLine($"[Deltempo] CLI registration suppressed: {ex.Message}");
         }
     }
 
@@ -57,8 +99,8 @@ public static class CliRegistrationService
     /// <summary>
     /// Handles the explicit `deltempo register` / `deltempo unregister` commands.
     /// Shell integration (user PATH, App Paths registry keys, PowerShell profile function,
-    /// console wrapper scripts) is applied ONLY through this command; no other CLI
-    /// invocation mutates the host machine.
+    /// console wrapper scripts) is applied ONLY through this command or by the GUI on launch;
+    /// no other CLI invocation mutates the host machine.
     /// </summary>
     /// <param name="args">
     /// Supported forms:
@@ -67,7 +109,7 @@ public static class CliRegistrationService
     /// `register --remove` / `unregister` — remove every integration artifact.
     /// </param>
     /// <returns>Process exit code (0 on success).</returns>
-    public static int HandleRegisterCommand(string[] args)
+    public static async Task<int> HandleRegisterCommandAsync(string[] args, CancellationToken ct = default)
     {
         bool remove = HasAnyFlag(args, "--remove", "--unregister", "-r") ||
                       (args.Length > 0 && args[0].Equals("unregister", StringComparison.OrdinalIgnoreCase));
@@ -81,10 +123,13 @@ public static class CliRegistrationService
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("  [Deltempo] Shell Integration Status");
             Console.ResetColor();
-            PrintStatusRow("User PATH contains install directory", s.IsRegisteredInUserPath);
+            PrintStatusRow("Console CLI binary provisioned", s.IsCliBinaryAvailable);
+            PrintStatusRow("User PATH contains tool directory", s.IsRegisteredInUserPath);
             PrintStatusRow("Win+R alias (App Paths registry)", s.IsRegisteredInAppPaths);
             PrintStatusRow("PowerShell profile function", s.IsRegisteredInPowerShellProfile);
             PrintStatusRow("Console wrapper scripts (.cmd / .ps1)", s.HasWrapperScripts);
+            Console.WriteLine();
+            Console.WriteLine($"  Target: {s.CliBinaryPath ?? "(none — run `deltempo register` to provision)"}");
             Console.WriteLine();
             Console.WriteLine(s.IsFullyRegistered
                 ? "  State: REGISTERED. Run `deltempo unregister` to remove."
@@ -111,22 +156,31 @@ public static class CliRegistrationService
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("  [Deltempo] Installing shell integration (explicit opt-in)...");
         Console.ResetColor();
-        Console.WriteLine("     • Adds the install directory to the user PATH");
+        Console.WriteLine("     • Ensures the console CLI binary is present (verified download if needed)");
+        Console.WriteLine("     • Adds the tool directory to the user PATH");
         Console.WriteLine("     • Registers Win+R aliases (App Paths registry)");
         Console.WriteLine("     • Adds a synchronous `deltempo` function to PowerShell profiles");
-        Console.WriteLine("     • Creates console wrapper scripts next to the executable");
+        Console.WriteLine("     • Creates console wrapper scripts next to the binary");
         Console.WriteLine();
 
-        EnsureCliRegistered();
+        bool installed = await EnsureCliRegisteredAsync(ct).ConfigureAwait(false);
 
         var after = GetRegistrationStatus();
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine(after.IsFullyRegistered
-            ? "  ✓ Registration complete. `deltempo` is available in new terminals and Win+R."
-            : "  ⚠ Registration finished with partial coverage. Run `deltempo register --status` for details.");
+        if (installed && after.IsFullyRegistered)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("  ✓ Registration complete. `deltempo` is available in new terminals and Win+R.");
+            Console.ResetColor();
+            Console.WriteLine("    Open a NEW terminal window for the command to be picked up.");
+            Console.WriteLine();
+            return 0;
+        }
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("  ⚠ Registration finished with partial coverage. Run `deltempo register --status` for details.");
         Console.ResetColor();
         Console.WriteLine();
-        return 0;
+        return 1;
     }
 
     private static void PrintStatusRow(string label, bool value)
@@ -142,35 +196,37 @@ public static class CliRegistrationService
     /// Immutable snapshot of the current shell-integration state on this machine.
     /// </summary>
     public sealed record RegistrationStatus(
+        bool IsCliBinaryAvailable,
         bool IsRegisteredInUserPath,
         bool IsRegisteredInAppPaths,
         bool IsRegisteredInPowerShellProfile,
-        bool HasWrapperScripts)
+        bool HasWrapperScripts,
+        string? CliBinaryPath)
     {
-        /// <summary>All four integration artifacts are present.</summary>
+        /// <summary>The console binary exists and all four integration artifacts are present.</summary>
         public bool IsFullyRegistered =>
-            IsRegisteredInUserPath && IsRegisteredInAppPaths &&
+            IsCliBinaryAvailable && IsRegisteredInUserPath && IsRegisteredInAppPaths &&
             IsRegisteredInPowerShellProfile && HasWrapperScripts;
     }
 
     /// <summary>
-    /// Reads the current integration state without mutating anything.
+    /// Reads the current integration state without mutating anything. Every check is anchored to
+    /// the tool directory rather than the running process, so the same answer is produced whether
+    /// this is called from the GUI or from the console binary.
     /// </summary>
     public static RegistrationStatus GetRegistrationStatus()
     {
-        string? exePath = Process.GetCurrentProcess().MainModule?.FileName;
-        string exeDir = string.IsNullOrEmpty(exePath) ? string.Empty : Path.GetDirectoryName(exePath) ?? string.Empty;
+        string toolDir = CliProvisioningService.ToolDirectory;
+        string? cliPath = ResolveCliBinary();
+        bool cliAvailable = cliPath != null;
 
         bool inPath = false;
         try
         {
-            if (!string.IsNullOrEmpty(exeDir))
-            {
-                inPath = (Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User) ?? "")
-                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(p => p.Trim())
-                    .Any(p => string.Equals(p, exeDir, StringComparison.OrdinalIgnoreCase));
-            }
+            inPath = (Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User) ?? "")
+                .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                .Select(p => p.Trim().TrimEnd('\\', '/'))
+                .Any(p => string.Equals(p, toolDir.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase));
         }
         catch { }
 
@@ -182,13 +238,19 @@ public static class CliRegistrationService
         }
         catch { }
 
+        // The profile counts as registered only when it routes to a binary that actually exists,
+        // so a stale absolute path left behind by an older install is reported as a failure
+        // rather than a false success.
         bool profile = false;
         try
         {
-            const string marker = "# Deltempo Synchronous CLI";
             foreach (string p in GetPowerShellProfilePaths())
             {
-                if (File.Exists(p) && File.ReadAllText(p).Contains(marker))
+                if (!File.Exists(p)) continue;
+                string text = File.ReadAllText(p);
+                if (!text.Contains(CliProvisioningService.MarkerBegin, StringComparison.Ordinal)) continue;
+
+                if (cliPath != null && CliProvisioningService.ProfileTargetsBinary(text, cliPath))
                 {
                     profile = true;
                     break;
@@ -200,15 +262,12 @@ public static class CliRegistrationService
         bool wrappers = false;
         try
         {
-            if (!string.IsNullOrEmpty(exeDir))
-            {
-                wrappers = File.Exists(Path.Combine(exeDir, "deltempo.cmd")) &&
-                           File.Exists(Path.Combine(exeDir, "deltempo.ps1"));
-            }
+            wrappers = File.Exists(Path.Combine(toolDir, "deltempo.cmd")) &&
+                       File.Exists(Path.Combine(toolDir, "deltempo.ps1"));
         }
         catch { }
 
-        return new RegistrationStatus(inPath, appPaths, profile, wrappers);
+        return new RegistrationStatus(cliAvailable, inPath, appPaths, profile, wrappers, cliPath);
     }
 
     /// <summary>
@@ -220,16 +279,16 @@ public static class CliRegistrationService
     public static bool UnregisterAll()
     {
         bool removedAnything = false;
+        string toolDir = CliProvisioningService.ToolDirectory;
 
-        string? exePath = Process.GetCurrentProcess().MainModule?.FileName;
-        string exeDir = string.IsNullOrEmpty(exePath) ? string.Empty : Path.GetDirectoryName(exePath) ?? string.Empty;
-
-        // 1. Remove the install directory from the user PATH
+        // 1. Remove the tool directory from the user PATH
         try
         {
             var userPath = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User) ?? "";
             var paths = userPath.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
-            var filtered = paths.Where(p => !string.Equals(p, exeDir, StringComparison.OrdinalIgnoreCase)).ToList();
+            var filtered = paths
+                .Where(p => !string.Equals(p.TrimEnd('\\', '/'), toolDir.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase))
+                .ToList();
             if (filtered.Count != paths.Count)
             {
                 Environment.SetEnvironmentVariable("Path", string.Join(";", filtered), EnvironmentVariableTarget.User);
@@ -255,43 +314,57 @@ public static class CliRegistrationService
         }
         catch { }
 
-        // 3. Remove the PowerShell profile function snippet
+        // 3 & 4. Remove the managed PowerShell block and the console wrapper scripts
+        removedAnything |= RemoveFileArtifacts(GetPowerShellProfilePaths(), toolDir);
+
+        return removedAnything;
+    }
+
+    /// <summary>
+    /// Strips the managed block from each profile and deletes the console shims.
+    /// </summary>
+    /// <remarks>
+    /// Extracted from <see cref="UnregisterAll"/> and kept internal so removal can be exercised
+    /// against a sandbox. Calling the public <see cref="UnregisterAll"/> from a test would
+    /// uninstall the CLI on the developer's own machine.
+    /// </remarks>
+    internal static bool RemoveFileArtifacts(IEnumerable<string> profilePaths, string toolDirectory)
+    {
+        bool removedAnything = false;
+
         try
         {
-            var regex = new System.Text.RegularExpressions.Regex(
-                @"(?:\r?\n)?# Deltempo Synchronous CLI\r?\nfunction deltempo\s*\{[^}]*\}\r?\n?",
-                System.Text.RegularExpressions.RegexOptions.Multiline);
-            foreach (string p in GetPowerShellProfilePaths())
+            foreach (string p in profilePaths)
             {
                 if (!File.Exists(p)) continue;
-                string existing = File.ReadAllText(p);
-                string updated = regex.Replace(existing, string.Empty);
-                if (updated != existing)
+                if (CliProvisioningService.RemoveManagedBlock(File.ReadAllText(p), out string updated))
                 {
                     File.WriteAllText(p, updated);
                     removedAnything = true;
                 }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] Profile cleanup suppressed: {ex.Message}");
+        }
 
-        // 4. Delete console wrapper scripts
         try
         {
-            if (!string.IsNullOrEmpty(exeDir))
+            foreach (string wrapper in new[] { "deltempo.cmd", "deltempo.ps1" })
             {
-                foreach (string wrapper in new[] { "deltempo.cmd", "deltempo.ps1" })
+                string p = Path.Combine(toolDirectory, wrapper);
+                if (File.Exists(p))
                 {
-                    string p = Path.Combine(exeDir, wrapper);
-                    if (File.Exists(p))
-                    {
-                        File.Delete(p);
-                        removedAnything = true;
-                    }
+                    File.Delete(p);
+                    removedAnything = true;
                 }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] Wrapper cleanup suppressed: {ex.Message}");
+        }
 
         return removedAnything;
     }
@@ -309,163 +382,97 @@ public static class CliRegistrationService
     private static bool HasAnyFlag(string[] args, params string[] flags) =>
         args.Any(a => flags.Any(f => a.Equals(f, StringComparison.OrdinalIgnoreCase)));
 
-    private static void EnsureCliWrapperFiles(string exeDir, string exePath)
+    /// <summary>
+    /// Writes the cmd/ps1 shims into the tool directory, which is the directory placed on PATH.
+    /// The shims always point at the resolved binary, so the command resolves through PATH even
+    /// when the binary itself lives elsewhere (a framework-dependent build in its output folder).
+    /// </summary>
+    private static void EnsureCliWrapperFiles(string cliPath)
     {
         try
         {
-            string cliTarget = Path.Combine(exeDir, "deltempo_cli.exe");
-            bool hasCliBinary = File.Exists(cliTarget);
-            string targetBinary = hasCliBinary ? "deltempo_cli.exe" : Path.GetFileName(exePath);
-
-            string cmdFile = Path.Combine(exeDir, "deltempo.cmd");
-            string cmdContent = hasCliBinary
-                ? $"@echo off\r\n\"%~dp0deltempo_cli.exe\" %*\r\n"
-                : $"@echo off\r\nstart /b /wait \"\" \"%~dp0{targetBinary}\" %*\r\n";
-
-            if (!File.Exists(cmdFile) || File.ReadAllText(cmdFile) != cmdContent)
-            {
-                File.WriteAllText(cmdFile, cmdContent);
-            }
-
-            string ps1File = Path.Combine(exeDir, "deltempo.ps1");
-            string ps1Content = hasCliBinary
-                ? $"& \"$PSScriptRoot\\deltempo_cli.exe\" @args\r\n"
-                : $"& \"$PSScriptRoot\\{targetBinary}\" @args | Out-Host\r\n";
-
-            if (!File.Exists(ps1File) || File.ReadAllText(ps1File) != ps1Content)
-            {
-                File.WriteAllText(ps1File, ps1Content);
-            }
+            WriteIfChanged(
+                Path.Combine(CliProvisioningService.ToolDirectory, "deltempo.cmd"),
+                CliProvisioningService.BuildCmdContent(cliPath));
+            WriteIfChanged(
+                Path.Combine(CliProvisioningService.ToolDirectory, "deltempo.ps1"),
+                CliProvisioningService.BuildPs1Content(cliPath));
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            Trace.WriteLine($"[Deltempo] CLI wrapper write suppressed: {ex.Message}");
         }
     }
 
-    private static bool IsValidCliBinary(string path)
+    private static void WriteIfChanged(string path, string content)
     {
-        if (!File.Exists(path)) return false;
-        try
-        {
-            var fi = new FileInfo(path);
-            if (fi.Length > 20 * 1024 * 1024) return true; // Single-file self-contained publish
-            string dll = Path.ChangeExtension(path, ".dll");
-            return File.Exists(dll); // Framework-dependent build with sibling dll
-        }
-        catch
-        {
-            return false;
-        }
+        if (File.Exists(path) && string.Equals(File.ReadAllText(path), content, StringComparison.Ordinal)) return;
+        File.WriteAllText(path, content);
     }
 
-    private static void RegisterPowerShellProfile(string exeDir, string currentExePath)
+    /// <summary>
+    /// Writes the managed <c>deltempo</c> function into both PowerShell profiles.
+    /// </summary>
+    /// <remarks>
+    /// The block is rewritten through a single shared regex, so a function left behind by an older
+    /// install (or pointing at a binary that has since moved) is repaired instead of surviving
+    /// forever and shadowing the freshly installed command. User-authored content is preserved.
+    /// </remarks>
+    private static void RegisterPowerShellProfile(string cliPath)
     {
-        try
+        foreach (string p in GetPowerShellProfilePaths())
         {
-            string[] profilePaths = GetPowerShellProfilePaths();
-
-            string cliExe = Path.Combine(exeDir, "deltempo_cli.exe");
-            if (!IsValidCliBinary(cliExe))
+            try
             {
-                // In development environments, check sibling CLI output directories
-                string[] searchCandidates = new[]
-                {
-                    Path.GetFullPath(Path.Combine(exeDir, "..", "..", "..", "..", "Cli", "bin", "Debug", "net10.0-windows", "win-x64", "deltempo_cli.exe")),
-                    Path.GetFullPath(Path.Combine(exeDir, "..", "..", "..", "..", "Cli", "bin", "Release", "net10.0-windows", "win-x64", "deltempo_cli.exe")),
-                    Path.GetFullPath(Path.Combine(exeDir, "..", "publish_cli", "deltempo_cli.exe")),
-                    Path.GetFullPath(Path.Combine(exeDir, "..", "..", "publish_cli", "deltempo_cli.exe"))
-                };
-
-                foreach (var candidate in searchCandidates)
-                {
-                    if (IsValidCliBinary(candidate))
-                    {
-                        cliExe = candidate;
-                        break;
-                    }
-                }
-            }
-
-            bool isNativeCli = IsValidCliBinary(cliExe);
-            string targetBinary = isNativeCli ? cliExe : currentExePath;
-
-            // When executing a GUI binary in console, pipe through Out-Host to enforce synchronous completion and a clean new line
-            string execCommand = isNativeCli
-                ? $"& \"{targetBinary}\" @args"
-                : $"& \"{targetBinary}\" @args | Out-Host";
-
-            string snippet = $"\r\n# Deltempo Synchronous CLI\r\nfunction deltempo {{ {execCommand} }}\r\n";
-
-            foreach (var p in profilePaths)
-            {
-                var dir = Path.GetDirectoryName(p);
+                string? dir = Path.GetDirectoryName(p);
                 if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                 {
                     Directory.CreateDirectory(dir);
                 }
 
-                if (File.Exists(p))
+                string existing = File.Exists(p) ? File.ReadAllText(p) : string.Empty;
+                string updated = CliProvisioningService.UpsertManagedBlock(existing, cliPath);
+                if (!string.Equals(updated, existing, StringComparison.Ordinal))
                 {
-                    string existing = File.ReadAllText(p);
-                    if (existing.Contains("function deltempo"))
-                    {
-                        var regex = new System.Text.RegularExpressions.Regex(@"# Deltempo Synchronous CLI\r?\nfunction deltempo\s*\{[^}]*\}", System.Text.RegularExpressions.RegexOptions.Multiline);
-                        if (regex.IsMatch(existing))
-                        {
-                            string updated = regex.Replace(existing, $"# Deltempo Synchronous CLI\r\nfunction deltempo {{ {execCommand} }}");
-                            if (updated != existing)
-                            {
-                                File.WriteAllText(p, updated);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        File.AppendAllText(p, snippet);
-                    }
-                }
-                else
-                {
-                    File.WriteAllText(p, snippet);
+                    File.WriteAllText(p, updated);
                 }
             }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Deltempo] PowerShell profile registration suppressed for {p}: {ex.Message}");
+            }
         }
     }
 
-    private static void RegisterAppPaths(string appName, string exePath, string exeDir)
+    private static void RegisterAppPaths(string appName, string exePath)
     {
         try
         {
-            using var key = Registry.CurrentUser.CreateSubKey(@$"Software\Microsoft\Windows\CurrentVersion\App Paths\{appName}");
+            using var key = Registry.CurrentUser.CreateSubKey($@"Software\Microsoft\Windows\CurrentVersion\App Paths\{appName}");
             if (key != null)
             {
                 key.SetValue("", exePath);
-                key.SetValue("Path", exeDir);
+                key.SetValue("Path", Path.GetDirectoryName(exePath) ?? string.Empty);
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            Trace.WriteLine($"[Deltempo] App Paths registration suppressed: {ex.Message}");
         }
     }
 
-    private static void RegisterToUserPath(string exeDir)
+    private static void RegisterToUserPath(string directory)
     {
         try
         {
             var userPath = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User) ?? "";
             var paths = userPath.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
+            string normalized = directory.TrimEnd('\\', '/');
 
-            if (!paths.Any(p => string.Equals(p, exeDir, StringComparison.OrdinalIgnoreCase)))
+            if (!paths.Any(p => string.Equals(p.TrimEnd('\\', '/'), normalized, StringComparison.OrdinalIgnoreCase)))
             {
-                paths.Add(exeDir);
-                var newPath = string.Join(";", paths);
-                Environment.SetEnvironmentVariable("Path", newPath, EnvironmentVariableTarget.User);
+                paths.Add(directory);
+                Environment.SetEnvironmentVariable("Path", string.Join(";", paths), EnvironmentVariableTarget.User);
 
                 // Broadcast change to Windows shell and running terminals
                 SendMessageTimeout(
@@ -480,7 +487,7 @@ public static class CliRegistrationService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+            Trace.WriteLine($"[Deltempo] User PATH registration suppressed: {ex.Message}");
         }
     }
 }

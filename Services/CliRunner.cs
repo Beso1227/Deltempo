@@ -147,7 +147,7 @@ public static partial class CliRunner
 
             case "register":
             case "unregister":
-                exitCode = CliRegistrationService.HandleRegisterCommand(args);
+                exitCode = await CliRegistrationService.HandleRegisterCommandAsync(args);
                 break;
 
             case "help":

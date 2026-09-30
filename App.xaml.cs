@@ -128,8 +128,10 @@ public partial class App : System.Windows.Application
             Trace.WriteLine($"[Deltempo] Update recovery suppressed: {ex.Message}");
         }
 
-        // Automatically ensure 'deltempo' is globally accessible in terminal & Win+R
-        CliRegistrationService.EnsureCliRegistered();
+        // Shell integration is prepared in the background, and only for GUI launches.
+        // CLI invocations must never mutate the host, and the console binary is what actually
+        // backs the `deltempo` command (see CliProvisioningService), so this cannot run inline.
+        bool isCliInvocation = args.Length > 0 && args[0] != "--update-handshake";
 
         // ═══════════════════════════════════════════════════════════════════
         // MODE 3: HEALTH HANDSHAKE — signal health after update
@@ -145,7 +147,7 @@ public partial class App : System.Windows.Application
         // ═══════════════════════════════════════════════════════════════════
         // MODE 4: CLI — any other arguments go to CLI runner
         // ═══════════════════════════════════════════════════════════════════
-        if (args.Length > 0 && args[0] != "--update-handshake")
+        if (isCliInvocation)
         {
             bool isAttached = SetupConsoleStream();
             int exitCode = CliRunner.RunAsync(args).GetAwaiter().GetResult();
@@ -171,6 +173,40 @@ public partial class App : System.Windows.Application
         var mainWindow = new MainWindow();
         MainWindow = mainWindow;
         mainWindow.Show();
+
+        // Makes `deltempo` usable in a terminal after this single launch. Runs detached so a slow
+        // or offline network can never delay or block the dashboard.
+        _ = Task.Run(() => ProvisionCliIntegrationAsync());
+    }
+
+    /// <summary>
+    /// Provisions the console CLI binary and installs the shell integration that exposes the
+    /// <c>deltempo</c> command, then tells the user once that a new terminal is required.
+    /// </summary>
+    private static async Task ProvisionCliIntegrationAsync()
+    {
+        try
+        {
+            bool wasRegistered = CliRegistrationService.GetRegistrationStatus().IsFullyRegistered;
+            if (!await CliRegistrationService.EnsureCliRegisteredAsync())
+            {
+                Trace.WriteLine("[Deltempo] CLI integration unavailable; `deltempo` was not installed.");
+                return;
+            }
+
+            // First successful install only, so the notice appears once rather than on every launch.
+            if (!wasRegistered)
+            {
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                    TrayService.ShowNotification(
+                        "Deltempo CLI is ready",
+                        "Type 'deltempo' in a NEW terminal window to use the command line."));
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] CLI integration suppressed: {ex.Message}");
+        }
     }
 
     /// <summary>

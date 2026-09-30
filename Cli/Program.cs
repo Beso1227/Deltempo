@@ -21,7 +21,7 @@ public static class Program
         // invocation writes outside the application's own data directories.
         if (args.Length > 0 && args[0].Equals("register", StringComparison.OrdinalIgnoreCase))
         {
-            return CliRegistrationService.HandleRegisterCommand(args);
+            return await CliRegistrationService.HandleRegisterCommandAsync(args);
         }
 
         // If no args passed in console, print help

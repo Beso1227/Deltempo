@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using WinTempCleaner.Converters;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
@@ -191,16 +193,51 @@ public class ModelsAndPureServicesTests
         var b = CliRegistrationService.GetRegistrationStatus();
         Assert.Equal(a, b);
         Assert.Equal(a.IsFullyRegistered,
-            a.IsRegisteredInUserPath && a.IsRegisteredInAppPaths &&
+            a.IsCliBinaryAvailable && a.IsRegisteredInUserPath && a.IsRegisteredInAppPaths &&
             a.IsRegisteredInPowerShellProfile && a.HasWrapperScripts);
+    }
+
+    [Fact]
+    public void UnregisterAll_RemovesArtifacts_WithoutTouchingTheRealMachine()
+    {
+        // Calling the public UnregisterAll() here would uninstall the CLI on this machine every
+        // time the suite runs, so the file-level work is exercised against a sandbox instead.
+        string toolDir = Path.Combine(Path.GetTempPath(), "Deltempo_UnregTest_" + Guid.NewGuid().ToString("N"));
+        string profile = Path.Combine(toolDir, "Microsoft.PowerShell_profile.ps1");
+        Directory.CreateDirectory(toolDir);
+        try
+        {
+            File.WriteAllText(profile, "Import-Module PoshGit\r\n" + CliProvisioningService.UpsertManagedBlock(string.Empty, @"C:\bin\deltempo_cli.exe"));
+            File.WriteAllText(Path.Combine(toolDir, "deltempo.cmd"), "@echo off");
+            File.WriteAllText(Path.Combine(toolDir, "deltempo.ps1"), "exit 0");
+
+            bool removed = CliRegistrationService.RemoveFileArtifacts(new[] { profile }, toolDir);
+
+            Assert.True(removed);
+            Assert.False(File.Exists(Path.Combine(toolDir, "deltempo.cmd")));
+            Assert.False(File.Exists(Path.Combine(toolDir, "deltempo.ps1")));
+            Assert.Equal("Import-Module PoshGit\r\n", File.ReadAllText(profile));
+        }
+        finally
+        {
+            try { Directory.Delete(toolDir, recursive: true); } catch { }
+        }
     }
 
     [Fact]
     public void UnregisterAll_WhenNothingRegistered_DoesNotThrow()
     {
-        // Determinism of the bool depends on machine state; assert no-throw only.
-        var ex = Record.Exception(() => CliRegistrationService.UnregisterAll());
-        Assert.Null(ex);
+        // Sandbox with no artifacts: must be a clean no-op.
+        string empty = Path.Combine(Path.GetTempPath(), "Deltempo_UnregEmpty_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(empty);
+        try
+        {
+            Assert.False(CliRegistrationService.RemoveFileArtifacts(Array.Empty<string>(), empty));
+        }
+        finally
+        {
+            try { Directory.Delete(empty, recursive: true); } catch { }
+        }
     }
 
     [Fact]

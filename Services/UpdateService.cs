@@ -29,6 +29,9 @@ public class ReleaseInfo
     public string Sha256 { get; set; } = string.Empty;
 }
 
+/// <summary>Immutable description of the published console CLI release artifact.</summary>
+public sealed record CliReleaseAsset(string DownloadUrl, string Sha256, long SizeBytes, string TagName);
+
 public static class UpdateService
 {
     private const string RepoOwner = "Beso1227";
@@ -315,6 +318,76 @@ public static class UpdateService
         catch (Exception ex)
         {
             return new ReleaseInfo { CheckSucceeded = false, StatusMessage = ex.Message };
+        }
+    }
+
+    /// <summary>
+    /// Resolves the console CLI companion from the latest published release together with its
+    /// expected SHA-256 digest.
+    /// </summary>
+    /// <remarks>
+    /// The digest is mandatory. When the release does not publish an entry for the CLI artifact,
+    /// this returns <c>null</c> so the caller refuses to stage an unverified binary rather than
+    /// silently downgrading integrity checking — the same trust anchor the one-line installer uses.
+    /// </remarks>
+    public static async Task<CliReleaseAsset?> ResolveLatestCliAssetAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            string url = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/latest";
+            using var response = await ApiHttpClient.GetAsync(url, ct);
+            if (!response.IsSuccessStatusCode) return null;
+
+            string json = await response.Content.ReadAsStringAsync(ct);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            string tagName = root.TryGetProperty("tag_name", out var tagEl) ? tagEl.GetString() ?? "" : "";
+            string cliUrl = "";
+            string checksumUrl = "";
+            long sizeBytes = 0;
+
+            if (root.TryGetProperty("assets", out var assetsEl) && assetsEl.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var asset in assetsEl.EnumerateArray())
+                {
+                    string assetName = asset.TryGetProperty("name", out var anEl) ? anEl.GetString() ?? "" : "";
+                    if (assetName.Equals(CliProvisioningService.CliFileName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        cliUrl = asset.TryGetProperty("browser_download_url", out var dlEl) ? dlEl.GetString() ?? "" : "";
+                        sizeBytes = asset.TryGetProperty("size", out var sEl) && sEl.TryGetInt64(out long parsedSize)
+                            ? parsedSize
+                            : 0;
+                    }
+                    else if (assetName.Equals("checksums.sha256", StringComparison.OrdinalIgnoreCase))
+                    {
+                        checksumUrl = asset.TryGetProperty("browser_download_url", out var cEl) ? cEl.GetString() ?? "" : "";
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(cliUrl) || string.IsNullOrEmpty(checksumUrl)) return null;
+
+            string manifest;
+            using (var cResp = await ApiHttpClient.GetAsync(checksumUrl, ct))
+            {
+                if (!cResp.IsSuccessStatusCode) return null;
+                manifest = await cResp.Content.ReadAsStringAsync(ct);
+            }
+
+            string sha = ParseSha256FromChecksums(manifest, CliProvisioningService.CliFileName);
+            if (string.IsNullOrEmpty(sha)) return null;
+
+            return new CliReleaseAsset(cliUrl, sha, sizeBytes, tagName);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] CLI asset resolution suppressed: {ex.Message}");
+            return null;
         }
     }
 
