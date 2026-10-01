@@ -5,7 +5,7 @@
   <!-- Homepage -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <image:image>
@@ -34,7 +34,7 @@
   <!-- Download Page -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/download/</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
     <image:image>
@@ -47,7 +47,7 @@
   <!-- Technical Documentation -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/docs/</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
     <image:image>
@@ -60,7 +60,7 @@
   <!-- FAQ Page -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/faq/</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
     <image:image>
@@ -73,7 +73,7 @@
   <!-- Changelog & Release Notes -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/changelog/</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <image:image>

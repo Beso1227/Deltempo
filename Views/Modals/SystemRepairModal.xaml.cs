@@ -218,6 +218,7 @@ public partial class SystemRepairModal : UserControl
                 }
                 RemediationVerdictTitle.Text = $"Integrity Anomalies Detected ({result.IssuesCount} Subsystems)";
                 RemediationVerdictDetails.Text = result.Recommendation;
+                SoundService.PlayWarningSound();
             }
 
             LogRequested?.Invoke($"[Health Assessment] {result.OverallRating}", result.IssuesCount == 0 ? LogLevel.Success : LogLevel.Warning);
@@ -394,12 +395,14 @@ public partial class SystemRepairModal : UserControl
             SystemRepairStatusText.Text = $"{opName} was cancelled.";
             AppendSystemRepairTerminal($"\n<<< [{DateTime.Now:HH:mm:ss}] {opName} Cancelled.");
             LogRequested?.Invoke($"[System Repair] {opName} cancelled.", LogLevel.Warning);
+            SoundService.PlayWarningSound();
         }
         catch (Exception ex)
         {
             SystemRepairStatusText.Text = $"Error: {ex.Message}";
             AppendSystemRepairTerminal($"\n[ERROR] Exception occurred: {ex.Message}");
             LogRequested?.Invoke($"[System Repair Error] {ex.Message}", LogLevel.Error);
+            SoundService.PlayErrorSound();
         }
         finally
         {
@@ -486,6 +489,7 @@ public partial class SystemRepairModal : UserControl
             {
                 AppendSystemRepairTerminal($"<<< VSS Pruning: {message}");
                 LogRequested?.Invoke($"[Restore Points] {message}", LogLevel.Warning);
+                SoundService.PlayWarningSound();
             }
 
             await LoadRestorePointsAsync();

@@ -50,6 +50,29 @@
     <Compile Remove="ViewModels\**" />
     <EmbeddedResource Remove="ViewModels\**" />
     <None Remove="ViewModels\**" />
+    <EmbeddedResource Remove="Assets\**" />
+    <None Remove="Assets\**" />
+  </ItemGroup>
+
+  <!--
+    Interface sounds are embedded rather than shipped loose, so the single-file
+    publish stays a single executable. LogicalName is set explicitly because the
+    same four files are also embedded into Deltempo.Core.dll (which compiles
+    Services\SoundService.cs too), and both copies must resolve the same name.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\Sounds\click.wav">
+      <LogicalName>WinTempCleaner.Assets.Sounds.click.wav</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Sounds\success.wav">
+      <LogicalName>WinTempCleaner.Assets.Sounds.success.wav</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Sounds\error.wav">
+      <LogicalName>WinTempCleaner.Assets.Sounds.error.wav</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Sounds\warning.wav">
+      <LogicalName>WinTempCleaner.Assets.Sounds.warning.wav</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>

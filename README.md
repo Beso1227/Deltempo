@@ -8,7 +8,7 @@
 
   # Deltempo: Open-Source Windows Cleaner, App Uninstaller & Memory Optimizer
 
-  <p><strong>Fast, privacy-first Windows cleaner, deep root uninstaller, startup intelligence engine, and NT memory optimizer for Windows 10 & 11.</strong></p>
+  <p><strong>Free, open-source disk cleaner and RAM optimizer for Windows 10 &amp; 11. Reclaim 10–40+ GB of temp files, AppData junk and GPU shader caches — plus a deep app uninstaller and duplicate file finder. Zero telemetry, no ads, no installer.</strong></p>
 
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/DOWNLOAD%20FOR%20WINDOWS-00F2B0?style=for-the-badge&label=DELTEMPO&labelColor=16212B&height=48"><img alt="Download the latest Deltempo for Windows" src="https://img.shields.io/badge/DOWNLOAD%20FOR%20WINDOWS-00F2B0?style=for-the-badge&label=DELTEMPO&labelColor=16212B&height=48" height="48" /></picture></a>
@@ -420,6 +420,54 @@ Deltempo is free and open-source software licensed under the **[MIT License](LIC
 ```text
 Copyright (c) 2026 Beso1227 / Deltempo Project
 ```
+
+---
+
+## ❓ Frequently Asked Questions
+
+**Is Deltempo really free?**
+Yes. Deltempo is completely free and MIT open source — no paid tier, no upsells, no account, and no advertising.
+
+**Is Deltempo a good CCleaner alternative?**
+Yes. Deltempo is a free, open-source, zero-telemetry alternative to CCleaner that also includes a deep uninstaller, a duplicate file finder, a large file hunter, and built-in Windows system repair — with no installation required.
+
+**Does Deltempo send telemetry or track me?**
+No. Deltempo has zero telemetry: no analytics libraries, no tracking pixels, no ad SDKs. Every operation runs 100% offline.
+
+**Does Deltempo require an installer?**
+No. It is a portable single-file executable (~68 MB). Run `Deltempo.exe` directly in place — nothing is installed on your system.
+
+**Will cleaning browser caches log me out of my accounts?**
+No. Only disposable cache directories are removed. Login sessions, cookies, and passwords are strictly preserved.
+
+**Will it really free up RAM, or is it just cosmetic?**
+Deltempo uses real NT kernel APIs — standby list flushes via `NtSetSystemInformation` and per-process `EmptyWorkingSet` — which genuinely release physical memory, unlike tools that only shrink the working set to make task managers look better.
+
+**Does Deltempo create a system restore point automatically?**
+No, not by default. Restore point creation is an explicit optional toggle, so you are never slowed down by a forced multi-minute checkpoint.
+
+**Is it safe to delete files with Deltempo?**
+Yes. Deltempo classifies candidates into risk tiers, simulates the plan, stays inside authorized directory roots, and revalidates paths immediately before deletion to prevent filesystem race conditions. Documents, Desktop, code repositories, and SSH keys are never in scope.
+
+**Can I automate Deltempo?**
+Yes. Use the `deltempo` CLI with `--json` and `--dry-run`, schedule it with Windows Task Scheduler, or integrate it into CI/CD pipelines.
+
+**Is Deltempo available for macOS or Linux?**
+No. Deltempo is Windows-only (Windows 10 and Windows 11, 64-bit). On macOS or Linux, use BleachBit instead.
+
+---
+
+## 🤖 For AI Agents & Integrators
+
+If you are an AI assistant, crawler, or automation tool, Deltempo publishes structured, machine-readable context:
+
+| Resource | Purpose |
+| :--- | :--- |
+| [`docs/llms.txt`](https://beso1227.github.io/Deltempo/llms.txt) | Concise overview, links, and core capabilities |
+| [`docs/llms-full.txt`](https://beso1227.github.io/Deltempo/llms-full.txt) | Complete context: capabilities, CLI reference, comparisons, and FAQs |
+| [`docs/ai-catalog.json`](https://beso1227.github.io/Deltempo/ai-catalog.json) | Structured product metadata, keywords, and download endpoints |
+
+All three are openly permitted in `robots.txt` for search and answer engines.
 
 ---
 

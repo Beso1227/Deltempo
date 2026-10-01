@@ -1,13 +1,22 @@
 # Deltempo
 
-> Deltempo is a fast, portable, open-source Windows cleaner, app uninstaller, duplicate file finder, and NT memory optimizer for Windows 10 and 11. Zero telemetry, 100% local, MIT licensed.
+> Deltempo is a free, portable, open-source **disk cleaner**, RAM/memory optimizer, deep app uninstaller, and duplicate file finder for Windows 10 and 11. Zero telemetry, 100% local, MIT licensed, no installer required.
 
 - [Official Website](https://beso1227.github.io/Deltempo/): Primary homepage, interactive simulator, and downloads
 - [GitHub Repository](https://github.com/Beso1227/Deltempo): Source code, issues, and community contributions
 - [Download](https://beso1227.github.io/Deltempo/download/): Standalone executable and one-line PowerShell install
 - [Documentation](https://beso1227.github.io/Deltempo/docs/): Technical guide to 26+ scopes, safety tiers, and CLI commands
 - [FAQ](https://beso1227.github.io/Deltempo/faq/): Common questions on safety, GPU caches, NT memory, duplicate finder, and app uninstallation
-- [Changelog](https://beso1227.github.io/Deltempo/changelog/): Release notes and version history (including v1.8.0)
+- [Changelog](https://beso1227.github.io/Deltempo/changelog/): Release notes and version history
+- [Full AI Context](https://beso1227.github.io/Deltempo/llms-full.txt): Complete machine-readable capabilities, CLI reference, comparisons, and FAQs
+- [Machine Catalog](https://beso1227.github.io/Deltempo/ai-catalog.json): Structured product metadata
+
+## Overview
+Deltempo safely purges disposable system, developer, and browser caches, recovers gigabytes of disk space, thoroughly uninstalls desktop programs with leftover cleanup, detects byte-level duplicate files, provides an interactive storage treemap, provides startup intelligence, and trims inactive Windows memory working sets with zero telemetry.
+
+One-line install: `irm https://beso1227.github.io/Deltempo/win | iex`
+
+winget: `winget install Beso1227.Deltempo`
 
 ## Overview
 Deltempo safely purges disposable system, developer, and browser caches, recovers gigabytes of disk space, thoroughly uninstalls desktop programs with leftover cleanup, detects byte-level duplicate files, provides an interactive storage treemap, provides startup intelligence, and trims inactive Windows memory working sets with zero telemetry.

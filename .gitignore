@@ -34,6 +34,13 @@ project.assets.json
 # bin//obj rules above do not reach them.
 *.tsbuildinfo
 
+# Alternate build output, used when bin\ is locked by a running process and MSBuild
+# cannot overwrite it: dotnet build -p:BaseOutputPath=altout\
+altout/
+altoutcli/
+**/altout/
+**/altoutcli/
+
 # Sidecar config emitted next to a built executable. `*.exe` does not match
 # "app.exe.config", so without this the file leaks even though the exe is ignored.
 *.exe.config

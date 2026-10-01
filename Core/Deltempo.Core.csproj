@@ -15,6 +15,26 @@
     <Compile Include="..\ViewModels\**\*.cs" Link="ViewModels\%(RecursiveDir)%(FileName)%(Extension)" />
   </ItemGroup>
 
+  <!--
+    Core compiles Services\SoundService.cs, so it needs its own copy of the
+    interface sounds. SoundService resolves them against its own assembly, and the
+    LogicalName matches the copy in the GUI project exactly.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\Assets\Sounds\click.wav">
+      <LogicalName>WinTempCleaner.Assets.Sounds.click.wav</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Assets\Sounds\success.wav">
+      <LogicalName>WinTempCleaner.Assets.Sounds.success.wav</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Assets\Sounds\error.wav">
+      <LogicalName>WinTempCleaner.Assets.Sounds.error.wav</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Assets\Sounds\warning.wav">
+      <LogicalName>WinTempCleaner.Assets.Sounds.warning.wav</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="Deltempo" />
     <InternalsVisibleTo Include="deltempo_cli" />
