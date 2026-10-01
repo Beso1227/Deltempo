@@ -233,7 +233,7 @@ public class CliProvisioningTests : IDisposable
             "f87e8f38cac29cb448a7117b497f6dc3f163b3efafd482504d762ec698dea49c  deltempo_cli.exe\n";
 
         Assert.Equal(
-            "f87e8f38cac29cb448a7117b497f6dc3f163b3efafd482504d762ec698dea49c", // devskim:ignore DS173237
+            "f87e8f38cac29cb448a7117b497f6dc3f163b3efafd482504d762ec698dea49c", // DevSkim: ignore DS173237
             UpdateService.ParseSha256FromChecksums(manifest, "deltempo_cli.exe"));
     }
 

@@ -75,7 +75,7 @@ public class AdversarialFilesystemTests : IDisposable
     public void Invariant_ProtectedCanNeverBecomeDeletableThroughNormalCodePath(bool sendToRecycleBin, bool apply24HourShield)
     {
         string protectedFile = Path.Combine(_sandboxDir, "id_rsa");
-        File.WriteAllText(protectedFile, "-----BEGIN OPENSSH PRIVATE KEY-----");
+        File.WriteAllText(protectedFile, "-----BEGIN OPENSSH PRIVATE KEY-----"); // DevSkim: ignore DS173238
 
         var plan = CleanupPlanner.CreatePlan(
             scopeId: "adv-test-protected",
