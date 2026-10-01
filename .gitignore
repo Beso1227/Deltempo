@@ -29,6 +29,15 @@ TestResults/
 project.lock.json
 project.assets.json
 
+# MSBuild incremental state. Normally under obj/, but a custom
+# BaseIntermediateOutputPath drops these at the project root, where the
+# bin//obj rules above do not reach them.
+*.tsbuildinfo
+
+# Sidecar config emitted next to a built executable. `*.exe` does not match
+# "app.exe.config", so without this the file leaks even though the exe is ignored.
+*.exe.config
+
 # Archives & Compressed Files
 *.zip
 *.7z
@@ -99,6 +108,7 @@ _ReSharper*/
 *.lock
 *.bak
 *.orig
+*.rej
 *~
 
 # ==============================================================================
@@ -161,6 +171,8 @@ brag-output/
 .deploy*.cmd
 ci_runs.json
 ci_*.json
+# Agent/MCP session transcripts and tool-call logs (NDJSON)
+*.jsonl
 .megamemory/
 mcp_config.json
 
