@@ -309,6 +309,21 @@ public static class SystemCacheResolver
         };
     }
 
+    /// <summary>
+    /// Absolute path to the machine-wide Public profile's Temp folder, derived from the Common
+    /// Documents location so it resolves even when the profile is not at C:\Users\Public.
+    /// Returns an empty string when it cannot be determined, which every caller already treats
+    /// as "no such directory" and skips.
+    /// </summary>
+    private static string PublicProfileTempDirectory()
+    {
+        string commonDocs = Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
+        if (string.IsNullOrEmpty(commonDocs)) return string.Empty;
+
+        string? publicRoot = Path.GetDirectoryName(commonDocs);
+        return string.IsNullOrEmpty(publicRoot) ? string.Empty : Path.Combine(publicRoot, "Temp");
+    }
+
     public static List<string> ResolveAppCacheDirectories()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -316,6 +331,13 @@ public static class SystemCacheResolver
 
         var dirs = new List<string>
         {
+            // Machine-wide Public profile scratch space. Public\Temp is shared by every
+            // account on the machine and holds only transient app files, so it is disposable.
+            // The Public profile's shared libraries (Documents, Desktop, Downloads, Pictures,
+            // Music, Videos, Libraries, AccountPictures) are deliberately NOT listed: those hold
+            // files users place there on purpose, and ProtectionPolicy refuses them outright.
+            PublicProfileTempDirectory(),
+
             Path.Combine(localAppData, "Spotify", "Data"),
             Path.Combine(localAppData, "Spotify", "Storage"),
             Path.Combine(localAppData, "Spotify", "Browser", "Cache"),

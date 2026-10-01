@@ -331,7 +331,44 @@ public static class ProtectionPolicy
             }
         }
 
+        // The per-machine Public profile (C:\Users\Public) is shared user content, not a
+        // system or cache location. The guard above only covers the *current* user's profile,
+        // which left every Public library unprotected: Public\Documents, Public\Desktop,
+        // Public\Downloads and friends were reachable by any cleanup scope or by Force Delete.
+        // They are resolved through the Common* folder ids rather than a literal path so they
+        // resolve correctly when the profile is relocated.
+        foreach (var folder in PublicPersonalFolders())
+        {
+            if (!string.IsNullOrEmpty(folder) && PathSecurity.IsSubpathOf(path, folder))
+            {
+                return true;
+            }
+        }
+
         return false;
+    }
+
+    /// <summary>
+    /// Shared, user-authored libraries under the machine-wide Public profile. Never treated as
+    /// disposable: a file here was put there deliberately so other accounts could see it.
+    /// </summary>
+    private static IEnumerable<string> PublicPersonalFolders()
+    {
+        yield return Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
+        yield return Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
+        yield return Environment.GetFolderPath(Environment.SpecialFolder.CommonPictures);
+        yield return Environment.GetFolderPath(Environment.SpecialFolder.CommonMusic);
+        yield return Environment.GetFolderPath(Environment.SpecialFolder.CommonVideos);
+
+        // .NET exposes no CommonDownloads, so derive the Public root from CommonDocuments
+        // and cover the remaining shared folders by name.
+        string commonDocs = Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
+        string? publicRoot = string.IsNullOrEmpty(commonDocs) ? null : Path.GetDirectoryName(commonDocs);
+        if (!string.IsNullOrEmpty(publicRoot))
+        {
+            yield return Path.Combine(publicRoot, "Downloads");
+            yield return Path.Combine(publicRoot, "Libraries");
+        }
     }
 
     private static bool IsDeveloperOrCloudCredentialPath(string pathLower, string fileName)

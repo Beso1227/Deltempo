@@ -104,6 +104,80 @@ public class OrphanClassificationTests
         Assert.True(OrphanedAppService.IsActiveDirectory("Visual Studio", keywords));
     }
 
+    /// <summary>
+    /// Regression: the active-app keyword set is populated from running process names, so a
+    /// generic process such as "tool" previously marked every folder merely CONTAINING that
+    /// text as an active install. On a machine with such a process, the genuine orphan
+    /// "MiniTool GA Uploader" matched on the substring "Tool" and the orphan scanner proposed
+    /// nothing from any scan root. Containment must respect word boundaries.
+    /// </summary>
+    [Fact]
+    public void IsActiveDirectory_GenericKeyword_DoesNotMatchInsideAnotherWord()
+    {
+        var keywords = new[] { "tool", "Setup", "Snipping Tool", "Adobe" };
+
+        // Infix occurrences must not match: an unrelated word that happens to end in the keyword.
+        Assert.False(OrphanedAppService.IsActiveDirectory("MiniTool GA Uploader", keywords));
+        Assert.False(OrphanedAppService.IsActiveDirectory("MySetupFiles", keywords));
+
+        // Genuine word-boundary matches must still be recognised.
+        Assert.True(OrphanedAppService.IsActiveDirectory("Snipping Tool", keywords));
+        Assert.True(OrphanedAppService.IsActiveDirectory("Adobe", keywords));
+        Assert.True(OrphanedAppService.IsActiveDirectory("Visual Studio 2022", new[] { "Visual Studio" }));
+    }
+
+    /// <summary>
+    /// Portability: the keyword set is derived from whatever happens to be installed and running
+    /// on the *current* machine. On a clean or minimal Windows install it is tiny or empty, so the
+    /// matcher must degrade to "not active" rather than treating every folder as a live install.
+    /// A machine-dependent matcher would silently disable orphan detection on someone else's PC.
+    /// </summary>
+    [Fact]
+    public void IsActiveDirectory_MinimalOrEmptyKeywordSet_DoesNotSuppressProposals()
+    {
+        Assert.False(OrphanedAppService.IsActiveDirectory("SomeOldApp", Array.Empty<string>()));
+        Assert.False(OrphanedAppService.IsActiveDirectory("SomeOldApp", new[] { "explorer", "svchost" }));
+
+        // Guard against a null collection from a caller that failed to gather evidence.
+        Assert.False(OrphanedAppService.IsActiveDirectory("SomeOldApp", null!));
+    }
+
+    /// <summary>
+    /// Portability: word-boundary detection must work on non-ASCII folder names, which are routine
+    /// on localized Windows installs. Combining marks and accented letters are letters, so
+    /// "ÜberPhoto" is one word and must not match the keyword "Photo".
+    /// </summary>
+    [Fact]
+    public void IsActiveDirectory_HandlesNonAsciiFolderNames()
+    {
+        var keywords = new[] { "Werkzeug", "Photo" };
+
+        // Exact and leading-boundary matches still count.
+        Assert.True(OrphanedAppService.IsActiveDirectory("Photo", keywords));
+        Assert.True(OrphanedAppService.IsActiveDirectory("Photo Werkzeug", keywords));
+        Assert.True(OrphanedAppService.IsActiveDirectory("Werkzeug", keywords));
+
+        // Infix inside an accented word must not match.
+        Assert.False(OrphanedAppService.IsActiveDirectory("ÜberPhoto", keywords));
+    }
+
+    /// <summary>
+    /// Guards the MinimumPlausibleActiveAppCount threshold itself. If this ever fails on a real
+    /// Windows host, orphan detection has been silently switched off there — the threshold is too
+    /// high for that environment, not the environment genuinely empty. Running it in CI means a
+    /// minimal image (windows-latest) proves the floor is safe rather than assuming it.
+    /// </summary>
+    [Fact]
+    public void GetComprehensiveActiveAppKeywords_HarvestIsHealthyOnAnyRealWindowsHost()
+    {
+        var keywords = OrphanedAppService.GetComprehensiveActiveAppKeywords();
+
+        Assert.True(
+            keywords.Count >= 32,
+            $"Only {keywords.Count} active-app keywords were gathered; the orphan scan would be " +
+            "disabled here, so the degraded-evidence threshold is too high for this environment.");
+    }
+
     [Fact]
     public void IsActiveDirectory_ShortOrGenericNames_FailClosed()
     {

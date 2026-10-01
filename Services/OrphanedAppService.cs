@@ -11,6 +11,16 @@ namespace WinTempCleaner.Services;
 
 public static class OrphanedAppService
 {
+    /// <summary>
+    /// Lowest active-app keyword count that indicates the harvest actually worked. The set is
+    /// seeded from a static vendor whitelist, then augmented with every running process name and
+    /// shortcut target on the machine. Even a freshly installed Windows image reports several
+    /// hundred (svchost, dwm, explorer, RuntimeBroker, SearchHost, plus hundreds of services), so
+    /// a count far below this means every live source was blocked rather than that the machine is
+    /// genuinely empty.
+    /// </summary>
+    private const int MinimumPlausibleActiveAppCount = 32;
+
     // Strict whitelist of Windows system components, runtimes, drivers, hardware vendors, and core tools
     private static readonly HashSet<string> ProtectedSystemFolderNames = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -116,12 +126,19 @@ public static class OrphanedAppService
 
     /// <summary>
     /// Folder identity match: a candidate is live when it equals an installed identity or when
-    /// EITHER side contains the other (both bounded to 4+ chars so short generic names cannot
-    /// suppress unrelated folders). The reverse direction covers versioned and suffixed identities —
-    /// folder <c>PDFgear</c> vs <c>PDFgear 1.2.3</c>, folder <c>lean-ctx</c> vs <c>lean-ctx-bin</c> —
-    /// which the old folder-contains-identity test alone never matched. Direction-agnostic by
-    /// design: a missed match risks a false-positive proposal, an over-match only skips cleanup.
+    /// EITHER side contains the other at a WORD BOUNDARY (both bounded to 4+ chars). The reverse
+    /// direction covers versioned and suffixed identities — folder <c>PDFgear</c> vs
+    /// <c>PDFgear 1.2.3</c>, folder <c>lean-ctx</c> vs <c>lean-ctx-bin</c>.
     /// </summary>
+    /// <remarks>
+    /// The word-boundary requirement is load-bearing, not cosmetic. Containment was originally a
+    /// plain substring test, and the keyword set is populated from running process names, so any
+    /// short generic process ("tool", "setup", "update") silently marked EVERY folder containing
+    /// that text as an active install. On a machine with a process named <c>tool</c>, the orphan
+    /// <c>MiniTool GA Uploader</c> matched on the substring "Tool" and no residue was ever
+    /// proposed — from any scan root. Requiring the match to start at a word boundary keeps real
+    /// matches ("Snipping Tool" vs "Tool") while rejecting infix ones ("MiniTool" vs "Tool").
+    /// </remarks>
     internal static bool IsActiveDirectory(string dirName, IEnumerable<string> activeApps)
     {
         if (string.IsNullOrWhiteSpace(dirName) || activeApps == null) return false;
@@ -131,8 +148,30 @@ public static class OrphanedAppService
             if (string.IsNullOrWhiteSpace(app)) continue;
 
             if (app.Equals(dirName, StringComparison.OrdinalIgnoreCase)) return true;
-            if (app.Length >= 4 && dirName.Contains(app, StringComparison.OrdinalIgnoreCase)) return true;
-            if (dirName.Length >= 4 && app.Contains(dirName, StringComparison.OrdinalIgnoreCase)) return true;
+            if (app.Length >= 4 && ContainsAtWordBoundary(dirName, app)) return true;
+            if (dirName.Length >= 4 && ContainsAtWordBoundary(app, dirName)) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// True when <paramref name="needle"/> occurs inside <paramref name="haystack"/> starting at a
+    /// word boundary (string start, or preceded by a non-alphanumeric separator). Case-insensitive.
+    /// </summary>
+    private static bool ContainsAtWordBoundary(string haystack, string needle)
+    {
+        if (string.IsNullOrEmpty(haystack) || string.IsNullOrEmpty(needle)) return false;
+
+        int index = haystack.IndexOf(needle, StringComparison.OrdinalIgnoreCase);
+        while (index >= 0)
+        {
+            if (index == 0) return true;
+
+            char preceding = haystack[index - 1];
+            if (!char.IsLetterOrDigit(preceding)) return true;
+
+            index = haystack.IndexOf(needle, index + 1, StringComparison.OrdinalIgnoreCase);
         }
 
         return false;
@@ -539,6 +578,20 @@ public static class OrphanedAppService
         var orphans = new List<TargetFolderInfo>();
         var activeApps = GetComprehensiveActiveAppKeywords();
 
+        // Degraded-evidence guard. A folder is only "orphaned" if nothing points at it, and proving
+        // that requires knowing what is installed and running. If the keyword harvest came back
+        // implausibly small, every source failed (restricted registry, blocked process enumeration,
+        // hardened host) and this scan cannot tell residue from live software. Proposing nothing is
+        // the correct outcome: under-reporting costs the user a manual pass, whereas over-reporting
+        // puts installed applications onto a deletion list.
+        if (activeApps.Count < MinimumPlausibleActiveAppCount)
+        {
+            Trace.WriteLine(
+                $"[Deltempo] Orphan scan skipped: only {activeApps.Count} active-app keywords gathered " +
+                $"(minimum {MinimumPlausibleActiveAppCount}); evidence collection appears degraded.");
+            return orphans;
+        }
+
         // 1. Program Files, Program Files (x86), ProgramData & Local Programs
         string pf64 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
         string pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
@@ -588,7 +641,42 @@ public static class OrphanedAppService
         ScanDir(dlInstProgData, activeApps, orphans, isProgramFiles: true, maxDepth: 0);
         ScanDir(dlInstLocal, activeApps, orphans, isProgramFiles: false, maxDepth: 0);
 
+        // 6. Machine-wide Public profile root.
+        //
+        // Some applications park their entire per-user data folder in C:\Users\Public (for
+        // example an Electron/WebView2 app writing its Chromium profile there). When the app is
+        // uninstalled, that folder is pure residue and can run to hundreds of MB of cache.
+        //
+        // This deliberately scans ONLY the Public root at depth 0, never a recursive walk, and
+        // relies on the existing refusal chain for the shared libraries sitting beside it:
+        //   * Safety Rule 1b refuses package-manager / agent namespace names outright.
+        //   * Safety Rule 6 refuses user data and working roots. OrphanEvidenceClassifier's
+        //     PublicSharedRoots() covers Documents, Desktop, Downloads, Pictures, Music, Videos,
+        //     Libraries and AccountPictures, so shared user content is never proposed.
+        //   * Safety Rule 7 requires positive proof of no live reference (process, service,
+        //     startup entry, uninstall record, shortcut target or PATH entry) before a folder
+        //     can be proposed at all.
+        string? publicRoot = ResolvePublicProfileRoot();
+        if (!string.IsNullOrEmpty(publicRoot))
+        {
+            ScanDir(publicRoot, activeApps, orphans, isProgramFiles: false, maxDepth: 0);
+        }
+
         return orphans;
+    }
+
+    /// <summary>
+    /// The machine-wide Public profile root, derived from the Common Documents location so it
+    /// resolves even when the profile is not located at the conventional C:\Users\Public.
+    /// Returns null when the location cannot be determined.
+    /// </summary>
+    private static string? ResolvePublicProfileRoot()
+    {
+        string commonDocs = Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
+        if (string.IsNullOrEmpty(commonDocs)) return null;
+
+        string? root = Path.GetDirectoryName(commonDocs);
+        return string.IsNullOrEmpty(root) ? null : root;
     }
 
     private static void ScanDir(string baseDir, HashSet<string> activeApps, List<TargetFolderInfo> orphans, bool isProgramFiles, int maxDepth)

@@ -22,6 +22,9 @@ public class TargetFolderInfo : INotifyPropertyChanged
     private string _name = string.Empty;
     private string _category = "General";
     private string _description = string.Empty;
+    private int _resolvedDirectoryCount;
+    private long _protectedBytes;
+    private long _reviewRequiredBytes;
 
     public string Id { get; set; } = string.Empty;
 
@@ -177,6 +180,74 @@ public class TargetFolderInfo : INotifyPropertyChanged
     public string FormattedSize => FormatBytes(SizeBytes);
 
     public string FormattedStats => $"{FileCount:N0} files • {FolderCount:N0} folders";
+
+    /// <summary>
+    /// How many directories this scope actually covers. A scope that aggregates many
+    /// package-manager caches must not advertise a single representative path, because
+    /// that path is frequently empty while the aggregate size comes from elsewhere.
+    /// </summary>
+    public int ResolvedDirectoryCount
+    {
+        get => _resolvedDirectoryCount;
+        set
+        {
+            _resolvedDirectoryCount = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ScopePathLabel));
+        }
+    }
+
+    /// <summary>Card caption: a lone path, or an honest count of aggregated locations.</summary>
+    public string ScopePathLabel
+    {
+        get
+        {
+            if (ResolvedDirectoryCount > 1)
+                return $"{ResolvedDirectoryCount} locations (e.g. {FolderPath})";
+            return FolderPath;
+        }
+    }
+
+    /// <summary>Bytes the safety engine refused outright (never deletable).</summary>
+    public long ProtectedBytes
+    {
+        get => _protectedBytes;
+        set
+        {
+            _protectedBytes = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasRetentionInfo));
+            OnPropertyChanged(nameof(RetentionInfo));
+        }
+    }
+
+    /// <summary>Bytes held back for manual review (e.g. executables, recently written).</summary>
+    public long ReviewRequiredBytes
+    {
+        get => _reviewRequiredBytes;
+        set
+        {
+            _reviewRequiredBytes = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasRetentionInfo));
+            OnPropertyChanged(nameof(RetentionInfo));
+        }
+    }
+
+    /// <summary>True when a scan found bytes that safety rules will not let Clean remove.</summary>
+    public bool HasRetentionInfo => ProtectedBytes > 0 || ReviewRequiredBytes > 0;
+
+    /// <summary>Explains a zero-byte Clean result instead of leaving it as a silent dead end.</summary>
+    public string RetentionInfo
+    {
+        get
+        {
+            var parts = new List<string>();
+            if (ProtectedBytes > 0) parts.Add($"{FormatBytes(ProtectedBytes)} protected");
+            if (ReviewRequiredBytes > 0) parts.Add($"{FormatBytes(ReviewRequiredBytes)} needs review");
+            return parts.Count == 0 ? string.Empty : string.Join(" • ", parts) + " — not removable";
+        }
+    }
 
     public static string FormatBytes(long bytes)
     {

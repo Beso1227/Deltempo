@@ -19,6 +19,64 @@ public class ProtectionPolicyTests
         Assert.Contains("critical OS root", reason);
     }
 
+    /// <summary>
+    /// C:\Users\Public holds shared user content. The guard that covers the current user's
+    /// Documents/Desktop/etc. previously skipped it entirely, leaving every Public library
+    /// reachable by a cleanup scope or by Force Delete.
+    /// </summary>
+    [Fact]
+    public void IsProtected_PublicProfileSharedLibraries_AlwaysProtected()
+    {
+        string publicRoot = ResolvePublicRoot();
+
+        string[] sharedLibraries =
+            ["Documents", "Desktop", "Pictures", "Music", "Videos", "Downloads", "Libraries"];
+
+        foreach (string library in sharedLibraries)
+        {
+            string probe = Path.Combine(publicRoot, library, "shared-file.txt");
+            bool isProtected = ProtectionPolicy.IsProtected(probe, out string reason);
+
+            Assert.True(isProtected, $"Public\\{library} must be protected, but '{probe}' was allowed.");
+            Assert.Contains("personal library", reason, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    /// <summary>
+    /// The protection above must not be so broad that legitimate cleanup targets become
+    /// unreachable: Public\Temp is disposable scratch space, and an uninstalled application's
+    /// user-data folder parked in Public is residue rather than a shared library.
+    /// </summary>
+    [Fact]
+    public void IsProtected_PublicTempAndAppResidue_NotBlockedByLibraryGuard()
+    {
+        string publicRoot = ResolvePublicRoot();
+
+        string tempProbe = Path.Combine(publicRoot, "Temp", "scratch-cache.dat");
+        Assert.False(
+            ProtectionPolicy.IsProtected(tempProbe, out string tempReason),
+            $"Public\\Temp should stay cleanable. Blocked with: {tempReason}");
+
+        string residueProbe = Path.Combine(publicRoot, "SomeUninstalledApp", "WebView2Cache", "cache_data_1");
+        Assert.False(
+            ProtectionPolicy.IsProtected(residueProbe, out string residueReason),
+            $"Orphaned app residue in Public should be reachable. Blocked with: {residueReason}");
+    }
+
+    /// <summary>
+    /// Derives the Public profile root from the machine's own folder ids so the tests assert the
+    /// real resolved locations instead of assuming a C:\Users\Public layout.
+    /// </summary>
+    private static string ResolvePublicRoot()
+    {
+        string commonDocs = Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
+        Assert.False(string.IsNullOrEmpty(commonDocs), "CommonDocuments must resolve on a Windows host.");
+
+        string? root = Path.GetDirectoryName(commonDocs);
+        Assert.False(string.IsNullOrEmpty(root), "Public profile root must be derivable from CommonDocuments.");
+        return root!;
+    }
+
     [Theory]
     [InlineData(@"C:\Windows\System32\ntoskrnl.exe")]
     [InlineData(@"C:\Windows\System32\drivers\etc\hosts")]

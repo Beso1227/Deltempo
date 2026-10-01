@@ -46,8 +46,23 @@ public static class OrphanEvidenceClassifier
 
     private static HashSet<string>? s_references;
 
+    /// <summary>
+    /// Lowest reference count that indicates evidence collection actually succeeded. Even a bare
+    /// Windows install yields hundreds of registered service paths plus the system directories on
+    /// PATH, so an index smaller than this means every source failed or was blocked (locked-down
+    /// or non-elevated host, restricted registry, hardened process enumeration).
+    /// </summary>
+    private const int MinimumPlausibleReferenceCount = 8;
+
     /// <summary>Test hook: forces the reference index to be rebuilt on next use.</summary>
     internal static void ResetCache() => Interlocked.Exchange(ref s_references, null);
+
+    /// <summary>
+    /// Test hook: substitutes the reference index so the degraded-evidence path can be exercised
+    /// deterministically without needing a genuinely locked-down machine.
+    /// </summary>
+    internal static void OverrideReferencesForTest(HashSet<string>? references) =>
+        Interlocked.Exchange(ref s_references, references);
 
     private static HashSet<string> References =>
         s_references ??= BuildLiveReferences();
@@ -119,6 +134,14 @@ public static class OrphanEvidenceClassifier
             string normalized = Normalize(folderPath);
             if (normalized.Length == 0) return true; // cannot canonicalize -> fail closed
 
+            // Degraded-evidence guard. Every reference source is individually try/caught, so a host
+            // that blocks them all (non-elevated, restricted registry, hardened process enumeration)
+            // yields an EMPTY index rather than an exception. Without this check the empty index
+            // would report "no live reference anywhere" for every folder and orphan detection would
+            // propose live application data wholesale. Absence of evidence is not evidence of
+            // absence: refuse to call anything orphaned while the index is implausibly small.
+            if (References.Count < MinimumPlausibleReferenceCount) return true;
+
             foreach (string reference in References)
             {
                 if (reference.Length == 0) continue;
@@ -164,7 +187,41 @@ public static class OrphanEvidenceClassifier
             if (p.StartsWith(root, StringComparison.OrdinalIgnoreCase)) return true;
         }
 
+        // Shared Public profile libraries. Only CommonDocuments was covered above, which left
+        // Public\Desktop, Public\Downloads, Public\Music, Public\Pictures, Public\Videos and
+        // Public\Libraries eligible for proposal as app residue. They hold files users put
+        // there deliberately to share with other accounts, so they fail closed like Documents.
+        foreach (string root in PublicSharedRoots())
+        {
+            if (root.Length == 0) continue;
+            if (p.StartsWith(root, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
         return false;
+    }
+
+    /// <summary>
+    /// The machine-wide Public profile's shared libraries plus the root that holds per-app
+    /// residue (an uninstalled app's user-data folder parked directly in Public).
+    /// </summary>
+    internal static IEnumerable<string> PublicSharedRoots()
+    {
+        yield return Normalize(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments));
+        yield return Normalize(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory));
+        yield return Normalize(Environment.GetFolderPath(Environment.SpecialFolder.CommonPictures));
+        yield return Normalize(Environment.GetFolderPath(Environment.SpecialFolder.CommonMusic));
+        yield return Normalize(Environment.GetFolderPath(Environment.SpecialFolder.CommonVideos));
+
+        string commonDocs = Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
+        string? publicRoot = string.IsNullOrEmpty(commonDocs) ? null : Path.GetDirectoryName(commonDocs);
+        if (!string.IsNullOrEmpty(publicRoot))
+        {
+            yield return Normalize(Path.Combine(publicRoot, "Downloads"));
+            yield return Normalize(Path.Combine(publicRoot, "Libraries"));
+            yield return Normalize(Path.Combine(publicRoot, "AccountPictures"));
+            // Temp is disposable, but it is not user content, so it is kept out of this
+            // refuse-list: Public\Temp is a legitimate cleanup target.
+        }
     }
 
     /// <summary>Detects an active project/workspace root (package manifests, VCS, solution files).</summary>

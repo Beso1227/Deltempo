@@ -21,7 +21,11 @@ public static class DevPackageCacheResolver
             Path.Combine(localAppData, "NuGet", "v3-cache"),
             Path.Combine(localAppData, "NuGet", "plugins-cache"),
             Path.Combine(localAppData, "Microsoft", "WinGet", "Cache"),
-            Path.Combine(localAppData, "Microsoft", "WinGet", "Packages"),
+            // NOTE: WinGet\Packages is deliberately NOT listed here. It is where
+            // `winget install` places portable packages (e.g. Gyan.FFmpeg ships
+            // ffmpeg/ffplay/ffprobe, ~650 MB) and is the live target of the shims
+            // in WinGet\Links. Treating installed applications as disposable cache
+            // would uninstall software rather than free space.
             Path.Combine(localAppData, "Microsoft", "WinGet", "Logs"),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "chocolatey", "cache"),
             Path.Combine(localAppData, "vcpkg", "downloads"),

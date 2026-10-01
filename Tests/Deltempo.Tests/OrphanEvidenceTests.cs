@@ -172,6 +172,61 @@ public class OrphanEvidenceTests : IDisposable
         Assert.False(OrphanEvidenceClassifier.HasLiveReference(_sandbox));
     }
 
+    /// <summary>
+    /// Portability/safety: every reference source is individually try/caught, so on a host that
+    /// blocks them all — non-elevated, restricted registry, hardened process enumeration — the
+    /// index comes back EMPTY rather than throwing. An empty index would otherwise report "no live
+    /// reference anywhere" for every folder and orphan detection would propose live application
+    /// data wholesale. Absence of evidence must not be treated as evidence of absence.
+    /// </summary>
+    [Fact]
+    public void HasLiveReference_DegradedEmptyIndex_FailsClosed()
+    {
+        try
+        {
+            OrphanEvidenceClassifier.OverrideReferencesForTest(new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+
+            // Even the sandbox — which a healthy index correctly reports as unreferenced.
+            Assert.True(OrphanEvidenceClassifier.HasLiveReference(_sandbox));
+        }
+        finally
+        {
+            OrphanEvidenceClassifier.ResetCache();
+        }
+    }
+
+    /// <summary>
+    /// The guard must trigger only on an implausibly small index, not on a real one. A healthy
+    /// index still lets genuinely unreferenced folders through, or orphan detection would be
+    /// permanently disabled on every healthy machine.
+    /// </summary>
+    [Fact]
+    public void HasLiveReference_SufficientIndex_StillReportsGenuineOrphans()
+    {
+        try
+        {
+            var synthetic = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                @"c:\windows\system32",
+                @"c:\windows",
+                @"c:\program files\app",
+                @"c:\program files (x86)\app",
+                @"c:\programdata\vendor",
+                @"c:\users\tester\appdata\local\tool",
+                @"c:\users\tester\appdata\roaming\tool",
+                @"c:\some\other\live\path"
+            };
+            OrphanEvidenceClassifier.OverrideReferencesForTest(synthetic);
+
+            Assert.False(OrphanEvidenceClassifier.HasLiveReference(_sandbox));
+            Assert.True(OrphanEvidenceClassifier.HasLiveReference(@"c:\program files\app\data"));
+        }
+        finally
+        {
+            OrphanEvidenceClassifier.ResetCache();
+        }
+    }
+
     // ------------------------------------------------------------------
     // Version-tolerant folder identity (item 4)
     // ------------------------------------------------------------------

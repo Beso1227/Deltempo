@@ -68,6 +68,24 @@ public class CleanerServiceTests : IDisposable
     }
 
     [Fact]
+    public void DevPackageResolver_ExcludesInstalledWinGetPackages()
+    {
+        // WinGet\Packages is where `winget install` puts portable apps (Gyan.FFmpeg alone
+        // is ~650 MB of ffmpeg/ffplay/ffprobe). Treating it as disposable cache would
+        // uninstall software instead of reclaiming space, so it must never be a target.
+        var devDirs = CleanerService.GetDevPackageDirectories();
+
+        Assert.DoesNotContain(
+            devDirs,
+            d => d.EndsWith(Path.Combine("Microsoft", "WinGet", "Packages"), StringComparison.OrdinalIgnoreCase));
+
+        // The genuinely disposable WinGet siblings stay cleanable.
+        Assert.Contains(
+            devDirs,
+            d => d.EndsWith(Path.Combine("Microsoft", "WinGet", "Cache"), StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void DirectoryResolvers_ReturnValidNonEmptyTargetLists()
     {
         var upgradeDirs = CleanerService.GetUpgradeLeftoverDirectories();

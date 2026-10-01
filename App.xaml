@@ -192,6 +192,12 @@
         <sys:Double x:Key="TextSizeTitle">18</sys:Double>
         <sys:Double x:Key="TextSizeDisplay">24</sys:Double>
         <sys:Double x:Key="MinTouchTarget">34</sys:Double>    <!-- 34 DIP: above the 24 DIP WCAG 2.5.8 minimum, comfortable for a mouse-driven desktop tool -->
+        <!-- Title-bar nav uses a tighter height than MinTouchTarget. At 34 the selected pill
+             rendered as a 34px capsule wrapped around ~10px text (24px of dead vertical space),
+             so the selection read as a large empty box rather than a highlight. 28 still clears
+             the 24 DIP WCAG 2.5.8 minimum and matches the compact-mode MinWidth, keeping one
+             height across labeled and icon-only states. -->
+        <sys:Double x:Key="NavItemHeight">28</sys:Double>
         <FontFamily x:Key="MonoFont">Cascadia Code, Consolas, monospace</FontFamily>
         <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets, Segoe UI Symbol</FontFamily>
 
@@ -462,8 +468,8 @@
                  was previously 11px text on 3.5px vertical padding: roughly a 20px tall target,
                  under the 24 DIP WCAG 2.5.8 minimum and hard to hit. -->
             <Setter Property="FontSize" Value="{DynamicResource TextSizeBody}"/>
-            <Setter Property="Padding" Value="13,6"/>
-            <Setter Property="MinHeight" Value="{DynamicResource MinTouchTarget}"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="MinHeight" Value="{DynamicResource NavItemHeight}"/>
             <Setter Property="MinWidth" Value="{DynamicResource MinTouchTarget}"/>
             <Setter Property="Margin" Value="1,0"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -474,7 +480,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="Transparent"
                                 BorderThickness="1"
-                                CornerRadius="8"
+                                CornerRadius="7"
                                 Padding="{TemplateBinding Padding}"
                                 RenderTransformOrigin="0.5,0.5">
                             <Border.RenderTransform>

@@ -748,9 +748,12 @@ public partial class CleanerService
             }
         }
 
+        UiInvoke(() => folder.ResolvedDirectoryCount = directories.Count(d => !string.IsNullOrWhiteSpace(d) && Directory.Exists(d)));
         UiInvoke(() => folder.SizeBytes = totalBytes);
         UiInvoke(() => folder.FileCount = fileCount);
         UiInvoke(() => folder.TopFiles = topCollector.ToDescendingList(15));
+        UiInvoke(() => folder.ProtectedBytes = 0);
+        UiInvoke(() => folder.ReviewRequiredBytes = 0);
         UiInvoke(() => folder.StatusMessage = $"Ready: {TargetFolderInfo.FormatBytes(totalBytes)}");
         logAction($"Scanned {categoryTitle}: {TargetFolderInfo.FormatBytes(totalBytes)} ({fileCount:N0} files)", LogLevel.Info);
     }
@@ -1024,6 +1027,19 @@ public partial class CleanerService
                 apply24HourShield: applyShield,
                 sendToRecycleBin: sendToRecycle,
                 ct: ct);
+
+            // Explain a zero-byte result instead of leaving it as a silent dead end.
+            // The scan total includes every file, but the safety engine withholds
+            // Protected and ReviewRequired bytes from deletion; publish that split
+            // so the card can explain itself.
+            var protectedBytes = plan.Actions
+                .Where(a => a.Action == IntendedCleanupAction.SkipProtected)
+                .Sum(a => a.SizeBytes);
+            var reviewRequiredBytes = plan.Actions
+                .Where(a => a.Action == IntendedCleanupAction.SkipReviewRequired)
+                .Sum(a => a.SizeBytes);
+            UiInvoke(() => folder.ProtectedBytes = protectedBytes);
+            UiInvoke(() => folder.ReviewRequiredBytes = reviewRequiredBytes);
 
             var txResult = await CleanupExecutor.ExecutePlanAsync(
                 plan,
