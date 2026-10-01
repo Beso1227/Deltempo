@@ -39,7 +39,27 @@ jobs:
         uses: actions/checkout@v7
 
       # Execute Codacy Analysis CLI and generate a SARIF output with the security issues identified during the analysis
+      #
+      # Scoped to runs that actually have a token. Without CODACY_PROJECT_TOKEN the CLI exits
+      # non-zero, which failed this workflow on all 101 historical runs and told us nothing: the
+      # same opaque red whether or not a scan had run. Skipping explicitly keeps the signal honest.
+      - name: Check Codacy project token
+        id: token
+        shell: pwsh
+        env:
+          # Passed through the environment rather than interpolated into the script body, so a
+          # secret value can never be evaluated as PowerShell.
+          CODACY_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        run: |
+          if (-not $env:CODACY_TOKEN) {
+            Write-Host '::warning title=Codacy not configured::CODACY_PROJECT_TOKEN is not set. The security scan is being SKIPPED, not passed. Add the secret in Settings -> Secrets to enable it.'
+            'configured=false' >> $env:GITHUB_OUTPUT
+          } else {
+            'configured=true' >> $env:GITHUB_OUTPUT
+          }
+
       - name: Run Codacy Analysis CLI
+        if: steps.token.outputs.configured == 'true'
         uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
         with:
           # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
