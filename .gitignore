@@ -171,6 +171,11 @@ temp/
 tmp/
 .tmp_*.js
 .tmp_*
+# NOTE: scripts/vendor/ holds the vendored third-party browser bundle (force-graph.min.js) and is
+# SOURCE, not build output -- it must stay tracked. graphify-out/ below is ignored, so the committed
+# copy in scripts/vendor/ is the only thing that lets a fresh clone regenerate a graph that renders
+# with no network at all. If you ever ignore "vendor/" or "*.min.js", that offline guarantee silently
+# disappears and the page will still appear to work online because of the CDN fallback.
 graphify-out/
 GRAPHIFY.md
 vault/
