@@ -26,6 +26,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Deltempo.Core.csproj" />
     <Compile Include="..\..\Converters\PercentWidthConverter.cs" Link="Converters\PercentWidthConverter.cs" />
+    <Compile Include="..\..\Converters\SubtractConverter.cs" Link="Converters\SubtractConverter.cs" />
+    <Compile Include="..\..\Converters\WidthToCompactVisibilityConverter.cs" Link="Converters\WidthToCompactVisibilityConverter.cs" />
+    <Compile Include="..\..\Converters\WidthToCompactThicknessConverter.cs" Link="Converters\WidthToCompactThicknessConverter.cs" />
+    <Compile Include="..\..\Converters\WidthToCompactDoubleConverter.cs" Link="Converters\WidthToCompactDoubleConverter.cs" />
   </ItemGroup>
 
 </Project>

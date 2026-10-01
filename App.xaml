@@ -9,6 +9,18 @@
         <converters:BoolToBrushConverter x:Key="BoolToBrushConverter"/>
         <converters:BoolToThicknessConverter x:Key="BoolToThicknessConverter"/>
 
+        <!-- SubtractConverter (window size - margin → modal max height, keeps footers reachable) -->
+        <converters:SubtractConverter x:Key="SubtractConverter"/>
+
+        <!-- WidthToCompactVisibilityConverter (window width → icon-only nav below threshold) -->
+        <converters:WidthToCompactVisibilityConverter x:Key="WidthToCompactVisibilityConverter"/>
+
+        <!-- WidthToCompactThicknessConverter (window width → tighter nav padding when compact) -->
+        <converters:WidthToCompactThicknessConverter x:Key="WidthToCompactThicknessConverter"/>
+
+        <!-- WidthToCompactDoubleConverter (window width → smaller nav MinWidth when compact) -->
+        <converters:WidthToCompactDoubleConverter x:Key="WidthToCompactDoubleConverter"/>
+
         <!-- High-End Dynamic Palette Tokens (Initial Dark State: Luxury Obsidian & Cyber Mint) -->
         <!-- Canvas & base layers -->
         <SolidColorBrush x:Key="CanvasDarkBrush" Color="#06080B"/>
@@ -69,6 +81,30 @@
         <SolidColorBrush x:Key="AmberWarningBrush" Color="#F59E0B"/>
         <SolidColorBrush x:Key="RoseErrorBrush" Color="#F43F5E"/>
         <SolidColorBrush x:Key="DestructiveRedBrush" Color="#F43F5E"/>
+
+        <!-- Semantic status ramp — one ramp per meaning, so "danger" is never three reds.
+             Each is re-themed for light mode in ThemeService.SetTheme. -->
+        <SolidColorBrush x:Key="DestructiveRedSoftBrush" Color="#F87171"/>
+        <SolidColorBrush x:Key="DestructiveRedTextBrush" Color="#FCA5A5"/>
+        <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#2A0E0E"/>
+        <SolidColorBrush x:Key="DangerBorderSoftBrush" Color="#8B2E2E"/>
+
+        <SolidColorBrush x:Key="SuccessAccentBrush" Color="#10B981"/>
+        <SolidColorBrush x:Key="SuccessTextBrightBrush" Color="#34D399"/>
+        <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#0D2818"/>
+        <SolidColorBrush x:Key="SuccessBorderSoftBrush" Color="#3D10B981"/>
+
+        <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#241B12"/>
+        <SolidColorBrush x:Key="WarningBorderSoftBrush" Color="#8CF59E0B"/>
+
+        <SolidColorBrush x:Key="InfoAccentBrush" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="PinkAccentBrush" Color="#F472B6"/>
+        <SolidColorBrush x:Key="IndigoSurfaceBrush" Color="#1E1B4B"/>
+        <SolidColorBrush x:Key="IndigoAccentBrush" Color="#6366F1"/>
+        <SolidColorBrush x:Key="IndigoTextBrush" Color="#A5B4FC"/>
+
+        <SolidColorBrush x:Key="AccentHairlineBrush" Color="#2600F2B0"/>
+        <SolidColorBrush x:Key="GlassBorderBrush" Color="#26FFFFFF"/>
 
         <!-- Gradients -->
         <LinearGradientBrush x:Key="BrandHeroGradientBrush" StartPoint="0,0" EndPoint="1,1">

@@ -36,6 +36,28 @@ public static class ThemeService
             res["AccentIndigoBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#06B6D4"));
             res["SuccessGlowBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00F2B0"));
             res["DestructiveRedBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F43F5E"));
+            res["EmeraldGreenBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00F2B0"));
+            res["AmberWarningBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B"));
+            res["RoseErrorBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F43F5E"));
+
+            // Semantic status ramp (dark) — see App.xaml for the canonical definitions.
+            res["DestructiveRedSoftBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F87171"));
+            res["DestructiveRedTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FCA5A5"));
+            res["DangerSurfaceBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A0E0E"));
+            res["DangerBorderSoftBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#8B2E2E"));
+            res["SuccessAccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981"));
+            res["SuccessTextBrightBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#34D399"));
+            res["SuccessSurfaceBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0D2818"));
+            res["SuccessBorderSoftBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3D10B981"));
+            res["WarningSurfaceBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#241B12"));
+            res["WarningBorderSoftBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#8CF59E0B"));
+            res["InfoAccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3B82F6"));
+            res["PinkAccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F472B6"));
+            res["IndigoSurfaceBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E1B4B"));
+            res["IndigoAccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6366F1"));
+            res["IndigoTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A5B4FC"));
+            res["AccentHairlineBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2600F2B0"));
+            res["GlassBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#26FFFFFF"));
 
             // Buttons & Controls
             res["PillButtonBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0F161C"));
@@ -139,6 +161,31 @@ public static class ThemeService
             res["AccentIndigoBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0284C7"));
             res["SuccessGlowBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#059669"));
             res["DestructiveRedBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DC2626"));
+
+            // Previously these three were never re-themed, so light mode kept the dark-mode
+            // mint/amber/rose values — bright mint on a white canvas is unreadable.
+            res["EmeraldGreenBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#047857"));
+            res["AmberWarningBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#B45309"));
+            res["RoseErrorBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#BE123C"));
+
+            // Semantic status ramp (light) — darkened for WCAG AA contrast on white surfaces.
+            res["DestructiveRedSoftBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#B91C1C"));
+            res["DestructiveRedTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9F1239"));
+            res["DangerSurfaceBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FEF2F2"));
+            res["DangerBorderSoftBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FCA5A5"));
+            res["SuccessAccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#047857"));
+            res["SuccessTextBrightBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#065F46"));
+            res["SuccessSurfaceBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ECFDF5"));
+            res["SuccessBorderSoftBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A7F3D0"));
+            res["WarningSurfaceBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFBEB"));
+            res["WarningBorderSoftBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FDE68A"));
+            res["InfoAccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0284C7"));
+            res["PinkAccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#BE185D"));
+            res["IndigoSurfaceBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EEF2FF"));
+            res["IndigoAccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4F46E5"));
+            res["IndigoTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3730A3"));
+            res["AccentHairlineBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#330D9488"));
+            res["GlassBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1F2937"));
 
             // Buttons & Controls (Clean Slate 50 with crisp borders)
             res["PillButtonBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));

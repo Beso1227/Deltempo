@@ -749,6 +749,55 @@ public partial class MainWindow : Window
         UpdateLayout();
     }
 
+    /// <summary>
+    /// Opens a modal by name for the offscreen capture harness. Modals are the highest-risk
+    /// surface in a small window: several of them previously carried a fixed MaxHeight
+    /// (Settings 680, Confirm 640, Inspector 520) that exceeded the 720x520 window floor, so
+    /// their footer buttons were pushed off-screen and unreachable.
+    /// </summary>
+    internal void ShowModalForScreenshots(string modal)
+    {
+        switch (modal)
+        {
+            case "settings":
+                LoadSettingsIntoUI();
+                SettingsModalOverlay.Visibility = Visibility.Visible;
+                break;
+            case "about":
+                AboutModalOverlay.Visibility = Visibility.Visible;
+                break;
+            case "celebration":
+                CelebrationModalOverlay.Visibility = Visibility.Visible;
+                break;
+            default:
+                throw new ArgumentException($"Unknown modal: {modal}", nameof(modal));
+        }
+
+        UpdateLayout();
+    }
+
+    /// <summary>Closes whatever <see cref="ShowModalForScreenshots"/> opened.</summary>
+    internal void HideAllModalsForScreenshots()
+    {
+        SettingsModalOverlay.Visibility = Visibility.Collapsed;
+        AboutModalOverlay.Visibility = Visibility.Collapsed;
+        CelebrationModalOverlay.Visibility = Visibility.Collapsed;
+        UpdateLayout();
+    }
+
+    /// <summary>
+    /// Forces a theme for the offscreen capture harness. The semantic tokens this work
+    /// introduced (danger/success/warning/info ramps) must be verified in BOTH themes:
+    /// the light branch was previously missing EmeraldGreenBrush, RoseErrorBrush and
+    /// AmberWarningBrush entirely, which left bright mint and amber on a white canvas.
+    /// </summary>
+    internal void SetThemeForScreenshots(bool dark)
+    {
+        Services.ThemeService.SetTheme(dark);
+        ThemeToggleIcon.Text = dark ? "" : "";
+        UpdateLayout();
+    }
+
     private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ClickCount == 2)

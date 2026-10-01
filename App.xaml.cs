@@ -96,7 +96,11 @@ public partial class App : System.Windows.Application
         if (args.Length >= 1 && args[0] == "--render-screens")
         {
             string targetDir = args.Length >= 2 ? args[1] : Path.Combine(AppContext.BaseDirectory, "app_screens");
-            RenderScreenshots(targetDir);
+            // Optional explicit capture size so the harness can sweep small windows:
+            //   Deltempo.exe --render-screens <outDir> <width> <height>
+            int capW = args.Length >= 3 && int.TryParse(args[2], out int wArg) ? wArg : 1360;
+            int capH = args.Length >= 4 && int.TryParse(args[3], out int hArg) ? hArg : 840;
+            RenderScreenshots(targetDir, capW, capH);
             Shutdown(0);
             return;
         }
@@ -428,14 +432,29 @@ public partial class App : System.Windows.Application
         base.OnExit(e);
     }
 
-    private static void RenderScreenshots(string outDir)
+    /// <summary>
+    /// Offscreen UI capture used by the visual-regression harness.
+    /// Renders each workspace through a RenderTargetBitmap, so it does not depend on a
+    /// visible desktop and is not affected by UIPI when the app is running elevated.
+    /// The size is parameterised so small-window layout regressions are detectable; it
+    /// previously only ever produced 1360x840 frames.
+    /// </summary>
+    private static void RenderScreenshots(string outDir, int width = 1360, int height = 840)
     {
         try
         {
             Directory.CreateDirectory(outDir);
             var win = new MainWindow();
-            win.Width = 1360;
-            win.Height = 840;
+            // Clear the XAML minimums at runtime so one build can render every size, and
+            // so a capture is never silently clamped back up to the XAML floor.
+            win.MinWidth = 0;
+            win.MinHeight = 0;
+            win.Width = width;
+            win.Height = height;
+            // Lay the window out without flashing it over the user's desktop.
+            win.WindowStartupLocation = WindowStartupLocation.Manual;
+            win.Left = -32000;
+            win.Top = -32000;
             win.Show();
 
             void PumpEvents()
@@ -449,12 +468,65 @@ public partial class App : System.Windows.Application
             {
                 PumpEvents();
                 win.UpdateLayout();
-                var rtb = new System.Windows.Media.Imaging.RenderTargetBitmap(1360, 840, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+
+                // The shell clips its corners with an OpacityMask whose VisualBrush is sized
+                // by binding to the shell's own ActualWidth/ActualHeight. Under offscreen
+                // rendering those bindings have not resolved, so the mask collapses and hides
+                // the entire UI. Render the shell's own child instead, which is the real
+                // content, and apply the rounded corner at the bitmap level afterwards.
+                if (win.FindName("InnerClippingShell") is System.Windows.Controls.Border shell && shell.OpacityMask is not null)
+                {
+                    shell.OpacityMask = null;
+                }
+                if (win.FindName("MasterShellBorder") is System.Windows.Controls.Border master)
+                {
+                    master.OpacityMask = null;
+                }
+
+                // Measure the real laid-out visual rather than trusting the requested size,
+                // so a clamped/overridden window still yields a correct frame.
+                int w = (int)Math.Round(win.ActualWidth);
+                int h = (int)Math.Round(win.ActualHeight);
+                if (w <= 0 || h <= 0) { w = width; h = height; }
+
+                var rtb = new System.Windows.Media.Imaging.RenderTargetBitmap(w, h, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
                 rtb.Render(win);
+
+                // Self-check: if the shell mask ever fails to resolve again the frame comes
+                // out as a near-empty ambient background, which is indistinguishable from a
+                // real regression unless we measure it. Report the content ratio so a broken
+                // capture fails loudly instead of being published as evidence.
+                double contentRatio = MeasureContentRatio(rtb);
+
                 var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
                 encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(rtb));
                 using var fs = File.Create(Path.Combine(outDir, filename));
                 encoder.Save(fs);
+
+                string warn = contentRatio < 0.05 ? " <-- SUSPECT: frame looks empty" : "";
+                Console.WriteLine($"[Deltempo ScreenCapture] {filename} {w}x{h} content={contentRatio:P1}{warn}");
+            }
+
+            // Share of sampled pixels that are clearly brighter than the dark shell canvas.
+            static double MeasureContentRatio(System.Windows.Media.Imaging.RenderTargetBitmap rtb)
+            {
+                int w = rtb.PixelWidth, h = rtb.PixelHeight;
+                int stride = w * 4;
+                var pixels = new byte[h * stride];
+                rtb.CopyPixels(pixels, stride, 0);
+                int lit = 0, total = 0;
+                for (int y = 0; y < h; y += 3)
+                {
+                    int row = y * stride;
+                    for (int x = 0; x < w; x += 3)
+                    {
+                        int i = row + x * 4;
+                        int sum = pixels[i] + pixels[i + 1] + pixels[i + 2];
+                        total++;
+                        if (sum > 220) lit++;
+                    }
+                }
+                return total == 0 ? 0 : (double)lit / total;
             }
 
             // 1. Cleaner view
@@ -488,6 +560,30 @@ public partial class App : System.Windows.Application
             // 5. App Uninstaller
             win.SwitchWorkspaceView(WinTempCleaner.MainWindow.WorkspaceView.Apps);
             CaptureView("app_uninstaller.png");
+
+            // 6. Modals - the surfaces most at risk in a short window. These previously
+            // carried fixed MaxHeight values larger than the window floor, which pushed
+            // their footer actions out of reach.
+            win.SwitchWorkspaceView(WinTempCleaner.MainWindow.WorkspaceView.Cleaner);
+            win.ShowModalForScreenshots("settings");
+            CaptureView("modal_settings.png");
+            win.HideAllModalsForScreenshots();
+
+            win.ShowModalForScreenshots("about");
+            CaptureView("modal_about.png");
+            win.HideAllModalsForScreenshots();
+
+            win.ShowModalForScreenshots("celebration");
+            CaptureView("modal_celebration.png");
+            win.HideAllModalsForScreenshots();
+
+            // 7. Light theme - the semantic colour tokens must be legible on white too.
+            win.SetThemeForScreenshots(dark: false);
+            CaptureView("theme_light_cleaner.png");
+            win.ShowModalForScreenshots("settings");
+            CaptureView("theme_light_settings.png");
+            win.HideAllModalsForScreenshots();
+            win.SetThemeForScreenshots(dark: true);
 
             win.Close();
         }

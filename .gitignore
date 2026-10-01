@@ -203,3 +203,6 @@ __pycache__/
 # Brag video build sources (rendered deliverable lives in docs/deltempo.mp4)
 brag-output-*/
 brag-shots/
+
+# UI verification captures (scripts/capture_layout_matrix.ps1)
+artifacts/

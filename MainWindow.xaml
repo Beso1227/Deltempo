@@ -9,7 +9,7 @@
         Title="Deltempo"
         Icon="pack://application:,,,/app.ico"
         Width="1360" Height="840"
-        MinWidth="960" MinHeight="640"
+        MinWidth="800" MinHeight="560"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -95,7 +95,7 @@
                                            FontSize="15.5"
                                            FontWeight="Bold"
                                            Foreground="{DynamicResource TextHighBrush}"/>
-                                <Border BorderBrush="#2600F2B0"
+                                <Border BorderBrush="{DynamicResource AccentHairlineBrush}"
                                         BorderThickness="1"
                                         CornerRadius="5"
                                         Padding="6,1.5"
@@ -110,12 +110,15 @@
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <!-- Design-time placeholder; runtime value is assigned from BuildInfo in MainWindow_Loaded -->
                                         <TextBlock x:Name="AppVersionHeaderBadge"
+                                                   Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=900}"
                                                    Text="v1.6.0"
                                                    FontSize="10"
                                                    FontWeight="Bold"
                                                    Foreground="{DynamicResource ElectricCyanBrush}"
                                                    RenderOptions.ClearTypeHint="Enabled"/>
-                                        <Border BorderBrush="#26FFFFFF"
+                                        <Border x:Name="LicenseBadgeBorder"
+                                                Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=900}"
+                                                BorderBrush="{DynamicResource GlassBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="4"
                                                 Padding="4,1"
@@ -124,13 +127,14 @@
                                             <TextBlock Text="MIT"
                                                        FontSize="10"
                                                        FontWeight="Bold"
-                                                       Foreground="#94A3B8"
+                                                       Foreground="{DynamicResource TextMediumBrush}"
                                                        RenderOptions.ClearTypeHint="Enabled"/>
                                         </Border>
                                     </StackPanel>
                                  </Border>
                             </StackPanel>
                             <TextBlock x:Name="BrandSubtitleText"
+                            Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=820}"
                                        Text="Windows &amp; User Profile Guardian"
                                        FontSize="10"
                                        Foreground="{DynamicResource TextMutedBrush}"
@@ -151,19 +155,22 @@
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <!-- Main: Storage Cleaner Workspace -->
                             <Button x:Name="ToolCleanerBtn"
+                            MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Switch to Junk Cleaner workspace &amp; storage dashboard"
                                     AutomationProperties.Name="Cleaner Workspace"
                                     Tag="Active"
                                     Click="NavCleaner_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="&#xE74D;"
+                                    <TextBlock Text="&#xE856;"
                                                FontFamily="{DynamicResource IconFont}"
                                                FontSize="10.5"
                                                Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolCleanerText"
+                                               Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Cleaner"
                                                FontSize="11"
                                                FontWeight="SemiBold"
@@ -178,6 +185,8 @@
 
                             <!-- Tools Group: Storage & Startup -->
                             <Button x:Name="ToolLargeFilesBtn"
+                            MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Scan and locate large space-consuming files across your drives safely"
                                     AutomationProperties.Name="Large Files Tool"
@@ -190,6 +199,7 @@
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolLargeFilesText"
+                                               Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Large Files"
                                                FontSize="11"
                                                FontWeight="SemiBold"
@@ -197,6 +207,8 @@
                                 </StackPanel>
                             </Button>
                             <Button x:Name="ToolStartupBtn"
+                            MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Inspect and manage applications configured to launch on Windows boot"
                                     AutomationProperties.Name="Startup Applications Tool"
@@ -209,6 +221,7 @@
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolStartupText"
+                                               Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Startup"
                                                FontSize="11"
                                                FontWeight="SemiBold"
@@ -223,6 +236,8 @@
 
                             <!-- Optimize Group: Processes & Memory -->
                             <Button x:Name="ToolProcessesBtn"
+                            MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Inspect memory-heavy applications and optimize inactive background working sets"
                                     AutomationProperties.Name="Process Manager Tool"
@@ -235,6 +250,7 @@
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolProcessesText"
+                                               Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Processes"
                                                FontSize="11"
                                                FontWeight="SemiBold"
@@ -242,6 +258,8 @@
                                 </StackPanel>
                             </Button>
                             <Button x:Name="ToolMemoryBtn"
+                            MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Purge standby memory and trim inactive process working sets using native Windows APIs"
                                     AutomationProperties.Name="Memory Optimization Tool"
@@ -254,6 +272,7 @@
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolMemoryText"
+                                               Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Memory"
                                                FontSize="11"
                                                FontWeight="SemiBold"
@@ -268,6 +287,8 @@
 
                             <!-- Advanced Group: System Repair -->
                             <Button x:Name="ToolSystemRepairBtn"
+                            MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Diagnose and repair Windows system file corruption (SFC, DISM, and CHKDSK)"
                                     AutomationProperties.Name="System Repair Tool"
@@ -281,6 +302,7 @@
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolSystemRepairText"
+                                               Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Repair"
                                                FontSize="11"
                                                FontWeight="SemiBold"
@@ -290,6 +312,8 @@
 
                             <!-- Advanced Group: App Uninstaller -->
                             <Button x:Name="ToolAppUninstallBtn"
+                            MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Installed applications manager, uninstaller &amp; residual bloatware purger"
                                     AutomationProperties.Name="App Uninstaller Tool"
@@ -303,6 +327,7 @@
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolAppUninstallText"
+                                               Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Apps"
                                                FontSize="11"
                                                FontWeight="SemiBold"
@@ -317,6 +342,8 @@
 
                             <!-- Advanced Group: Force Delete Stubborn Files -->
                             <Button x:Name="ToolForceDeleteBtn"
+                            MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Pick stubborn files or folders (locked, read-only, permission-denied) and permanently force delete them"
                                     AutomationProperties.Name="Force Delete Tool"
@@ -330,6 +357,7 @@
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolForceDeleteText"
+                                               Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Force Delete"
                                                FontSize="11"
                                                FontWeight="SemiBold"
@@ -369,8 +397,8 @@
                                 </ControlTemplate>
                             </Button.Template>
                             <Border x:Name="AdminBadgeBorder"
-                                    Background="#142B20"
-                                    BorderBrush="#3D10B981"
+                                    Background="{DynamicResource SuccessSurfaceBrush}"
+                                    BorderBrush="{DynamicResource SuccessBorderSoftBrush}"
                                     BorderThickness="1"
                                     CornerRadius="12"
                                     Height="24"
@@ -382,14 +410,15 @@
                                                Text="&#xE73E;"
                                                FontFamily="{DynamicResource IconFont}"
                                                FontSize="10"
-                                               Foreground="#10B981"
+                                               Foreground="{DynamicResource SuccessAccentBrush}"
                                                Margin="0,0,5,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="AdminBadgeText"
+                                    Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=900}"
                                                Text="Admin"
                                                FontSize="11"
                                                FontWeight="SemiBold"
-                                               Foreground="#34D399"
+                                               Foreground="{DynamicResource SuccessTextBrightBrush}"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
@@ -409,6 +438,7 @@
                                            Margin="0,0,5,0"
                                            VerticalAlignment="Center"/>
                                 <TextBlock x:Name="AboutButtonText"
+                                Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=900}"
                                            Text="About"
                                            FontSize="11"
                                            FontWeight="SemiBold"
@@ -569,7 +599,14 @@
                                        Foreground="{DynamicResource TextMediumBrush}"/>
 
                             <!-- Primary Workflow Action Bar -->
-                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <!-- Horizontally scrollable: at narrow widths the trailing
+                                 actions (Game Boost, CTT WinUtil) were clipped off with no
+                                 way to reach them. Mirrors the category-chip strip below. -->
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                          VerticalScrollBarVisibility="Disabled"
+                                          Focusable="False"
+                                          Margin="0,12,0,0">
+                            <StackPanel Orientation="Horizontal">
                                 <Button x:Name="HeroScanBtn"
                                         Style="{DynamicResource HeroCTAButton}"
                                         FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
@@ -638,7 +675,7 @@
                                                    Text="&#xE7FC;"
                                                    FontFamily="{DynamicResource IconFont}"
                                                    FontSize="11.5"
-                                                   Foreground="#10B981"
+                                                   Foreground="{DynamicResource SuccessAccentBrush}"
                                                    Margin="0,0,6,0"
                                                    VerticalAlignment="Center"/>
                                         <TextBlock x:Name="HeroGameBoostBtnText"
@@ -674,6 +711,7 @@
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
+                            </ScrollViewer>
                         </StackPanel>
 
                         <!-- Right: Dual Drive C: & RAM Telemetry Cards -->
@@ -756,14 +794,14 @@
                                                    VerticalAlignment="Center"/>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <Border x:Name="DriveHealthBadge"
-                                                    Background="#142B20"
-                                                    BorderBrush="#3D10B981"
+                                                    Background="{DynamicResource SuccessSurfaceBrush}"
+                                                    BorderBrush="{DynamicResource SuccessBorderSoftBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="5"
                                                     Padding="5,1"
                                                     Margin="0,0,6,0"
                                                     ToolTip="NVMe / SSD Controller S.M.A.R.T. Health Status">
-                                                <TextBlock x:Name="DriveHealthText" Text="SSD 100%" FontSize="10" FontWeight="Bold" Foreground="#10B981"/>
+                                                <TextBlock x:Name="DriveHealthText" Text="SSD 100%" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource SuccessAccentBrush}"/>
                                             </Border>
                                             <Button x:Name="DriveBenchmarkBtn"
                                                     Content="Speed Test"
@@ -938,7 +976,7 @@
                                 </RadioButton>
                                 <RadioButton x:Name="FilterRulepackRadio" Style="{DynamicResource FilterChipRadio}" Checked="FilterChip_Checked" Tag="RULEPACK">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="&#xE8B7;" FontFamily="{DynamicResource IconFont}" FontSize="10" Foreground="#F472B6" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="&#xE8B7;" FontFamily="{DynamicResource IconFont}" FontSize="10" Foreground="{DynamicResource PinkAccentBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                         <TextBlock x:Name="FilterRulepackText" Text="Rulepacks" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </RadioButton>
@@ -1011,7 +1049,7 @@
                             <!-- Left: Active Scope Indicator -->
                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Border Background="{DynamicResource GlassSurfaceActiveBrush}"
-                                        BorderBrush="#3300F2B0"
+                                        BorderBrush="{DynamicResource AccentHairlineBrush}"
                                         BorderThickness="1"
                                         CornerRadius="6"
                                         Padding="8,2.5"
@@ -1230,7 +1268,7 @@
                                         <Style TargetType="Border" BasedOn="{StaticResource ModernCard}">
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding HasError}" Value="True">
-                                                    <Setter Property="BorderBrush" Value="#EF4444"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource DestructiveRedBrush}"/>
                                                     <Setter Property="BorderThickness" Value="1.5"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
@@ -1269,7 +1307,7 @@
                                                     <Setter Property="BorderThickness" Value="1"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding HasError}" Value="True">
-                                                            <Setter Property="BorderBrush" Value="#EF4444"/>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource DestructiveRedBrush}"/>
                                                             <Setter Property="BorderThickness" Value="1.5"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
@@ -1320,8 +1358,8 @@
                                                 </Border>
 
                                                 <!-- Error Badge -->
-                                                <Border Background="#2A1515"
-                                                        BorderBrush="#EF4444"
+                                                <Border Background="{DynamicResource DangerSurfaceBrush}"
+                                                        BorderBrush="{DynamicResource DestructiveRedBrush}"
                                                         BorderThickness="1"
                                                         CornerRadius="4"
                                                         Padding="6,1"
@@ -1331,12 +1369,12 @@
                                                     <TextBlock Text="ERROR"
                                                                FontSize="10"
                                                                FontWeight="Bold"
-                                                               Foreground="#FCA5A5"/>
+                                                               Foreground="{DynamicResource DestructiveRedTextBrush}"/>
                                                 </Border>
 
                                                 <!-- Discovery Tag Badge -->
-                                                <Border Background="#1E1B4B"
-                                                        BorderBrush="#6366F1"
+                                                <Border Background="{DynamicResource IndigoSurfaceBrush}"
+                                                        BorderBrush="{DynamicResource IndigoAccentBrush}"
                                                         BorderThickness="1"
                                                         CornerRadius="4"
                                                         Padding="6,1"
@@ -1346,7 +1384,7 @@
                                                     <TextBlock Text="{Binding DisplayDiscoveryTag}"
                                                                FontSize="10"
                                                                FontWeight="Bold"
-                                                               Foreground="#A5B4FC"/>
+                                                               Foreground="{DynamicResource IndigoTextBrush}"/>
                                                 </Border>
                                             </WrapPanel>
 
@@ -1365,7 +1403,7 @@
                                             <!-- Error Message -->
                                             <TextBlock Text="{Binding ErrorMessage}"
                                                        FontSize="10"
-                                                       Foreground="#FCA5A5"
+                                                       Foreground="{DynamicResource DestructiveRedTextBrush}"
                                                        Margin="0,3,0,0"
                                                        TextWrapping="Wrap"
                                                        Visibility="{Binding HasError, Converter={StaticResource BoolToVisConverter}}"/>
@@ -1394,7 +1432,7 @@
                                                             <Setter Property="Foreground" Value="{DynamicResource ElectricCyanBrush}"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding HasError}" Value="True">
-                                                                    <Setter Property="Foreground" Value="#FCA5A5"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource DestructiveRedTextBrush}"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -1595,7 +1633,7 @@
                                         <Border x:Name="LogNotificationBadge"
                                                 Width="6" Height="6"
                                                 CornerRadius="3"
-                                                Background="#EF4444"
+                                                Background="{DynamicResource DestructiveRedBrush}"
                                                 HorizontalAlignment="Right"
                                                 VerticalAlignment="Top"
                                                 Margin="0,-2,-2,0"
@@ -1823,7 +1861,7 @@
                   Visibility="Collapsed"
                   AutomationProperties.Name="Large Files Inspector Dialog">
                 <Border Style="{DynamicResource ModernCard}"
-                        MinWidth="420" MaxWidth="660" MaxHeight="520" Margin="16"
+                        MinWidth="420" MaxWidth="660" MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SubtractConverter}, ConverterParameter=64}" Margin="16"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Background="{DynamicResource ModalSurfaceBrush}"
@@ -1939,7 +1977,7 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Confirm Cleanup Dialog">
-                <Border MinWidth="380" MaxWidth="560" MaxHeight="640" Margin="16"
+                <Border MinWidth="380" MaxWidth="560" MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SubtractConverter}, ConverterParameter=64}" Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5"
@@ -2110,7 +2148,9 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Cleanup Completed Celebration Dialog">
-                <Border MinWidth="340" MaxWidth="500" Margin="16"
+                <Border MinWidth="340" MaxWidth="500"
+                        MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SubtractConverter}, ConverterParameter=64}"
+                        Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource EmeraldGreenBrush}"
                         BorderThickness="1.5"
@@ -2121,6 +2161,8 @@
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.4"/>
                     </Border.Effect>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
                     <StackPanel HorizontalAlignment="Center">
                         <!-- Animated Glowing Orb -->
                         <Border Width="60" Height="60"
@@ -2216,6 +2258,7 @@
                                     Click="CloseCelebration_Click"/>
                         </StackPanel>
                     </StackPanel>
+                </ScrollViewer>
                 </Border>
             </Grid>
 
@@ -2225,7 +2268,9 @@
                   Background="{DynamicResource ModalBackdropBrush}"
                   Visibility="Collapsed"
                   AutomationProperties.Name="Deltempo About Dialog">
-                <Border MinWidth="420" MaxWidth="560" Margin="16"
+                <Border MinWidth="420" MaxWidth="560"
+                        MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SubtractConverter}, ConverterParameter=64}"
+                        Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
                         BorderThickness="1.5"
@@ -2236,9 +2281,15 @@
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="40" ShadowDepth="12" Direction="270" Color="#000000" Opacity="0.4"/>
                     </Border.Effect>
-                    <StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                             <RowDefinition Height="Auto"/><!-- 0: Header -->
+                             <RowDefinition Height="*"/>   <!-- 1: Scrollable content -->
+                             <RowDefinition Height="Auto"/><!-- 2: Footer (always reachable) -->
+                        </Grid.RowDefinitions>
+
                         <!-- Header -->
-                        <Grid Margin="0,0,0,18">
+                        <Grid Grid.Row="0" Margin="0,0,0,18">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -2278,7 +2329,9 @@
                         </Grid>
 
                         <!-- Content -->
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="340">
+                        <ScrollViewer Grid.Row="1"
+                                      VerticalScrollBarVisibility="Auto"
+                                      Padding="0,0,8,0">
                             <StackPanel Margin="0,0,0,10">
                                 <TextBlock Text="Deltempo is a free, open-source Windows PC cleaner and NT memory optimizer."
                                            FontSize="12.5"
@@ -2330,14 +2383,15 @@
                         </ScrollViewer>
 
                         <!-- Footer -->
-                        <Button Content="Close"
+                        <Button Grid.Row="2"
+                                Content="Close"
                                 Style="{DynamicResource HeroCTAButton}"
                                 FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                 Padding="22,8"
                                 HorizontalAlignment="Center"
                                 Margin="0,10,0,0"
                                 Click="CloseAbout_Click"/>
-                    </StackPanel>
+                    </Grid>
                 </Border>
             </Grid>
 
@@ -2348,7 +2402,7 @@
                   Visibility="Collapsed"
                   AutomationProperties.Name="Deltempo Settings Dialog">
                 <Border MinWidth="480" MaxWidth="600"
-                        MaxHeight="680"
+                        MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SubtractConverter}, ConverterParameter=64}"
                         Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
@@ -3614,6 +3668,7 @@
                   Visibility="Collapsed"
                   AutomationProperties.Name="Deltempo Update Available Dialog">
                 <Border MaxWidth="520"
+                        MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SubtractConverter}, ConverterParameter=64}"
                         Margin="16"
                         Background="{DynamicResource ModalSurfaceBrush}"
                         BorderBrush="{DynamicResource ElectricCyanBrush}"
@@ -3845,18 +3900,18 @@
 
                                 <!-- Pod 2: High Impact -->
                                 <Border Grid.Column="1"
-                                        Background="#241B12"
-                                        BorderBrush="#8CF59E0B"
+                                        Background="{DynamicResource WarningSurfaceBrush}"
+                                        BorderBrush="{DynamicResource WarningBorderSoftBrush}"
                                         BorderThickness="1"
                                         CornerRadius="8"
                                         Padding="12,7"
                                         Margin="2,0,3,0">
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Ellipse Width="6" Height="6" Fill="#F59E0B" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="HIGH IMPACT" FontSize="10" FontWeight="Bold" Foreground="#F59E0B" VerticalAlignment="Center"/>
+                                            <Ellipse Width="6" Height="6" Fill="{DynamicResource AmberWarningBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="HIGH IMPACT" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource AmberWarningBrush}" VerticalAlignment="Center"/>
                                         </StackPanel>
-                                        <TextBlock x:Name="StartupHighImpactHeroText" Text="0 high impact" FontSize="13" FontWeight="Bold" Foreground="#FBBF24" Margin="0,2,0,0"/>
+                                        <TextBlock x:Name="StartupHighImpactHeroText" Text="0 high impact" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AmberWarningBrush}" Margin="0,2,0,0"/>
                                     </StackPanel>
                                 </Border>
 
@@ -3876,18 +3931,18 @@
 
                                 <!-- Pod 4: Cleanable Orphaned -->
                                 <Border Grid.Column="3"
-                                        Background="#2A0E0E"
-                                        BorderBrush="#EF4444"
+                                        Background="{DynamicResource DangerSurfaceBrush}"
+                                        BorderBrush="{DynamicResource DestructiveRedBrush}"
                                         BorderThickness="1"
                                         CornerRadius="8"
                                         Padding="12,7"
                                         Margin="2,0,4,0">
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Ellipse Width="6" Height="6" Fill="#EF4444" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="ORPHANED BROKEN" FontSize="10" FontWeight="Bold" Foreground="#F87171" VerticalAlignment="Center"/>
+                                            <Ellipse Width="6" Height="6" Fill="{DynamicResource DestructiveRedBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="ORPHANED BROKEN" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource DestructiveRedSoftBrush}" VerticalAlignment="Center"/>
                                         </StackPanel>
-                                        <TextBlock x:Name="StartupOrphanedHeroText" Text="0 cleanable" FontSize="13" FontWeight="Bold" Foreground="#FCA5A5" Margin="0,2,0,0"/>
+                                        <TextBlock x:Name="StartupOrphanedHeroText" Text="0 cleanable" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource DestructiveRedTextBrush}" Margin="0,2,0,0"/>
                                     </StackPanel>
                                 </Border>
 
@@ -4104,8 +4159,8 @@
                                                                     </Border>
 
                                                                     <!-- AI Verified Badge -->
-                                                                    <Border Background="#1A10B981"
-                                                                            BorderBrush="#3310B981"
+                                                                    <Border Background="{DynamicResource SuccessSurfaceBrush}"
+                                                                            BorderBrush="{DynamicResource SuccessBorderSoftBrush}"
                                                                             BorderThickness="1"
                                                                             CornerRadius="4"
                                                                             Padding="4,1"
@@ -4116,7 +4171,7 @@
                                                                         <TextBlock Text="AI BRIEFED"
                                                                                    FontSize="10"
                                                                                    FontWeight="Bold"
-                                                                                   Foreground="#10B981"/>
+                                                                                   Foreground="{DynamicResource SuccessAccentBrush}"/>
                                                                     </Border>
                                                                 </StackPanel>
 
@@ -4209,8 +4264,8 @@
 
                                                             <!-- Protected Badge -->
                                                             <Border Visibility="{Binding ProtectedBadgeVisibility}"
-                                                                    Background="#142B20"
-                                                                    BorderBrush="#3D10B981"
+                                                                    Background="{DynamicResource SuccessSurfaceBrush}"
+                                                                    BorderBrush="{DynamicResource SuccessBorderSoftBrush}"
                                                                     BorderThickness="1"
                                                                     CornerRadius="6"
                                                                     Padding="6,2"
@@ -4219,7 +4274,7 @@
                                                                 <TextBlock Text="⊘ Protected"
                                                                            FontSize="10.5"
                                                                            FontWeight="SemiBold"
-                                                                           Foreground="#34D399"/>
+                                                                           Foreground="{DynamicResource SuccessTextBrightBrush}"/>
                                                             </Border>
                                                         </StackPanel>
 
@@ -4252,8 +4307,8 @@
                                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                                     <TextBlock Text="&#xE946;" FontFamily="{DynamicResource IconFont}" FontSize="11" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                                                     <TextBlock Text="Startup Intelligence Briefing" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextHighBrush}"/>
-                                                                    <Border Background="#143B82F6" CornerRadius="3" Padding="5,1" Margin="6,0,0,0" VerticalAlignment="Center">
-                                                                        <TextBlock Text="{Binding AiProviderUsed, FallbackValue='Offline Intelligence'}" FontSize="10" FontWeight="SemiBold" Foreground="#60A5FA"/>
+                                                                    <Border Background="{DynamicResource InfoAccentBrush}" CornerRadius="3" Padding="5,1" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                                        <TextBlock Text="{Binding AiProviderUsed, FallbackValue='Offline Intelligence'}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource InfoAccentBrush}"/>
                                                                     </Border>
                                                                 </StackPanel>
                                                                 <Button Style="{DynamicResource WindowCloseButton}"
@@ -4401,35 +4456,35 @@
 
                                 <!-- Pod 2: 100% Safe to Reclaim (Emerald Glow) -->
                                 <Border Grid.Column="1"
-                                        Background="#0D2818"
-                                        BorderBrush="#10B981"
+                                        Background="{DynamicResource SuccessSurfaceBrush}"
+                                        BorderBrush="{DynamicResource SuccessAccentBrush}"
                                         BorderThickness="1"
                                         CornerRadius="8"
                                         Padding="14,8"
                                         Margin="2,0,2,0">
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Ellipse Width="6" Height="6" Fill="#10B981" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="100% SAFE TO RECLAIM" FontSize="10" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center"/>
+                                            <Ellipse Width="6" Height="6" Fill="{DynamicResource SuccessAccentBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="100% SAFE TO RECLAIM" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource SuccessAccentBrush}" VerticalAlignment="Center"/>
                                         </StackPanel>
-                                        <TextBlock x:Name="LargeFilesSafeStorageText" Text="0 B (0 safe)" FontSize="13.5" FontWeight="Bold" Foreground="#34D399" Margin="0,3,0,0"/>
+                                        <TextBlock x:Name="LargeFilesSafeStorageText" Text="0 B (0 safe)" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource SuccessTextBrightBrush}" Margin="0,3,0,0"/>
                                     </StackPanel>
                                 </Border>
 
                                 <!-- Pod 3: Protected Game/App Files (Crimson Shield) -->
                                 <Border Grid.Column="2"
-                                        Background="#2A0E0E"
-                                        BorderBrush="#EF4444"
+                                        Background="{DynamicResource DangerSurfaceBrush}"
+                                        BorderBrush="{DynamicResource DestructiveRedBrush}"
                                         BorderThickness="1"
                                         CornerRadius="8"
                                         Padding="14,8"
                                         Margin="4,0,0,0">
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Ellipse Width="6" Height="6" Fill="#EF4444" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="PROTECTED APP &amp; SYSTEM" FontSize="10" FontWeight="Bold" Foreground="#F87171" VerticalAlignment="Center"/>
+                                            <Ellipse Width="6" Height="6" Fill="{DynamicResource DestructiveRedBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="PROTECTED APP &amp; SYSTEM" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource DestructiveRedSoftBrush}" VerticalAlignment="Center"/>
                                         </StackPanel>
-                                        <TextBlock x:Name="LargeFilesProtectedStorageText" Text="0 B (0 protected)" FontSize="13.5" FontWeight="Bold" Foreground="#FCA5A5" Margin="0,3,0,0"/>
+                                        <TextBlock x:Name="LargeFilesProtectedStorageText" Text="0 B (0 protected)" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource DestructiveRedTextBrush}" Margin="0,3,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </Grid>
