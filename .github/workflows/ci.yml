@@ -43,7 +43,13 @@ jobs:
       - name: Run xUnit Test Suite with Coverage Collection
         shell: pwsh
         run: |
-          dotnet tool install --global dotnet-coverage --version 18.*
+          # Pinned, not floated. "18.*" let the runner resolve to whatever 18.x shipped that day,
+          # so the gate could go red without any change to this repository.
+          dotnet tool install --global dotnet-coverage --version 18.11.2
+          # A --global tool installed during a step is not reliably resolvable later in that same
+          # step, because GITHUB_PATH only takes effect for subsequent steps. Resolve the directory
+          # explicitly so this cannot fail with "dotnet-coverage is not recognised".
+          $env:Path = (Join-Path $env:USERPROFILE '.dotnet/tools') + [IO.Path]::PathSeparator + $env:Path
           dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
           dotnet-coverage collect cmd /c scripts/run_tests_for_coverage.cmd --nologo -f cobertura -o Tests/Deltempo.Tests/TestResults/coverage.cobertura.xml
       - name: Enforce Coverage Threshold
