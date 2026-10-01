@@ -1079,7 +1079,7 @@ public partial class MainWindow : Window
         yield return ForceDeleteModalOverlay;
     }
 
-/// <summary>
+    /// <summary>
     /// WPF paints later siblings on top, so an overlay that merely opens can end up *under*
     /// another one that happens to be declared after it in the XAML. Promoting the overlay that
     /// just became visible keeps the most recently opened surface on top regardless of the

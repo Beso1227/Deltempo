@@ -258,7 +258,7 @@ public static class RootLeftoverScannerService
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Public")
         };
 
-foreach (var root in candidateRoots)
+        foreach (var root in candidateRoots)
         {
             if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root)) continue;
 

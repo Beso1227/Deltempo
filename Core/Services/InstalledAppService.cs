@@ -558,7 +558,7 @@ public static class InstalledAppService
             Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)
         };
 
-foreach (var root in targetRoots)
+        foreach (var root in targetRoots)
         {
             if (!Directory.Exists(root)) continue;
 
