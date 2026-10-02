@@ -150,8 +150,8 @@
                             Background="{DynamicResource SurfaceSubCardBrush}"
                             BorderBrush="{DynamicResource HairlineBorderBrush}"
                             BorderThickness="1"
-                            CornerRadius="10"
-                            Padding="3">
+                            CornerRadius="12"
+                            Padding="5">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <!-- Main: Storage Cleaner Workspace -->
                             <Button x:Name="ToolCleanerBtn"
@@ -179,9 +179,9 @@
                             </Button>
 
                             <!-- Subtle Vertical Separator -->
-                            <Border Width="1" Height="16"
+                            <Border Width="1" Height="18"
                                     Background="{DynamicResource HairlineBorderBrush}"
-                                    Margin="3,0"/>
+                                    Margin="5,0"/>
 
                             <!-- Tools Group: Storage & Startup -->
                             <Button x:Name="ToolLargeFilesBtn"
@@ -230,9 +230,9 @@
                             </Button>
 
                             <!-- Subtle Vertical Separator -->
-                            <Border Width="1" Height="16"
+                            <Border Width="1" Height="18"
                                     Background="{DynamicResource HairlineBorderBrush}"
-                                    Margin="3,0"/>
+                                    Margin="5,0"/>
 
                             <!-- Optimize Group: Processes & Memory -->
                             <Button x:Name="ToolProcessesBtn"
@@ -281,9 +281,9 @@
                             </Button>
 
                             <!-- Subtle Vertical Separator -->
-                            <Border Width="1" Height="16"
+                            <Border Width="1" Height="18"
                                     Background="{DynamicResource HairlineBorderBrush}"
-                                    Margin="3,0"/>
+                                    Margin="5,0"/>
 
                             <!-- Advanced Group: System Repair -->
                             <Button x:Name="ToolSystemRepairBtn"
@@ -336,9 +336,9 @@
                             </Button>
 
                             <!-- Subtle Vertical Separator -->
-                            <Border Width="1" Height="16"
+                            <Border Width="1" Height="18"
                                     Background="{DynamicResource HairlineBorderBrush}"
-                                    Margin="3,0"/>
+                                    Margin="5,0"/>
 
                             <!-- Advanced Group: Force Delete Stubborn Files -->
                             <Button x:Name="ToolForceDeleteBtn"
