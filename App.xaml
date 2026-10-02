@@ -471,7 +471,10 @@
             <Setter Property="Padding" Value="12,4"/>
             <Setter Property="MinHeight" Value="{DynamicResource NavItemHeight}"/>
             <Setter Property="MinWidth" Value="{DynamicResource MinTouchTarget}"/>
-            <Setter Property="Margin" Value="1,0"/>
+            <!-- 1px on each side left adjacent capsules visually touching: at CornerRadius 7 the
+                 neighbouring rounded corners merged into one blob. A 4px gutter keeps each pill
+                 reading as its own target while staying inside the compact segmented bar. -->
+            <Setter Property="Margin" Value="4,0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -491,7 +494,12 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="Tag" Value="Active">
                                 <Setter TargetName="border" Property="Background" Value="{DynamicResource GlassSurfaceActiveBrush}"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="#6600F2B0"/>
+                                <!-- The selection outline was BorderThickness 1 at #6600F2B0, only 40%
+                                     alpha, which read as a faint smudge rather than "you are here".
+                                     Thicken it and raise the alpha so the active pill is
+                                     unmistakable against its neighbours. -->
+                                <Setter TargetName="border" Property="BorderBrush" Value="#CC00F2B0"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="1.6"/>
                                 <Setter Property="Foreground" Value="{DynamicResource ElectricCyanBrush}"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
