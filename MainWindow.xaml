@@ -152,7 +152,20 @@
                             BorderThickness="1"
                             CornerRadius="12"
                             Padding="5">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Lifts the island off the header dock so it reads as a floating
+                             control surface instead of a flat inset panel. -->
+                        <Border.Effect>
+                            <DropShadowEffect Color="Black" BlurRadius="16" ShadowDepth="0" Opacity="0.45"/>
+                        </Border.Effect>
+                        <Grid>
+                            <!-- 1px glass highlight along the top inner edge: a faint mint
+                                 gradient that catches the eye on the most-read control. -->
+                            <Border VerticalAlignment="Top"
+                                    Height="1"
+                                    Margin="1,0,1,0"
+                                    Background="{DynamicResource GlassTopBorderBrush}"
+                                    IsHitTestVisible="False"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <!-- Main: Storage Cleaner Workspace -->
                             <Button x:Name="ToolCleanerBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
@@ -164,9 +177,9 @@
                                     Click="NavCleaner_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE856;"
+                                               Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
                                                FontSize="10.5"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolCleanerText"
@@ -193,9 +206,9 @@
                                     Click="OpenLargeFilesModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE8B7;"
+                                               Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
                                                FontSize="10.5"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolLargeFilesText"
@@ -215,9 +228,9 @@
                                     Click="OpenStartupModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE7B5;"
+                                               Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
                                                FontSize="10.5"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolStartupText"
@@ -244,9 +257,9 @@
                                     Click="OpenProcessModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE9F5;"
+                                               Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
                                                FontSize="10.5"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolProcessesText"
@@ -266,9 +279,9 @@
                                     Click="OpenMemoryCleanerModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE950;"
+                                               Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
                                                FontSize="10.5"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolMemoryText"
@@ -296,9 +309,9 @@
                                     Click="OpenSystemRepairModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE74C;"
+                                               Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
                                                FontSize="10.5"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolSystemRepairText"
@@ -321,9 +334,9 @@
                                     Click="OpenAppUninstallModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE71D;"
+                                               Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
                                                FontSize="10.5"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"
                                                Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolAppUninstallText"
@@ -351,9 +364,9 @@
                                     Click="OpenForceDeleteModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE74D;"
+                                               Style="{DynamicResource NavIconDangerStyle}"
                                                FontFamily="{DynamicResource IconFont}"
                                                FontSize="10.5"
-                                               Foreground="{DynamicResource DestructiveRedBrush}"
                                                Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolForceDeleteText"
@@ -365,6 +378,7 @@
                                 </StackPanel>
                             </Button>
                         </StackPanel>
+                        </Grid>
                     </Border>
 
                     <!-- Right: Dedicated Admin Status & Quick Preferences Pod -->

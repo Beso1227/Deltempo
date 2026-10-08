@@ -160,6 +160,19 @@
             <GradientStop Color="#0800BFA5" Offset="1.0"/>
         </LinearGradientBrush>
 
+        <!-- Top-nav icon states. Every tab icon used to render at full mint intensity, which
+             flattened the bar into a row of identical chips. Resting icons are now muted
+             slates; the brand accent only ignites on hover and on the active pill, so the
+             selected tab is the single bright focal point of the header. -->
+        <SolidColorBrush x:Key="NavIconMutedBrush" Color="#5E6E80"/>
+        <SolidColorBrush x:Key="NavIconHoverBrush" Color="#9FB0C3"/>
+        <!-- Destructive tab (Force Delete): a muted rose instead of harsh red, so the bar's
+             tone stays calm while still signalling "this one destroys things". -->
+        <SolidColorBrush x:Key="NavIconDangerMutedBrush" Color="#8C4B58"/>
+        <SolidColorBrush x:Key="NavIconDangerHoverBrush" Color="#F87171"/>
+        <!-- Halo colour under the active pill; re-themed per appearance in ThemeService. -->
+        <Color x:Key="NavActiveGlowColor">#00F2B0</Color>
+
         <!-- WCAG 2.2 AA Focus Visual Style -->
         <Style x:Key="AccessibleFocusVisualStyle">
             <Setter Property="Control.Template">
@@ -461,7 +474,9 @@
         <Style x:Key="HeaderToolButton" TargetType="Button">
             <Setter Property="FocusVisualStyle" Value="{StaticResource AccessibleFocusVisualStyle}"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
+            <!-- Inactive pills rest at medium contrast and lift to high on hover/select,
+                 so the segmented bar reads as one calm surface with a single bright tab. -->
+            <Setter Property="Foreground" Value="{DynamicResource TextMediumBrush}"/>
             <Setter Property="FontFamily" Value="{DynamicResource AppFont}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <!-- Type-scale step, and a real hit target. This is the primary navigation control and
@@ -500,11 +515,24 @@
                                      unmistakable against its neighbours. -->
                                 <Setter TargetName="border" Property="BorderBrush" Value="#CC00F2B0"/>
                                 <Setter TargetName="border" Property="BorderThickness" Value="1.6"/>
-                                <Setter Property="Foreground" Value="{DynamicResource ElectricCyanBrush}"/>
+                                <!-- Label stays high-contrast white; the mint accent lives in the
+                                     icon and the halo so the tab name never loses readability. -->
+                                <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
+                                <!-- Soft brand halo: a zero-depth shadow bleeding a few pixels past
+                                     the pill's corners lifts the selected tab off the island. -->
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="{DynamicResource NavActiveGlowColor}"
+                                                          BlurRadius="14"
+                                                          ShadowDepth="0"
+                                                          Opacity="0.3"/>
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="{DynamicResource SurfaceCardHoverBrush}"/>
                                 <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource HairlineBorderBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
                                 <Setter TargetName="border" Property="RenderTransform">
                                     <Setter.Value>
                                         <TranslateTransform Y="-0.5"/>
@@ -531,6 +559,34 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <!-- Icon chip for top-nav tabs (brand ramp). Muted at rest, slate-bright on hover,
+             full mint on the active pill. The parent Button's Tag drives the active state,
+             matching how HeaderToolButton marks selection. -->
+        <Style x:Key="NavIconStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource NavIconMutedBrush}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource NavIconHoverBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}" Value="Active">
+                    <Setter Property="Foreground" Value="{DynamicResource ElectricCyanBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Same as NavIconStyle on the destructive ramp, for the Force Delete tab. -->
+        <Style x:Key="NavIconDangerStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource NavIconDangerMutedBrush}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource NavIconDangerHoverBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}" Value="Active">
+                    <Setter Property="Foreground" Value="{DynamicResource RoseErrorBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
 
         <!-- Modern Toggle Switch Checkbox -->

@@ -59,6 +59,13 @@ public static class ThemeService
             res["AccentHairlineBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2600F2B0"));
             res["GlassBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#26FFFFFF"));
 
+            // Top-nav icon states (dark) — see App.xaml for the canonical definitions.
+            res["NavIconMutedBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#5E6E80"));
+            res["NavIconHoverBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9FB0C3"));
+            res["NavIconDangerMutedBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#8C4B58"));
+            res["NavIconDangerHoverBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F87171"));
+            res["NavActiveGlowColor"] = (Color)ColorConverter.ConvertFromString("#00F2B0");
+
             // Buttons & Controls
             res["PillButtonBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0F161C"));
             res["PillButtonHoverBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#152028"));
@@ -186,6 +193,13 @@ public static class ThemeService
             res["IndigoTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3730A3"));
             res["AccentHairlineBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#330D9488"));
             res["GlassBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1F2937"));
+
+            // Top-nav icon states (light) — muted slates stay readable on the porcelain header.
+            res["NavIconMutedBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#64748B"));
+            res["NavIconHoverBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#334155"));
+            res["NavIconDangerMutedBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#BE123C"));
+            res["NavIconDangerHoverBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9F1239"));
+            res["NavActiveGlowColor"] = (Color)ColorConverter.ConvertFromString("#0D9488");
 
             // Buttons & Controls (Clean Slate 50 with crisp borders)
             res["PillButtonBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));
