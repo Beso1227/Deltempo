@@ -139,14 +139,14 @@ public static class FileSafetyEngine
                 };
 
                 return CreateResult(
-                    SafetyRiskTier.Safe,
-                    90,
-                    "SAFE (Older Downloaded Installer)",
-                    "SAFE DOWNLOAD",
-                    $"{desc} older than 48 hours ({FormatBytes(fileSizeBytes)}). Safe to purge if the software is already installed.",
+                    SafetyRiskTier.ReviewRequired,
+                    70,
+                    "REVIEW REQUIRED (Older Downloaded Installer)",
+                    "REVIEW DOWNLOAD",
+                    $"{desc} older than 48 hours ({FormatBytes(fileSizeBytes)}). May still be needed; verify the software is installed and the file is disposable before deletion.",
                     "OlderDownloadRule",
                     origin: "Downloads / Temp Staging",
-                    impact: "Re-download required if installation is needed in the future.");
+                    impact: "User verification required; re-download required if installation is needed in the future.");
             }
 
             // Executables or archives in unrecognized folders or recently downloaded -> REVIEW REQUIRED

@@ -118,7 +118,10 @@ public static class CleanupExecutor
             StartTimeUtc = DateTime.UtcNow
         };
 
-        var rootsList = allowedRoots?.Where(r => !string.IsNullOrWhiteSpace(r)).ToList();
+        // Fail closed: a null or empty root set must never authorize unrestricted deletion.
+        var rootsList = allowedRoots == null
+            ? new List<string>()
+            : allowedRoots.Where(r => !string.IsNullOrWhiteSpace(r)).ToList();
 
         // Enforce maximum file management privileges (Backup, Restore, TakeOwnership, Debug)
         ProcessPrivilegeService.EnableRequiredPrivileges();
@@ -549,10 +552,18 @@ public static class CleanupExecutor
             return false;
         }
 
-        // Verify file still strictly resides inside designated cleanup roots
-        var rootsList = allowedRoots?.Where(r => !string.IsNullOrEmpty(r)).ToList();
-        if (rootsList != null && rootsList.Count > 0)
+        // Verify file still strictly resides inside designated cleanup roots.
+        // Non-null but empty scope fails closed; null means explicitly unrestricted.
+        if (allowedRoots != null)
         {
+            var rootsList = allowedRoots.Where(r => !string.IsNullOrEmpty(r)).ToList();
+            if (rootsList.Count == 0)
+            {
+                failureReason = "No cleanup root designated; deletion skipped.";
+                reasonCode = FileCleanupFailureReason.PathEscapedRoot;
+                return false;
+            }
+
             if (!rootsList.Any(root => PathSecurity.IsSubpathOf(canonicalPath, root)))
             {
                 failureReason = "Path is not inside designated cleanup root.";

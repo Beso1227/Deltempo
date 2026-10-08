@@ -747,7 +747,9 @@ public static class RootLeftoverScannerService
 
         try
         {
-            using var crKey = Registry.ClassesRoot;
+            // Fresh per-call handle: disposing the static Registry.ClassesRoot would
+            // break every later HKCR access in the process.
+            using var crKey = RegistryKey.OpenBaseKey(RegistryHive.ClassesRoot, RegistryView.Default);
             if (crKey == null) return;
 
             // Check potential protocol schemes matching app name

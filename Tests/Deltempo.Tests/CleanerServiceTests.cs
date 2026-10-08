@@ -675,15 +675,15 @@ Signer Name:        Microsoft Windows Hardware Compatibility Publisher
     }
 
     [Fact]
-    public void FileSafetyEngine_DownloadsInstaller_ClassifiesAsSafeToClean()
+    public void FileSafetyEngine_DownloadsInstaller_ClassifiesAsReviewRequired()
     {
         string path = @"C:\Users\JohnDoe\Downloads\Win11_23H2_English_x64.iso";
         var result = FileSafetyEngine.Analyze(path, fileName: "Win11_23H2_English_x64.iso", category: "Installer / ISO", sizeBytes: 5L * 1024 * 1024 * 1024, lastModified: DateTime.Now.AddDays(-30));
 
-        Assert.Equal(SafetyRiskTier.Safe, result.Tier);
-        Assert.True(result.IsSafeToClean);
-        Assert.True(result.SafetyScore >= 90);
-        Assert.Contains("SAFE", result.Verdict);
+        Assert.Equal(SafetyRiskTier.ReviewRequired, result.Tier);
+        Assert.False(result.IsSafeToClean);
+        Assert.Contains("REVIEW", result.Verdict);
+        Assert.Contains("48 hours", result.Explanation);
     }
 
     [Fact]

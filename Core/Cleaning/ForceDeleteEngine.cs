@@ -288,8 +288,15 @@ public static class ForceDeleteEngine
                 result.FilesDeleted++;
                 result.Attempts.Add(new ForceDeleteAttempt(normalized, ForceDeleteStage.Delete, true, 0, "Moved to Recycle Bin."));
                 log?.Invoke($"Recycled: {normalized}", LogLevel.Success);
-                return;
             }
+            else
+            {
+                // Recycle requested but failed: never fall through to a permanent delete.
+                result.FailedCount++;
+                result.Attempts.Add(new ForceDeleteAttempt(normalized, ForceDeleteStage.Delete, false, 0, "Recycle Bin operation failed; permanent deletion skipped."));
+                log?.Invoke($"[Shield] Recycle failed for {normalized}; skipping permanent deletion.", LogLevel.Warning);
+            }
+            return;
         }
 
         bool isDirectory = Directory.Exists(normalized);

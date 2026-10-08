@@ -588,11 +588,14 @@ public static class RootLeftoverPurgeService
         string hive = clean.Substring(0, firstSlash);
         string subKey = clean.Substring(firstSlash + 1);
 
+        // OpenBaseKey returns a fresh, per-call handle: every caller wraps the result in
+        // `using`, and disposing the static Registry.CurrentUser/LocalMachine/ClassesRoot
+        // objects would break every later registry access in the process.
         RegistryKey root = hive.ToUpperInvariant() switch
         {
-            "HKCU" or "HKEY_CURRENT_USER" => Registry.CurrentUser,
-            "HKLM" or "HKEY_LOCAL_MACHINE" => Registry.LocalMachine,
-            "HKCR" or "HKEY_CLASSES_ROOT" => Registry.ClassesRoot,
+            "HKCU" or "HKEY_CURRENT_USER" => RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default),
+            "HKLM" or "HKEY_LOCAL_MACHINE" => RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default),
+            "HKCR" or "HKEY_CLASSES_ROOT" => RegistryKey.OpenBaseKey(RegistryHive.ClassesRoot, RegistryView.Default),
             _ => null!
         };
 

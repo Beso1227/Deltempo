@@ -56,7 +56,7 @@ public class FileSafetyEngineTests
     }
 
     [Fact]
-    public void Analyze_OlderInstallerInDownloads_ReturnsSafe()
+    public void Analyze_OlderInstallerInDownloads_ReturnsReviewRequired()
     {
         string filePath = @"C:\Users\JohnDoe\Downloads\setup_bundle.exe";
         var result = FileSafetyEngine.Analyze(
@@ -66,9 +66,10 @@ public class FileSafetyEngineTests
             sizeBytes: 50 * 1024 * 1024,
             lastModified: DateTime.UtcNow.AddDays(-10)); // 10 days old
 
-        Assert.Equal(SafetyRiskTier.Safe, result.Tier);
-        Assert.True(result.SafetyScore >= 90);
-        Assert.Contains("SAFE", result.Verdict);
+        Assert.Equal(SafetyRiskTier.ReviewRequired, result.Tier);
+        Assert.False(result.IsSafeToClean);
+        Assert.Contains("REVIEW", result.Verdict);
+        Assert.Contains("48 hours", result.Explanation);
     }
 
     [Fact]
