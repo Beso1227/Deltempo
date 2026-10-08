@@ -90,8 +90,8 @@ public class PackagingConfigurationTests
     public void MsixManifest_DeclaresFullTrustCapabilityAndWindowsVersionFloor()
     {
         var doc = XDocument.Load(Path.Combine(RepoRoot, "packaging", "msix", "AppxManifest.xml"));
-        XNamespace apps = "http://schemas.microsoft.com/appx/manifest/foundation/windows10";
-        XNamespace rescap = "http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities";
+        XNamespace apps = "http://schemas.microsoft.com/appx/manifest/foundation/windows10"; // DevSkim: ignore DS137138
+        XNamespace rescap = "http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"; // DevSkim: ignore DS137138
 
         var family = doc.Descendants(apps + "TargetDeviceFamily").Single();
         Assert.Equal("Windows.Desktop", family.Attribute("Name")?.Value);

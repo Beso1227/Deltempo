@@ -37,7 +37,7 @@ public class DuplicateScanBenchmarks
         Directory.CreateDirectory(sandbox);
         try
         {
-            var random = new Random(20261008);
+            var random = new Random(20261008); // DevSkim: ignore DS148264
 
             // Same-size unique payloads force every candidate through the full-hash stage,
             // which is exactly the path Phase 1 retargeted to BLAKE3.
@@ -87,14 +87,14 @@ public class DuplicateScanBenchmarks
         const int payloadSize = 64 * 1024 * 1024;
         const int iterations = 5;
         var payload = new byte[payloadSize];
-        new Random(20261008).NextBytes(payload);
+        new Random(20261008).NextBytes(payload); // DevSkim: ignore DS148264
 
         // Warm up JIT (including runtime SIMD path selection) so first-call compilation
         // cost does not dominate the measurement.
         WarmUpSha256(payload);
         WarmUpBlake3(payload);
 
-        var sha256Times = new double[iterations];
+        var sha256Times = new double[iterations]; // DevSkim: ignore DS197836
         var blake3Times = new double[iterations];
         string sha256Hex = string.Empty;
         string blake3Hex = string.Empty;
@@ -108,7 +108,7 @@ public class DuplicateScanBenchmarks
                 sha256Hex = Convert.ToHexString(sha256.ComputeHash(stream));
             }
             shaWatch.Stop();
-            sha256Times[i] = shaWatch.Elapsed.TotalMilliseconds;
+            sha256Times[i] = shaWatch.Elapsed.TotalMilliseconds; // DevSkim: ignore DS197836
 
             var blakeWatch = Stopwatch.StartNew();
             using (var stream = new MemoryStream(payload, writable: false))
@@ -126,7 +126,7 @@ public class DuplicateScanBenchmarks
             blake3Times[i] = blakeWatch.Elapsed.TotalMilliseconds;
         }
 
-        double sha256Ms = Median(sha256Times);
+        double sha256Ms = Median(sha256Times); // DevSkim: ignore DS197836
         double blake3Ms = Median(blake3Times);
         double megabytes = payloadSize / (1024.0 * 1024.0);
 
@@ -139,7 +139,7 @@ public class DuplicateScanBenchmarks
         const int headerSize = 4096;
         const int headerIterations = 2000;
         var header = new byte[headerSize];
-        new Random(20261008).NextBytes(header);
+        new Random(20261008).NextBytes(header); // DevSkim: ignore DS148264
         _ = Convert.ToHexString(SHA256.HashData(header));
         using (var warmup = Hasher.New()) { warmup.Update(header); _ = warmup.Finalize(); }
 
