@@ -46,20 +46,17 @@
   <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
   <link rel="apple-touch-icon" href="app_icon.webp">
 
-  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Self-hosted webfonts: @font-face lives in style.css; preloading both latin
+       files starts the fetch at HTML parse, so the fonts arrive with the
+       stylesheet instead of after a googleapis -> gstatic round-trip chain. -->
+  <link rel="preload" as="font" type="font/woff2" href="fonts/plus-jakarta-sans-latin.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="fonts/jetbrains-mono-latin.woff2" crossorigin>
   <!-- Latest-release lookup (inline script at the end of <body>) reuses this socket
        instead of paying DNS + TCP + TLS after motion.js has already parsed. -->
   <link rel="preconnect" href="https://api.github.com">
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  </noscript>
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=2.7.14">
+  <link rel="stylesheet" href="style.css?v=2.7.15">
 
   <!-- Web App Manifest (PWA installability) -->
   <link rel="manifest" href="manifest.json?v=2.7.14">
@@ -867,29 +864,17 @@
         </div>
       </div>
     <script>
-      /* Reveal above-the-fold content while the document is still parsing.
+      /* Reveal the hero synchronously while the document is still parsing.
          motion.js is deferred, so without this the hero stays at opacity:0
-         until that file has downloaded, which delays FCP, LCP and Speed Index.
-         Gated on document.fonts.ready: revealing before the webfont swap
-         makes the fallback->webfont reflow count toward CLS, so keep the
-         hero hidden until glyphs settle (timeout fallback keeps FCP safe).
-         Anything still below the fold keeps its scroll-reveal (motion.js). */
+         until that file has downloaded, which costs FCP, LCP and Speed Index.
+         The hero is the first section, so it is above the fold by
+         construction - no rect reads, no reflows. Google Fonts loads with
+         display=swap, so text paints as soon as the stylesheet lands.
+         Anything below the fold keeps its scroll-reveal (motion.js). */
       (function () {
-        function revealAboveFold() {
-          var els = document.querySelectorAll('.reveal-on-scroll');
-          for (var i = 0; i < els.length; i++) {
-            if (els[i].getBoundingClientRect().top < window.innerHeight) {
-              els[i].classList.add('revealed');
-            }
-          }
-        }
-        var done = false;
-        function once() { if (!done) { done = true; revealAboveFold(); } }
-        if (document.fonts && document.fonts.ready) {
-          document.fonts.ready.then(once);
-          setTimeout(once, 1200);
-        } else {
-          once();
+        var els = document.querySelectorAll('.hero .reveal-on-scroll');
+        for (var i = 0; i < els.length; i++) {
+          els[i].classList.add('revealed');
         }
       })();
     </script>
@@ -914,7 +899,7 @@
             <div class="video-player-container">
               <video
                 id="launchVideo" controls preload="none"
-                poster="deltempo-poster.webp"
+                poster="deltempo-poster-1024.webp"
                 playsinline
                 class="responsive-launch-video"
                 aria-label="Deltempo 22-second official launch overview video"
