@@ -113,7 +113,14 @@ public class ViewModelCommandTests
         Assert.False(cmd.CanExecute("anything"));
 
         release.SetResult();
-        await Task.Delay(50);
+
+        // Poll instead of a fixed delay: the re-enable happens on a thread-pool
+        // continuation, which can take longer than 50 ms on a loaded CI runner.
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+        while (!cmd.CanExecute(null) && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(10);
+        }
 
         Assert.True(cmd.CanExecute(null));
     }
