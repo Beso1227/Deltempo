@@ -1,14 +1,28 @@
 using System.Text;
 using WinTempCleaner.Core.Safety;
+using System.IO;
 using Xunit;
 
+namespace Deltempo.Tests;
+
+/// <summary>
+/// Property-based fuzzing for the path canonicalizer.
+///
+/// The plan called for SharpFuzz (libFuzzer) against PathSecurity. That needs a native
+/// libFuzzer binary and a specially-shaped harness, which cannot run in normal CI or on a
+/// contributor machine. This achieves the same objective - prove no traversal payload can
+/// slip past canonicalization - as a deterministic in-process fuzz run, so it executes on
+/// every build and is reproducible via a fixed seed.
+///
+/// The generator deliberately targets the shapes that break naive canonicalizers:
+/// traversal segments, device prefixes, ADS streams, reserved device names, 8.3 short
+/// names, overlong paths, and mixed separators.
+///
+/// Run the million-case campaign locally with the FuzzDeep trait:
+///   Deltempo.Tests.exe --filter "Category=FuzzDeep"
+/// </summary>
 public class PathSecurityFuzzTests
 {
-
-public class PathSecurityFuzzTests
-{
-
-
     // Fixed seed => a failure is always reproducible from the printed input.
     private const int Seed = 0x5EED_2024;
     private const int DefaultCases = 100_000;
@@ -133,7 +147,7 @@ public class PathSecurityFuzzTests
 
     private static void RunFuzz(int cases, bool includeMutations)
     {
-        var rng = new Random(Seed);
+        var rng = new Random(Seed); // DevSkim: ignore DS148264
 
         for (var i = 0; i < cases; i++)
         {

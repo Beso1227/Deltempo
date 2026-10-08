@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Deltempo.Tests;
 
+[Collection("SettingsService")]
 public class CliRunnerTests : IDisposable
 {
     private readonly string _testSandboxDir;

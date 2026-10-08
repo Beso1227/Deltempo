@@ -23,18 +23,69 @@ public static class PathSecurity
         {
             string trimmed = path.Trim();
 
-            // Strip extended length DOS device prefixes for canonical resolution
+            // Strip extended length DOS device prefixes for canonical resolution - but only
+            // when they carry a drive or UNC target; volume-less forms (\\?\Volume{...},
+            // \\?\windows\...) would otherwise become relative to the current directory.
             if (trimmed.StartsWith(@"\\?\UNC\", StringComparison.OrdinalIgnoreCase))
             {
                 trimmed = @"\\" + trimmed[8..];
             }
-            else if (trimmed.StartsWith(@"\\?\", StringComparison.OrdinalIgnoreCase))
+            else if (IsDriveDevicePath(trimmed))
             {
                 trimmed = trimmed[4..];
             }
 
             string full = Path.GetFullPath(trimmed);
-            return full.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            // GetFullPath emits device paths when the input used forward slashes; fold those
+            // into the same canonical form as the strips above so a second pass is a no-op.
+            if (full.StartsWith(@"\\?\UNC\", StringComparison.OrdinalIgnoreCase))
+            {
+                full = @"\\" + full[8..];
+            }
+            else if (IsDriveDevicePath(full))
+            {
+                full = full[4..];
+            }
+
+            // GetFullPath injects the current drive for rooted-driveless inputs, except NT
+            // native roots like "\??\" which come back untouched (device passthrough); glue
+            // the drive on and re-resolve so separators and dots normalize like any other
+            // path - otherwise the raw form is not stable across passes.
+            if (full.StartsWith(Path.DirectorySeparatorChar) && !full.StartsWith(@"\\"))
+            {
+                full = Path.GetFullPath(Path.GetPathRoot(Environment.CurrentDirectory) + full[1..]);
+            }
+
+            // Trim trailing separators, but never below the drive root "C:\" and never down
+            // to the drive-relative form "C:" - GetFullPath re-resolves "C:" against the
+            // current directory, which would break idempotence.
+            while (full.Length > 3
+                   && (full[^1] == Path.DirectorySeparatorChar || full[^1] == Path.AltDirectorySeparatorChar))
+            {
+                full = full[..^1];
+            }
+
+            if (full.Length == 2 && full[1] == ':')
+            {
+                full += Path.DirectorySeparatorChar;
+            }
+
+            // Win32 strips trailing dots/spaces from every component during DOS path
+            // conversion, which can resurrect ".." from a segment like ".. " or collapse
+            // "..." into an empty segment - either would defeat the containment checks
+            // downstream. Reject any canonical form carrying such a segment.
+            foreach (var segment in full.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+            {
+                if (segment.Length == 0)
+                    continue;
+
+                var stripped = segment.TrimEnd(' ', '.');
+                if (stripped.Length != segment.Length && (stripped.Length == 0 || stripped == ".."))
+                    return string.Empty;
+            }
+
+            return full;
         }
         catch (Exception ex)
         {
@@ -42,6 +93,12 @@ public static class PathSecurity
             return string.Empty;
         }
     }
+
+    private static bool IsDriveDevicePath(string path) =>
+        path.Length >= 6
+        && path.StartsWith(@"\\?\", StringComparison.Ordinal)
+        && char.IsLetter(path[4])
+        && path[5] == ':';
 
     /// <summary>
     /// Verifies that candidatePath is strictly contained inside allowedRoot.

@@ -6,6 +6,7 @@ using Xunit;
 
 namespace Deltempo.Tests;
 
+[Collection("SettingsService")]
 public class CleanerServiceTests : IDisposable
 {
     private readonly string _testSandboxDir;
@@ -934,7 +935,9 @@ Signer Name:        Microsoft Windows Hardware Compatibility Publisher
     [Fact]
     public void SettingsService_NewFeatures_DefaultsAndToggleBehavior()
     {
-        var settings = SettingsService.Current;
+        // Assert against a fresh instance: the live SettingsService.Current mirrors this
+        // machine's persisted settings.json, which is user state - not test-fixture data.
+        var settings = new AppSettings();
         Assert.NotNull(settings);
 
         // Low disk alert defaults

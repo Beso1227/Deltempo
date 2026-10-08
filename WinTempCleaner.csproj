@@ -53,6 +53,9 @@
     <Compile Remove="ViewModels\**" />
     <EmbeddedResource Remove="ViewModels\**" />
     <None Remove="ViewModels\**" />
+    <Compile Remove="ProbeLib\**" />
+    <EmbeddedResource Remove="ProbeLib\**" />
+    <None Remove="ProbeLib\**" />
     <EmbeddedResource Remove="Assets\**" />
     <None Remove="Assets\**" />
   </ItemGroup>
