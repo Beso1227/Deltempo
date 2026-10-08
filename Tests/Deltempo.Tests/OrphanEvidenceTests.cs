@@ -167,9 +167,24 @@ public class OrphanEvidenceTests : IDisposable
     [Fact]
     public void HasLiveReference_RandomTempFolder_ReturnsFalse()
     {
-        // The sandbox is referenced by nothing — the "genuinely orphaned" side of the decision.
-        // Proves the classifier does not simply refuse everything.
-        Assert.False(OrphanEvidenceClassifier.HasLiveReference(_sandbox));
+        // A path that cannot exist must not be claimed as referenced. This catches a
+        // classifier that blanket-refuses everything (degraded index or reference-build
+        // failure), which would silently disable orphan detection while still satisfying
+        // every fail-closed test above.
+        string impossible = Path.Combine(Path.GetPathRoot(Path.GetTempPath())!,
+            "Deltempo_Probe_" + Guid.NewGuid().ToString("N"));
+        Assert.False(OrphanEvidenceClassifier.HasLiveReference(impossible));
+
+        // The sandbox is referenced by nothing on a typical host — the "genuinely orphaned"
+        // side of the decision. But %TEMP% itself (or an ancestor) can legitimately be a live
+        // reference on some hosts — a process running from temp, CI runner infrastructure —
+        // and a live ancestor correctly marks everything under it live. Only demand False when
+        // the temp root itself is unreferenced; if it is live, the sandbox's True answer is the
+        // correct fail-closed behavior, not a defect.
+        if (!OrphanEvidenceClassifier.HasLiveReference(Path.GetTempPath()))
+        {
+            Assert.False(OrphanEvidenceClassifier.HasLiveReference(_sandbox));
+        }
     }
 
     /// <summary>
