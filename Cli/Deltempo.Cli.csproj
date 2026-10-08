@@ -6,8 +6,11 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <!-- No UseWPF here: the CLI never touches PresentationFramework (verified: zero
+         System.Windows.* usings under Cli/). Leaving it on sets WPF's non-trimmable
+         IllinkXml descriptors and fails any PublishAot trial with NETSDK1168.
+         Deltempo.Core still carries UseWPF (InstalledAppService uses BitmapSource). -->
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <ApplicationManifest>app.manifest</ApplicationManifest>

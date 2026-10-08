@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using WinTempCleaner.Models;
 
 namespace WinTempCleaner.ViewModels;
@@ -9,7 +10,7 @@ namespace WinTempCleaner.ViewModels;
 /// context. Phase 2 will surface these results through INotifyPropertyChanged
 /// properties instead of code-behind control assignment.
 /// </summary>
-public static class CleaningPipelineViewModel
+public sealed class CleaningPipelineViewModel : ObservableObject
 {
     /// <summary>
     /// Aggregated hero/button state for the currently selected categories.

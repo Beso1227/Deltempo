@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.IO;
 
 namespace WinTempCleaner.Core.Safety;
@@ -221,7 +222,7 @@ public static class FileSafetyEngine
             impact: "Preserved to avoid data loss.");
     }
 
-    private static readonly HashSet<string> KnownDisposableExtensions = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly FrozenSet<string> KnownDisposableExtensions = new string[]
     {
         // Temporary, Scratch & Cache
         ".tmp", ".temp", ".cache", ".chk", ".swp", ".lock", ".etag", ".part", ".partial", ".crdownload",
@@ -237,7 +238,7 @@ public static class FileSafetyEngine
         ".db", ".sqlite", ".sqlite-wal", ".sqlite-shm",
         // Extensionless files
         ""
-    };
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     private static SafetyAnalysisResult? EvaluateVerifiedCachePatterns(string pathLower, string fileName, string ext, long sizeBytes)
     {

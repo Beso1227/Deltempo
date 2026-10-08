@@ -31,11 +31,7 @@ public enum TransactionState
 /// </summary>
 public class TransactionJournal
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
+    private static readonly JsonSerializerOptions JsonOptions = UpdateJsonContext.Default.Options;
 
     [JsonPropertyName("transactionId")]
     public string TransactionId { get; set; } = string.Empty;

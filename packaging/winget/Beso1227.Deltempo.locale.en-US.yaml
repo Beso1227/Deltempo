@@ -1,0 +1,29 @@
+# Deltempo winget manifest — default locale.
+PackageIdentifier: Beso1227.Deltempo
+PackageVersion: 3.0.0
+PackageLocale: en-US
+Publisher: Beso1227
+PublisherUrl: https://github.com/Beso1227/Deltempo
+PublisherSupportUrl: https://github.com/Beso1227/Deltempo/issues
+PrivacyUrl: https://github.com/Beso1227/Deltempo/blob/main/docs/THREAT_MODEL.md
+Author: Beso1227
+PackageName: Deltempo
+PackageUrl: https://github.com/Beso1227/Deltempo
+License: MIT
+LicenseUrl: https://github.com/Beso1227/Deltempo/blob/main/LICENSE
+ShortDescription: Windows cache cleaner and memory optimizer with zero telemetry.
+Description: >-
+  Deltempo reclaims disk space from Windows caches, temporary files, developer build
+  artefacts and orphaned leftovers, and trims process working sets. It is fully
+  self-contained, runs as a portable single file, and ships no telemetry - see the
+  linked threat model.
+Moniker: deltempo
+Tags:
+  - cleaner
+  - disk-cleanup
+  - temp-files
+  - memory-optimizer
+  - privacy
+  - portable
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

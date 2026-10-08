@@ -23,8 +23,11 @@
     <Title>Deltempo</Title>
     <Publisher>Beso1227</Publisher>
 
-    <!-- Target RIDs for self-contained single-file publishing -->
-    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <!-- Target RIDs for self-contained single-file publishing.
+         win-x64 remains the primary/supported release target; win-arm64 is built
+         alongside it so Windows-on-ARM devices get a native binary instead of
+         falling back to x64 emulation. -->
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <PublishReadyToRun>true</PublishReadyToRun>

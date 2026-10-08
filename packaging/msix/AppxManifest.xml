@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Deltempo MSIX package manifest (template).
+
+  Identity.Version, Identity.Publisher and Identity.ProcessorArchitecture are
+  rewritten by scripts/build_msix.ps1 at pack time:
+    - Version              <- Directory.Build.props (padded to 4 parts)
+    - Publisher            <- -Publisher parameter (MUST match the signing
+                              certificate subject exactly or install fails)
+    - ProcessorArchitecture<- -Architecture parameter (x64 | arm64)
+
+  Deltempo is a full-trust desktop application: it needs runFullTrust plus
+  Windows.FullTrustApplication so the exe keeps working outside the MSIX
+  container. The embedded app.manifest still requests requireAdministrator,
+  so UAC elevation is unchanged from the portable build.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap rescap">
+
+  <Identity
+    Name="Beso1227.Deltempo"
+    Publisher="CN=Beso1227"
+    Version="3.0.0.0"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>Deltempo</DisplayName>
+    <PublisherDisplayName>Beso1227</PublisherDisplayName>
+    <Description>Deltempo is a free, open-source Windows PC cleaner and memory optimizer.</Description>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily
+      Name="Windows.Desktop"
+      MinVersion="10.0.17763.0"
+      MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Applications>
+    <Application Id="Deltempo" Executable="Deltempo.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="Deltempo"
+        Description="Deltempo is a free, open-source Windows PC cleaner and memory optimizer."
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile
+          Wide310x150Logo="Assets\Wide310x150Logo.png"
+          Square71x71Logo="Assets\SmallTile.png"
+          Square310x310Logo="Assets\LargeTile.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

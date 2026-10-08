@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.IO;
 
 namespace WinTempCleaner.Core.Safety;
@@ -9,7 +10,7 @@ namespace WinTempCleaner.Core.Safety;
 /// </summary>
 public static class ProtectionPolicy
 {
-    private static readonly HashSet<string> SensitiveExtensions = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly FrozenSet<string> SensitiveExtensions = new string[]
     {
         // Credentials, Key Stores & Password Managers
         ".kdbx", ".kdb", ".key", ".pem", ".pfx", ".p12", ".crt", ".cer", ".asc",
@@ -29,9 +30,9 @@ public static class ProtectionPolicy
 
         // Machine Learning & AI Model Weights
         ".safetensors", ".gguf", ".onnx", ".pt", ".pth", ".ckpt", ".h5"
-    };
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
-    private static readonly HashSet<string> ProtectedRootFileNames = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly FrozenSet<string> ProtectedRootFileNames = new string[]
     {
         "pagefile.sys",
         "hiberfil.sys",
@@ -43,29 +44,29 @@ public static class ProtectionPolicy
         "ntdetect.com",
         "autoexec.bat",
         "config.sys"
-    };
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
-    private static readonly HashSet<string> CommunicationAppNames = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly FrozenSet<string> CommunicationAppNames = new string[]
     {
         "whatsapp", "telegram", "msteams", "teams", "discord", "slack", "signal",
         "skype", "zoom", "viber", "element", "wechat", "line", "kakao", "messenger",
         "session", "threema", "wire", "icq", "mattermost", "webex", "cisco-spark",
         "ciscospark", "thunderbird", "outlook", "rocketchat", "keybase", "zulip",
         "ringcentral", "flock", "chime"
-    };
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
-    private static readonly HashSet<string> ProtectedSessionFilePrefixes = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly FrozenSet<string> ProtectedSessionFilePrefixes = new string[]
     {
         "local state", "login data", "cookies", "web data", "preferences",
         "secure preferences", "settings.dat", "roaming.lock", "key_data",
         "accounts", "tokens", "credentials", "user.dat", "userclasses.dat",
         "storage.json", "state.vscdb", "session.db", "persistent.conf"
-    };
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
-    private static readonly HashSet<string> ForbiddenSystemBinaryExtensions = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly FrozenSet<string> ForbiddenSystemBinaryExtensions = new string[]
     {
         ".dll", ".sys", ".exe", ".inf", ".cat", ".ocx", ".cpl", ".msc", ".drv", ".com", ".scr", ".efi"
-    };
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     private static readonly string[] PermittedSystem32SubdirectoryMarkers =
     [

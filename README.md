@@ -8,6 +8,19 @@
 
   # Deltempo: Open-Source Windows Cleaner, App Uninstaller & Memory Optimizer
 
+  <p align="center">
+    <strong>README:</strong>
+    <b>English</b> ·
+    <a href="README.es.md">Español</a> ·
+    <a href="README.zh-CN.md">简体中文</a> ·
+    <a href="README.hi.md">हिन्दी</a> ·
+    <a href="README.fr.md">Français</a> ·
+    <a href="README.pt-BR.md">Português</a> ·
+    <a href="README.ar.md">العربية</a> ·
+    <a href="README.ru.md">Русский</a> ·
+    <a href="README.ja.md">日本語</a>
+  </p>
+
   <p><strong>Free, open-source disk cleaner and RAM optimizer for Windows 10 &amp; 11. Reclaim 10–40+ GB of temp files, AppData junk and GPU shader caches — plus a deep app uninstaller and duplicate file finder. Zero telemetry, no ads, no installer.</strong></p>
 
   <p>

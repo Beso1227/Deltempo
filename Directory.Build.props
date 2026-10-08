@@ -12,6 +12,24 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
+
+    <!-- Analyzer governance.
+         .NET analyzers ship enabled by default at the SDK's recommended level and the build
+         is clean at that level. Pushing to latest-all/All is deliberately NOT enabled
+         build-wide: a clean rebuild measures 9,878 diagnostics (CS1591 missing-doc 3,972;
+         CA1031 1,098; CA1707 1,084 - mostly P/Invoke names that must stay verbatim;
+         CA1307/CA2007/CA1002/CA1308 are style or JSON-DTO shapes). Enabling those as warnings
+         under TreatWarningsAsErrors would fail the build, and as non-fatal warnings they
+         would bury real diagnostics in noise.
+
+         Instead the analyzers are pinned to an explicit version (Directory.Packages.props)
+         so results are reproducible, and enforced in CI as a REPORT of the count and top
+         rules rather than a gate. Raising the level is then a tracked, incremental change:
+         fix a rule family, promote it, repeat. See docs/TESTING.md. -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Default</AnalysisMode>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
     <Authors>Beso1227</Authors>
     <Company>Deltempo Open Source Project</Company>

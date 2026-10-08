@@ -160,7 +160,7 @@ public class DuplicateFileService
                 foreach (var filePath in headerGroup.Value)
                 {
                     if (ct.IsCancellationRequested) break;
-                    string fullHash = ComputeFullSha256(filePath);
+                    string fullHash = ComputeFullHash(filePath);
                     if (string.IsNullOrEmpty(fullHash)) continue;
 
                     filesByFullHash.GetOrAdd(fullHash, _ => new ConcurrentBag<string>()).Add(filePath);
@@ -259,9 +259,8 @@ public class DuplicateFileService
             int bytesRead = stream.Read(buffer, 0, HeaderBufferSize);
             if (bytesRead <= 0) return string.Empty;
 
-            using var sha256 = SHA256.Create();
-            byte[] hash = sha256.ComputeHash(buffer, 0, bytesRead);
-            return Convert.ToHexString(hash);
+            // Static HashData avoids allocating a SHA256 instance per candidate file.
+            return Convert.ToHexString(SHA256.HashData(buffer.AsSpan(0, bytesRead)));
         }
         catch
         {
@@ -269,14 +268,14 @@ public class DuplicateFileService
         }
     }
 
-    private static string ComputeFullSha256(string filePath)
+    private static string ComputeFullHash(string filePath)
     {
         try
         {
             using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, 65536);
-            using var sha256 = SHA256.Create();
-            byte[] hash = sha256.ComputeHash(stream);
-            return Convert.ToHexString(hash);
+
+            // Static HashData(Stream) uses an internally pooled read buffer.
+            return Convert.ToHexString(SHA256.HashData(stream));
         }
         catch
         {

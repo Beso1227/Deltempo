@@ -1,0 +1,7 @@
+# Deltempo winget manifest — version section.
+# Must match AssemblyVersion in Directory.Build.props and the git tag (v3.0.0).
+PackageIdentifier: Beso1227.Deltempo
+PackageVersion: 3.0.0
+DefaultLocale: en-US
+ManifestType: version
+ManifestVersion: 1.6.0

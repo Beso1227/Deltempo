@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using WinTempCleaner.Services;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Deltempo.Tests;
 

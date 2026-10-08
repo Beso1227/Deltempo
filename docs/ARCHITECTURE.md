@@ -57,6 +57,9 @@ Deltempo is built as a modular, high-reliability Windows maintenance, cache clea
 ### 2.3 Presentation Layer (`ViewModels/`, `Views/`, `Cli/`)
 
 * **MVVM Architecture**: ViewModels expose `ICommand` bindings, thread-safe observable collections, and immutable progress snapshots.
+* **Toolkit Base (Phase 2)**: `ViewModelBase` derives from CommunityToolkit.Mvvm's `ObservableObject`, which supplies `INotifyPropertyChanged` and the raise-only-on-change `SetProperty<T>` helper. `RelayCommand` / `AsyncRelayCommand` deliberately remain the hand-rolled types in `ViewModels/ViewModelBase.cs`: the toolkit's equivalents are `sealed`, expose no `Action<object?>` execute constructor, and name the refresh method `NotifyCanExecuteChanged()` rather than `RaiseCanExecuteChanged()` — all three are asserted by `ViewModelCommandTests`.
+* **Converters (Phase 2)**: `Converters/` is down to three files — `WidthConverters.cs` (the three title-bar compact-mode converters plus their shared `CompactThreshold` parser), `SubtractConverter.cs`, and `PercentWidthConverter.cs` (an `IMultiValueConverter`). The unreferenced `BoolToBrushConverter` and `BoolToThicknessConverter` were removed together with their `App.xaml` resources.
+* **Deferred — code-behind shrink**: the eight `MainWindow.*.cs` partials (~2,530 LOC) still own event wiring and direct control assignment. Moving that to bindings is staged as its own pass because binding failures surface only at runtime, where the headless unit-test suite cannot see them.
 * **Non-Blocking Execution**: All I/O operations (scanning, cleaning, memory flushing, repair execution) run strictly asynchronously (`Task.Run` with bounded parallelism and `CancellationToken` support).
 * **CLI Parity**: `Deltempo.Cli` exposes full engine functionality headlessly, outputting structured JSON streams and deterministic process exit codes for integration into automated administration scripts and CI pipelines.
 

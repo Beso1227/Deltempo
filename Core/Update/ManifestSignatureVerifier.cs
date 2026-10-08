@@ -58,10 +58,7 @@ public static class ManifestSignatureVerifier
         UpdateManifest? manifest;
         try
         {
-            manifest = JsonSerializer.Deserialize<UpdateManifest>(manifestJson, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            manifest = JsonSerializer.Deserialize<UpdateManifest>(manifestJson, UpdateJsonContext.Default.UpdateManifest);
         }
         catch (Exception ex)
         {

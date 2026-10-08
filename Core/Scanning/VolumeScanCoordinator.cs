@@ -45,7 +45,8 @@ public static class VolumeScanCoordinator
 
     /// <summary>
     /// Executes scan operations across items grouped by drive volume.
-    /// Each volume enforces its own MaxDegreeOfParallelism via a dedicated SemaphoreSlim.
+    /// Each volume runs as its own bounded <see cref="Parallel"/> loop, so concurrency per
+    /// volume is capped at MaxDegreeOfParallelism without allocating one Task per item.
     /// </summary>
     public static async Task ExecutePartitionedAsync<T>(
         IEnumerable<T> items,
@@ -62,32 +63,15 @@ public static class VolumeScanCoordinator
             .GroupBy(item => ResolveVolumeKey(pathSelector(item)))
             .ToList();
 
-        // 2. Launch each volume partition concurrently
-        var partitionTasks = volumeGroups.Select(async group =>
-        {
-            using var throttle = new SemaphoreSlim(maxParallelismPerVolume, maxParallelismPerVolume);
-            var itemTasks = new List<Task>();
-
-            foreach (var item in group)
+        // 2. Launch each volume partition concurrently, each with its own bounded parallel loop
+        var partitionTasks = volumeGroups.Select(group => Parallel.ForEachAsync(
+            group,
+            new ParallelOptions
             {
-                if (ct.IsCancellationRequested) break;
-
-                await throttle.WaitAsync(ct).ConfigureAwait(false);
-                itemTasks.Add(Task.Run(async () =>
-                {
-                    try
-                    {
-                        await itemAction(item, ct).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        throttle.Release();
-                    }
-                }, ct));
-            }
-
-            await Task.WhenAll(itemTasks).ConfigureAwait(false);
-        });
+                MaxDegreeOfParallelism = maxParallelismPerVolume,
+                CancellationToken = ct
+            },
+            async (item, token) => await itemAction(item, token).ConfigureAwait(false)));
 
         await Task.WhenAll(partitionTasks).ConfigureAwait(false);
     }

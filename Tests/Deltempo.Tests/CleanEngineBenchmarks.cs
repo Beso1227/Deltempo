@@ -3,7 +3,6 @@ using System.IO;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Deltempo.Tests;
 

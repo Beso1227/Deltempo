@@ -35,6 +35,14 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <!-- Phase 4: pin the .NET analyzer set to an explicit version via CPM so results are
+       reproducible across SDKs. CA rules stay at the default (recommended) level - see the
+       analyzer governance note in Directory.Build.props for why latest-all is not enabled. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="Deltempo" />
     <InternalsVisibleTo Include="deltempo_cli" />

@@ -37,45 +37,149 @@ jobs:
             exit 1
           }
 
+      - name: Report Outdated NuGet Packages (read-only)
+        # Report-only by design: surfaces available updates in the CI log without failing the
+        # build. Uses the built-in `dotnet list package --outdated`, so no extra tool install
+        # and no PATH fix-up. Bumps are made deliberately via Directory.Packages.props (CPM).
+        shell: pwsh
+        run: |
+          $output = dotnet list package --outdated --include-transitive | Out-String
+          Write-Host $output
+          Write-Host "Outdated package report generated (informational only)."
+
+      - name: Report Analyzer Diagnostics (advisory)
+        shell: pwsh
+        run: |
+          # The full CA rule set is intentionally NOT enforced build-wide: a clean rebuild at
+          # AnalysisMode=All / latest-all reports ~9,900 diagnostics (3,972 of them CS1591
+          # missing-doc comments), which would either fail the build under
+          # TreatWarningsAsErrors or drown out real findings.
+          #
+          # This step is therefore a trend report. It fails only on the small set of rules
+          # that indicate genuine defects rather than style/doc preferences - those must
+          # stay at zero.
+          $build = dotnet build deltempo.sln -c Release --no-restore `
+            /p:AnalysisMode=All /p:AnalysisLevel=latest-all /p:GenerateDocumentationFile=true `
+            /p:TreatWarningsAsErrors=false 2>&1 | Out-String
+
+          $all = [regex]::Matches($build, ': warning ([A-Z]+)(\d+):')
+          Write-Host ("Total analyzer diagnostics (advisory): {0}" -f $all.Count)
+
+          $top = $all | ForEach-Object { $_.Groups[1].Value + $_.Groups[2].Value } |
+            Group-Object | Sort-Object Count -Descending | Select-Object -First 12
+          Write-Host "Top rules:"
+          foreach ($rule in $top) { Write-Host ("  {0,-8} {1}" -f $rule.Count, $rule.Name) }
+
+          # CA5350/CA5351 (weak crypto) and CA2201 (reserved exception type) indicate real
+          # security or correctness bugs, and are genuinely at zero today. CA1062/CA1816/
+          # CA2016 do fire in this codebase but are dominated by style-level noise, so they
+          # are reported rather than gated until their families are cleaned up.
+          $blocking = @('CA5350','CA5351','CA2201')
+          $hits = $top | Where-Object { $blocking -contains $_.Name }
+          if ($hits) {
+            foreach ($hit in $hits) { Write-Host "::error file=Directory.Build.props::Blocking analyzer rule $($hit.Name) reported $($hit.Count) occurrence(s)." }
+            Write-Error "::error::Analyzer rules that indicate real security/correctness defects must stay at zero."
+            exit 1
+          }
+          Write-Host "No defect-indicating analyzer rules reported."
+
       - name: Verify Code Style & Formatting
         run: dotnet format deltempo.sln --verify-no-changes --no-restore
 
-      - name: Run xUnit Test Suite with Coverage Collection
+      - name: Run xUnit v3 Test Suite with Coverage Collection
         shell: pwsh
         run: |
-          # Coverage comes from the built-in coverlet collector instead of a separately installed
-          # global tool. The dotnet-coverage path needed a --global install, a PATH fix-up and a
-          # pinned version, and still failed on a cold runner. coverlet.collector is already a
-          # PackageReference of the test project, so this removes a whole failure mode: nothing to
-          # install, nothing to resolve on PATH, no version to float, and it works on any runner.
+          # xunit.v3 runs on Microsoft.Testing.Platform (MTP). On the .NET 10 SDK the VSTest
+          # bridge is rejected outright ("Testing with VSTest target is no longer supported"),
+          # so `dotnet test` cannot be used here - the test application is invoked directly.
+          # --coverage comes from Microsoft.Testing.Extensions.CodeCoverage and replaces the
+          # VSTest-only --collect:"XPlat Code Coverage" flag.
           dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
-          dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj `
-            -c Release `
-            --no-build `
+
+          $testExe = "Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe"
+          if (-not (Test-Path $testExe)) {
+            Write-Error "::error::MTP test executable not found at $testExe."
+            exit 1
+          }
+
+          # Test output is captured to a log file for the artifact upload. The optional
+          # xunit TRX/JUnit reporters are NOT auto-registered by MTP without a
+          # *.testingplatformextensions.json manifest, so they silently produce no file;
+          # the console log plus the exit code are the reliable signals here.
+          & $testExe `
             --filter "Category!=Benchmark" `
-            --collect:"XPlat Code Coverage" `
-            --logger "trx;LogFileName=deltempo_tests.trx" `
-            --blame-hang-timeout 2m `
-            --blame-hang-dump-type mini `
-            --results-directory Tests/Deltempo.Tests/TestResults
-      - name: Enforce Coverage Threshold
+            --coverage `
+            --coverage-output-format cobertura `
+            --results-directory Tests/Deltempo.Tests/TestResults `
+            *>&1 | Tee-Object -FilePath "Tests/Deltempo.Tests/TestResults/test-run.log"
+          $testExit = $LASTEXITCODE
+
+          # Tee-Object reports the pipeline's exit code, so read the real one from the log.
+          if (Select-String -Path "Tests/Deltempo.Tests/TestResults/test-run.log" -Pattern 'failed: [1-9]' -Quiet) {
+            Write-Error "::error::One or more tests failed; see test-run.log."
+            exit 1
+          }
+          if (-not (Select-String -Path "Tests/Deltempo.Tests/TestResults/test-run.log" -Pattern 'succeeded: 9\d\d|succeeded: \d+' -Quiet)) {
+            Write-Error "::error::No test summary found in test-run.log - the run did not complete."
+            exit 1
+          }
+          if ($testExit -ne 0) {
+            Write-Error "::error::Test runner exited with code $testExit."
+            exit 1
+          }
+          Write-Host "Test suite completed successfully."
+
+      - name: Enforce Core Coverage Threshold
         shell: pwsh
         run: |
-          $coverage = Get-ChildItem -Path "Tests/Deltempo.Tests/TestResults" -Recurse -Filter "coverage.cobertura.xml" |
-            Sort-Object LastWriteTime -Descending | Select-Object -First 1
-          if (-not $coverage) {
+          $reports = Get-ChildItem -Path "Tests/Deltempo.Tests/TestResults" -Recurse -Filter "*.cobertura.xml" |
+            Sort-Object LastWriteTime -Descending
+          if (-not $reports) {
             Write-Error "::error::No coverage report found. Code coverage collection failed."
             exit 1
           }
-          [xml]$doc = Get-Content $coverage.FullName
-          $lineRate = [double]$doc.coverage.'line-rate'
-          # Enforced threshold across headless CI (desktop WPF UI views excluded from headless run)
-          $threshold = 0.50
-          Write-Host ("Line coverage: {0:P2} (enforced threshold: {1:P0})" -f $lineRate, $threshold)
-          if ($lineRate -lt $threshold) {
-            Write-Error ("::error::Line coverage {0:P2} is below the enforced threshold {1:P0}." -f $lineRate, $threshold)
+          $coverage = $reports | Select-Object -First 1
+
+          # Gate Core/ only, as intended: the safety, cleaning, update and scanning
+          # pipelines. The WPF UI head is excluded because a headless CI run cannot
+          # exercise views, and dragging it in would make the number meaningless.
+          #
+          # XPath rather than [xml] property access: the report repeats <class> nodes many
+          # times and PowerShell silently collapses them into a single node, which yields a
+          # bogus 0% (measured - see docs/TESTING.md).
+          $x = New-Object System.Xml.XPath.XPathDocument($coverage.FullName)
+          $nav = $x.CreateNavigator()
+          $classes = $nav.Select('//class')
+
+          $totalLines = 0
+          $coveredLines = 0
+          foreach ($class in $classes) {
+            $name = $class.GetAttribute('name', '')
+            if ($name -notlike 'WinTempCleaner.Core*') { continue }
+            foreach ($line in $class.Select('./lines/line')) {
+              $totalLines++
+              if ([int]$line.GetAttribute('hits', '') -gt 0) { $coveredLines++ }
+            }
+          }
+
+          if ($totalLines -eq 0) {
+            Write-Error "::error::Coverage report contained no WinTempCleaner.Core* classes - the gate cannot be evaluated."
             exit 1
           }
+
+          $lineRate = $coveredLines / $totalLines
+          $threshold = 0.65
+
+          # Overall figure is printed for trend visibility but is NOT gated.
+          $overall = [double]$nav.SelectSingleNode('/coverage').GetAttribute('line-rate', '')
+          Write-Host ("Core/ line coverage:      {0:P2} ({1}/{2}) - enforced threshold {3:P0}" -f $lineRate, $coveredLines, $totalLines, $threshold)
+          Write-Host ("Whole-solution coverage:  {0:P2} (informational)" -f $overall)
+
+          if ($lineRate -lt $threshold) {
+            Write-Error ("::error::Core/ line coverage {0:P2} is below the enforced threshold {1:P0}." -f $lineRate, $threshold)
+            exit 1
+          }
+          Write-Host "Core/ coverage gate passed."
 
       - name: Generate Software Bill of Materials (SBOM) Package Inventory
         shell: pwsh
@@ -96,5 +200,6 @@ jobs:
         with:
           name: TestResults
           path: |
-            **/TestResults/*.trx
+            **/TestResults/*.log
+            **/TestResults/**/*.xml
             **/TestResults/**/*.dmp

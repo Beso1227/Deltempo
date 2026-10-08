@@ -9,10 +9,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- BLAKE3 is referenced by the test project ONLY: DuplicateScanBenchmarks compares it
+         against hardware-accelerated SHA-256 so the hashing choice stays evidence-driven.
+         Production hashing stays on SHA-256 (measured faster on SHA-NI hardware — see
+         docs/BENCHMARKS.md §0). -->
+    <PackageVersion Include="Blake3" Version="3.0.2" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageVersion Include="coverlet.collector" Version="10.1.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.401" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
-    <PackageVersion Include="xunit" Version="2.9.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
+    <!-- MTP-native coverage extension. Replaces the VSTest-only coverlet.collector path,
+         which dotnet test cannot reach on .NET 10. -->
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
+    <PackageVersion Include="xunit.v3" Version="4.0.1" />
   </ItemGroup>
 
 </Project>

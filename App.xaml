@@ -6,9 +6,6 @@
     <Application.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
 
-        <converters:BoolToBrushConverter x:Key="BoolToBrushConverter"/>
-        <converters:BoolToThicknessConverter x:Key="BoolToThicknessConverter"/>
-
         <!-- SubtractConverter (window size - margin → modal max height, keeps footers reachable) -->
         <converters:SubtractConverter x:Key="SubtractConverter"/>
 

@@ -1,30 +1,23 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace WinTempCleaner.ViewModels;
 
 /// <summary>
-/// INotifyPropertyChanged base for the Phase 2 ViewModel migration.
+/// ViewModel base on CommunityToolkit.Mvvm's <see cref="ObservableObject"/>:
+/// it supplies INotifyPropertyChanged and the raise-only-on-change
+/// <c>SetProperty&lt;T&gt;</c> helper, so this type carries no hand-rolled
+/// notification plumbing of its own.
 /// </summary>
-public abstract class ViewModelBase : INotifyPropertyChanged
+/// <remarks>
+/// <para><c>RelayCommand</c> / <c>AsyncRelayCommand</c> below are intentionally NOT the
+/// toolkit's types of the same name. The toolkit versions are <c>sealed</c>, expose no
+/// <c>Action&lt;object?&gt;</c> execute constructor, and name their refresh method
+/// <c>NotifyCanExecuteChanged()</c> — while <c>ViewModelCommandTests</c> constructs the
+/// parameterised overload and calls <c>RaiseCanExecuteChanged()</c> directly.</para>
+/// </remarks>
+public abstract class ViewModelBase : ObservableObject
 {
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-    /// <summary>
-    /// Sets the backing field and raises PropertyChanged only when the value
-    /// actually changed. Returns true when a notification was raised.
-    /// </summary>
-    protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-        field = value;
-        OnPropertyChanged(propertyName);
-        return true;
-    }
 }
 
 /// <summary>

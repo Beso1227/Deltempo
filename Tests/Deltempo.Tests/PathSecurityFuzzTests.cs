@@ -1,0 +1,6 @@
+'using System.Text;'
+'using WinTempCleaner.Core.Safety;'
+'using Xunit;'
+'namespace Deltempo.Tests;'
+'public class PathSecurityFuzzTests'
+'{'

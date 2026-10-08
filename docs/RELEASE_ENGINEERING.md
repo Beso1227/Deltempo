@@ -112,6 +112,88 @@ signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a ./publi
 signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a ./publish_cli/deltempo_cli.exe
 ```
 
+CI signs every portable artefact (`Deltempo.exe`, `deltempo_cli.exe`, and both `-arm64`
+binaries) and fails the release unless a certificate is present. Opting out requires
+setting the `REQUIRE_SIGNING` repository variable to `false` explicitly — a missing
+secret is never silently tolerated.
+
+To move to **Azure Trusted Signing** (no certificate file on the runner), replace the
+`Authenticode Sign Release Binaries` step with the Azure Artifact Signing action and
+delete the `SIGNING_CERTIFICATE_PFX` secret. The Ed25519 + SHA256 manifest verification
+in `Core/Update/ManifestSignatureVerifier.cs` is independent of Authenticode and stays
+as-is: it is what makes the self-updater trust a release, not the binary signature.
+
+### 3.4 Architectures (x64 + ARM64)
+
+`WinTempCleaner.csproj` and `Cli/Deltempo.Cli.csproj` both declare
+`<RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>`.
+
+- **win-x64** is the primary target: it lands at the repo root, in `dist/`, and is the
+  URL the terminal one-liner downloads.
+- **win-arm64** ships as `Deltempo-arm64.exe` / `deltempo_cli-arm64.exe` so Windows-on-ARM
+  runs natively instead of emulating x64. The arch suffix is mandatory in the filename —
+  shipping a second file named `Deltempo.exe` would make the two indistinguishable in the
+  release asset list.
+
+### 3.5 MSIX Packaging
+
+`scripts/build_msix.ps1` stages the published single-file GUI together with
+`packaging/msix/AppxManifest.xml` and packs an installable `.msix`:
+
+```powershell
+# x64
+.\scripts\build_msix.ps1 -PayloadDir .\publish -OutputDir .\dist -Architecture x64 `
+    -Publisher "CN=Beso1227" -SignCertPath .\cert.pfx -SignCertPassword pw
+
+# arm64
+.\scripts\build_msix.ps1 -PayloadDir .\publish_arm64 -OutputDir .\dist -Architecture arm64
+```
+
+- The seven required tile/logo PNGs are rasterised from `app.ico` at pack time
+  (`New-MsixAsset`), so no pre-scaled binaries are committed.
+- The manifest declares `rescap:runFullTrust` and `Identity Version` is patched through the
+  XML DOM rather than a textual replace, because a naive `Version="..."` regex also matches
+  inside `MinVersion="10.0.17763.0"` and would corrupt the OS floor.
+- `makeappx.exe` comes from the Windows SDK and is present on the GitHub `windows-latest`
+  runner. On a machine without it, `-StageOnly` stops after staging and manifest patching.
+- **MSIX is the optional channel.** The portable single-file remains primary; the MSIX adds a
+  Start-menu entry and store-managed updates.
+
+### 3.6 CLI NativeAOT Trial — Result: Not Adopted
+
+`PublishAot=true` was trialled against `Cli/Deltempo.Cli.csproj` for faster automation
+startup, as planned. **It does not build and is not enabled.** Measured result:
+
+```
+error NETSDK1168: WPF is not supported or recommended with trimming enabled
+```
+
+`UseWPF` was removed from the CLI project (it had zero `System.Windows.*` usings), which
+cleared NETSDK1168 and surfaced the real blocker: **61 IL3050/IL2026 trim warnings as
+errors across 18 files**, all reached because `Deltempo.Core.csproj` compiles
+`Services/**` via `<Compile Include="..\Services\**\*.cs" />`:
+
+| Site | Count |
+|---|---|
+| Reflection-based `JsonSerializer.Serialize`/`Deserialize` | ~59 |
+| `Marshal.SizeOf(Type)` in `CleanerService.cs`, `MemoryOptimizerService.Native.cs` | 2 |
+
+`MemoryOptimizerService.Native.cs` contains the `ntdll!NtSetSystemInformation` working-set
+path and is explicitly out of scope for AOT/trimming work. Converting Core to be fully
+AOT-clean means source-generated `JsonSerializerContext` types for every one of the ~59
+call sites (rulepacks, settings, intelligence caches, transaction journal) plus reworking
+the two marshalling sites — a separate, testable refactor, not a packaging change.
+
+**The CLI therefore keeps `PublishReadyToRun`.** R2R already removes JIT warm-up for the
+automation path without requiring Core to be trim-safe. Re-run the trial after Core is
+source-gen clean:
+
+```powershell
+dotnet publish Cli/Deltempo.Cli.csproj -c Release -r win-x64 -p:PublishAot=true --self-contained true
+```
+
+The WPF head is never AOT'd — `WinTempCleaner` is not trimmable by design.
+
 ---
 
 ## 4. Distribution Channels
@@ -122,7 +204,37 @@ signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a ./publi
 - Include SHA256 checksums file `checksums.sha256`.
 - Include generated `sbom-packages.json`.
 
-### 4.2 Terminal One-Liner
+### 4.2 Winget
+
+`packaging/winget/` holds the three manifests winget requires:
+
+| File | Role |
+|---|---|
+| `Beso1227.Deltempo.yaml` | version pin |
+| `Beso1227.Deltempo.installer.yaml` | per-architecture URLs + digests |
+| `Beso1227.Deltempo.locale.en-US.yaml` | metadata, description, license |
+
+The `Generate Winget Manifests` release step fills the `InstallerSha256` placeholders from
+the freshly built artefacts and pins `PackageVersion` to the tag, so a submitted manifest can
+never reference a digest that differs from what was published. It hard-fails if any
+`REPLACE_WITH_SHA256` placeholder survives. The pinned bundle is attached to the release as
+`winget-manifests-<version>.zip`, ready to open a PR against `microsoft/winget-pkgs`.
+
+```powershell
+winget install Beso1227.Deltempo
+```
+
+Installer type is `portable`, so winget shims the single-file exe onto PATH rather than
+running an installer.
+
+### 4.3 MSIX
+
+`.msix` packages are attached to the release as `Deltempo-<version>-<arch>.msix`. They are
+an optional convenience channel — the portable executable stays primary and the updater
+keeps verifying releases through `checksums.sha256` + the Ed25519 manifest signature, so an
+MSIX install never becomes a new trust anchor.
+
+### 4.4 Terminal One-Liner
 
 Served from GitHub Pages as two extensionless PowerShell scripts: `docs/win` (GUI) and `docs/win-cli` (headless CLI).
 

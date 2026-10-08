@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Collections.Frozen;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -194,7 +195,7 @@ public static class LargeFileHunterService
     [DllImport("shell32.dll", CharSet = CharSet.Auto)]
     private static extern int SHFileOperation(ref SHFILEOPSTRUCT FileOp);
 
-    private static readonly HashSet<string> ExcludedDirectoryNames = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly FrozenSet<string> ExcludedDirectoryNames = new string[]
     {
         "$Recycle.Bin",
         "$RECYCLE.BIN",
@@ -205,16 +206,16 @@ public static class LargeFileHunterService
         "WinSxS",
         "node_modules",
         ".git"
-    };
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
-    private static readonly HashSet<string> ExcludedFileNames = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly FrozenSet<string> ExcludedFileNames = new string[]
     {
         "pagefile.sys",
         "hiberfil.sys",
         "swapfile.sys",
         "dumpstack.log",
         "bootmgr"
-    };
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     public static async Task<LargeFileScanResult> ScanLargeFilesAsync(
         long minSizeBytes = 50L * 1024 * 1024,

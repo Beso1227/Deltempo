@@ -71,13 +71,30 @@ jobs:
 
       - name: Build & Publish Standalone Executables
         run: |
-          dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
-          dotnet publish Cli/Deltempo.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./dist
+          # win-x64 stays the primary release target; win-arm64 ships alongside it so
+          # Windows-on-ARM runs natively instead of emulating the x64 build.
+          $rids = @('win-x64', 'win-arm64')
+          $guiOut = @{ 'win-x64' = './dist'; 'win-arm64' = './dist_arm64' }
+          $cliOut = @{ 'win-x64' = './dist_cli'; 'win-arm64' = './dist_cli_arm64' }
+
+          foreach ($rid in $rids) {
+            dotnet publish WinTempCleaner.csproj -c Release -r $rid --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o $guiOut[$rid]
+            if ($LASTEXITCODE -ne 0) { Write-Error "::error::GUI publish failed for $rid"; exit 1 }
+
+            dotnet publish Cli/Deltempo.Cli.csproj -c Release -r $rid --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o $cliOut[$rid]
+            if ($LASTEXITCODE -ne 0) { Write-Error "::error::CLI publish failed for $rid"; exit 1 }
+          }
+
+          # Flatten every artefact into ./dist under architecture-suffixed names so a
+          # single publish step and the checksum generator see one directory.
+          Move-Item ./dist_cli/deltempo_cli.exe ./dist/deltempo_cli.exe -Force
+          Move-Item ./dist_arm64/Deltempo.exe ./dist/Deltempo-arm64.exe -Force
+          Move-Item ./dist_cli_arm64/deltempo_cli.exe ./dist/deltempo_cli-arm64.exe -Force
 
       - name: Generate SHA-256 Checksums
         shell: pwsh
         run: |
-          $files = @("./dist/Deltempo.exe", "./dist/deltempo_cli.exe")
+          $files = @("./dist/Deltempo.exe", "./dist/deltempo_cli.exe", "./dist/Deltempo-arm64.exe", "./dist/deltempo_cli-arm64.exe")
           $lines = @()
           foreach ($f in $files) {
             $hash = (Get-FileHash $f -Algorithm SHA256).Hash.ToLower()
@@ -131,7 +148,7 @@ jobs:
             $tsUrl = "https://" + "timestamp.digicert.com"
             $digestAlgo = "SHA" + "256"
 
-            foreach ($binary in @("Deltempo.exe", "deltempo_cli.exe")) {
+            foreach ($binary in @("Deltempo.exe", "deltempo_cli.exe", "Deltempo-arm64.exe", "deltempo_cli-arm64.exe")) {
               $target = Join-Path $env:GITHUB_WORKSPACE "dist\$binary"
               # /tr timestamps the signature so it outlives the certificate expiry.
               & $signtool.FullName sign /f $pfxPath /p "$env:SIGNING_CERTIFICATE_PASSWORD" /fd $digestAlgo /tr $tsUrl /td $digestAlgo $target
@@ -147,6 +164,82 @@ jobs:
             # Never leave the private key on the runner.
             Remove-Item $pfxPath -Force -ErrorAction SilentlyContinue
           }
+
+      # Pack the MSIX installable channel alongside the portable exe. Reuses the
+      # repository packager so local and CI artefacts are byte-identical.
+      - name: Package MSIX (x64 + arm64)
+        shell: pwsh
+        env:
+          SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+        run: |
+          $pfxPath = $null
+          if ($env:SIGNING_CERTIFICATE_PFX) {
+            $pfxPath = Join-Path $env:RUNNER_TEMP "deltempo_msix_signing.pfx"
+            [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:SIGNING_CERTIFICATE_PFX))
+          }
+
+          # The arm64 payload directory was flattened into ./dist, so stage a
+          # directory containing only Deltempo-arm64.exe for the arm64 pack.
+          $arm64Stage = Join-Path $env:RUNNER_TEMP "msix_arm64_payload"
+          New-Item -ItemType Directory -Path $arm64Stage -Force | Out-Null
+          Copy-Item ./dist/Deltempo-arm64.exe (Join-Path $arm64Stage "Deltempo.exe") -Force
+
+          $packs = @(
+            @{ Arch = 'x64';   Payload = "$env:GITHUB_WORKSPACE\dist" }
+            @{ Arch = 'arm64'; Payload = $arm64Stage }
+          )
+
+          foreach ($pack in $packs) {
+            $msixArgs = @{
+              PayloadDir = $pack.Payload
+              OutputDir  = "$env:GITHUB_WORKSPACE\dist"
+              Architecture = $pack.Arch
+            }
+            if ($pfxPath) { $msixArgs.SignCertPath = $pfxPath }
+            if ($env:SIGNING_CERTIFICATE_PASSWORD) { $msixArgs.SignCertPassword = $env:SIGNING_CERTIFICATE_PASSWORD }
+
+            & ./scripts/build_msix.ps1 @msixArgs
+            if ($LASTEXITCODE -ne 0) { Write-Error "::error::MSIX packaging failed for $($pack.Arch)."; exit 1 }
+          }
+
+          Remove-Item $pfxPath -Force -ErrorAction SilentlyContinue
+          Write-Host "MSIX packages built:"
+          Get-ChildItem ./dist -Filter *.msix | ForEach-Object { Write-Host "  $($_.Name) ($([math]::Round($_.Length / 1MB, 2)) MB)" }
+
+      - name: Generate Winget Manifests
+        shell: pwsh
+        run: |
+          # Fill the InstallerSha256 placeholders in the committed manifest from the
+          # artefacts just built, so winget and the release can never disagree.
+          $tag = "${{ steps.tag.outputs.value }}"
+          $version = $tag.TrimStart('v')
+
+          $installer = "./packaging/winget/Beso1227.Deltempo.installer.yaml"
+          $content = Get-Content $installer -Raw
+
+          foreach ($pair in @(
+            @{ Name = 'Deltempo.exe';       Placeholder = 'REPLACE_WITH_SHA256_OF_Deltempo.exe' },
+            @{ Name = 'Deltempo-arm64.exe'; Placeholder = 'REPLACE_WITH_SHA256_OF_Deltempo-arm64.exe' }
+          )) {
+            $hash = (Get-FileHash "./dist/$($pair.Name)" -Algorithm SHA256).Hash
+            $content = $content.Replace($pair.Placeholder, $hash)
+          }
+
+          # Pin every manifest to the tag being released.
+          $content = $content -replace 'v3\.0\.0', $tag -replace '(?m)^PackageVersion: 3\.0\.0$', "PackageVersion: $version"
+          [IO.File]::WriteAllText((Join-Path (Get-Location) $installer), $content, [System.Text.UTF8Encoding]::new($false))
+
+          foreach ($m in @("./packaging/winget/Beso1227.Deltempo.yaml", "./packaging/winget/Beso1227.Deltempo.locale.en-US.yaml")) {
+            $c = Get-Content $m -Raw
+            $c = $c -replace '(?m)^PackageVersion: 3\.0\.0$', "PackageVersion: $version"
+            [IO.File]::WriteAllText((Join-Path (Get-Location) $m), $c, [System.Text.UTF8Encoding]::new($false))
+          }
+
+          if ($content -match 'REPLACE_WITH_SHA256') {
+            Write-Error "::error::Winget manifest still contains an unfilled SHA256 placeholder."
+            exit 1
+          }
+          Write-Host "Winget manifests pinned to $version with verified digests."
 
       - name: Delete Existing Assets (idempotent re-runs)
         shell: pwsh
@@ -180,13 +273,21 @@ jobs:
             ### Downloads
             | File | Description |
             |------|-------------|
-            | `Deltempo.exe` | Main GUI application - portable, self-contained, no installer |
-            | `deltempo_cli.exe` | Headless CLI for automation and scripting |
-            | `checksums.sha256` | SHA-256 verification hashes for both executables |
+            | `Deltempo.exe` | Main GUI application - portable, self-contained, x64 |
+            | `deltempo_cli.exe` | Headless CLI for automation and scripting - x64 |
+            | `Deltempo-arm64.exe` | Main GUI application - native Windows-on-ARM build |
+            | `deltempo_cli-arm64.exe` | Headless CLI - native Windows-on-ARM build |
+            | `Deltempo-<version>-x64.msix` | Optional installable GUI package (x64) |
+            | `Deltempo-<version>-arm64.msix` | Optional installable GUI package (arm64) |
+            | `checksums.sha256` | SHA-256 verification hashes for the portable executables |
+
+            The portable executables need no installer and are the primary artefacts.
+            The `.msix` packages add a Start-menu entry and store-managed updates.
 
             ### Requirements
-            - Windows 10 / 11 (64-bit)
+            - Windows 10 version 1809 (build 17763) or newer - x64 or ARM64
             - No .NET runtime required - fully self-contained single file
+            - Administrator rights are requested at runtime only when cleaning protected locations
 
             ### Verification
             ```powershell
@@ -198,6 +299,8 @@ jobs:
           files: |
             ./dist/Deltempo.exe
             ./dist/deltempo_cli.exe
+            ./dist/Deltempo-arm64.exe
+            ./dist/deltempo_cli-arm64.exe
             ./dist/checksums.sha256
           draft: false
           prerelease: false
@@ -218,3 +321,52 @@ jobs:
             exit 1
           }
           Write-Host "checksums.sha256 attached to ${{ steps.tag.outputs.value }}."
+
+      # Same fail-closed treatment for the MSIX packages: softprops has been
+      # observed to drop assets, and the winget/store channel depends on them.
+      - name: Upload MSIX Packages
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "${{ steps.tag.outputs.value }}"
+          $msixFiles = Get-ChildItem ./dist -Filter *.msix -ErrorAction SilentlyContinue
+          if (-not $msixFiles) {
+            Write-Error "::error::No .msix artefacts found in ./dist. MSIX packaging must produce at least one package."
+            exit 1
+          }
+
+          foreach ($file in $msixFiles) {
+            gh release upload $tag $file.FullName --clobber
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "::error::$($file.Name) could not be attached to $tag."
+              exit 1
+            }
+            Write-Host "$($file.Name) attached to $tag."
+          }
+
+      # Bundle the version-pinned manifests so they can be submitted to
+      # microsoft/winget-pkgs without hand-editing digests.
+      - name: Upload Winget Manifests
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "${{ steps.tag.outputs.value }}"
+          $version = $tag.TrimStart('v')
+          $stage = Join-Path $env:RUNNER_TEMP "winget_manifests"
+          $dest = Join-Path $stage "$version"
+
+          New-Item -ItemType Directory -Path $dest -Force | Out-Null
+          Copy-Item ./packaging/winget/*.yaml $dest -Force
+
+          $zip = Join-Path $env:GITHUB_WORKSPACE "dist\winget-manifests-$version.zip"
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+          Compress-Archive -Path $stage -DestinationPath $zip -Force
+
+          gh release upload $tag $zip --clobber
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "::error::winget manifest bundle could not be attached to $tag."
+            exit 1
+          }
+          Write-Host "winget-manifests-$version.zip attached to $tag."

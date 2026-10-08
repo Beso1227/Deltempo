@@ -1,0 +1,25 @@
+# Deltempo winget manifest — Installer section.
+# Published to microsoft/winget-pkgs under manifests/b/Beso1227/Deltempo/<version>/.
+# InstallerType: portable, so winget unpacks the single-file exe and shims it onto PATH.
+PackageIdentifier: Beso1227.Deltempo
+PackageVersion: 3.0.0
+InstallerLocale: en-US
+InstallerType: portable
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/Beso1227/Deltempo/releases/download/v3.0.0/Deltempo.exe
+    InstallerSha256: REPLACE_WITH_SHA256_OF_Deltempo.exe
+    Commands:
+      - deltempo
+    InstallationNotes: >-
+      Portable build. Deltempo is a full-trust cleaner and prompts for elevation via
+      app.manifest when it needs admin rights.
+  - Architecture: arm64
+    InstallerUrl: https://github.com/Beso1227/Deltempo/releases/download/v3.0.0/Deltempo-arm64.exe
+    InstallerSha256: REPLACE_WITH_SHA256_OF_Deltempo-arm64.exe
+    Commands:
+      - deltempo
+    InstallationNotes: >-
+      Native Windows-on-ARM portable build.
+ManifestType: installer
+ManifestVersion: 1.6.0
