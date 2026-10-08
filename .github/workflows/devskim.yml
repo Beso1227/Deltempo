@@ -27,6 +27,8 @@ jobs:
 
       - name: Run DevSkim scanner
         uses: microsoft/DevSkim-Action@v1
+        with:
+          ignore-globs: "**/.git/**,**/bin/**,**/obj/**,**/scripts/vendor/**"
 
       - name: Upload DevSkim scan results to GitHub Security tab
         if: hashFiles('devskim-results.sarif') != ''
