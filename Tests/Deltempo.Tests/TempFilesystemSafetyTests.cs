@@ -101,6 +101,32 @@ public class TempFilesystemSafetyTests : IDisposable
     }
 
     [Fact]
+    public void RevalidateBeforeDeletion_EmptyRootsEnumerable_FailsClosed()
+    {
+        string filePath = Path.Combine(_sandboxDir, "scopeless.tmp");
+        File.WriteAllText(filePath, "content");
+
+        bool isValid = CleanupExecutor.RevalidateBeforeDeletion(
+            filePath, Array.Empty<string>(), 0, null, out string reason, out FileCleanupFailureReason reasonCode);
+
+        Assert.False(isValid, "An empty root set must fail closed, not authorize unrestricted deletion.");
+        Assert.Contains("No cleanup root", reason);
+        Assert.Equal(FileCleanupFailureReason.PathEscapedRoot, reasonCode);
+    }
+
+    [Fact]
+    public void RevalidateBeforeDeletion_NullRoots_IsExplicitlyUnrestricted()
+    {
+        string filePath = Path.Combine(_sandboxDir, "unscoped_ok.tmp");
+        File.WriteAllText(filePath, "content");
+
+        bool isValid = CleanupExecutor.RevalidateBeforeDeletion(
+            filePath, (System.Collections.Generic.IEnumerable<string>?)null, 0, null, out _, out _);
+
+        Assert.True(isValid, "Null roots remain the explicit unrestricted contract.");
+    }
+
+    [Fact]
     public void CleanupPlanner_BuildsDeterministicPlanWithExactCounts()
     {
         string f1 = Path.Combine(_sandboxDir, "f1.tmp");
@@ -222,6 +248,27 @@ public class TempFilesystemSafetyTests : IDisposable
 
         Assert.Equal(1, result.DeletedCount);
         Assert.False(File.Exists(file), "Safe file should be deleted by executor.");
+    }
+
+    [Fact]
+    public async Task ExecutePlanAsync_EmptyAllowedRoots_SkipsAllFilesWithoutDeleting()
+    {
+        string file = Path.Combine(_sandboxDir, "must_survive.tmp");
+        File.WriteAllText(file, "survive");
+
+        var plan = CleanupPlanner.CreatePlan(
+            "empty_root_scope", "Empty Root Scope", new[] { _sandboxDir }, "Temp",
+            apply24HourShield: false);
+
+        var result = await CleanupExecutor.ExecutePlanAsync(plan, Array.Empty<string>());
+
+        Assert.True(File.Exists(file), "Empty root set must fail closed; nothing may be deleted.");
+        Assert.Equal(0, result.DeletedCount);
+        Assert.True(result.SkippedCount >= 1, "Actionable file must be counted as skipped.");
+        Assert.Contains(result.AuditRecords, r =>
+            r.ErrorCategory == CleanupErrorCategory.InvalidPath &&
+            r.ErrorOrSkipReason != null &&
+            r.ErrorOrSkipReason.Contains("No cleanup root", StringComparison.Ordinal));
     }
 
     [Fact]
