@@ -10,15 +10,15 @@
 
   <p align="center">
     <strong>README:</strong>
-    <a href="README.md">English</a> ·
-    <a href="README.es.md">Español</a> ·
-    <a href="README.zh-CN.md">简体中文</a> ·
-    <a href="README.hi.md">हिन्दी</a> ·
-    <a href="README.fr.md">Français</a> ·
-    <a href="README.pt-BR.md">Português</a> ·
-    <a href="README.ar.md">العربية</a> ·
-    <b>Русский</b> ·
-    <a href="README.ja.md">日本語</a>
+    <a href="README.md">🇬🇧 English</a> ·
+    <a href="README.es.md">🇪🇸 Español</a> ·
+    <a href="README.zh-CN.md">🇨🇳 简体中文</a> ·
+    <a href="README.hi.md">🇮🇳 हिन्दी</a> ·
+    <a href="README.fr.md">🇫🇷 Français</a> ·
+    <a href="README.pt-BR.md">🇧🇷 Português</a> ·
+    <a href="README.ar.md">🇸🇦 العربية</a> ·
+    <b>🇷🇺 Русский</b> ·
+    <a href="README.ja.md">🇯🇵 日本語</a>
   </p>
 
   <p><strong>Бесплатный очистщик диска и оптимизатор ОЗУ с открытым исходным кодом для Windows 10 &amp; 11. Возвращайте 10–40+ ГБ: временные файлы, мусор из AppData и кэши шейдеров GPU — плюс глубокий деинсталлятор приложений и поиск дубликатов файлов. Нулевая телеметрия, без рекламы, без установщика.</strong></p>

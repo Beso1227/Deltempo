@@ -10,15 +10,15 @@
 
   <p align="center">
     <strong>README:</strong>
-    <a href="README.md">English</a> ·
-    <a href="README.es.md">Español</a> ·
-    <a href="README.zh-CN.md">简体中文</a> ·
-    <a href="README.hi.md">हिन्दी</a> ·
-    <b>Français</b> ·
-    <a href="README.pt-BR.md">Português</a> ·
-    <a href="README.ar.md">العربية</a> ·
-    <a href="README.ru.md">Русский</a> ·
-    <a href="README.ja.md">日本語</a>
+    <a href="README.md">🇬🇧 English</a> ·
+    <a href="README.es.md">🇪🇸 Español</a> ·
+    <a href="README.zh-CN.md">🇨🇳 简体中文</a> ·
+    <a href="README.hi.md">🇮🇳 हिन्दी</a> ·
+    <b>🇫🇷 Français</b> ·
+    <a href="README.pt-BR.md">🇧🇷 Português</a> ·
+    <a href="README.ar.md">🇸🇦 العربية</a> ·
+    <a href="README.ru.md">🇷🇺 Русский</a> ·
+    <a href="README.ja.md">🇯🇵 日本語</a>
   </p>
 
   <p><strong>Nettoyeur de disque et optimiseur de RAM gratuit et open-source pour Windows 10 &amp; 11. Récupérez de 10 à 40 Go et plus de fichiers temporaires, de fichiers inutiles d'AppData et de caches de shaders GPU — avec en plus un désinstalleur approfondi et un chercheur de fichiers en double. Zéro télémétrie, sans publicité, sans installateur.</strong></p>

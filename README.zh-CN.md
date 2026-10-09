@@ -10,15 +10,15 @@
 
   <p align="center">
     <strong>README:</strong>
-    <a href="README.md">English</a> ·
-    <a href="README.es.md">Español</a> ·
-    <b>简体中文</b> ·
-    <a href="README.hi.md">हिन्दी</a> ·
-    <a href="README.fr.md">Français</a> ·
-    <a href="README.pt-BR.md">Português</a> ·
-    <a href="README.ar.md">العربية</a> ·
-    <a href="README.ru.md">Русский</a> ·
-    <a href="README.ja.md">日本語</a>
+    <a href="README.md">🇬🇧 English</a> ·
+    <a href="README.es.md">🇪🇸 Español</a> ·
+    <b>🇨🇳 简体中文</b> ·
+    <a href="README.hi.md">🇮🇳 हिन्दी</a> ·
+    <a href="README.fr.md">🇫🇷 Français</a> ·
+    <a href="README.pt-BR.md">🇧🇷 Português</a> ·
+    <a href="README.ar.md">🇸🇦 العربية</a> ·
+    <a href="README.ru.md">🇷🇺 Русский</a> ·
+    <a href="README.ja.md">🇯🇵 日本語</a>
   </p>
 
   <p><strong>适用于 Windows 10 与 11 的免费开源磁盘清理与 RAM 优化工具。回收 10–40+ GB 的临时文件、AppData 垃圾与 GPU 着色器缓存——外加深度应用卸载器与重复文件查找器。零遥测、无广告、无需安装程序。</strong></p>

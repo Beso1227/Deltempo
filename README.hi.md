@@ -10,15 +10,15 @@
 
   <p align="center">
     <strong>README:</strong>
-    <a href="README.md">English</a> ·
-    <a href="README.es.md">Español</a> ·
-    <a href="README.zh-CN.md">简体中文</a> ·
-    <b>हिन्दी</b> ·
-    <a href="README.fr.md">Français</a> ·
-    <a href="README.pt-BR.md">Português</a> ·
-    <a href="README.ar.md">العربية</a> ·
-    <a href="README.ru.md">Русский</a> ·
-    <a href="README.ja.md">日本語</a>
+    <a href="README.md">🇬🇧 English</a> ·
+    <a href="README.es.md">🇪🇸 Español</a> ·
+    <a href="README.zh-CN.md">🇨🇳 简体中文</a> ·
+    <b>🇮🇳 हिन्दी</b> ·
+    <a href="README.fr.md">🇫🇷 Français</a> ·
+    <a href="README.pt-BR.md">🇧🇷 Português</a> ·
+    <a href="README.ar.md">🇸🇦 العربية</a> ·
+    <a href="README.ru.md">🇷🇺 Русский</a> ·
+    <a href="README.ja.md">🇯🇵 日本語</a>
   </p>
 
   <p><strong>Windows 10 और 11 के लिए निःशुल्क, ओपन-सोर्स डिस्क क्लीनर और RAM ऑप्टिमाइज़र। टेम्प फ़ाइलों, AppData जंक और GPU शेडर कैश से 10–40+ GB स्पेस पुनः प्राप्त करें — साथ ही गहन ऐप अनइंस्टॉलर और डुप्लिकेट फ़ाइल फ़ाइंडर भी। शून्य टेलीमेट्री, कोई विज्ञापन नहीं, कोई इंस्टॉलर नहीं।</strong></p>

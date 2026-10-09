@@ -10,15 +10,15 @@
 
   <p align="center">
     <strong>README:</strong>
-    <a href="README.md">English</a> ·
-    <a href="README.es.md">Español</a> ·
-    <a href="README.zh-CN.md">简体中文</a> ·
-    <a href="README.hi.md">हिन्दी</a> ·
-    <a href="README.fr.md">Français</a> ·
-    <b>Português</b> ·
-    <a href="README.ar.md">العربية</a> ·
-    <a href="README.ru.md">Русский</a> ·
-    <a href="README.ja.md">日本語</a>
+    <a href="README.md">🇬🇧 English</a> ·
+    <a href="README.es.md">🇪🇸 Español</a> ·
+    <a href="README.zh-CN.md">🇨🇳 简体中文</a> ·
+    <a href="README.hi.md">🇮🇳 हिन्दी</a> ·
+    <a href="README.fr.md">🇫🇷 Français</a> ·
+    <b>🇧🇷 Português</b> ·
+    <a href="README.ar.md">🇸🇦 العربية</a> ·
+    <a href="README.ru.md">🇷🇺 Русский</a> ·
+    <a href="README.ja.md">🇯🇵 日本語</a>
   </p>
 
   <p><strong>Limpeza de disco e otimizador de RAM gratuitos e de código aberto para Windows 10 &amp; 11. Recupere de 10 a mais de 40 GB de arquivos temporários, lixo do AppData e caches de shaders de GPU — além de um desinstalador profundo de aplicativos e um localizador de arquivos duplicados. Zero telemetria, sem anúncios, sem instalador.</strong></p>

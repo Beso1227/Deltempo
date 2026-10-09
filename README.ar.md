@@ -10,15 +10,15 @@
 
   <p align="center">
     <strong>README:</strong>
-    <a href="README.md">English</a> ·
-    <a href="README.es.md">Español</a> ·
-    <a href="README.zh-CN.md">简体中文</a> ·
-    <a href="README.hi.md">हिन्दी</a> ·
-    <a href="README.fr.md">Français</a> ·
-    <a href="README.pt-BR.md">Português</a> ·
-    <b>العربية</b> ·
-    <a href="README.ru.md">Русский</a> ·
-    <a href="README.ja.md">日本語</a>
+    <a href="README.md">🇬🇧 English</a> ·
+    <a href="README.es.md">🇪🇸 Español</a> ·
+    <a href="README.zh-CN.md">🇨🇳 简体中文</a> ·
+    <a href="README.hi.md">🇮🇳 हिन्दी</a> ·
+    <a href="README.fr.md">🇫🇷 Français</a> ·
+    <a href="README.pt-BR.md">🇧🇷 Português</a> ·
+    <b>🇸🇦 العربية</b> ·
+    <a href="README.ru.md">🇷🇺 Русский</a> ·
+    <a href="README.ja.md">🇯🇵 日本語</a>
   </p>
 
   <p><strong>منظّف أقراص ومحسّن للذاكرة العشوائية مجاني ومفتوح المصدر لويندوز 10 و11. استعد 10–40+ غيغابايت من الملفات المؤقتة وملفات AppData غير الضرورية وذاكرات Shaders الخاصة بمعالج الرسوميات — إضافة إلى أداة عميقة لإلغاء تثبيت التطبيقات وأداة لإيجاد الملفات المكرّرة. صفر بيانات اتّصال، بلا إعلانات، وبلا مُثبِّت.</strong></p>
