@@ -165,8 +165,12 @@
                                     Margin="1,0,1,0"
                                     Background="{DynamicResource GlassTopBorderBrush}"
                                     IsHitTestVisible="False"/>
+                            <!-- Tool families: Clean | Optimize | Repair | Danger. Each family
+                                 is a tight 2px-gutter cluster of pills separated by an 8px
+                                 divider lane, so the island reads as four groups, not eight
+                                 loose buttons. -->
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <!-- Main: Storage Cleaner Workspace -->
+                            <!-- Clean Group: Cleaner (workspace home) -->
                             <Button x:Name="ToolCleanerBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
                             Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
@@ -179,24 +183,15 @@
                                     <TextBlock Text="&#xE856;"
                                                Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="10.5"
-                                               Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolCleanerText"
                                                Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Cleaner"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               VerticalAlignment="Center"/>
+                                               Style="{DynamicResource NavPillLabelStyle}"/>
                                 </StackPanel>
                             </Button>
 
-                            <!-- Subtle Vertical Separator -->
-                            <Border Width="1" Height="18"
-                                    Background="{DynamicResource HairlineBorderBrush}"
-                                    Margin="5,0"/>
-
-                            <!-- Tools Group: Storage & Startup -->
+                            <!-- Clean Group: Large Files + Startup -->
                             <Button x:Name="ToolLargeFilesBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
                             Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
@@ -208,15 +203,11 @@
                                     <TextBlock Text="&#xE8B7;"
                                                Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="10.5"
-                                               Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolLargeFilesText"
                                                Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Large Files"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               VerticalAlignment="Center"/>
+                                               Style="{DynamicResource NavPillLabelStyle}"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="ToolStartupBtn"
@@ -230,22 +221,15 @@
                                     <TextBlock Text="&#xE7B5;"
                                                Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="10.5"
-                                               Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolStartupText"
                                                Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Startup"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               VerticalAlignment="Center"/>
+                                               Style="{DynamicResource NavPillLabelStyle}"/>
                                 </StackPanel>
                             </Button>
 
-                            <!-- Subtle Vertical Separator -->
-                            <Border Width="1" Height="18"
-                                    Background="{DynamicResource HairlineBorderBrush}"
-                                    Margin="5,0"/>
+                            <Border Style="{DynamicResource NavDividerStyle}"/>
 
                             <!-- Optimize Group: Processes & Memory -->
                             <Button x:Name="ToolProcessesBtn"
@@ -259,15 +243,11 @@
                                     <TextBlock Text="&#xE9F5;"
                                                Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="10.5"
-                                               Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolProcessesText"
                                                Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Processes"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               VerticalAlignment="Center"/>
+                                               Style="{DynamicResource NavPillLabelStyle}"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="ToolMemoryBtn"
@@ -281,116 +261,95 @@
                                     <TextBlock Text="&#xE950;"
                                                Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="10.5"
-                                               Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolMemoryText"
                                                Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Memory"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               VerticalAlignment="Center"/>
+                                               Style="{DynamicResource NavPillLabelStyle}"/>
                                 </StackPanel>
                             </Button>
 
-                            <!-- Subtle Vertical Separator -->
-                            <Border Width="1" Height="18"
-                                    Background="{DynamicResource HairlineBorderBrush}"
-                                    Margin="5,0"/>
+                            <Border Style="{DynamicResource NavDividerStyle}"/>
 
-                            <!-- Advanced Group: System Repair -->
+                            <!-- Repair Group: System Repair -->
                             <Button x:Name="ToolSystemRepairBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
                             Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Diagnose and repair Windows system file corruption (SFC, DISM, and CHKDSK)"
                                     AutomationProperties.Name="System Repair Tool"
-                                    Margin="0"
                                     Click="OpenSystemRepairModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE74C;"
                                                Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="10.5"
-                                               Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolSystemRepairText"
                                                Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Repair"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               VerticalAlignment="Center"/>
+                                               Style="{DynamicResource NavPillLabelStyle}"/>
                                 </StackPanel>
                             </Button>
 
-                            <!-- Advanced Group: App Uninstaller -->
+                            <!-- Repair Group: App Uninstaller -->
                             <Button x:Name="ToolAppUninstallBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
                             Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Installed applications manager, uninstaller &amp; residual bloatware purger"
                                     AutomationProperties.Name="App Uninstaller Tool"
-                                    Margin="0"
                                     Click="OpenAppUninstallModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE71D;"
                                                Style="{DynamicResource NavIconStyle}"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="10.5"
-                                               Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolAppUninstallText"
                                                Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Apps"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               VerticalAlignment="Center"/>
+                                               Style="{DynamicResource NavPillLabelStyle}"/>
                                 </StackPanel>
                             </Button>
 
-                            <!-- Subtle Vertical Separator -->
-                            <Border Width="1" Height="18"
-                                    Background="{DynamicResource HairlineBorderBrush}"
-                                    Margin="5,0"/>
+                            <Border Style="{DynamicResource NavDividerStyle}"/>
 
-                            <!-- Advanced Group: Force Delete Stubborn Files -->
+                            <!-- Danger Group: Force Delete Stubborn Files -->
                             <Button x:Name="ToolForceDeleteBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
                             Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Pick stubborn files or folders (locked, read-only, permission-denied) and permanently force delete them"
                                     AutomationProperties.Name="Force Delete Tool"
-                                    Margin="0"
                                     Click="OpenForceDeleteModal_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="&#xE74D;"
                                                Style="{DynamicResource NavIconDangerStyle}"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="10.5"
-                                               Margin="0,0,6,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="ToolForceDeleteText"
                                                Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1280}"
                                                Text="Force Delete"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               VerticalAlignment="Center"/>
+                                               Style="{DynamicResource NavPillLabelStyle}"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
                         </Grid>
                     </Border>
 
-                    <!-- Right: Dedicated Admin Status & Quick Preferences Pod -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                    <!-- Right: Dedicated Admin Status & Quick Preferences Pod.
+                         Clusters breathe on one 8px lane (Admin | About | Prefs | window
+                         controls) with a hairline divider before the window controls,
+                         so four unrelated groups stop touching and the whole row sits
+                         on the 28px header rhythm. -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                         <!-- Dedicated Admin Elevation Status Capsule -->
                         <Button x:Name="AdminElevationButton"
                                 Cursor="Hand"
                                 Background="Transparent"
                                 BorderThickness="0"
                                 Padding="0"
-                                Margin="0,0,6,0"
-                                Height="24"
+                                Margin="0,0,8,0"
+                                Height="28"
                                 VerticalAlignment="Center"
                                 Click="AdminElevationButton_Click"
                                 ToolTip="Status of Administrator Privileges (Click to Elevate)"
@@ -415,7 +374,7 @@
                                     BorderBrush="{DynamicResource SuccessBorderSoftBrush}"
                                     BorderThickness="1"
                                     CornerRadius="12"
-                                    Height="24"
+                                    Height="28"
                                     Padding="7,0,8,0"
                                     SnapsToDevicePixels="True"
                                     VerticalAlignment="Center">
@@ -423,15 +382,14 @@
                                     <TextBlock x:Name="AdminBadgeIcon"
                                                Text="&#xE73E;"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="10"
+                                               FontSize="{DynamicResource NavIconSize}"
                                                Foreground="{DynamicResource SuccessAccentBrush}"
-                                               Margin="0,0,5,0"
+                                               Margin="{DynamicResource NavIconLabelGap}"
                                                VerticalAlignment="Center"/>
                                     <TextBlock x:Name="AdminBadgeText"
                                     Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=900}"
                                                Text="Admin"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
+                                               Style="{DynamicResource NavPillLabelStyle}"
                                                Foreground="{DynamicResource SuccessTextBrightBrush}"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
@@ -443,20 +401,17 @@
                                 Style="{DynamicResource HeaderToolButton}"
                                 ToolTip="About Deltempo — Open Source, MIT Licensed, Zero Telemetry"
                                 AutomationProperties.Name="About Deltempo"
+                                Margin="0,0,8,0"
                                 Click="AboutButton_Click">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="&#xE946;"
+                                           Style="{DynamicResource NavIconStyle}"
                                            FontFamily="{DynamicResource IconFont}"
-                                           FontSize="10.5"
-                                           Foreground="{DynamicResource ElectricCyanBrush}"
-                                           Margin="0,0,5,0"
                                            VerticalAlignment="Center"/>
                                 <TextBlock x:Name="AboutButtonText"
                                 Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=900}"
                                            Text="About"
-                                           FontSize="11"
-                                           FontWeight="SemiBold"
-                                           VerticalAlignment="Center"/>
+                                           Style="{DynamicResource NavPillLabelStyle}"/>
                             </StackPanel>
                         </Button>
 
@@ -465,7 +420,7 @@
                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="8"
-                                Padding="3,2"
+                                Padding="4,2"
                                 Margin="0,0,8,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <!-- Language Selector Pill -->
@@ -482,77 +437,80 @@
                                     <ComboBoxItem Style="{DynamicResource ModernComboBoxItem}" Content="DE" ToolTip="Deutsch (German)" AutomationProperties.Name="Deutsch (German)" Tag="de"/>
                                 </ComboBox>
 
-                                <!-- Subtle Vertical Separator -->
-                                <Border Width="1" Height="14"
-                                        Background="{DynamicResource HairlineBorderBrush}"
-                                        Margin="4,0"/>
+                                <Border Style="{DynamicResource NavDividerStyle}" Height="14"/>
 
                                 <!-- Sound FX Toggle -->
                                 <Button x:Name="SoundToggleBtn"
                                         Style="{DynamicResource WindowControlButton}"
-                                        Width="25" Height="24"
+                                        Width="28" Height="28"
                                         AutomationProperties.Name="Toggle Haptic Sound Effects"
                                         ToolTip="Toggle Haptic Audio Feedback"
-                                        Margin="0,0,1,0"
+                                        Margin="{DynamicResource NavIntraGroupMargin}"
                                         Click="SoundToggleBtn_Click">
                                     <TextBlock x:Name="SoundToggleIcon"
                                                Text="&#xE767;"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="10.5"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                               FontSize="{DynamicResource NavIconSize}"
+                                               Foreground="{DynamicResource TextMediumBrush}"/>
                                 </Button>
 
                                 <!-- Theme Mode Toggle (Sun/Moon) -->
                                 <Button x:Name="ThemeToggleBtn"
                                         Style="{DynamicResource WindowControlButton}"
-                                        Width="25" Height="24"
+                                        Width="28" Height="28"
                                         AutomationProperties.Name="Toggle Dark / Light Theme"
                                         ToolTip="Toggle Light / Dark Mode"
-                                        Margin="0,0,1,0"
+                                        Margin="{DynamicResource NavIntraGroupMargin}"
                                         Click="ThemeToggleBtn_Click">
                                     <TextBlock x:Name="ThemeToggleIcon"
                                                Text="&#xE708;"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="10.5"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                               FontSize="{DynamicResource NavIconSize}"
+                                               Foreground="{DynamicResource TextMediumBrush}"/>
                                 </Button>
 
                                 <!-- Settings Button -->
                                 <Button x:Name="SettingsBtn"
                                         Style="{DynamicResource WindowControlButton}"
-                                        Width="25" Height="24"
+                                        Width="28" Height="28"
                                         AutomationProperties.Name="Open Application Settings"
                                         ToolTip="Deltempo Preferences &amp; Guardian Settings"
                                         Margin="0"
                                         Click="SettingsBtn_Click">
                                     <TextBlock Text="&#xE713;"
                                                FontFamily="{DynamicResource IconFont}"
-                                               FontSize="10.5"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                               FontSize="{DynamicResource NavIconSize}"
+                                               Foreground="{DynamicResource TextMediumBrush}"/>
                                 </Button>
                             </StackPanel>
                         </Border>
 
                         <!-- Window Min / Max / Close Controls -->
+                        <Border Width="1" Height="{DynamicResource NavDividerHeight}"
+                                Background="{DynamicResource HairlineBorderBrush}"
+                                Margin="{DynamicResource NavDividerMargin}"
+                                VerticalAlignment="Center"/>
+
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Button Style="{DynamicResource WindowControlButton}"
                                     Content="&#xE921;"
-                                    Width="28" Height="26"
-                                    Margin="0,0,2,0"
+                                    Width="32" Height="28"
+                                    Margin="{DynamicResource NavIntraGroupMargin}"
                                     ToolTip="Minimize Window"
                                     AutomationProperties.Name="Minimize Window"
                                     Click="MinimizeButton_Click"/>
                             <Button x:Name="MaximizeButton"
                                     Style="{DynamicResource WindowControlButton}"
                                     Content="&#xE922;"
-                                    Width="28" Height="26"
-                                    Margin="0,0,2,0"
+                                    Width="32" Height="28"
+                                    Margin="{DynamicResource NavIntraGroupMargin}"
                                     ToolTip="Maximize Window"
                                     AutomationProperties.Name="Maximize Window"
                                     Click="MaximizeButton_Click"/>
                             <Button Style="{DynamicResource WindowCloseButton}"
                                     Content="&#xE8BB;"
-                                    Width="28" Height="26"
+                                    Width="32" Height="28"
+                                    Margin="2,0,0,0"
                                     ToolTip="Close Application"
                                     AutomationProperties.Name="Close Application"
                                     Click="CloseButton_Click"/>

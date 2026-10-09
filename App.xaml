@@ -208,6 +208,17 @@
              the 24 DIP WCAG 2.5.8 minimum and matches the compact-mode MinWidth, keeping one
              height across labeled and icon-only states. -->
         <sys:Double x:Key="NavItemHeight">28</sys:Double>
+        <!-- Header island spacing system. Three roles, one scale: 2px intra-group gutters so
+             sibling pills sit close but never touch, 8px inter-group lanes around the vertical
+             dividers so each tool family reads as its own cluster, and 6px icon-to-label gaps
+             inside every pill so glyphs and text share one rhythm in labeled and icon-only
+             states. -->
+        <Thickness x:Key="NavIntraGroupMargin">2,0</Thickness>
+        <Thickness x:Key="NavDividerMargin">8,0</Thickness>
+        <Thickness x:Key="NavIconLabelGap">0,0,6,0</Thickness>
+        <sys:Double x:Key="NavIconSize">12</sys:Double>
+        <sys:Double x:Key="NavLabelSize">11</sys:Double>
+        <sys:Double x:Key="NavDividerHeight">18</sys:Double>
         <FontFamily x:Key="MonoFont">Cascadia Code, Consolas, monospace</FontFamily>
         <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets, Segoe UI Symbol</FontFamily>
 
@@ -483,10 +494,11 @@
             <Setter Property="Padding" Value="12,4"/>
             <Setter Property="MinHeight" Value="{DynamicResource NavItemHeight}"/>
             <Setter Property="MinWidth" Value="{DynamicResource MinTouchTarget}"/>
-            <!-- 1px on each side left adjacent capsules visually touching: at CornerRadius 7 the
-                 neighbouring rounded corners merged into one blob. A 4px gutter keeps each pill
-                 reading as its own target while staying inside the compact segmented bar. -->
-            <Setter Property="Margin" Value="4,0"/>
+            <!-- 2px intra-group gutters from the header island spacing system: sibling pills
+                 sit close but never touch, while the 8px NavDividerMargin lanes at the
+                 vertical dividers separate tool families. Per-button Margin overrides in
+                 MainWindow.xaml opt into wider lanes where a pill touches a divider. -->
+            <Setter Property="Margin" Value="{DynamicResource NavIntraGroupMargin}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -558,11 +570,34 @@
             </Setter>
         </Style>
 
+        <!-- Header island divider: 1px hairline with the 8px inter-group lane so each
+             tool family reads as its own cluster. Replaces five ad-hoc
+             Width/Height/Margin copies that drifted apart (5px vs 8px gutters). -->
+        <Style x:Key="NavDividerStyle" TargetType="Border">
+            <Setter Property="Width" Value="1"/>
+            <Setter Property="Height" Value="{DynamicResource NavDividerHeight}"/>
+            <Setter Property="Background" Value="{DynamicResource HairlineBorderBrush}"/>
+            <Setter Property="Margin" Value="{DynamicResource NavDividerMargin}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Header island pill label: one type step shared by every tool tab so labels
+             never drift between 11 and 12 again. -->
+        <Style x:Key="NavPillLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="{DynamicResource NavLabelSize}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
         <!-- Icon chip for top-nav tabs (brand ramp). Muted at rest, slate-bright on hover,
              full mint on the active pill. The parent Button's Tag drives the active state,
-             matching how HeaderToolButton marks selection. -->
+             matching how HeaderToolButton marks selection. Glyph size and the gap to the
+             label come from the header island spacing system so every pill shares one
+             rhythm in labeled and icon-only (collapsed) states. -->
         <Style x:Key="NavIconStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{DynamicResource NavIconMutedBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource NavIconSize}"/>
+            <Setter Property="Margin" Value="{DynamicResource NavIconLabelGap}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
                     <Setter Property="Foreground" Value="{DynamicResource NavIconHoverBrush}"/>
@@ -576,6 +611,8 @@
         <!-- Same as NavIconStyle on the destructive ramp, for the Force Delete tab. -->
         <Style x:Key="NavIconDangerStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{DynamicResource NavIconDangerMutedBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource NavIconSize}"/>
+            <Setter Property="Margin" Value="{DynamicResource NavIconLabelGap}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
                     <Setter Property="Foreground" Value="{DynamicResource NavIconDangerHoverBrush}"/>
@@ -638,6 +675,44 @@
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="track" Property="BorderBrush" Value="{DynamicResource ElectricCyanBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Header Utility Button (prefs toggles): square 28px hit target on the header
+             row rhythm, transparent until hover like the nav pills. Glyph color is
+             inherited from the content (NavIcon ramps), so "on" states like the
+             sound toggle keep driving Foreground from code-behind. -->
+        <Style x:Key="HeaderUtilityButton" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccessibleFocusVisualStyle}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMediumBrush}"/>
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Margin" Value="1,0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
+            <Setter Property="FontSize" Value="{DynamicResource NavIconSize}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="{TemplateBinding Background}" CornerRadius="7">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource SurfaceCardHoverBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource PillButtonBorderBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bg" Property="Opacity" Value="0.35"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
