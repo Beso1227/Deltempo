@@ -167,6 +167,20 @@
       <p class="section-subtitle">Complete version history, feature additions, and security improvements.</p>
     </div>
 
+    <!-- Unreleased: path canonicalizer hardening + fuzz proof -->
+    <div class="double-bezel release-card reveal-on-scroll stagger-1">
+      <div class="card-inner">
+        <div class="release-header">
+          <h2 class="release-version">Unreleased</h2>
+          <span class="release-tag release-tag-cyan">NEXT</span>
+        </div>
+        <ul class="release-list">
+          <li><strong>Path Canonicalizer Hardening:</strong> <code>PathSecurity.NormalizeCanonicalPath</code> is now idempotent across adversarial inputs. Volume-less device prefixes (<code>\\?\Volume{...}</code>, <code>\\?\windows\...</code>) no longer resolve relative to the current directory; forward-slash device paths emitted by <code>Path.GetFullPath</code> fold to the same canonical form; rooted drive-less inputs re-resolve against the current drive; trailing separators never trim below the drive root; and Win32 dot/space-stripped segments that would resurrect <code>..</code> are rejected outright.</li>
+          <li><strong>Canonicalizer Fuzz Proof:</strong> New deterministic seeded fuzz suite (<code>PathSecurityFuzzTests.cs</code>, 100k cases in CI plus a 1M-case <code>FuzzDeep</code> campaign for local runs) asserting five invariants per payload: never throws, no surviving traversal segment, idempotent re-canonicalization, never null, blank input stays blank.</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- v3.0.0 -->
     <div class="double-bezel release-card reveal-on-scroll stagger-1">
       <div class="card-inner">

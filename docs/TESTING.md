@@ -18,6 +18,7 @@ Because Deltempo is a Windows maintenance and deletion utility operating near se
 | **AdversarialFilesystemTests.cs** | Edge cases & malicious filesystems | Reparse points, sibling directory collisions, path traversal, unknown file fail-closed invariants |
 | **DestructiveHardeningTests.cs** | Deletion safeguards & drift | Pre/post-verification, size drift detection, audit records, lock handling |
 | **PathSecurityTests.cs** | Canonical path normalization | Absolute path resolution, dot-segments, canonical containment |
+| **PathSecurityFuzzTests.cs** | Property-based fuzzing of the canonicalizer | Deterministic seeded fuzzing (100k standard / 1M `FuzzDeep`): no-throw, no surviving traversal segments, idempotence, blank-stays-blank |
 | **ProtectionPolicyTests.cs** | Non-negotiable blacklist | Windows OS, System32, User personal files, SSH/GPG keys, credentials |
 | **FileSafetyEngineTests.cs** | Multi-signal risk classification | Safe, LowRisk, ReviewRequired, Unknown categorization |
 | **SystemRepairServiceTests.cs** | Servicing stack orchestration | Command generation for SFC, DISM, WinSxS, and CHKDSK |
@@ -47,7 +48,34 @@ Run throughput and memory engine benchmarks explicitly:
 dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --filter "Category=Benchmark"
 ```
 
-### 3.3 Running with Code Coverage
+### 3.3 Path Canonicalizer Fuzz Campaigns
+
+`PathSecurityFuzzTests.cs` runs a deterministic, seeded (seed `0x5EED_2024`) in-process
+fuzz campaign against `PathSecurity.NormalizeCanonicalPath` on every build — no native
+libFuzzer harness required, so it executes in CI and on contributor machines alike.
+The generator targets the shapes that break naive canonicalizers: traversal segments,
+device prefixes, ADS streams, reserved device names, 8.3 short names, overlong paths,
+and mixed separators.
+
+Every payload must uphold five invariants: never throw, never retain a surviving
+multi-dot traversal segment, be idempotent across re-canonicalization (two code paths
+must never disagree about what is being deleted), never return null, and never turn
+blank input into a live path. A failure prints the exact input, and the fixed seed
+(`0x5EED_2024`) makes it reproducible.
+
+Because the test project targets net10.0-windows on Microsoft.Testing.Platform,
+campaigns run via the built test executable (matching `.github/workflows/ci.yml`),
+not `dotnet test`:
+
+```powershell
+dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
+# Standard campaign (100k cases, Category=Fuzz - also runs in CI via Category!=Benchmark)
+./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category=Fuzz"
+# Deep campaign (1M cases, Category=FuzzDeep - local runs, excluded from CI)
+./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category=FuzzDeep"
+```
+
+### 3.4 Running with Code Coverage
 
 To run with code coverage collection and report generation:
 

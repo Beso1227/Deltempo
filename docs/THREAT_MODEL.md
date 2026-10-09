@@ -31,7 +31,9 @@ This document identifies potential attack vectors, adversarial edge cases, and t
 * **Mitigation**:
   * `PathSecurity.HasPathTraversalSequences` rejects relative segment patterns.
   * `PathSecurity.NormalizeCanonicalPath` resolves fully-qualified absolute paths using `Path.GetFullPath`.
+  * Canonicalization is hardened and idempotent: volume-less device prefixes (`\\?\Volume{...}`, `\\?\windows\...`) no longer resolve relative to the current directory, forward-slash device paths emitted by `Path.GetFullPath` fold to the same canonical form, rooted drive-less inputs re-resolve against the current drive, trailing separators never trim below the drive root, and Win32 dot/space-stripped segments that would resurrect `..` are rejected outright.
   * Illegal character sequences and malformed paths fail closed to `SafetyRiskTier.Protected`.
+* **Verification**: `PathSecurityFuzzTests.cs` proves the canonicalizer against adversarial payloads on every CI build — a deterministic seeded campaign (traversal segments, device prefixes, ADS streams, reserved names, 8.3 short names, overlong paths, mixed separators) asserting five invariants per payload: never throws, no surviving multi-dot traversal segment, idempotent re-canonicalization, never null, blank input stays blank. Standard campaign (100k cases) runs in CI; deep campaign (1M cases, `Category=FuzzDeep`) runs locally.
 
 ### 2.4 Time-of-Check to Time-of-Use (TOCTOU) Drift
 
