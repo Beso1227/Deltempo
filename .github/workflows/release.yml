@@ -206,6 +206,10 @@ jobs:
       # Pack the MSIX installable channel alongside the portable exe. Reuses the
       # repository packager so local and CI artefacts are byte-identical.
       - name: Package MSIX (x64 + arm64)
+        # Only worth building when it can be signed: Windows blocks sideloading of unsigned
+        # MSIX packages, so an unsigned one is an artifact no user can install. Skipping it
+        # keeps the portable executables - the primary channel - shipping.
+        if: steps.signing.outputs.enabled == 'true'
         shell: pwsh
         env:
           SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
@@ -363,6 +367,7 @@ jobs:
       # Same fail-closed treatment for the MSIX packages: softprops has been
       # observed to drop assets, and the winget/store channel depends on them.
       - name: Upload MSIX Packages
+        if: steps.signing.outputs.enabled == 'true'
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
