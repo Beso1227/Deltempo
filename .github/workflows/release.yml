@@ -288,19 +288,27 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Must be safe on a FIRST release, not just on re-runs. `gh release view` exits
+          # non-zero when the release does not exist yet, and under `pwsh` a native
+          # command's exit code becomes the step's exit code - so the previous version of
+          # this step failed every first-time release with "there is nothing to clean".
           $tag = "${{ steps.tag.outputs.value }}"
-          try {
-            $raw = gh release view $tag --json assets 2>$null
-            if ($raw) {
-              $release = $raw | ConvertFrom-Json
-              foreach ($asset in $release.assets) {
-                Write-Host "Deleting existing asset: $($asset.name)"
-                gh release delete-asset $tag $asset.name -y
-              }
-            }
-          } catch {
-            Write-Host "No existing release assets to clean: $($_.Exception.Message)"
+          $raw = gh release view $tag --json assets 2>$null
+          if ($LASTEXITCODE -ne 0 -or -not $raw) {
+            Write-Host "No existing release for $tag - nothing to clean."
+            exit 0
           }
+
+          $release = $raw | ConvertFrom-Json
+          foreach ($asset in $release.assets) {
+            Write-Host "Deleting existing asset: $($asset.name)"
+            gh release delete-asset $tag $asset.name -y
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "::error::Failed to delete existing asset $($asset.name)."
+              exit 1
+            }
+          }
+          exit 0
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v3
