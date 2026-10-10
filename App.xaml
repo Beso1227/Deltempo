@@ -27,6 +27,10 @@
         <SolidColorBrush x:Key="SurfaceCardSelectedBrush" Color="#101820"/>
         <SolidColorBrush x:Key="SurfaceSubCardBrush" Color="#0A0F14"/>
         <SolidColorBrush x:Key="HairlineBorderBrush" Color="#16212B"/>
+        <!-- Nav group separator. HairlineBorderBrush (#16212B) sits only ~6% lighter than the
+             island surface (#0A0F14), so the divider was invisible and the inter-group lane
+             read as dead space. #2E3D4A keeps it quiet but makes the cluster boundary legible. -->
+        <SolidColorBrush x:Key="NavDividerBrush" Color="#2E3D4A"/>
         <SolidColorBrush x:Key="AccentBorderBrush" Color="#1A3B35"/>
 
         <!-- Typography. Contrast is verified against the surfaces these are actually used on:
@@ -209,12 +213,12 @@
              height across labeled and icon-only states. -->
         <sys:Double x:Key="NavItemHeight">28</sys:Double>
         <!-- Header island spacing system. Three roles, one scale: 2px intra-group gutters so
-             sibling pills sit close but never touch, 8px inter-group lanes around the vertical
+             sibling pills sit close but never touch, 6px inter-group lanes around the vertical
              dividers so each tool family reads as its own cluster, and 6px icon-to-label gaps
              inside every pill so glyphs and text share one rhythm in labeled and icon-only
              states. -->
         <Thickness x:Key="NavIntraGroupMargin">2,0</Thickness>
-        <Thickness x:Key="NavDividerMargin">8,0</Thickness>
+        <Thickness x:Key="NavDividerMargin">6,0</Thickness>
         <Thickness x:Key="NavIconLabelGap">0,0,6,0</Thickness>
         <sys:Double x:Key="NavIconSize">12</sys:Double>
         <sys:Double x:Key="NavLabelSize">11</sys:Double>
@@ -495,9 +499,9 @@
             <Setter Property="MinHeight" Value="{DynamicResource NavItemHeight}"/>
             <Setter Property="MinWidth" Value="{DynamicResource MinTouchTarget}"/>
             <!-- 2px intra-group gutters from the header island spacing system: sibling pills
-                 sit close but never touch, while the 8px NavDividerMargin lanes at the
-                 vertical dividers separate tool families. Per-button Margin overrides in
-                 MainWindow.xaml opt into wider lanes where a pill touches a divider. -->
+                 sit close but never touch, while the NavDividerMargin lanes at the vertical
+                 dividers separate tool families. All eight pills share this one gutter; the
+                 per-family separation comes from the dividers, not from per-button margins. -->
             <Setter Property="Margin" Value="{DynamicResource NavIntraGroupMargin}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
@@ -506,7 +510,7 @@
                         <Border x:Name="border"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="Transparent"
-                                BorderThickness="1"
+                                BorderThickness="1.6"
                                 CornerRadius="7"
                                 Padding="{TemplateBinding Padding}"
                                 RenderTransformOrigin="0.5,0.5">
@@ -521,9 +525,10 @@
                                 <!-- The selection outline was BorderThickness 1 at #6600F2B0, only 40%
                                      alpha, which read as a faint smudge rather than "you are here".
                                      Thicken it and raise the alpha so the active pill is
-                                     unmistakable against its neighbours. -->
+                                     unmistakable against its neighbours. The border now stays
+                                     1.6px at rest (transparent) and only its brush changes here,
+                                     so selecting a tab never resizes the pill or shifts the row. -->
                                 <Setter TargetName="border" Property="BorderBrush" Value="#CC00F2B0"/>
-                                <Setter TargetName="border" Property="BorderThickness" Value="1.6"/>
                                 <!-- Label stays high-contrast white; the mint accent lives in the
                                      icon and the halo so the tab name never loses readability. -->
                                 <Setter Property="Foreground" Value="{DynamicResource TextHighBrush}"/>
@@ -570,13 +575,17 @@
             </Setter>
         </Style>
 
-        <!-- Header island divider: 1px hairline with the 8px inter-group lane so each
-             tool family reads as its own cluster. Replaces five ad-hoc
-             Width/Height/Margin copies that drifted apart (5px vs 8px gutters). -->
+        <!-- Header island divider: 1px rule with the inter-group lane so each tool family
+             reads as its own cluster. Replaces five ad-hoc Width/Height/Margin copies that
+             drifted apart (5px vs 8px gutters). The lane is 6px, not 8px: the rule was doing
+             no visual work at HairlineBorderBrush (#16212B on the #0A0F14 island ≈ 6% lighter,
+             i.e. invisible), so the extra 2px per side read as dead space rather than as a
+             deliberate separator. Now that NavDividerBrush carries the boundary, the lane can
+             sit tighter than the pill content it separates. -->
         <Style x:Key="NavDividerStyle" TargetType="Border">
             <Setter Property="Width" Value="1"/>
             <Setter Property="Height" Value="{DynamicResource NavDividerHeight}"/>
-            <Setter Property="Background" Value="{DynamicResource HairlineBorderBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource NavDividerBrush}"/>
             <Setter Property="Margin" Value="{DynamicResource NavDividerMargin}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>

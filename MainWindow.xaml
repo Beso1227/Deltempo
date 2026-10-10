@@ -110,14 +110,14 @@
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <!-- Design-time placeholder; runtime value is assigned from BuildInfo in MainWindow_Loaded -->
                                         <TextBlock x:Name="AppVersionHeaderBadge"
-                                                   Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=900}"
+                                                   Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1440}"
                                                    Text="v1.6.0"
                                                    FontSize="10"
                                                    FontWeight="Bold"
                                                    Foreground="{DynamicResource ElectricCyanBrush}"
                                                    RenderOptions.ClearTypeHint="Enabled"/>
                                         <Border x:Name="LicenseBadgeBorder"
-                                                Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=900}"
+                                                Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1440}"
                                                 BorderBrush="{DynamicResource GlassBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="4"
@@ -134,7 +134,7 @@
                                  </Border>
                             </StackPanel>
                             <TextBlock x:Name="BrandSubtitleText"
-                            Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=820}"
+                            Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1500}"
                                        Text="Windows &amp; User Profile Guardian"
                                        FontSize="10"
                                        Foreground="{DynamicResource TextMutedBrush}"
@@ -166,14 +166,23 @@
                                     Background="{DynamicResource GlassTopBorderBrush}"
                                     IsHitTestVisible="False"/>
                             <!-- Tool families: Clean | Optimize | Repair | Danger. Each family
-                                 is a tight 2px-gutter cluster of pills separated by an 8px
-                                 divider lane, so the island reads as four groups, not eight
-                                 loose buttons. -->
+                                 is a tight 2px-gutter cluster of pills separated by an inter-group
+                                 lane with a visible rule, so the island reads as four groups, not
+                                 eight loose buttons.
+
+                                 Labelled padding is 5px horizontal. Measured on a real render at a
+                                 1408px window the island content was 733px against 663px of side
+                                 pods — only ~12px of slack, which is why the label used to sit flush
+                                 against the active pill's rule. The brand now yields its decorative
+                                 chrome before the nav does: the version/MIT badges drop below 1440
+                                 and the tagline below 1500, which frees the ~90-130px this padding
+                                 needs. Labels stay until 1280, because they are how eight tools are
+                                 discovered; chrome is sacrificed first, labels last. -->
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <!-- Clean Group: Cleaner (workspace home) -->
                             <Button x:Name="ToolCleanerBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
-                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,5,4,5,4,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Switch to Junk Cleaner workspace &amp; storage dashboard"
                                     AutomationProperties.Name="Cleaner Workspace"
@@ -194,7 +203,7 @@
                             <!-- Clean Group: Large Files + Startup -->
                             <Button x:Name="ToolLargeFilesBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
-                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,5,4,5,4,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Scan and locate large space-consuming files across your drives safely"
                                     AutomationProperties.Name="Large Files Tool"
@@ -212,7 +221,7 @@
                             </Button>
                             <Button x:Name="ToolStartupBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
-                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,5,4,5,4,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Inspect and manage applications configured to launch on Windows boot"
                                     AutomationProperties.Name="Startup Applications Tool"
@@ -234,7 +243,7 @@
                             <!-- Optimize Group: Processes & Memory -->
                             <Button x:Name="ToolProcessesBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
-                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,5,4,5,4,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Inspect memory-heavy applications and optimize inactive background working sets"
                                     AutomationProperties.Name="Process Manager Tool"
@@ -252,7 +261,7 @@
                             </Button>
                             <Button x:Name="ToolMemoryBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
-                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,5,4,5,4,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Purge standby memory and trim inactive process working sets using native Windows APIs"
                                     AutomationProperties.Name="Memory Optimization Tool"
@@ -274,7 +283,7 @@
                             <!-- Repair Group: System Repair -->
                             <Button x:Name="ToolSystemRepairBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
-                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,5,4,5,4,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Diagnose and repair Windows system file corruption (SFC, DISM, and CHKDSK)"
                                     AutomationProperties.Name="System Repair Tool"
@@ -294,7 +303,7 @@
                             <!-- Repair Group: App Uninstaller -->
                             <Button x:Name="ToolAppUninstallBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
-                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,5,4,5,4,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Installed applications manager, uninstaller &amp; residual bloatware purger"
                                     AutomationProperties.Name="App Uninstaller Tool"
@@ -316,7 +325,7 @@
                             <!-- Danger Group: Force Delete Stubborn Files -->
                             <Button x:Name="ToolForceDeleteBtn"
                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactDoubleConverter}, ConverterParameter='1280,28'}"
-                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,4,6,4,6'}"
+                            Padding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactThicknessConverter}, ConverterParameter='1280,5,4,5,4,4,6,4,6'}"
                                     Style="{DynamicResource HeaderToolButton}"
                                     ToolTip="Pick stubborn files or folders (locked, read-only, permission-denied) and permanently force delete them"
                                     AutomationProperties.Name="Force Delete Tool"
@@ -686,6 +695,15 @@
                             </ScrollViewer>
                         </StackPanel>
 
+                        <!-- Zone rule: the hero is a fixed star column plus an auto telemetry
+                             stack, so without a boundary the reclaimable figure and the drive/RAM
+                             cards read as two clusters floating in ~585px of dead space. -->
+                        <Border Grid.Column="0"
+                                Width="1"
+                                Background="{DynamicResource HairlineBorderBrush}"
+                                HorizontalAlignment="Right"
+                                Margin="0,2,22,2"/>
+
                         <!-- Right: Dual Drive C: & RAM Telemetry Cards -->
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" MinWidth="285">
                             <!-- Drive C: Card -->
@@ -693,7 +711,7 @@
                                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="11"
-                                    Padding="13,8.5"
+                                    Padding="12,9"
                                     Margin="0,0,0,6"
                                     AutomationProperties.Name="System Drive Storage Telemetry">
                                 <StackPanel>
@@ -779,7 +797,7 @@
                                                     Content="Speed Test"
                                                     Style="{DynamicResource PillButton}"
                                                     FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                    Padding="6,2"
+                                                    Padding="8,3"
                                                     FontSize="10"
                                                     FontWeight="SemiBold"
                                                     ToolTip="Run non-destructive sequential read speed test"
@@ -794,7 +812,7 @@
                                     BorderBrush="{DynamicResource HairlineBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="11"
-                                    Padding="13,8.5"
+                                    Padding="12,9"
                                     AutomationProperties.Name="System Memory RAM Telemetry">
                                 <StackPanel>
                                     <Grid Margin="0,0,0,4">
@@ -865,8 +883,9 @@
                                                 AutomationProperties.HelpText="Trim working sets and optimize system memory"
                                                 Style="{DynamicResource PillButton}"
                                                 FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
-                                                Padding="8,2"
-                                                FontSize="10.5"
+                                                Padding="8,3"
+                                                FontSize="10"
+                                                FontWeight="SemiBold"
                                                 HorizontalAlignment="Right"
                                                 VerticalAlignment="Center"
                                                 Click="HeroBoostRamBtn_Click"/>
@@ -885,7 +904,7 @@
                     BorderThickness="1"
                     CornerRadius="13"
                     Margin="18,4,18,8"
-                    Padding="14,10"
+                    Padding="13,8"
                     AutomationProperties.Name="Filter and Scope Selection Bar"
                     AutomationProperties.HelpText="Filter cleanup categories by safety, system, gaming, or search">
                 <Grid>
@@ -1018,22 +1037,24 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <!-- Left: Active Scope Indicator -->
+                            <!-- Left: Active Scope Indicator. Informational, not a control: it
+                                 wears a hairline instead of the selected-chip glass fill so it
+                                 stops reading as a second active filter next to "All Scopes". -->
                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="{DynamicResource GlassSurfaceActiveBrush}"
-                                        BorderBrush="{DynamicResource AccentHairlineBrush}"
+                                <Border Background="Transparent"
+                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="6"
-                                        Padding="8,2.5"
+                                        Padding="8,2"
                                         Margin="0,0,10,0">
                                     <TextBlock Text="25+ DEEP SCOPES"
                                                FontSize="10.5"
                                                FontWeight="Bold"
-                                               Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                               Foreground="{DynamicResource TextMediumBrush}"/>
                                 </Border>
                                 <TextBlock Text="Select target scopes for precision system &amp; profile purge"
                                            FontSize="11"
-                                           Foreground="{DynamicResource TextMediumBrush}"
+                                           Foreground="{DynamicResource TextMutedBrush}"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
 
@@ -1234,8 +1255,8 @@
                                   AutomationProperties.HelpText="List of discovered disposable cache, shader, and temporary folders available for cleanup">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Margin="0,0,0,8"
-                                        Padding="14,11">
+                                <Border Margin="0,0,0,6"
+                                        Padding="12,9">
                                     <Border.Style>
                                         <Style TargetType="Border" BasedOn="{StaticResource ModernCard}">
                                             <Style.Triggers>
@@ -1268,10 +1289,10 @@
 
                                         <!-- Category Glyph Orb -->
                                         <Border Grid.Column="1"
-                                                Width="38" Height="38"
-                                                CornerRadius="10"
+                                                Width="32" Height="32"
+                                                CornerRadius="9"
                                                 Background="{DynamicResource SurfaceSubCardBrush}"
-                                                Margin="0,0,12,0"
+                                                Margin="0,0,10,0"
                                                 VerticalAlignment="Center">
                                             <Border.Style>
                                                 <Style TargetType="Border">
@@ -1287,7 +1308,7 @@
                                             </Border.Style>
                                             <TextBlock Text="{Binding IconGlyph}"
                                                        FontFamily="{DynamicResource IconFont}"
-                                                       FontSize="17"
+                                                       FontSize="15"
                                                        Foreground="{Binding CategoryColor}"
                                                        HorizontalAlignment="Center"
                                                        VerticalAlignment="Center"/>
@@ -1297,35 +1318,33 @@
                                         <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0">
                                             <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Name}"
-                                                           FontSize="13.5"
+                                                           FontSize="13"
                                                            FontWeight="SemiBold"
                                                            Foreground="{DynamicResource TextHighBrush}"/>
 
-                                                <!-- Category Badge -->
+                                                <!-- Category Badge. Tinted fill, no outline: at 26 rows
+                                                     an outlined chip per row reads as more noise than
+                                                     signal and pulled the eye off the scope name. -->
                                                 <Border Background="{DynamicResource SurfaceCardHoverBrush}"
-                                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                        BorderThickness="1"
                                                         CornerRadius="4"
-                                                        Padding="6,1"
-                                                        Margin="8,0,0,0"
+                                                        Padding="6,0.5"
+                                                        Margin="7,0,0,0"
                                                         VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding Category}"
                                                                FontSize="10"
-                                                               FontWeight="Bold"
+                                                               FontWeight="SemiBold"
                                                                Foreground="{Binding CategoryColor}"/>
                                                 </Border>
 
                                                 <!-- Safety Badge -->
                                                 <Border Background="{DynamicResource SafetyBadgeBgBrush}"
-                                                        BorderBrush="{DynamicResource SafetyBadgeBorderBrush}"
-                                                        BorderThickness="1"
                                                         CornerRadius="4"
-                                                        Padding="6,1"
-                                                        Margin="6,0,0,0"
+                                                        Padding="6,0.5"
+                                                        Margin="5,0,0,0"
                                                         VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding SafetyBadge}"
                                                                FontSize="10"
-                                                               FontWeight="Bold"
+                                                               FontWeight="SemiBold"
                                                                Foreground="{DynamicResource SafetyBadgeTextBrush}"/>
                                                 </Border>
 
@@ -1363,13 +1382,14 @@
                                             <TextBlock Text="{Binding Description}"
                                                        FontSize="11"
                                                        Foreground="{DynamicResource TextMediumBrush}"
-                                                       Margin="0,2,0,2"
+                                                       Margin="0,1,0,0"
                                                        TextTrimming="CharacterEllipsis"/>
 
                                             <TextBlock Text="{Binding ScopePathLabel}"
                                                        FontSize="10"
                                                        FontFamily="{DynamicResource MonospaceFont}"
                                                        Foreground="{DynamicResource TextMutedBrush}"
+                                                       Margin="0,1,0,0"
                                                        TextTrimming="CharacterEllipsis"/>
 
                                             <!-- Why Clean reclaimed less than the scan total -->
@@ -1391,9 +1411,9 @@
                                         </StackPanel>
 
                                         <!-- Size & Action Tag -->
-                                        <StackPanel Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <StackPanel Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center" MinWidth="132">
                                             <TextBlock Text="{Binding FormattedSize}"
-                                                       FontSize="15"
+                                                       FontSize="14"
                                                        FontWeight="Bold"
                                                        Foreground="{DynamicResource TextHighBrush}"
                                                        HorizontalAlignment="Right"/>
@@ -1410,7 +1430,7 @@
                                                            Margin="0,0,6,0">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
-                                                            <Setter Property="Foreground" Value="{DynamicResource ElectricCyanBrush}"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding HasError}" Value="True">
                                                                     <Setter Property="Foreground" Value="{DynamicResource DestructiveRedTextBrush}"/>

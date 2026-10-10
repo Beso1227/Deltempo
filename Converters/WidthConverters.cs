@@ -100,19 +100,26 @@ public class WidthToCompactDoubleConverter : IValueConverter
 }
 
 /// <summary>
-/// Switches a Thickness to a tighter "compact" value once the window drops below a width
-/// threshold. The title-bar nav buttons inherit Padding="13,6"; in icon-only mode that
-/// horizontal padding is pure waste and was the reason the eight-button nav still
-/// overflowed at 720px even after the labels collapsed.
+/// Switches the title-bar nav button Padding between a roomy "labelled" value and a tighter
+/// "compact" (icon-only) value once the window drops below a width threshold.
 /// </summary>
 /// <remarks>
-/// ConverterParameter format: <c>threshold,left,top,right,bottom</c> - e.g. <c>1280,4,6,4,6</c>.
-/// The value is only used when compact; otherwise the element keeps whatever Padding it
-/// inherited from its style, so this returns <see cref="DependencyProperty.UnsetValue"/>
-/// rather than a value, letting the style's own Padding continue to apply.
+/// ConverterParameter format: <c>threshold,labelledLeft,labelledTop,labelledRight,labelledBottom,compactLeft,compactTop,compactRight,compactBottom</c>.
+/// Example: <c>1280,12,4,12,4,4,6,4,6</c>.
+/// <para>
+/// Both regimes return a concrete <see cref="Thickness"/> on purpose. An earlier version
+/// returned <see cref="DependencyProperty.UnsetValue"/> above the threshold to "fall back to
+/// the style's Padding", but a binding installed as a <i>local</i> value that produces
+/// UnsetValue resolves to the property <i>default</i> (0), not the next precedence source —
+/// so the style's Padding setter was silently overridden and every labelled pill rendered
+/// with 0 horizontal padding. Returning both values explicitly makes the nav's horizontal
+/// rhythm a single source of truth that never collapses to 0.
+/// </para>
 /// </remarks>
 public class WidthToCompactThicknessConverter : IValueConverter
 {
+    private const int PartsPerThickness = 4;
+
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is not double width || parameter is not string spec)
@@ -125,16 +132,27 @@ public class WidthToCompactThicknessConverter : IValueConverter
             return DependencyProperty.UnsetValue;
         }
 
-        if (width >= threshold)
+        // 9-part spec: "threshold,labelledL,labelledT,labelledR,labelledB,compactL,compactT,compactR,compactB".
+        // Both regimes return a concrete Thickness so the nav's horizontal rhythm has one source
+        // of truth. 5-part spec is the legacy "compact only, else defer to the style" form.
+        int offset;
+        if (parts.Length >= 9)
         {
-            // Not compact: fall back to the style's Padding.
+            offset = width < threshold ? 5 : 1;
+        }
+        else if (width < threshold)
+        {
+            offset = 1;
+        }
+        else
+        {
             return DependencyProperty.UnsetValue;
         }
 
-        var nums = new double[4];
-        for (int i = 0; i < 4; i++)
+        var nums = new double[PartsPerThickness];
+        for (int i = 0; i < PartsPerThickness; i++)
         {
-            if (!double.TryParse(parts[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out nums[i]))
+            if (!double.TryParse(parts[offset + i], NumberStyles.Float, CultureInfo.InvariantCulture, out nums[i]))
             {
                 return DependencyProperty.UnsetValue;
             }

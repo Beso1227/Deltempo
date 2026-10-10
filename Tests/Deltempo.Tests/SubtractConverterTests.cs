@@ -121,9 +121,24 @@ public class ResponsiveTitleBarConverterTests
         Assert.Equal(new Thickness(4, 6, 4, 6),
             converter.Convert(720.0, typeof(Thickness), Param, Culture));
 
-        // Above the threshold it must yield UnsetValue so the style's Padding (13,6) applies.
+        // Legacy 5-part form above the threshold still yields UnsetValue (defers to the style).
         Assert.Same(DependencyProperty.UnsetValue,
             converter.Convert(1360.0, typeof(Thickness), Param, Culture));
+    }
+
+    [Fact]
+    public void Padding_ExplicitFormReturnsLabelledThicknessAboveThreshold()
+    {
+        // A 9-part spec ("threshold,labelledL,labelledT,labelledR,labelledB,compactL,compactT,compactR,compactB")
+        // returns a concrete Thickness in BOTH regimes so a local binding never collapses to 0.
+        // This is the spec the title-bar nav buttons actually use.
+        var converter = new WidthToCompactThicknessConverter();
+        const string Param = "1280,5,4,5,4,4,6,4,6";
+
+        Assert.Equal(new Thickness(5, 4, 5, 4),
+            converter.Convert(1360.0, typeof(Thickness), Param, Culture));
+        Assert.Equal(new Thickness(4, 6, 4, 6),
+            converter.Convert(720.0, typeof(Thickness), Param, Culture));
     }
 
     [Fact]
