@@ -15,9 +15,17 @@ Write-Host ">>> Running cleaning-engine throughput benchmark..." -ForegroundColo
 Write-Host "    (1,500 files x 8 KB across 50 subfolders, parallel deletion pool)" -ForegroundColor Gray
 Write-Host ""
 
-dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-build `
-    --filter "Category=Benchmark" `
-    --logger "console;verbosity=detailed"
+# xunit.v3 runs on Microsoft.Testing.Platform. On the .NET 10 SDK `dotnet test`
+# cannot drive it ("Testing with VSTest target is no longer supported"), so the
+# test executable is invoked directly, exactly as .github/workflows/ci.yml does.
+$testExe = "Tests\Deltempo.Tests\bin\Release\net10.0-windows\Deltempo.Tests.exe"
+if (-not (Test-Path $testExe)) {
+    Write-Error "Test executable not found at $testExe - build failed?"
+    exit 1
+}
+
+& $testExe --filter "Category=Benchmark"
+if ($LASTEXITCODE -ne 0) { Write-Error "Benchmark run failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }
 
 Write-Host ""
 Write-Host "TIP: Compare runs before/after engine changes with:" -ForegroundColor Yellow

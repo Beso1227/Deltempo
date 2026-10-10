@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Последний релиз" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="Статус сборки CI" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-726_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Тесты: 726 пройдено, 0 провалено" src="https://img.shields.io/badge/tests-726_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-904_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Тесты: 904 пройдено, 0 провалено" src="https://img.shields.io/badge/tests-904_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="Лицензия: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **Лицензия** | Открытый исходный код ([MIT](LICENSE)) |
 | **Интерфейсы** | Современный настольный GUI (WPF Fluent) и консольный CLI без интерфейса |
 | **Распространение** | Переносимый однофайловый исполняемый файл (автономный, установщик не требуется) |
-| **Покрытие тестами** | 726 автоматических тестов (100% успешных, 0 ошибок, 0 пропущено), враждебный фаззинг файловой системы |
+| **Покрытие тестами** | 904 автоматических тестов (100% успешных, 0 ошибок, 0 пропущено), враждебный фаззинг файловой системы |
 | **Доступность CLI** | Команда `deltempo` устанавливается автоматически при первом запуске GUI — ручная настройка не требуется |
 | **Телеметрия** | Нулевая телеметрия. Операции сканирования, очистки, памяти и деинсталляции выполняются на 100% офлайн |
 | **Движок безопасности** | Двухфазное планирование (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) с 5 уровнями риска и транзакционным журналированием |
@@ -416,8 +416,9 @@ cd Deltempo
 # Скомпилировать всё решение в конфигурации Release
 dotnet build deltempo.sln -c Release
 
-# Запустить набор автоматических тестов (726 пройденных модульных и интеграционных тестов)
-dotnet test deltempo.sln -c Release
+# Запустить набор автоматических тестов (903 пройденных модульных и интеграционных тестов)
+dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 
 # Собрать автономные однофайловые бинарники релиза (GUI и CLI)
 pwsh -ExecutionPolicy Bypass -File scripts/build_release_exe.ps1

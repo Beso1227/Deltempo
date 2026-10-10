@@ -23,7 +23,7 @@ Deltempo is built as a modular, high-reliability Windows maintenance, cache clea
 │   └───────────────────────────────┘   └─────────────┬──────────────┘   │
 │   ┌───────────────────────────────┐   ┌─────────────▼──────────────┐   │
 │   │   SystemRepairService         │   │   UpdateService            │   │
-│   │   - SFC, DISM, WinSxS, CHKDSK │   │   - Ed25519 & SHA256 Verify│   │
+│   │   - SFC, DISM, WinSxS, CHKDSK │   │   - SHA256 Verify      │   │
 │   └───────────────────────────────┘   └────────────────────────────┘   │
 └─────────────────────────────────────────────────────┼──────────────────┘
                     ┌─────────────────────────────────┘
@@ -52,7 +52,7 @@ Deltempo is built as a modular, high-reliability Windows maintenance, cache clea
 
 * **Memory Optimizer**: Ported and hardened from `WinMemoryCleaner`. Directly interfaces with Windows NT kernel APIs via `ntdll.dll!NtSetSystemInformation` and `psapi.dll!EmptyWorkingSet`. Employs fine-grained Windows token privilege elevation (`SeProfileSingleProcessPrivilege`, `SeIncreaseQuotaPrivilege`, `SeDebugPrivilege`) with automated post-operation privilege revocation.
 * **System Repair**: Automates servicing stack recovery (`SFC /scannow`, `DISM /Online /Cleanup-Image /RestoreHealth`, `WinSxS /StartComponentCleanup`, volume `CHKDSK /scan`).
-* **Update Verification**: Enforces cryptographic integrity on self-updates using dual SHA-256 payload matching and Ed25519 digital signature verification.
+* **Update Verification**: Enforces cryptographic integrity on self-updates via HTTPS + host/path allowlisting and SHA-256 payload verification (plus size, PE-header and version checks) before anything is executed. An ECDSA P-256 manifest-signature verifier and an Authenticode verifier exist and fail closed, but neither is wired into the live update path yet — see `docs/THREAT_MODEL.md` §2.5.
 
 ### 2.3 Presentation Layer (`ViewModels/`, `Views/`, `Cli/`)
 

@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="最新版本" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI 构建状态" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-726_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="测试：726 通过，0 失败" src="https://img.shields.io/badge/tests-726_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-904_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="测试：904 通过，0 失败" src="https://img.shields.io/badge/tests-904_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="许可证：MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **许可证** | 开源（[MIT](LICENSE)） |
 | **界面** | 现代桌面 GUI（WPF Fluent）与无界面终端 CLI |
 | **分发方式** | 便携式单文件可执行程序（自包含，无需安装程序） |
-| **测试覆盖** | 726 项自动化测试（100% 通过率，0 失败，0 跳过），对抗性文件系统模糊测试 |
+| **测试覆盖** | 904 项自动化测试（100% 通过率，0 失败，0 跳过），对抗性文件系统模糊测试 |
 | **CLI 可用性** | `deltempo` 命令在 GUI 首次启动时自动自安装 —— 无需手动配置 |
 | **遥测** | 零遥测。扫描、清理、内存与卸载操作 100% 离线执行 |
 | **安全引擎** | 两阶段规划（`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`），含 5 级风险分层与事务日志 |
@@ -408,8 +408,9 @@ cd Deltempo
 # 以 Release 配置编译整个解决方案
 dotnet build deltempo.sln -c Release
 
-# 执行自动化测试套件（726 个通过的单元与集成测试）
-dotnet test deltempo.sln -c Release
+# 执行自动化测试套件（903 个通过的单元与集成测试）
+dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 
 # 打包独立的单文件发布二进制（GUI 与 CLI）
 pwsh -ExecutionPolicy Bypass -File scripts/build_release_exe.ps1

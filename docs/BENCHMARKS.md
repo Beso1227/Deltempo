@@ -17,7 +17,8 @@ Captured on SDK `10.0.401`, Windows, `-c Release`:
 
 ```powershell
 dotnet build deltempo.sln -c Release          # 0 Warning(s), 0 Error(s)
-dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-build --filter "Category!=Benchmark"
+# MTP: the .NET 10 SDK cannot drive xunit.v3 via `dotnet test`; invoke the test exe.
+./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 ```
 
 | Metric | Baseline |
@@ -35,7 +36,7 @@ direction is a regression. Benchmarks are excluded from CI (`Category!=Benchmark
 run explicitly:
 
 ```powershell
-dotnet test --filter "Category=Benchmark" -c Release
+./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category=Benchmark"
 ```
 
 Vulnerability and currency audits both run read-only in CI (`dotnet list package --vulnerable`,

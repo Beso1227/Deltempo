@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Latest Release" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI Build Status" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-726_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 726 passed, 0 failed" src="https://img.shields.io/badge/tests-726_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-904_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 904 passed, 0 failed" src="https://img.shields.io/badge/tests-904_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="License: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **ライセンス** | オープンソース（[MIT](LICENSE)） |
 | **インターフェース** | モダンなデスクトップ GUI（WPF Fluent）とヘッドレスターミナル CLI |
 | **配布形態** | ポータブルな単一ファイル実行ファイル（自己完結、インストーラー不要） |
-| **テストカバレッジ** | 726 件の自動テスト（合格率 100%、失敗 0、スキップ 0）、敵対的ファイルシステムファズィング |
+| **テストカバレッジ** | 904 件の自動テスト（合格率 100%、失敗 0、スキップ 0）、敵対的ファイルシステムファズィング |
 | **CLI の利用** | `deltempo` コマンドは GUI 初回起動時に自動インストール — 手動設定は不要 |
 | **テレメトリー** | テレメトリーゼロ。スキャン、クリーンアップ、メモリ、アンインストーラーの操作は 100% オフラインで実行 |
 | **セーフティエンジン** | 2 段階のプランニング（`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`）、5 段階のリスクティア、トランザクションジャーナリング |
@@ -409,8 +409,9 @@ cd Deltempo
 # ソリューション全体を Release 構成でコンパイル
 dotnet build deltempo.sln -c Release
 
-# 自動テストスイートを実行（ユニットテスト・統合テスト 726 件合格）
-dotnet test deltempo.sln -c Release
+# 自動テストスイートを実行（ユニットテスト・統合テスト 903 件合格）
+dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 
 # スタンドアロン単一ファイルのリリースバイナリをパッケージ（GUI & CLI）
 pwsh -ExecutionPolicy Bypass -File scripts/build_release_exe.ps1

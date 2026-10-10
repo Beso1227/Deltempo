@@ -67,7 +67,40 @@ jobs:
         run: dotnet restore deltempo.sln
 
       - name: Run Tests
-        run: dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore --verbosity normal --filter "Category!=Benchmark"
+        shell: pwsh
+        run: |
+          # xunit.v3 runs on Microsoft.Testing.Platform (MTP). On the .NET 10 SDK the VSTest
+          # bridge is rejected outright ("Testing with VSTest target is no longer supported"),
+          # so `dotnet test` cannot be used here - the test application is invoked directly.
+          # Kept in step with .github/workflows/ci.yml so a green CI run and a green
+          # release run cannot disagree about what "the tests passed" means.
+          dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
+          if ($LASTEXITCODE -ne 0) { Write-Error "::error::Test build failed."; exit 1 }
+
+          $testExe = "Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe"
+          if (-not (Test-Path $testExe)) {
+            Write-Error "::error::MTP test executable not found at $testExe."
+            exit 1
+          }
+
+          & $testExe --filter "Category!=Benchmark" *>&1 |
+            Tee-Object -FilePath "$env:RUNNER_TEMP/test-run.log"
+          $testExit = $LASTEXITCODE
+
+          # Tee-Object reports the pipeline's exit code, so read the real one from the log.
+          if (Select-String -Path "$env:RUNNER_TEMP/test-run.log" -Pattern 'failed: [1-9]' -Quiet) {
+            Write-Error "::error::One or more tests failed; see test-run.log."
+            exit 1
+          }
+          if (-not (Select-String -Path "$env:RUNNER_TEMP/test-run.log" -Pattern 'succeeded: \d+' -Quiet)) {
+            Write-Error "::error::No test summary found in test-run.log - the run did not complete."
+            exit 1
+          }
+          if ($testExit -ne 0) {
+            Write-Error "::error::Test runner exited with code $testExit."
+            exit 1
+          }
+          Write-Host "Test suite passed."
 
       - name: Build & Publish Standalone Executables
         run: |

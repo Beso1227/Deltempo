@@ -61,7 +61,8 @@ Before any release artifact is built or distributed:
 3. **Automated Test Suite:**
 
    ```powershell
-   dotnet test deltempo.sln -c Release --no-build --filter "Category!=Benchmark"
+   dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+   ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
    ```
 
    *Verification:* 100% tests must pass (0 failures, 0 skips).
@@ -119,9 +120,11 @@ secret is never silently tolerated.
 
 To move to **Azure Trusted Signing** (no certificate file on the runner), replace the
 `Authenticode Sign Release Binaries` step with the Azure Artifact Signing action and
-delete the `SIGNING_CERTIFICATE_PFX` secret. The Ed25519 + SHA256 manifest verification
-in `Core/Update/ManifestSignatureVerifier.cs` is independent of Authenticode and stays
-as-is: it is what makes the self-updater trust a release, not the binary signature.
+delete the `SIGNING_CERTIFICATE_PFX` secret. Note that the in-app updater does not yet
+verify Authenticode itself, and the ECDSA P-256 manifest verifier in
+`Core/Update/ManifestSignatureVerifier.cs` is not wired into the live update path — it
+currently fails closed on every input because its embedded public key is still a
+placeholder. See `docs/THREAT_MODEL.md` §2.5 before relying on either as a trust anchor.
 
 ### 3.4 Architectures (x64 + ARM64)
 
@@ -230,8 +233,8 @@ running an installer.
 ### 4.3 MSIX
 
 `.msix` packages are attached to the release as `Deltempo-<version>-<arch>.msix`. They are
-an optional convenience channel — the portable executable stays primary and the updater
-keeps verifying releases through `checksums.sha256` + the Ed25519 manifest signature, so an
+an optional convenience channel �?" the portable executable stays primary and the updater
+keeps verifying releases through the `checksums.sha256` release manifest, so an
 MSIX install never becomes a new trust anchor.
 
 ### 4.4 Terminal One-Liner
@@ -240,7 +243,7 @@ Served from GitHub Pages as two extensionless PowerShell scripts: `docs/win` (GU
 
 - `docs/.nojekyll` disables Jekyll, so both are served raw as `application/octet-stream`. `Invoke-RestMethod` still returns a string for that content type, which is what makes `| iex` work — verified against PowerShell 7.6.6.
 - Bootstrap flow: read `checksums.sha256` → download the chosen binary → verify SHA-256 → cache in `%LOCALAPPDATA%\Deltempo\bin` → launch.
-- Trust anchor, in order of preference: the `checksums.sha256` release asset (authoritative, attached by the `Upload Checksum Manifest` step), then `docs/checksums.sha256` published on Pages as a bootstrap fallback. A missing manifest or a digest mismatch aborts the install; verification is never skipped or downgraded to a warning.
+- Trust anchor: the `checksums.sha256` release asset, attached by the `Upload Checksum Manifest` step and regenerated on every tag. A Pages-hosted copy used to be tried as a fallback, but it was never regenerated, so it could only ever cause a digest mismatch and abort — it has been removed rather than left as a decorative anchor. A missing manifest or a digest mismatch aborts the install; verification is never skipped or downgraded to a warning.
 - `Invoke-Expression` accepts no arguments, so `win-cli` passes the target through `DELTEMPO_TARGET`. `win` consumes that variable, so a later run defaults back to the GUI.
 - Re-running the command always pulls the newest published release.
 

@@ -24,6 +24,6 @@ Deltempo deletes files with administrator privileges. PRs touching cleanup or up
 ## Verification
 
 - [ ] `dotnet build` succeeds (GUI + CLI, Release)
-- [ ] `dotnet test Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release` passes
+- [ ] `dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release` then `./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"` passes (`dotnet test` cannot drive xunit.v3 on the .NET 10 SDK — see docs/TESTING.md §3.1)
 - [ ] New logic is covered by xUnit tests
 - [ ] No new compiler or analyzer warnings introduced

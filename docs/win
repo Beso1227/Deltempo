@@ -8,10 +8,14 @@
     SHA-256 manifest, caches it in %LOCALAPPDATA%\Deltempo\bin and launches it.
 
     Trust anchor
-      1. checksums.sha256 attached to the GitHub release  (authoritative)
-      2. https://beso1227.github.io/Deltempo/checksums.sha256 (fallback)
+      checksums.sha256 attached to the GitHub release. That is the ONLY anchor.
 
-    If neither can be read, or the computed hash does not match, this script
+      A Pages-hosted copy used to be tried as a fallback, but it was never
+      regenerated per release, so it could only ever produce a hash mismatch
+      and abort - a decorative trust anchor is worse than none. If the release
+      manifest cannot be read, this script aborts and executes nothing.
+
+    If it cannot be read, or the computed hash does not match, this script
     aborts and executes nothing it downloaded. Verification is never skipped.
 #>
 
@@ -27,7 +31,6 @@
     $name = if ($target -eq 'cli') { 'deltempo_cli.exe' } else { 'Deltempo.exe' }
 
     $base  = 'https://github.com/Beso1227/Deltempo/releases/latest/download'
-    $pages = 'https://beso1227.github.io/Deltempo'
     $local = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA }
              else { [Environment]::GetFolderPath('LocalApplicationData') }
     $cache = Join-Path $local 'Deltempo\bin'
@@ -50,25 +53,22 @@
     Write-Host "  target      : $target" -ForegroundColor DarkGray
 
     # --- 1. Read the published SHA-256 manifest ---------------------------
+    # Single trust anchor: the manifest attached to the release. Regenerated on
+    # every tag by .github/workflows/release.yml, so it always describes the
+    # binaries actually being served.
     $manifest = $null
-    $origin   = $null
 
-    foreach ($src in @(
-        @{ Url = "$base/checksums.sha256"; From = 'release asset' },
-        @{ Url = "$pages/checksums.sha256"; From = 'GitHub Pages' }
-    )) {
-        $tmp = [IO.Path]::GetTempFileName()
-        try {
-            Invoke-WebRequest -Uri $src.Url -OutFile $tmp -UseBasicParsing -TimeoutSec 60 | Out-Null
-            $text = [IO.File]::ReadAllText($tmp)
-            if ($text -match '[0-9a-fA-F]{64}') { $manifest = $text; $origin = $src.From; break }
-        } catch { } finally { Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue }
-    }
+    $tmp = [IO.Path]::GetTempFileName()
+    try {
+        Invoke-WebRequest -Uri "$base/checksums.sha256" -OutFile $tmp -UseBasicParsing -TimeoutSec 60 | Out-Null
+        $text = [IO.File]::ReadAllText($tmp)
+        if ($text -match '[0-9a-fA-F]{64}') { $manifest = $text }
+    } catch { } finally { Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue }
 
     if (-not $manifest) {
-        Stop-Install "no SHA-256 manifest found (release asset or $pages/checksums.sha256). Refusing to run an unverified download."
+        Stop-Install "no SHA-256 manifest found at $base/checksums.sha256. Refusing to run an unverified download."
     }
-    Write-Host "  manifest    : $origin" -ForegroundColor DarkGray
+    Write-Host "  manifest    : release asset" -ForegroundColor DarkGray
 
     # --- 2. Pick out the expected digest for this binary -------------------
     $expected = $null

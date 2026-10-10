@@ -14,7 +14,7 @@ This document identifies potential attack vectors, adversarial edge cases, and t
 
 * **Threat**: A low-privilege user or malicious process places an NTFS directory junction or symbolic link inside a recognized cleanup directory (e.g., `%TEMP%\exploit_junction` -> `C:\Windows\System32` or `C:\Users\Alice\Documents`). A naive recursive cleaner traversing the junction would delete critical operating system or user files.
 * **Mitigation**:
-  * `PathSecurity.HasReparsePointsInPath` inspects directory hierarchy attributes.
+  * `PathSecurity.IsReparsePointOrLink` inspects file and directory attributes.
   * `CleanupExecutor` and `CleanerService` explicitly check for `FileAttributes.ReparsePoint`.
   * The deletion engine **never traverses reparse points**. If a directory or file is flagged as a reparse point or link, it is unlinked directly without deleting target contents, or safely skipped (`CleanupErrorCategory.ReparsePointRejected`).
 
@@ -45,11 +45,15 @@ This document identifies potential attack vectors, adversarial edge cases, and t
 ### 2.5 Update Hijacking & Tampering
 
 * **Threat**: Malicious release binaries served via compromised CDN, DNS spoofing, or rogue repository forks.
-* **Mitigation**:
-  * All automatic self-update assets must pass dual verification before staging:
-    1. Cryptographic SHA-256 checksum matching the official release manifest.
-    2. Ed25519 digital signature validation against Deltempo's hardcoded public root key.
-  * Downloaded payloads execute from an isolated, randomized staging directory with strict user-only ACLs.
+* **Mitigation (as implemented today)**:
+  * Downloads are restricted to HTTPS and to an allowlisted host + exact release path prefix (`Core/Update/UpdateSecurityValidator.cs`).
+  * The staged payload is verified before it is ever executed: SHA-256 against the release manifest, plus size, PE-header and version checks (`PatchIntegrityVerifier.VerifyStagedArtifact`), and any mismatch aborts the transaction.
+  * Released binaries are Authenticode-signed by the release workflow whenever a signing certificate is configured (`REQUIRE_SIGNING` can make a missing certificate a hard failure).
+
+* **Known gaps (do not assume these are covered)**:
+  * **Manifest signatures are not enforced.** `ManifestSignatureVerifier` implements ECDSA P-256 (not Ed25519) and fails closed, but its embedded public key is still a placeholder and `VerifyManifestJson` is not called from the live update path - only from unit tests. Those tests assert that malformed, empty, null and tampered manifests are *rejected*; there is no positive test, because no real signing key is installed yet.
+  * **Authenticode is not verified in-app.** `PatchIntegrityVerifier.TryVerifyAuthenticode` exists but is not called before the updater helper is launched, so the in-app update path relies on SHA-256 + transport trust rather than the publisher signature.
+  * **The staging directory is not ACL-hardened.** Payloads are staged under `%ProgramData%\Deltempo\Updates\<tx>`; no explicit DACL is applied, so it inherits `%ProgramData%` defaults. `ForceDeleteEngine` and `CleanupExecutor` do set explicit ACLs on their delete targets, but the update staging tree does not.
 
 ### 2.6 Token Privilege Minimization & Hygiene
 

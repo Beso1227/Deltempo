@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="أحدث إصدار" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="حالة بناء التكامل المستمر" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-726_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبارات: 726 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-726_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-904_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبارات: 904 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-904_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="الترخيص: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **الترخيص** | مفتوح المصدر ([MIT](LICENSE)) |
 | **الواجهات** | واجهة سطح مكتب حديثة (WPF Fluent) وطرفية سطرية بدون واجهة |
 | **التوزيع** | ملف تنفيذي محمول مفرد (كامل بذاته، لا يحتاج إلى مُثبِّت) |
-| **تغطية الاختبارات** | 726 اختبارًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 مُتخطّى)، وفحص عشوائي خبيث لنظام الملفات |
+| **تغطية الاختبارات** | 904 اختبارًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 مُتخطّى)، وفحص عشوائي خبيث لنظام الملفات |
 | **توافر الطرفية** | أمر `deltempo` يُثبّت نفسه عند أول تشغيل للواجهة — دون إعداد يدوي |
 | **بيانات الاتّصال** | صفر بيانات اتّصال. عمليات الفحص والتنظيف والذاكرة وإلغاء التثبيت تعمل 100% دون اتصال |
 | **محرّك الأمان** | تخطيط على مرحلتين (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) مع 5 مستويات للمخاطر وسجلّ معاملات |
@@ -416,8 +416,9 @@ cd Deltempo
 # ترجمة الحلّ بالكامل بتهيئة Release
 dotnet build deltempo.sln -c Release
 
-# تنفيذ مجموعة الاختبارات الآلية (726 اختبار وحدة وتكامل ناجحًا)
-dotnet test deltempo.sln -c Release
+# تنفيذ مجموعة الاختبارات الآلية (903 اختبار وحدة وتكامل ناجحًا)
+dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 
 # تغليف ثنائيات الإصدار المستقلة المفردة (GUI وCLI)
 pwsh -ExecutionPolicy Bypass -File scripts/build_release_exe.ps1

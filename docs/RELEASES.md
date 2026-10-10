@@ -16,7 +16,7 @@ All official releases are tagged in git using `vX.Y.Z` and triggered through Git
 
 | Channel | Format | Destination | Description |
 | :--- | :--- | :--- | :--- |
-| **GitHub Releases** | Single-File Executable (`Deltempo-vX.Y.Z-win-x64.zip`) | GitHub Release Assets | Self-contained x64 binary with embedded runtime. Includes `.sha256` checksum and `.sig` Ed25519 signature. |
+| **GitHub Releases** | Standalone executables (`Deltempo.exe`, `deltempo_cli.exe`, plus ARM64 builds and MSIX packages) | GitHub Release Assets | Self-contained binaries with embedded runtime. Every artifact is Authenticode-signed when a signing certificate is configured, and a `checksums.sha256` manifest covering the portable executables is attached to the release. |
 | **Direct Binary** | Portable executable | Release bundle | Zero installer requirement; fully portable. |
 | **Terminal One-Liner** | PowerShell bootstrap script | `https://beso1227.github.io/Deltempo/win` | `irm .../win \| iex` downloads, SHA-256 verifies, caches, and launches the latest release. |
 
@@ -33,8 +33,9 @@ Every official release artifact is verified through automated pipelines:
    (Get-FileHash -Algorithm SHA256 .\Deltempo.exe).Hash
    ```
 
-2. **Ed25519 Signatures**:
-   The self-updater (`UpdateService`) checks Ed25519 cryptographic signatures using a pinned root public key before executing staged updates.
+2. **Authenticode Signing**:
+   Release artifacts are signed with the configured code-signing certificate (`signtool /fd sha256 /tr <timestamp>`), and the workflow runs `signtool verify /pa` on each artifact before it is uploaded. Set `REQUIRE_SIGNING=true` to make a missing certificate a hard failure instead of a warning.
+   A detached `.sig` manifest is **not** currently produced, and manifest signature verification is not yet enforced in-app — see `docs/THREAT_MODEL.md` §2.5.
 3. **Software Bill of Materials (SBOM)**:
    Generated during the CI pipeline via `dotnet list package --include-transitive --format json` to ensure full transparency of external dependencies.
 
@@ -45,7 +46,8 @@ Every official release artifact is verified through automated pipelines:
 1. Verify working directory is clean and all tests pass:
 
    ```powershell
-   dotnet test deltempo.sln -c Release --filter "Category!=Benchmark"
+   dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+   ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
    ```
 
 2. Verify zero high or critical NuGet vulnerabilities:

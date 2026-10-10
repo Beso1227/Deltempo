@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="नवीनतम रिलीज़" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI बिल्ड स्थिति" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-726_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="परीक्षण: 726 पास, 0 विफल" src="https://img.shields.io/badge/tests-726_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-904_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="परीक्षण: 904 पास, 0 विफल" src="https://img.shields.io/badge/tests-904_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="लाइसेंस: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **लाइसेंस** | ओपन-सोर्स ([MIT](LICENSE)) |
 | **इंटरफ़ेस** | आधुनिक डेस्कटॉप GUI (WPF Fluent) और हेडलेस टर्मिनल CLI |
 | **वितरण** | पोर्टेबल सिंगल-फ़ाइल एक्ज़ीक्यूटेबल (स्व-निहित, इंस्टॉलर की आवश्यकता नहीं) |
-| **परीक्षण कवरेज** | 726 स्वचालित परीक्षण (100% पास दर, 0 विफल, 0 छोड़े गए), प्रतिस्पर्धी फ़ाइलसिस्टम फ़ज़िंग |
+| **परीक्षण कवरेज** | 904 स्वचालित परीक्षण (100% पास दर, 0 विफल, 0 छोड़े गए), प्रतिस्पर्धी फ़ाइलसिस्टम फ़ज़िंग |
 | **CLI उपलब्धता** | `deltempo` कमांड पहली GUI लॉन्च पर स्वयं इंस्टॉल हो जाता है — कोई मैनुअल सेटअप नहीं |
 | **टेलीमेट्री** | शून्य टेलीमेट्री। स्कैन, सफ़ाई, मेमोरी और अनइंस्टॉलर संचालन 100% ऑफ़लाइन निष्पादित होते हैं |
 | **सुरक्षा इंजन** | दो-चरण योजना (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) — 5 जोखिम स्तर और लेन-देन जर्नलिंग के साथ |
@@ -416,8 +416,9 @@ cd Deltempo
 # पूरे समाधान को Release कॉन्फ़िगरेशन में संकलित करें
 dotnet build deltempo.sln -c Release
 
-# स्वचालित परीक्षण सूट निष्पादित करें (726 पासिंग यूनिट और इंटीग्रेशन परीक्षण)
-dotnet test deltempo.sln -c Release
+# स्वचालित परीक्षण सूट निष्पादित करें (903 पासिंग यूनिट और इंटीग्रेशन परीक्षण)
+dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 
 # स्टैंडअलोन सिंगल-फ़ाइल रिलीज़ बाइनरी (GUI और CLI) पैकेज करें
 pwsh -ExecutionPolicy Bypass -File scripts/build_release_exe.ps1
