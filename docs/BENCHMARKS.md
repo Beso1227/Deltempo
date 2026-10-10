@@ -9,7 +9,7 @@ Pinned build governance — single source of truth, do not override per-project:
 | .NET SDK | `10.0.401` (`rollForward: latestFeature`, `allowPrerelease: false`) | `global.json` |
 | Central Package Management | `ManagePackageVersionsCentrally=true` | `Directory.Packages.props` |
 | Nullable / Warnings-as-errors / Deterministic | `true` / `true` / `true` | `Directory.Build.props` |
-| Version | `3.0.0` | `Directory.Build.props` |
+| Version | `3.1.0` | `Directory.Build.props` |
 
 ### Recorded baseline (before Phase 1 hot-path work)
 

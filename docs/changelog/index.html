@@ -167,16 +167,25 @@
       <p class="section-subtitle">Complete version history, feature additions, and security improvements.</p>
     </div>
 
-    <!-- Unreleased: path canonicalizer hardening + fuzz proof -->
+    <!-- v3.1.0 -->
     <div class="double-bezel release-card reveal-on-scroll stagger-1">
       <div class="card-inner">
         <div class="release-header">
-          <h2 class="release-version">Unreleased</h2>
-          <span class="release-tag release-tag-cyan">NEXT</span>
+          <h2 class="release-version">v3.1.0 (Latest Stable)</h2>
+          <span class="release-tag release-tag-stable">CURRENT STABLE</span>
         </div>
         <ul class="release-list">
+          <li><strong>Title-Bar Navigation Overhaul:</strong> The eight tool tabs are now a segmented island with four clearly separated tool families (Clean, Optimize, Repair, Danger). Group dividers are visible (<code>NavDividerBrush</code> replaces a hairline that was ~6% lighter than the island surface, so the boundaries were effectively invisible), the inter-group lane tightened from 8px to 6px, and the active pill keeps a constant border thickness so switching tabs no longer resizes the pill and jitters the row.</li>
+          <li><strong>Navigation Padding Bug Fix:</strong> Labelled tabs rendered with <strong>zero</strong> horizontal padding. A local binding returning <code>UnsetValue</code> resolves to the property default rather than falling through to the style, so <code>HeaderToolButton</code>'s <code>Padding="12,4"</code> was silently overridden. <code>WidthToCompactThicknessConverter</code> now takes an explicit labelled + compact spec and returns a concrete <code>Thickness</code> in both regimes. Measured on the corrected build: the active pill grew from 75px to 88px.</li>
+          <li><strong>Responsive Chrome Yield:</strong> Below 1440px the version and MIT badges collapse, and below 1500px the brand tagline does too, so the navigation yields space in the right order &mdash; decorative chrome first, labels last.</li>
+          <li><strong>Cleaner Workspace Density Pass:</strong> Scope rows are tighter (32px glyph orbs, reduced padding and gaps), category and safety badges dropped their outlines so the scope name leads the hierarchy, the hero gained a zone rule replacing roughly 585px of dead space, the drive/RAM telemetry buttons share one padding rhythm, and the selection strip's informational chip no longer reads as a second active filter.</li>
           <li><strong>Path Canonicalizer Hardening:</strong> <code>PathSecurity.NormalizeCanonicalPath</code> is now idempotent across adversarial inputs. Volume-less device prefixes (<code>\\?\Volume{...}</code>, <code>\\?\windows\...</code>) no longer resolve relative to the current directory; forward-slash device paths emitted by <code>Path.GetFullPath</code> fold to the same canonical form; rooted drive-less inputs re-resolve against the current drive; trailing separators never trim below the drive root; and Win32 dot/space-stripped segments that would resurrect <code>..</code> are rejected outright.</li>
           <li><strong>Canonicalizer Fuzz Proof:</strong> New deterministic seeded fuzz suite (<code>PathSecurityFuzzTests.cs</code>, 100k cases in CI plus a 1M-case <code>FuzzDeep</code> campaign for local runs) asserting five invariants per payload: never throws, no surviving traversal segment, idempotent re-canonicalization, never null, blank input stays blank.</li>
+          <li><strong>Release Pipeline Repaired:</strong> The release workflow ran <code>dotnet test</code>, which cannot drive xunit.v3 on the .NET 10 SDK &mdash; every tagged release failed at the test step while CI stayed green, because CI already invoked the test executable directly. Both workflows now use the same build-then-invoke sequence.</li>
+          <li><strong>Installer Trust Anchor:</strong> Removed the published <code>checksums.sha256</code> fallback, which had not been regenerated since 2026-09-30 and therefore could only ever produce a digest mismatch and abort. The release manifest is now the single trust anchor, and the one-line installer fails closed when it cannot be read.</li>
+          <li><strong>Documentation Corrected to Match Reality:</strong> The update path does <em>not</em> currently enforce Ed25519 signatures &mdash; <code>ManifestSignatureVerifier</code> implements ECDSA P-256, its embedded public key is still a placeholder, and neither it nor Authenticode verification is wired into the live update path. These are now documented as known gaps in <code>THREAT_MODEL.md</code> rather than listed as mitigations, alongside the fact that update staging is not ACL-hardened.</li>
+          <li><strong>Packaging:</strong> MSIX packaging and winget manifests added for Deltempo, with ARM64 builds shipping alongside x64 so Windows-on-Arm runs natively instead of emulating.</li>
+          <li><strong>Verified Quality:</strong> <strong>909 automated tests</strong> passing with zero compiler warnings under <code>TreatWarningsAsErrors</code>, including documentation-consistency guards that fail the build if anyone reintroduces the broken test command or lets the advertised test count drift.</li>
         </ul>
       </div>
     </div>
@@ -185,8 +194,8 @@
     <div class="double-bezel release-card reveal-on-scroll stagger-1">
       <div class="card-inner">
         <div class="release-header">
-          <h2 class="release-version">v3.0.0 (Latest Stable)</h2>
-          <span class="release-tag release-tag-stable">CURRENT STABLE</span>
+          <h2 class="release-version">v3.0.0</h2>
+          <span class="release-tag">PREVIOUS</span>
         </div>
         <ul class="release-list">
           <li><strong>Force Delete &amp; Stubborn Purge Engine:</strong> Permanently removes locked, read-only, hidden, system-attributed, and permission-denied files and folders. Bypasses file locks, strips attributes, takes ownership, resets ACLs, terminates locking applications, and falls back to Windows Session Manager <code>MoveFileEx</code> reboot scheduling when a handle cannot be released (<code>ForceDeleteEngine</code>).</li>

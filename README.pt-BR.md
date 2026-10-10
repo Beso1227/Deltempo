@@ -93,7 +93,7 @@
 | :--- | :--- |
 | **Site oficial** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **Plataforma** | Windows 10 e 11 (64 bits / x64) |
-| **Versão** | v3.0.0 (release de produção) |
+| **Versão** | v3.1.0 (release de produção) |
 | **Licença** | Código aberto ([MIT](LICENSE)) |
 | **Interfaces** | GUI moderna de desktop (WPF Fluent) e CLI de terminal headless |
 | **Distribuição** | Executável portátil de arquivo único (autocontido, sem necessidade de instalador) |
