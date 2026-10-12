@@ -21,7 +21,7 @@
     <!-- MTP-native coverage extension. Replaces the VSTest-only coverlet.collector path,
          which dotnet test cannot reach on .NET 10. -->
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
-    <PackageVersion Include="xunit.v3" Version="4.0.1" />
+    <PackageVersion Include="xunit.v3" Version="4.0.2" />
   </ItemGroup>
 
 </Project>
