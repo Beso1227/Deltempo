@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Xunit;
 
@@ -141,6 +142,74 @@ public class DocumentationConsistencyTests
                     $"{Path.GetFileName(file)} advertises {m.Groups[1].Value} tests; README.md says {declared}. " +
                     "Translations must stay in sync.");
         }
+    }
+
+    /// <summary>
+    /// The guard above only checks INTERNAL consistency - badge against prose against
+    /// translations. It happily passed for months while the README advertised a count that had
+    /// drifted from the real suite, which is exactly the rot its own name promises to prevent.
+    ///
+    /// This compares the published count against the suite as it actually exists in this
+    /// assembly. Feasible because the suite uses no MemberData/ClassData/TheoryData: every case
+    /// is a [Fact] or a [Theory] with inline rows, so the case count is derivable by reflection.
+    /// If a dynamic data source is ever introduced, this must be revisited - it would
+    /// undercount rather than fail loudly.
+    ///
+    /// Benchmarks are excluded because the published number describes the
+    /// --filter "Category!=Benchmark" run, which is what CI executes.
+    /// </summary>
+    [Fact]
+    public void PublishedTestCount_MatchesTheRealSuiteSize()
+    {
+        var root = RepoRoot();
+        var readme = File.ReadAllText(Path.Combine(root, "README.md"));
+
+        var badge = Regex.Match(readme, @"tests-(\d+)_passed");
+        Assert.True(badge.Success, "README.md is missing the shields.io test-count badge.");
+
+        int published = int.Parse(badge.Groups[1].Value);
+        int actual = CountRunnableTestCases(typeof(DocumentationConsistencyTests).Assembly);
+
+        Assert.True(published == actual,
+            $"README.md advertises {published} automated tests but the suite contains {actual}. " +
+            "Update the badge slug and the prose in all READMEs plus SECURITY.md to the real count.");
+    }
+
+    /// <summary>
+    /// Counts the cases the CI run executes: one per [Fact], and one per [InlineData] row for
+    /// each [Theory] (a [Theory] with no inline rows is counted as a single case).
+    /// </summary>
+    private static int CountRunnableTestCases(Assembly assembly)
+    {
+        const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic |
+                                   BindingFlags.Instance | BindingFlags.Static |
+                                   BindingFlags.DeclaredOnly;
+
+        int total = 0;
+
+        foreach (Type type in assembly.GetTypes())
+        {
+            foreach (MethodInfo method in type.GetMethods(flags))
+            {
+                var attributes = method.GetCustomAttributes(inherit: true);
+
+                bool isBenchmark = attributes
+                    .OfType<TraitAttribute>()
+                    .Any(t => t.Name == "Category" && t.Value == "Benchmark");
+
+                if (isBenchmark) continue;
+
+                bool isFact = attributes.Any(a => a is FactAttribute);
+                bool isTheory = attributes.Any(a => a is TheoryAttribute);
+                if (!isFact && !isTheory) continue;
+
+                int rows = attributes.OfType<InlineDataAttribute>().Count();
+
+                total += Math.Max(1, rows);
+            }
+        }
+
+        return total;
     }
 
     private static IEnumerable<string> EnumerateInstructionFiles(string root)
