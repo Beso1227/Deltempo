@@ -511,6 +511,22 @@ public partial class CleanerService
         }, ct);
     }
 
+    public static async Task<List<TargetFolderInfo>> LoadStoreOrphanTargetsAsync(CancellationToken ct = default)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                return StoreAppOrphanResolver.Resolve();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Store orphan scan failed: {ex.Message}");
+                return new List<TargetFolderInfo>();
+            }
+        }, ct);
+    }
+
     public static async Task<List<TargetFolderInfo>> LoadDynamicRulepackTargetsAsync(CancellationToken ct = default)
     {
         return await Task.Run(() =>

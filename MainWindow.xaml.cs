@@ -405,6 +405,17 @@ public partial class MainWindow : Window
                 _targets.Add(o);
             }
 
+            // Store/MSIX orphans are invisible to the exe-name matcher above, because a
+            // package data folder is named "Publisher.App_hash". Unchecked by default.
+            var storeOrphans = await CleanerService.LoadStoreOrphanTargetsAsync(_cts?.Token ?? default);
+            foreach (var s in storeOrphans)
+            {
+                if (!_targets.Any(t => t.Id == s.Id))
+                {
+                    _targets.Add(s);
+                }
+            }
+
             var dynamicRules = await CleanerService.LoadDynamicRulepackTargetsAsync(_cts?.Token ?? default);
             foreach (var r in dynamicRules)
             {
