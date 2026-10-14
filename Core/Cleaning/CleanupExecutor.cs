@@ -236,10 +236,10 @@ public static class CleanupExecutor
 
                         // PHASE 2: PRE-DELETION REVALIDATION (TOCTOU Defense)
                         DateTime? expectedTimestamp = action.LastModified != default ? action.LastModified : null;
-                        long expectedSize = action.PlannedSizeBytes > 0 ? action.PlannedSizeBytes : action.SizeBytes;
+                        long? expectedSize = action.PlannedSizeBytes > 0 ? action.PlannedSizeBytes : action.SizeBytes;
 
                         FileCleanupFailureReason revalidationReasonCode;
-                        if (!RevalidateBeforeDeletion(action.FilePath, rootsList, expectedSize, expectedTimestamp, out string revalidationReason, out revalidationReasonCode))
+                        if (!RevalidateBeforeDeletion(action.FilePath, rootsList, expectedSize, expectedTimestamp, out string validatedPath, out string revalidationReason, out revalidationReasonCode))
                         {
                             Interlocked.Increment(ref skippedCount);
                             Interlocked.Add(ref skippedBytes, action.SizeBytes);
