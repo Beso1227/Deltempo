@@ -548,8 +548,9 @@ public static class CleanupExecutor
     /// checked against the canonical form. Callers must delete <paramref name="validatedPath"/>,
     /// never the raw input.
     /// </remarks>
-    public static bool RevalidateBeforeDeletion(string filePath, IEnumerable<string>? allowedRoots, long expectedSize, DateTime? expectedTimestamp, out string validatedPath, out string failureReason, out FileCleanupFailureReason reasonCode)
-    {        failureReason = string.Empty;
+    public static bool RevalidateBeforeDeletion(string filePath, IEnumerable<string>? allowedRoots, long? expectedSize, DateTime? expectedTimestamp, out string validatedPath, out string failureReason, out FileCleanupFailureReason reasonCode)
+    {
+        failureReason = string.Empty;
         reasonCode = FileCleanupFailureReason.Unknown;
         validatedPath = string.Empty;
 
@@ -674,6 +675,8 @@ public static class CleanupExecutor
             return false;
         }
 
+        // Hand back exactly what was validated. The caller must delete THIS string.
+        validatedPath = canonicalPath;
         return true;
     }
 
