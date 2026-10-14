@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using WinTempCleaner.Models;
@@ -73,11 +74,16 @@ public class FileForensicProfile
     private static string GeneralizeFolderPath(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return "";
+
+        // A drive-relative / UNC / device-free path has no user context to strip, so it is
+        // dropped entirely rather than echoed back.
+        if (!Path.IsPathRooted(path)) return "%DRIVE-RELATIVE%\\";
+
         string lower = path.ToLowerInvariant();
 
         // Anonymize user profile
         string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).ToLowerInvariant();
-        if (lower.StartsWith(userProfile))
+        if (!string.IsNullOrEmpty(userProfile) && lower.StartsWith(userProfile))
         {
             string rel = path[userProfile.Length..].TrimStart('\\', '/');
             return $"%USERPROFILE%\\{rel}";
@@ -85,20 +91,49 @@ public class FileForensicProfile
 
         // Anonymize Program Files
         string progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles).ToLowerInvariant();
-        if (lower.StartsWith(progFiles))
+        if (!string.IsNullOrEmpty(progFiles) && lower.StartsWith(progFiles))
         {
             string rel = path[progFiles.Length..].TrimStart('\\', '/');
             return $"%ProgramFiles%\\{rel}";
         }
 
         string progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86).ToLowerInvariant();
-        if (lower.StartsWith(progFilesX86))
+        if (!string.IsNullOrEmpty(progFilesX86) && lower.StartsWith(progFilesX86))
         {
             string rel = path[progFilesX86.Length..].TrimStart('\\', '/');
             return $"%ProgramFiles(x86)%\\{rel}";
         }
 
-        return path;
+        // Anything else - a secondary drive (D:\Games\...), a UNC share, a mounted volume,
+        // a relocated Windows install - previously fell through to `return path`, shipping
+        // the user's real folder structure to a third-party API. The residual here is the
+        // drive letter only, which carries no identity.
+        string? root = Path.GetPathRoot(path);
+        if (!string.IsNullOrEmpty(root) && root.Length >= 2 && char.IsLetter(root[0]) && root[1] == ':')
+        {
+            return MaskUserNameSegment("%DRIVE%\\" + path[root.Length..].TrimStart('\\', '/'));
+        }
+
+        return MaskUserNameSegment("%UNMAPPED_LOCATION%");
+    }
+
+    /// <summary>
+    /// Replaces any path segment equal to the current Windows account name with
+    /// %USERNAME%. Stripping the drive letter alone is not enough: a relocated or
+    /// per-drive profile such as E:\Users\bhany\Documents\... keeps the account name in
+    /// the first path segment, and the account name IS the identity being protected.
+    /// </summary>
+    private static string MaskUserNameSegment(string generalizedPath)
+    {
+        string userName = Environment.UserName;
+        if (string.IsNullOrWhiteSpace(userName) || generalizedPath.Length == 0) return generalizedPath;
+
+        return string.Join(
+            "\\",
+            generalizedPath.Split('\\').Select(segment =>
+                string.Equals(segment, userName, StringComparison.OrdinalIgnoreCase)
+                    ? "%USERNAME%"
+                    : segment));
     }
 }
 

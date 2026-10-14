@@ -83,6 +83,69 @@ public class OnlineFileIntelligenceTests
         Assert.Contains("big_test_file.iso", summary);
     }
 
+    /// <summary>
+    /// The existing anonymization test only covers a path under %USERPROFILE%, which is the
+    /// one branch that already worked. GeneralizeFolderPath used to `return path` for
+    /// everything else, so a file on a secondary drive, a UNC share or a mounted volume
+    /// shipped the user's real folder structure - and their Windows username, whenever the
+    /// path contained it - to a third-party API, despite the method being documented as
+    /// excluding personal paths. This covers the fallthrough branch that leaked.
+    /// </summary>
+    [Theory]
+    [InlineData(@"D:\Games\Libraries\Steam\steamapps\common\BigGame\game.pak")]
+    [InlineData(@"E:\Users\bhany\Documents\Private\taxes.xlsx")]
+    [InlineData(@"\\fileserver\share\team\quarterly.xlsx")]
+    [InlineData(@"F:\Mounted\personal-notes.md")]
+    public void FileForensics_BuildAnonymizedSummary_NeverEchoesRawPathForNonProfileLocations(string rawPath)
+    {
+        var profile = new FileForensicProfile
+        {
+            FilePath = rawPath,
+            FileName = Path.GetFileName(rawPath),
+            DirectoryPath = Path.GetDirectoryName(rawPath) ?? string.Empty,
+            SizeBytes = 1024
+        };
+
+        string summary = profile.BuildAnonymizedSummary();
+
+        // The whole raw path must not appear, and neither the directory portion that
+        // identifies the user's real folder layout.
+        string? directory = Path.GetDirectoryName(rawPath);
+        if (!string.IsNullOrEmpty(directory))
+        {
+            Assert.DoesNotContain(directory, summary, StringComparison.OrdinalIgnoreCase);
+        }
+
+        // The file name is retained deliberately - it is what the analysis is about, and
+        // it carries no path context.
+        Assert.Contains(Path.GetFileName(rawPath), summary, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void FileForensics_BuildAnonymizedSummary_StripsDriveLetterAndAccountName()
+    {
+        string userName = Environment.UserName;
+        string rawPath = $@"E:\Users\{userName}\Documents\Private\taxes.xlsx";
+
+        var profile = new FileForensicProfile
+        {
+            FilePath = rawPath,
+            FileName = "taxes.xlsx",
+            DirectoryPath = $@"E:\Users\{userName}\Documents\Private",
+            SizeBytes = 4096
+        };
+
+        string summary = profile.BuildAnonymizedSummary();
+
+        // The account name is the identity being protected. Stripping the drive letter
+        // alone left it intact in the first path segment of a relocated profile.
+        Assert.DoesNotContain(userName, summary, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("%USERNAME%", summary, StringComparison.Ordinal);
+        // And the drive letter is generalized, not echoed.
+        Assert.DoesNotContain(@"E:\", summary, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("%DRIVE%", summary, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void OnlineSafetyReport_ApplyBadgeColors_AssignsConsistentColorTokens()
     {

@@ -114,20 +114,22 @@ public static class OnlineFileIntelligenceService
     {
         var profile = FileForensicsService.AnalyzeFile(filePath);
         string cacheKey = GetCacheKey(profile);
-
-        if (MemoryCache.TryGetValue(cacheKey, out var cached))
-        {
-            return cached;
-        }
-
         var settings = SettingsService.Current;
         OnlineSafetyReport report;
 
         // Route to selected AI provider or fall back to built-in knowledge
         if (!settings.EnableOnlineAiSafety)
         {
+            // The opt-out is checked BEFORE the cache. Reading the cache first meant a
+            // verdict produced with AI enabled was returned forever after the user turned
+            // AI off - the setting did not do what its checkbox says, and the value it
+            // was supposed to suppress was already persisted to ai_safety_cache.json.
             report = GenerateBuiltInKnowledgeReport(profile);
             report.ProviderUsed = "Local Intelligence (Offline)";
+        }
+        else if (MemoryCache.TryGetValue(cacheKey, out var cached))
+        {
+            return cached;
         }
         else
         {
@@ -155,6 +157,14 @@ public static class OnlineFileIntelligenceService
 
                     _ => await QueryBuiltInKnowledgeAsync(profile, ct)
                 };
+            }
+            catch (OperationCanceledException)
+            {
+                // A cancelled query is not a failed query. Falling through to the offline
+                // report here wrote a heuristic answer into the PERSISTENT cache under an
+                // AI-styled badge, so a cancelled batch permanently poisoned the cache for
+                // that file. Propagate instead: the caller asked us to stop.
+                throw;
             }
             catch (Exception ex)
             {
