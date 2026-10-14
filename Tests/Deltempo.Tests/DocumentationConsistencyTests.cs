@@ -366,6 +366,226 @@ public class DocumentationConsistencyTests
         return total;
     }
 
+    /// <summary>
+    /// A Code of Conduct with no way to report a violation is not a policy, it is
+    /// decoration. Contributor Covenant 2.1 requires the Enforcement section to name
+    /// a contact method; the shipped file said only "may be reported to the project
+    /// maintainers", which names nobody and specifies no channel.
+    /// </summary>
+    [Fact]
+    public void CodeOfConduct_NamesAnActualReportingChannel()
+    {
+        var coc = File.ReadAllText(Path.Combine(RepoRoot(), "CODE_OF_CONDUCT.md"));
+
+        Assert.True(Regex.IsMatch(coc, @"##\s+Enforcement"),
+            "CODE_OF_CONDUCT.md has no Enforcement section.");
+        Assert.True(Regex.IsMatch(coc, @"advisories/new|report-abuse|@[A-Za-z0-9._-]+\.[A-Za-z]{2,}"),
+            "CODE_OF_CONDUCT.md names no reporting channel. Contributor Covenant 2.1 requires an "
+            + "explicit contact method in the Enforcement section; without one the policy is unenforceable.");
+        Assert.False(Regex.IsMatch(coc, @"\[INSERT CONTACT"),
+            "CODE_OF_CONDUCT.md still contains the Contributor Covenant [INSERT CONTACT METHOD] placeholder.");
+    }
+
+    /// <summary>
+    /// The CoC was not linked from the README, CONTRIBUTING or SECURITY, so the only
+    /// way to find it was to know it existed.
+    /// </summary>
+    [Fact]
+    public void CodeOfConduct_IsLinkedFromEveryPlaceItGoverns()
+    {
+        var root = RepoRoot();
+        foreach (var file in new[] { "README.md", "CONTRIBUTING.md", "SECURITY.md" })
+        {
+            var text = File.ReadAllText(Path.Combine(root, file));
+            Assert.True(text.Contains("CODE_OF_CONDUCT.md", StringComparison.Ordinal),
+                $"{file} does not link CODE_OF_CONDUCT.md. A code of conduct that is not linked " +
+                "is one nobody reads.");
+        }
+    }
+
+    /// <summary>
+    /// SECURITY.md shipped a supported-versions table listing 1.5.x/1.4.x/1.3.x while
+    /// the application was at 3.x - so the security policy declared only end-of-life
+    /// lines as supported and omitted every current release.
+    /// </summary>
+    [Fact]
+    public void SecurityPolicy_SupportedVersions_IncludeTheCurrentMajor()
+    {
+        var root = RepoRoot();
+        var props = File.ReadAllText(Path.Combine(root, "Directory.Build.props"));
+        var version = Regex.Match(props, @"<Version>([^<]+)</Version>");
+        Assert.True(version.Success, "Directory.Build.props has no <Version> element.");
+        string major = version.Groups[1].Value.Split('.')[0];
+
+        var security = File.ReadAllText(Path.Combine(root, "SECURITY.md"));
+        var table = Regex.Match(security, @"##\s+Supported Versions(?<body>.*?)(?=\n##\s|\z)", RegexOptions.Singleline);
+        Assert.True(table.Success, "SECURITY.md has no Supported Versions section.");
+
+        // Match any version cell beginning with the current major, e.g. "3.2.x" or
+        // "3.x" - not literally "<major>.x", which a per-minor table never contains.
+        var mentionsCurrentMajor = Regex.IsMatch(table.Groups["body"].Value, $@"\|[\s:]*v?{Regex.Escape(major)}(\.\d+)?\.x?\b");
+        Assert.True(mentionsCurrentMajor,
+            $"SECURITY.md's supported-versions table does not mention the current major line {major}. " +
+            "A security policy that lists only EOL versions is actively misleading.");
+    }
+
+    /// <summary>
+    /// SECURITY.md claimed updates were "verified end-to-end ... and ECDSA P-256
+    /// manifest signatures". The signature verifier is not wired into the live update
+    /// path and its embedded key is a placeholder, so this was a false security claim
+    /// on the one document a security researcher is most likely to read literally.
+    /// </summary>
+    [Fact]
+    public void SecurityDocs_DoNotClaimUnenforcedManifestSignatureVerification()
+    {
+        var root = RepoRoot();
+
+        foreach (var file in new[] { "SECURITY.md", ".github/PULL_REQUEST_TEMPLATE.md" })
+        {
+            var text = File.ReadAllText(Path.Combine(root, file.Replace('/', Path.DirectorySeparatorChar)));
+
+            // A bare "verified ... and manifest signature" claim. Negated or
+            // explicitly-caveated mentions ("not yet enforced") are fine and are
+            // exactly what we want, so require the claim to appear un-caveated.
+            var claims = Regex.Matches(text,
+                @"verified[^.\n]{0,120}\bmanifest signature",
+                RegexOptions.IgnoreCase);
+
+            foreach (Match claim in claims)
+            {
+                // Look for a negation within the same sentence.
+                var sentence = claim.Value;
+                Assert.False(Regex.IsMatch(sentence, @"not\b|never\b|no[nt]-?yet|placeholder|\*\*What is"),
+                    $"{file} claims manifest-signature verification is part of the enforced chain: " +
+                    $"\"{sentence.Trim()}\". ManifestSignatureVerifier is not called from the live " +
+                    "update path and its embedded key is a placeholder - see docs/THREAT_MODEL.md " +
+                    "section 2.5. State it as a known gap, not a control.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// The issue templates labelled with "bug", "triage" and "enhancement" while the
+    /// repo declared a `type/*` taxonomy that had never been applied. "triage" was
+    /// defined nowhere at all. The templates now match the labels that actually exist.
+    /// </summary>
+    [Fact]
+    public void IssueTemplates_ApplyLabelsThatAreActuallyDeclared()
+    {
+        var root = RepoRoot();
+        var settings = File.ReadAllText(Path.Combine(root, ".github", "settings.yml"));
+
+        var declared = Regex.Matches(settings, @"- name: ""([^""]+)""")
+            .Cast<Match>()
+            .Select(m => m.Groups[1].Value)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        Assert.True(declared.Count > 0, "No labels declared in .github/settings.yml.");
+
+        var templateDir = Path.Combine(root, ".github", "ISSUE_TEMPLATE");
+        var offenders = new List<string>();
+
+        foreach (var file in Directory.GetFiles(templateDir, "*.yml"))
+        {
+            var labels = Regex.Match(File.ReadAllText(file), @"^labels:\s*\[(.*)\]", RegexOptions.Multiline);
+            if (!labels.Success) continue;
+
+            foreach (var raw in labels.Groups[1].Value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var name = raw.Trim('"', '\'', ' ');
+                if (!declared.Contains(name))
+                    offenders.Add($"{Path.GetFileName(file)} applies \"{name}\", which .github/settings.yml does not declare");
+            }
+        }
+
+        Assert.True(offenders.Count == 0,
+            "Issue templates apply labels that the repository does not declare: " +
+            string.Join("; ", offenders) +
+            ". GitHub silently creates undeclared labels, so this produces labels outside the " +
+            "project's own taxonomy. Either declare them or stop applying them.");
+    }
+
+    /// <summary>
+    /// Three different copyright wordings shipped across LICENSE, README.md and
+    /// Directory.Build.props. LICENSE is the legal instrument, so it is canonical;
+    /// the other two must match it.
+    /// </summary>
+    [Fact]
+    public void CopyrightHolder_MatchesTheLicenseEverywhere()
+    {
+        var root = RepoRoot();
+
+        var license = Regex.Match(File.ReadAllText(Path.Combine(root, "LICENSE")),
+            @"Copyright \(c\) (?<year>\d{4}) (?<holder>.+?)\r?\n");
+        Assert.True(license.Success, "LICENSE has no recognizable copyright line.");
+
+        string year = license.Groups["year"].Value;
+        string holder = license.Groups["holder"].Value.Trim();
+
+        var props = File.ReadAllText(Path.Combine(root, "Directory.Build.props"));
+        // The year is captured separately; the "rest" group must be the HOLDER, not
+        // "year holder". A first attempt made this capture the year too and then
+        // compared "2026 Deltempo Contributors..." against "Deltempo Contributors",
+        // which fails on correct input.
+        var propsCopyright = Regex.Match(props, @"<Copyright>Copyright \(c\) (?<year>\d{4}) (?<holder>[^<]+)</Copyright>");
+        Assert.True(propsCopyright.Success, "Directory.Build.props has no <Copyright> element.");
+        Assert.True(propsCopyright.Groups["holder"].Value.Trim().StartsWith(holder, StringComparison.Ordinal),
+            $"Directory.Build.props says \"{propsCopyright.Groups["holder"].Value.Trim()}\" but LICENSE says " +
+            $"\"{year} {holder}\". LICENSE is the legal instrument and is canonical.");
+        Assert.True(propsCopyright.Groups["year"].Value == year,
+            $"Directory.Build.props copyright year is {propsCopyright.Groups["year"].Value} but LICENSE says {year}.");
+
+        foreach (var file in Directory.GetFiles(root, "README.*.md"))
+        {
+            var text = File.ReadAllText(file);
+            var m = Regex.Match(text, @"Copyright \(c\) (?<year>\d{4}) (?<holder>.+?)\r?\n");
+            if (!m.Success) continue;
+
+            Assert.True(m.Groups["holder"].Value.Trim() == holder && m.Groups["year"].Value == year,
+                $"{Path.GetFileName(file)} says \"Copyright (c) {m.Groups["year"].Value} {m.Groups["holder"].Value.Trim()}\" " +
+                $"but LICENSE says \"{year} {holder}\".");
+        }
+    }
+
+    /// <summary>
+    /// The changelog's CURRENT release card is a live claim, not a historical record:
+    /// it is the entry a visitor reads first and the one that describes code that
+    /// exists right now. Older cards are history and must keep their original numbers.
+    ///
+    /// Scoped deliberately to the first release card only, because the file also
+    /// contains 909 / 692 / 501 / 480 for earlier versions. Rewriting those would
+    /// falsify the record.
+    /// </summary>
+    [Fact]
+    public void Changelog_CurrentReleaseCard_MatchesThePublishedTestCount()
+    {
+        var root = RepoRoot();
+        var html = File.ReadAllText(Path.Combine(root, "docs", "changelog", "index.html"));
+
+        // The current card is the first release-version heading, up to the next card.
+        var currentCard = Regex.Match(html,
+            @"<h2 class=""release-version"">v(?<ver>[\d.]+)[^<]*</h2>(?<body>.*?)(?=<h2 class=""release-version""|\z)",
+            RegexOptions.Singleline);
+        Assert.True(currentCard.Success, "docs/changelog/index.html has no release-version heading.");
+
+        var readme = File.ReadAllText(Path.Combine(root, "README.md"));
+        int declared = int.Parse(Regex.Match(readme, @"tests-(\d+)_passed").Groups[1].Value);
+
+        var claims = Regex.Matches(currentCard.Groups["body"].Value, @"(\d+)\s+(?:[A-Za-z]+\s+){0,2}?tests\b", RegexOptions.IgnoreCase)
+            .Cast<Match>()
+            .Select(m => int.Parse(m.Groups[1].Value))
+            .Distinct()
+            .ToList();
+
+        foreach (var claim in claims)
+        {
+            Assert.True(claim == declared,
+                $"The current changelog release card (v{currentCard.Groups["ver"].Value}) states {claim} tests " +
+                $"but the published badge says {declared}. The current card describes code that exists now and " +
+                "must track the suite; only the OLDER cards keep their historical numbers.");
+        }
+    }
+
     private static IEnumerable<string> EnumerateInstructionFiles(string root)
     {
         var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".md", ".txt", ".yml", ".yaml", ".ps1", ".cmd" };

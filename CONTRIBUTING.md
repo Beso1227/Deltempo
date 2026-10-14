@@ -2,6 +2,10 @@
 
 Thank you for your interest in contributing to **Deltempo**! We welcome community contributions, bug fixes, and feature enhancements.
 
+Everyone participating is expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+If you need help using the project rather than changing it, see [SUPPORT.md](SUPPORT.md).
+Security vulnerabilities should never be opened as a public issue — see [SECURITY.md](SECURITY.md).
+
 ## How to Contribute
 
 1. **Fork & Clone the Repository**: Click "Fork" on GitHub, then clone your copy and create a branch:
@@ -34,6 +38,27 @@ Thank you for your interest in contributing to **Deltempo**! We welcome communit
    > **Why not `dotnet test`?** The suite uses xunit.v3, which runs on Microsoft.Testing.Platform. The .NET 10 SDK's `dotnet test` cannot drive it ("Testing with VSTest target is no longer supported"). Build once, then invoke the test executable directly. See [`docs/TESTING.md`](docs/TESTING.md).
 
 4. **Submit a Pull Request**: Provide a clear explanation of your changes and motivation.
+
+## Review Process — Please Read
+
+**`main` currently has no required pull-request review, and CODEOWNERS is not enforced.**
+GitHub's CODEOWNERS file has no effect unless branch protection requires a code-owner
+review, and that requirement is not switched on. In practice this means:
+
+- Your PR may be merged without anyone reviewing it.
+- The ownership annotations in `.github/CODEOWNERS` are advisory, not a gate.
+- The one status check that *is* required is **Build, Test & Quality Gate**.
+
+This is a known gap, not an oversight. It is deliberately left unapplied because this
+project has exactly one maintainer and GitHub does not allow you to approve your own
+PR — enabling the requirement would block the maintainer from shipping. The
+alternative, requiring the **CodeQL** check as well, has no such downside. The full
+reasoning is recorded in `.github/settings.yml` under the branch protection block.
+
+If you are reviewing someone else's PR here, **your review is the only gate this
+project has.** That makes careful review unusually valuable here, particularly for
+anything touching `Core/Safety/`, `Core/Cleaning/`, the cache resolvers, or the
+release workflow.
 
 ## Coding Guidelines
 

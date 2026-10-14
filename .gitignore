@@ -6,6 +6,14 @@ obj/
 publish/
 publish_*/
 dist/
+# The release workflow emits per-architecture and per-target staging directories
+# alongside dist/ - dist_arm64\, dist_cli\, dist_cli_arm64\ are produced by the same
+# build_release_exe.ps1 run. `dist/` does NOT match those siblings, and they were
+# invisible to git purely by accident: every file inside them happened to match
+# *.exe or *.pdb. Release output is not consistent about that - dist/ already
+# contains a checksums.sha256, so the moment a non-binary lands in a sibling the
+# whole directory surfaces as untracked and a `git add -A` commits the binaries.
+dist_*/
 TestResults/
 [Bb]uildLog.*
 *.binlog
@@ -222,3 +230,22 @@ ui-verify*.png
 encoded*.txt
 scratch-*.py
 fix*.py
+# Root-level ad-hoc throwaway scripts, named with a leading underscore. These are
+# what actually turns up when investigating a file - `_scan.py`, `_j.py` - and the
+# named patterns above do not cover that shape. Scoped to the repository root and to
+# .py/.txt only, so a legitimate underscore-prefixed file elsewhere is unaffected.
+# Deliberately NOT `*.py` or `*.txt` at large: Python and text files can be source.
+/_*.py
+/_*.txt
+
+# Release artefacts written outside artifacts/ or dist/. Both names come from
+# release.yml; the workflow currently writes them under those directories, so these
+# rules only catch a local or manual run at the repository root.
+checksums.sha256
+sbom-packages.json
+
+# Elevated-UI verification captures. scripts/capture_layout_matrix.ps1 and the
+# PrintWindow recipe can be pointed at an in-repo directory; the documented default
+# lives outside the repo, so this is a backstop rather than the primary location.
+nav-shots*/
+nav-shots*/**

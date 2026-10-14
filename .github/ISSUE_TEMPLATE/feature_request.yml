@@ -25,6 +25,21 @@ body:
         - label: This feature would delete or modify files
         - label: This feature would require administrator elevation
         - label: This feature would add network communication
+        - label: This feature would run recursively over a directory tree
+  - type: textarea
+    id: deletion
+    attributes:
+      label: "If it deletes anything, what is the blast radius?"
+      description: |
+        Deltempo's hardest-won lesson is that "temporary" and "disposable" are often
+        the same lie. Several paths that look exactly like build scratch are
+        load-bearing, and removing them is permanently destructive: MSI source
+        caches, the per-user .NET SDK root, bare driver vendor roots, the extracted
+        Cargo crate source, and Audacity unsaved-session recovery.
+        If your feature deletes anything, name the paths it targets and say why each
+        is genuinely recoverable. "It is a cache" is not sufficient reasoning, and a
+        proposal that would delete a path in the README refusal table will be
+        declined as written.
   - type: textarea
     id: alternatives
     attributes:

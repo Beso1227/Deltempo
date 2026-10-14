@@ -2,12 +2,20 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.5.x   | :white_check_mark: |
-| 1.4.x   | :white_check_mark: |
-| 1.3.x   | :white_check_mark: |
-| < 1.3   | :x:                |
+Security fixes are applied to the **current minor release line only**. Older lines
+receive no patches, because the safety engine is a deep, interconnected part of the
+codebase and a partial backport is a worse guarantee than an explicit "not supported".
+
+| Version | Supported          | Notes                                              |
+| ------- | ------------------ | -------------------------------------------------- |
+| 3.2.x   | :white_check_mark: | Current stable                                     |
+| 3.1.x   | :white_check_mark: | Previous stable, security fixes only               |
+| 3.0.x   | :x:                | Unsupported                                        |
+| 2.x     | :x:                | Unsupported                                        |
+| 1.x     | :x:                | Unsupported                                        |
+
+If you are on an unsupported line, the fix you want is in the current release.
+Upgrading is the remediation; there is no patch path for you.
 
 ## Reporting a Vulnerability
 
@@ -19,6 +27,9 @@ Use GitHub's private vulnerability reporting instead:
 2. Include a detailed description, reproduction steps, affected versions, and (if possible) a proof of concept.
 
 We appreciate responsible disclosure and will investigate and resolve confirmed issues promptly.
+
+For **conduct or Code of Conduct** concerns, which are not vulnerabilities, see
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) § Enforcement instead.
 
 ### Security Response Commitment
 
@@ -39,7 +50,8 @@ Deltempo runs with administrator privileges and deletes files, so the following 
 ## Security Controls
 
 - For detailed threat analysis, attack vectors, and specific defenses against symlink traversal, TOCTOU, and privilege escalation, see [Deltempo Threat Model](docs/THREAT_MODEL.md).
-- Updates are verified end-to-end: HTTPS-only, GitHub host allowlisting, SHA-256 payload digests, and ECDSA P-256 manifest signatures.
+- Updates are verified before execution: HTTPS-only, GitHub host allowlisting, and a SHA-256 payload digest checked against the `checksums.sha256` release asset, plus size, PE-header and version checks.
+  - **What is *not* enforced yet:** manifest-signature verification and Authenticode verification exist in the codebase but are **not wired into the live update path** — the ECDSA P-256 verifier's embedded public key is still a placeholder. Do not rely on publisher-signature verification today; the enforced controls are transport (HTTPS) plus the digest. `docs/THREAT_MODEL.md` §2.5 tracks this as a known gap.
 - Cleanup operations are two-phase (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) with reparse-point rejection and containment enforcement immediately before every destructive action.
 - Shell integration (PATH, registry aliases, PowerShell profiles) is strictly opt-in via `deltempo register` and fully reversible via `deltempo unregister`.
 - Online AI file analysis is **off by default** and can be disabled entirely in Settings; it transmits file metadata only, never file contents.
@@ -53,7 +65,7 @@ The Deltempo project maintains the following security practices and considers th
 - [x] **Automated security scanning** — CodeQL security analysis runs on every push and pull request.
 - [x] **Dependency monitoring** — Dependabot alerts for NuGet packages and GitHub Actions.
 - [x] **Deterministic safety engine** — rule-based file classification with 24-hour safety shield, no heuristics.
-- [x] **Test coverage enforcement** — 1006/1006 tests passing; CI enforces quality gates.
+- [x] **Test coverage enforcement** — 1018/1018 tests passing; CI enforces quality gates.
 - [x] **Reproducible builds** — release workflow builds standalone self-contained executables from tagged sources.
 - [x] **Zero telemetry by design** — no analytics, no tracking, no phone-home; all processing is local.
 - [x] **Opt-in network features** — AI analysis and CLI registration require explicit user action.

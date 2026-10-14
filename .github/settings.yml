@@ -1,9 +1,14 @@
 # GitHub Repository Settings as Code
-# Used for repo configuration and automated label & branch governance.
+# Applied by .github/workflows/apply-repo-settings.yml (manual dispatch, or push on
+# changes to this file). This file is the DECLARED state; GitHub is the enforced
+# state. Verify reality with:
+#   gh api repos/Beso1227/Deltempo --jq '.description, .has_wiki, .has_discussions'
+#   gh label list
+# If the two disagree, this file is wrong and this file is what should change.
 
 repository:
   name: Deltempo
-  description: "High-performance Windows & user profile cleaner, memory optimizer, and deep root uninstaller. Safely reclaim 10–40+ GB of hidden AppData, GPU shader caches & leftover junk with zero telemetry. Open-source, portable GUI & CLI."
+  description: "Deltempo: Free, open-source Windows cleaner & RAM optimizer for Windows 11/10 - a zero-telemetry CCleaner alternative. Reclaim 10-40+ GB from temp files, AppData junk & GPU shader caches. Deep uninstaller, duplicate finder, treemap disk analyzer. No install, GUI + CLI."
   homepage: https://beso1227.github.io/Deltempo/
   topics:
     - windows
@@ -29,8 +34,12 @@ repository:
 
   has_issues: true
   has_projects: false
-  has_wiki: false
+  has_wiki: true
   has_downloads: true
+  # Discussions is the natural home for usage questions. It is currently OFF in the
+  # live repository. Turning it on is a deliberate choice, not an oversight - see
+  # the "Known divergences" note at the bottom of this file.
+  has_discussions: false
 
   # Pull Request merge configurations
   allow_squash_merge: true
@@ -41,6 +50,27 @@ repository:
   squash_merge_commit_message: PR_BODY
 
 # Branch protection configuration for main branch
+#
+# KNOWN DIVERGENCE - read before trusting this block.
+# The live repository currently has NO required_pull_request_reviews at all, and
+# CodeQL is NOT among the required status checks. The intent recorded here has not
+# been applied, which has two consequences worth stating plainly:
+#
+#   1. Nobody is required to review any PR. CODEOWNERS is INERT - it only has effect
+#      when branch protection requires a code-owner review. It is currently advisory.
+#   2. "CodeQL" is not a required check, so a PR can merge with CodeQL red.
+#
+# This is left declared-but-unapplied deliberately rather than silently deleted,
+# because the gap is the thing that needs fixing, not forgetting.
+#
+# Applying the review requirement as written is NOT currently possible in practice:
+# this project has exactly one maintainer, and GitHub does not let you approve your
+# own PR. Turning on require_code_owner_reviews would block the maintainer from
+# merging. The realistic options are to require the CodeQL status check only, or to
+# find a second maintainer. Do not flip the review block on without deciding that.
+#
+# Verify live state with:
+#   gh api repos/Beso1227/Deltempo/branches/main/protection
 branches:
   - name: main
     protection:
@@ -57,84 +87,98 @@ branches:
       allow_force_pushes: false
       allow_deletions: false
 
-# Standardized GitHub Label Taxonomy
+# Label taxonomy
+#
+# These EXIST on the live repository today. The previous `type/*`, `priority/*` and
+# `status/*` taxonomy declared here did not - not one of those labels had ever been
+# created - while the issue templates and dependabot.yml were labelling with the
+# GitHub-default names below. Declaring a taxonomy that does not exist is worse than
+# declaring none: it makes the file read as governance while contradicting reality.
+#
+# The section-scoped `area/*` labels are the project's own addition. Everything else
+# keeps GitHub's well-known names, because those are what contributors already know
+# how to filter by and what GitHub auto-applies in some flows.
+#
+# If you later adopt a namespaced taxonomy, apply it with the workflow below and
+# update the issue templates in the SAME commit - they hardcode label names.
 labels:
-  # Type
-  - name: "type/bug"
+  # --- GitHub defaults, in use ---
+  - name: "bug"
     color: "d73a4a"
-    description: "Something is not working properly"
-  - name: "type/feature"
+    description: "Something isn't working"
+  - name: "enhancement"
     color: "a2eeef"
-    description: "New feature or functional enhancement"
-  - name: "type/enhancement"
-    color: "0075ca"
-    description: "Incremental improvement to existing functionality"
-  - name: "type/performance"
-    color: "e99695"
-    description: "Performance, memory, or throughput improvements"
-  - name: "type/security"
-    color: "b60205"
-    description: "Security vulnerability, hardening, or advisory"
-  - name: "type/documentation"
+    description: "New feature or request"
+  - name: "documentation"
     color: "0075ca"
     description: "Improvements or additions to documentation"
-  - name: "type/refactor"
+  - name: "question"
+    color: "d876e3"
+    description: "Further information is requested"
+  - name: "invalid"
+    color: "e4e669"
+    description: "This doesn't seem right"
+  - name: "wontfix"
+    color: "ffffff"
+    description: "This will not be worked on"
+  - name: "duplicate"
     color: "cfd3d7"
-    description: "Code restructuring without behavior changes"
-
-  # Area
-  - name: "area/core"
-    color: "5319e7"
-    description: "Deltempo.Core library and shared engines"
-  - name: "area/ui"
-    color: "1d76db"
-    description: "WPF GUI, views, themes, and interactions"
-  - name: "area/cli"
-    color: "0e8a16"
-    description: "Deltempo.Cli console executable and commands"
-  - name: "area/safety"
-    color: "e11d48"
-    description: "Safety invariants, root containment, and path protection"
-  - name: "area/cleaning"
-    color: "f9d0c4"
-    description: "Scanner, cleaner rules, and cache purging logic"
-  - name: "area/ci"
-    color: "fbca04"
-    description: "GitHub Actions workflows and automation"
-  - name: "area/build"
-    color: "c2e0c6"
-    description: "MSBuild, csproj, packages, and publishing"
-
-  # Priority
-  - name: "priority/critical"
-    color: "b60205"
-    description: "Highest priority - requires urgent resolution"
-  - name: "priority/high"
-    color: "d93f0b"
-    description: "High priority task or defect"
-  - name: "priority/medium"
-    color: "fbca04"
-    description: "Standard priority"
-  - name: "priority/low"
-    color: "0e8a16"
-    description: "Low priority, nice to have"
-
-  # Status & Community
-  - name: "status/in-progress"
-    color: "ededed"
-    description: "Actively being worked on"
-  - name: "status/needs-reproduction"
-    color: "d4c5f9"
-    description: "More info or reproduction steps needed"
-  - name: "status/blocked"
-    color: "000000"
-    description: "Blocked by external dependency or upstream issue"
+    description: "This issue or pull request already exists"
+  - name: "accessibility"
+    color: "f143ab"
+    description: "Barrier affecting people with disabilities"
   - name: "good first issue"
     color: "7057ff"
     description: "Good for newcomers and first-time contributors"
   - name: "help wanted"
     color: "008672"
     description: "Extra attention or community contribution needed"
+
+  # --- Automation ---
   - name: "dependencies"
     color: "0366d6"
-    description: "Automated dependency updates from Dependabot"
+    description: "Pull requests that update a dependency file"
+  - name: ".NET"
+    color: "7121c6"
+    description: "Pull requests that update .NET code"
+  - name: "github_actions"
+    color: "000000"
+    description: "Pull requests that update GitHub Actions code"
+
+  # --- Area: this project's own taxonomy ---
+  # Deliberately not created for every possible area. A label nobody uses is
+  # noise; add one when the first PR needs it.
+  - name: "area/safety"
+    color: "e11d48"
+    description: "Safety engine, path protection, protection policy, or destructive-scope changes"
+  - name: "area/cleaning"
+    color: "f9d0c4"
+    description: "Scanner, cache resolvers, and cleanup rules"
+  - name: "area/core"
+    color: "5319e7"
+    description: "Deltempo.Core library and shared engines"
+  - name: "area/cli"
+    color: "0e8a16"
+    description: "deltempo_cli commands and headless automation"
+  - name: "area/ui"
+    color: "1d76db"
+    description: "WPF GUI, views, themes, and interactions"
+  - name: "area/ci"
+    color: "0366d6"
+    description: "GitHub Actions workflows and automation"
+  - name: "area/build"
+    color: "0eaa8e"
+    description: "MSBuild, csproj, packages, and publishing"
+
+# ---------------------------------------------------------------------------
+# Known divergences between this file and the live repository
+# ---------------------------------------------------------------------------
+# 1. required_pull_request_reviews is declared above but NOT applied live. See the
+#    long note on the branches block.
+# 2. "CodeQL" is declared as a required status check but is not one live.
+# 3. has_wiki is declared true and IS true live. (It used to be declared false
+#    while the live repository had it enabled - a straight contradiction, now fixed.)
+# 4. has_discussions is declared false and IS false live. Turning it on is worth
+#    considering: usage questions currently have to become issues, which is a poor
+#    fit for a project that explicitly invites questions.
+# ---------------------------------------------------------------------------

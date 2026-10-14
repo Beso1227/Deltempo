@@ -1,0 +1,89 @@
+name: Apply Repository Settings
+
+# Makes .github/settings.yml real. Before this workflow existed, that file was a
+# declaration that nothing read: its label taxonomy had never been applied, its
+# has_wiki value contradicted the live repository, and its branch-protection block
+# claimed review requirements that were not in effect. A settings file that is never
+# applied is worse than no settings file, because it reads as governance.
+
+on:
+  # Applies automatically when the declaration itself changes, so the two cannot
+  # silently drift apart a second time.
+  push:
+    branches: [ main ]
+    paths: [ '.github/settings.yml' ]
+  # Manual: re-apply, or preview before committing to a change.
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Preview the changes without applying them'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  administration: write
+
+concurrency:
+  group: apply-repo-settings
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    name: Apply .github/settings.yml
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v7
+
+      # Correctness over convenience: this workflow MUTATES repository governance.
+      # Pinning to a tag is standard hygiene, but a moving major tag means the
+      # behaviour of a governance change can change without a reviewable diff.
+      # Bump deliberately, and read the upstream release notes when you do.
+      - name: Apply repository settings
+        uses: probdens/settings-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          dry-run: ${{ inputs.dry_run == false && 'false' || 'true' }}
+          config-file: ./.github/settings.yml
+
+      - name: Verify the applied state matches reality
+        # settings-action reports success, but "the action did not error" and "the
+        # repository is now in the declared state" are different claims. This step
+        # re-reads the repository and fails loudly if they diverge, which is the
+        # only way this file stops being aspirational.
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "== Live repository description =="
+          live_desc=$(gh api repos/${{ github.repository }} --jq '.description')
+          want_desc=$(grep -A1 '^  description:' .github/settings.yml | tail -1 | sed 's/^ *description: *"//; s/"$//')
+          echo "live:  $live_desc"
+          echo "want:  $want_desc"
+          if [ "$live_desc" != "$want_desc" ]; then
+            echo "::error::Repository description does not match .github/settings.yml"
+            exit 1
+          fi
+
+          echo "== Required status checks =="
+          gh api repos/${{ github.repository }}/branches/main/protection --jq '.required_status_checks.contexts[]'
+
+          echo "== Required pull request reviews =="
+          reviews=$(gh api repos/${{ github.repository }}/branches/main/protection --jq '.required_pull_request_reviews // "NONE"')
+          echo "$reviews"
+          if [ "$reviews" = "NONE" ]; then
+            echo "::warning::main has no required pull-request review. CODEOWNERS is inert - see the note in .github/settings.yml."
+          fi
+
+          echo "== Labels =="
+          gh label list --limit 100
+
+      - name: Fail if declarations could not be applied
+        if: failure()
+        shell: bash
+        run: |
+          echo "::error::Applying .github/settings.yml did not complete cleanly. The live repository may now disagree with the declaration - re-read it with: gh api repos/${{ github.repository }}"
+          exit 1

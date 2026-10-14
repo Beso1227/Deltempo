@@ -33,7 +33,10 @@
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
     <Authors>Beso1227</Authors>
     <Company>Deltempo Open Source Project</Company>
-    <Copyright>Copyright (c) 2026 Beso1227 / Deltempo Project. MIT Licensed.</Copyright>
+    <!-- Copyright holder must match LICENSE exactly. Three different wordings of this
+         line once shipped across LICENSE, README.md and this file; "Deltempo
+         Contributors" is the wording in LICENSE and is the canonical one here. -->
+    <Copyright>Copyright (c) 2026 Deltempo Contributors. MIT Licensed.</Copyright>
     <RepositoryUrl>https://github.com/Beso1227/Deltempo</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>en-US</NeutralLanguage>
