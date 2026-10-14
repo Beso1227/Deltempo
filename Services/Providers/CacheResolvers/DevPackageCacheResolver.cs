@@ -38,8 +38,13 @@ public static class DevPackageCacheResolver
             Path.Combine(userProfile, ".bun", "install", "cache"),
             Path.Combine(localAppData, "deno", "deps"),
             Path.Combine(localAppData, "go-build"),
-            Path.Combine(localAppData, "Microsoft", "dotnet"),
             Path.Combine(localAppData, "Temp", ".net"),
+            // NOTE: %LOCALAPPDATA%\Microsoft\dotnet is deliberately NOT listed here. Despite
+            // sitting under a "Temp"-adjacent path it is the per-user .NET SDK/runtime
+            // install root (dotnet.exe hosts, sdk\, packs\, shared\) and the NuGet restore
+            // scratch store. Deleting it removes installed SDKs rather than freeing cache.
+            // Only the transient build scratch is disposable, and that is covered by the
+            // Temp\.net entry above.
             Path.Combine(userProfile, ".m2", "repository", ".cache"),
             Path.Combine(userProfile, ".m2", "temp"),
             Path.Combine(userProfile, ".nuget", "packages", "temp")

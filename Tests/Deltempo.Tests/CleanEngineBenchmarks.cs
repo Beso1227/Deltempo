@@ -54,7 +54,7 @@ public class CleanEngineBenchmarks
             // Act
             var cleaner = new CleanerService();
             var sw = Stopwatch.StartNew();
-            var (freed, filesDeleted, foldersDeleted, filesSkipped) = await cleaner.CleanFolderAsync(
+            var (freed, filesDeleted, foldersDeleted, filesSkipped, filesFailed) = await cleaner.CleanFolderAsync(
                 target,
                 safeMode24Hours: false,
                 logAction: (_, _) => { },

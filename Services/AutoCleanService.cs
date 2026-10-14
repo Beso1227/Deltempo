@@ -103,25 +103,45 @@ public static class AutoCleanService
 
             long totalFreed = 0;
             int totalFiles = 0;
+            int totalFailed = 0;
+            int categoriesAttempted = 0;
+            int categoriesFailed = 0;
 
+            // Each target is cleaned inside its OWN try. A single try around the whole loop
+            // meant an exception on target 3 abandoned targets 4-26 with no record at all,
+            // while totalFreed from targets 1-2 still fired the success notification.
             foreach (var target in safeTargets)
             {
-                var (freed, filesDel, foldersDel, filesSkip) = await CleanerInstance.CleanFolderAsync(
-                    target,
-                    safeMode24Hours: true,
-                    logAction: (msg, lvl) => { },
-                    progressReport: p => { },
-                    ct: cts.Token);
+                categoriesAttempted++;
+                try
+                {
+                    var (freed, filesDel, foldersDel, filesSkip, filesFailed) = await CleanerInstance.CleanFolderAsync(
+                        target,
+                        safeMode24Hours: true,
+                        logAction: (msg, lvl) => { },
+                        progressReport: p => { },
+                        ct: cts.Token);
 
-                totalFreed += freed;
-                totalFiles += filesDel;
+                    totalFreed += freed;
+                    totalFiles += filesDel;
+                    totalFailed += filesFailed;
+                    if (filesFailed > 0 || target.HasError) categoriesFailed++;
+                }
+                catch (Exception ex)
+                {
+                    categoriesFailed++;
+                    System.Diagnostics.Trace.WriteLine($"[Deltempo] Auto-clean aborted for target '{target.Name}': {ex.Message}");
+                }
             }
 
             if (totalFreed > 0 && SettingsService.Current.AutoCleanNotify)
             {
                 TrayService.ShowNotification(
                     "Deltempo Auto-Pilot Guardian",
-                    $"Silently reclaimed {TargetFolderInfo.FormatBytes(totalFreed)} of background junk across {totalFiles:N0} files.");
+                    categoriesFailed > 0
+                        ? $"Reclaimed {TargetFolderInfo.FormatBytes(totalFreed)} of background junk across {totalFiles:N0} files, " +
+                          $"but {categoriesFailed} of {categoriesAttempted} categories reported errors."
+                        : $"Silently reclaimed {TargetFolderInfo.FormatBytes(totalFreed)} of background junk across {totalFiles:N0} files.");
             }
 
             // Background RAM Guardian: check if memory auto-optimization is enabled and free RAM is below threshold

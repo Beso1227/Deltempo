@@ -422,54 +422,84 @@ public static partial class CliRunner
             int dryFiles = 0;
             var dryResults = new List<(string Name, long PlannedBytes, string Formatted, int PlannedFiles, int Protected, int ReviewRequired)>();
 
-            foreach (var t in selectedTargets)
+            // The dry-run planner used to be called with no token, so CreatePlan defaulted to
+            // CancellationToken.None and a --dry-run over a multi-GB tree was uninterruptible.
+            // Ctrl+C now cancels it, and the partial plan is reported as partial rather than
+            // presented as a complete projection.
+            using var dryRunCts = new CancellationTokenSource();
+            ConsoleCancelEventHandler cancelHandler = (_, e) =>
             {
-                if (t.IsSpecialShellTarget && t.Id == "RecycleBin")
+                e.Cancel = true;
+                dryRunCts.Cancel();
+            };
+            Console.CancelKeyPress += cancelHandler;
+            bool dryRunCancelled = false;
+
+            try
+            {
+                foreach (var t in selectedTargets)
                 {
-                    var (size, count) = CleanerService.QueryRecycleBinInfo();
-                    if (size > 0 || count > 0)
+                    if (t.IsSpecialShellTarget && t.Id == "RecycleBin")
                     {
-                        dryTotal += size;
-                        dryFiles += count;
-                        dryResults.Add((t.Name, size, TargetFolderInfo.FormatBytes(size), count, 0, 0));
+                        var (size, count) = CleanerService.QueryRecycleBinInfo();
+                        if (size > 0 || count > 0)
+                        {
+                            dryTotal += size;
+                            dryFiles += count;
+                            dryResults.Add((t.Name, size, TargetFolderInfo.FormatBytes(size), count, 0, 0));
+                        }
+                        continue;
                     }
-                    continue;
+
+                    if (t.Id == "SystemRestorePoints")
+                    {
+                        var (used, count) = CleanerService.QueryShadowStorageInfo();
+                        if (used > 0 || count > 0)
+                        {
+                            dryTotal += used;
+                            dryFiles += count;
+                            dryResults.Add((t.Name, used, TargetFolderInfo.FormatBytes(used), count, 0, 0));
+                        }
+                        continue;
+                    }
+
+                    var directories = CleanerService.ResolveDirectoriesForFolderPublic(t);
+                    if (directories.Count == 0) continue;
+
+                    var plan = CleanupPlanner.CreatePlan(
+                        scopeId: t.Id,
+                        scopeName: t.Name,
+                        directories: directories,
+                        category: t.Category,
+                        apply24HourShield: applyShield && t.IsSafeModeEligible,
+                        sendToRecycleBin: recycleBinSetting,
+                        ct: dryRunCts.Token);
+
+                    long scopePlanned = plan.Actions.Where(a => a.Action != IntendedCleanupAction.SkipProtected &&
+                        a.Action != IntendedCleanupAction.SkipReviewRequired).Sum(a => a.SizeBytes);
+                    int scopeFiles = plan.Actions.Count(a => a.Action != IntendedCleanupAction.SkipProtected &&
+                        a.Action != IntendedCleanupAction.SkipReviewRequired);
+
+                    dryTotal += scopePlanned;
+                    dryFiles += scopeFiles;
+
+                    dryResults.Add((t.Name, scopePlanned, TargetFolderInfo.FormatBytes(scopePlanned), scopeFiles,
+                        plan.Actions.Count(a => a.Action == IntendedCleanupAction.SkipProtected),
+                        plan.Actions.Count(a => a.Action == IntendedCleanupAction.SkipReviewRequired)));
                 }
 
-                if (t.Id == "SystemRestorePoints")
-                {
-                    var (used, count) = CleanerService.QueryShadowStorageInfo();
-                    if (used > 0 || count > 0)
-                    {
-                        dryTotal += used;
-                        dryFiles += count;
-                        dryResults.Add((t.Name, used, TargetFolderInfo.FormatBytes(used), count, 0, 0));
-                    }
-                    continue;
-                }
+                dryRunCancelled = dryRunCts.IsCancellationRequested;
+            }
+            finally
+            {
+                Console.CancelKeyPress -= cancelHandler;
+            }
 
-                var directories = CleanerService.ResolveDirectoriesForFolderPublic(t);
-                if (directories.Count == 0) continue;
-
-                var plan = CleanupPlanner.CreatePlan(
-                    scopeId: t.Id,
-                    scopeName: t.Name,
-                    directories: directories,
-                    category: t.Category,
-                    apply24HourShield: applyShield && t.IsSafeModeEligible,
-                    sendToRecycleBin: recycleBinSetting);
-
-                long scopePlanned = plan.Actions.Where(a => a.Action != IntendedCleanupAction.SkipProtected &&
-                    a.Action != IntendedCleanupAction.SkipReviewRequired).Sum(a => a.SizeBytes);
-                int scopeFiles = plan.Actions.Count(a => a.Action != IntendedCleanupAction.SkipProtected &&
-                    a.Action != IntendedCleanupAction.SkipReviewRequired);
-
-                dryTotal += scopePlanned;
-                dryFiles += scopeFiles;
-
-                dryResults.Add((t.Name, scopePlanned, TargetFolderInfo.FormatBytes(scopePlanned), scopeFiles,
-                    plan.Actions.Count(a => a.Action == IntendedCleanupAction.SkipProtected),
-                    plan.Actions.Count(a => a.Action == IntendedCleanupAction.SkipReviewRequired)));
+            if (dryRunCancelled && !silent && !isJson)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("  ⚠️  Dry run cancelled — figures below cover only the categories scanned so far.");
+                Console.ResetColor();
             }
 
             if (isJson)
@@ -477,13 +507,15 @@ public static partial class CliRunner
                 Console.WriteLine(JsonSerializer.Serialize(new
                 {
                     dryRun = true,
+                    cancelled = dryRunCancelled,
                     safetyShieldActive = safeMode,
                     totalReclaimableBytes = dryTotal,
                     formattedTotal = TargetFolderInfo.FormatBytes(dryTotal),
                     totalFiles = dryFiles,
                     categories = dryResults.Select(r => new { r.Name, plannedBytes = r.PlannedBytes, r.Formatted, plannedFiles = r.PlannedFiles, protectedCount = r.Protected, reviewRequiredCount = r.ReviewRequired })
                 }, new JsonSerializerOptions { WriteIndented = true }));
-                return 0;
+                // A cancelled projection is not a complete one; do not report it as success.
+                return dryRunCancelled ? 130 : 0;
             }
 
             foreach (var r in dryResults.Where(r => r.PlannedBytes > 0))
@@ -491,10 +523,12 @@ public static partial class CliRunner
                 Console.WriteLine($"    • Would purge {r.Name}: {r.Formatted} ({r.PlannedFiles} files)");
             }
             Console.WriteLine();
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"  ✓ Dry Run Complete: {TargetFolderInfo.FormatBytes(dryTotal)} in {dryFiles:N0} files would be reclaimed (after safety filtering).");
+            Console.ForegroundColor = dryRunCancelled ? ConsoleColor.Yellow : ConsoleColor.Green;
+            Console.WriteLine(dryRunCancelled
+                ? $"  ⚠️  Dry Run Cancelled after {TargetFolderInfo.FormatBytes(dryTotal)} in {dryFiles:N0} files (partial projection)."
+                : $"  ✓ Dry Run Complete: {TargetFolderInfo.FormatBytes(dryTotal)} in {dryFiles:N0} files would be reclaimed (after safety filtering).");
             Console.ResetColor();
-            return 0;
+            return dryRunCancelled ? 130 : 0;
         }
 
         if (!silent && !yesPrompt && !isJson)
@@ -536,6 +570,8 @@ public static partial class CliRunner
         int totalFilesDeleted = 0;
         int totalFoldersDeleted = 0;
         int totalFilesSkipped = 0;
+        int totalFilesFailed = 0;
+        int failedCategories = 0;
 
         int currentIdx = 0;
         foreach (var target in selectedTargets)
@@ -547,7 +583,7 @@ public static partial class CliRunner
                 Console.Write($"\r  [{GetProgressBar(pct, 18)}] {pct,5:F0}% Cleaning {target.Name,-30}");
             }
 
-            var (freed, filesDel, foldersDel, filesSkip) = await cleanerService.CleanFolderAsync(
+            var (freed, filesDel, foldersDel, filesSkip, filesFailed) = await cleanerService.CleanFolderAsync(
                 target,
                 safeMode,
                 (msg, level) => { },
@@ -558,6 +594,11 @@ public static partial class CliRunner
             totalFilesDeleted += filesDel;
             totalFoldersDeleted += foldersDel;
             totalFilesSkipped += filesSkip;
+            totalFilesFailed += filesFailed;
+            if (filesFailed > 0 || target.HasError)
+            {
+                failedCategories++;
+            }
         }
 
         if (!silent && !isJson)
@@ -574,28 +615,56 @@ public static partial class CliRunner
             ElapsedTime = TimeSpan.Zero
         };
 
+        // A run is only "successful" when every category completed and nothing failed.
+        // The previous hardcoded `success = true` meant a --json consumer could not tell
+        // this apart from a run in which every single deletion had errored: CleanFolderAsync
+        // swallowed its exceptions, returned zeros, and the CLI still exited 0 while
+        // printing "Successfully reclaimed 0 B".
+        bool allSucceeded = failedCategories == 0 && totalFilesFailed == 0;
+        bool anyWorkDone = totalFilesDeleted > 0 || totalFoldersDeleted > 0;
+
         if (isJson)
         {
             Console.WriteLine(JsonSerializer.Serialize(new
             {
-                success = true,
+                success = allSucceeded,
+                partial = !allSucceeded && anyWorkDone,
                 totalFreedBytes = totalFreed,
                 formattedFreed = summary.FormattedFreedSize,
                 totalFilesDeleted = totalFilesDeleted,
                 totalFoldersDeleted = totalFoldersDeleted,
                 totalFilesSkipped = totalFilesSkipped,
+                totalFilesFailed = totalFilesFailed,
+                failedCategories = failedCategories,
                 safetyShield = safeMode
             }, new JsonSerializerOptions { WriteIndented = true }));
-            return 0;
+
+            // 0 = clean, 1 = partial, 2 = nothing succeeded. Distinct exit codes let a
+            // scheduled task or CI step detect a failed clean without parsing stdout.
+            return allSucceeded ? 0 : (anyWorkDone ? 1 : 2);
         }
 
         if (!silent)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"  ✨ CLEANUP COMPLETE: Successfully reclaimed {summary.FormattedFreedSize}!");
-            Console.WriteLine($"     • Files purged:    {totalFilesDeleted:N0}");
-            Console.WriteLine($"     • Folders removed: {totalFoldersDeleted:N0}");
-            Console.WriteLine($"     • Files protected: {totalFilesSkipped:N0} (Shield <24h)");
+            if (allSucceeded)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"  ✨ CLEANUP COMPLETE: Successfully reclaimed {summary.FormattedFreedSize}!");
+                Console.WriteLine($"     • Files purged:    {totalFilesDeleted:N0}");
+                Console.WriteLine($"     • Folders removed: {totalFoldersDeleted:N0}");
+                Console.WriteLine($"     • Files protected: {totalFilesSkipped:N0} (Shield <24h)");
+            }
+            else
+            {
+                Console.ForegroundColor = anyWorkDone ? ConsoleColor.Yellow : ConsoleColor.Red;
+                Console.WriteLine(anyWorkDone
+                    ? $"  ⚠️  CLEANUP COMPLETED WITH ERRORS: reclaimed {summary.FormattedFreedSize} before failing."
+                    : $"  ❌ CLEANUP FAILED: no files could be removed.");
+                Console.WriteLine($"     • Files purged:    {totalFilesDeleted:N0}");
+                Console.WriteLine($"     • Folders removed: {totalFoldersDeleted:N0}");
+                Console.WriteLine($"     • Files protected: {totalFilesSkipped:N0} (Shield <24h)");
+                Console.WriteLine($"     • Files FAILED:    {totalFilesFailed:N0} across {failedCategories:N0} categories");
+            }
             Console.ResetColor();
         }
 
@@ -613,6 +682,6 @@ public static partial class CliRunner
             }
         }
 
-        return 0;
+        return allSucceeded ? 0 : (anyWorkDone ? 1 : 2);
     }
 }

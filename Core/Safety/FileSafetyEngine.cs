@@ -180,24 +180,51 @@ public static class FileSafetyEngine
         }
 
         // 9b. Non-executable files in designated temporary and cache directories
-        // Only files with recognized disposable extensions or inside explicit cache subdirectories are safe.
+        // Authorization comes from the DIRECTORY. Two tiers, because "this file is inside a
+        // configured cleanup target" is a much weaker statement than "this file is inside a
+        // temp directory":
+        //   - UnambiguousTempShape: the path IS a temp/scratch/crash location. Data formats
+        //     (.json/.db/.xml/...) and extensionless files are disposable here.
+        //   - MerelyInsideAuthorizedRoot: the file sits under a configured target. That proves
+        //     the target was selected, not that every file in it is disposable, so a data
+        //     format earns Safe here only because the root itself is curated. The curated
+        //     roots are what makes this sound, which is why the dangerous ones are refused
+        //     outright by ProtectionPolicy.NonDisposableStateDirectories rather than being
+        //     trusted to this rule.
         // Unrecognized extensions fail closed to UNKNOWN.
-        bool isDesignatedTempOrCacheLocation =
+        bool isUnambiguousTempShape =
             pathLower.Contains(@"\appdata\local\temp\") ||
             pathLower.Contains(@"\windows\temp\") ||
-            pathLower.Contains(@"\inetcache\") ||
             pathLower.Contains(@"\local\temp\") ||
-            pathLower.Contains(@"\logs\") ||
+            pathLower.Contains(@"\inetcache\") ||
             pathLower.Contains(@"\crashdumps\") ||
             pathLower.Contains(@"\crashpad\") ||
-            pathLower.Contains(@"\softwaredistribution\download\") ||
+            pathLower.Contains(@"\softwaredistribution\download\");
+
+        bool isInsideAuthorizedRoot =
             (allowedRoots != null && allowedRoots.Any(r => !string.IsNullOrEmpty(r) && PathSecurity.IsSubpathOf(canonicalPath, r))) ||
             (!string.IsNullOrEmpty(allowedRoot) && PathSecurity.IsSubpathOf(canonicalPath, allowedRoot));
 
-        bool isKnownDisposableFormat = KnownDisposableExtensions.Contains(ext) ||
-                                       (string.IsNullOrEmpty(ext) && (pathLower.Contains(@"\temp\") || pathLower.Contains("cache")));
+        bool isScratchFormat = !string.IsNullOrEmpty(ext) && ScratchExtensions.Contains(ext);
+        bool isDisposableDataFormat = DataFormatExtensions.Contains(ext);
 
-        if (isDesignatedTempOrCacheLocation && isKnownDisposableFormat)
+        // A logs\ directory is a weak location signal (a user folder named "logs" matches),
+        // so it unlocks scratch formats only, never data formats.
+        bool isWeakScratchLocation = pathLower.Contains(@"\logs\");
+
+        bool qualifies = isScratchFormat
+            ? (isInsideAuthorizedRoot || isUnambiguousTempShape || isWeakScratchLocation)
+            : isDisposableDataFormat && (isInsideAuthorizedRoot || isUnambiguousTempShape);
+
+        // An extensionless file proves nothing about its own nature. It is only disposable in
+        // a genuine temp directory - "inside a cache-ish path" was the old test, and a bare
+        // Contains("cache") substring matched CachedData, Caches and every vendor spelling.
+        if (string.IsNullOrEmpty(ext) && isUnambiguousTempShape)
+        {
+            qualifies = true;
+        }
+
+        if (qualifies)
         {
             return CreateResult(
                 SafetyRiskTier.Safe,
@@ -222,22 +249,39 @@ public static class FileSafetyEngine
             impact: "Preserved to avoid data loss.");
     }
 
-    private static readonly FrozenSet<string> KnownDisposableExtensions = new string[]
+    /// <summary>
+    /// Extensions that are scratch fragments regardless of where they are found: a temp file,
+    /// a log, a partial download, a crash dump. Safe inside any authorized cleanup root.
+    /// </summary>
+    private static readonly FrozenSet<string> ScratchExtensions = new string[]
     {
-        // Temporary, Scratch & Cache
+        // Temporary, Scratch & Incomplete
         ".tmp", ".temp", ".cache", ".chk", ".swp", ".lock", ".etag", ".part", ".partial", ".crdownload",
         // Logs, Dumps & Diagnostic Traces
         ".log", ".old", ".bak", ".dmp", ".mdmp", ".wer", ".etl", ".sqm", ".out", ".err", ".log1", ".log2",
+        // Installer payload fragments (not archives - .zip/.7z/.tar/.gz never reach this rule,
+        // ExecutableArchiveSafetyGate returns REVIEW for them first)
+        ".cab", ".inf"
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Extensions that are data formats a real application can depend on. These are only
+    /// treated as disposable inside an authorized cleanup root or an unambiguous temp
+    /// directory - never on the strength of the extension alone.
+    /// The empty extension is deliberately absent: a file with no extension carries no
+    /// evidence about its own nature, and treating "" as disposable previously marked every
+    /// extensionless file under any authorized root as Safe (90).
+    /// </summary>
+    private static readonly FrozenSet<string> DataFormatExtensions = new string[]
+    {
         // Binary, Data & Index Chunks
         ".dat", ".bin", ".data", ".blob", ".chunk", ".idx", ".pack", ".index", ".dir", ".node", ".wasm",
-        // Text, Structured & Markup in Temp/Cache
+        // Text, Structured & Markup
         ".txt", ".xml", ".json", ".yaml", ".yml", ".csv",
-        // Setup Configurations & Archive Chunks in Temp
-        ".ini", ".cfg", ".inf", ".cab", ".7z", ".zip", ".tar", ".gz", ".uuid",
-        // Database cache fragments in designated cache folders
-        ".db", ".sqlite", ".sqlite-wal", ".sqlite-shm",
-        // Extensionless files
-        ""
+        // Configuration
+        ".ini", ".cfg", ".uuid",
+        // Database fragments
+        ".db", ".sqlite", ".sqlite-wal", ".sqlite-shm"
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     private static SafetyAnalysisResult? EvaluateVerifiedCachePatterns(string pathLower, string fileName, string ext, long sizeBytes)
@@ -353,26 +397,11 @@ public static class FileSafetyEngine
                 impact: "Zero impact.");
         }
 
-        // Hardware Driver Extractor Leftovers (NVIDIA, AMD, Intel, Realtek) on any drive
-        bool isDriverExtractorRoot = (pathLower.Length >= 3 && pathLower[1] == ':' && (
-            pathLower.Substring(2).StartsWith(@"\nvidia\") ||
-            pathLower.Substring(2).StartsWith(@"\amd\") ||
-            pathLower.Substring(2).StartsWith(@"\intel\") ||
-            pathLower.Substring(2).StartsWith(@"\realtek\"))) ||
-            pathLower.Contains(@"\nvidia\displaydriver\");
-
-        if (isDriverExtractorRoot)
-        {
-            return CreateResult(
-                SafetyRiskTier.Safe,
-                100,
-                "SAFE (Hardware Driver Extractor Cache)",
-                "VERIFIED CACHE",
-                $"Temporary setup files unpacked during hardware driver installation ({FormatBytes(sizeBytes)}). Drivers are already installed in System32.",
-                "DriverExtractorCacheRule",
-                origin: "Driver Extractor Staging",
-                impact: "Zero impact — driver is already installed.");
-        }
+        // NOTE: There is deliberately NO rule matching a BARE drive-root vendor folder
+        // (C:\NVIDIA\, C:\AMD\, C:\Intel\, C:\Realtek\). Those roots are where a driver
+        // installer unpacks payload it has not consumed yet, so "any file under it is a
+        // verified cache" is false during an installation. Only the specific staging
+        // subdirectories are recognized, by DriverStagingPackageRule below.
 
         // Hardware Driver Staging & Installer Caches (NVIDIA, AMD, Intel, DriverStore Temp)
         if (pathLower.Contains(@"\nvidia corporation\installer2\") ||

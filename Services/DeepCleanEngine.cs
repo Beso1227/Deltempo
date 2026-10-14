@@ -92,10 +92,19 @@ public static class DeepCleanEngine
         var cleaner = new CleanerService();
         var allTargets = targets?.ToList() ?? CleanerService.GetDefaultTargets();
 
-        // Select all accessible targets
+        // Select all ACCESSIBLE targets, but never override a target that deliberately
+        // declined selection. StoreAppOrphanResolver sets IsSelected = false with the
+        // explicit comment "Requires explicit user consent", and IsSafeModeEligible = false;
+        // the previous unconditional `t.IsSelected = t.HasAccess` silently discarded that
+        // and would have swept whole uninstalled-application folders with no prompt.
+        // Rulepack-supplied targets carry the same "not pre-approved" meaning.
         foreach (var t in allTargets)
         {
-            t.IsSelected = t.HasAccess;
+            bool requiresExplicitConsent =
+                t.IsOrphanedAppFolder ||
+                !t.IsSafeModeEligible;
+
+            t.IsSelected = requiresExplicitConsent ? false : t.HasAccess;
         }
 
         var activeTargets = allTargets.Where(t => t.IsSelected && !t.IsSpecialShellTarget && t.Id != "SystemRestorePoints").ToList();
@@ -120,7 +129,7 @@ public static class DeepCleanEngine
                 DetailMessage = $"Cleaning {target.Name} ({targetIndex}/{activeTargets.Count})..."
             });
 
-            var (freed, files, folders, skipped) = await cleaner.CleanFolderAsync(
+            var (freed, files, folders, skipped, failed) = await cleaner.CleanFolderAsync(
                 target,
                 safeMode24Hours: true,
                 logAction: (msg, lvl) => logAction?.Invoke(msg, lvl),

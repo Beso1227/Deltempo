@@ -307,7 +307,80 @@ public static class ProtectionPolicy
             return true;
         }
 
+        // 11. Non-disposable installer and application state that a cleanup root may contain.
+        // Each of these directories was individually resolvable and several were previously
+        // listed as cleanup targets. They are refused HERE as well as being removed from those
+        // lists, so a resolver regression, a user-supplied rulepack, or a stale settings entry
+        // cannot reintroduce them.
+        foreach (string stateDir in NonDisposableStateDirectories)
+        {
+            if (IsSameDirectoryOrUnder(path, stateDir))
+            {
+                matchedReason = "Non-disposable installer or application state";
+                return true;
+            }
+        }
+
         return false;
+    }
+
+    /// <summary>
+    /// Directories that are individually resolvable and look like caches but hold state whose
+    /// deletion is destructive and unrecoverable. Built once per process from the machine's
+    /// real special-folder locations so the markers are absolute rather than guessed suffixes.
+    /// </summary>
+    private static readonly FrozenSet<string> NonDisposableStateDirectories = BuildNonDisposableStateDirectories();
+
+    private static FrozenSet<string> BuildNonDisposableStateDirectories()
+    {
+        var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        var dirs = new List<string>
+        {
+            // MSI source caches. msiexec requires these to REPAIR and to UNINSTALL every
+            // installed MSI product; deleting them permanently breaks Programs and Features
+            // for the whole machine rather than freeing scratch space.
+            Path.Combine(progData, "Package Cache"),
+            Path.Combine(winDir, "Installer", "$PatchCache$"),
+
+            // Per-user .NET SDK and runtime install root (dotnet.exe hosts, sdk\, packs\,
+            // shared\). Not a cache despite the AppData location.
+            Path.Combine(localAppData, "Microsoft", "dotnet"),
+
+            // Audacity crash / unsaved-session recovery: in-progress recordings that were
+            // never written to disk.
+            Path.Combine(localAppData, "Audacity", "SessionData"),
+
+            // Extracted cargo crate source, required by `cargo build --offline`.
+            Path.Combine(userProfile, ".cargo", "registry", "src"),
+
+            // Defender signature rollback copies.
+            Path.Combine(progData, "Microsoft", "Windows Defender", "Definition Updates", "Backup"),
+
+            // EA Desktop application settings, not a cache.
+            Path.Combine(localAppData, "Electronic Arts", "EA Desktop", "UserConfig")
+        };
+
+        return dirs
+            .Where(d => !string.IsNullOrWhiteSpace(d))
+            .Select(d => d.TrimEnd('\\', '/'))
+            .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// True when <paramref name="path"/> IS <paramref name="directory"/> or lives beneath it.
+    /// Equality is required as well as the prefix test: a pure "starts with directory + separator"
+    /// check never matches a path that is the marked directory itself, which would leave the
+    /// directory's own root unprotected while protecting everything inside it.
+    /// </summary>
+    private static bool IsSameDirectoryOrUnder(string path, string directory)
+    {
+        if (string.Equals(path, directory, StringComparison.OrdinalIgnoreCase)) return true;
+        return path.StartsWith(directory + "\\", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith(directory + "/", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsUserPersonalDirectory(string path)

@@ -28,7 +28,6 @@ public static class SystemCacheResolver
     {
         var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
         return new List<string>
         {
             Path.Combine(winDir, "ServiceProfiles", "LocalService", "AppData", "Local", "FontCache"),
@@ -39,8 +38,13 @@ public static class SystemCacheResolver
             Path.Combine(winDir, "SoftwareDistribution", "DataStore", "Logs"),
             Path.Combine(winDir, "SoftwareDistribution", "PostRebootEventCache"),
             Path.Combine(winDir, "SoftwareDistribution", "AuthCabs"),
-            Path.Combine(winDir, "Installer", "$PatchCache$"),
-            Path.Combine(progData, "Package Cache"),
+            // NOTE: %WinDir%\Installer\$PatchCache$ and %ProgramData%\Package Cache are
+            // deliberately NOT listed here. They are the MSI source caches that msiexec
+            // requires to REPAIR and to UNINSTALL every installed MSI product. Deleting
+            // them does not free scratch space - it permanently breaks `msiexec /fa`,
+            // Modify/Repair, and the Programs and Features uninstall path for the whole
+            // machine. The legitimate update scratch (softwaredistribution) is already
+            // covered by the entries above and by ResolveComponentCaches' siblings.
             Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "PeerDistPub"),
             Path.Combine(winDir, "ServiceProfiles", "NetworkService", "AppData", "Local", "PeerDistSub"),
             Path.Combine(localAppData, "FontCache")
@@ -108,18 +112,20 @@ public static class SystemCacheResolver
             Path.Combine(winDir, "System32", "DriverState")
         };
 
-        // Driver unpack locations across all fixed drives (e.g. C:\NVIDIA, D:\AMD, C:\Intel)
+        // Driver unpack locations across all fixed drives (e.g. C:\NVIDIA\DisplayDriver, D:\AMD\Packages).
+        // Only the specific staging subdirectories are listed. The BARE vendor roots
+        // (C:\NVIDIA, C:\AMD, C:\Intel, C:\Realtek) are deliberately NOT targets: they are the
+        // working directory an installer unpacks into, so a run during a driver installation
+        // would delete payload that install has not consumed yet and cannot re-fetch.
+        // FileSafetyEngine's DriverStagingPackageRule still recognizes the specific
+        // subdirectories listed below wherever they appear.
         foreach (var drive in fixedDrives)
         {
             dirs.Add(Path.Combine(drive, "NVIDIA", "DisplayDriver"));
-            dirs.Add(Path.Combine(drive, "NVIDIA"));
             dirs.Add(Path.Combine(drive, "AMD", "Packages"));
             dirs.Add(Path.Combine(drive, "AMD", "AMD_Radeon_Software_Installer"));
-            dirs.Add(Path.Combine(drive, "AMD"));
             dirs.Add(Path.Combine(drive, "Intel", "GFX"));
             dirs.Add(Path.Combine(drive, "Intel", "Logs"));
-            dirs.Add(Path.Combine(drive, "Intel"));
-            dirs.Add(Path.Combine(drive, "Realtek"));
         }
 
         return dirs.Where(d => !string.IsNullOrWhiteSpace(d)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
@@ -266,7 +272,11 @@ public static class SystemCacheResolver
             Path.Combine(roamingAppData, "obs-studio", "logs"),
             Path.Combine(roamingAppData, "obs-studio", "crashes"),
             Path.Combine(localAppData, "Blender Foundation", "Blender", "temp"),
-            Path.Combine(localAppData, "Audacity", "SessionData"),
+            // NOTE: %LOCALAPPDATA%\Audacity\SessionData is deliberately NOT listed here. It
+            // holds Audacity's crash/unsaved-session RECOVERY data, not a scratch cache -
+            // deleting it destroys in-progress recordings that were never saved to disk.
+            // Audacity's genuine scratch lives in its own Temp directory, which the
+            // user-space temp targets already cover.
             Path.Combine(userProfile, ".thumbnails")
         };
     }
@@ -287,7 +297,12 @@ public static class SystemCacheResolver
             Path.Combine(localAppData, "Android", "Sdk", "system-images", "cache"),
             Path.Combine(userProfile, ".gradle", "daemon"),
             Path.Combine(userProfile, ".gradle", "workers"),
-            Path.Combine(userProfile, ".cargo", "registry", "src"),
+            // NOTE: ~\.cargo\registry\src is deliberately NOT listed here, even though its
+            // sibling ~\.cargo\registry\cache is cleaned by DevPackageCacheResolver. `src`
+            // is the EXTRACTED crate source that `cargo build --offline` compiles against;
+            // clearing it without clearing the downloaded .crate archives in `cache` would
+            // break offline builds, and clearing both at once is an all-or-nothing
+            // operation this per-target model cannot express. `cache` alone is safe.
             Path.Combine(userProfile, ".rustup", "downloads"),
             Path.Combine(localAppData, "flutter", "cache"),
             Path.Combine(localAppData, "Pub", "Cache")

@@ -255,7 +255,7 @@ public partial class MainWindow
                     }
                 });
 
-                var (freed, filesDel, foldersDel, filesSkip) = await _cleanerService.CleanFolderAsync(
+                var (freed, filesDel, foldersDel, filesSkip, filesFailed) = await _cleanerService.CleanFolderAsync(
                     target,
                     safeMode,
                     AddLog,

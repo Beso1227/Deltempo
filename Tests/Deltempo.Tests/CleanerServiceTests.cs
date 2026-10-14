@@ -254,7 +254,7 @@ Signer Name:        Microsoft Windows Hardware Compatibility Publisher
         Assert.Equal(2, target.FileCount);
 
         // Act - Clean with 24-hour Safe Mode ENABLED
-        var (freedBytes, filesDeleted, foldersDeleted, filesSkipped) = await _cleanerService.CleanFolderAsync(
+        var (freedBytes, filesDeleted, foldersDeleted, filesSkipped, filesFailed) = await _cleanerService.CleanFolderAsync(
             target,
             safeMode24Hours: true,
             logAction: (msg, lvl) => { },
@@ -286,7 +286,7 @@ Signer Name:        Microsoft Windows Hardware Compatibility Publisher
         };
 
         // Act - Clean with SafeMode enabled (pure caches should NOT be blocked)
-        var (freedBytes, filesDeleted, foldersDeleted, filesSkipped) = await _cleanerService.CleanFolderAsync(
+        var (freedBytes, filesDeleted, foldersDeleted, filesSkipped, filesFailed) = await _cleanerService.CleanFolderAsync(
             target,
             safeMode24Hours: true,
             logAction: (msg, lvl) => { },
@@ -317,7 +317,7 @@ Signer Name:        Microsoft Windows Hardware Compatibility Publisher
         };
 
         // Act & Assert (Should complete safely without unhandled exceptions)
-        var (freedBytes, filesDeleted, foldersDeleted, filesSkipped) = await _cleanerService.CleanFolderAsync(
+        var (freedBytes, filesDeleted, foldersDeleted, filesSkipped, filesFailed) = await _cleanerService.CleanFolderAsync(
             target,
             safeMode24Hours: false,
             logAction: (msg, lvl) => { },
@@ -325,7 +325,12 @@ Signer Name:        Microsoft Windows Hardware Compatibility Publisher
             ct: CancellationToken.None);
 
         Assert.True(File.Exists(lockedFile), "Locked file should remain intact");
-        Assert.Equal(1, filesSkipped);
+        // A file we could not delete is a FAILURE, not a "skip". It used to be folded into
+        // filesSkipped, which is why a run where every deletion errored could still be
+        // reported as a clean success. The safety behaviour is unchanged - the file
+        // survives, nothing is deleted - but the accounting now tells the truth.
+        Assert.Equal(1, filesFailed);
+        Assert.Equal(0, filesSkipped);
         Assert.Equal(0, filesDeleted);
     }
 
@@ -560,7 +565,7 @@ Signer Name:        Microsoft Windows Hardware Compatibility Publisher
         };
 
         // Act
-        var (_, _, foldersDeleted, _) = await _cleanerService.CleanFolderAsync(
+        var (_, _, foldersDeleted, _, _) = await _cleanerService.CleanFolderAsync(
             target,
             safeMode24Hours: false,
             logAction: (msg, lvl) => { },
@@ -750,12 +755,62 @@ Signer Name:        Microsoft Windows Hardware Compatibility Publisher
     }
 
     [Fact]
-    public void CleanerService_GetComponentCacheDirectories_IncludesPatchCacheAndPackageCache()
+    public void CleanerService_GetComponentCacheDirectories_ExcludesMsiSourceCaches()
     {
+        // %ProgramData%\Package Cache and %WinDir%\Installer\$PatchCache$ are the MSI source
+        // caches msiexec needs to REPAIR and UNINSTALL installed products. They must never be
+        // offered as cleanup targets, and ProtectionPolicy refuses them independently.
         var dirs = CleanerService.GetComponentCacheDirectories();
         Assert.NotNull(dirs);
-        Assert.Contains(dirs, d => d.Contains("$PatchCache$", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(dirs, d => d.Contains("Package Cache", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(dirs, d => d.Contains("$PatchCache$", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(dirs, d => d.Contains("Package Cache", StringComparison.OrdinalIgnoreCase));
+
+        // The genuine update scratch in the same list is still present.
+        Assert.Contains(dirs, d => d.Contains("Softwaredistribution", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void CleanerService_DevPackageCacheDirectories_ExcludesDotnetSdkInstallRoot()
+    {
+        // %LOCALAPPDATA%\Microsoft\dotnet is the per-user SDK/runtime install root
+        // (dotnet.exe hosts, sdk\, packs\, shared\), not a cache.
+        var dirs = CleanerService.GetDevPackageDirectories();
+        Assert.NotNull(dirs);
+        Assert.DoesNotContain(dirs, d =>
+            d.Contains("Microsoft", StringComparison.OrdinalIgnoreCase) &&
+            d.Contains("dotnet", StringComparison.OrdinalIgnoreCase) &&
+            !d.Contains(".net", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void CleanerService_DeviceDriverDirectories_ExcludeBareVendorRoots()
+    {
+        // Bare C:\NVIDIA, C:\AMD, C:\Intel, C:\Realtek are the roots a driver installer unpacks
+        // into. Only the specific staging subdirectories may be targeted.
+        var dirs = CleanerService.GetDeviceDriverDirectories();
+        Assert.NotNull(dirs);
+
+        string[] vendorRoots = { "NVIDIA", "AMD", "Intel", "Realtek" };
+        foreach (string vendor in vendorRoots)
+        {
+            Assert.DoesNotContain(dirs, d =>
+            {
+                string trimmed = d.TrimEnd('\\', '/');
+                return string.Equals(Path.GetFileName(trimmed), vendor, StringComparison.OrdinalIgnoreCase);
+            });
+        }
+
+        // Specific staging subdirectories are still targeted.
+        Assert.Contains(dirs, d => d.Contains("DisplayDriver", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void CleanerService_MediaCreatorDirectories_ExcludeAudacitySessionRecovery()
+    {
+        // Audacity SessionData holds unsaved-session recovery for in-progress recordings.
+        var dirs = CleanerService.GetMediaCreatorDirectories();
+        Assert.NotNull(dirs);
+        Assert.DoesNotContain(dirs, d => d.Contains("SessionData", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

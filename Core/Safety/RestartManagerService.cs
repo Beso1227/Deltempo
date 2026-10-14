@@ -92,9 +92,19 @@ public static class RestartManagerService
         }
         catch (IOException ex)
         {
+            // Only a genuine sharing/lock violation means "locked". Any other IOException
+            // (path too long, invalid device name, transient device error, directory instead
+            // of file) is a FAILURE TO DETERMINE, not evidence of a lock. Reporting those as
+            // locked fed the executor's "in use -> schedule for reboot deletion" branch, which
+            // armed a MoveFileEx against a path we had never actually confirmed was busy.
             int hr = ex.HResult & 0xFFFF;
-            if (hr == 32 || hr == 33) return true;
-            return true;
+            if (hr == 32 /* ERROR_SHARING_VIOLATION */ || hr == 33 /* ERROR_LOCK_VIOLATION */)
+            {
+                return true;
+            }
+
+            Trace.WriteLine($"[RestartManager] IsFileLocked('{filePath}') inconclusive: {ex.Message}");
+            return false;
         }
         catch (UnauthorizedAccessException)
         {
@@ -181,6 +191,15 @@ public static class RestartManagerService
     /// Writes to HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\PendingFileRenameOperations.
     /// Requires elevated administrator privileges.
     /// </summary>
+    /// <remarks>
+    /// This is the most dangerous primitive in the cleanup pipeline, because Windows executes
+    /// the queued delete at Session Manager time - long after every safety check has run and
+    /// the process is gone. Nothing revalidates at that point: a DIFFERENT file may occupy the
+    /// path by then, and no ProtectionPolicy or reparse check is ever consulted.
+    /// It therefore enforces its own guards rather than trusting every caller to have done so.
+    /// A caller that reached here through a swallowed exception must not be able to arm a
+    /// delete for a path the safety engine never cleared.
+    /// </remarks>
     public static bool ScheduleRebootDeletion(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath) || (!File.Exists(filePath) && !Directory.Exists(filePath)))
@@ -188,13 +207,37 @@ public static class RestartManagerService
             return false;
         }
 
+        // 1. Reject anything the centralized policy protects, or that is not canonically
+        //    resolvable. NormalizeCanonicalPath returns empty for malformed/traversal input.
+        string canonicalPath = PathSecurity.NormalizeCanonicalPath(filePath);
+        if (string.IsNullOrEmpty(canonicalPath) || PathSecurity.HasPathTraversalSequences(filePath))
+        {
+            Trace.WriteLine($"[RestartManager] Refusing reboot deletion of non-canonical path '{filePath}'.");
+            return false;
+        }
+
+        if (ProtectionPolicy.IsProtected(canonicalPath, out string protectedReason))
+        {
+            Trace.WriteLine($"[RestartManager] Refusing reboot deletion of protected path '{canonicalPath}': {protectedReason}");
+            return false;
+        }
+
+        // 2. Refuse reparse points. A junction or symlink queued for deletion lets the
+        //    Session Manager act on the link target, which is outside the approved scope.
+        if (PathSecurity.IsReparsePointOrLink(canonicalPath))
+        {
+            Trace.WriteLine($"[RestartManager] Refusing reboot deletion of reparse point '{canonicalPath}'.");
+            return false;
+        }
+
         try
         {
-            return MoveFileExW(filePath, null, MOVEFILE_DELAY_UNTIL_REBOOT);
+            // Delete the path the guards just validated, not the raw caller-supplied string.
+            return MoveFileExW(canonicalPath, null, MOVEFILE_DELAY_UNTIL_REBOOT);
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"[RestartManager] Failed scheduling reboot deletion for '{filePath}': {ex.Message}");
+            Trace.WriteLine($"[RestartManager] Failed scheduling reboot deletion for '{canonicalPath}': {ex.Message}");
             return false;
         }
     }

@@ -849,7 +849,7 @@ public partial class CleanerService
         }
     }
 
-    public async Task<(long freedBytes, int filesDeleted, int foldersDeleted, int filesSkipped)> CleanFolderAsync(
+    public async Task<(long freedBytes, int filesDeleted, int foldersDeleted, int filesSkipped, int filesFailed)> CleanFolderAsync(
         TargetFolderInfo folder,
         bool safeMode24Hours,
         Action<string, LogLevel> logAction,
@@ -863,6 +863,10 @@ public partial class CleanerService
         int filesDeleted = 0;
         int foldersDeleted = 0;
         int filesSkipped = 0;
+        // Counted SEPARATELY from filesSkipped. A caller that cannot tell "the policy kept
+        // this file" from "we tried and failed" is forced to report a run where every
+        // deletion errored as a success with zero bytes reclaimed.
+        int filesFailed = 0;
 
         await Task.Run(async () =>
         {
@@ -1012,6 +1016,7 @@ public partial class CleanerService
                         {
                             UiInvoke(() => folder.StatusMessage = "In Use or Locked");
                             logAction($"Could not recycle '{folder.FolderPath}'. File may be in use or require admin rights.", LogLevel.Warning);
+                            filesFailed++;
                         }
                     }
                 }
@@ -1021,6 +1026,7 @@ public partial class CleanerService
                     UiInvoke(() => folder.HasError = true);
                     UiInvoke(() => folder.ErrorMessage = ex.Message);
                     logAction($"Error cleaning residual folder '{folder.FolderPath}': {ex.Message}", LogLevel.Error);
+                    filesFailed++;
                 }
                 finally
                 {
@@ -1066,7 +1072,11 @@ public partial class CleanerService
 
             freedBytes = txResult.TotalFreedBytes;
             filesDeleted = txResult.TotalItemsFreed;
-            filesSkipped = txResult.SkippedCount + txResult.ReviewRequiredCount + txResult.UnknownCount + txResult.FailedCount;
+            // FailedCount is a real failure signal, not a skip. Counting it inside
+            // filesSkipped (as this line previously did) is what let a run where every
+            // deletion errored still report "files protected: N" and exit successfully.
+            filesFailed = txResult.FailedCount;
+            filesSkipped = txResult.SkippedCount + txResult.ReviewRequiredCount + txResult.UnknownCount;
 
             // Clean empty subdirectories safely (Targeted bottom-up pruning from affected directories)
             var candidateDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -1243,7 +1253,7 @@ public partial class CleanerService
             UiInvoke(() => folder.IsCleaning = false);
         }, ct);
 
-        return (freedBytes, filesDeleted, foldersDeleted, filesSkipped);
+        return (freedBytes, filesDeleted, foldersDeleted, filesSkipped, filesFailed);
     }
 
     private static List<string> ResolveDirectoriesForFolder(TargetFolderInfo folder)
