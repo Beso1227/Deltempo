@@ -34,6 +34,12 @@ public static partial class CliRunner
                 exitCode = ok ? 0 : 1;
                 break;
 
+            case "appdata":
+            case "appdata-report":
+            case "footprint":
+                exitCode = await HandleAppDataFootprintAsync(args);
+                break;
+
             case "scan":
             case "s":
                 exitCode = await HandleScanAsync(args);
