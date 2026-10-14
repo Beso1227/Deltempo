@@ -111,7 +111,7 @@
                                         <!-- Design-time placeholder; runtime value is assigned from BuildInfo in MainWindow_Loaded -->
                                         <TextBlock x:Name="AppVersionHeaderBadge"
                                                    Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1440}"
-                                                   Text="v3.1.0"
+                                                   Text="v3.2.0"
                                                    FontSize="10"
                                                    FontWeight="Bold"
                                                    Foreground="{DynamicResource ElectricCyanBrush}"

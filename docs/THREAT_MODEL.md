@@ -55,7 +55,59 @@ This document identifies potential attack vectors, adversarial edge cases, and t
   * **Authenticode is not verified in-app.** `PatchIntegrityVerifier.TryVerifyAuthenticode` exists but is not called before the updater helper is launched, so the in-app update path relies on SHA-256 + transport trust rather than the publisher signature.
   * **The staging directory is not ACL-hardened.** Payloads are staged under `%ProgramData%\Deltempo\Updates\<tx>`; no explicit DACL is applied, so it inherits `%ProgramData%` defaults. `ForceDeleteEngine` and `CleanupExecutor` do set explicit ACLs on their delete targets, but the update staging tree does not.
 
-### 2.6 Token Privilege Minimization & Hygiene
+### 2.6 Destructive Scope: AppData and Load-Bearing "Cache" Paths
+
+* **Threat**: `AppData` is the single most destructive place a cleaner can operate. It is where
+  OneDrive keeps its sync database, where Office and Outlook hold licence and credential state,
+  where the Windows Credential Manager stores vaults, where the shell keeps recent-file jump
+  lists, and where SSH and GnuPG agents keep key material. A path being *inside* `AppData` says
+  nothing about whether it is disposable.
+* **A second, subtler threat**: several paths that look exactly like build or download scratch are
+  in fact load-bearing, and deleting them causes damage that is **unrecoverable without a
+  reinstall** — not a lost cache, but broken machine state:
+  * `%ProgramData%\Package Cache` and `%WinDir%\Installer\$PatchCache$` are the MSI source caches
+    `msiexec` needs to repair and uninstall installed products. Removing them breaks
+    Programs-and-Features machine-wide.
+  * `%LOCALAPPDATA%\Microsoft\dotnet` is the per-user .NET SDK and runtime **install root**, not a
+    cache.
+  * Bare `C:\NVIDIA`, `C:\AMD`, `C:\Intel`, `C:\Realtek` are the roots a driver installer unpacks
+    into; a run mid-installation deletes payload the installer has not consumed and cannot
+    re-fetch.
+  * `~\.cargo\registry\src` is the extracted crate source `cargo build --offline` compiles against.
+  * `%LOCALAPPDATA%\Audacity\SessionData` is unsaved-session *recovery* data.
+  * `%ProgramData%\Microsoft\Windows Defender\Definition Updates\Backup` holds signature rollback
+    copies; `%LOCALAPPDATA%\Electronic Arts\EA Desktop\UserConfig` holds application settings.
+* **Mitigation — two independent layers**:
+  * Each path is **absent from the scope resolvers**, so it is never proposed as a target.
+  * `ProtectionPolicy.IsProtected` **denies it independently**, so a resolver regression, a
+    user-supplied rulepack, or a stale settings entry cannot reintroduce it. The security control
+    is the second layer; the first is only a UX and performance decision.
+  * Every refusal is covered by a `CleanerServiceTests` case asserting both that the path is
+    absent *and* that the genuine scratch in the same resolver remains present, so the guard
+    cannot decay into an over-broad removal.
+* **Mitigation — per-directory, not per-file**:
+  * A recursive `Directory.Delete(path, recursive: true)` removes an entire subtree in a single
+    syscall, so a per-file `IsProtected` check never runs for any file inside it. A protected
+    directory could be removed as collateral by a purge whose own target is legitimate.
+  * `ProtectionPolicy.TryGetProtectedDescendant` is called by `RootLeftoverPurgeService.PurgeDirectory`
+    before any recursive delete and refuses the operation when it finds a protected subtree.
+  * The scan is **bounded at 5,000 directories and fails closed** on exceed: an incomplete scan
+    must never authorize a recursive delete. It never traverses reparse points, so it cannot walk
+    outside the AppData root, and it is skipped entirely outside AppData.
+  * Markers are normalized to directory-shaped strings and matched case-insensitively. Both
+    details are load-bearing: a trailing-separator marker must match the marked directory *itself*
+    and not only its contents, and a case-sensitive comparison fails **open** — a differently-cased
+    real path silently loses its protection. Both defects shipped, passed code review, and passed
+    the build; they were found by measuring behaviour rather than by reading the code.
+* **Known gaps**:
+  * The AppData footprint report is read-only by construction, but it is a *measurement* surface
+    and reads directory sizes across the user's profile. It runs in-process under the app's normal
+    (elevated) token and applies no additional ACL or audit control of its own.
+  * `StoreAppOrphanResolver` returns nothing when neither AppModel registry hive opens, rather than
+    guessing. This is fail-safe, but it is silent: there is no user-visible indication that orphan
+    detection was skipped because evidence was unavailable.
+
+### 2.7 Token Privilege Minimization & Hygiene
 
 * **Threat**: Escalated Windows token privileges (`SeDebugPrivilege`, `SeIncreaseQuotaPrivilege`, `SeProfileSingleProcessPrivilege`) retained in the running process could be abused by malware or child processes.
 * **Mitigation**:

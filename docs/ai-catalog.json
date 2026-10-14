@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "name": "Deltempo",
   "alternateName": ["WinTempCleaner", "Deltempo Disk Cleaner", "Deltempo PC Cleaner", "Deltempo Memory Optimizer"],
-  "version": "2.0.0",
+  "version": "3.2.0",
   "description": "Free, portable, open-source Windows disk cleaner, RAM optimizer, deep app uninstaller, and duplicate file finder. Zero telemetry, 100% local, no installer required.",
   "applicationCategory": "UtilitiesApplication, SystemOptimizer",
   "operatingSystem": "Windows 10, Windows 11 (64-bit x64)",
@@ -44,18 +44,22 @@
     "gui": "https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe",
     "cli": "https://github.com/Beso1227/Deltempo/releases/latest/download/deltempo_cli.exe",
     "oneliner": "irm https://beso1227.github.io/Deltempo/win | Invoke-Expression",
-    "winget": "winget install Beso1227.Deltempo"
+    "oneliner_cli": "irm https://beso1227.github.io/Deltempo/win-cli | Invoke-Expression"
   },
   "documentation": "https://beso1227.github.io/Deltempo/docs/",
   "llms_context": "https://beso1227.github.io/Deltempo/llms.txt",
   "llms_full_context": "https://beso1227.github.io/Deltempo/llms-full.txt",
   "capabilities": [
-    "26+ cleaning scopes including driver installers and GPU shader caches",
+    "26+ cleaning scopes including GPU shader caches, browser caches and developer build artifacts",
     "Native NT kernel standby memory trim (EmptyWorkingSet, NtSetSystemInformation)",
     "Deep root application uninstallation with leftover cleanup",
     "Cryptographic SHA-256 duplicate file detection",
     "Interactive storage treemap disk visualizer",
+    "Read-only AppData footprint report with orphaned Microsoft Store app detection",
+    "Deliberate refusal of load-bearing paths that look like scratch (MSI source caches, per-user .NET SDK install root, bare driver vendor roots, cargo registry src, Audacity session recovery)",
+    "Per-directory AppData durable-state protection so a recursive purge cannot remove OneDrive, Office credentials, vaults, jump lists or key material as collateral",
     "CLI headless automation for CI/CD and PowerShell",
     "Zero telemetry, 100% offline and local"
-  ]
+  ],
+  "testCount": 1006,
 }

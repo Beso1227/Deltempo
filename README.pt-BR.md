@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Versão mais recente" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="Status de build do CI" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-992_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Testes: 992 aprovados, 0 falhas" src="https://img.shields.io/badge/tests-992_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1006_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Testes: 1006 aprovados, 0 falhas" src="https://img.shields.io/badge/tests-1006_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="Licença: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -93,14 +93,16 @@
 | :--- | :--- |
 | **Site oficial** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **Plataforma** | Windows 10 e 11 (64 bits / x64) |
-| **Versão** | v3.1.0 (release de produção) |
+| **Versão** | v3.2.0 (release de produção) |
 | **Licença** | Código aberto ([MIT](LICENSE)) |
 | **Interfaces** | GUI moderna de desktop (WPF Fluent) e CLI de terminal headless |
 | **Distribuição** | Executável portátil de arquivo único (autocontido, sem necessidade de instalador) |
-| **Cobertura de testes** | 904 testes automatizados (100% de aprovação, 0 falhas, 0 ignorados), fuzzing adversarial de sistema de arquivos |
+| **Cobertura de testes** | 1006 testes automatizados (100% de aprovação, 0 falhas, 0 ignorados), fuzzing adversarial de sistema de arquivos |
 | **Disponibilidade da CLI** | O comando `deltempo` se autoinstala na primeira inicialização da GUI — nenhuma configuração manual |
 | **Telemetria** | Zero telemetria. As operações de verificação, limpeza, memória e desinstalação são executadas 100% offline |
 | **Motor de segurança** | Planejamento em duas fases (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) com 5 níveis de risco e journalização de transações |
+| **Recusas deliberadas** | O Deltempo nunca oferece como alvo caminhos que parecem caches, mas são indispensáveis: caches de origem MSI, instalação do SDK do .NET por usuário, raízes de drivers sem subpasta, `registry\src` do Cargo e a recuperação de sessões do Audacity. Veja [§2.1](#21-what-deltempo-refuses-to-delete). |
+| **Relatório de espaço do AppData** | Relatório somente leitura do espaço ocupado no AppData, do maior para o menor, tanto no aplicativo quanto via `deltempo appdata-report`. Ele apenas relata: não existe caminho de exclusão em nenhuma das duas superfícies. |
 | **Desinstalador de aplicativos** | Desinstalação silenciosa em massa, motor BCU, limpeza de resíduos de AppData/Registro, limpeza forçada de aplicativos corrompidos |
 | **Pontos de restauração** | Pontos de Restauração do Sistema do Windows opcionais antes da desinstalação (controlados pelo usuário, desativados por padrão) |
 | **Inteligência de serviços** | Explica: *"Algo pode dar errado se eu desativar isso?"* por meio de 3 veredictos de segurança, heurísticas offline e IA multimodelo |
@@ -161,6 +163,27 @@ O Deltempo mira em dados descartáveis nos ambientes de sistema, desenvolvedor e
 * **Navegadores Modernos e Comunicação**: Diretórios de cache descartáveis dos perfis Chromium (Chrome, Edge, Brave, Opera, Vivaldi, Arc) e Gecko (Firefox), com **sessões de login estritamente preservadas**; caches de mídia do Discord, Slack e Spotify.
 * **Escudo de Segurança (>24h)**: Proteção opcional que isenta qualquer arquivo criado ou modificado nas últimas 24 horas para evitar conflito com instaladores de fundo ativos ou editores em execução.
 * **Guarda TOCTOU**: Verifica limites de arquivo, atributos e caminhos canônicos imediatamente antes da remoção para eliminar condições de corrida.
+* **Detecção de aplicativos órfãos da Store**: Diretórios do AppData cujo pacote MSIX proprietário não está mais instalado são identificados a partir de evidência binária do repositório `AppModel` — nome de família do pacote analisado, comparado pelo ID do publicador — em vez de heurísticas baseadas no nome do diretório. Os achados são reportados como `LowRisk` e nunca são pré-selecionados para exclusão.
+
+<a id="21-what-deltempo-refuses-to-delete"></a>
+
+### 2.1 O que o Deltempo se recusa a apagar
+
+Um limpador que só sabe o que é seguro remover é perigoso, porque "temporário" e "descartável" muitas vezes são a mesma mentira. Vários caminhos que superficialmente parecem exatamente rascunhos de build ou download são, na verdade, indispensáveis, e o Deltempo os recusa por construção — eles estão ausentes dos resolvedores de escopo e são independentemente negados pelo `ProtectionPolicy`, de modo que nenhuma configuração, flag ou opção de CLI pode oferecê-los:
+
+| Caminho recusado | Por que apagá-lo é destrutivo |
+| :--- | :--- |
+| `%ProgramData%\Package Cache`<br>`%WinDir%\Installer\$PatchCache$` | Os caches de origem MSI de que o `msiexec` precisa para **reparar** e **desinstalar** produtos instalados. Removê-los quebra permanentemente o caminho de Modificar/Reparar e de desinstalação em Programas e Recursos em toda a máquina. |
+| `%LOCALAPPDATA%\Microsoft\dotnet` | A **raiz de instalação** por usuário do SDK e do runtime do .NET (hosts `dotnet.exe`, `sdk\`, `packs\`, `shared\`), não um cache. Apenas o rascunho transitório de build em `%TEMP%\.net` é descartável. |
+| `C:\NVIDIA`, `C:\AMD`, `C:\Intel`, `C:\Realtek` | As raízes de fabricante "peladas" em que um instalador de driver descompacta o conteúdo. Uma execução de limpeza no meio da instalação apagaria payloads que o instalador ainda não consumiu e não consegue buscar de novo. Apenas subdiretórios específicos de staging são alvos. |
+| `~\.cargo\registry\src` | O código-fonte de crates **extraído** contra o qual `cargo build --offline` compila. Seu irmão `registry\cache` é limpo; `src` não é, porque limpar um sem o outro é uma operação tudo-ou-nada que este modelo por alvo não consegue expressar com segurança. |
+| `%LOCALAPPDATA%\Audacity\SessionData` | Dados de **recuperação** de sessões não salvas, não rascunhos. Apagá-los destrói gravações em andamento que nunca foram salvas. |
+| `%ProgramData%\Microsoft\Windows Defender\Definition Updates\Backup` | Cópias de **rollback** das assinaturas do Defender. Removê-las elimina a possibilidade de reverter uma atualização de definições ruim. |
+| `%LOCALAPPDATA%\Electronic Arts\EA Desktop\UserConfig` | Configurações do aplicativo EA Desktop, não um cache. |
+
+Esses caminhos são recusados duas vezes: eles são removidos dos resolvedores de escopo, *e* o `ProtectionPolicy` os nega de forma independente. Portanto, uma regressão em um resolvedor, um rulepack fornecido pelo usuário ou uma entrada de configuração obsoleta não consegue reintroduzi-los.
+
+Esta lista é aplicada em código e coberta por `CleanerServiceTests` — cada exclusão tem um teste que afirma que o caminho está ausente *e* uma afirmação equivalente que prova que o rascunho legítimo da mesma lista ainda está presente, de modo que a correção não possa se deteriorar em uma remoção ampla demais.
 
 ---
 
@@ -235,7 +258,17 @@ Diagnostique e repare a corrupção do sistema operacional Windows diretamente p
 
 ---
 
-### 8. 🎨 Temas Profissionais de Conforto Visual e Suporte Multilíngue RTL
+### 8. 📊 Relatório de Pegada do AppData e Detecção de Aplicativos Órfãos da Store
+
+`%LOCALAPPDATA%` e `%APPDATA%` são os maiores e menos compreendidos consumidores de espaço em disco em uma máquina Windows típica, e é também onde mora os erros mais destrutivos. O Deltempo os trata como somente leitura por padrão.
+
+* **Relatório de pegada somente leitura**: Uma decomposição do maior para o menor do que realmente ocupa o AppData, acessível pelo botão **AppData Report** no aplicativo e por `deltempo appdata-report` na CLI. Ele mede, ordena e exibe. Não existe `--clean`, nem `--yes`, nem nenhum caminho de exclusão em nenhuma das duas superfícies — deliberadamente, não por acaso.
+* **Segurança de pontos de reanálise**: As junções de compatibilidade legadas do AppData (`Application Data`, `Local Settings`) apontam de volta para `Local`. Atravessá-las relê a mesma árvore e infla o total, por isso são ignoradas. Medido em um perfil real: a correção moveu uma leitura de 59.5 GB para o verdadeiro valor de 32.6 GB em 123 pastas.
+* **Aplicativos Microsoft Store órfãos**: O `StoreAppOrphanResolver` lê o repositório de pacotes do AppModel (as colmeias `HKCU` e `HKLM`) como evidência binária e casa cada pasta de `LOCALAPPDATA\Packages` com seu pacote MSIX proprietário. O nome da pasta (`Name_PublisherId`) é reconciliado com a chave do repositório (`Name_Version_Arch_ResourceId_PublisherId`) dividindo no último sublinhado e comparando pelo ID do publicador mais o prefixo do nome. Se nenhuma colmeia abrir, o resolvedor não devolve nada em vez de adivinhar. Os órfãos aparecem como `LowRisk`, não selecionados, e o `ProtectionPolicy` continua sendo a única fonte de verdade para as recusas.
+
+> **Uma resposta correta pode ser "nada".** Em uma máquina sem aplicativos da Store removidos, o relatório retorna zero órfãos. Esse é o comportamento pretendido: o recurso é julgado pela ausência de falsos positivos, não pelo rendimento.
+
+### 9. 🎨 Temas Profissionais de Conforto Visual e Suporte Multilíngue RTL
 
 Projetado com atenção obsessiva à experiência do usuário:
 
@@ -246,7 +279,7 @@ Projetado com atenção obsessiva à experiência do usuário:
 
 ---
 
-### 9. 🔔 Guardião da Bandeja do Sistema Perfeito ao Píxel
+### 10. 🔔 Guardião da Bandeja do Sistema Perfeito ao Píxel
 
 * **Ícone Win32 Verdadeiramente de Alta DPI (`LoadCrispTrayIcon`)**: Emprega criação direta de ícones Win32 GDI (`CreateIconIndirect`) com transparência alfa ARGB de 32 bits, entregando renderização nitidíssima em telas com escala de 100%, 125%, 150%, 175% e 200%+ sem desfoque.
 * **Telemetria ao Passar o Mouse**: Exibe o uso de memória em tempo real na dica da bandeja: `RAM: 42% (13.4 GB / 31.9 GB)`.
@@ -277,31 +310,49 @@ deltempo uninstall "Epic Games Launcher" --restore-point
 
 # Emitir telemetria do sistema e saúde da memória em JSON estruturado
 deltempo status --json
+
+# Ver o que realmente está ocupando o AppData, do maior para o menor (somente leitura; não pode excluir)
+deltempo appdata-report --top 15
 ```
 
 ### Resumo dos Comandos da CLI
 
 | Comando | Objetivo | Principais Flags e Opções |
 | :--- | :--- | :--- |
-| `deltempo scan [filtro]` | Escanear alvos em busca de dados descartáveis | `--json`, `--silent` |
-| `deltempo clean [filtro]` | Limpar caches descartáveis | `--dry-run`, `--recycle-bin`, `--safe`, `--all`, `--json`, `--yes` |
+| `deltempo scan [filter]` | Escanear alvos em busca de dados descartáveis | `--json`, `--silent` |
+| `deltempo clean [filter]` | Limpar caches descartáveis | `--dry-run`, `--recycle-bin`, `--safe`, `--all`, `--json`, `--yes` |
 | `deltempo smart-clean` | Expurgo rápido de caches verificados como seguros | `--dry-run`, `--json`, `--yes` |
 | `deltempo deep-clean` | Limpeza completa autônoma (RAM, DISM, escopos) | `--dry-run`, `--json`, `--yes` |
-| `deltempo boost` | Otimizar a memória do sistema via kernel NT | `--all`, `--standby`, `--cache`, `--workingsets`, `--json` |
-| `deltempo uninstall <app>` | Desinstalação profunda e expurgo de resíduos | `--dry-run`, `--force`, `--silent`, `--restore-point`, `--json` |
-| `deltempo large [caminho]` | Escanear unidades em busca de arquivos que consomem espaço | `--min <tamanho>`, `--type <cat>`, `--safe`, `--top <n>`, `--sort <tamanho\|data>` |
-| `deltempo large inspect <arquivo>` | Inspecionar o nível de risco e o veredicto de segurança do arquivo | `--json` |
+| `deltempo restore-points` | Inspecionar e expurgar Pontos de Restauração do Sistema | `--clean`, `--all` (requer elevação) |
+| `deltempo appdata-report` | Detalhamento somente leitura do espaço do AppData, do maior para o menor | `--json`, `--top <n>` — **não existe nenhuma flag de exclusão** |
+| `deltempo duplicates [path]` | Localizador de duplicados em nível de bytes (hash em 3 estágios) | `--delete`, `--strategy` |
+| `deltempo large [path]` | Escanear unidades em busca de arquivos que consomem espaço | `--min <size>`, `--type <cat>`, `--safe`, `--top <n>`, `--sort <size\|date>` |
+| `deltempo large inspect <file>` | Inspecionar o nível de risco e o veredicto de segurança do arquivo | `--json` |
 | `deltempo large clean` | Enviar para a lixeira arquivos grandes descartáveis | `--dry-run`, `--yes`, `--safe-only` |
+| `deltempo large delete <file>` | Enviar para a lixeira um arquivo específico | `--yes` |
+| `deltempo force-delete <path>` | Expurgar um arquivo/pasta travado ou teimoso | `--terminate-lockers`, `--recycle`, `--dry-run`, `--retry <n>`, `--force-override` |
+| `deltempo force-delete scan <path>` | Inspecionar a teimosia, os donos dos travamentos e o nível de segurança | `--json` |
+| `deltempo force-delete pending` | Listar arquivos enfileirados para exclusão na próxima reinicialização | `--json` |
+| `deltempo boost` | Otimizar a memória do sistema via kernel NT | `--all`, `--standby`, `--cache`, `--workingsets`, `--json` |
+| `deltempo procs` | Listar processos de fundo pesados acima de 20 MB | `--json` |
+| `deltempo procs trim <pid\|name>` | Aparar o conjunto de trabalho de um processo | `--json` |
+| `deltempo procs kill <pid\|name>` | Encerrar um processo de fundo descontrolado | `--json` |
+| `deltempo uninstall <app>` | Desinstalação profunda e expurgo de resíduos | `--dry-run`, `--force`, `--silent`, `--restore-point`, `--json` |
 | `deltempo startup [list]` | Inspecionar aplicativos de inicialização e impacto na inicialização | `--high`, `--json` |
 | `deltempo startup disable <app>` | Desativar reversivelmente um programa de inicialização | N/D |
 | `deltempo startup enable <app>` | Reativar um programa de inicialização desativado | N/D |
-| `deltempo repair [subcomando]` | Verificação de integridade e reparo de serviço do Windows | `sfc`, `dism`, `winsxs`, `chkdsk`, `update`, `network` |
+| `deltempo repair [subcommand]` | Verificação de integridade do Windows e reparo de serviço | `all`, `sfc`, `dism`, `winsxs`, `chkdsk`, `scanhealth`, `update`, `network` |
+| `deltempo schedule` | Gerenciar a manutenção semanal do Agendador de Tarefas | install / remove / status |
+| `deltempo shell` | Gerenciar a integração do menu de contexto do Explorer | install / remove / status |
 | `deltempo status` | Exibir telemetria do sistema e informações de memória | `--json` |
 | `deltempo test` | Autoverificar o motor (API de memória, escopos descobertos) | N/D |
 | `deltempo help` | Imprimir a referência completa de comandos | N/D |
 | `deltempo update [check]` | Verificar releases oficiais ou aplicar atualização | `check`, `--dry-run` |
 | `deltempo register` | Instalar / inspecionar o próprio comando `deltempo` | `--status`, `--remove` |
 | `deltempo unregister` | Remover todos os artefatos criados por `register` | N/D |
+| `deltempo kill` | Fechar as instâncias do Deltempo em execução em segundo plano | N/D |
+
+**Opções globais** se aplicam aos comandos de limpeza: `--smart` / `--safe-only`, `--recycle-bin` / `-r`, `--unsafe` (desativa o escudo de 24 horas), `--dry-run` / `-d`, `--yes` / `-y`, `--json` / `-j`, `--silent` / `-s` e `--export <file>` para um log de auditoria com carimbo de data e hora.
 
 ---
 
@@ -386,7 +437,10 @@ O Deltempo é arquitetado com segurança e privacidade do usuário como fundamen
    Os arquivos candidatos são planejados, verificados contra os limites de diretórios protegidos (Documentos, Área de Trabalho, Repositórios de Código, chaves SSH, credenciais) e revalidados imediatamente antes da exclusão.
 3. **Defesa contra Reparse Points e Traversal**: Junctions de diretório NTFS, links simbólicos e pontos de montagem de volume são rejeitados automaticamente para impedir ataques de traversal fora dos limites do alvo.
 4. **Limite de Unidade Local**: Confinado exclusivamente a unidades fixas locais; compartilhamentos de rede remotos e caminhos UNC são bloqueados.
-5. **Verificação Criptográfica de Releases**: As verificações automáticas de atualização exigem HTTPS e verificam os digests SHA-256 dos binários contra os manifests de release assinados do GitHub.
+5. **Proteção de Estado Durável do AppData**: O Deltempo se recusa a excluir o *estado* de aplicativos que apenas mora sob `AppData`. Bancos de sincronização do OneDrive, credenciais do Office e do Outlook, o cofre do Gerenciador de Credenciais do Windows, listas de saltos de arquivos recentes, material de chaves SSH e GnuPG e os hives do shell `NTUSER.DAT` / `UsrClass.dat` são todos negados. Isso é aplicado **por diretório, não apenas por arquivo**: um `Directory.Delete` recursivo remove uma subárvore inteira em uma única chamada de sistema e nunca consulta uma guarda por arquivo, então as operações de expurgo de resíduos primeiro percorrem buscando um descendente protegido, limitam esse percurso em 5.000 diretórios, pulam reparse points e **falham de forma fechada** se o limite for excedido.
+6. **Verificação Criptográfica de Releases**: As verificações automáticas de atualização exigem HTTPS e verificam os digests SHA-256 dos binários contra os manifests de release assinados do GitHub.
+
+> O verificador de assinatura do manifesto é ECDSA P-256 com uma chave placeholder embutida, e nem ele nem a verificação Authenticode ainda estão integrados ao caminho de atualização real. A verificação do digest SHA-256 contra o artefato do release *é* aplicada. `docs/THREAT_MODEL.md` lista essas lacunas como brechas conhecidas, não como mitigações.
 
 ---
 
@@ -408,7 +462,15 @@ cd Deltempo
 # Compilar toda a solução na configuração Release
 dotnet build deltempo.sln -c Release
 
-# Executar a suíte de testes automatizados (903 testes unitários e de integração aprovados)
+# Verifica o estilo de código da mesma forma que a CI. Execute contra deltempo.sln, nunca contra um
+# único projeto: o WinTempCleaner.csproj na raiz exclui Core\, Tests\, Cli\ e
+# Services\, então uma verificação por projeto cobre silenciosamente apenas parte da solução.
+dotnet format deltempo.sln --verify-no-changes --no-restore
+
+# Executar a suíte de testes automatizados (1006 testes unitários e de integração aprovados)
+# O xunit.v3 roda sobre o Microsoft.Testing.Platform, que o `dotnet test` do SDK
+# do .NET 10 não consegue acionar ("Testing with VSTest target is no longer
+# supported"). Compile uma vez e depois invoque o executável de testes diretamente.
 dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
 ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 

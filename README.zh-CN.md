@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="最新版本" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI 构建状态" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-992_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="测试：992 通过，0 失败" src="https://img.shields.io/badge/tests-992_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1006_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="测试：1006 通过，0 失败" src="https://img.shields.io/badge/tests-1006_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="许可证：MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -93,14 +93,16 @@
 | :--- | :--- |
 | **官方网站** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **平台** | Windows 10 与 11（64 位 / x64） |
-| **版本** | v3.1.0（正式发布版） |
+| **版本** | v3.2.0（正式发布版） |
 | **许可证** | 开源（[MIT](LICENSE)） |
 | **界面** | 现代桌面 GUI（WPF Fluent）与无界面终端 CLI |
 | **分发方式** | 便携式单文件可执行程序（自包含，无需安装程序） |
-| **测试覆盖** | 904 项自动化测试（100% 通过率，0 失败，0 跳过），对抗性文件系统模糊测试 |
+| **测试覆盖** | 1006 项自动化测试（100% 通过率，0 失败，0 跳过），对抗性文件系统模糊测试 |
 | **CLI 可用性** | `deltempo` 命令在 GUI 首次启动时自动自安装 —— 无需手动配置 |
 | **遥测** | 零遥测。扫描、清理、内存与卸载操作 100% 离线执行 |
 | **安全引擎** | 两阶段规划（`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`），含 5 级风险分层与事务日志 |
+| **有意拒绝** | 那些看似缓存、实则承载关键状态的路径，绝不会被列为清理目标 —— MSI 源缓存、按用户安装的 .NET SDK、裸驱动厂商根目录、Cargo 的 `registry\src`、Audacity 会话恢复数据。参见 [§2.1](#21-what-deltempo-refuses-to-delete)。 |
+| **AppData 占用报告** | 只读的 AppData 空间占用报告，按体积从大到小排列，可在应用内或通过 `deltempo appdata-report` 使用。它只做报告：两个入口都不存在任何删除路径。 |
 | **应用卸载器** | 批量静默卸载、BCU 引擎、残留 AppData/注册表痕迹清理、对损坏应用强制擦除 |
 | **还原点** | 可选的卸载前 Windows 系统还原点（由用户控制，默认关闭） |
 | **服务智能分析** | 回答：*"禁用它会不会出问题？"* —— 通过 3 级安全判定、离线启发式规则与多模型 AI |
@@ -162,6 +164,27 @@ Deltempo 面向系统、开发与游戏环境中的可丢弃数据，绝不触�
 * **现代浏览器与通讯工具**：Chromium 配置文件（Chrome、Edge、Brave、Opera、Vivaldi、Arc）与 Gecko 配置文件（Firefox）的可丢弃缓存目录，**登录会话被严格保留**；以及 Discord、Slack 与 Spotify 的媒体缓存。
 * **安全护盾（>24 小时）**：可选的安全防护，豁免最近 24 小时内创建或修改的任何文件，以避免与正在进行的后台安装程序或运行中的编辑器冲突。
 * **TOCTOU 防护**：在解除链接之前立即校验文件边界、属性与规范路径，以消除竞态条件。
+* **孤立商店应用检测**：所属 MSIX 包已不再安装的 AppData 目录，依据二进制 `AppModel` 仓库证据识别 —— 解析包系列名称、按发布者 ID 匹配 —— 而不是依赖目录名启发式。检测结果以 `LowRisk` 报告，且绝不预先勾选为删除目标。
+
+<a id="21-what-deltempo-refuses-to-delete"></a>
+
+### 2.1 Deltempo 拒绝删除的内容
+
+一个只知道"什么可以安全删除"的清理器是危险的，因为"临时"与"可丢弃"往往是同一个谎言。有几条路径表面上看起来与构建或下载暂存区完全一样，实际上却承载着关键状态——Deltempo 从设计上就拒绝它们：这些路径不会出现在任何范围解析器中，并且被 `ProtectionPolicy` 独立拒绝，因此没有任何设置、开关或 CLI 选项能把它们变成清理目标：
+
+| 被拒绝的路径 | 为什么删除它会造成破坏 |
+| :--- | :--- |
+| `%ProgramData%\Package Cache`<br>`%WinDir%\Installer\$PatchCache$` | `msiexec` 执行**修复**与**卸载**已安装产品时所需的 MSI 源缓存。删除它们会从整机范围内永久破坏"修改/修复"以及"程序和功能"中的卸载路径。 |
+| `%LOCALAPPDATA%\Microsoft\dotnet` | 这是按用户安装的 .NET SDK 与运行时的**安装根目录**（`dotnet.exe` 宿主、`sdk\`、`packs\`、`shared\`），而不是缓存。只有临时性的 `%TEMP%\.net` 构建暂存区才是可丢弃的。 |
+| `C:\NVIDIA`、`C:\AMD`、`C:\Intel`、`C:\Realtek` | 驱动安装程序解包时使用的裸厂商根目录。若在安装过程中执行清理，会删除安装程序尚未消费、也无法重新获取的负载内容。只有特定的暂存子目录会被列为目标。 |
+| `~\.cargo\registry\src` | `cargo build --offline` 编译时依赖的**已解压** crate 源码。其同级目录 `registry\cache` 会被清理，而 `src` 不会——因为在不同时清空两者属于全有或全无的操作，本工具的按目标清理模型无法安全地表达这一点。 |
+| `%LOCALAPPDATA%\Audacity\SessionData` | 未保存会话的**恢复**数据，而非暂存文件。删除它会毁掉那些从未保存过的、正在编辑中的录音。 |
+| `%ProgramData%\Microsoft\Windows Defender\Definition Updates\Backup` | Defender 病毒库定义的**回滚**副本。删除它们等于剥夺了在定义更新出问题时回退的能力。 |
+| `%LOCALAPPDATA%\Electronic Arts\EA Desktop\UserConfig` | EA Desktop 的应用程序设置，而不是缓存。 |
+
+这些路径被双重拒绝：既已从范围解析器中移除，*又*被 `ProtectionPolicy` 独立拒绝。因此，解析器回归、用户自定义的规则包或过期的设置项都无法把它们重新引入。
+
+该列表以代码形式强制执行，并由 `CleanerServiceTests` 覆盖 —— 每一条排除项都有一个测试断言该路径不存在，*同时*还有一个兄弟断言证明同一列表中的真正暂存文件依然存在，从而防止这项修复退化为过度宽泛的删除。
 
 ---
 
@@ -236,7 +259,17 @@ Deltempo 面向系统、开发与游戏环境中的可丢弃数据，绝不触�
 
 ---
 
-### 8. 🎨 专业护眼主题与多语言 RTL 支持
+### 8. 📊 AppData 占用报告与孤立商店应用检测
+
+`%LOCALAPPDATA%` 与 `%APPDATA%` 是普通 Windows 机器上最大、也最难以理解的磁盘空间占用者，同时也是破坏性最强的错误最容易发生的地方。Deltempo 默认以只读方式对待它们。
+
+* **只读占用报告**：按体积从大到小列出究竟是什么占用了 AppData，可通过应用内的 **AppData 报告**按钮以及 CLI 中的 `deltempo appdata-report` 获取。它只做测量、排序与显示。两个入口都没有 `--clean`，没有 `--yes`，也没有任何删除代码路径 —— 这是刻意为之，而非顺带如此。
+* **重解析点安全**：旧版 AppData 兼容联接（`Application Data`、`Local Settings`）指回 `Local`。穿过它们遍历会重复读取同一目录树并虚增总量，因此会被跳过。在一个真实用户配置文件上实测：该修正把 59.5 GB 的读数更正为横跨 123 个文件夹的真实值 32.6 GB。
+* **孤立的 Microsoft 商店应用**：`StoreAppOrphanResolver` 把 AppModel 包仓库（`HKCU` 与 `HKLM` 两个配置单元）当作二进制证据读取，并将每个 `LOCALAPPDATA\Packages` 文件夹与其所属 MSIX 包匹配。文件夹名（`Name_PublisherId`）通过在最后一个下划线处切分，并按发布者 ID 加名称前缀的方式，与仓库键（`Name_Version_Arch_ResourceId_PublisherId`）进行核对。若两个配置单元都无法打开，解析器将不返回任何内容，而不是猜测。孤立项以 `LowRisk`、未选中状态呈现，而 `ProtectionPolicy` 始终是拒绝规则的唯一事实来源。
+
+> **正确的答案可以是"什么都没有"。** 在没有卸载过任何商店应用的机器上，报告返回零个孤立项。这正是预期行为：该功能以零误报而非产出量来评判。
+
+### 9. 🎨 专业护眼主题与多语言 RTL 支持
 
 以对用户体验的极致关注精心打造：
 
@@ -247,7 +280,7 @@ Deltempo 面向系统、开发与游戏环境中的可丢弃数据，绝不触�
 
 ---
 
-### 9. 🔔 像素级完美的系统托盘守护
+### 10. 🔔 像素级完美的系统托盘守护
 
 * **真高 DPI Win32 图标（`LoadCrispTrayIcon`）**：采用直接的 Win32 GDI 图标创建（`CreateIconIndirect`）与 32 位 ARGB alpha 透明度，在 100%、125%、150%、175% 及 200%+ 缩放的显示器上都能呈现锐利清晰的渲染，绝不模糊。
 * **实时悬停遥测**：在托盘工具提示中显示实时内存使用情况：`RAM: 42% (13.4 GB / 31.9 GB)`。
@@ -278,6 +311,9 @@ deltempo uninstall "Epic Games Launcher" --restore-point
 
 # 以结构化 JSON 输出系统遥测与内存健康状况
 deltempo status --json
+
+# 查看究竟是什么占用了 AppData，按体积从大到小排列（只读；无法删除）
+deltempo appdata-report --top 15
 ```
 
 ### CLI 命令速查
@@ -288,21 +324,36 @@ deltempo status --json
 | `deltempo clean [filter]` | 清理可丢弃的缓存 | `--dry-run`、`--recycle-bin`、`--safe`、`--all`、`--json`、`--yes` |
 | `deltempo smart-clean` | 快速清除已验证安全的缓存 | `--dry-run`、`--json`、`--yes` |
 | `deltempo deep-clean` | 自主执行完整清理（RAM、DISM、范围） | `--dry-run`、`--json`、`--yes` |
-| `deltempo boost` | 通过 NT 内核优化系统内存 | `--all`、`--standby`、`--cache`、`--workingsets`、`--json` |
-| `deltempo uninstall <app>` | 深度根除式卸载与残留清除 | `--dry-run`、`--force`、`--silent`、`--restore-point`、`--json` |
+| `deltempo restore-points` | 检查并清除系统还原点 | `--clean`、`--all`（需要提权） |
+| `deltempo appdata-report` | 只读的 AppData 占用分解报告，按体积从大到小排列 | `--json`、`--top <n>` —— **不存在任何删除类开关** |
+| `deltempo duplicates [path]` | 字节级重复文件查找器（三阶段哈希） | `--delete`、`--strategy` |
 | `deltempo large [path]` | 扫描磁盘中的占空间文件 | `--min <size>`、`--type <cat>`、`--safe`、`--top <n>`、`--sort <size\|date>` |
 | `deltempo large inspect <file>` | 检查文件的风险等级与安全判定 | `--json` |
 | `deltempo large clean` | 将可丢弃的大文件移入回收站 | `--dry-run`、`--yes`、`--safe-only` |
+| `deltempo large delete <file>` | 回收某一个特定文件 | `--yes` |
+| `deltempo force-delete <path>` | 清除被锁定或顽固的文件/文件夹 | `--terminate-lockers`、`--recycle`、`--dry-run`、`--retry <n>`、`--force-override` |
+| `deltempo force-delete scan <path>` | 检查顽固程度、锁定持有者与安全等级 | `--json` |
+| `deltempo force-delete pending` | 列出将在下次重启时删除的文件 | `--json` |
+| `deltempo boost` | 通过 NT 内核优化系统内存 | `--all`、`--standby`、`--cache`、`--workingsets`、`--json` |
+| `deltempo procs` | 列出占用超过 20 MB 的重型后台进程 | `--json` |
+| `deltempo procs trim <pid\|name>` | 修剪单个进程的工作集 | `--json` |
+| `deltempo procs kill <pid\|name>` | 终止某个失控的后台进程 | `--json` |
+| `deltempo uninstall <app>` | 深度根除式卸载与残留清除 | `--dry-run`、`--force`、`--silent`、`--restore-point`、`--json` |
 | `deltempo startup [list]` | 检查启动项与开机影响 | `--high`、`--json` |
 | `deltempo startup disable <app>` | 可逆地禁用一个启动项 | N/A |
 | `deltempo startup enable <app>` | 恢复被禁用的启动项 | N/A |
-| `deltempo repair [subcommand]` | Windows 完整性检查与服务修复 | `sfc`、`dism`、`winsxs`、`chkdsk`、`update`、`network` |
+| `deltempo repair [subcommand]` | Windows 完整性检查与服务修复 | `all`、`sfc`、`dism`、`winsxs`、`chkdsk`、`scanhealth`、`update`、`network` |
+| `deltempo schedule` | 管理每周的计划任务维护 | install / remove / status |
+| `deltempo shell` | 管理资源管理器右键菜单集成 | install / remove / status |
 | `deltempo status` | 显示系统遥测与内存信息 | `--json` |
 | `deltempo test` | 自检引擎（内存 API、已发现的范围） | N/A |
 | `deltempo help` | 打印完整命令参考 | N/A |
 | `deltempo update [check]` | 检查官方发布或应用更新 | `check`、`--dry-run` |
 | `deltempo register` | 安装 / 检查 `deltempo` 命令本身 | `--status`、`--remove` |
 | `deltempo unregister` | 移除 `register` 创建的所有产物 | N/A |
+| `deltempo kill` | 关闭正在运行的 Deltempo 后台实例 | N/A |
+
+**全局选项**适用于各个清理类命令：`--smart` / `--safe-only`、`--recycle-bin` / `-r`、`--unsafe`（关闭 24 小时护盾）、`--dry-run` / `-d`、`--yes` / `-y`、`--json` / `-j`、`--silent` / `-s`，以及用于生成带时间戳审计日志的 `--export <file>`。
 
 ---
 
@@ -354,16 +405,24 @@ irm https://beso1227.github.io/Deltempo/win-cli | Invoke-Expression
 
 ### 方式三：`deltempo` 命令
 
-你永远不必手动配置它。首次启动 Deltempo 时，它会创建一个控制台子系统 CLI 二进制，将其加入你的用户 `PATH`，注册 <kbd>Win</kbd>+<kbd>R</kbd> 别名，并向你的 PowerShell 配置文件中安装一个 `deltempo` 函数 —— 如果发现旧版本安装留下的过期注册，还会将其修复。
+你永远不必手动配置它。首次启动 Deltempo 时，它会创建一个控制台子系统 CLI
+二进制，将其加入你的用户 `PATH`，注册 <kbd>Win</kbd>+<kbd>R</kbd> 别名，并向
+你的 PowerShell 配置文件中安装一个 `deltempo` 函数 —— 如果发现旧版本安装留下的
+过期注册，还会将其修复。
 
 有两点值得了解：
 
 - **打开一个新的终端窗口。** 已打开的 shell 会保持其启动时的 `PATH`。
-- **首次离线运行？** 如果无法创建控制台二进制，则不会注册任何内容，也不会留下半安装状态的命令。桌面应用完全不受影响 —— 下次成功启动时会自动重试。
+- **首次离线运行？** 如果无法创建控制台二进制，则不会注册任何内容，也不会留下半
+  安装状态的命令。桌面应用完全不受影响 ——
+  下次成功启动时会自动重试。
 
-希望自己管理？`deltempo register` 可按需完成同样的操作，而 `deltempo unregister` 会移除它创建的所有产物。使用 `deltempo register --status` 可以准确查看已安装了什么以及它指向哪个二进制。
+希望自己管理？`deltempo register` 可按需完成同样的操作，而
+`deltempo unregister` 会移除它创建的所有产物。使用 `deltempo register --status`
+可以准确查看已安装了什么以及它指向哪个二进制。
 
-> 触碰受保护系统状态的命令（`restore-points`、`deep-clean` 的 DISM 阶段）在从标准的非提权终端运行时，会返回清晰的错误信息与非零退出码。
+> 非提权终端运行时，会返回清晰的错误信息与非零退出码。
+> 请从管理员 shell 运行它们，或使用桌面应用。
 > 请从管理员 shell 运行它们，或使用桌面应用。
 
 ---
@@ -386,7 +445,10 @@ Deltempo 的架构将安全与用户隐私作为不可妥协的基本原则：
    候选文件会先被规划，对照受保护的目录边界（文档、桌面、代码仓库、SSH 密钥、凭据）进行校验，并在删除前即时重新验证。
 3. **重解析点与遍历防御**：NTFS 目录 junction、符号链接与卷挂载点会被自动拒绝，以防止越过目标边界的遍历攻击。
 4. **本地磁盘边界**：仅限本地固定磁盘；远程网络共享与 UNC 路径被阻止。
-5. **发布版本的密码学校验**：自动更新检查强制使用 HTTPS，并对照已签名的 GitHub 发布清单校验二进制的 SHA-256 摘要。
+5. **AppData 持久状态保护**：Deltempo 拒绝删除仅仅"存放在 AppData 之下"的应用*状态*。OneDrive 同步数据库、Office 与 Outlook 凭据、Windows 凭据管理器保管库、最近文件跳转列表、SSH 与 GnuPG 密钥材料，以及 `NTUSER.DAT` / `UsrClass.dat` 外壳配置单元均被拒绝。这一强制执行是**按目录而非仅仅按文件**进行的：递归的 `Directory.Delete` 会在一次系统调用中移除整棵子树，从不咨询逐文件防护，因此残留清除操作会先遍历查找受保护的后代目录，将该遍历限制在 5,000 个目录之内，跳过重解析点，并在超出上限时**以失败告终**。
+6. **发布版本的密码学校验**：自动更新检查强制使用 HTTPS，并对照已签名的 GitHub 发布清单校验二进制的 SHA-256 摘要。
+
+> 清单签名校验器采用 ECDSA P-256 并内嵌了一个占位密钥，它与 Authenticode 检查均尚未接入实时更新路径。而针对发布资产的 SHA-256 摘要校验*是*被强制执行的。`docs/THREAT_MODEL.md` 将这些列为已知缺口，而非已实施的缓解措施。
 
 ---
 
@@ -408,7 +470,15 @@ cd Deltempo
 # 以 Release 配置编译整个解决方案
 dotnet build deltempo.sln -c Release
 
-# 执行自动化测试套件（903 个通过的单元与集成测试）
+# 像 CI 一样校验代码风格。要对 deltempo.sln 运行，绝不要对单个项目运行：
+# 根 WinTempCleaner.csproj 排除了 Core\、Tests\、Cli\ 和
+# Services\，因此按项目检查只会悄无声息地覆盖解决方案的一部分。
+dotnet format deltempo.sln --verify-no-changes --no-restore
+
+# 执行自动化测试套件（1006 个通过的单元与集成测试）
+# xunit.v3 运行在 Microsoft.Testing.Platform 上，.NET 10 SDK 的 `dotnet test` 无法驱动它
+#（"Testing with VSTest target is no longer supported"）。请先构建一次，
+# 然后直接调用测试可执行文件。
 dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
 ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 

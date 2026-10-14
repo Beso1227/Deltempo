@@ -27,7 +27,11 @@ All official releases are tagged in git using `vX.Y.Z` and triggered through Git
 Every official release artifact is verified through automated pipelines:
 
 1. **SHA-256 Checksums**:
-   Published alongside each release in `SHA256SUMS.txt`. Users can verify integrity manually:
+   Published alongside each release as the `checksums.sha256` release asset, covering the
+   portable executables. This asset is the **single trust anchor** for the one-line
+   installer — there is deliberately no Pages-hosted copy, because a manifest that nothing
+   regenerates per release can only ever produce a hash mismatch and abort. Users can
+   verify integrity manually:
 
    ```powershell
    (Get-FileHash -Algorithm SHA256 .\Deltempo.exe).Hash
@@ -56,13 +60,18 @@ Every official release artifact is verified through automated pipelines:
    dotnet list package --vulnerable --include-transitive
    ```
 
-3. Update version number in `Directory.Build.props`.
+3. Update version number in `Directory.Build.props` (the single source of truth — individual
+   `.csproj` files must not override it), and mirror it in `docs/manifest.json`.
 4. Update `docs/changelog/index.html` with release notes and highlights.
-5. Create and push signed git tag:
+5. Update `docs/BENCHMARKS.md`'s pinned build-governance table if the version or SDK moved.
+6. Create and push signed git tag:
 
    ```bash
    git tag -s vX.Y.Z -m "Release vX.Y.Z"
    git push origin vX.Y.Z
    ```
 
-6. Verify CI build completion, download generated binaries, and verify SHA-256 signatures before publishing the GitHub release.
+7. Verify CI build completion, download generated binaries, and verify SHA-256 signatures before publishing the GitHub release.
+8. Confirm the `checksums.sha256` asset actually attached. `softprops/action-gh-release`
+   has been observed to skip it silently, in which case the one-line installer fails
+   closed for every user — the release workflow treats a missing upload as a hard error.

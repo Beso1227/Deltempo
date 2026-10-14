@@ -533,8 +533,25 @@ public static class CleanupExecutor
     /// </summary>
     public static bool RevalidateBeforeDeletion(string filePath, IEnumerable<string>? allowedRoots, long expectedSize, DateTime? expectedTimestamp, out string failureReason, out FileCleanupFailureReason reasonCode)
     {
-        failureReason = string.Empty;
+        return RevalidateBeforeDeletion(filePath, allowedRoots, expectedSize, expectedTimestamp, out _, out failureReason, out reasonCode);
+    }
+
+    /// <summary>
+    /// Revalidates a planned deletion AND reports the exact path that was validated.
+    /// </summary>
+    /// <remarks>
+    /// The <paramref name="validatedPath"/> out-parameter is not cosmetic. Revalidation
+    /// canonicalizes the caller's path, and PathSecurity.NormalizeCanonicalPath rewrites
+    /// 8.3 short names, "..\" segments, extended-length prefixes and trailing dots/spaces.
+    /// The destructive call previously received the ORIGINAL string, so a path that
+    /// validated as one thing could be deleted as another - while root containment was
+    /// checked against the canonical form. Callers must delete <paramref name="validatedPath"/>,
+    /// never the raw input.
+    /// </remarks>
+    public static bool RevalidateBeforeDeletion(string filePath, IEnumerable<string>? allowedRoots, long expectedSize, DateTime? expectedTimestamp, out string validatedPath, out string failureReason, out FileCleanupFailureReason reasonCode)
+    {        failureReason = string.Empty;
         reasonCode = FileCleanupFailureReason.Unknown;
+        validatedPath = string.Empty;
 
         if (string.IsNullOrWhiteSpace(filePath))
         {
@@ -620,13 +637,17 @@ public static class CleanupExecutor
 
         if (fsi is FileInfo fi)
         {
-            // Size consistency check (if planned size was known)
-            if (expectedSize > 0)
+            // Size consistency check. A NULL expected size means the planner never learned
+            // one and the check is genuinely unavailable. A ZERO expected size is a real
+            // value - the old `if (expectedSize > 0)` guard conflated the two, so a 0-byte
+            // temp file replaced by a large one between plan and delete was deleted with no
+            // drift detection at all.
+            if (expectedSize.HasValue)
             {
                 long currentSize = fi.Length;
-                if (currentSize != expectedSize)
+                if (currentSize != expectedSize.Value)
                 {
-                    failureReason = $"File size changed: expected {expectedSize}, found {currentSize}.";
+                    failureReason = $"File size changed: expected {expectedSize.Value}, found {currentSize}.";
                     reasonCode = FileCleanupFailureReason.SizeChanged;
                     return false;
                 }

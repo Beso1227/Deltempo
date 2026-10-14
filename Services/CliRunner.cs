@@ -195,6 +195,8 @@ public static partial class CliRunner
         PrintCmdRow("restore-points", "Inspect & purge old System Restore Points (--clean, --all)");
         PrintCmdRow("scan [category]", "Scan temporary files and cache targets");
         PrintCmdRow("clean [category]", "Clean safe temporary caches and shaders");
+        PrintCmdRow("appdata-report", "Read-only AppData footprint breakdown, largest first (--json, --top N)");
+        PrintCmdRow("footprint [path]", "Alias for appdata-report; measures only, never deletes");
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("\n  STORAGE & BIG FILES COMMANDS:");
@@ -285,6 +287,7 @@ public static partial class CliRunner
         Console.WriteLine("    deltempo startup disable Discord");
         Console.WriteLine("    deltempo procs kill Chrome");
         Console.WriteLine("    deltempo status --json");
+        Console.WriteLine("    deltempo appdata-report --top 15");
         Console.WriteLine("    deltempo register --status");
     }
 

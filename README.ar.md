@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="أحدث إصدار" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="حالة بناء التكامل المستمر" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-992_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبارات: 992 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-992_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1006_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبارات: 1006 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-1006_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="الترخيص: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -93,14 +93,16 @@
 | :--- | :--- |
 | **الموقع الرسمي** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **المنصّة** | ويندوز 10 و11 (64-بت / x64) |
-| **الإصدار** | v3.1.0 (إصدار إنتاج) |
+| **الإصدار** | v3.2.0 (إصدار إنتاج) |
 | **الترخيص** | مفتوح المصدر ([MIT](LICENSE)) |
 | **الواجهات** | واجهة سطح مكتب حديثة (WPF Fluent) وطرفية سطرية بدون واجهة |
 | **التوزيع** | ملف تنفيذي محمول مفرد (كامل بذاته، لا يحتاج إلى مُثبِّت) |
-| **تغطية الاختبارات** | 904 اختبارًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 مُتخطّى)، وفحص عشوائي خبيث لنظام الملفات |
+| **تغطية الاختبارات** | 1006 اختبارًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 مُتخطّى)، وفحص عشوائي خبيث لنظام الملفات |
 | **توافر الطرفية** | أمر `deltempo` يُثبّت نفسه عند أول تشغيل للواجهة — دون إعداد يدوي |
 | **بيانات الاتّصال** | صفر بيانات اتّصال. عمليات الفحص والتنظيف والذاكرة وإلغاء التثبيت تعمل 100% دون اتصال |
 | **محرّك الأمان** | تخطيط على مرحلتين (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) مع 5 مستويات للمخاطر وسجلّ معاملات |
+| **الامتناعات المتعمَّدة** | المسارات التي تبدو كذاكرة تخزين مؤقتة لكنها تحمّل تطبيقات أساسية لا تُعرض أبدًا كهدف للحذف — ذاكرات مصدر MSI، وتثبيت .NET SDK لكل مستخدم، وجذور بائعي تعريفات الأجهزة، و`registry\src` الخاص بـ Cargo، واستعادة جلسات Audacity. راجع [§2.1](#21-what-deltempo-refuses-to-delete). |
+| **تقرير استهلاك AppData** | تقرير للقراءة فقط بالمساحة التي يشغلها AppData فعلًا، من الأكبر إلى الأصغر، داخل التطبيق وعبر `deltempo appdata-report`. التقرير يعرض فقط: لا يوجد أي مسار حذف في أي منهما. |
 | **ملغّي التطبيقات** | إلغاء تثبيت جماعي صامت، ومحرّك BCU، وتنظيف بقايا AppData/السجلّات، ومسح قسري للتطبيقات التالفة |
 | **نقاط الاستعادة** | نقاط استعادة اختيارية لنظام ويندوز قبل إلغاء التثبيت (يتحكم بها المستخدم، معطّلة افتراضيًا) |
 | **ذكاء الخدمات** | يشرح: *«هل سيحدث خطأ ما إذا عطّلت هذا؟»* عبر 3 أحكام أمان، واستنتاجات دون اتصال، وذكاء اصطناعي متعدّد النماذج |
@@ -162,6 +164,27 @@ Deltempo مفتوح المصدر بالكامل، ويحتوي على صفر ب�
 * **المتصفّحات الحديثة والاتّصال**: ملفات Chromium (Chrome وEdge وBrave وOpera وVivaldi وArc) وملفات Gecko (Firefox) لمجلّدات الذاكرة المؤقتة القابلة للإزالة مع **الحفاظ الصارم على جلسات تسجيل الدخول**؛ وذاكرة وسائط Discord وSlack وSpotify.
 * **درع الأمان (>24h)**: حارس أمان اختياري يُعفي أي ملف أُنشئ أو عُدِّل خلال آخر 24 ساعة لمنع التعارض مع مُثبِّتات الخلفية النشطة أو المحرّرات قيد التشغيل.
 * **حارس TOCTOU**: يتحقّق من حدود الملفات والسمات والمسارات الفعلية مباشرة قبل الفكّ لإزالة سباقات نظام الملفات.
+* **كشف تطبيقات المتجر اليتيمة**: تُحدَّد مجلّدات AppData التي لم يعد مُثبَّتها حزمة MSIX المالك لها من أدلة مستودع `AppModel` الثنائية —اسم عائلة الحزمة بعد التحليل، ومطابقة معرّف الناشر — بدلًا من طرق استنتاج تعتمد على اسم المجلّد. وتُبلَّغ النتائج بصيغة `LowRisk` ولا تُحدَّد مسبقًا أبدًا بوصفها أهدافًا للحذف.
+
+<a id="21-what-deltempo-refuses-to-delete"></a>
+
+### 2.1 ما يرفض Deltempo حذفه
+
+المنظّف الذي لا يعرف إلّا ما هو آمن الحذف هو منظّف خطر، لأن كلمة «مؤقّت» وكلمة «قابل للتخلّص منه» كذبتان في كثير من الأحيان. فهناك عدّة مسارات تبدو ظاهريًا تمامًا كمساحات بناء أو تنزيل مؤقتة، لكنها في الواقع تحمّل تطبيقات أساسية، ويرفضها Deltempo بحكم بنيته — إذ تكون المسارات غائبة عن محلّلات النطاقات، ويرفضها `ProtectionPolicy` بشكل مستقل، فلا يمكن لأي إعداد أو مفتاح أو خيار في الطرفية أن يقدّمها:
+
+| المسار المرفوض | سبب أن حذفه مُدمِّر |
+| :--- | :--- |
+| `%ProgramData%\Package Cache`<br>`%WinDir%\Installer\$PatchCache$` | ذاكرات مصدر MSI التي يحتاجها `msiexec` من أجل **إصلاح** المنتجات المُثبَّتة و**إلغاء تثبيتها**. إزالتها تُعطِّل بشكل دائم مسار التعديل/الإصلاح ومسار إزالة البرامج في «البرامج والميزات» على كامل الجهاز. |
+| `%LOCALAPPDATA%\Microsoft\dotnet` | هذا هو **جذر التثبيت** لكل مستخدم الخاص بـ .NET SDK وبيئة التشغيل (`dotnet.exe` المضيف، و`sdk\`، و`packs\`، و`shared\`)، وليس ذاكرة مؤقتة. الجزء الوحيد القابل للتخلّص منه هو مساحة البناء العابرة `%TEMP%\.net`. |
+| `C:\NVIDIA`, `C:\AMD`, `C:\Intel`, `C:\Realtek` | جذور البائعين المجرّدة التي يحزّم فيها مُثبِّت تعريفات الأجهزة ملفاته. تشغيل التنظيف أثناء التثبيت سيحذف حمولةً لم يستهلكها المُثبِّت بعد ولا يستطيع إعادة جلبها. لا تُستهدَف سوى مجلّدات التهيئة (staging) الفرعية المحدّدة. |
+| `~\.cargo\registry\src` | شيفرة الـ crate **المستخرَجة** التي يُصرّف مقابلها `cargo build --offline`. أما شقيقتها `registry\cache` فتُنظَّف، أما `src` فلا، لأن تفريغ أحدهما دون الآخر عملية كل-أو-لا-شيء لا يمكن لنموذج لكل هدف أن يعبّر عنها بأمان. |
+| `%LOCALAPPDATA%\Audacity\SessionData` | بيانات **استعادة** الجلسات غير المحفوظة، لا مساحة مؤقتة. حذفها يُتلف تسجيلات قيد الإنجاز لم تُحفظ قط. |
+| `%ProgramData%\Microsoft\Windows Defender\Definition Updates\Backup` | نسخ **تراجع** لتوقيعات Defender. إزالتها تُلغي إمكانية الرجوع عن تحديث تعريف سيّئ. |
+| `%LOCALAPPDATA%\Electronic Arts\EA Desktop\UserConfig` | إعدادات تطبيق EA Desktop، وليست ذاكرة مؤقتة. |
+
+هذه المسارات مرفوضة مرّتين: فهي مُزالة من محلّلات النطاقات، *و* `ProtectionPolicy` يرفضها بشكل مستقل. لذلك لا يمكن لأي انحدار في محلّل، أو مجموعة قواعد يقدّمها المستخدم، أو إدخال إعدادات قديم أن يُعيدها من جديد.
+
+هذه القائمة مُطبَّقة في الشيفرة ويغطّيها `CleanerServiceTests` — فلكل استثناء هناك اختبارٌ يؤكد أن المسار غير موجود *و* تأكيدٌ شقيق يُثبت أن مساحة العمل الحقيقية في القائمة نفسها ما زالت موجودة، بحيث لا تتحوّل هذه الإصلاحات إلى حذفٍ مفرط في النطاق.
 
 ---
 
@@ -236,7 +259,17 @@ Deltempo مفتوح المصدر بالكامل، ويحتوي على صفر ب�
 
 ---
 
-### 8. 🎨 سمات احترافية مريحة للعينين ودعم لغات متعدّدة من اليمين إلى اليسار
+### 8. 📊 تقرير استهلاك AppData وكشف تطبيقات المتجر اليتيمة
+
+`%LOCALAPPDATA%` و`%APPDATA%` هما أكبر مستهلكي مساحة القرص على جهاز Windows نموذجي، وهما أيضًا المكان الذي تقع فيه الأخطاء الأكثر تدميرًا. ويتعامل Deltempo معهما للقراءة فقط بشكل افتراضي.
+
+* **تقرير الاستهلاك للقراءة فقط**: تفصيل من الأكبر إلى الأصغر لما يشغل AppData فعليًا، ويُتَّخذ من زر **تقرير AppData** داخل التطبيق ومن `deltempo appdata-report` في الطرفية. يقيس ويرتّب ويعرض فقط. لا يوجد `--clean` ولا `--yes` ولا أي مسار حذف على أيٍّ من الواجهتين — ذلك بقصدٍ لا صدفة.
+* **أمان نقاط إعادة التحليل**: وصلات التوافق القديمة في AppData (`Application Data`، `Local Settings`) تشير بدورها إلى `Local`. والمرورُ خلالها يعيد قراءة الشجرة نفسها فيضخّم المجموع، لذا تُتخطّى. وقد قِيست على ملف تعريف حقيقي: نقل التصحيحُ قراءةَ 59.5 GB إلى القيمة الحقيقية 32.6 GB عبر 123 مجلّدًا.
+* **تطبيقات Microsoft Store اليتيمة**: يقرأ `StoreAppOrphanResolver` مستودع حِزَم AppModel (خليّتا `HKCU` و`HKLM`) كدليل ثنائي، ويطابق كل مجلّد في `LOCALAPPDATA\Packages` مع حزمة MSIX المالك له. وتُسوّى اسمُ المجلّد (`Name_PublisherId`) مع مفتاح المستودع (`Name_Version_Arch_ResourceId_PublisherId`) بالتقسيم عند الشرطة السفلية الأخيرة والمطابقة عبر معرّف الناشر وبادئة الاسم. وإذا تعذّر فتح أيٍّ من الخليّتين، فإن المحلّل يُعيد لا شيء بدلًا من التخمين. وتظهر العناصر اليتيمة بصيغة `LowRisk` دون تحديد، ويظل `ProtectionPolicy` المصدرَ الوحيد للحقيقة في عمليات الرفض.
+
+> **قد تكون الإجابة الصحيحة «لا شيء».** على جهاز لا توجد فيه تطبيقات متجر محذوفة، يُرجع التقرير صفرًا من العناصر اليتيمة. وهذا هو السلوك المقصود: تُحكَم هذه الميزة على صفر الإيجابيات الخاطئة، لا على حجم الإنتاجية.
+
+### 9. 🎨 سمات احترافية مريحة للعينين ودعم لغات متعدّدة من اليمين إلى اليسار
 
 مصمّمة باهتمامٍ مُتطرِّس بتجربة المستخدم:
 
@@ -247,7 +280,7 @@ Deltempo مفتوح المصدر بالكامل، ويحتوي على صفر ب�
 
 ---
 
-### 9. 🔔 حارس منطقة إشعارات النظام بدقة البكسل
+### 10. 🔔 حارس منطقة إشعارات النظام بدقة البكسل
 
 * **أيقونة Win32 حقيقية عالية الدقة (`LoadCrispTrayIcon`)**: يستخدم إنشاء أيقونات Win32 GDI المباشر (`CreateIconIndirect`) مع شفافية ARGB 32-بت، محقّقًا عرضًا حادًّا كالموس على شاشات تدرّج 100% و125% و150% و175% و200%+ دون ضبابية.
 * **قياسات حيّة عند التحويم**: تعرض استهلاك الذاكرة الفعلي في تلميح منطقة الإشعارات: `RAM: 42% (13.4 GB / 31.9 GB)`.
@@ -278,6 +311,9 @@ deltempo uninstall "Epic Games Launcher" --restore-point
 
 # إخراج قياسات النظام وصحة الذاكرة بصيغة JSON منظّمة
 deltempo status --json
+
+# معرفة ما يشغل AppData فعليًا، من الأكبر إلى الأصغر (للقراءة فقط؛ لا يمكنه الحذف)
+deltempo appdata-report --top 15
 ```
 
 ### ملخّص أوامر الطرفية
@@ -288,21 +324,36 @@ deltempo status --json
 | `deltempo clean [filter]` | تنظيف الذاكرات المؤقتة القابلة للإزالة | `--dry-run`, `--recycle-bin`, `--safe`, `--all`, `--json`, `--yes` |
 | `deltempo smart-clean` | تفريغ سريع لذاكرات مؤقتة مُتحقَّق من سلامتها | `--dry-run`, `--json`, `--yes` |
 | `deltempo deep-clean` | تنظيف كامل ذاتي (الذاكرة، وDISM، والنطاقات) | `--dry-run`, `--json`, `--yes` |
-| `deltempo boost` | تحسين ذاكرة النظام عبر نواة NT | `--all`, `--standby`, `--cache`, `--workingsets`, `--json` |
-| `deltempo uninstall <app>` | إلغاء تثبيت عميق الجذور وتفريغ البقايا | `--dry-run`, `--force`, `--silent`, `--restore-point`, `--json` |
+| `deltempo restore-points` | فحص نقاط استعادة النظام وتفريغها | `--clean`, `--all` (يتطلّب تصعيد الصلاحيات) |
+| `deltempo appdata-report` | تفصيل استهلاك AppData للقراءة فقط، من الأكبر إلى الأصغر | `--json`, `--top <n>` — **لا توجد أي مفاتيح حذف** |
+| `deltempo duplicates [path]` | أداة إيجاد الملفات المكرّرة على مستوى البايت (تجزئة على 3 مراحل) | `--delete`, `--strategy` |
 | `deltempo large [path]` | فحص الأقراص بحثًا عن ملفات تستهلك المساحة | `--min <size>`, `--type <cat>`, `--safe`, `--top <n>`, `--sort <size\|date>` |
 | `deltempo large inspect <file>` | فحص مستوى مخاطر الملف وحكم الأمان | `--json` |
 | `deltempo large clean` | إعادة الملفات الكبيرة القابلة للإزالة إلى السلة | `--dry-run`, `--yes`, `--safe-only` |
+| `deltempo large delete <file>` | إرسال ملف محدّد واحد إلى السلة | `--yes` |
+| `deltempo force-delete <path>` | استئصال ملف أو مجلّد مقفل أو عنيد | `--terminate-lockers`, `--recycle`, `--dry-run`, `--retry <n>`, `--force-override` |
+| `deltempo force-delete scan <path>` | فحص درجة العناد، ومالكي الأقفال، ومستوى الأمان | `--json` |
+| `deltempo force-delete pending` | عرض الملفات المجدولة للحذف عند إعادة الإقلاع التالية | `--json` |
+| `deltempo boost` | تحسين ذاكرة النظام عبر نواة NT | `--all`, `--standby`, `--cache`, `--workingsets`, `--json` |
+| `deltempo procs` | عرض عمليات الخلفية الثقيلة التي تتجاوز 20 MB | `--json` |
+| `deltempo procs trim <pid\|name>` | تقليم مجموعة عمل عملية واحدة | `--json` |
+| `deltempo procs kill <pid\|name>` | إنهاء عملية خلفية واحدة خارجة عن السيطرة | `--json` |
+| `deltempo uninstall <app>` | إلغاء تثبيت عميق الجذور وتفريغ البقايا | `--dry-run`, `--force`, `--silent`, `--restore-point`, `--json` |
 | `deltempo startup [list]` | فحص تطبيقات بدء التشغيل وأثر الإقلاع | `--high`, `--json` |
 | `deltempo startup disable <app>` | تعطيل برنامج بدء تشغيل بشكل قابل للعكس | N/A |
 | `deltempo startup enable <app>` | استعادة برنامج بدء تشغيل معطّل | N/A |
-| `deltempo repair [subcommand]` | فحص سلامة ويندوز وإصلاح الخدمة | `sfc`, `dism`, `winsxs`, `chkdsk`, `update`, `network` |
+| `deltempo repair [subcommand]` | فحص سلامة ويندوز وإصلاح الخدمة | `all`, `sfc`, `dism`, `winsxs`, `chkdsk`, `scanhealth`, `update`, `network` |
+| `deltempo schedule` | إدارة صيانة مجدولة أسبوعيًا عبر Task Scheduler | install / remove / status |
+| `deltempo shell` | إدارة تكامل قائمة سياق النقر بزر الفأرة الأيمن في مستكشف الملفات | install / remove / status |
 | `deltempo status` | عرض قياسات النظام ومعلومات الذاكرة | `--json` |
 | `deltempo test` | فحص ذاتي للمحرّك (واجهة الذاكرة، والنطاقات المكتشفة) | N/A |
 | `deltempo help` | طباعة مرجع الأوامر الكامل | N/A |
 | `deltempo update [check]` | التحقّق من الإصدارات الرسمية أو تطبيق تحديث | `check`, `--dry-run` |
 | `deltempo register` | تثبيت / فحص أمر `deltempo` نفسه | `--status`, `--remove` |
 | `deltempo unregister` | إزالة كل ما أنشأه `register` | N/A |
+| `deltempo kill` | إغلاق نسخ Deltempo الخلفية قيد التشغيل | N/A |
+
+**الخيارات العامة** تسري عبر أوامر التنظيف: `--smart` / `--safe-only`، و`--recycle-bin` / `-r`، و`--unsafe` (تعطّل درع الـ24 ساعة)، و`--dry-run` / `-d`، و`--yes` / `-y`، و`--json` / `-j`، و`--silent` / `-s`، و`--export <file>` لإنشاء سجل تدقيق مؤرّخ بالوقت.
 
 ---
 
@@ -394,7 +445,10 @@ console-subsystem، ويضيفه إلى متغيّر `PATH` الخاص بحسا�
    تُخطَّط الملفات المرشّحة، وتُتحقَّق من حدود المجلّدات المحمية (المستندات، وسطح المكتب، ومستودعات الشيفرة، ومفاتيح SSH، وبيانات الاعتماد)، وتُعاد مُحقَّقتها مباشرة قبل الحذف.
 3. **الدفاع ضد نقاط إعادة التوجيه والعبور**: تُرفض وصلات Junctions مجلّدات NTFS والروابط الرمزية ونقاط تثبيت الأحجام تلقائيًا لمنع هجمات العبور خارج الحدود المستهدفة.
 4. **حدود القرص المحلي**: يقتصر حصريًا على الأقراص الثابتة المحلية؛ ومشاركة الشبكة البعيدة ومسارات UNC محظورة.
-5. **التحقّق التشفيري من الإصدارات**: تفرض فحوصات التحديث التلقائي استخدام HTTPS وتتحقق من ملخّصات SHA-256 للملفات الثنائية مقابل بيانات إصدارات GitHub الموقّعة.
+5. **حماية الحالة الدائمة في AppData**: يرفض Deltempo حذف *حالة* التطبيقات التي تقيم تحت `AppData` فحسب. فقواعد بيانات مزامنة OneDrive، وبيانات اعتماد Office وOutlook، وخزنة Credential Manager في ويندوز، وقوائم القفز للملفات الأخيرة، ومواد مفاتيح SSH وGnuPG، وخلايا `NTUSER.DAT` / `UsrClass.dat` الخاصة بصدفة النظام، كلها مرفوضة. وُثِّق هذا **لكل مجلّد، لا لكل ملف فقط**: فالاستدعاء `Directory.Delete` التكراري يزيل شجرةً كاملة في نداء نظام واحد ولا يستشير أي حارس لكل ملف، لذلك تمشي عمليات تفريغ البقايا أولًا للبحث عن أي ذيل محمي، وتحدّ ذلك المسح بحدّ 5,000 مجلّد، وتتخطّى نقاط إعادة التوجيه، و**تفشل مغلقًا** إذا تجاوز المسح ذلك الحدّ.
+6. **التحقّق التشفيري من الإصدارات**: تفرض فحوصات التحديث التلقائي استخدام HTTPS وتتحقق من ملخّصات SHA-256 للملفات الثنائية مقابل بيانات إصدارات GitHub الموقّعة.
+
+> مدقّق توقيع البيان (manifest) يستخدم ECDSA P-256 مع مفتاح بديل مُضمَّن، ولا هو ولا فحص Authenticode مربوط بعد بمسار التحديث الفعلي. أما التحقّق من ملخّص SHA-256 مقابل أصل الإصدار فإنّه **مُنفَّذ بالفعل**. يعرض `docs/THREAT_MODEL.md` هذين البندين كثغرات معروفة لا كإجراءات تخفيف.
 
 ---
 
@@ -416,7 +470,15 @@ cd Deltempo
 # ترجمة الحلّ بالكامل بتهيئة Release
 dotnet build deltempo.sln -c Release
 
-# تنفيذ مجموعة الاختبارات الآلية (903 اختبار وحدة وتكامل ناجحًا)
+# تحقّق من نمط الشيفرة كما يفعل CI. شغّله مقابل deltempo.sln، ولا تشغّله أبدًا مقابل
+# مشروع واحد: لأن ملف WinTempCleaner.csproj في الجذر يستثني Core\ وTests\ وCli\ و
+# Services\ فإن الفحص لكل مشروع يغطّي بصمت جزءًا فقط من الحل.
+dotnet format deltempo.sln --verify-no-changes --no-restore
+
+# تنفيذ مجموعة الاختبارات الآلية (1006 اختبار وحدة وتكامل ناجحًا)
+# يعمل xunit.v3 على Microsoft.Testing.Platform، وهو ما لا يستطيع `dotnet test` في
+# حزمة .NET 10 SDK تشغيله ("Testing with VSTest target is no longer supported"). ابنِ
+# المشروع مرة واحدة، ثم استدعِ الملف التنفيذي للاختبارات مباشرةً.
 dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
 ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 

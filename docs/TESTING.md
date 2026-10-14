@@ -46,6 +46,21 @@ dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
 ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 ```
 
+The style gate must be run the same way CI runs it, against the solution:
+
+```powershell
+dotnet format deltempo.sln --verify-no-changes --no-restore
+```
+
+Running it against `WinTempCleaner.csproj` instead is a strictly weaker check — that
+project explicitly excludes `Core\`, `Tests\`, `Cli\` and `Services\`, so a per-project
+run reports clean while CI fails. This has happened.
+
+> **Read the summary, not the exit code.** Microsoft.Testing.Platform can exit non-zero
+> when foreground threads outlive an otherwise-green run. CI therefore treats
+> `failed: [1-9]` in the output as the verdict, and warns rather than fails on a
+> non-zero exit after a full pass.
+
 ### 3.2 Running Performance Benchmarks
 
 Run throughput and memory engine benchmarks explicitly:
@@ -83,11 +98,44 @@ dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
 
 ### 3.4 Running with Code Coverage
 
-To run with code coverage collection and report generation:
+Coverage is produced by the Microsoft.Testing.Extensions.CodeCoverage plugin, which is
+already wired into the test project. Pass `--coverage` to the test executable — no
+external tool install is involved:
 
 ```powershell
-dotnet tool install --global dotnet-coverage --version 18.*
-dotnet-coverage collect "./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter Category!=Benchmark" -f cobertura -o Tests/Deltempo.Tests/TestResults/coverage.cobertura.xml
+dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
+./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe `
+  --filter "Category!=Benchmark" `
+  --coverage `
+  --coverage-output-format cobertura `
+  --results-directory Tests/Deltempo.Tests/TestResults
 ```
 
-Enforced minimum line coverage threshold in CI: **65%**.
+This replaces the VSTest-only `--collect:"XPlat Code Coverage"` flag and the retired
+`dotnet-coverage` global tool, which is no longer what CI runs.
+
+Enforced minimum line coverage threshold in CI: **65%**, applied to `WinTempCleaner.Core*`
+classes only. The WPF UI head is excluded because a headless CI run cannot exercise
+views, and including it would make the number meaningless.
+
+### 3.5 Documentation Is Part of the Suite
+
+`DocumentationConsistencyTests` is not a documentation nicety — it is a build gate, and
+it fails the run rather than publishing a wrong claim:
+
+- **`NoFile_TellsTheReaderToRunDotnetTest`** — fails if any instruction file re-introduces
+  a `dotnet test` command line.
+- **`Workflow_ThatRunsTests_UsesTheMtpTestExecutable`** — fails if `ci.yml` or
+  `release.yml` regress to `dotnet test`. This exists because `ci.yml` was correct while
+  `release.yml` was not, so a release could fail while CI stayed green.
+- **`PublishedTestCount_MatchesTheRealSuiteSize`** — derives the true case count by
+  reflection over this assembly and fails if the README badge disagrees. Internal
+  consistency alone is not enough: badge-versus-prose-versus-translations agreed with
+  each other for months while all of them were hundreds of tests stale.
+- **`Installer_TrustAnchor_IsNotADecorativeFallback`** — fails if a stale
+  `docs/checksums.sha256` reappears or the installer regains a Pages-hosted fallback.
+
+> The reflection-based count is exact only while the suite uses no `MemberData`,
+> `ClassData` or `TheoryData`. Every case is currently a `[Fact]` or a `[Theory]` with
+> inline rows. Introducing a dynamic data source would make the count an undercount
+> rather than a loud failure, and this method must be revisited when that happens.

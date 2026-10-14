@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Latest Release" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI Build Status" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-992_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 992 passed, 0 failed" src="https://img.shields.io/badge/tests-992_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1006_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 1006 passed, 0 failed" src="https://img.shields.io/badge/tests-1006_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="License: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -93,14 +93,16 @@
 | :--- | :--- |
 | **公式サイト** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **プラットフォーム** | Windows 10 & 11（64 ビット / x64） |
-| **バージョン** | v3.1.0（本番リリース） |
+| **バージョン** | v3.2.0（本番リリース） |
 | **ライセンス** | オープンソース（[MIT](LICENSE)） |
 | **インターフェース** | モダンなデスクトップ GUI（WPF Fluent）とヘッドレスターミナル CLI |
 | **配布形態** | ポータブルな単一ファイル実行ファイル（自己完結、インストーラー不要） |
-| **テストカバレッジ** | 904 件の自動テスト（合格率 100%、失敗 0、スキップ 0）、敵対的ファイルシステムファズィング |
+| **テストカバレッジ** | 1006 件の自動テスト（合格率 100%、失敗 0、スキップ 0）、敵対的ファイルシステムファズィング |
 | **CLI の利用** | `deltempo` コマンドは GUI 初回起動時に自動インストール — 手動設定は不要 |
 | **テレメトリー** | テレメトリーゼロ。スキャン、クリーンアップ、メモリ、アンインストーラーの操作は 100% オフラインで実行 |
 | **セーフティエンジン** | 2 段階のプランニング（`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`）、5 段階のリスクティア、トランザクションジャーナリング |
+| **意図的な削除拒否** | キャッシュのように見えて実はも所在が重要なパスなパス（MSI ソースキャッシュ、ユーザごとの .NET SDK インストール、ドライバベンダーのルートディレクトリ、Cargo の `registry\src`、Audacity のセッション復旧データ）を、Deltempo は決して削除対象にしません。[§2.1](#21-what-deltempo-refuses-to-delete) を参照。 |
+| **AppData 容量レポート** | AppData を占める容量を大きい順に示す読み取り専用レポート。アプリ内および `deltempo appdata-report` から利用できます。どちらの画面にも削除パスは存在しません。 |
 | **アプリアンインストーラー** | 一括サイレントアンインストール、BCU エンジン、残存 AppData/レジストリのトレース削除、動作不良アプリの強制ワイプ |
 | **復元ポイント** | アンインストール前の任意の Windows システム復元ポイント（ユーザー制御、デフォルト無効） |
 | **サービスインテリジェンス** | 3 段階の安全判定、オフラインヒューリスティクス、マルチモデル AI を用いて *"これを無効にすると問題が起きますか？"* に回答 |
@@ -162,6 +164,27 @@ Deltempo は、システム・開発・ゲームの各環境にまたがる使�
 * **モダンブラウザとコミュニケーションアプリ**: Chromium プロファイル（Chrome、Edge、Brave、Opera、Vivaldi、Arc）と Gecko プロファイル（Firefox）の使い捨てキャッシュディレクトリ（**ログインセッションは厳格に保持**）、および Discord、Slack、Spotify のメディアキャッシュ。
 * **セーフティシールド（24 時間以内）**: 直近 24 時間に作成・変更されたファイルを除外するオプションの保護機能。バックグラウンドで進行中のインストーラーや稼働中のエディターと干渉しません。
 * **TOCTOU ガード**: リンク解除の直前にファイル境界・属性・正規化パスを検証し、競合状態を排除します。
+* **孤立したストアアプリの検出**: 所有する MSIX パッケージがインストールされなくなった AppData ディレクトリは、ディレクトリ名のヒューリスティックではなく、バイナリ `AppModel` リポジトリの証拠（解析されたパッケージファミリー名とパブリッシャー ID による照合）から特定されます。検出結果は `LowRisk` として報告され、削除対象として事前選択されることはありません。
+
+<a id="21-what-deltempo-refuses-to-delete"></a>
+
+### 2.1 Deltempo が削除を拒否するもの
+
+削除してよいものだけを知るクリーナーは危険です。「一時的」と「使い捨て」はしばしば同じ嘘だからです。表面的にはビルドやダウンロードの作業領域とまったく同じように見えるパスが、実際には重要な役割を担っており、Deltempo は設計上これらを拒否します — これらのパスはスコープリゾルバから除外されるうえ、`ProtectionPolicy` によって独立に拒否されるため、設定・フラグ・CLI オプションのいずれに対しても対象として提示されることはありません:
+
+| 拒否するパス | 削除が破壊的になる理由 |
+| :--- | :--- |
+| `%ProgramData%\Package Cache`<br>`%WinDir%\Installer\$PatchCache$` | `msiexec` がインストール済み製品を **修復** および **アンインストール** するために必要とする MSI ソースキャッシュです。削除すると、マシン全体で変更/修復と「プログラムと機能」のアンインストール経路が恒久的に機能停止します。 |
+| `%LOCALAPPDATA%\Microsoft\dotnet` | ユーザごとの .NET SDK とランタイムの **インストールルート**（`dotnet.exe` ホスト、`sdk\`、`packs\`、`shared\`）であり、キャッシュではありません。削除してよいのは一時的なビルド作業領域 `%TEMP%\.net` だけです。 |
+| `C:\NVIDIA`、`C:\AMD`、`C:\Intel`、`C:\Realtek` | ドライバーのインストーラーが展開するベンダーのルートディレクトリです。インストール中にクリーンアップを実行すると、インストーラーがまだ消費しておらず再取得もできないペイロードを削除してしまいます。対象になるのは特定のステージング用サブディレクトリのみです。 |
+| `~\.cargo\registry\src` | `cargo build --offline` がコンパイルの基準とする **展開済み** クレートソースです。同階層の `registry\cache` はクリーンされますが、`src` はされません。この断开を安全に表現できないため、片方だけを空にするのはすべてか無かの操作になります。 |
+| `%LOCALAPPDATA%\Audacity\SessionData` | 未保存セッションの **復旧** データであり、作業領域ではありません。削除すると、一度も保存されなかった進行中の録音が失われます。 |
+| `%ProgramData%\Microsoft\Windows Defender\Definition Updates\Backup` | Defender の定義更新を **ロールバック** するためのコピーです。削除すると、不具合のあった定義更新を以前の状態に戻す機能が失われます。 |
+| `%LOCALAPPDATA%\Electronic Arts\EA Desktop\UserConfig` | EA Desktop のアプリケーション設定であり、キャッシュではありません。 |
+
+これらは二重に拒否されています: パスの除外はスコープリゾルバ側で行われ、*さらに* `ProtectionPolicy` が独立に拒否します。したがって、リゾルバのリグレッション、ユーザー提供のルールパック、陳腐化した設定エントリが、これらを再導入することはありません。
+
+このリストはコードで強制され、`CleanerServiceTests` でカバーされています — 除外項目ごとに、そのパスが存在しないことを検証するテストと、同じリスト内の本来の対象である作業領域が依然として存在することを証明する対照アサーションの両方が用意されており、この修正が過度に広範な削除へ退化することはありません。
 
 ---
 
@@ -236,7 +259,17 @@ Deltempo は、システム・開発・ゲームの各環境にまたがる使�
 
 ---
 
-### 8. 🎨 プロ級の目に優しいテーマと多言語 RTL 対応
+### 8. 📊 AppData 容量レポートと孤立したストアアプリの検出
+
+`%LOCALAPPDATA%` と `%APPDATA%` は、一般的な Windows マシンで最大のディスク容量を消費するにもかかわらず、最も理解されていない部分です。壊滅的な誤りが最も発生しやすい場所でもあります。Deltempo はそれらを既定で読み取り専用として扱います。
+
+* **読み取り専用の容量レポート**: AppData を実際に占めているものを大きい順に示す内訳です。アプリ内の **AppData レポート** ボタン、または CLI の `deltempo appdata-report` から参照できます。測定・並べ替え・表示のみを行います。どちらのインターフェースにも `--clean` も `--yes` も、削除コードパスも存在しません —— 偶然ではなく、意図的なものです。
+* **リパースポイントの安全性**: 旧来の AppData 互換ジャンクション（`Application Data`、`Local Settings`）は `Local` を指しています。そこを辿ると同じツリーを再読込し合計値が水増しになるため、読み飛ばします。実際のプロファイルで測定したところ、この補正により 123 フォルダにわたる 59.5 GB の計測値が正しい 32.6 GB になりました。
+* **孤立した Microsoft ストアアプリ**: `StoreAppOrphanResolver` は AppModel パッケージリポジトリ（`HKCU` と `HKLM` の両方のハイブ）をバイナリ証拠として読み取り、各 `LOCALAPPDATA\Packages` フォルダを所有する MSIX パッケージと照合します。フォルダ名（`Name_PublisherId`）は最後のアンダースコアで分割し、パブリッシャー ID と名前の接頭辞で照合することで、リポジトリキー（`Name_Version_Arch_ResourceId_PublisherId`）と突合されます。どちらのハイブも開けない場合、リゾルバは推測せずに何も返しません。孤立した項目は `LowRisk` として未選択で提示され、拒否ルールの単一の事実源は `ProtectionPolicy` のままです。
+
+> **正しい答えは「何もない」であってよいのです。** ストアアプリを一件も削除していないマシンでは、レポートの孤立性はゼロを返します。これこそが意図された挙動です。この機能は産出量ではなく、偽陽性ゼロで評価されます。
+
+### 9. 🎨 プロ級の目に優しいテーマと多言語 RTL 対応
 
 ユーザーエクスペリエンスへの妥協なきこだわりで設計されています:
 
@@ -247,7 +280,7 @@ Deltempo は、システム・開発・ゲームの各環境にまたがる使�
 
 ---
 
-### 9. 🔔 ピクセルパーフェクトなシステムトレイガーディアン
+### 10. 🔔 ピクセルパーフェクトなシステムトレイガーディアン
 
 * **本物の高 DPI Win32 アイコン（`LoadCrispTrayIcon`）**: 32 ビット ARGB アルファ透過を備えた Win32 GDI の直接アイコン生成（`CreateIconIndirect`）を使用。100%、125%、150%、175%、200% 以上のスケーリングのディスプレイでもぼやけない超鮮明なレンダリングを実現。
 * **ライブホバーテレメトリ**: トレイのツールチップにリアルタイムのメモリ使用量を表示: `RAM: 42% (13.4 GB / 31.9 GB)`。
@@ -278,6 +311,9 @@ deltempo uninstall "Epic Games Launcher" --restore-point
 
 # システムテレメトリとメモリの健全性を構造化 JSON で出力する
 deltempo status --json
+
+# AppData を実際に占めているものを大きい順に見る（読み取り専用、削除は不可）
+deltempo appdata-report --top 15
 ```
 
 ### CLI コマンド概要
@@ -288,21 +324,36 @@ deltempo status --json
 | `deltempo clean [filter]` | 使い捨てキャッシュをクリーン | `--dry-run`、`--recycle-bin`、`--safe`、`--all`、`--json`、`--yes` |
 | `deltempo smart-clean` | 検証済みの安全なキャッシュをクイックに除去 | `--dry-run`、`--json`、`--yes` |
 | `deltempo deep-clean` | 自律的なフルクリーンアップ（RAM、DISM、スコープ） | `--dry-run`、`--json`、`--yes` |
-| `deltempo boost` | NT カーネル経由でシステムメモリを最適化 | `--all`、`--standby`、`--cache`、`--workingsets`、`--json` |
-| `deltempo uninstall <app>` | ディープルートのアンインストールと残存物の除去 | `--dry-run`、`--force`、`--silent`、`--restore-point`、`--json` |
+| `deltempo restore-points` | システム復元ポイントを調査・消去 | `--clean`、`--all`（昇格が必要） |
+| `deltempo appdata-report` | AppData の容量内訳を読み取り専用・大きい順に表示 | `--json`、`--top <n>` — **削除フラグは存在しません** |
+| `deltempo duplicates [path]` | バイト単位の重複ファイルファインダー（3 段階ハッシュ） | `--delete`、`--strategy` |
 | `deltempo large [path]` | 容量を消費するファイルをドライブからスキャン | `--min <size>`、`--type <cat>`、`--safe`、`--top <n>`、`--sort <size\|date>` |
 | `deltempo large inspect <file>` | ファイルのリスクティアと安全性判定を調査 | `--json` |
 | `deltempo large clean` | 使い捨ての大きなファイルをごみ箱へ | `--dry-run`、`--yes`、`--safe-only` |
+| `deltempo large delete <file>` | 特定のファイル 1 つをごみ箱へ | `--yes` |
+| `deltempo force-delete <path>` | ロック中または除去困難なファイル/フォルダーを強制削除 | `--terminate-lockers`、`--recycle`、`--dry-run`、`--retry <n>`、`--force-override` |
+| `deltempo force-delete scan <path>` | 除去の難易度、ロック所有者、安全ティアを調査 | `--json` |
+| `deltempo force-delete pending` | 次回再起動時の削除待ちリストを表示 | `--json` |
+| `deltempo boost` | NT カーネル経由でシステムメモリを最適化 | `--all`、`--standby`、`--cache`、`--workingsets`、`--json` |
+| `deltempo procs` | 20 MB を超える重量級バックグラウンドプロセスを一覧表示 | `--json` |
+| `deltempo procs trim <pid\|name>` | 1 つのプロセスのワーキングセットを切り詰め | `--json` |
+| `deltempo procs kill <pid\|name>` | 暴走しているバックグラウンドプロセスを 1 つ終了 | `--json` |
+| `deltempo uninstall <app>` | ディープルートのアンインストールと残存物の除去 | `--dry-run`、`--force`、`--silent`、`--restore-point`、`--json` |
 | `deltempo startup [list]` | スタートアップアプリとブートへの影響を調査 | `--high`、`--json` |
 | `deltempo startup disable <app>` | スタートアッププログラムを可逆的に無効化 | N/A |
 | `deltempo startup enable <app>` | 無効化したスタートアッププログラムを復元 | N/A |
-| `deltempo repair [subcommand]` | Windows 整合性チェックとサービシング修復 | `sfc`、`dism`、`winsxs`、`chkdsk`、`update`、`network` |
+| `deltempo repair [subcommand]` | Windows 整合性チェックとサービシング修復 | `all`、`sfc`、`dism`、`winsxs`、`chkdsk`、`scanhealth`、`update`、`network` |
+| `deltempo schedule` | 週次タスクスケジューラのメンテナンスを管理 | install / remove / status |
+| `deltempo shell` | Explorer の右クリックコンテキストメニュー連携を管理 | install / remove / status |
 | `deltempo status` | システムテレメトリとメモリ情報を表示 | `--json` |
 | `deltempo test` | エンジンのセルフチェック（メモリ API、検出済みスコープ） | N/A |
 | `deltempo help` | コマンドリファレンス全体を出力 | N/A |
 | `deltempo update [check]` | 公式リリースの確認またはアップデートの適用 | `check`、`--dry-run` |
 | `deltempo register` | `deltempo` コマンド自体のインストール/調査 | `--status`、`--remove` |
 | `deltempo unregister` | `register` が作成したすべての成果物を除去 | N/A |
+| `deltempo kill` | 実行中の Deltempo バックグラウンドインスタンスを終了 | N/A |
+
+**グローバルオプション** は各クリーン系コマンドに共通して適用されます: `--smart` / `--safe-only`、`--recycle-bin` / `-r`、`--unsafe`（24 時間シールドを無効化）、`--dry-run` / `-d`、`--yes` / `-y`、`--json` / `-j`、`--silent` / `-s`、およびタイムスタンプ付きの監査ログを出力する `--export <file>`。
 
 ---
 
@@ -354,14 +405,21 @@ irm https://beso1227.github.io/Deltempo/win-cli | Invoke-Expression
 
 ### オプション 3: `deltempo` コマンド
 
-これらを手動で接続する必要はまったくありません。Deltempo を初めて起動すると、コンソールサブシステムの CLI バイナリを用意し、ユーザーの `PATH` に追加し、<kbd>Win</kbd>+<kbd>R</kbd> エイリアスを登録し、PowerShell プロファイルに `deltempo` 関数をインストールします（古いインストールが残した陳腐な登録が見つかった場合は修復します）。
+これらを手動で接続する必要はまったくありません。Deltempo を初めて起動すると、コンソールサブシステムの
+CLI バイナリを用意し、ユーザーの `PATH` に追加し、<kbd>Win</kbd>+<kbd>R</kbd> エイリアスを登録し、
+PowerShell プロファイルに `deltempo` 関数をインストールします
+（古いインストールが残した陳腐な登録が見つかった場合は修復します）。
 
 知っておくべきことが 2 つあります:
 
 - **新しいターミナルウィンドウを開いてください。** 開いているシェルは起動時の `PATH` を保持したままです。
-- **オフラインでの初回起動？** コンソールバイナリを用意できなかった場合、何も登録されず、中途半端にインストールされたコマンドも残りません。デスクトップアプリにはまったく影響しません — 次の成功した起動時に再試行されます。
+- **オフラインでの初回起動？** コンソールバイナリを用意できなかった場合、何も登録されず、中途半端に
+  インストールされたコマンドも残りません。デスクトップアプリにはまったく影響しません —
+  次の成功した起動時に再試行されます。
 
-自分で管理したいですか？`deltempo register` がオンデマンドで同じことを行い、`deltempo unregister` は作成したすべての成果物を除去します。`deltempo register --status` で何がインストールされ、どのバイナリを指しているかを正確に確認できます。
+自分で管理したいですか？`deltempo register` がオンデマンドで同じことを行い、
+`deltempo unregister` は作成したすべての成果物を除去します。
+`deltempo register --status` で何がインストールされ、どのバイナリを指しているかを正確に確認できます。
 
 > 保護されたシステム状態に触れるコマンド（`restore-points`、`deep-clean` の DISM ステージ）は、
 > 標準的な非昇格ターミナルから実行すると、明確なエラーと非ゼロの終了コードを返します。
@@ -387,7 +445,10 @@ Deltempo は、セキュリティとユーザープライバシーを譲れな�
    候補ファイルはプランニングされ、保護されたディレクトリ境界（ドキュメント、デスクトップ、コードリポジトリ、SSH 鍵、認証情報）に対して検証され、削除の直前に再検証されます。
 3. **リパースポイントとトラバーサル防御**: NTFS のディレクトリジャンクション、シンボリックリンク、ボリュームマウントポイントは自動的に拒否され、ターゲット境界外へのトラバーサル攻撃を防ぎます。
 4. **ローカルドライブ境界**: ローカル固定ドライブにのみ制限されます。リモートネットワーク共有と UNC パスはブロックされます。
-5. **暗号学的リリース検証**: 自動アップデートチェックは HTTPS を強制し、署名済み GitHub リリースマニフェストに対してバイナリの SHA-256 ダイジェストを検証します。
+5. **AppData の永続的状態の保護**: Deltempo は、`AppData` の配下に置かれているだけのアプリケーション *状態* を削除することを拒否します。OneDrive の同期データベース、Office と Outlook の認証情報、Windows 資格情報マネージャーの保管庫、最近使ったファイルのジャンプリスト、SSH と GnuPG の鍵素材、そして `NTUSER.DAT` / `UsrClass.dat` のシェルハイブはいずれも拒否されます。これは **ファイル単位ではなくディレクトリ単位で強制** されます: 再帰的な `Directory.Delete` は 1 回のシステムコールでサブツリー全体を削除し、ファイルごとのガードを参照しないため、残存物消去の処理はまず保護された子孫の有無を走査し、その走査を 5,000 ディレクトリで打ち切り、リパースポイントをスキップし、上限を超えた場合は **フェイルクローズ** します。
+6. **暗号学的リリース検証**: 自動アップデートチェックは HTTPS を強制し、署名済み GitHub リリースマニフェストに対してバイナリの SHA-256 ダイジェストを検証します。
+
+> マニフェスト署名検証は ECDSA P-256 で、埋め込みのプレースホルダー鍵を使用しており、Authenticode のチェックを含め、いずれもまだ実際の更新経路には組み込まれていません。リリースアセットに対する SHA-256 ダイジェスト検証 *は* 強制されています。`docs/THREAT_MODEL.md` は、これらを緩和策ではなく既知のギャップとして記載しています。
 
 ---
 
@@ -409,7 +470,15 @@ cd Deltempo
 # ソリューション全体を Release 構成でコンパイル
 dotnet build deltempo.sln -c Release
 
-# 自動テストスイートを実行（ユニットテスト・統合テスト 903 件合格）
+# CI と同じ方法でコードスタイルを検証する。deltempo.sln に対して実行し、単一プロジェクト
+# に対して決して実行しないこと: ルートの WinTempCleaner.csproj は Core\、Tests\、Cli\ と
+# Services\ を除外しているため、プロジェクト単位の検査はソリューションの一部だけを暗黙のうちに検査してしまいます。
+dotnet format deltempo.sln --verify-no-changes --no-restore
+
+# 自動テストスイートを実行（ユニットテスト・統合テスト 1006 件合格）
+# xunit.v3 は Microsoft.Testing.Platform 上で動作し、.NET 10 SDK の `dotnet test` では
+# 実行できません（"Testing with VSTest target is no longer supported"）。一度ビルドしてから、
+# テスト実行ファイルを直接呼び出してください。
 dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
 ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 

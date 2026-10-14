@@ -19,6 +19,8 @@
 | Install required | No — portable, runs in place |
 | Architectures | x64 |
 | Language | C# / .NET 10, WPF desktop UI |
+| Version | 3.2.0 |
+| Tests | 1006 automated tests, 0 failed |
 | UI languages | English, Arabic (RTL), Spanish, French, German |
 | Author | Beso1227 (Basem Hany) |
 | Website | https://beso1227.github.io/Deltempo/ |
@@ -26,11 +28,6 @@
 | Latest release | https://github.com/Beso1227/Deltempo/releases/latest |
 
 ## Install Methods
-
-**winget (after approval):**
-```powershell
-winget install Beso1227.Deltempo
-```
 
 **PowerShell one-liner (recommended):**
 ```powershell
@@ -137,6 +134,12 @@ Uses real Windows internals rather than cosmetic tricks:
 - **Locked file diagnostics** using the native Win32 Restart Manager (`rstrtmgr.dll`), with deferred boot-time deletion.
 - Cryptographically verified (SHA-256) Stable and Beta update channels with atomic staging.
 
+### 10. AppData footprint report & orphaned Store app detection
+- **Read-only footprint report** - a largest-first breakdown of what actually occupies `%LOCALAPPDATA%` and `%APPDATA%`, available in the app and via `deltempo appdata-report`. There is intentionally no `--clean`, no `--yes`, and no delete code path on either surface. Measured on a real profile: 32.6 GB across 123 folders.
+- **Reparse-point correctness** - legacy AppData compatibility junctions (`Application Data`, `Local Settings`) point back at `Local`; walking through them re-reads the same tree and inflates the total. They are skipped, which moved a 59.5 GB reading to the true 32.6 GB.
+- **Orphaned Microsoft Store apps** - `StoreAppOrphanResolver` reads the AppModel package repository from both the `HKCU` and `HKLM` hives and matches each `LOCALAPPDATA\Packages` folder to its owning MSIX package. Folder names (`Name_PublisherId`) are reconciled against repository keys (`Name_Version_Arch_ResourceId_PublisherId`) by splitting at the final underscore and matching on publisher ID plus name prefix. If neither hive opens it returns nothing rather than guessing. Validated against 104 `Packages` folders: 96 matched, 7 non-package directories skipped, 1 candidate rejected - **zero false positives**. Findings are `LowRisk`, unselected, and `ProtectionPolicy` stays the single source of truth for refusals.
+- **A correct answer can be "nothing."** On a machine with no removed Store apps the resolver reports no orphans. The feature is judged on zero false positives, not on yield.
+
 ## CLI Reference
 
 ```powershell
@@ -154,6 +157,9 @@ deltempo uninstall "Google Chrome" --silent --force
 
 # Structured telemetry output for scripting
 deltempo status --json
+
+# Read-only AppData footprint breakdown, largest first (cannot delete)
+deltempo appdata-report --top 15
 ```
 
 > Commands touching protected state (`restore-points`, the DISM stage of `deep-clean`) return a clear error and non-zero exit code in a non-elevated terminal. Run from an Administrator shell or use the desktop app.
@@ -172,8 +178,10 @@ SCAN -> PLAN -> PROTECT -> REVALIDATE -> CLEAN
 4. **TOCTOU revalidation** — state is re-checked immediately before deletion to defeat filesystem race conditions.
 5. **Reparse point & traversal defense** — NTFS junctions, symlinks and volume mount points are rejected to prevent escaping target boundaries.
 6. **Local drive boundary only** — UNC paths and remote network shares are blocked.
-7. **Cryptographic release verification** — updates enforce HTTPS and verify SHA-256 against published manifests.
-8. **Automated test suite** — 726 unit and integration tests enforce zero regressions.
+7. **Cryptographic release verification** - updates enforce HTTPS and verify SHA-256 against the `checksums.sha256` release asset. The manifest-signature verifier is ECDSA P-256 with an embedded placeholder key and is not yet wired into the live update path; see `docs/THREAT_MODEL.md`.
+8. **Deliberate refusals** - load-bearing paths that superficially look like scratch are never offered as targets: MSI source caches (`%ProgramData%\Package Cache`, `%WinDir%\Installer\$PatchCache$`), the per-user .NET SDK install root (`%LOCALAPPDATA%\Microsoft\dotnet`), bare driver vendor roots (`C:\NVIDIA`, `C:\AMD`, `C:\Intel`, `C:\Realtek`), `~\.cargo\registry\src`, and Audacity unsaved-session recovery. Each is removed from the scope resolvers *and* independently denied by `ProtectionPolicy`, so a resolver regression or user rulepack cannot reintroduce them.
+9. **AppData durable-state protection** - OneDrive sync databases, Office/Outlook credentials, the Credential Manager vault, recent-file jump lists, SSH and GnuPG key material, and the `NTUSER.DAT`/`UsrClass.dat` shell hives are refused **per directory**, not merely per file. A recursive `Directory.Delete` removes a whole subtree in one syscall and never consults a per-file guard, so purge operations first walk for a protected descendant, bound that walk at 5,000 directories, skip reparse points, and fail closed if the bound is exceeded.
+10. **Automated test suite** - 1006 unit and integration tests enforce zero regressions, including a 1M-case canonicalizer fuzz campaign.
 
 ## Frequently Asked Questions
 
