@@ -1,0 +1,218 @@
+<UserControl x:Class="WinTempCleaner.Views.Modals.AppDataFootprintModal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:WinTempCleaner.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="620" d:DesignWidth="860">
+    <Grid Background="Transparent">
+        <Border Margin="24,14,24,14"
+                Background="{DynamicResource DoubleBezelOuterBrush}"
+                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="16"
+                Padding="2">
+            <Border Background="{DynamicResource ModalSurfaceBrush}"
+                    CornerRadius="14"
+                    Padding="22,18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- 0: Header -->
+                        <RowDefinition Height="Auto"/> <!-- 1: Summary + read-only notice -->
+                        <RowDefinition Height="*"/>    <!-- 2: Folder list -->
+                        <RowDefinition Height="Auto"/> <!-- 3: Footer -->
+                    </Grid.RowDefinitions>
+
+                    <!-- 0. Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="40" Height="40"
+                                    CornerRadius="12"
+                                    Background="{DynamicResource SurfaceSubCardBrush}"
+                                    BorderBrush="{DynamicResource ElectricCyanBrush}"
+                                    BorderThickness="1"
+                                    Margin="0,0,12,0">
+                                <TextBlock Text="&#xE7B3;"
+                                           FontFamily="{DynamicResource IconFont}"
+                                           FontSize="18"
+                                           Foreground="{DynamicResource ElectricCyanBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="AppData Footprint"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource TextHighBrush}"/>
+                                <TextBlock Text="Where your application data is actually stored"
+                                           FontSize="11.5"
+                                           Foreground="{DynamicResource TextMediumBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button Style="{DynamicResource WindowCloseButton}"
+                                Content="&#xE8BB;"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Click="Close_Click"/>
+                    </Grid>
+
+                    <!-- 1. Summary + the read-only contract, stated in the UI itself -->
+                    <Border Grid.Row="1"
+                            Background="{DynamicResource SurfaceSubCardBrush}"
+                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="14,10"
+                            Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock x:Name="FootprintSummaryText"
+                                       FontSize="12.5"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextHighBrush}"/>
+                            <TextBlock Text="Report only - nothing here is selected, and nothing is deleted. Rows marked 'covered by an existing scope' can be cleaned by the matching Deltempo scope in the Cleaner."
+                                       FontSize="11"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 2. Folder list -->
+                    <Border Grid.Row="2"
+                            Background="{DynamicResource SurfaceSubCardBrush}"
+                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="12,8"
+                            Margin="0,0,0,12">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="FootprintItemsControl">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{DynamicResource SurfaceCardBrush}"
+                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="10"
+                                                Padding="12,10"
+                                                Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/> <!-- icon -->
+                                                    <ColumnDefinition Width="*"/>    <!-- name + path -->
+                                                    <ColumnDefinition Width="150"/>  <!-- share bar -->
+                                                    <ColumnDefinition Width="Auto"/> <!-- size + badge -->
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Grid.Column="0" Width="34" Height="34"
+                                                        CornerRadius="8"
+                                                        Background="{DynamicResource SurfaceSubCardBrush}"
+                                                        BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                        BorderThickness="1"
+                                                        Margin="0,0,12,0"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="&#xE8B7;"
+                                                               FontFamily="{DynamicResource IconFont}"
+                                                               FontSize="13"
+                                                               Foreground="{DynamicResource ElectricCyanBrush}"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"/>
+                                                </Border>
+
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                    <TextBlock Text="{Binding DisplayName}"
+                                                               FontSize="12"
+                                                               FontWeight="Bold"
+                                                               Foreground="{DynamicResource TextHighBrush}"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Path}"
+                                                               FontSize="10.5"
+                                                               FontFamily="{DynamicResource MonospaceFont}"
+                                                               Foreground="{DynamicResource TextMutedBrush}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="0,2,0,0"/>
+                                                </StackPanel>
+
+                                                <!-- Share of the largest folder. Uses the shared
+                                                     PercentWidthConverter MultiBinding so the track
+                                                     stays responsive as the window resizes. -->
+                                                <Grid Grid.Column="2" Height="6"
+                                                      VerticalAlignment="Center"
+                                                      Margin="0,0,14,0">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Grid.Column="0"
+                                                                Height="6"
+                                                                CornerRadius="3"
+                                                                Background="{DynamicResource SurfaceSubCardBrush}"
+                                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                                BorderThickness="1"/>
+                                                        <Border Grid.Column="0" Height="6" CornerRadius="3"
+                                                                Background="{Binding BarBrush}"
+                                                                HorizontalAlignment="Left">
+                                                            <Border.Width>
+                                                                <MultiBinding Converter="{StaticResource PercentWidthConverter}">
+                                                                    <Binding Path="SharePercent"/>
+                                                                    <Binding RelativeSource="{RelativeSource AncestorType=Grid}" Path="ActualWidth"/>
+                                                                </MultiBinding>
+                                                            </Border.Width>
+                                                        </Border>
+                                                    </Grid>
+                                                </Grid>
+
+                                                <StackPanel Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                    <TextBlock Text="{Binding FormattedSize}"
+                                                               FontSize="12"
+                                                               FontWeight="Bold"
+                                                               Foreground="{DynamicResource TextHighBrush}"
+                                                               HorizontalAlignment="Right"/>
+                                                    <Border Background="{Binding BadgeBackground}"
+                                                            BorderBrush="{Binding BadgeForeground}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="5"
+                                                            Padding="6,1.5"
+                                                            Margin="0,3,0,0"
+                                                            HorizontalAlignment="Right">
+                                                        <TextBlock Text="{Binding BadgeText}"
+                                                                   FontSize="10.5"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{Binding BadgeForeground}"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- 3. Footer -->
+                    <Grid Grid.Row="3">
+                        <TextBlock x:Name="FootprintFooterText"
+                                   VerticalAlignment="Center"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   TextTrimming="CharacterEllipsis"/>
+                        <Button x:Name="RefreshBtn"
+                                AutomationProperties.Name="Re-measure the AppData footprint"
+                                Style="{DynamicResource PillButton}"
+                                Padding="14,6"
+                                FontSize="11"
+                                HorizontalAlignment="Right"
+                                Click="Refresh_Click"
+                                ToolTip="Rescan the three AppData trees and re-measure every folder">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="&#xE72C;" FontFamily="{DynamicResource IconFont}" FontSize="11" Margin="0,0,5,0" Foreground="{DynamicResource ElectricCyanBrush}"/>
+                                <TextBlock Text="Re-measure" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

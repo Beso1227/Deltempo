@@ -50,6 +50,8 @@ public partial class MainWindow : Window
         AppUninstallModalOverlay.LogRequested += AddLog;
         AppUninstallModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
         LockedFilesModalOverlay.LogRequested += AddLog;
+        AppDataFootprintModalOverlay.LogRequested += AddLog;
+        AppDataFootprintModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
         ForceDeleteModalOverlay.LogRequested += AddLog;
         ForceDeleteModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
 
@@ -60,7 +62,8 @@ public partial class MainWindow : Window
         foreach (var overlay in new FrameworkElement?[]
                  {
                      SettingsModalOverlay, ConfirmModalOverlay, CelebrationModalOverlay,
-                     InspectorModalOverlay, AboutModalOverlay, UpdateModalOverlay, LockedFilesModalOverlay
+                     InspectorModalOverlay, AboutModalOverlay, UpdateModalOverlay, LockedFilesModalOverlay,
+                      AppDataFootprintModalOverlay
                  })
         {
             KeepNewestOverlayOnTop(overlay);
@@ -966,6 +969,11 @@ public partial class MainWindow : Window
                 LockedFilesModalOverlay.CloseModal();
                 e.Handled = true;
             }
+            else if (AppDataFootprintModalOverlay.Visibility == Visibility.Visible)
+            {
+                AppDataFootprintModalOverlay.CloseModal();
+                e.Handled = true;
+            }
             else if (ForceDeleteModalOverlay.Visibility == Visibility.Visible)
             {
                 ForceDeleteModalOverlay.CloseModal();
@@ -988,6 +996,7 @@ public partial class MainWindow : Window
             else if (SystemRepairModalOverlay.Visibility == Visibility.Visible) activeModal = SystemRepairModalOverlay;
             else if (AppUninstallModalOverlay.Visibility == Visibility.Visible) activeModal = AppUninstallModalOverlay;
             else if (LockedFilesModalOverlay.Visibility == Visibility.Visible) activeModal = LockedFilesModalOverlay;
+            else if (AppDataFootprintModalOverlay.Visibility == Visibility.Visible) activeModal = AppDataFootprintModalOverlay;
             else if (ForceDeleteModalOverlay.Visibility == Visibility.Visible) activeModal = ForceDeleteModalOverlay;
             else if (AboutModalOverlay.Visibility == Visibility.Visible) activeModal = AboutModalOverlay;
 

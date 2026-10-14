@@ -445,6 +445,19 @@ public partial class MainWindow
         ProgressStatusText.Text = "Cancelling operation...";
     }
 
+    /// <summary>
+    /// Opens the read-only AppData footprint report. Deliberately does NOT toggle busy state
+    /// or the progress strip: this runs no cleanup and blocks no scanner, so it must stay
+    /// available while a scan or clean is in flight.
+    /// </summary>
+    private void HeroAppDataReportBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (AppDataFootprintModalOverlay == null) return;
+
+        AppDataFootprintModalOverlay.PopulateAndOpen();
+        AddLog("Opened the AppData footprint report (read only - nothing is deleted)", LogLevel.Info);
+    }
+
     private async void HeroOneClickDeepCleanBtn_Click(object sender, RoutedEventArgs e)
     {
         if (_isBusy) return;

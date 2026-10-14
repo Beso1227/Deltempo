@@ -151,6 +151,7 @@ public class DesignSystemAccessibilityTests
     [InlineData(@"Views\Modals\ForceDeleteModal.xaml")]
     [InlineData(@"Views\Modals\MemoryOptimizerModal.xaml")]
     [InlineData(@"Views\Modals\LockedFilesModal.xaml")]
+    [InlineData(@"Views\Modals\AppDataFootprintModal.xaml")]
     public void NoUiFile_UsesIllegibleFontSizes(string file)
     {
         string xaml = ReadRepoFile(file);
@@ -176,6 +177,7 @@ public class DesignSystemAccessibilityTests
     [InlineData(@"Views\Modals\AppUninstallModal.xaml")]
     [InlineData(@"Views\Modals\ForceDeleteModal.xaml")]
     [InlineData(@"Views\Modals\LockedFilesModal.xaml")]
+    [InlineData(@"Views\Modals\AppDataFootprintModal.xaml")]
     public void EveryButton_HasTextOrAccessibleName(string file)
     {
         string xaml = ReadRepoFile(file);
