@@ -212,6 +212,12 @@ brag-shots/
 # UI verification captures (scripts/capture_layout_matrix.ps1)
 artifacts/
 
+# UI verification captures (elevated UI Automation + PrintWindow runs).
+# *.png cannot be blanket-ignored because README and docs images are tracked, and
+# ui-verify.txt is not matched by any existing pattern. Keep these two explicit.
+ui-verify.txt
+ui-verify*.png
+
 # One-off scratch: encoded source dumps and ad-hoc repair scripts
 encoded*.txt
 scratch-*.py
