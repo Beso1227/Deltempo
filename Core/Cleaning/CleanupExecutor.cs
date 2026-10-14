@@ -268,17 +268,22 @@ public static class CleanupExecutor
                         }
 
                         // DESTRUCTIVE EXECUTION
+                        // Every destructive call below uses `validatedPath` - the exact string
+                        // revalidation just canonicalized, root-checked and drift-checked.
+                        // Using action.FilePath here meant a path containing an 8.3 short name,
+                        // a "..\" segment or a trailing dot validated as one target and was
+                        // deleted as another.
                         try
                         {
                             long actualBytes = action.SizeBytes;
                             try
                             {
-                                var fi = new FileInfo(action.FilePath);
+                                var fi = new FileInfo(validatedPath);
                                 if (fi.Exists) actualBytes = fi.Length;
                             }
                             catch (Exception ex)
                             {
-                                Trace.WriteLine($"[Cleanup] Size probe failed for '{action.FilePath}': {ex.Message}");
+                                Trace.WriteLine($"[Cleanup] Size probe failed for '{validatedPath}': {ex.Message}");
                             }
 
                             bool success = false;
@@ -288,7 +293,7 @@ public static class CleanupExecutor
 
                             if (action.Action == IntendedCleanupAction.MoveToRecycleBin)
                             {
-                                success = IFileOperationHelper.RecycleFile(action.FilePath);
+                                success = IFileOperationHelper.RecycleFile(validatedPath);
                                 if (success)
                                 {
                                     Interlocked.Increment(ref recycledCount);
@@ -297,7 +302,7 @@ public static class CleanupExecutor
                             }
                             else
                             {
-                                success = DeletePermanently(action.FilePath, out permWin32Err, out permFailDetail);
+                                success = DeletePermanently(validatedPath, out permWin32Err, out permFailDetail);
                                 if (success)
                                 {
                                     Interlocked.Increment(ref deletedCount);
@@ -308,7 +313,7 @@ public static class CleanupExecutor
                             if (success)
                             {
                                 // PHASE 3: POST-DELETION VERIFICATION
-                                if (!VerifyDeletion(action.FilePath, action.Action == IntendedCleanupAction.MoveToRecycleBin))
+                                if (!VerifyDeletion(validatedPath, action.Action == IntendedCleanupAction.MoveToRecycleBin))
                                 {
                                     if (action.Action == IntendedCleanupAction.MoveToRecycleBin)
                                     {
@@ -508,17 +513,26 @@ public static class CleanupExecutor
         return result;
     }
 
+    // The convenience overloads below pass null for expectedSize, meaning "no size
+    // expectation". A literal 0 is NOT equivalent: since the drift check was corrected to
+    // treat a zero planned size as a real value, passing 0 here would fail every non-empty
+    // file. Only overloads where the caller actually knows the planned size pass one.
+    // Each delegates to the 7-argument nullable core explicitly; a 6-argument call would
+    // bind to the long-taking overload and defeat the point.
     public static bool RevalidateBeforeDeletion(string filePath, string allowedRoot = "") =>
-        RevalidateBeforeDeletion(filePath, allowedRoot, 0, null, out _, out _);
+        RevalidateBeforeDeletion(filePath, ToRoots(allowedRoot), (long?)null, null, out _, out _, out _);
 
     public static bool RevalidateBeforeDeletion(string filePath, string allowedRoot, out string failureReason) =>
-        RevalidateBeforeDeletion(filePath, allowedRoot, 0, null, out failureReason, out _);
+        RevalidateBeforeDeletion(filePath, ToRoots(allowedRoot), (long?)null, null, out failureReason, out _, out _);
 
     public static bool RevalidateBeforeDeletion(string filePath, string allowedRoot, long expectedSize, out string failureReason) =>
-        RevalidateBeforeDeletion(filePath, allowedRoot, expectedSize, null, out failureReason, out _);
+        RevalidateBeforeDeletion(filePath, ToRoots(allowedRoot), expectedSize, null, out failureReason, out _, out _);
 
     public static bool RevalidateBeforeDeletion(string filePath, IEnumerable<string>? allowedRoots, out string failureReason) =>
-        RevalidateBeforeDeletion(filePath, allowedRoots, 0, null, out failureReason, out _);
+        RevalidateBeforeDeletion(filePath, allowedRoots, (long?)null, null, out failureReason, out _, out _);
+
+    private static IEnumerable<string>? ToRoots(string allowedRoot) =>
+        string.IsNullOrEmpty(allowedRoot) ? null : new[] { allowedRoot };
 
     public static bool RevalidateBeforeDeletion(string filePath, string allowedRoot, long expectedSize, DateTime? expectedTimestamp, out string failureReason, out FileCleanupFailureReason reasonCode)
     {
@@ -531,7 +545,7 @@ public static class CleanupExecutor
     /// Re-evaluates file identity, attributes, root containment, reparse-points, size consistency,
     /// timestamp consistency, and protection rules immediately before destructive action.
     /// </summary>
-    public static bool RevalidateBeforeDeletion(string filePath, IEnumerable<string>? allowedRoots, long expectedSize, DateTime? expectedTimestamp, out string failureReason, out FileCleanupFailureReason reasonCode)
+    public static bool RevalidateBeforeDeletion(string filePath, IEnumerable<string>? allowedRoots, long? expectedSize, DateTime? expectedTimestamp, out string failureReason, out FileCleanupFailureReason reasonCode)
     {
         return RevalidateBeforeDeletion(filePath, allowedRoots, expectedSize, expectedTimestamp, out _, out failureReason, out reasonCode);
     }
@@ -731,9 +745,14 @@ public static class CleanupExecutor
         }
     }
 
-    public static bool DeletePermanently(string path) => DeletePermanently(path, out _, out _);
+    // internal, not public: DeletePermanently unconditionally normalizes the System
+    // attribute away (see below), which is exactly the condition
+    // RevalidateBeforeDeletion refuses. Exposing it publicly let any caller - including
+    // ForceDeleteEngine - delete a System-attribute file without ever passing the
+    // revalidation guard. Callers inside Core must revalidate first.
+    internal static bool DeletePermanently(string path) => DeletePermanently(path, out _, out _);
 
-    public static bool DeletePermanently(string path, out int win32Error, out string? failureDetail)
+    internal static bool DeletePermanently(string path, out int win32Error, out string? failureDetail)
     {
         win32Error = 0;
         failureDetail = null;

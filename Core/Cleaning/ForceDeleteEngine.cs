@@ -309,7 +309,7 @@ public static class ForceDeleteEngine
 
         if (isDirectory)
         {
-            DeleteDirectoryRecursive(normalized, options, result, log);
+            DeleteDirectoryRecursive(normalized, normalized, options, result, log);
         }
         else
         {
@@ -418,12 +418,62 @@ public static class ForceDeleteEngine
         log?.Invoke($"Failed to delete file '{Path.GetFileName(filePath)}': {failDetail ?? $"Win32 Error {win32Err}"}", LogLevel.Error);
     }
 
+    /// <summary>
+    /// Gate check applied to every descendant, not just the approved root.
+    /// Refuses anything that escapes the approved root (a bind mount or a reparse
+    /// redirection that survived enumeration) and anything ForceDeleteGate blocks outright.
+    /// </summary>
+    private static bool IsDescendantApproved(
+        string candidatePath,
+        string approvedRoot,
+        ForceDeleteResult result,
+        Action<string, LogLevel>? log)
+    {
+        string normalized = PathSecurity.NormalizeCanonicalPath(candidatePath);
+        if (string.IsNullOrEmpty(normalized))
+        {
+            result.ShieldedCount++;
+            result.Attempts.Add(new ForceDeleteAttempt(candidatePath, ForceDeleteStage.Shielded, false, 0, "Path could not be canonicalized."));
+            log?.Invoke($"[Shield] Refused deletion, unresolvable path: {candidatePath}", LogLevel.Warning);
+            return false;
+        }
+
+        if (!PathSecurity.IsSubpathOf(normalized, approvedRoot))
+        {
+            result.ShieldedCount++;
+            result.Attempts.Add(new ForceDeleteAttempt(normalized, ForceDeleteStage.Shielded, false, 0, "Descendant escaped the approved root."));
+            log?.Invoke($"[Shield] Refused deletion outside the approved target: {normalized}", LogLevel.Warning);
+            return false;
+        }
+
+        var decision = ForceDeleteGate.Evaluate(normalized);
+        if (decision.Tier == ForceDeleteTier.AbsoluteBlock)
+        {
+            result.ShieldedCount++;
+            result.Attempts.Add(new ForceDeleteAttempt(normalized, ForceDeleteStage.Shielded, false, 0, decision.Rationale));
+            log?.Invoke($"[Shield] Refused deletion of protected descendant: {normalized} ({decision.Rationale})", LogLevel.Warning);
+            return false;
+        }
+
+        return true;
+    }
+
     private static void DeleteDirectoryRecursive(
         string dirPath,
+        string approvedRoot,
         ForceDeleteOptions options,
         ForceDeleteResult result,
         Action<string, LogLevel>? log)
     {
+        // Every descendant is re-checked, not just the root the user approved. A directory
+        // can legitimately contain a subpath the gate blocks (a linked system hive, a
+        // restore-point store, a Windows directory), and ForceDeleteGate.Evaluate was
+        // previously called ONCE on the root - so everything below it was deleted on trust.
+        if (!IsDescendantApproved(dirPath, approvedRoot, result, log))
+        {
+            return;
+        }
+
         try
         {
             if (options.TakeOwnershipAndResetAcl)
@@ -448,7 +498,24 @@ public static class ForceDeleteEngine
 
             foreach (var fi in di.EnumerateFiles("*", enumerationOptions))
             {
-                DeleteFileWithEscalation(fi.FullName, options, result, log);
+                // EnumerationOptions.AttributesToSkip = 0 means symlinked FILES come back
+                // alongside real ones, and they used to go straight to
+                // DeleteFileWithEscalation -> ForceGrantPermissions, which calls
+                // SetOwner + AddAccessRule(FullControl) on whatever the link RESOLVES TO.
+                // That granted ownership and full control to a file outside the approved
+                // target. A reparse-point file must be unlinked like any other link -
+                // touching the link only, never the target.
+                if (PathSecurity.IsReparsePointOrLink(fi.FullName))
+                {
+                    DeleteReparsePointLink(fi.FullName, isDirectory: false, result, log);
+                }
+                else
+                {
+                    if (IsDescendantApproved(fi.FullName, approvedRoot, result, log))
+                    {
+                        DeleteFileWithEscalation(fi.FullName, options, result, log);
+                    }
+                }
             }
 
             foreach (var sub in di.EnumerateDirectories("*", enumerationOptions))
@@ -459,7 +526,7 @@ public static class ForceDeleteEngine
                 }
                 else
                 {
-                    DeleteDirectoryRecursive(sub.FullName, options, result, log);
+                    DeleteDirectoryRecursive(sub.FullName, approvedRoot, options, result, log);
                 }
             }
 
@@ -523,6 +590,18 @@ public static class ForceDeleteEngine
     {
         try
         {
+            // Never mutate the ACL of a link TARGET. This is the last line of defence for
+            // the ownership-escalation bug: SetOwner + AddAccessRule(FullControl) applied
+            // through a symlink rewrites the security descriptor of a file outside the
+            // approved target. Callers are expected to have unlinked reparse points
+            // already; refuse here too so a missed call site cannot escalate privileges.
+            if (PathSecurity.IsReparsePointOrLink(path))
+            {
+                System.Diagnostics.Trace.WriteLine(
+                    $"[ForceDelete] Refusing to grant permissions on reparse point '{path}'.");
+                return;
+            }
+
             using var identity = WindowsIdentity.GetCurrent();
             if (identity.User == null) return;
 

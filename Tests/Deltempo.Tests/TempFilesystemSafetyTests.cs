@@ -121,7 +121,7 @@ public class TempFilesystemSafetyTests : IDisposable
         File.WriteAllText(filePath, "content");
 
         bool isValid = CleanupExecutor.RevalidateBeforeDeletion(
-            filePath, (System.Collections.Generic.IEnumerable<string>?)null, 0, null, out _, out _);
+            filePath, (System.Collections.Generic.IEnumerable<string>?)null, (long?)null, null, out _, out _);
 
         Assert.True(isValid, "Null roots remain the explicit unrestricted contract.");
     }

@@ -1256,11 +1256,75 @@ public partial class CleanerService
         return (freedBytes, filesDeleted, foldersDeleted, filesSkipped, filesFailed);
     }
 
+    /// <summary>Upper bound on rulepack-supplied cleanup roots, so a malformed or hostile
+    /// rulepack cannot inflate the allowed-root set without limit.</summary>
+    private const int MaxOverrideRootCount = 512;
+
+    /// <summary>
+    /// Filters a user-rulepack-supplied root list before it becomes the allowedRoots of the
+    /// planner and the executor.
+    /// </summary>
+    /// <remarks>
+    /// These roots arrive from %APPDATA%\Deltempo\rules\*.json and were previously returned
+    /// verbatim. Per-file ProtectionPolicy still ran downstream, but the ROOT itself was
+    /// never checked - so a rulepack could nominate C:\Windows or the MSI source caches as a
+    /// cleanup root and rely on nothing but the safety engine to notice. Roots are now
+    /// validated once, here, and an unsafe root is dropped rather than merely made harder to
+    /// reach. ForceDeleteGate - the strictest policy in the codebase - is applied because
+    /// this is the only place a rulepack root passes through it.
+    /// </remarks>
+    private static List<string> ValidateOverrideRoots(List<string> roots)
+    {
+        var accepted = new List<string>(Math.Min(roots.Count, MaxOverrideRootCount));
+
+        foreach (string root in roots)
+        {
+            if (accepted.Count >= MaxOverrideRootCount)
+            {
+                System.Diagnostics.Trace.WriteLine(
+                    $"[Deltempo] Rulepack root list truncated at {MaxOverrideRootCount} entries.");
+                break;
+            }
+
+            if (string.IsNullOrWhiteSpace(root)) continue;
+
+            string canonical = WinTempCleaner.Core.Safety.PathSecurity.NormalizeCanonicalPath(root);
+            if (string.IsNullOrEmpty(canonical))
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Rulepack root rejected (not canonicalizable): '{root}'");
+                continue;
+            }
+
+            if (WinTempCleaner.Core.Safety.PathSecurity.HasPathTraversalSequences(root))
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Rulepack root rejected (traversal): '{root}'");
+                continue;
+            }
+
+            if (WinTempCleaner.Core.Safety.ProtectionPolicy.IsProtected(canonical, out string protectedReason))
+            {
+                System.Diagnostics.Trace.WriteLine(
+                    $"[Deltempo] Rulepack root rejected (protected): '{canonical}' - {protectedReason}");
+                continue;
+            }
+
+            if (WinTempCleaner.Core.Safety.ForceDeleteGate.Evaluate(canonical).Tier == WinTempCleaner.Core.Safety.ForceDeleteTier.AbsoluteBlock)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Rulepack root rejected (absolute block): '{canonical}'");
+                continue;
+            }
+
+            accepted.Add(canonical);
+        }
+
+        return accepted.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
     private static List<string> ResolveDirectoriesForFolder(TargetFolderInfo folder)
     {
         if (folder.ResolvedDirectoriesOverride != null && folder.ResolvedDirectoriesOverride.Count > 0)
         {
-            return folder.ResolvedDirectoriesOverride;
+            return ValidateOverrideRoots(folder.ResolvedDirectoriesOverride);
         }
 
         var dirs = new List<string>();
