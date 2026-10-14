@@ -96,6 +96,15 @@ public static class AppDataFootprintService
             foreach (string child in children)
             {
                 if (ct.IsCancellationRequested) break;
+
+                // SKIP reparse points. AppData is full of legacy compatibility junctions -
+                // "Application Data" and "Local Settings" are junctions that point straight back
+                // at "Local". Measuring one re-walks the entire tree through the link and
+                // double counts every byte beneath it (observed: a 59.5 GB total against a real
+                // ~32 GB). A junction is also not this folder's own content, so it has no place
+                // in a per-folder size breakdown.
+                if (IsLink(child)) continue;
+
                 entries.Add(MeasureFolder(child, Path.GetFileName(child), label, knownScopes));
             }
         }
@@ -104,6 +113,24 @@ public static class AppDataFootprintService
             .OrderByDescending(e => e.SizeBytes)
             .ThenBy(e => e.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
+    }
+
+    /// <summary>
+    /// True when the directory is a junction, symlink or other reparse point. Reported
+    /// separately from <see cref="PathSecurity.IsReparsePointOrLink"/> so the AppData walk can
+    /// skip links without triggering the protection reason string on a read-only scan.
+    /// </summary>
+    private static bool IsLink(string path)
+    {
+        try
+        {
+            return (new DirectoryInfo(path).Attributes & FileAttributes.ReparsePoint) != 0;
+        }
+        catch
+        {
+            // Cannot stat it, so it cannot be measured either.
+            return true;
+        }
     }
 
     private static AppDataFootprintEntry MeasureFolder(

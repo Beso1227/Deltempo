@@ -133,34 +133,30 @@
                                                                Margin="0,2,0,0"/>
                                                 </StackPanel>
 
-                                                <!-- Share of the largest folder. Uses the shared
-                                                     PercentWidthConverter MultiBinding so the track
-                                                     stays responsive as the window resizes. -->
-                                                <Grid Grid.Column="2" Height="6"
+                                                <!-- Share of the largest folder. The track declares a FIXED Width because a track
+                                                     whose width depends on the fill it contains
+                                                     measures circularly and collapses to zero.
+                                                     ShareWidthConverter returns a double for
+                                                     Border.Width; PercentWidthConverter returns a
+                                                     GridLength and cannot drive this binding. -->
+                                                <Grid Grid.Column="2" Width="150" Height="6"
                                                       VerticalAlignment="Center"
                                                       Margin="0,0,14,0">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Border Grid.Column="0"
-                                                                Height="6"
-                                                                CornerRadius="3"
-                                                                Background="{DynamicResource SurfaceSubCardBrush}"
-                                                                BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                                BorderThickness="1"/>
-                                                        <Border Grid.Column="0" Height="6" CornerRadius="3"
-                                                                Background="{Binding BarBrush}"
-                                                                HorizontalAlignment="Left">
-                                                            <Border.Width>
-                                                                <MultiBinding Converter="{StaticResource PercentWidthConverter}">
-                                                                    <Binding Path="SharePercent"/>
-                                                                    <Binding RelativeSource="{RelativeSource AncestorType=Grid}" Path="ActualWidth"/>
-                                                                </MultiBinding>
-                                                            </Border.Width>
-                                                        </Border>
-                                                    </Grid>
+                                                    <Border Height="6"
+                                                            CornerRadius="3"
+                                                            Background="{DynamicResource SurfaceSubCardBrush}"
+                                                            BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                            BorderThickness="1"/>
+                                                    <Border Height="6" CornerRadius="3"
+                                                            Background="{Binding BarBrush}"
+                                                            HorizontalAlignment="Left">
+                                                        <Border.Width>
+                                                            <MultiBinding Converter="{StaticResource ShareWidthConverter}">
+                                                                <Binding Path="SharePercent"/>
+                                                                <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Grid}"/>
+                                                            </MultiBinding>
+                                                        </Border.Width>
+                                                    </Border>
                                                 </Grid>
 
                                                 <StackPanel Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Right">

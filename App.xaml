@@ -1106,5 +1106,6 @@
         </Style>
         <!-- PercentWidthConverter (multi-binding: percentage + total width → pixel width) -->
         <converters:PercentWidthConverter x:Key="PercentWidthConverter"/>
+    <converters:ShareWidthConverter x:Key="ShareWidthConverter"/>
     </Application.Resources>
 </Application>

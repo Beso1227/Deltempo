@@ -722,6 +722,25 @@ public static class SystemRepairService
                 }
             };
 
+            // Honour an ALREADY-cancelled token BEFORE launching. The poll loop below only
+            // notices cancellation after the process exists, so a pre-cancelled repair used to
+            // start sfc.exe /scannow / dism.exe anyway - a minutes-long elevated operation the
+            // caller had explicitly abandoned - and then raced on whether the killed process had
+            // an exit code yet. A caller who cancels before we start must get no process at all.
+            if (ct.IsCancellationRequested)
+            {
+                sw.Stop();
+                return new RepairExecutionResult
+                {
+                    Success = false,
+                    ExitCode = -1,
+                    Output = outputBuilder.ToString(),
+                    ErrorMessage = "Operation cancelled by user.",
+                    ExecutionTimeMs = sw.ElapsedMilliseconds,
+                    Tool = tool
+                };
+            }
+
             proc.Start();
             proc.BeginOutputReadLine();
             proc.BeginErrorReadLine();
@@ -735,7 +754,14 @@ public static class SystemRepairService
                     int actualExitCode = -1;
                     try
                     {
-                        actualExitCode = proc.ExitCode;
+                        // A cancelled operation has no meaningful exit code: the process was
+                        // killed mid-flight, so its ExitCode is whatever the OS happened to
+                        // record. Report the -1 sentinel the contract promises, and only read a
+                        // real exit code on the timeout path where the process actually ran.
+                        if (!ct.IsCancellationRequested)
+                        {
+                            actualExitCode = proc.ExitCode;
+                        }
                         proc.Kill(true);
                     }
                     catch { }

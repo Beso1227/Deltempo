@@ -171,6 +171,76 @@ public class AppDataFootprintServiceTests
     /// The report must survive a machine where AppData cannot be walked, rather than throwing
     /// into the CLI.
     /// </summary>
+    /// <summary>
+    /// Regression test for a bug found by LOOKING AT THE RENDERED MODAL, not by any test.
+    ///
+    /// AppData contains legacy compatibility junctions - "Application Data" and
+    /// "Local Settings" point straight back at "Local". Measuring one re-walks the whole tree
+    /// through the link, so the reported total was 59.5 GB against a real ~32 GB and the
+    /// largest row was Local's own size wearing a different name.
+    /// </summary>
+    [Fact]
+    public void Analyze_NeverReportsALegacyAppDataJunctionAsAFolder()
+    {
+        // These two names are Windows compatibility junctions inside %LOCALAPPDATA%.
+        string[] legacyJunctions = ["Application Data", "Local Settings"];
+
+        var entries = AppDataFootprintService.Analyze();
+
+        foreach (var entry in entries)
+        {
+            string name = Path.GetFileName(entry.Path.TrimEnd('\\'));
+            Assert.False(legacyJunctions.Contains(name, StringComparer.OrdinalIgnoreCase),
+                $"'{name}' is a compatibility junction back into the AppData tree. Measuring it " +
+                "double counts every byte beneath it and corrupts the total.");
+        }
+    }
+
+    /// <summary>
+    /// The share bar binds ActualWidth of its own ancestor grid, so a track whose width depends
+    /// on the fill it contains measures circularly and collapses to zero - the bar renders
+    /// empty while still looking like a valid track. Pin the fixed-width track and the converter
+    /// it must use.
+    ///
+    /// PercentWidthConverter CANNOT drive this binding: it returns a GridLength, which fails the
+    /// type check against Border.Width (a double) and fails SILENTLY. ShareWidthConverter returns
+    /// a double for exactly this purpose. Behaviour of the converter itself is covered by
+    /// ShareWidthConverterTests.
+    /// </summary>
+    [Fact]
+    public void AppDataFootprintModal_ShareTrackHasAFixedWidthAndUsesShareWidthConverter()
+    {
+        // Strip XML comments first: the explanatory comment beside the bar deliberately NAMES
+        // PercentWidthConverter to say why it must not be used there, and a naive substring scan
+        // would match the explanation and fail the very test that documents it.
+        string xaml = Regex.Replace(
+            ReadRepoFile(@"Views\Modals\AppDataFootprintModal.xaml"), @"<!--.*?-->", string.Empty,
+            RegexOptions.Singleline);
+
+        var track = Regex.Match(xaml, "<Grid Grid.Column=\"2\"[^>]*>");
+
+        Assert.True(track.Success, "The share-bar track grid was not found.");
+        Assert.True(track.Value.Contains("Width=\"150\"", StringComparison.Ordinal),
+            "The share track must declare a fixed Width, otherwise ActualWidth is circular with " +
+            "the fill it contains and the bar collapses to zero width.");
+
+        Assert.Contains("StaticResource ShareWidthConverter", xaml);
+        Assert.False(xaml.Contains("StaticResource PercentWidthConverter", StringComparison.Ordinal),
+            "PercentWidthConverter returns a GridLength and silently fails against Border.Width, " +
+            "which renders an empty bar that still looks like a valid track.");
+    }
+
+    /// <summary>
+    /// The converter must be registered, or StaticResource resolution throws at load.
+    /// </summary>
+    [Fact]
+    public void ShareWidthConverter_IsRegisteredInAppResources()
+    {
+        string appXaml = ReadRepoFile("App.xaml");
+
+        Assert.Contains("x:Key=\"ShareWidthConverter\"", appXaml);
+    }
+
     [Fact]
     public void Analyze_DoesNotThrow()
     {
