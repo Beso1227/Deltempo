@@ -245,7 +245,15 @@ public static class ProtectionPolicy
             return true;
         }
 
-        // 7. Gaming Platform Assets & Libraries (Steam, Epic Games, GOG, Riot, Ubisoft, EA)
+        // 7. Durable AppData Application State (licences, cloud sync databases, credential
+        // vaults, SSH/GPG key stores, shell jump lists). These are STATE, not cache.
+        if (IsAppDataStateCore(pathLower))
+        {
+            matchedReason = "Application data: licence, cloud sync, credential vault, or key store state";
+            return true;
+        }
+
+        // 8. Gaming Platform Assets & Libraries (Steam, Epic Games, GOG, Riot, Ubisoft, EA)
         // Exempt disposable cache, temp download chunks, compiled shaders, webcaches, crashdumps, and logs:
         bool isGamingCacheOrTemp =
             pathLower.Contains(@"\steamapps\downloading\", StringComparison.OrdinalIgnoreCase) ||
@@ -266,7 +274,7 @@ public static class ProtectionPolicy
             return true;
         }
 
-        // 8. Sensitive Extensions (KeePass databases, cryptographic keys, personal documents, source code, AI weights)
+        // 9. Sensitive Extensions (KeePass databases, cryptographic keys, personal documents, source code, AI weights)
         // If a sensitive document is sitting in a temp or download folder, we STILL protect it!
         if (SensitiveExtensions.Contains(ext))
         {
@@ -292,7 +300,7 @@ public static class ProtectionPolicy
             }
         }
 
-        // 9. NTFS Reparse Point, Symlink or Junction
+        // 10. NTFS Reparse Point, Symlink or Junction
         if (PathSecurity.IsReparsePointOrLink(path))
         {
             matchedReason = "Filesystem Reparse Point, Symbolic Link, or Directory Junction";
@@ -477,6 +485,167 @@ public static class ProtectionPolicy
                 if (!inExplicitCache)
                 {
                     return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// AppData subtrees holding DURABLE application state rather than disposable cache:
+    /// cloud sync databases, licence/activation data, credential vaults, key stores, and
+    /// shell jump lists. Every marker is anchored with a trailing separator so a near-miss
+    /// name (for example "OneDriveCache") is never refused.
+    /// </summary>
+    private static readonly FrozenSet<string> AppDataStateSubtreeMarkers = new string[]
+    {
+        @"\microsoft\onedrive",
+        @"\microsoft\office",
+        @"\microsoft\credentials",
+        @"\recent\automaticdestinations",
+        @"\recent\customdestinations",
+        @"\vault\",
+        @"\ssh\",
+        @"\gnupg\",
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Per-user shell hive files living directly in the AppData ROOT. Prefix-matched because
+    /// the shell writes timestamped siblings (NTUSER.DAT-1FA2B3C4).
+    /// </summary>
+    private static readonly FrozenSet<string> AppDataStateRootFilePrefixes = new string[]
+    {
+        "ntuser.dat",
+        "usrclass.dat",
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Upper bound on directories inspected by <see cref="TryGetProtectedDescendant"/>.
+    /// Exceeding it FAILS CLOSED: an incomplete scan must never authorise a recursive delete.
+    /// </summary>
+    private const int ProtectedDescendantScanCap = 5000;
+
+    /// <summary>
+    /// True when the path is durable application state inside a user AppData tree.
+    /// Public entry point; normalizes the path first.
+    /// </summary>
+    public static bool IsAppDataApplicationState(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return false;
+        string canonical = PathSecurity.NormalizeCanonicalPath(path);
+        return !string.IsNullOrEmpty(canonical) && IsAppDataStateCore(canonical);
+    }
+
+    /// <summary>
+    /// Core predicate. Lowercases defensively rather than trusting the caller: a
+    /// case-sensitive marker match silently fails to protect, which is the worst
+    /// possible failure direction for a safety guard.
+    /// </summary>
+    private static bool IsAppDataStateCore(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return false;
+
+        string pathLower = path.ToLowerInvariant();
+
+        // Normalize to a DIRECTORY-shaped string (trailing separator) so a path that IS the
+        // marked folder still matches. Without this, marker "\vault\" would match
+        // "AppData\Roaming\Vault\keys" but NOT "AppData\Roaming\Vault" itself - and the
+        // directory-unit guard is exactly the case that needs to fire.
+        string probe = pathLower.EndsWith(@"\", StringComparison.Ordinal) ? pathLower : pathLower + @"\";
+
+        // Scoped to AppData trees on purpose: "vault", "ssh" and "gnupg" are only refuse
+        // targets beneath %APPDATA% / %LOCALAPPDATA% / LocalLow. A user's own
+        // C:\Projects\vault\ source tree is not application state.
+        if (!probe.Contains(@"\appdata\", StringComparison.Ordinal)) return false;
+
+        foreach (var marker in AppDataStateSubtreeMarkers)
+        {
+            if (probe.Contains(marker, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        string fileName = Path.GetFileName(pathLower);
+        foreach (var prefix in AppDataStateRootFilePrefixes)
+        {
+            if (fileName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Guards RECURSIVE directory deletion. <see cref="IsProtected"/> is evaluated per FILE,
+    /// so it never runs for <c>Directory.Delete(path, recursive: true)</c> - a scope root that
+    /// merely CONTAINS a protected subtree would otherwise be deleted straight through it.
+    ///
+    /// Returns true and sets <paramref name="matchedSubtree"/> to the first protected subtree
+    /// found beneath <paramref name="path"/>. Fails closed when the scan cap is exceeded.
+    /// </summary>
+    public static bool TryGetProtectedDescendant(string path, out string matchedSubtree)
+    {
+        matchedSubtree = string.Empty;
+        if (string.IsNullOrWhiteSpace(path)) return false;
+
+        string canonical = PathSecurity.NormalizeCanonicalPath(path);
+        if (string.IsNullOrEmpty(canonical) || !Directory.Exists(canonical)) return false;
+
+        // The denylist is AppData-scoped, so nothing outside an AppData tree can match.
+        if (!canonical.ToLowerInvariant().Contains(@"\appdata\", StringComparison.Ordinal)) return false;
+
+        if (IsAppDataStateCore(canonical))
+        {
+            matchedSubtree = canonical;
+            return true;
+        }
+
+        var queue = new Queue<string>();
+        queue.Enqueue(canonical);
+        int examined = 0;
+
+        while (queue.Count > 0)
+        {
+            string current = queue.Dequeue();
+
+            IEnumerable<string> children;
+            try
+            {
+                children = Directory.EnumerateDirectories(current);
+            }
+            catch
+            {
+                continue; // unreadable directory: cannot prove it is safe, but cannot prove otherwise either
+            }
+
+            foreach (string child in children)
+            {
+                if (++examined > ProtectedDescendantScanCap)
+                {
+                    // Fail closed: an incomplete scan must never authorise a recursive delete.
+                    matchedSubtree = current;
+                    return true;
+                }
+
+                try
+                {
+                    // Never traverse a link: a junction here could redirect the walk (and any
+                    // later delete) outside the tree this guard is reasoning about.
+                    if (PathSecurity.IsReparsePointOrLink(child)) continue;
+
+                    string childCanonical = PathSecurity.NormalizeCanonicalPath(child);
+                    if (string.IsNullOrEmpty(childCanonical)) continue;
+
+                    string childLower = childCanonical.ToLowerInvariant();
+                    if (IsAppDataStateCore(childLower))
+                    {
+                        matchedSubtree = childCanonical;
+                        return true;
+                    }
+
+                    queue.Enqueue(childCanonical);
+                }
+                catch
+                {
+                    continue;
                 }
             }
         }

@@ -271,6 +271,20 @@ public static class RootLeftoverPurgeService
             return;
         }
 
+        // Directory.Delete(recursive: true) removes a whole subtree in one syscall, so the
+        // per-file IsProtected check that CleanupPlanner/Executor rely on never runs for it.
+        // Refuse the folder when anything beneath it is durable AppData application state
+        // (OneDrive sync DB, Office licences, credential vaults, key stores). Checked once
+        // here so it covers every recursive delete below, including the post-unlock retry.
+        if (ProtectionPolicy.TryGetProtectedDescendant(item.PathOrKey, out string protectedSubtree))
+        {
+            res.ErrorsCount++;
+            res.ErrorMessages.Add(
+                $"Safety shield blocked deletion of '{item.PathOrKey}': it contains protected " +
+                $"application data ('{protectedSubtree}'). Remove or move that data manually, then retry.");
+            return;
+        }
+
         try
         {
             long size = RootLeftoverScannerService.CalculateDirectorySizeSafe(item.PathOrKey);
