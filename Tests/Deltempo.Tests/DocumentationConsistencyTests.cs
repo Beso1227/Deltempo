@@ -586,6 +586,154 @@ public class DocumentationConsistencyTests
         }
     }
 
+    /// <summary>
+    /// The prose-claim regex used by the guards above looks for a number ADJACENT to
+    /// the word "tests". The structured field reads <c>"testCount": 1089</c> - the
+    /// number follows the word and nothing test-shaped follows the number - so the
+    /// regex matches nothing there and the field silently rotted to 1018 while the
+    /// badge had moved past 1055. Answer engines read ai-catalog.json as structured
+    /// metadata, so the field needs its own assertion.
+    /// </summary>
+    [Fact]
+    public void PublishedAiCatalog_TestCountField_MatchesThePublishedBadge()
+    {
+        var root = RepoRoot();
+        var catalog = File.ReadAllText(Path.Combine(root, "docs", "ai-catalog.json"));
+
+        var field = Regex.Match(catalog, "\"testCount\"\\s*:\\s*(\\d+)");
+        Assert.True(field.Success, "docs/ai-catalog.json has no testCount field.");
+
+        var readme = File.ReadAllText(Path.Combine(root, "README.md"));
+        int declared = int.Parse(Regex.Match(readme, @"tests-(\d+)_passed").Groups[1].Value);
+
+        Assert.True(int.Parse(field.Groups[1].Value) == declared,
+            $"docs/ai-catalog.json testCount is {field.Groups[1].Value} but the published badge says {declared}. " +
+            "The field is machine-read metadata; sweep it together with the badge, prose and translations.");
+    }
+
+    /// <summary>
+    /// The sitemap is how search engines learn a static page exists. A page published
+    /// without an entry is invisible to crawlers; an entry pointing at a missing page
+    /// is a 404 that Search Console reports against the whole sitemap. Checked in both
+    /// directions, because both rot paths have happened on this site.
+    /// </summary>
+    [Fact]
+    public void Sitemap_LinksEveryPublishedPageAndOnlyExistingOnes()
+    {
+        var root = RepoRoot();
+        var xml = File.ReadAllText(Path.Combine(root, "docs", "sitemap.xml"));
+
+        const string prefix = "https://beso1227.github.io/Deltempo/";
+
+        var locations = Regex.Matches(xml, @"<loc>([^<]+)</loc>")
+            .Cast<Match>()
+            .Select(m => m.Groups[1].Value.Trim())
+            .ToList();
+        Assert.True(locations.Count > 0, "docs/sitemap.xml has no <loc> entries.");
+
+        foreach (var loc in locations)
+        {
+            Assert.True(loc.StartsWith(prefix, StringComparison.Ordinal),
+                $"docs/sitemap.xml entry {loc} is not under {prefix}.");
+
+            var relative = loc[prefix.Length..].Trim('/');
+            var file = string.IsNullOrEmpty(relative)
+                ? Path.Combine(root, "docs", "index.html")
+                : Path.Combine(root, "docs", relative.Replace('/', Path.DirectorySeparatorChar), "index.html");
+
+            Assert.True(File.Exists(file),
+                $"docs/sitemap.xml lists {loc} but {Path.GetRelativePath(root, file).Replace('\\', '/')} does not exist.");
+        }
+
+        var listed = locations
+            .Select(loc => loc[prefix.Length..].Trim('/'))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var dir in Directory.GetDirectories(Path.Combine(root, "docs")))
+        {
+            if (!File.Exists(Path.Combine(dir, "index.html"))) continue;
+
+            var page = Path.GetRelativePath(root, dir).Replace('\\', '/')[("docs/".Length)..];
+            Assert.True(listed.Contains(page),
+                $"docs/{page}/index.html is published but missing from docs/sitemap.xml, so crawlers cannot discover it.");
+        }
+    }
+
+    /// <summary>
+    /// The SEO head (canonical, description, JSON-LD) lives in static HTML that no
+    /// compiler and no test ever rendered, so it rots silently. The JSON-LD half is
+    /// the dangerous one: every consumer DROPS a malformed block without an error, so
+    /// a single typo deletes a page's structured data and nothing anywhere complains.
+    /// </summary>
+    [Fact]
+    public void EveryPublishedPage_HasSeoHeadAndParseableJsonLd()
+    {
+        var root = RepoRoot();
+
+        var pages = new List<string> { Path.Combine(root, "docs", "index.html") };
+        pages.AddRange(Directory.GetDirectories(Path.Combine(root, "docs"))
+            .Where(d => File.Exists(Path.Combine(d, "index.html")))
+            .Select(d => Path.Combine(d, "index.html")));
+
+        foreach (var page in pages)
+        {
+            var relative = Path.GetRelativePath(root, page).Replace('\\', '/');
+            var html = File.ReadAllText(page);
+
+            Assert.True(Regex.IsMatch(html, @"<link rel=""canonical"" href=""https://beso1227\.github\.io/"),
+                $"{relative} has no canonical link pointing at the published site.");
+            Assert.True(Regex.IsMatch(html, @"<meta name=""description"" content=""[^""]+"""),
+                $"{relative} has no meta description.");
+            Assert.True(Regex.IsMatch(html, @"<title>[^<]+</title>"),
+                $"{relative} has no <title>.");
+
+            var blocks = Regex.Matches(html, @"<script type=""application/ld\+json"">(.*?)</script>", RegexOptions.Singleline)
+                .Cast<Match>()
+                .Select(m => m.Groups[1].Value)
+                .ToList();
+            Assert.True(blocks.Count > 0, $"{relative} has no JSON-LD block.");
+
+            foreach (var block in blocks)
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(block);
+                    _ = doc.RootElement;
+                }
+                catch (System.Text.Json.JsonException ex)
+                {
+                    Assert.Fail($"{relative} contains a malformed JSON-LD block ({ex.Message}). " +
+                        "Consumers drop invalid JSON-LD silently, so the page would lose its structured " +
+                        "data with no error anywhere else.");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// llms.txt is the file an AI crawler reads FIRST (llmstxt.org convention). A page
+    /// missing from it exists for search engines but not for answer engines - exactly
+    /// the state /compare/ and /alternatives/ shipped in until this guard existed.
+    /// The sitemap is the source of truth for what counts as published.
+    /// </summary>
+    [Fact]
+    public void LlmsTxt_LinksEveryPublishedPage()
+    {
+        var root = RepoRoot();
+        var xml = File.ReadAllText(Path.Combine(root, "docs", "sitemap.xml"));
+        var llms = File.ReadAllText(Path.Combine(root, "docs", "llms.txt"));
+
+        var missing = Regex.Matches(xml, @"<loc>([^<]+)</loc>")
+            .Cast<Match>()
+            .Select(m => m.Groups[1].Value.Trim())
+            .Where(loc => !llms.Contains(loc, StringComparison.Ordinal))
+            .ToList();
+
+        Assert.True(missing.Count == 0,
+            "docs/llms.txt does not link: " + string.Join(", ", missing) +
+            ". llms.txt is the AI-facing entry point; every published page must be reachable from it.");
+    }
+
     private static IEnumerable<string> EnumerateInstructionFiles(string root)
     {
         var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".md", ".txt", ".yml", ".yaml", ".ps1", ".cmd" };
