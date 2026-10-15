@@ -19,11 +19,11 @@ public static class CleanupPlanner
         bool sendToRecycleBin = false,
         CancellationToken ct = default)
     {
-        var plan = new CleanupPlan
-        {
-            ScopeId = scopeId,
-            ScopeName = scopeName
-        };
+        // Actions are accumulated into a local List and handed to the plan at the end. Writing
+        // them one at a time through the public Actions list is the same cost, but doing it
+        // directly also means no opportunity to pre-size. More importantly, this keeps the
+        // plan's memoized totals valid: the list is never mutated after assignment.
+        var actions = new List<PlannedFileAction>();
 
         var enumOptions = new EnumerationOptions
         {
@@ -62,7 +62,7 @@ public static class CleanupPlanner
 
                         var intendedAction = DetermineAction(safetyResult.Tier, sendToRecycleBin, apply24HourShield);
 
-                        plan.Actions.Add(new PlannedFileAction
+                        actions.Add(new PlannedFileAction
                         {
                             FilePath = file.FullPath,
                             FileName = file.FileName,
@@ -87,6 +87,13 @@ public static class CleanupPlanner
                 System.Diagnostics.Trace.WriteLine($"[Deltempo Planner] Dir skipped: {ex.Message}");
             }
         }
+
+        var plan = new CleanupPlan
+        {
+            ScopeId = scopeId,
+            ScopeName = scopeName,
+            Actions = actions
+        };
 
         return plan;
     }
