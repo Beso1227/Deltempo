@@ -1,5 +1,6 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
   "name": "Deltempo",
   "alternateName": ["WinTempCleaner", "Deltempo Disk Cleaner", "Deltempo PC Cleaner", "Deltempo Memory Optimizer"],
   "version": "3.2.0",
@@ -61,5 +62,5 @@
     "CLI headless automation for CI/CD and PowerShell",
     "Zero telemetry, 100% offline and local"
   ],
-  "testCount": 1018,
+  "testCount": 1089
 }

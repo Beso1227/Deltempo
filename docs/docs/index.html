@@ -94,7 +94,9 @@
     ]
   }
   </script>
-  <link rel="alternate" type="application/json" href="ai-catalog.json" title="AI Agent Catalog">
+  <link rel="alternate" type="application/json" href="../ai-catalog.json" title="AI Agent Catalog">
+  <!-- Machine-readable context for AI agents -->
+  <link rel="alternate" type="text/plain" href="../llms.txt" title="llms.txt - LLM context for Deltempo">
 </head>
 <body>
 
@@ -166,6 +168,8 @@
     <a href="../faq/" class="mobile-nav-link">FAQ</a>
     <a href="../changelog/" class="mobile-nav-link">Changelog</a>
     <a href="." class="mobile-nav-link">Documentation</a>
+    <a href="../compare/" class="mobile-nav-link">Deltempo vs CCleaner</a>
+    <a href="../alternatives/" class="mobile-nav-link">Best Free Alternatives</a>
     <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="mobile-nav-link">GitHub Repository</a>
   </div>
 
@@ -290,11 +294,11 @@
     <!-- Section 6: Architecture & Testing -->
     <div class="double-bezel">
       <div class="card-inner">
-        <h2 class="doc-heading">6. Volume Scan Coordination &amp; 612 Verification Tests</h2>
+        <h2 class="doc-heading">6. Volume Scan Coordination &amp; Release Verification</h2>
         <p class="doc-lead">Deltempo organizes filesystem operations with drive-aware parallelism and strict verification standards:</p>
         <ul class="doc-list">
           <li class="doc-list-item"><strong>VolumeScanCoordinator:</strong> Partitions directory enumeration into per-physical-volume queues. SSDs run concurrent high-IOPS worker pools, while HDDs execute serialized traversals to prevent mechanical head thrashing.</li>
-          <li class="doc-list-item"><strong>612 Automated Tests:</strong> Full unit, integration, memory leak, and adversarial filesystem security tests pass with zero warnings before any tag is released.</li>
+          <li class="doc-list-item"><strong>Automated Verification Suite:</strong> Full unit, integration, memory leak, and adversarial filesystem security tests (more than a thousand of them, count published on the repository badge) pass with zero warnings before any tag is released.</li>
           <li><strong>100% Self-Contained:</strong> Zero runtime dependencies, zero external DLL requirements, and zero registry bloat.</li>
         </ul>
       </div>
@@ -315,6 +319,8 @@
         <li><a href="../download/" class="footer-link">Download</a></li>
         <li><a href="../faq/" class="footer-link">FAQ</a></li>
         <li><a href="../changelog/" class="footer-link">Changelog</a></li>
+        <li><a href="../compare/" class="footer-link">Compare</a></li>
+        <li><a href="../alternatives/" class="footer-link">Alternatives</a></li>
         <li><a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="footer-link">GitHub</a></li>
       </ul>
       <div class="footer-copy">

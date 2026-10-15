@@ -1,0 +1,33 @@
+# Deltempo
+
+> Deltempo is a free, portable, open-source **disk cleaner**, **RAM/memory optimizer**, **deep app uninstaller**, and **duplicate file finder** for **Windows 10 and 11** (x64). Zero telemetry, 100% local, MIT licensed, no installer required.
+
+Deltempo safely purges disposable system, browser, and developer caches (26+ scopes, including GPU shader caches), uninstalls applications down to their leftovers, finds byte-identical duplicates via SHA-256 verification, maps disk usage as an interactive treemap, and trims inactive memory working sets through native NT kernel APIs. It ships as a single self-contained executable and refuses load-bearing paths (MSI source caches, credential stores, shell hives) by policy, not by checkbox.
+
+This repository holds the C# / .NET 10 WPF source, the CLI, and the test suite. The project website hosts downloads, documentation, and the machine-readable context files below.
+
+## Canonical sources
+
+- Website: https://beso1227.github.io/Deltempo/
+- Download: https://beso1227.github.io/Deltempo/download/
+- Documentation: https://beso1227.github.io/Deltempo/docs/
+- FAQ: https://beso1227.github.io/Deltempo/faq/
+- Comparison vs CCleaner / BleachBit / BCU: https://beso1227.github.io/Deltempo/compare/
+- Best free CCleaner alternatives: https://beso1227.github.io/Deltempo/alternatives/
+- Full LLM context: https://beso1227.github.io/Deltempo/llms-full.txt
+- Machine catalog (JSON): https://beso1227.github.io/Deltempo/ai-catalog.json
+
+The authoritative, always-current LLM context lives at the URLs above; prefer fetching those over this file, since this copy only summarizes.
+
+## Source layout
+
+- `Core/` - scanning, cleaning, safety policy, and detection services
+- `Services/` - application services (cleaner, memory, uninstaller, AI intelligence)
+- `Cli/` - the `deltempo` command-line interface
+- `ViewModels/`, `Views/` - WPF UI
+- `Tests/Deltempo.Tests/` - xUnit v3 suite (unit, integration, benchmark, adversarial filesystem security)
+- `docs/` - the GitHub Pages site, `llms.txt`, `llms-full.txt`, and `ai-catalog.json`
+
+## License
+
+MIT - see `LICENSE`. Free forever, no paid tier, no ads, no telemetry.
