@@ -53,7 +53,12 @@ public partial class MainWindow
 
             await WinTempCleaner.Core.Scanning.VolumeScanCoordinator.ExecutePartitionedAsync(
                 _targets,
-                target => target.FolderPath,
+                // Partition on the volume the target's REAL directories live on. Keying on
+                // FolderPath put all seventeen display-string scopes into one "DEFAULT"
+                // partition, so the whole scan ran at parallelism 3 regardless of how many
+                // drives were present.
+                target => WinTempCleaner.Core.Scanning.VolumeScanCoordinator
+                    .ResolveVolumeKeyForTarget(target, WinTempCleaner.Services.CleanerService.ResolveDirectoriesForFolderPublic),
                 async (target, token) =>
                 {
                     await _cleanerService.ScanFolderAsync(target, AddLog, token, safeMode);

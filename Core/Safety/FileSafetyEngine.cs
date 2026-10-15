@@ -74,12 +74,32 @@ public static class FileSafetyEngine
 
         try
         {
+            // Only stat the filesystem when the caller did NOT already supply the metadata.
+            // The planner gets LastWriteTimeUtc and Length straight from the scanner's
+            // FindFirstFileExW and passes them in; re-reading them here doubled the stat
+            // count for every file in every scan. FileInfo construction is not free, and
+            // on a 500k-file %TEMP% that was ~500k avoidable FileInfo allocations.
+            bool callerSuppliedMetadata =
+                !string.IsNullOrWhiteSpace(fileName) || sizeBytes > 0 || lastModified.HasValue;
+
             var fileInfo = new FileInfo(canonicalPath);
             if (fileInfo.Exists)
             {
-                fileLastModified = fileInfo.LastWriteTimeUtc;
-                fileSizeBytes = fileInfo.Length;
                 resolvedFileName = fileInfo.Name;
+
+                if (!callerSuppliedMetadata)
+                {
+                    fileLastModified = fileInfo.LastWriteTimeUtc;
+                    fileSizeBytes = fileInfo.Length;
+                }
+                else
+                {
+                    // Trust the scanner's metadata, but the extension and file name must
+                    // come from the filesystem - the scanner record may carry a short name.
+                    fileLastModified = lastModified?.ToUniversalTime() ?? fileInfo.LastWriteTimeUtc;
+                    fileSizeBytes = sizeBytes;
+                }
+
                 ext = fileInfo.Extension.ToLowerInvariant();
             }
             else

@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
+using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Core.Scanning;
 
@@ -11,6 +13,87 @@ namespace WinTempCleaner.Core.Scanning;
 public static class VolumeScanCoordinator
 {
     public const int DefaultMaxParallelismPerVolume = 3;
+
+    /// <summary>
+    /// Resolves the partition for a cleanup TARGET rather than a raw path.
+    /// </summary>
+    /// <remarks>
+    /// The scan used to be partitioned on TargetFolderInfo.FolderPath. For the eight scopes
+    /// whose FolderPath is a real path that works. For the other seventeen it is a DISPLAY
+    /// STRING - "Browser Web Caches", "App Caches Pool", "VSS Shadow Storage (System Volume
+    /// Information)" - so Path.GetPathRoot returns nothing, every one of them resolved to the
+    /// single "DEFAULT" partition, and all the work ran at maxParallelismPerVolume: 3
+    /// together. The coordinator's stated purpose was not achieved for most of the scan.
+    ///
+    /// This resolves the target's ACTUAL directories and keys on the volume those live on.
+    /// Resolving is not free - a device-driver resolver touches DriveInfo - so the result is
+    /// only computed once per target for grouping, never per item.
+    /// </remarks>
+    public static string ResolveVolumeKeyForTarget(
+        WinTempCleaner.Models.TargetFolderInfo target,
+        Func<WinTempCleaner.Models.TargetFolderInfo, IEnumerable<string>> directoryResolver)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(directoryResolver);
+
+        // A genuine path in FolderPath is both cheaper and more accurate than resolving.
+        if (!string.IsNullOrWhiteSpace(target.FolderPath))
+        {
+            string? root = null;
+            try
+            {
+                root = Path.GetPathRoot(target.FolderPath);
+            }
+            catch
+            {
+                // Not a path - fall through to resolution.
+            }
+
+            if (!string.IsNullOrEmpty(root))
+            {
+                return ResolveVolumeKey(target.FolderPath);
+            }
+        }
+
+        // Shell/virtual targets carry their own identity and must not be merged.
+        if (target.IsSpecialShellTarget)
+        {
+            return "VIRTUAL_SHELL";
+        }
+
+        try
+        {
+            var directories = directoryResolver(target);
+            if (directories != null)
+            {
+                foreach (string directory in directories)
+                {
+                    if (string.IsNullOrWhiteSpace(directory)) continue;
+
+                    string? root = null;
+                    try
+                    {
+                        root = Path.GetPathRoot(directory);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    if (!string.IsNullOrEmpty(root))
+                    {
+                        return ResolveVolumeKey(directory);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] Volume key resolution failed for '{target.Name}': {ex.Message}");
+        }
+
+        return "DEFAULT";
+    }
 
     /// <summary>
     /// Identifies the normalized drive root or volume partition identifier for a given folder path.
