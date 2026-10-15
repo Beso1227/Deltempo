@@ -214,6 +214,18 @@ public static class CleanupExecutor
 
                 try
                 {
+                    // One Restart Manager session per worker thread for the WHOLE run,
+                    // rather than one per lock query per file.
+                    //
+                    // Lock queries are only reached on a failure path, but that failure
+                    // path asks about the same file up to three times (GetLockingProcesses,
+                    // IsFileLocked, then GetLockingProcesses again to attribute the lock).
+                    // With a session per query, a batch of 10^5 files across 16 workers paid
+                    // 16 * N session create/destroy pairs - and each session costs more than
+                    // the query it wraps. RmRegisterResources replaces the resource set on
+                    // each call, so per-file attribution is unchanged; nothing is batched.
+                    using var restartManagerScope = RestartManagerService.BeginQueryScope();
+
                     Parallel.ForEach(actionable, pOptions, (action, loopState) =>
                     {
                         if (ct.IsCancellationRequested)

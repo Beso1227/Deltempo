@@ -191,18 +191,26 @@ public static class OrphanedAppService
         // 2. Scan Running Processes
         try
         {
+            // Process.GetProcesses() hands back Process objects that each hold an open
+            // handle to a process. They were never disposed here, so a harvest left one
+            // live handle per running process until the finalizer got round to them -
+            // on a busy machine several hundred handles, held for as long as the caller
+            // kept the resulting HashSet alive.
             foreach (var proc in Process.GetProcesses())
             {
-                try
+                using (proc)
                 {
-                    if (!string.IsNullOrEmpty(proc.ProcessName))
+                    try
                     {
-                        activeKeywords.Add(proc.ProcessName);
+                        if (!string.IsNullOrEmpty(proc.ProcessName))
+                        {
+                            activeKeywords.Add(proc.ProcessName);
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                    catch (Exception ex)
+                    {
+                        Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
+                    }
                 }
             }
         }
@@ -211,7 +219,68 @@ public static class OrphanedAppService
             Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
         }
 
-        // 3. Scan Start Menu & Desktop Shortcuts and Portable Executables
+        // Steps 3-8 are INDEPENDENT evidence sources: the Start Menu walk, the uninstall
+        // keys, the App Paths keys, the Services keys, the AppX packages, and the
+        // package-managed tool directories. They read disjoint data and add to a set,
+        // so running them one after another serialized a thousand independent registry
+        // and filesystem round-trips - each one a potential disk hit on a cold hive -
+        // with nothing else to overlap them.
+        //
+        // They now run concurrently and merge their results. Each collector builds its
+        // OWN local set and never touches a shared HashSet, so there is no write race to
+        // defend against; the union happens once at the end on this thread.
+        //
+        // Each collector is individually failure-tolerant exactly as it was before: a
+        // source that throws contributes nothing and the others still land, which is
+        // what the degraded-evidence guard downstream relies on. That is why a collector
+        // throwing is swallowed per-task rather than faulting the whole harvest.
+        var collectors = new Func<HashSet<string>>[]
+        {
+            HarvestShortcutAndPortableIdentities,
+            HarvestUninstallEntryIdentities,
+            HarvestAppPathIdentities,
+            HarvestServiceIdentities,
+            HarvestAppXPackageIdentities,
+            HarvestInstalledToolIdentities
+        };
+
+        var collected = new HashSet<string>[collectors.Length];
+
+        Parallel.For(0, collectors.Length, new ParallelOptions
+        {
+            MaxDegreeOfParallelism = Math.Min(Environment.ProcessorCount, 6)
+        }, i =>
+        {
+            try
+            {
+                collected[i] = collectors[i]();
+            }
+            catch (Exception ex)
+            {
+                // A collector must not be able to take the harvest down with it: the
+                // degraded-evidence guard exists precisely to reason about partial
+                // harvests, so partial is a state the code above it already handles.
+                Trace.WriteLine($"[Deltempo] Evidence source {i} failed: {ex.Message}");
+                collected[i] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            }
+        });
+
+        foreach (var set in collected)
+        {
+            activeKeywords.UnionWith(set);
+        }
+
+        return activeKeywords;
+    }
+
+    /// <summary>
+    /// Step 3. Start Menu &amp; Desktop shortcuts and portable executables.
+    /// </summary>
+    private static HashSet<string> HarvestShortcutAndPortableIdentities()
+    {
+        var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        // Scan Start Menu & Desktop Shortcuts and Portable Executables
         string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         string[] shortcutRoots =
         {
@@ -237,10 +306,10 @@ public static class OrphanedAppService
                         if (ext == ".lnk" || ext == ".exe" || ext == ".url")
                         {
                             var name = Path.GetFileNameWithoutExtension(file.Name);
-                            activeKeywords.Add(name);
+                            keywords.Add(name);
                             foreach (var token in name.Split(' ', '-', '_', '.'))
                             {
-                                if (token.Length >= 3) activeKeywords.Add(token);
+                                if (token.Length >= 3) keywords.Add(token);
                             }
                         }
                     }
@@ -251,6 +320,17 @@ public static class OrphanedAppService
                 }
             }
         }
+
+        return keywords;
+    }
+
+    /// <summary>
+    /// Step 4. Registry uninstall entries, in both the 64-bit and WOW6432Node views and
+    /// under both HKLM and HKCU.
+    /// </summary>
+    private static HashSet<string> HarvestUninstallEntryIdentities()
+    {
+        var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // 4. Scan Registry Uninstall Entries (Both 64-bit and 32-bit WOW64)
         string[] registryRoots =
@@ -264,7 +344,7 @@ public static class OrphanedAppService
             try
             {
                 using var hklmKey = Registry.LocalMachine.OpenSubKey(rootKey);
-                ExtractNamesFromKey(hklmKey, activeKeywords);
+                ExtractNamesFromKey(hklmKey, keywords);
             }
             catch (Exception ex)
             {
@@ -274,13 +354,23 @@ public static class OrphanedAppService
             try
             {
                 using var hkcuKey = Registry.CurrentUser.OpenSubKey(rootKey);
-                ExtractNamesFromKey(hkcuKey, activeKeywords);
+                ExtractNamesFromKey(hkcuKey, keywords);
             }
             catch (Exception ex)
             {
                 Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
             }
         }
+
+        return keywords;
+    }
+
+    /// <summary>
+    /// Step 5. Registry App Paths keys.
+    /// </summary>
+    private static HashSet<string> HarvestAppPathIdentities()
+    {
+        var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // 5. Scan Registry App Paths
         string[] appPathRoots =
@@ -299,7 +389,7 @@ public static class OrphanedAppService
                     foreach (var sub in apKey.GetSubKeyNames())
                     {
                         string cleanSub = Path.GetFileNameWithoutExtension(sub);
-                        if (!string.IsNullOrEmpty(cleanSub)) activeKeywords.Add(cleanSub);
+                        if (!string.IsNullOrEmpty(cleanSub)) keywords.Add(cleanSub);
                     }
                 }
             }
@@ -309,28 +399,72 @@ public static class OrphanedAppService
             }
         }
 
+        return keywords;
+    }
+
+    /// <summary>
+    /// Step 6. Image paths of every registered Windows service.
+    /// </summary>
+    /// <remarks>
+    /// A typical host has several hundred services, so this is the single largest
+    /// source of registry round-trips in the harvest - one OpenSubKey per service name.
+    /// The names are read in parallel below; each service still contributes its own
+    /// image path or nothing, so a service we cannot open is still simply absent.
+    /// </remarks>
+    private static HashSet<string> HarvestServiceIdentities()
+    {
+        var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         // 6. Scan Active Windows Services
         try
         {
             using var srvKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services");
             if (srvKey != null)
             {
-                foreach (var sName in srvKey.GetSubKeyNames())
+                string[] serviceNames = srvKey.GetSubKeyNames();
+
+                // RegistryKey is not documented as thread-safe, and sharing one open key
+                // across threads is exactly the kind of thing that works until it does
+                // not. Each worker thread therefore gets its OWN Services handle, opened
+                // once and reused for all the services it handles - re-opening the root
+                // path per service would re-walk three key levels for every entry.
+                using var threadKeys = new ThreadLocal<RegistryKey?>(() =>
+                    Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services"));
+
+                var exeNames = new string[serviceNames.Length];
+                var dirNames = new string[serviceNames.Length];
+
+                Parallel.For(0, serviceNames.Length, new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = Math.Min(Environment.ProcessorCount, 8)
+                }, i =>
                 {
                     try
                     {
-                        using var sSub = srvKey.OpenSubKey(sName);
+                        RegistryKey? localServices = threadKeys.Value;
+                        if (localServices == null) return;
+
+                        using var sSub = localServices.OpenSubKey(serviceNames[i]);
                         var imgPath = sSub?.GetValue("ImagePath")?.ToString();
                         if (!string.IsNullOrEmpty(imgPath))
                         {
                             var clean = imgPath.Trim('"', ' ');
-                            var fName = Path.GetFileNameWithoutExtension(clean);
-                            if (!string.IsNullOrEmpty(fName)) activeKeywords.Add(fName);
-                            var dName = Path.GetFileName(Path.GetDirectoryName(clean) ?? "");
-                            if (!string.IsNullOrEmpty(dName)) activeKeywords.Add(dName);
+                            exeNames[i] = Path.GetFileNameWithoutExtension(clean);
+                            dirNames[i] = Path.GetFileName(Path.GetDirectoryName(clean) ?? "");
                         }
                     }
-                    catch { }
+                    catch
+                    {
+                        // A service we cannot open contributes no identity, exactly as
+                        // before. One unreadable service must not lose the other several
+                        // hundred, which is what a throw out of Parallel.For would do.
+                    }
+                });
+
+                for (int i = 0; i < serviceNames.Length; i++)
+                {
+                    if (!string.IsNullOrEmpty(exeNames[i])) keywords.Add(exeNames[i]);
+                    if (!string.IsNullOrEmpty(dirNames[i])) keywords.Add(dirNames[i]);
                 }
             }
         }
@@ -338,6 +472,16 @@ public static class OrphanedAppService
         {
             Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
         }
+
+        return keywords;
+    }
+
+    /// <summary>
+    /// Step 7. AppX / Microsoft Store package identities.
+    /// </summary>
+    private static HashSet<string> HarvestAppXPackageIdentities()
+    {
+        var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // 7. Scan Modern Windows Store / AppX Packages
         try
@@ -356,10 +500,10 @@ public static class OrphanedAppService
                         string displayName = pkgKey.GetValue("DisplayName")?.ToString()?.Trim() ?? string.Empty;
                         if (!string.IsNullOrWhiteSpace(displayName) && !displayName.StartsWith("@{") && !displayName.StartsWith("ms-resource:"))
                         {
-                            activeKeywords.Add(displayName);
+                            keywords.Add(displayName);
                             foreach (var token in displayName.Split(' ', '-', '_', '.'))
                             {
-                                if (token.Length >= 3) activeKeywords.Add(token);
+                                if (token.Length >= 3) keywords.Add(token);
                             }
                         }
 
@@ -367,7 +511,7 @@ public static class OrphanedAppService
                         if (underscoreIdx > 0)
                         {
                             string prefix = pkgName.Substring(0, underscoreIdx);
-                            activeKeywords.Add(prefix);
+                            keywords.Add(prefix);
                         }
                     }
                     catch { }
@@ -376,12 +520,21 @@ public static class OrphanedAppService
         }
         catch { }
 
-        // 8. Package-managed & portable tool identities (npm/pip/cargo/scoop/winget/PATH).
-        //    Registry absence is not evidence of uninstall for these tools: a live uv, lean-ctx,
-        //    or npm-global folder would otherwise classify as an orphan once its age shield lapses.
-        AddInstalledToolIdentities(activeKeywords);
+        return keywords;
+    }
 
-        return activeKeywords;
+    /// <summary>
+    /// Step 8. Package-managed &amp; portable tool identities (npm/pip/cargo/scoop/winget/PATH).
+    /// </summary>
+    /// <remarks>
+    /// Registry absence is not evidence of uninstall for these tools: a live uv, lean-ctx,
+    /// or npm-global folder would otherwise classify as an orphan once its age shield lapses.
+    /// </remarks>
+    private static HashSet<string> HarvestInstalledToolIdentities()
+    {
+        var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        AddInstalledToolIdentities(keywords);
+        return keywords;
     }
 
     /// <summary>

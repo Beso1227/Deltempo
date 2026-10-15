@@ -65,7 +65,7 @@ The Deltempo project maintains the following security practices and considers th
 - [x] **Automated security scanning** — CodeQL security analysis runs on every push and pull request.
 - [x] **Dependency monitoring** — Dependabot alerts for NuGet packages and GitHub Actions.
 - [x] **Deterministic safety engine** — rule-based file classification with 24-hour safety shield, no heuristics.
-- [x] **Test coverage enforcement** — 1089/1089 tests passing; CI enforces quality gates.
+- [x] **Test coverage enforcement** — 1106/1106 tests passing; CI enforces quality gates.
 - [x] **Reproducible builds** — release workflow builds standalone self-contained executables from tagged sources.
 - [x] **Zero telemetry by design** — no analytics, no tracking, no phone-home; all processing is local.
 - [x] **Opt-in network features** — AI analysis and CLI registration require explicit user action.

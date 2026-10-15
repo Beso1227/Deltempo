@@ -16,6 +16,32 @@ public record LockingProcessInfo(
 /// </summary>
 public static class RestartManagerService
 {
+    #region Scoped-query memo
+
+    // Set for the duration of a BeginQueryScope. Keyed by the exact path asked about, so
+    // a hit is only ever returned for the same file - which is what makes this safe where
+    // session reuse was not.
+    private static System.Collections.Concurrent.ConcurrentDictionary<string, List<LockingProcessInfo>>? QueryCache;
+
+    // The scope currently in force, so a cache hit can be attributed to the run that
+    // earned it. Per-scope counters stay exact even when several scans overlap.
+    private static QueryScope? _currentScope;
+
+    private static int _openScopes;
+
+    // Diagnostics. The interesting ratio is queries ISSUED against queries SERVED FROM
+    // CACHE: the saving is exactly the redundant repeat-asking the executor used to do.
+    private static long _queriesIssued;
+    private static long _queriesCached;
+
+    /// <summary>Lock queries asked since process start.</summary>
+    public static long QueriesIssued => Interlocked.Read(ref _queriesIssued);
+
+    /// <summary>Lock queries answered from an active memo since process start.</summary>
+    public static long QueriesServedFromCache => Interlocked.Read(ref _queriesCached);
+
+    #endregion
+
     #region Win32 P/Invoke Definitions
 
     private const int CCH_RM_MAX_APP_NAME = 255;
@@ -118,6 +144,70 @@ public static class RestartManagerService
     }
 
     /// <summary>
+    /// Memoizes lock queries for the duration of a bulk run, so a run costs one Restart
+    /// Manager query per DISTINCT file rather than one per query site.
+    /// </summary>
+    /// <remarks>
+    /// GetLockingProcesses opens a Restart Manager session per call, and start/end are real
+    /// work inside the Restart Manager service - more expensive than the query itself. The
+    /// executor asks about the SAME file up to three times on a failure path: it queries
+    /// the lockers, calls IsFileLocked (which queries again on an access-denied), and then
+    /// queries once more to attribute the lock for the user-facing message. All three ask
+    /// an identical question about an identical path within a few milliseconds.
+    ///
+    /// So the redundancy is eliminated at the query level rather than at the session level.
+    /// That distinction matters: an earlier attempt at this optimisation POOLED THE SESSIONS
+    /// instead, re-registering each new path on a reused handle. RmRegisterResources does
+    /// NOT replace the session's resource set - it accumulates. A subsequent query on a
+    /// different, unlocked file therefore still reported the previous file's holder. That
+    /// is not a performance defect, it is a SAFETY defect: it makes the app claim a file is
+    /// held by a process that is not holding it, which arms a reboot deletion against it.
+    /// A per-path memo cannot produce that error, because it only ever returns an answer
+    /// about the path that was asked about.
+    ///
+    /// The cache is scoped, so it cannot go stale between runs: disposing the scope drops
+    /// it, and only the outermost scope clears it.
+    /// </remarks>
+    public static QueryScope BeginQueryScope() => new();
+
+    /// <summary>
+    /// A bulk-run memo scope. Disposing it drops the memo; nested scopes are reference
+    /// counted so only the outermost dispose releases anything.
+    /// </summary>
+    public sealed class QueryScope : IDisposable
+    {
+        private long _queriesServedFromCache;
+
+        public QueryScope()
+        {
+            // A nested scope is free and shares the outer's state, so an inner dispose
+            // cannot blank entries the outer run still needs.
+            if (Interlocked.Increment(ref _openScopes) == 1)
+            {
+                _currentScope = this;
+                QueryCache = new System.Collections.Concurrent.ConcurrentDictionary<string, List<LockingProcessInfo>>(
+                    StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
+        /// <summary>
+        /// Repeat asks about a path that were answered from the memo rather than by asking
+        /// the Restart Manager again. Per-scope, so it is exact even while other scans run
+        /// concurrently.
+        /// </summary>
+        public long QueriesServedFromCache => Interlocked.Read(ref _queriesServedFromCache);
+
+        internal void NoteCacheHit() => Interlocked.Increment(ref _queriesServedFromCache);
+
+        public void Dispose()
+        {
+            if (Interlocked.Decrement(ref _openScopes) > 0) return;
+            QueryCache = null;
+            _currentScope = null;
+        }
+    }
+
+    /// <summary>
     /// Inspects an active file lock using Windows Restart Manager and returns the holding processes.
     /// Returns empty list if file is unlocked or query cannot be fulfilled.
     /// </summary>
@@ -129,14 +219,35 @@ public static class RestartManagerService
             return result;
         }
 
+        // Inside a scope, the answer for a path is memoized. The executor asks about the
+        // same file up to three times on a failure path within a few milliseconds, and a
+        // cache keyed by the exact path cannot answer a question about a different file -
+        // which is the property session reuse lacked.
+        System.Collections.Concurrent.ConcurrentDictionary<string, List<LockingProcessInfo>>? cache = QueryCache;
+
+        Interlocked.Increment(ref _queriesIssued);
+
+        if (cache != null && cache.TryGetValue(filePath, out List<LockingProcessInfo>? cached))
+        {
+            _currentScope?.NoteCacheHit();
+            Interlocked.Increment(ref _queriesCached);
+            return cached;
+        }
+
         string sessionKey = Guid.NewGuid().ToString();
-        int res = RmStartSession(out uint handle, 0, sessionKey);
-        if (res != 0) return result;
+        if (RmStartSession(out uint handle, 0, sessionKey) != 0)
+        {
+            return result;
+        }
+
+        // Set only when the Restart Manager actually answered, so an inconclusive query is
+        // never memoized as "not locked".
+        bool queryCompleted = false;
 
         try
         {
             string[] resources = [filePath];
-            res = RmRegisterResources(handle, 1, resources, 0, null, 0, null);
+            int res = RmRegisterResources(handle, 1, resources, 0, null, 0, null);
             if (res != 0) return result;
 
             uint procInfoNeeded = 0;
@@ -173,6 +284,10 @@ public static class RestartManagerService
                     }
                 }
             }
+
+            // The query itself succeeded, whether or not anything holds the file. Both an
+            // empty list and a populated list are real answers worth memoizing.
+            queryCompleted = true;
         }
         catch (Exception ex)
         {
@@ -181,6 +296,15 @@ public static class RestartManagerService
         finally
         {
             RmEndSession(handle);
+        }
+
+        // Only a completed query is memoized. Caching the empty result of a query that
+        // failed or was inconclusive would turn a transient Restart Manager hiccup into a
+        // permanent "not locked" answer for the rest of the run - the same class of bug as
+        // the AI cache pinning a file to an offline verdict.
+        if (cache != null && queryCompleted)
+        {
+            cache[filePath] = result;
         }
 
         return result;
