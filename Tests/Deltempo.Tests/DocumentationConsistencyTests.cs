@@ -339,6 +339,11 @@ public class DocumentationConsistencyTests
                                    BindingFlags.Instance | BindingFlags.Static |
                                    BindingFlags.DeclaredOnly;
 
+        // Categories that are run by a scheduled job rather than by the pull-request gate.
+        // A test excluded here must NOT be advertised in the published count, otherwise the
+        // badge would promise coverage that an ordinary pull request never exercises.
+        var gateExcludedCategories = new[] { "Benchmark", "FuzzDeep" };
+
         int total = 0;
 
         foreach (Type type in assembly.GetTypes())
@@ -347,11 +352,11 @@ public class DocumentationConsistencyTests
             {
                 var attributes = method.GetCustomAttributes(inherit: true);
 
-                bool isBenchmark = attributes
+                bool isGateExcluded = attributes
                     .OfType<TraitAttribute>()
-                    .Any(t => t.Name == "Category" && t.Value == "Benchmark");
+                    .Any(t => t.Name == "Category" && gateExcludedCategories.Contains(t.Value, StringComparer.Ordinal));
 
-                if (isBenchmark) continue;
+                if (isGateExcluded) continue;
 
                 bool isFact = attributes.Any(a => a is FactAttribute);
                 bool isTheory = attributes.Any(a => a is TheoryAttribute);

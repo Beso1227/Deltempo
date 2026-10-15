@@ -1,0 +1,96 @@
+# Nightly soak: the full-strength fuzz campaign that the pull-request gate deliberately
+# does not pay for.
+#
+# PathSecurityFuzzTests.NormalizeCanonicalPath_DeepFuzz_MillionCases runs 1,000,000
+# cases against the path canonicalizer. On its own it took roughly 3m34s of a ~4m14s
+# local verification run, and because it is the single longest test its total runtime
+# swung by several minutes run to run. That made every pull request slow and the numbers
+# hard to reason about.
+#
+# The gate therefore runs Category!=Benchmark&Category!=FuzzDeep, which still includes
+# the sibling 100,000-case Fuzz test on every pull request - fuzz coverage is not reduced,
+# it is only moved to where its cost is worth paying. This workflow runs the million-case
+# campaign nightly, and on demand, so a regression in the canonicalizer still surfaces
+# within a day instead of waiting for someone to run it locally.
+#
+# This job is advisory: it reports, it does not block a pull request.
+
+name: Soak (Deep Fuzz Campaign)
+
+on:
+  schedule:
+    # 03:17 UTC daily. Off the hour on purpose - the top of the hour is when every other
+    # scheduled workflow on GitHub fires, and the queue is measurably slower.
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: soak-deep-fuzz
+  cancel-in-progress: false
+
+jobs:
+  deep-fuzz:
+    name: Deep Fuzz (1,000,000 cases)
+    runs-on: windows-latest
+    # A soak job must never be the reason a push goes red.
+    continue-on-error: true
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v7
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/Directory.Packages.props'
+
+      - name: Restore MSBuild intermediates
+        uses: actions/cache@v4
+        with:
+          path: |
+            obj
+            **/obj
+          key: ${{ runner.os }}-msbuild-obj-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-msbuild-obj-
+
+      - name: Build test project
+        run: dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+
+      - name: Run the deep fuzz campaign
+        shell: pwsh
+        run: |
+          $testExe = "Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe"
+          if (-not (Test-Path $testExe)) {
+            Write-Error "::error::MTP test executable not found at $testExe."
+            exit 1
+          }
+
+          $sw = [Diagnostics.Stopwatch]::StartNew()
+          & $testExe --filter "Category=FuzzDeep" *>&1 |
+            Tee-Object -FilePath "deep-fuzz-run.log"
+          $sw.Stop()
+
+          Write-Host ("Deep fuzz campaign completed in {0}." -f $sw.Elapsed)
+
+          # The exit code is not the verdict: Microsoft.Testing.Platform force-exits
+          # non-zero when foreground threads outlive the run even with every test green.
+          if (Select-String -Path "deep-fuzz-run.log" -Pattern 'failed: [1-9]' -Quiet) {
+            Write-Error "::error::The deep fuzz campaign reported a failure; see deep-fuzz-run.log."
+            exit 1
+          }
+
+          if (-not (Select-String -Path "deep-fuzz-run.log" -Pattern 'failed: 0' -Quiet)) {
+            Write-Error "::error::The deep fuzz campaign did not report a clean summary."
+            exit 1
+          }
+
+      - name: Upload campaign log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deep-fuzz-log
+          path: deep-fuzz-run.log
+          retention-days: 14

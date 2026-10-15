@@ -20,6 +20,24 @@ jobs:
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
+          # Restore was previously uncached, so every run re-downloaded the whole NuGet
+          # graph and rebuilt from scratch. CPM puts all versions in Directory.Packages.props,
+          # which is what the cache key must be keyed on.
+          cache: true
+          cache-dependency-path: '**/Directory.Packages.props'
+
+      - name: Restore MSBuild intermediates
+        # obj/ holds the generated WPF .g.cs files, the project.assets.json and the NuGet
+        # g.props/g.targets. Restoring them lets MSBuild run incrementally instead of
+        # re-running the markup compiler and reference resolution on every run.
+        uses: actions/cache@v4
+        with:
+          path: |
+            obj
+            **/obj
+          key: ${{ runner.os }}-msbuild-obj-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-msbuild-obj-
 
       - name: Restore Dependencies
         run: dotnet restore deltempo.sln
@@ -107,7 +125,12 @@ jobs:
           # *.testingplatformextensions.json manifest, so they silently produce no file;
           # the console log plus the exit code are the reliable signals here.
           & $testExe `
-            --filter "Category!=Benchmark" `
+            # FuzzDeep is the 1,000,000-case canonicalizer campaign. It alone accounted for
+            # ~3m34s of a ~4m14s run, and its runtime swings by minutes, so charging every
+            # pull request for it made the gate both slow and unpredictable. It still runs on
+            # every PR at 100,000 cases via the sibling Fuzz trait; the full-strength
+            # campaign runs nightly in soak.yml. Neither is ever merely skipped.
+            --filter "Category!=Benchmark&Category!=FuzzDeep" `
             --coverage `
             --coverage-output-format cobertura `
             --results-directory Tests/Deltempo.Tests/TestResults `
