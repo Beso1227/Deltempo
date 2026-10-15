@@ -382,14 +382,21 @@ public static class CleanupExecutor
                                 string failReason = !string.IsNullOrEmpty(permFailDetail) ? permFailDetail : $"Deletion failed ({action.Action}): {action.FilePath}";
                                 var errorCategory = CleanupErrorCategory.AccessDenied;
 
-                                var lockingProcesses = RestartManagerService.GetLockingProcesses(action.FilePath);
+                                // Query against the path revalidation validated, not the raw caller string.
+                                var lockingProcesses = RestartManagerService.GetLockingProcesses(validatedPath);
                                 bool isLockedOrInUse = lockingProcesses.Count > 0 ||
                                                        permWin32Err == 32 || permWin32Err == 33 ||
-                                                       RestartManagerService.IsFileLocked(action.FilePath);
+                                                       RestartManagerService.IsFileLocked(validatedPath);
 
                                 // In Win32, loaded DLLs, EXEs, and memory-mapped files return Error 5 (Access Denied).
                                 // When running elevated with DACL permissions granted, remaining Error 5 indicates active kernel/module lock.
-                                if (permWin32Err == 5 && !isLockedOrInUse)
+                                //
+                                // Error 5 is ALSO what an ACL denial returns, so treating it as
+                                // proof of a lock mislabels a permission failure as "in use" and
+                                // inflates InUseLockedCount. Only promote it when there is
+                                // corroborating evidence of a holder; otherwise it stays a
+                                // genuine access failure and is reported as one.
+                                if (permWin32Err == 5 && !isLockedOrInUse && lockingProcesses.Count > 0)
                                 {
                                     isLockedOrInUse = true;
                                 }
@@ -399,13 +406,32 @@ public static class CleanupExecutor
 
                                 if (isLockedOrInUse)
                                 {
-                                    RestartManagerService.ScheduleRebootDeletion(action.FilePath);
-                                    errorCategory = CleanupErrorCategory.FileLocked;
-                                    failReason = lockingProcesses.Count > 0
-                                        ? $"In use by: {string.Join(", ", lockingProcesses.Select(p => $"{p.ProcessName} (PID {p.ProcessId})"))} (scheduled for reboot removal)"
-                                        : "In use: active handle or loaded module held by running application (scheduled for reboot removal)";
+                                    // Only claim a reboot deletion that actually registered.
+                                    // ScheduleRebootDeletion is now guarded and can refuse -
+                                    // and it is the only thing that makes the promise true.
+                                    bool rebootScheduled =
+                                        RestartManagerService.ScheduleRebootDeletion(validatedPath);
 
-                                    logAction?.Invoke($"Notice: '{action.FileName}' is in use - scheduled for reboot cleanup", LogLevel.Info);
+                                    errorCategory = CleanupErrorCategory.FileLocked;
+
+                                    string lockerDetail = lockingProcesses.Count > 0
+                                        ? $"In use by: {string.Join(", ", lockingProcesses.Select(p => $"{p.ProcessName} (PID {p.ProcessId})"))}"
+                                        : "In use: active handle or loaded module held by running application";
+
+                                    if (rebootScheduled)
+                                    {
+                                        failReason = $"{lockerDetail} (scheduled for reboot removal)";
+                                        logAction?.Invoke($"Notice: '{action.FileName}' is in use - scheduled for reboot cleanup", LogLevel.Info);
+                                    }
+                                    else
+                                    {
+                                        // Previously reported as "(scheduled for reboot
+                                        // removal)" regardless of whether MoveFileEx
+                                        // succeeded, which told the user the file would
+                                        // disappear at next boot when it would not.
+                                        failReason = $"{lockerDetail} (not removed - close the application and retry)";
+                                        logAction?.Invoke($"Notice: '{action.FileName}' is in use and could not be scheduled for reboot cleanup", LogLevel.Warning);
+                                    }
                                 }
 
                                 lock (syncLock)
@@ -435,32 +461,54 @@ public static class CleanupExecutor
                             Interlocked.Increment(ref failedCount);
                             Interlocked.Add(ref failedBytes, action.SizeBytes);
 
+                            // Corroborate with the Restart Manager rather than trusting the exception type.
+                            // Every IOException and every UnauthorizedAccessException was
+                            // previously classified as "locked" outright, so a plain ACL
+                            // denial was reported to the user as an application holding the
+                            // file open, and armed a reboot deletion against it.
                             int hr = ex.HResult & 0xFFFF;
-                            bool isLocked = ex is IOException || hr == 32 || hr == 33 ||
-                                            RestartManagerService.IsFileLocked(action.FilePath) ||
-                                            ex is UnauthorizedAccessException;
+                            var lockingProcesses = RestartManagerService.GetLockingProcesses(validatedPath);
+
+                            bool isLocked = lockingProcesses.Count > 0 ||
+                                            hr == 32 || hr == 33 ||
+                                            RestartManagerService.IsFileLocked(validatedPath);
 
                             string errReason = ex.Message;
                             var errCategory = isLocked ? CleanupErrorCategory.FileLocked : CleanupErrorCategory.Unknown;
 
-                            var lockingProcesses = RestartManagerService.GetLockingProcesses(action.FilePath);
                             if (lockingProcesses.Count > 0)
                             {
                                 string procNames = string.Join(", ", lockingProcesses.Select(p => $"{p.ProcessName} (PID {p.ProcessId})"));
-                                errReason = $"Locked by {procNames}: {ex.Message} (scheduled for reboot removal)";
+
+                                bool rebootScheduled =
+                                    RestartManagerService.ScheduleRebootDeletion(validatedPath);
+
+                                errReason = rebootScheduled
+                                    ? $"Locked by {procNames}: {ex.Message} (scheduled for reboot removal)"
+                                    : $"Locked by {procNames}: {ex.Message} (not removed - close the application and retry)";
                                 errCategory = CleanupErrorCategory.FileLocked;
-                                logAction?.Invoke($"Notice: '{action.FileName}' is in use by {procNames} - scheduled for reboot cleanup", LogLevel.Info);
+
+                                logAction?.Invoke(
+                                    rebootScheduled
+                                        ? $"Notice: '{action.FileName}' is in use by {procNames} - scheduled for reboot cleanup"
+                                        : $"Notice: '{action.FileName}' is in use by {procNames} and could not be scheduled for reboot cleanup",
+                                    rebootScheduled ? LogLevel.Info : LogLevel.Warning);
                             }
                             else if (isLocked)
                             {
-                                errReason = $"In use: {ex.Message} (scheduled for reboot removal)";
-                                errCategory = CleanupErrorCategory.FileLocked;
-                                logAction?.Invoke($"Notice: '{action.FileName}' is in use - scheduled for reboot cleanup", LogLevel.Info);
-                            }
+                                bool rebootScheduled =
+                                    RestartManagerService.ScheduleRebootDeletion(validatedPath);
 
-                            if (errCategory == CleanupErrorCategory.FileLocked)
-                            {
-                                RestartManagerService.ScheduleRebootDeletion(action.FilePath);
+                                errReason = rebootScheduled
+                                    ? $"In use: {ex.Message} (scheduled for reboot removal)"
+                                    : $"In use: {ex.Message} (not removed - close the application and retry)";
+                                errCategory = CleanupErrorCategory.FileLocked;
+
+                                logAction?.Invoke(
+                                    rebootScheduled
+                                        ? $"Notice: '{action.FileName}' is in use - scheduled for reboot cleanup"
+                                        : $"Notice: '{action.FileName}' is in use and could not be scheduled for reboot cleanup",
+                                    rebootScheduled ? LogLevel.Info : LogLevel.Warning);
                             }
 
                             lock (syncLock)

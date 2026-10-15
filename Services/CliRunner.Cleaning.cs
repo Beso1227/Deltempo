@@ -356,14 +356,14 @@ public static partial class CliRunner
         bool yesPrompt = HasFlag(args, "--yes", "-y");
         bool silent = HasFlag(args, "--silent", "-s");
 
-        if (sendToRecycle)
-        {
-            SettingsService.Update(s => s.SendToRecycleBin = true);
-        }
-
+        // --recycle-bin is a per-invocation flag, not a preference change. It used to
+        // call SettingsService.Update, which PERSISTED SendToRecycleBin = true into
+        // settings.json and was never restored - so one `clean --recycle-bin` in a
+        // scheduled task silently changed the GUI's behaviour for every later run.
+        // Capture the effective value for this process only; the settings file is untouched.
         string? exportPath = GetOptionValue(args, "--export");
         string? filter = GetFilterKeyword(args, 1);
-        bool recycleBinSetting = SettingsService.Current.SendToRecycleBin;
+        bool recycleBinSetting = sendToRecycle || SettingsService.Current.SendToRecycleBin;
 
         var allTargets = ResolveTargets();
         var selectedTargets = allTargets
