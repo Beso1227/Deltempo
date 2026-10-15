@@ -118,6 +118,45 @@ public static class IFileOperationHelper
     #endregion
 
     /// <summary>
+    /// Releases a COM reference wrapper without letting a release failure mask the
+    /// caller's own exception.
+    /// </summary>
+    private static void ReleaseComObject(object? comObject)
+    {
+        if (comObject == null) return;
+        try
+        {
+            if (Marshal.IsComObject(comObject))
+            {
+                Marshal.ReleaseComObject(comObject);
+            }
+        }
+        catch
+        {
+            // Releasing twice, or after the RCW was finalized, throws. Never let that
+            // escape a finally block.
+        }
+    }
+
+    /// <summary>
+    /// Reads IFileOperation.GetAnyOperationsAborted defensively. It is declared on the
+    /// interface but was never called, so a partially-aborted batch was indistinguishable
+    /// from a complete one.
+    /// </summary>
+    private static bool SafeGetAnyOperationsAborted(IFileOperation? fileOp)
+    {
+        if (fileOp == null) return false;
+        try
+        {
+            return fileOp.GetAnyOperationsAborted();
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Recycles a single file safely without locking across threads.
     /// Prefers COM IFileOperation, falling back to SHFileOperationW on error.
     /// </summary>
@@ -126,28 +165,44 @@ public static class IFileOperationHelper
         if (string.IsNullOrWhiteSpace(filePath) || (!File.Exists(filePath) && !Directory.Exists(filePath)))
             return false;
 
+        // COM reference wrappers are released in `finally`, on every path. Previously the
+        // release happened only on the success branch, so any throw from
+        // SHCreateItemFromParsingName, DeleteItem or PerformOperations reached the catch
+        // with BOTH RCWs still alive. This runs inside a 16-way Parallel.ForEach over
+        // potentially 10^5 files, so those leaked wrappers accumulated for the lifetime of
+        // the process rather than being collected.
+        IFileOperation? fileOp = null;
+        object? shellItem = null;
         try
         {
-            var fileOp = (IFileOperation)new FileOperationClass();
+            fileOp = (IFileOperation)new FileOperationClass();
             fileOp.SetOperationFlags(
                 FileOperationFlags.FOF_ALLOWUNDO |
                 FileOperationFlags.FOF_NOCONFIRMATION |
                 FileOperationFlags.FOF_SILENT |
                 FileOperationFlags.FOF_NOERRORUI);
 
-            int hr = SHCreateItemFromParsingName(filePath, IntPtr.Zero, IShellItemGuid, out object shellItem);
+            int hr = SHCreateItemFromParsingName(filePath, IntPtr.Zero, IShellItemGuid, out shellItem);
             if (hr == 0 && shellItem != null)
             {
                 fileOp.DeleteItem(shellItem, null!);
                 fileOp.PerformOperations();
-                Marshal.ReleaseComObject(shellItem);
-                Marshal.ReleaseComObject(fileOp);
-                return !File.Exists(filePath) && !Directory.Exists(filePath);
+
+                // A batch can abort part-way; counting it as success because the items
+                // vanished is fine, but an ABORT means some did not. Honour the flag.
+                bool anyAborted = SafeGetAnyOperationsAborted(fileOp);
+
+                return !File.Exists(filePath) && !Directory.Exists(filePath) && !anyAborted;
             }
         }
         catch
         {
             // Fallback to SHFileOperation below
+        }
+        finally
+        {
+            ReleaseComObject(shellItem);
+            ReleaseComObject(fileOp);
         }
 
         // Fallback: SHFileOperationW with double-null termination
@@ -172,23 +227,33 @@ public static class IFileOperationHelper
     /// Recycles a batch of files in a single pass using COM IFileOperation or batch SHFileOperationW.
     /// Orders of magnitude faster than serial one-by-one file recycling.
     /// </summary>
+    /// <returns>
+    /// Recycled count when the whole batch completed; the NEGATED recycled count when the
+    /// batch was partially aborted; 0 when nothing could be recycled. The sign is the
+    /// signal: previously a partially-aborted batch was returned as an unqualified success
+    /// count, so a caller had no way to tell "all 500 recycled" from "300 of 500".
+    /// </returns>
     public static int RecycleBatch(IReadOnlyList<string> filePaths)
     {
         if (filePaths == null || filePaths.Count == 0) return 0;
 
         int succeeded = 0;
 
-        // Try batch COM IFileOperation
+        // Try batch COM IFileOperation. Every RCW is released in `finally`: previously the
+        // shell items were held in a List and released only after a SUCCESSFUL
+        // PerformOperations, so a throw leaked every item - up to the whole batch - for the
+        // lifetime of the process.
+        IFileOperation? fileOp = null;
+        var shellItems = new List<object>(filePaths.Count);
         try
         {
-            var fileOp = (IFileOperation)new FileOperationClass();
+            fileOp = (IFileOperation)new FileOperationClass();
             fileOp.SetOperationFlags(
                 FileOperationFlags.FOF_ALLOWUNDO |
                 FileOperationFlags.FOF_NOCONFIRMATION |
                 FileOperationFlags.FOF_SILENT |
                 FileOperationFlags.FOF_NOERRORUI);
 
-            var shellItems = new List<object>(filePaths.Count);
             foreach (var path in filePaths)
             {
                 if (string.IsNullOrWhiteSpace(path)) continue;
@@ -204,11 +269,10 @@ public static class IFileOperationHelper
             {
                 fileOp.PerformOperations();
 
-                foreach (var item in shellItems)
-                {
-                    Marshal.ReleaseComObject(item);
-                }
-                Marshal.ReleaseComObject(fileOp);
+                // GetAnyOperationsAborted was declared on the interface but never called, so
+                // a partially-aborted batch was reported as a full success. Existence alone
+                // cannot tell the difference.
+                bool anyAborted = SafeGetAnyOperationsAborted(fileOp);
 
                 foreach (var path in filePaths)
                 {
@@ -217,19 +281,33 @@ public static class IFileOperationHelper
                         succeeded++;
                     }
                 }
-                return succeeded;
+
+                // An aborted batch is a partial success, not a clean one. Report it as such
+                // so the caller can surface the shortfall instead of claiming a full pass.
+                return anyAborted ? -succeeded : succeeded;
             }
         }
         catch
         {
             // Fall through to SHFileOperation batch fallback
         }
+        finally
+        {
+            foreach (var item in shellItems)
+            {
+                ReleaseComObject(item);
+            }
+            ReleaseComObject(fileOp);
+        }
 
         // Fallback: Group in 100-file multi-string double-null terminated buffers
         const int chunkSize = 100;
-        for (int i = 0; i < filePaths.Count; i += chunkSize)
+        var candidates = filePaths.Where(p => !string.IsNullOrWhiteSpace(p)).ToList();
+        for (int i = 0; i < candidates.Count; i += chunkSize)
         {
-            var chunk = filePaths.Skip(i).Take(chunkSize).ToList();
+            var chunk = candidates.Skip(i).Take(chunkSize).ToList();
+            if (chunk.Count == 0) continue;
+
             var sb = new System.Text.StringBuilder();
             foreach (var path in chunk)
             {
