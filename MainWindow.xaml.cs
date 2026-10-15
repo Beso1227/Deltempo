@@ -289,11 +289,22 @@ public partial class MainWindow : Window
         }
         else if (msg == WM_HOTKEY && wParam.ToInt32() == _hotkeyIdAtom)
         {
-            Dispatcher.Invoke(async () =>
+            // Invoke(Action) returns at the first await and discards the lambda's Task, so
+            // anything thrown by the optimize step was swallowed by the finalizer as an
+            // UnobservedTaskException. Catch it and put it in the log where the user can
+            // see that the hotkey did something other than what they asked.
+            _ = Dispatcher.InvokeAsync(async () =>
             {
-                var res = await MemoryOptimizerService.OptimizeRamAsync();
-                UpdateMemoryTelemetry();
-                AddLog($"[Hotkey Ctrl+Shift+M] Instant RAM optimization complete: Purged {res.FormattedReclaimed} in {res.ExecutionTimeMs}ms.", LogLevel.Success);
+                try
+                {
+                    var res = await MemoryOptimizerService.OptimizeRamAsync();
+                    UpdateMemoryTelemetry();
+                    AddLog($"[Hotkey Ctrl+Shift+M] Instant RAM optimization complete: Purged {res.FormattedReclaimed} in {res.ExecutionTimeMs}ms.", LogLevel.Success);
+                }
+                catch (Exception ex)
+                {
+                    AddLog($"[Hotkey Ctrl+Shift+M] RAM optimization failed: {ex.Message}", LogLevel.Error);
+                }
             });
             handled = true;
         }
@@ -362,7 +373,17 @@ public partial class MainWindow : Window
         // Initialize Tray and Auto-Pilot Guardian
         TrayService.Initialize(
             this,
-            () => Dispatcher.Invoke(async () => await CleanSafeFromTrayAsync()),
+            () => Dispatcher.InvokeAsync(async () =>
+            {
+                try
+                {
+                    await CleanSafeFromTrayAsync();
+                }
+                catch (Exception ex)
+                {
+                    AddLog($"[Tray] Clean & Optimize failed: {ex.Message}", LogLevel.Error);
+                }
+            }),
             () => Dispatcher.Invoke(() => OpenSettingsModal()),
             () => Dispatcher.Invoke(async () =>
             {
@@ -378,9 +399,16 @@ public partial class MainWindow : Window
                 AddLog($"[RAM Engine] Purged standby list: reclaimed {res.FormattedReclaimed} in {res.ExecutionTimeMs}ms.", LogLevel.Success);
                 return res;
             }),
-            () => Dispatcher.Invoke(async () =>
+            () => Dispatcher.InvokeAsync(async () =>
             {
-                await CheckForUpdatesInternalAsync(silent: false);
+                try
+                {
+                    await CheckForUpdatesInternalAsync(silent: false);
+                }
+                catch (Exception ex)
+                {
+                    AddLog($"[Tray] Update check failed: {ex.Message}", LogLevel.Error);
+                }
             }));
 
         AutoCleanService.Start();
@@ -392,8 +420,16 @@ public partial class MainWindow : Window
         {
             _ = Task.Run(async () =>
             {
-                await Task.Delay(2500);
-                await CheckForUpdatesInternalAsync(silent: true);
+                try
+                {
+                    await Task.Delay(2500);
+                    await CheckForUpdatesInternalAsync(silent: true);
+                }
+                catch (Exception ex)
+                {
+                    // Fire-and-forget: without this the exception died in the finalizer.
+                    Debug.WriteLine($"[Deltempo] Startup update check failed: {ex.Message}");
+                }
             });
         }
 
