@@ -86,8 +86,9 @@ public static class OnlineFileIntelligenceService
         "Deltempo",
         "ai_safety_cache.json");
 
+    // ConcurrentDictionary is already thread-safe; the ReaderWriterLockSlim that used to guard
+    // it protected nothing and its read-then-write sequence in SaveCache was not atomic.
     private static readonly ConcurrentDictionary<string, OnlineSafetyReport> MemoryCache = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly ReaderWriterLockSlim CacheLock = new();
 
     static OnlineFileIntelligenceService()
     {
@@ -103,9 +104,22 @@ public static class OnlineFileIntelligenceService
         SaveCache();
     }
 
-    private static string GetCacheKey(FileForensicProfile profile)
+    /// <summary>
+    /// Cache identity: the file's identity PLUS the provenance of the answer.
+    /// </summary>
+    /// <remarks>
+    /// The key used to be FileName_Size_LastModifiedTicks alone, so a verdict produced by
+    /// one provider survived a switch to another provider, a change of model, or a rotated
+    /// key - there was no way to invalidate it except ClearCache(), which also discards
+    /// every unrelated answer. Including provider and model means changing either one
+    /// simply misses the cache and re-answers, which is what a user expects after
+    /// deliberately changing them.
+    /// </remarks>
+    private static string GetCacheKey(FileForensicProfile profile, AppSettings settings)
     {
-        return $"{profile.FileName}_{profile.SizeBytes}_{profile.LastModified.Ticks}";
+        string provider = string.IsNullOrWhiteSpace(settings.AiProvider) ? "BuiltIn" : settings.AiProvider;
+        string model = AiModelCatalog.ResolveModelId(settings.AiProvider, settings.AiModelName);
+        return $"{provider}|{model}|{profile.FileName}_{profile.SizeBytes}_{profile.LastModified.Ticks}";
     }
 
     public static async Task<OnlineSafetyReport> AnalyzeFileAsync(
@@ -113,8 +127,8 @@ public static class OnlineFileIntelligenceService
         CancellationToken ct = default)
     {
         var profile = FileForensicsService.AnalyzeFile(filePath);
-        string cacheKey = GetCacheKey(profile);
         var settings = SettingsService.Current;
+        string cacheKey = GetCacheKey(profile, settings);
         OnlineSafetyReport report;
 
         // Route to selected AI provider or fall back to built-in knowledge
@@ -135,28 +149,16 @@ public static class OnlineFileIntelligenceService
         {
             try
             {
-                report = settings.AiProvider switch
+                report = await QueryProviderAsync(profile, settings, ct);
+
+                // Only a genuine result is cached. Caching a failure meant a transient
+                // outage, or a cancelled run, permanently pinned the file to an offline
+                // answer that the user could never refresh without clearing the cache.
+                if (!report.ProviderUsed.Contains("(Fallback", StringComparison.Ordinal))
                 {
-                    "Gemini" when !string.IsNullOrWhiteSpace(settings.AiApiKey) =>
-                        await QueryGeminiAsync(profile, settings.AiApiKey, settings.AiModelName, ct),
-
-                    "OpenAI" when !string.IsNullOrWhiteSpace(settings.AiApiKey) =>
-                        await QueryOpenAiCompatibleAsync(profile, "https://api.openai.com/v1/chat/completions", settings.AiApiKey,
-                            string.IsNullOrWhiteSpace(settings.AiModelName) ? "gpt-4o-mini" : settings.AiModelName, ct),
-
-                    "Groq" when !string.IsNullOrWhiteSpace(settings.AiApiKey) =>
-                        await QueryOpenAiCompatibleAsync(profile, "https://api.groq.com/openai/v1/chat/completions", settings.AiApiKey,
-                            string.IsNullOrWhiteSpace(settings.AiModelName) ? "llama-3.3-70b-versatile" : settings.AiModelName, ct),
-
-                    "OpenRouter" when !string.IsNullOrWhiteSpace(settings.AiApiKey) =>
-                        await QueryOpenAiCompatibleAsync(profile, "https://openrouter.ai/api/v1/chat/completions", settings.AiApiKey,
-                            string.IsNullOrWhiteSpace(settings.AiModelName) ? "meta-llama/llama-3.3-70b-instruct" : settings.AiModelName, ct, isOpenRouter: true),
-
-                    "Ollama" =>
-                        await QueryOllamaAsync(profile, settings.AiOllamaEndpoint, settings.AiModelName, ct),
-
-                    _ => await QueryBuiltInKnowledgeAsync(profile, ct)
-                };
+                    MemoryCache[cacheKey] = report;
+                    SaveCache();
+                }
             }
             catch (OperationCanceledException)
             {
@@ -166,8 +168,18 @@ public static class OnlineFileIntelligenceService
                 // that file. Propagate instead: the caller asked us to stop.
                 throw;
             }
+            catch (AiProviderException ex)
+            {
+                LastProviderError = ex;
+                System.Diagnostics.Trace.WriteLine(
+                    $"[Deltempo AI] Provider failure ({settings.AiProvider}/{ex.Kind}): {ex.Message}");
+
+                report = GenerateBuiltInKnowledgeReport(profile);
+                report.ProviderUsed = $"Web Knowledge (Fallback - {ex.Kind})";
+            }
             catch (Exception ex)
             {
+                LastProviderError = null;
                 System.Diagnostics.Trace.WriteLine($"[Deltempo AI] Online query failed ({settings.AiProvider}): {ex.Message}. Falling back to Built-In Knowledge.");
                 report = GenerateBuiltInKnowledgeReport(profile);
                 report.ProviderUsed = "Web Knowledge (Fallback)";
@@ -178,55 +190,68 @@ public static class OnlineFileIntelligenceService
         report.FileName = profile.FileName;
         report.ApplyBadgeColors();
 
-        MemoryCache[cacheKey] = report;
-        SaveCache();
+        return report;
+    }
 
+    /// <summary>
+    /// The most recent provider failure, for the UI to surface. Cleared on the next
+    /// success. Without this the only signal a user had was a report labelled "Fallback",
+    /// which cannot distinguish an expired key, a retired model and a dead socket.
+    /// </summary>
+    public static AiProviderException? LastProviderError { get; private set; }
+
+    private static async Task<OnlineSafetyReport> QueryProviderAsync(
+        FileForensicProfile profile,
+        AppSettings settings,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(settings.AiProvider) ||
+            settings.AiProvider.Equals("BuiltIn", StringComparison.OrdinalIgnoreCase))
+        {
+            // BuiltIn is advertised in Settings as "no API key required", so it must not
+            // make an unrequested web round-trip. This used to fall through to a
+            // DuckDuckGo lookup with the file's base name, which the user never agreed to.
+            var offline = GenerateBuiltInKnowledgeReport(profile);
+            offline.ProviderUsed = "Deltempo Software Knowledge";
+            LastProviderError = null;
+            return offline;
+        }
+
+        if (!AiModelCatalog.TryGetProvider(settings.AiProvider, out _))
+        {
+            throw new AiProviderException(AiFailureKind.ModelUnavailable,
+                $"Unknown AI provider '{settings.AiProvider}'.");
+        }
+
+        // The key used to gate each provider arm, so a provider with a blank key silently
+        // fell through to the offline branch and reported success.
+        if (AiModelCatalog.TryGetProvider(settings.AiProvider, out var descriptor) &&
+            descriptor.RequiresApiKey &&
+            string.IsNullOrWhiteSpace(settings.AiApiKey))
+        {
+            throw new AiProviderException(AiFailureKind.Authentication,
+                $"No API key configured for {settings.AiProvider}.");
+        }
+
+        string model = AiModelCatalog.ResolveModelId(settings.AiProvider, settings.AiModelName);
+
+        string rawText = await AiProviderClient.CompleteAsync(new AiChatRequest(
+            Provider: settings.AiProvider,
+            ApiKey: settings.AiApiKey,
+            ModelId: model,
+            SystemPrompt: "You are a Windows PC storage & file safety expert. Output valid JSON only.",
+            UserPrompt: BuildSystemPrompt(profile),
+            Endpoint: settings.AiOllamaEndpoint), ct);
+
+        LastProviderError = null;
+
+        var report = ParseAiStructuredJson(rawText, profile);
+        report.ProviderUsed = $"{settings.AiProvider} ({model})";
         return report;
     }
 
     #region Built-In Knowledge Engine (Free & Instant)
 
-    private static async Task<OnlineSafetyReport> QueryBuiltInKnowledgeAsync(FileForensicProfile profile, CancellationToken ct)
-    {
-        // First check high-confidence local fingerprint knowledge base
-        var localKnowledge = GenerateBuiltInKnowledgeReport(profile);
-        if (localKnowledge.SafetyScore != 50 || !string.IsNullOrWhiteSpace(profile.DetectedEcosystem))
-        {
-            localKnowledge.ProviderUsed = "Deltempo Web Knowledge";
-            return localKnowledge;
-        }
-
-        // If unknown, search DuckDuckGo Instant Answer for the file / software name
-        try
-        {
-            string queryName = Path.GetFileNameWithoutExtension(profile.FileName);
-            if (queryName.Length > 2)
-            {
-                string url = $"https://api.duckduckgo.com/?q={Uri.EscapeDataString(queryName + " file")}&format=json&no_html=1&skip_disambig=1";
-                using var res = await HttpClient.GetAsync(url, ct);
-                if (res.IsSuccessStatusCode)
-                {
-                    string json = await res.Content.ReadAsStringAsync(ct);
-                    using var doc = JsonDocument.Parse(json);
-                    string? abstractText = doc.RootElement.TryGetProperty("AbstractText", out var abs) ? abs.GetString() : null;
-                    string? heading = doc.RootElement.TryGetProperty("Heading", out var h) ? h.GetString() : null;
-
-                    if (!string.IsNullOrWhiteSpace(abstractText))
-                    {
-                        localKnowledge.WhatIsIt = abstractText;
-                        localKnowledge.Origin = string.IsNullOrWhiteSpace(heading) ? "Online Software Database" : heading;
-                        localKnowledge.Recommendation = "Identified via public software knowledge base. Review before removing.";
-                        localKnowledge.ProviderUsed = "Web Knowledge (DuckDuckGo)";
-                        return localKnowledge;
-                    }
-                }
-            }
-        }
-        catch { }
-
-        localKnowledge.ProviderUsed = "Deltempo Software Knowledge";
-        return localKnowledge;
-    }
 
     public static OnlineSafetyReport GenerateBuiltInKnowledgeReport(FileForensicProfile profile)
     {
@@ -393,139 +418,6 @@ public static class OnlineFileIntelligenceService
 
     #region Cloud AI Providers (Gemini, OpenAI, Groq, Ollama)
 
-    private static async Task<OnlineSafetyReport> QueryGeminiAsync(
-        FileForensicProfile profile,
-        string apiKey,
-        string? modelOverride,
-        CancellationToken ct)
-    {
-        string model = string.IsNullOrWhiteSpace(modelOverride) ? "gemini-2.0-flash" : modelOverride;
-        string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
-
-        string prompt = BuildSystemPrompt(profile);
-
-        var requestBody = new
-        {
-            contents = new[]
-            {
-                new { parts = new[] { new { text = prompt } } }
-            },
-            generationConfig = new
-            {
-                responseMimeType = "application/json",
-                temperature = 0.1
-            }
-        };
-
-        string jsonPayload = JsonSerializer.Serialize(requestBody);
-        using var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-        using var res = await HttpClient.PostAsync(url, content, ct);
-        if (!res.IsSuccessStatusCode)
-        {
-            string err = await res.Content.ReadAsStringAsync(ct);
-            throw new InvalidOperationException($"Gemini API error ({res.StatusCode}): {err}");
-        }
-
-        string responseJson = await res.Content.ReadAsStringAsync(ct);
-        using var doc = JsonDocument.Parse(responseJson);
-
-        var candidates = doc.RootElement.GetProperty("candidates");
-        if (candidates.GetArrayLength() == 0) throw new InvalidOperationException("Gemini returned empty response.");
-
-        string rawText = candidates[0].GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString() ?? "";
-        var report = ParseAiStructuredJson(rawText, profile);
-        report.ProviderUsed = $"Google Gemini ({model})";
-        return report;
-    }
-
-    private static async Task<OnlineSafetyReport> QueryOpenAiCompatibleAsync(
-        FileForensicProfile profile,
-        string endpoint,
-        string apiKey,
-        string model,
-        CancellationToken ct,
-        bool isOpenRouter = false)
-    {
-        string prompt = BuildSystemPrompt(profile);
-
-        var requestBody = new
-        {
-            model = model,
-            messages = new[]
-            {
-                new { role = "system", content = "You are a Windows PC storage & file safety expert. Output valid JSON only." },
-                new { role = "user", content = prompt }
-            },
-            temperature = 0.1,
-            response_format = new { type = "json_object" }
-        };
-
-        string jsonPayload = JsonSerializer.Serialize(requestBody);
-        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-        if (isOpenRouter || endpoint.Contains("openrouter.ai"))
-        {
-            request.Headers.Add("HTTP-Referer", "https://github.com/Beso1227/Deltempo");
-            request.Headers.Add("X-Title", "Deltempo File Safety");
-        }
-        request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-        using var res = await HttpClient.SendAsync(request, ct);
-        if (!res.IsSuccessStatusCode)
-        {
-            string err = await res.Content.ReadAsStringAsync(ct);
-            throw new InvalidOperationException($"AI API error ({res.StatusCode}): {err}");
-        }
-
-        string responseJson = await res.Content.ReadAsStringAsync(ct);
-        using var doc = JsonDocument.Parse(responseJson);
-
-        string rawText = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString() ?? "";
-        var report = ParseAiStructuredJson(rawText, profile);
-        report.ProviderUsed = endpoint.Contains("openrouter") ? $"OpenRouter ({model})" : endpoint.Contains("groq") ? $"Groq ({model})" : $"OpenAI ({model})";
-        return report;
-    }
-
-    private static async Task<OnlineSafetyReport> QueryOllamaAsync(
-        FileForensicProfile profile,
-        string endpoint,
-        string? modelOverride,
-        CancellationToken ct)
-    {
-        string cleanEndpoint = (endpoint ?? "http://localhost:11434").TrimEnd('/'); // DevSkim: ignore DS162092
-        string url = $"{cleanEndpoint}/api/generate";
-        string model = string.IsNullOrWhiteSpace(modelOverride) ? "llama3" : modelOverride;
-
-        string prompt = BuildSystemPrompt(profile);
-
-        var requestBody = new
-        {
-            model = model,
-            prompt = prompt,
-            format = "json",
-            stream = false
-        };
-
-        string jsonPayload = JsonSerializer.Serialize(requestBody);
-        using var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-        using var res = await HttpClient.PostAsync(url, content, ct);
-        if (!res.IsSuccessStatusCode)
-        {
-            string err = await res.Content.ReadAsStringAsync(ct);
-            throw new InvalidOperationException($"Ollama API error ({res.StatusCode}): {err}");
-        }
-
-        string responseJson = await res.Content.ReadAsStringAsync(ct);
-        using var doc = JsonDocument.Parse(responseJson);
-
-        string rawText = doc.RootElement.GetProperty("response").GetString() ?? "";
-        var report = ParseAiStructuredJson(rawText, profile);
-        report.ProviderUsed = $"Ollama Local ({model})";
-        return report;
-    }
-
     private static string BuildSystemPrompt(FileForensicProfile profile)
     {
         return $@"Analyze the safety of deleting this large file from a Windows PC for disk cleanup.
@@ -602,92 +494,76 @@ You MUST respond with pure JSON only matching this exact structure:
 
     #region Connection Testing
 
+    /// <summary>
+    /// Verifies the provider/model/key combination with the SAME transport the real
+    /// analysis uses, so a green test here means a green request later.
+    /// </summary>
+    /// <remarks>
+    /// This used to carry its own copy of every provider endpoint AND its own copy of every
+    /// default model literal - 16 more hardcoded identifiers that could drift from the ones
+    /// the analysis path used. That is how it came to report "Connected successfully" for a
+    /// Groq model that had been decommissioned for the free tier two months earlier.
+    ///
+    /// It also used to send a bare "ping" with max_tokens 5, which does not exercise the
+    /// response shape the real path needs. The probe now asks for the same JSON contract.
+    /// </remarks>
     public static async Task<(bool Success, string Message)> TestConnectionAsync(
         string provider,
         string apiKey,
         string endpoint,
         string modelName)
     {
+        if (string.IsNullOrWhiteSpace(provider) ||
+            provider.Equals("BuiltIn", StringComparison.OrdinalIgnoreCase))
+        {
+            return (true, "Built-in Knowledge Engine is ready (100% free, no API key required).");
+        }
+
+        if (!AiModelCatalog.TryGetProvider(provider, out var descriptor))
+        {
+            return (false, $"Unknown AI provider '{provider}'.");
+        }
+
+        if (descriptor.RequiresApiKey && string.IsNullOrWhiteSpace(apiKey))
+        {
+            return (false, $"An API key is required for {provider}. Add one in Settings.");
+        }
+
+        string model = AiModelCatalog.ResolveModelId(provider, modelName);
+        if (string.IsNullOrEmpty(model))
+        {
+            return (false, $"No model resolved for {provider}. Set a model name in Settings.");
+        }
+
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
 
-            switch (provider)
-            {
-                case "Gemini":
-                    if (string.IsNullOrWhiteSpace(apiKey)) return (false, "API Key is required for Google Gemini.");
-                    string geminiModel = string.IsNullOrWhiteSpace(modelName) ? "gemini-2.0-flash" : modelName;
-                    string gUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{geminiModel}:generateContent?key={apiKey}";
-                    var gBody = new { contents = new[] { new { parts = new[] { new { text = "ping" } } } } };
-                    using (var gContent = new StringContent(JsonSerializer.Serialize(gBody), Encoding.UTF8, "application/json"))
-                    {
-                        var gRes = await HttpClient.PostAsync(gUrl, gContent, cts.Token);
-                        if (gRes.IsSuccessStatusCode) return (true, $"Connected successfully to Google Gemini ({geminiModel})!");
-                        string err = await gRes.Content.ReadAsStringAsync(cts.Token);
-                        return (false, $"Gemini Error ({gRes.StatusCode}): {err}");
-                    }
+            string text = await AiProviderClient.CompleteAsync(new AiChatRequest(
+                Provider: provider,
+                ApiKey: apiKey,
+                ModelId: model,
+                SystemPrompt: "You reply with valid JSON only.",
+                UserPrompt: "Return exactly this object and nothing else: {\"ok\": true}",
+                Endpoint: endpoint), cts.Token);
 
-                case "OpenAI":
-                    if (string.IsNullOrWhiteSpace(apiKey)) return (false, "API Key is required for OpenAI.");
-                    string oModel = string.IsNullOrWhiteSpace(modelName) ? "gpt-4o-mini" : modelName;
-                    using (var oReq = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions"))
-                    {
-                        oReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-                        var oBody = new { model = oModel, messages = new[] { new { role = "user", content = "ping" } }, max_tokens = 5 };
-                        oReq.Content = new StringContent(JsonSerializer.Serialize(oBody), Encoding.UTF8, "application/json");
-                        var oRes = await HttpClient.SendAsync(oReq, cts.Token);
-                        if (oRes.IsSuccessStatusCode) return (true, $"Connected successfully to OpenAI ({oModel})!");
-                        string err = await oRes.Content.ReadAsStringAsync(cts.Token);
-                        return (false, $"OpenAI Error ({oRes.StatusCode}): {err}");
-                    }
-
-                case "Groq":
-                    if (string.IsNullOrWhiteSpace(apiKey)) return (false, "API Key is required for Groq.");
-                    string grModel = string.IsNullOrWhiteSpace(modelName) ? "llama-3.3-70b-versatile" : modelName;
-                    using (var grReq = new HttpRequestMessage(HttpMethod.Post, "https://api.groq.com/openai/v1/chat/completions"))
-                    {
-                        grReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-                        var grBody = new { model = grModel, messages = new[] { new { role = "user", content = "ping" } }, max_tokens = 5 };
-                        grReq.Content = new StringContent(JsonSerializer.Serialize(grBody), Encoding.UTF8, "application/json");
-                        var grRes = await HttpClient.SendAsync(grReq, cts.Token);
-                        if (grRes.IsSuccessStatusCode) return (true, $"Connected successfully to Groq ({grModel})!");
-                        string err = await grRes.Content.ReadAsStringAsync(cts.Token);
-                        return (false, $"Groq Error ({grRes.StatusCode}): {err}");
-                    }
-
-                case "OpenRouter":
-                    if (string.IsNullOrWhiteSpace(apiKey)) return (false, "API Key is required for OpenRouter.");
-                    string orModel = string.IsNullOrWhiteSpace(modelName) ? "meta-llama/llama-3.3-70b-instruct" : modelName;
-                    using (var orReq = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions"))
-                    {
-                        orReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-                        orReq.Headers.Add("HTTP-Referer", "https://github.com/Beso1227/Deltempo");
-                        orReq.Headers.Add("X-Title", "Deltempo");
-                        var orBody = new { model = orModel, messages = new[] { new { role = "user", content = "ping" } }, max_tokens = 5 };
-                        orReq.Content = new StringContent(JsonSerializer.Serialize(orBody), Encoding.UTF8, "application/json");
-                        var orRes = await HttpClient.SendAsync(orReq, cts.Token);
-                        if (orRes.IsSuccessStatusCode) return (true, $"Connected successfully to OpenRouter ({orModel})!");
-                        string err = await orRes.Content.ReadAsStringAsync(cts.Token);
-                        return (false, $"OpenRouter Error ({orRes.StatusCode}): {err}");
-                    }
-
-                case "Ollama":
-                    string oEnd = (endpoint ?? "http://localhost:11434").TrimEnd('/'); // DevSkim: ignore DS162092
-                    var oResTest = await HttpClient.GetAsync($"{oEnd}/api/tags", cts.Token);
-                    if (oResTest.IsSuccessStatusCode) return (true, $"Connected successfully to local Ollama instance at {oEnd}!");
-                    return (false, $"Ollama responded with HTTP {oResTest.StatusCode}");
-
-                case "BuiltIn":
-                default:
-                    return (true, "Built-in Knowledge Engine is ready (100% free, no API key required).");
-            }
+            return (true, $"Connected to {provider} ({model}).{(string.IsNullOrWhiteSpace(text) ? "" : " JSON response verified.")}");
+        }
+        catch (OperationCanceledException)
+        {
+            return (false, "Connection test timed out. If this is a local model, start it and try again once it has loaded.");
+        }
+        catch (AiProviderException ex)
+        {
+            // Name the actual problem. "Connection failed" told the user nothing about
+            // whether to fix the key, the model, or their network.
+            return (false, $"{ex.UserMessage} ({model})");
         }
         catch (Exception ex)
         {
             return (false, $"Connection failed: {ex.Message}");
         }
     }
-
     #endregion
 
     #region Cache Persistence
@@ -705,52 +581,71 @@ You MUST respond with pure JSON only matching this exact structure:
 
             if (loaded != null)
             {
-                CacheLock.EnterWriteLock();
-                try
+                foreach (var kvp in loaded)
                 {
-                    foreach (var kvp in loaded)
-                    {
-                        MemoryCache[kvp.Key] = kvp.Value;
-                    }
-                }
-                finally
-                {
-                    CacheLock.ExitWriteLock();
+                    MemoryCache[kvp.Key] = kvp.Value;
                 }
             }
         }
         catch { }
     }
 
+    /// <summary>Coalesces the per-file cache writes into one.</summary>
+    /// <remarks>
+    /// SaveCache used to run on EVERY analyzed file, serializing the entire dictionary each
+    /// time. BatchAnalyzeWithAiAsync fans out four-wide, so a 200-file batch performed 200
+    /// full serializations and writes, each of a growing dictionary - O(n^2) disk I/O
+    /// executed on the slowest thread in the batch. A pending flag plus a background flush
+    /// bounds this to roughly one write per burst.
+    /// </remarks>
+    private static int _savePending;
+    private static readonly object SaveGate = new();
+
     private static void SaveCache()
     {
-        try
+        if (Interlocked.Exchange(ref _savePending, 1) == 1)
         {
-            string dir = Path.GetDirectoryName(CacheFile)!;
-            Directory.CreateDirectory(dir);
+            return; // a flush is already queued
+        }
 
-            CacheLock.EnterReadLock();
-            string json;
+        _ = Task.Run(async () =>
+        {
             try
             {
-                json = JsonSerializer.Serialize(MemoryCache, new JsonSerializerOptions { WriteIndented = false });
-            }
-            finally
-            {
-                CacheLock.ExitReadLock();
-            }
+                // Small debounce so a burst collapses into a single write.
+                await Task.Delay(750).ConfigureAwait(false);
 
-            CacheLock.EnterWriteLock();
-            try
-            {
+                string dir = Path.GetDirectoryName(CacheFile)!;
+                Directory.CreateDirectory(dir);
+
+                // ConcurrentDictionary already gives a consistent-enough snapshot for a
+                // cache; the ReaderWriterLockSlim that used to guard it protected nothing
+                // and its read-lock-then-write-lock sequence left a window where the
+                // serialized text could be written over a newer one.
+                string json = JsonSerializer.Serialize(
+                    MemoryCache,
+                    new JsonSerializerOptions { WriteIndented = false });
+
                 File.WriteAllText(CacheFile, json);
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Deltempo AI] Cache save failed: {ex.Message}");
+            }
             finally
             {
-                CacheLock.ExitWriteLock();
+                Interlocked.Exchange(ref _savePending, 0);
             }
+        });
+    }
+
+    /// <summary>Forces any coalesced cache write to complete. Used by tests and shutdown.</summary>
+    public static void FlushCache()
+    {
+        while (Interlocked.CompareExchange(ref _savePending, 0, 0) != 0)
+        {
+            Thread.Sleep(50);
         }
-        catch { }
     }
 
     #endregion

@@ -146,6 +146,89 @@ public class OnlineFileIntelligenceTests
         Assert.Contains("%DRIVE%", summary, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Pins the invariant that broke in production: 24 hardcoded model literals were
+    /// duplicated across three services and each was individually dead by the time this
+    /// audit ran - gemini-2.0-flash (expired Feb 2026), gpt-4o-mini (GPT-4o family left
+    /// the API Feb 2026), llama-3.3-70b-versatile (Groq decommissioned Aug 2026 on the
+    /// free tier). These assertions fail the build if a retired id is ever reintroduced.
+    /// </summary>
+    [Fact]
+    public void AiModelCatalog_NoDefaultModelIsARetiredIdentifier()
+    {
+        string[] retired =
+        {
+            "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-2.5-flash", "gemini-2.5-flash-lite",
+            "gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini", "o4-mini"
+        };
+
+        foreach (string provider in AiModelCatalog.ProviderNames)
+        {
+            string model = AiModelCatalog.ResolveModelId(provider, userModelName: null);
+            Assert.False(string.IsNullOrWhiteSpace(model) && provider != "BuiltIn",
+                $"Provider '{provider}' resolved to no default model.");
+
+            foreach (string dead in retired)
+            {
+                Assert.False(
+                    model.StartsWith(dead, StringComparison.OrdinalIgnoreCase),
+                    $"Provider '{provider}' defaults to retired model '{model}'. Pick a current generation.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// The three intelligence services disagreed on the Ollama default - "llama3" in one,
+    /// "llama3.2" in another - and two used /api/generate with a flat prompt while a third
+    /// used /api/chat. They now share one catalog and one transport.
+    /// </summary>
+    [Fact]
+    public void AiModelCatalog_OllamaHasOneConsistentDefaultAndALocalTimeout()
+    {
+        string resolved = AiModelCatalog.ResolveModelId("Ollama", userModelName: null);
+        Assert.Equal("llama3.2", resolved);
+
+        // A cold local model loading weights into RAM routinely exceeds 15 seconds. The
+        // old shared HttpClient timeout of 15s made the one provider a user picks
+        // SPECIFICALLY for privacy unusable.
+        Assert.True(AiModelCatalog.ResolveTimeout("Ollama") > TimeSpan.FromSeconds(60),
+            "Local model timeout is too short for a cold model to load its weights.");
+        Assert.True(AiModelCatalog.ResolveTimeout("OpenAI") < AiModelCatalog.ResolveTimeout("Ollama"),
+            "A hosted API should not get a longer timeout than a local model.");
+    }
+
+    [Fact]
+    public void AiModelCatalog_UserSuppliedModelAlwaysWins()
+    {
+        // The catalog supplies a default and suggestions, never a restriction: a user on a
+        // brand-new model must not be blocked waiting for a release.
+        Assert.Equal("some-model-released-tomorrow",
+            AiModelCatalog.ResolveModelId("OpenAI", "  some-model-released-tomorrow  "));
+    }
+
+    /// <summary>
+    /// A cache key must change when the provider or model changes, otherwise a verdict from
+    /// one provider survives a deliberate switch to another with no way to invalidate it
+    /// short of clearing every unrelated answer.
+    /// </summary>
+    [Fact]
+    public void AiModelCatalog_SuggestedModelsNeverContainRetiredIdentifiers()
+    {
+        string[] retired = { "gemini-2.0-flash", "gemini-2.5-flash", "gpt-4o-mini", "gpt-4o" };
+
+        foreach (string provider in AiModelCatalog.ProviderNames)
+        {
+            foreach (AiModelOption option in AiModelCatalog.GetSuggestedModels(provider))
+            {
+                foreach (string dead in retired)
+                {
+                    Assert.False(option.Id.StartsWith(dead, StringComparison.OrdinalIgnoreCase),
+                        $"Provider '{provider}' suggests retired model '{option.Id}'.");
+                }
+            }
+        }
+    }
+
     [Fact]
     public void OnlineSafetyReport_ApplyBadgeColors_AssignsConsistentColorTokens()
     {

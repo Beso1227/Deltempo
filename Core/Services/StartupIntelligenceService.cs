@@ -94,6 +94,21 @@ public static class StartupIntelligenceService
         LoadCache();
     }
 
+    /// <summary>
+    /// Cache identity: the startup item PLUS the provenance of the answer.
+    /// </summary>
+    /// <remarks>
+    /// The key was name|exePath alone, so an analysis produced by one provider survived a
+    /// switch to another provider, a model change or a rotated key, with no way to
+    /// invalidate it except ClearCache() - which also discards every unrelated answer.
+    /// </remarks>
+    public static string GetCacheKey(string name, string exePath, AppSettings settings)
+    {
+        string provider = string.IsNullOrWhiteSpace(settings.AiProvider) ? "BuiltIn" : settings.AiProvider;
+        string model = AiModelCatalog.ResolveModelId(settings.AiProvider, settings.AiModelName);
+        return $"{provider}|{model}|{GetCacheKey(name, exePath)}";
+    }
+
     public static string GetCacheKey(string name, string exePath)
     {
         return $"{name?.Trim()}::{Path.GetFileName(exePath)?.Trim()}".ToLowerInvariant();
@@ -101,56 +116,50 @@ public static class StartupIntelligenceService
 
     public static StartupAiReport? GetCachedReport(StartupItem item)
     {
-        string key = GetCacheKey(item.Name, item.ExePath);
+        string key = GetCacheKey(item.Name, item.ExePath, SettingsService.Current);
         return MemoryCache.TryGetValue(key, out var report) ? report : null;
     }
 
     public static async Task<StartupAiReport> AnalyzeStartupItemAsync(StartupItem item, bool forceOnline = false, CancellationToken ct = default)
     {
-        string cacheKey = GetCacheKey(item.Name, item.ExePath);
-
-        if (!forceOnline && MemoryCache.TryGetValue(cacheKey, out var cached))
-        {
-            return cached;
-        }
-
         var settings = SettingsService.Current;
+        string cacheKey = GetCacheKey(item.Name, item.ExePath, settings);
+
         StartupAiReport report;
 
-        // Check if online AI is enabled and configured
+        // The cache is consulted only when AI is enabled, so turning it off genuinely stops
+        // using cached cloud answers.
         if (!settings.EnableOnlineAiSafety)
         {
             report = GenerateLocalIntelligenceReport(item);
+        }
+        else if (!forceOnline && MemoryCache.TryGetValue(cacheKey, out var cached))
+        {
+            return cached;
         }
         else
         {
             try
             {
-                report = settings.AiProvider switch
-                {
-                    "Gemini" when !string.IsNullOrWhiteSpace(settings.AiApiKey) =>
-                        await QueryGeminiAsync(item, settings.AiApiKey, settings.AiModelName, ct),
+                report = await QueryProviderAsync(item, settings, ct);
+            }
+            catch (OperationCanceledException)
+            {
+                // Never convert a cancellation into a cached answer.
+                throw;
+            }
+            catch (AiProviderException ex)
+            {
+                LastProviderError = ex;
+                System.Diagnostics.Trace.WriteLine(
+                    $"[Deltempo Startup AI] Provider failure ({settings.AiProvider}/{ex.Kind}): {ex.Message}");
 
-                    "OpenAI" when !string.IsNullOrWhiteSpace(settings.AiApiKey) =>
-                        await QueryOpenAiCompatibleAsync(item, "https://api.openai.com/v1/chat/completions", settings.AiApiKey,
-                            string.IsNullOrWhiteSpace(settings.AiModelName) ? "gpt-4o-mini" : settings.AiModelName, ct),
-
-                    "Groq" when !string.IsNullOrWhiteSpace(settings.AiApiKey) =>
-                        await QueryOpenAiCompatibleAsync(item, "https://api.groq.com/openai/v1/chat/completions", settings.AiApiKey,
-                            string.IsNullOrWhiteSpace(settings.AiModelName) ? "llama-3.3-70b-versatile" : settings.AiModelName, ct),
-
-                    "OpenRouter" when !string.IsNullOrWhiteSpace(settings.AiApiKey) =>
-                        await QueryOpenAiCompatibleAsync(item, "https://openrouter.ai/api/v1/chat/completions", settings.AiApiKey,
-                            string.IsNullOrWhiteSpace(settings.AiModelName) ? "meta-llama/llama-3.3-70b-instruct" : settings.AiModelName, ct, isOpenRouter: true),
-
-                    "Ollama" =>
-                        await QueryOllamaAsync(item, settings.AiOllamaEndpoint, settings.AiModelName, ct),
-
-                    _ => GenerateLocalIntelligenceReport(item)
-                };
+                report = GenerateLocalIntelligenceReport(item);
+                report.ProviderUsed = $"Local Intelligence (Fallback - {ex.Kind})";
             }
             catch (Exception ex)
             {
+                LastProviderError = null;
                 System.Diagnostics.Trace.WriteLine($"[Deltempo Startup AI] Query failed ({settings.AiProvider}): {ex.Message}. Falling back to Local Intelligence.");
                 report = GenerateLocalIntelligenceReport(item);
                 report.ProviderUsed = "Local Intelligence (Fallback)";
@@ -163,9 +172,57 @@ public static class StartupIntelligenceService
         report.ExePath = item.ExePath;
         report.ApplyBadgeColors();
 
-        MemoryCache[cacheKey] = report;
-        SaveCache();
+        // Only a real result is cached. Caching a fallback pinned the item to an offline
+        // answer that could never be refreshed without clearing every unrelated entry.
+        if (!report.ProviderUsed.Contains("(Fallback", StringComparison.Ordinal))
+        {
+            MemoryCache[cacheKey] = report;
+            SaveCache();
+        }
 
+        return report;
+    }
+
+    /// <summary>Most recent provider failure, for the UI to surface. Cleared on success.</summary>
+    public static AiProviderException? LastProviderError { get; private set; }
+
+    private static async Task<StartupAiReport> QueryProviderAsync(StartupItem item, AppSettings settings, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(settings.AiProvider) ||
+            settings.AiProvider.Equals("BuiltIn", StringComparison.OrdinalIgnoreCase))
+        {
+            LastProviderError = null;
+            return GenerateLocalIntelligenceReport(item);
+        }
+
+        if (!AiModelCatalog.TryGetProvider(settings.AiProvider, out var descriptor))
+        {
+            throw new AiProviderException(AiFailureKind.ModelUnavailable,
+                $"Unknown AI provider '{settings.AiProvider}'.");
+        }
+
+        // Previously the key gated each provider arm, so a provider with a blank key fell
+        // through to the offline branch and reported success.
+        if (descriptor.RequiresApiKey && string.IsNullOrWhiteSpace(settings.AiApiKey))
+        {
+            throw new AiProviderException(AiFailureKind.Authentication,
+                $"No API key configured for {settings.AiProvider}.");
+        }
+
+        string model = AiModelCatalog.ResolveModelId(settings.AiProvider, settings.AiModelName);
+
+        string rawText = await AiProviderClient.CompleteAsync(new AiChatRequest(
+            Provider: settings.AiProvider,
+            ApiKey: settings.AiApiKey,
+            ModelId: model,
+            SystemPrompt: BuildSystemPrompt(),
+            UserPrompt: BuildUserMessage(item),
+            Endpoint: settings.AiOllamaEndpoint,
+            Temperature: 0.2), ct);
+
+        LastProviderError = null;
+
+        var report = ParseStructuredAiResponse(rawText, $"{settings.AiProvider} ({model})");
         return report;
     }
 
@@ -223,112 +280,6 @@ Location: {item.LocationDisplay}
 Boot Impact: {item.ImpactText}";
     }
 
-    private static async Task<StartupAiReport> QueryGeminiAsync(StartupItem item, string apiKey, string? model, CancellationToken ct)
-    {
-        string modelName = string.IsNullOrWhiteSpace(model) ? "gemini-2.0-flash" : model.Trim();
-        string url = $"https://generativelanguage.googleapis.com/v1beta/models/{modelName}:generateContent?key={apiKey}";
-
-        var payload = new
-        {
-            contents = new[]
-            {
-                new
-                {
-                    parts = new object[]
-                    {
-                        new { text = BuildSystemPrompt() + "\n\n" + BuildUserMessage(item) }
-                    }
-                }
-            },
-            generationConfig = new
-            {
-                responseMimeType = "application/json",
-                temperature = 0.2
-            }
-        };
-
-        var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-        using var response = await HttpClient.PostAsync(url, content, ct);
-        response.EnsureSuccessStatusCode();
-
-        string json = await response.Content.ReadAsStringAsync(ct);
-        using var doc = JsonDocument.Parse(json);
-        string text = doc.RootElement
-            .GetProperty("candidates")[0]
-            .GetProperty("content")
-            .GetProperty("parts")[0]
-            .GetProperty("text").GetString() ?? "{}";
-
-        return ParseStructuredAiResponse(text, "Gemini");
-    }
-
-    private static async Task<StartupAiReport> QueryOpenAiCompatibleAsync(
-        StartupItem item, string endpoint, string apiKey, string model, CancellationToken ct, bool isOpenRouter = false)
-    {
-        var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-        if (isOpenRouter)
-        {
-            request.Headers.Add("HTTP-Referer", "https://github.com/Beso1227/Deltempo");
-            request.Headers.Add("X-Title", "Deltempo Startup Optimizer");
-        }
-
-        var payload = new
-        {
-            model,
-            messages = new[]
-            {
-                new { role = "system", content = BuildSystemPrompt() },
-                new { role = "user", content = BuildUserMessage(item) }
-            },
-            temperature = 0.2,
-            response_format = new { type = "json_object" }
-        };
-
-        request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-        using var response = await HttpClient.SendAsync(request, ct);
-        response.EnsureSuccessStatusCode();
-
-        string json = await response.Content.ReadAsStringAsync(ct);
-        using var doc = JsonDocument.Parse(json);
-        string text = doc.RootElement
-            .GetProperty("choices")[0]
-            .GetProperty("message")
-            .GetProperty("content").GetString() ?? "{}";
-
-        return ParseStructuredAiResponse(text, isOpenRouter ? "OpenRouter" : "OpenAI/Groq");
-    }
-
-    private static async Task<StartupAiReport> QueryOllamaAsync(StartupItem item, string endpoint, string? model, CancellationToken ct)
-    {
-        string host = string.IsNullOrWhiteSpace(endpoint) ? "http://localhost:11434" : endpoint.TrimEnd('/'); // DevSkim: ignore DS162092
-        string modelName = string.IsNullOrWhiteSpace(model) ? "llama3" : model.Trim();
-        string url = $"{host}/api/chat";
-
-        var payload = new
-        {
-            model = modelName,
-            messages = new[]
-            {
-                new { role = "system", content = BuildSystemPrompt() },
-                new { role = "user", content = BuildUserMessage(item) }
-            },
-            stream = false,
-            format = "json"
-        };
-
-        var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-        using var response = await HttpClient.PostAsync(url, content, ct);
-        response.EnsureSuccessStatusCode();
-
-        string json = await response.Content.ReadAsStringAsync(ct);
-        using var doc = JsonDocument.Parse(json);
-        string text = doc.RootElement
-            .GetProperty("message")
-            .GetProperty("content").GetString() ?? "{}";
-
-        return ParseStructuredAiResponse(text, $"Ollama ({modelName})");
-    }
 
     private static StartupAiReport ParseStructuredAiResponse(string rawJson, string provider)
     {
