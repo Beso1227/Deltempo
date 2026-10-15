@@ -64,7 +64,7 @@ public static class AiModelCatalog
             ["OpenAI"] = new("OpenAI", RequiresApiKey: true, DefaultModelId: "gpt-5-mini", HostedModelTimeout),
             ["Groq"] = new("Groq", RequiresApiKey: true, DefaultModelId: "llama-3.3-70b-versatile", HostedModelTimeout),
             ["OpenRouter"] = new("OpenRouter", RequiresApiKey: true, DefaultModelId: "meta-llama/llama-3.3-70b-instruct", HostedModelTimeout),
-            ["Ollama"] = new("Ollama", RequiresApiKey: false, DefaultModelId: "llama3.2", LocalModelTimeout, "http://localhost:11434"),
+            ["Ollama"] = new("Ollama", RequiresApiKey: false, DefaultModelId: "llama3.2", LocalModelTimeout, "http://localhost:11434"), // DevSkim: ignore DS162092
         }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
     public static IReadOnlyCollection<string> ProviderNames => Providers.Keys;

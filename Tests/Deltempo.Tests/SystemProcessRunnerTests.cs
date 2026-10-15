@@ -14,6 +14,12 @@ public class SystemProcessRunnerTests
 {
     private static readonly TimeSpan Generous = TimeSpan.FromSeconds(45);
 
+    // Loopback, not debug code: a child we can predict the duration of, so the timeout
+    // assertions below are deterministic. Ping to the local adapter sleeps ~1 s per count
+    // and never touches the network.
+    private const string SlowChild = "/c ping -n 30 127.0.0.1 > nul"; // DevSkim: ignore DS162092
+    private const string QuickChild = "/c ping -n 2 127.0.0.1 > nul"; // DevSkim: ignore DS162092
+
     [Fact]
     public async Task RunAsync_CapturesStdoutAndExitCode()
     {
@@ -62,7 +68,7 @@ public class SystemProcessRunnerTests
         // "the caller waits far longer than it asked to".
         var sw = Stopwatch.StartNew();
         ProcessExecutionResult result = await SystemProcessRunner.Instance.RunAsync(
-            "cmd.exe", "/c ping -n 30 127.0.0.1 > nul", TimeSpan.FromSeconds(2));
+            "cmd.exe", SlowChild, TimeSpan.FromSeconds(2));
         sw.Stop();
 
         Assert.True(result.TimedOut, "a 2s budget against a ~29s child must report a timeout");
@@ -74,7 +80,7 @@ public class SystemProcessRunnerTests
     public async Task RunAsync_ChildThatExitsCleanlyIsNotReportedAsTimedOut()
     {
         ProcessExecutionResult result = await SystemProcessRunner.Instance.RunAsync(
-            "cmd.exe", "/c ping -n 2 127.0.0.1 > nul", Generous);
+            "cmd.exe", QuickChild, Generous);
 
         Assert.False(result.TimedOut);
         Assert.False(result.WasTerminated);
@@ -97,7 +103,7 @@ public class SystemProcessRunnerTests
         using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(300));
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => SystemProcessRunner.Instance.RunAsync(
-            "cmd.exe", "/c ping -n 30 127.0.0.1 > nul", Generous, cts.Token));
+            "cmd.exe", SlowChild, Generous, cts.Token));
     }
 
     [Fact]

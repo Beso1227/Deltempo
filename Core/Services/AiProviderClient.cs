@@ -95,8 +95,11 @@ public static class AiProviderClient
         PooledConnectionLifetime = TimeSpan.FromMinutes(2)
     })
     {
-        // Effectively disabled: every request sets its own timeout via a linked CTS, which
-        // is what lets a 120s local model and a 30s hosted call share one client.
+        // Effectively disabled: every request sets its own timeout via a linked
+        // CancellationTokenSource, which is what lets a 120s local model and a 30s
+        // hosted call share one client. (Spelled out rather than abbreviated because
+        // DevSkim reads the three-letter abbreviation as a cipher mode name and files
+        // a weak-cipher error against a comment about cancelling a request.)
         Timeout = Timeout.InfiniteTimeSpan
     };
 
@@ -229,7 +232,9 @@ public static class AiProviderClient
     private static async Task<HttpResponseMessage> SendOllamaAsync(AiChatRequest request, CancellationToken ct)
     {
         string host = string.IsNullOrWhiteSpace(request.Endpoint)
-            ? "http://localhost:11434"
+            // Ollama binds to loopback by design: it is the provider a user picks
+            // specifically so nothing leaves the machine. Not debug code.
+            ? "http://localhost:11434" // DevSkim: ignore DS162092
             : request.Endpoint.TrimEnd('/');
 
         // Normalised onto /api/chat + messages. The previous copies disagreed: two used
