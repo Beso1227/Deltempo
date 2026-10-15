@@ -124,12 +124,14 @@ jobs:
           # xunit TRX/JUnit reporters are NOT auto-registered by MTP without a
           # *.testingplatformextensions.json manifest, so they silently produce no file;
           # the console log plus the exit code are the reliable signals here.
+          #
+          # FuzzDeep is the 1,000,000-case canonicalizer campaign. On its own it accounted
+          # for ~3m34s of a ~4m14s run and its runtime swung by minutes, which made the
+          # gate both slow and unpredictable. It still runs on every PR at 100,000 cases via
+          # the sibling Fuzz trait; the full-strength campaign runs nightly in soak.yml.
+          # Neither is ever merely skipped. The filter must stay on this single line:
+          # PowerShell cannot parse a comment inside a backtick line-continuation.
           & $testExe `
-            # FuzzDeep is the 1,000,000-case canonicalizer campaign. It alone accounted for
-            # ~3m34s of a ~4m14s run, and its runtime swings by minutes, so charging every
-            # pull request for it made the gate both slow and unpredictable. It still runs on
-            # every PR at 100,000 cases via the sibling Fuzz trait; the full-strength
-            # campaign runs nightly in soak.yml. Neither is ever merely skipped.
             --filter "Category!=Benchmark&Category!=FuzzDeep" `
             --coverage `
             --coverage-output-format cobertura `
