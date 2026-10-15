@@ -133,23 +133,80 @@ public class CleanupTransactionResult
 
     public bool Success => CompletionStatus is CleanupCompletionStatus.Clean or CleanupCompletionStatus.CompletedWithWarnings;
 
+    // These four were four more O(n) LINQ passes over AuditRecords, recomputed on every
+    // property read - and AuditRecords grows to one entry per file across a 16-way parallel
+    // loop, so this is O(files) per read on the largest list in the pipeline. MainWindow
+    // reads all four while rendering the result. One memoized pass instead.
+    private AuditCountSummary? _auditCounts;
+
+    private AuditCountSummary AuditCounts
+    {
+        get
+        {
+            if (_auditCounts is not null) return _auditCounts;
+
+            var counts = new AuditCountSummary();
+            foreach (var record in AuditRecords)
+            {
+                if (record.ErrorCategory == CleanupErrorCategory.FileLocked)
+                {
+                    counts.InUseLocked++;
+                }
+
+                bool recentShield = record.MatchedRule == "RecentModificationShield";
+                if (recentShield)
+                {
+                    counts.RecentShielded++;
+                }
+
+                if (record.Status == DeletionAuditStatus.SkippedPolicy && !recentShield)
+                {
+                    counts.PolicyProtected++;
+                }
+
+                if (record.Status == DeletionAuditStatus.Failed &&
+                    record.ErrorCategory != CleanupErrorCategory.FileLocked)
+                {
+                    counts.FailedExecution++;
+                }
+            }
+
+            return _auditCounts = counts;
+        }
+    }
+
+    /// <summary>
+    /// Invalidates the memoized audit counts. The executor populates AuditRecords while
+    /// building the result, so anything that adds records after the counts have been read
+    /// must call this.
+    /// </summary>
+    public void InvalidateAuditCounts() => _auditCounts = null;
+
+    private sealed class AuditCountSummary
+    {
+        public int InUseLocked;
+        public int RecentShielded;
+        public int PolicyProtected;
+        public int FailedExecution;
+    }
+
     /// <summary>
     /// Total count of items that could not be deleted because an active process held a lock or sharing violation occurred.
     /// </summary>
-    public int InUseLockedCount => AuditRecords.Count(r => r.ErrorCategory == CleanupErrorCategory.FileLocked);
+    public int InUseLockedCount => AuditCounts.InUseLocked;
 
     /// <summary>
     /// Total count of items safely preserved because they were created/modified within the 24-hour protection window.
     /// </summary>
-    public int RecentShieldedCount => AuditRecords.Count(r => r.MatchedRule == "RecentModificationShield");
+    public int RecentShieldedCount => AuditCounts.RecentShielded;
 
     /// <summary>
     /// Total count of items preserved because they matched safety protection policies (sensitive files, exclusions).
     /// </summary>
-    public int PolicyProtectedCount => AuditRecords.Count(r => r.Status == DeletionAuditStatus.SkippedPolicy && r.MatchedRule != "RecentModificationShield");
+    public int PolicyProtectedCount => AuditCounts.PolicyProtected;
 
     /// <summary>
     /// Total count of items that failed during deletion due to permission, system, or unexpected errors (excluding in-use locks).
     /// </summary>
-    public int FailedExecutionCount => AuditRecords.Count(r => r.Status == DeletionAuditStatus.Failed && r.ErrorCategory != CleanupErrorCategory.FileLocked);
+    public int FailedExecutionCount => AuditCounts.FailedExecution;
 }

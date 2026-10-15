@@ -549,6 +549,12 @@ public static class CleanupExecutor
                 result.SkippedBytes += skippedBytes;
 
                 result.EndTimeUtc = DateTime.UtcNow;
+
+                // AuditRecords is now complete. Its aggregate properties are memoized, and
+                // nothing read them during the run, so the cache is valid from here - but
+                // invalidate explicitly rather than relying on that having never changed.
+                result.InvalidateAuditCounts();
+
                 progressReport?.Invoke(1.0);
             }, ct);
         }
@@ -558,6 +564,7 @@ public static class CleanupExecutor
             result.EndTimeUtc = DateTime.UtcNow;
         }
 
+        result.InvalidateAuditCounts();
         return result;
     }
 
