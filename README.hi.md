@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="नवीनतम रिलीज़" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI बिल्ड स्थिति" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1116_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="परीक्षण: 1116 पास, 0 विफल" src="https://img.shields.io/badge/tests-1116_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1134_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="परीक्षण: 1134 पास, 0 विफल" src="https://img.shields.io/badge/tests-1134_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="लाइसेंस: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **लाइसेंस** | ओपन-सोर्स ([MIT](LICENSE)) |
 | **इंटरफ़ेस** | आधुनिक डेस्कटॉप GUI (WPF Fluent) और हेडलेस टर्मिनल CLI |
 | **वितरण** | पोर्टेबल सिंगल-फ़ाइल एक्ज़ीक्यूटेबल (स्व-निहित, इंस्टॉलर की आवश्यकता नहीं) |
-| **परीक्षण कवरेज** | 1116 स्वचालित परीक्षण (100% पास दर, 0 विफल, 0 छोड़े गए), प्रतिस्पर्धी फ़ाइलसिस्टम फ़ज़िंग |
+| **परीक्षण कवरेज** | 1134 स्वचालित परीक्षण (100% पास दर, 0 विफल, 0 छोड़े गए), प्रतिस्पर्धी फ़ाइलसिस्टम फ़ज़िंग |
 | **CLI उपलब्धता** | `deltempo` कमांड पहली GUI लॉन्च पर स्वयं इंस्टॉल हो जाता है — कोई मैनुअल सेटअप नहीं |
 | **टेलीमेट्री** | शून्य टेलीमेट्री। स्कैन, सफ़ाई, मेमोरी और अनइंस्टॉलर संचालन 100% ऑफ़लाइन निष्पादित होते हैं |
 | **सुरक्षा इंजन** | दो-चरण योजना (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) — 5 जोखिम स्तर और लेन-देन जर्नलिंग के साथ |
@@ -275,7 +275,7 @@ Deltempo सिस्टम, डेवलपर और गेमिंग वा
 
 * **प्रो आँख-आराम लाइट मोड**: एक सुकून देने वाला, Fluent/macOS पोर्सलेन और स्लेट थीम (`#F1F5F9`) जो आँखों के तनाव को पूरी तरह समाप्त करता है, चमकदार सफ़ेद स्क्रीन की जगह लेता है, और उच्च-कंट्रास्ट ओशन एज़्योर (`#0284C7`) एक्सेंट का उपयोग करता है।
 * **Obsidian डार्क मोड**: जीवंत इलेक्ट्रिक सियान एक्सेंट, सूक्ष्म ग्लासमॉर्फ़िज़्म और डबल-बेज़ल कार्ड के साथ चिकना, डीप-स्पेस डार्क थीम।
-* **व्यापक बहुभाषी कवरेज**: **अंग्रेज़ी, अरबी, स्पैनिश, फ़्रेंच और जर्मन** में पूर्ण नेटिव अनुवाद।
+* **बहुभाषी कवरेज (प्रगति पर)**: **अंग्रेज़ी, अरबी, स्पैनिश, फ़्रेंच और जर्मन** के लिए भाषा चयन। Cleaner कार्यक्षेत्र स्थानीयकृत है और अरबी में मूल RTL प्रवाह सक्रिय होता है; मोडल संवाद और शेष कार्यक्षेत्र अभी अनुवादित नहीं हैं।
 * **RTL लेआउट और संख्या सुरक्षा**: अरबी मोड वास्तविक दाएँ-से-बाएँ (RTL) विंडो प्रवाह सक्रिय करता है, जबकि मेट्रिक्स, पाथ और प्रगति संकेतकों पर बाएँ-से-दाएँ फ़ॉर्मैटिंग को कड़ाई से लागू करता है (`0.0 MB`, `32%`, `C:\...`) ताकि संख्याएँ और स्टोरेज आँकड़े कभी उलटे या विकृत न हों।
 
 ---
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # Services\ को बाहर रखता है, इसलिए प्रति-प्रोजेक्ट जाँच चुपचाप समाधान का केवल एक हिस्सा कवर करती है।
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# स्वचालित परीक्षण सूट निष्पादित करें (1116 पासिंग यूनिट और इंटीग्रेशन परीक्षण)
+# स्वचालित परीक्षण सूट निष्पादित करें (1134 पासिंग यूनिट और इंटीग्रेशन परीक्षण)
 # xunit.v3 Microsoft.TestingPlatform पर चलता है, जिसे .NET 10 SDK का `dotnet test`
 # चला नहीं सकता ("Testing with VSTest target is no longer supported")। एक बार बिल्ड करें,
 # फिर टेस्ट एक्ज़ीक्यूटेबल को सीधे कॉल करें।

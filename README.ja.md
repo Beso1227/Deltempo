@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Latest Release" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI Build Status" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1116_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 1116 passed, 0 failed" src="https://img.shields.io/badge/tests-1116_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1134_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 1134 passed, 0 failed" src="https://img.shields.io/badge/tests-1134_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="License: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **ライセンス** | オープンソース（[MIT](LICENSE)） |
 | **インターフェース** | モダンなデスクトップ GUI（WPF Fluent）とヘッドレスターミナル CLI |
 | **配布形態** | ポータブルな単一ファイル実行ファイル（自己完結、インストーラー不要） |
-| **テストカバレッジ** | 1116 件の自動テスト（合格率 100%、失敗 0、スキップ 0）、敵対的ファイルシステムファズィング |
+| **テストカバレッジ** | 1134 件の自動テスト（合格率 100%、失敗 0、スキップ 0）、敵対的ファイルシステムファズィング |
 | **CLI の利用** | `deltempo` コマンドは GUI 初回起動時に自動インストール — 手動設定は不要 |
 | **テレメトリー** | テレメトリーゼロ。スキャン、クリーンアップ、メモリ、アンインストーラーの操作は 100% オフラインで実行 |
 | **セーフティエンジン** | 2 段階のプランニング（`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`）、5 段階のリスクティア、トランザクションジャーナリング |
@@ -275,7 +275,7 @@ Deltempo は、システム・開発・ゲームの各環境にまたがる使�
 
 * **プロ級の目に優しいライトモード**: 目の疲れを完全に取り除き、まぶしい白い画面を置き換える、心地よい Fluent/macOS 風の磁器とスレートのテーマ（`#F1F5F9`）。高コントラストの Ocean Azure（`#0284C7`）アクセントを採用。
 * **Obsidian ダークモード**: 明るいエレクトリックシアンのアクセント、控えめなグラスモーフィズム、ダブルベゼルのカードを備えた、洗練された深宇宙風のダークテーマ。
-* **包括的な多言語対応**: **英語、アラビア語、スペイン語、フランス語、ドイツ語**の完全なネイティブ翻訳。
+* **多言語対応（進行中）**: **英語、アラビア語、スペイン語、フランス語、ドイツ語**の言語セレクター。Cleaner ワークスペースはローカル化され、アラビア語ではネイティブ RTL フローが有効ですが、モーダルダイアログと残りのワークスペースはまだ翻訳されていません。
 * **RTL レイアウトと数値保護**: アラビア語モードでは本物の右から左（RTL）のウィンドウフローを有効にしつつ、メトリクス・パス・進捗表示（`0.0 MB`、`32%`、`C:\...`）には左から右（LTR）の書式を厳格に適用。数値やストレージ情報が逆転・化けることはありません。
 
 ---
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # Services\ を除外しているため、プロジェクト単位の検査はソリューションの一部だけを暗黙のうちに検査してしまいます。
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# 自動テストスイートを実行（ユニットテスト・統合テスト 1116 件合格）
+# 自動テストスイートを実行（ユニットテスト・統合テスト 1134 件合格）
 # xunit.v3 は Microsoft.Testing.Platform 上で動作し、.NET 10 SDK の `dotnet test` では
 # 実行できません（"Testing with VSTest target is no longer supported"）。一度ビルドしてから、
 # テスト実行ファイルを直接呼び出してください。

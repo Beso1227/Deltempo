@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Последний релиз" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="Статус сборки CI" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1116_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Тесты: 1116 пройдено, 0 провалено" src="https://img.shields.io/badge/tests-1116_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1134_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Тесты: 1134 пройдено, 0 провалено" src="https://img.shields.io/badge/tests-1134_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="Лицензия: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **Лицензия** | Открытый исходный код ([MIT](LICENSE)) |
 | **Интерфейсы** | Современный настольный GUI (WPF Fluent) и консольный CLI без интерфейса |
 | **Распространение** | Переносимый однофайловый исполняемый файл (автономный, установщик не требуется) |
-| **Покрытие тестами** | 1116 автоматических тестов (100% успешных, 0 ошибок, 0 пропущено), враждебный фаззинг файловой системы |
+| **Покрытие тестами** | 1134 автоматических тестов (100% успешных, 0 ошибок, 0 пропущено), враждебный фаззинг файловой системы |
 | **Доступность CLI** | Команда `deltempo` устанавливается автоматически при первом запуске GUI — ручная настройка не требуется |
 | **Телеметрия** | Нулевая телеметрия. Операции сканирования, очистки, памяти и деинсталляции выполняются на 100% офлайн |
 | **Движок безопасности** | Двухфазное планирование (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) с 5 уровнями риска и транзакционным журналированием |
@@ -275,7 +275,7 @@ Deltempo работает с одноразовыми данными в сист
 
 * **Светлый режим для комфорта глаз**: Спокойная тема в стиле фарфора и сланца (`#F1F5F9`) в духе Fluent/macOS, полностью устраняющая нагрузку на глаза, заменяющая ярко-белые экраны и использующая контрастные акценты Ocean Azure (`#0284C7`).
 * **Тёмный режим Obsidian**: Сдержанная тёмная тема «глубокого космоса» с яркими электрическими бирюзовыми акцентами, умеренным эффектом стекла (glassmorphism) и карточками с двойной рамкой.
-* **Полное многоязычие**: Полные родные переводы на **английский, арабский, испанский, французский и немецкий языки**.
+* **Многоязычность (в процессе)**: Выбор языка для **английского, арабского, испанского, французского и немецкого**. Рабочая область Cleaner локализована, арабский включает нативный поток RTL; модальные окна и остальные рабочие области пока не переведены.
 * **Защита RTL-компоновки и чисел**: Арабский режим включает настоящее направление справа налево (RTL), строго сохраняя при этом формат слева направо для метрик, путей и индикаторов прогресса (`0.0 MB`, `32%`, `C:\...`), чтобы числа и статистика хранилища никогда не переставлялись и не искажались.
 
 ---
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # Services\, поэтому проверка по одному проекту молча покрывает только часть решения.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# Запустить набор автоматических тестов (1116 пройденных модульных и интеграционных тестов)
+# Запустить набор автоматических тестов (1134 пройденных модульных и интеграционных тестов)
 # xunit.v3 работает поверх Microsoft.Testing.Platform, который `dotnet test` из
 # пакета SDK .NET 10 не может запустить ("Testing with VSTest target is no longer
 # supported"). Соберите проект один раз, а затем вызовите исполняемый файл тестов напрямую.

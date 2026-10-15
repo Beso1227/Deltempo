@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Última versión" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="Estado de compilación CI" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1116_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Pruebas: 1116 aprobadas, 0 fallidas" src="https://img.shields.io/badge/tests-1116_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1134_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Pruebas: 1134 aprobadas, 0 fallidas" src="https://img.shields.io/badge/tests-1134_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="Licencia: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **Licencia** | Código abierto ([MIT](LICENSE)) |
 | **Interfaces** | GUI moderna de escritorio (WPF Fluent) y CLI de terminal sin interfaz |
 | **Distribución** | Ejecutable portátil de archivo único (autocontenido, sin instalador) |
-| **Cobertura de pruebas** | 1116 pruebas automatizadas (100% de aprobación, 0 fallidas, 0 omitidas), fuzzing adversarial del sistema de archivos |
+| **Cobertura de pruebas** | 1134 pruebas automatizadas (100% de aprobación, 0 fallidas, 0 omitidas), fuzzing adversarial del sistema de archivos |
 | **Disponibilidad de la CLI** | El comando `deltempo` se autoinstala en el primer inicio de la GUI — sin configuración manual |
 | **Telemetría** | Cero telemetría. Las operaciones de escaneo, limpieza, memoria y desinstalación se ejecutan 100% sin conexión |
 | **Motor de seguridad** | Planificación en dos fases (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) con 5 niveles de riesgo y registro transaccional |
@@ -277,7 +277,7 @@ Diseñado con una atención obsesiva a la experiencia de usuario:
 
 * **Modo claro profesional confortable para la vista**: Un tema reconfortante de porcelana y pizarra estilo Fluent/macOS (`#F1F5F9`) que elimina por completo la fatiga visual, sustituye las pantallas blancas deslumbrantes y usa acentos de alto contraste Ocean Azure (`#0284C7`).
 * **Modo oscuro Obsidian**: Tema oscuro elegante de espacio profundo con vibrantes acentos cian eléctrico, un sutil efecto glassmorphism y tarjetas de doble bisel.
-* **Cobertura multilingüe completa**: Traducciones nativas completas en **inglés, árabe, español, francés y alemán**.
+* **Cobertura multilingüe (en curso)**: Selector de idioma para **inglés, árabe, español, francés y alemán**. El espacio de trabajo Cleaner está localizado y el árabe activa el flujo RTL nativo; los diálogos modales y los demás espacios de trabajo aún no están traducidos.
 * **Diseño RTL y protección numérica**: El modo árabe activa un flujo de ventana real de derecha a izquierda (RTL) mientras aplica estrictamente el formato de izquierda a derecha en métricas, rutas e indicadores de progreso (`0.0 MB`, `32%`, `C:\...`) para que las cifras y las estadísticas de almacenamiento nunca se inviertan ni se corrompan.
 
 ---
@@ -477,7 +477,7 @@ dotnet build deltempo.sln -c Release
 # Services\, de modo que una comprobación por proyecto solo cubre en silencio parte de la solución.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# Ejecuta la suite de pruebas automatizadas (1116 pruebas unitarias y de integración aprobadas)
+# Ejecuta la suite de pruebas automatizadas (1134 pruebas unitarias y de integración aprobadas)
 # xunit.v3 se ejecuta sobre Microsoft.Testing.Platform, que el `dotnet test` del SDK
 # de .NET 10 no puede controlar ("Testing with VSTest target is no longer
 # supported"). Compila una vez y luego invoca directamente el ejecutable de pruebas.

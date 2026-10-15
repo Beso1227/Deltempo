@@ -14,6 +14,7 @@ public static class TrayService
     private static Window? _mainWindow;
     private static Action? _onCleanSafeNow;
     private static Action? _onOpenSettings;
+    private static Action? _onExit;
     private static Func<Task<MemoryOptimizationResult>>? _onOptimizeRam;
     private static Func<Task<MemoryOptimizationResult>>? _onPurgeStandby;
     private static Action? _onCheckUpdates;
@@ -107,7 +108,8 @@ public static class TrayService
         Action onOpenSettings,
         Func<Task<MemoryOptimizationResult>>? onOptimizeRam = null,
         Func<Task<MemoryOptimizationResult>>? onPurgeStandby = null,
-        Action? onCheckUpdates = null)
+        Action? onCheckUpdates = null,
+        Action? onExit = null)
     {
         _mainWindow = mainWindow;
         _onCleanSafeNow = onCleanSafeNow;
@@ -115,6 +117,7 @@ public static class TrayService
         _onOptimizeRam = onOptimizeRam;
         _onPurgeStandby = onPurgeStandby;
         _onCheckUpdates = onCheckUpdates;
+        _onExit = onExit;
 
         var helper = new WindowInteropHelper(_mainWindow);
         var hWnd = helper.Handle;
@@ -136,8 +139,16 @@ public static class TrayService
         var nid = CreateNotifyData(hWnd);
         nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
         nid.szTip = GetFormattedTooltip();
-        Shell_NotifyIconW(NIM_ADD, ref nid);
+        // Only claim the icon exists if the shell actually accepted it; close-to-tray
+        // depends on there being something to restore from.
+        IsVisible = Shell_NotifyIconW(NIM_ADD, ref nid);
     }
+
+    /// <summary>
+    /// True once the shell has confirmed a tray icon exists. False when the tray was never
+    /// initialised (MemoryShowInTray off) or the icon was disposed.
+    /// </summary>
+    public static bool IsVisible { get; private set; }
 
     private static IntPtr LoadCrispTrayIcon()
     {
@@ -542,10 +553,20 @@ public static class TrayService
             menu.Items.Add(sep);
 
             // 8. Exit
+            // WPF honours Closing.Cancel, so once the main window implements
+            // close-to-tray this must not call Shutdown() itself: the owner has to
+            // clear its own exit flag first or the app would refuse to close.
             var exitItem = CreateMenuItem("\uE711", "Exit Deltempo", () =>
             {
                 Dispose();
-                Application.Current.Shutdown();
+                if (_onExit != null)
+                {
+                    _onExit();
+                }
+                else
+                {
+                    Application.Current.Shutdown();
+                }
             }, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F87171")));
             menu.Items.Add(exitItem);
 
@@ -684,6 +705,7 @@ public static class TrayService
 
     public static void Dispose()
     {
+        IsVisible = false;
         if (!_isInitialized || _mainWindow == null) return;
         var helper = new WindowInteropHelper(_mainWindow);
         var nid = CreateNotifyData(helper.Handle);

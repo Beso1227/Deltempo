@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using WinTempCleaner.Core.Abstractions;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
 
@@ -37,10 +38,18 @@ public partial class MainWindow : Window
     // ─── Global hotkey engine ─────────────────────────────────────────────
     private int _hotkeyIdAtom = HOTKEY_ID_MEMORY_BOOST;
     private bool _isHotkeyRegistered;
+    private bool _isExiting;
 
     public MainWindow()
     {
         InitializeComponent();
+
+        // MemoryCloseToTray was previously a checkbox that did nothing: there was no
+        // Closing handler at all, so closing the window always quit. WPF honours
+        // Closing.Cancel, so the tray Exit path has to clear this flag first or the
+        // app would refuse to close once close-to-tray is enabled.
+        Closing += MainWindow_Closing;
+
         InitializeMemoryViewModel();
         SystemRepairModalOverlay.LogRequested += AddLog;
         SystemRepairModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
@@ -152,19 +161,22 @@ public partial class MainWindow : Window
             }
             source.AddHook(WndProcInstanceHook);
 
-            // Register global hotkey (Ctrl+Shift+M) if not already running minimized
-            if (!SettingsService.Current.MemoryCompactMode)
+            // Honour the stored MemoryGlobalHotkey setting. It shipped as "CTRL+SHIFT+M"
+            // but was never read - the combination was hardcoded right here.
+            uint hotkeyModifiers, hotkeyVirtualKey;
+            if (!SettingsService.Current.MemoryCompactMode
+                && HotkeyParser.TryParse(SettingsService.Current.MemoryGlobalHotkey, out hotkeyModifiers, out hotkeyVirtualKey))
             {
                 try
                 {
                     var hwnd = source.Handle;
-                    if (RegisterHotKey(hwnd, _hotkeyIdAtom, (uint)(MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT), VK_M))
+                    if (RegisterHotKey(hwnd, _hotkeyIdAtom, hotkeyModifiers, hotkeyVirtualKey))
                     {
                         _isHotkeyRegistered = true;
                     }
                     else
                     {
-                        System.Diagnostics.Trace.WriteLine($"[Deltempo] Global hotkey registration failed: {Marshal.GetLastWin32Error()}");
+                        System.Diagnostics.Trace.WriteLine($"[Deltempo] Global hotkey '{SettingsService.Current.MemoryGlobalHotkey}' registration failed: {Marshal.GetLastWin32Error()}");
                     }
                 }
                 catch (Exception ex)
@@ -370,8 +382,13 @@ public partial class MainWindow : Window
         InitializeTargets();
         ApplyLocalization();
 
-        // Initialize Tray and Auto-Pilot Guardian
-        TrayService.Initialize(
+        // Initialize Tray and Auto-Pilot Guardian. MemoryShowInTray was previously
+        // persisted and shown in Settings but never consulted - the icon was always
+        // created. Close-to-tray additionally degrades to a real close when the tray
+        // is off, because there would be no icon to restore from.
+        if (SettingsService.Current.MemoryShowInTray)
+        {
+            TrayService.Initialize(
             this,
             () => Dispatcher.InvokeAsync(async () =>
             {
@@ -409,7 +426,9 @@ public partial class MainWindow : Window
                 {
                     AddLog($"[Tray] Update check failed: {ex.Message}", LogLevel.Error);
                 }
-            }));
+            }),
+            ExitApplication);
+        }
 
         AutoCleanService.Start();
         AppVersionHeaderBadge.Text = BuildInfo.VersionWithPatchDisplay;
@@ -774,6 +793,44 @@ public partial class MainWindow : Window
         {
             AddLog($"[CTT WinUtil] {error}", LogLevel.Warning);
         }
+    }
+
+    /// <summary>
+    /// Honours MemoryCloseToTray by hiding to the tray instead of quitting.
+    /// </summary>
+    /// <remarks>
+    /// Two guards keep the app from becoming unquittable. <see cref="_isExiting"/> is set by
+    /// <see cref="ExitApplication"/> so a real exit is never intercepted, and the tray must
+    /// actually exist - if MemoryShowInTray is off there is no icon to restore from and no
+    /// Exit menu, so closing has to quit for real.
+    /// </remarks>
+    private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        if (_isExiting)
+        {
+            return;
+        }
+
+        if (!SettingsService.Current.MemoryCloseToTray || !SettingsService.Current.MemoryShowInTray)
+        {
+            return;
+        }
+
+        e.Cancel = true;
+        Hide();
+
+        if (!TrayService.IsVisible)
+        {
+            // No icon was registered (tray failed to initialise); hiding would strand the app.
+            e.Cancel = false;
+        }
+    }
+
+    /// <summary>Real exit path: clears the close interception, then shuts down.</summary>
+    private void ExitApplication()
+    {
+        _isExiting = true;
+        Application.Current.Shutdown();
     }
 
     private void InitializeTargets()
