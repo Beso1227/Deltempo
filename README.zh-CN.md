@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="最新版本" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI 构建状态" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1106_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="测试：1106 通过，0 失败" src="https://img.shields.io/badge/tests-1106_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="测试：1108 通过，0 失败" src="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="许可证：MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **许可证** | 开源（[MIT](LICENSE)） |
 | **界面** | 现代桌面 GUI（WPF Fluent）与无界面终端 CLI |
 | **分发方式** | 便携式单文件可执行程序（自包含，无需安装程序） |
-| **测试覆盖** | 1106 项自动化测试（100% 通过率，0 失败，0 跳过），对抗性文件系统模糊测试 |
+| **测试覆盖** | 1108 项自动化测试（100% 通过率，0 失败，0 跳过），对抗性文件系统模糊测试 |
 | **CLI 可用性** | `deltempo` 命令在 GUI 首次启动时自动自安装 —— 无需手动配置 |
 | **遥测** | 零遥测。扫描、清理、内存与卸载操作 100% 离线执行 |
 | **安全引擎** | 两阶段规划（`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`），含 5 级风险分层与事务日志 |
@@ -107,7 +107,7 @@
 | **还原点** | 可选的卸载前 Windows 系统还原点（由用户控制，默认关闭） |
 | **服务智能分析** | 回答：*"禁用它会不会出问题？"* —— 通过 3 级安全判定、离线启发式规则与多模型 AI |
 | **进程管理器** | 实时进程列表，支持高 DPI 应用图标的即时提取与内存占用分析 |
-| **WinUtil 集成** | 从工具栏一键启动 Chris Titus Tech WinUtil（CTT）工具集 |
+| **WinUtil 集成** | 从工具栏一键打开 Chris Titus Tech WinUtil（CTT）官方页面 |
 | **内存引擎** | 原生 Windows NT 内核调用（`NtSetSystemInformation`、`EmptyWorkingSet`） |
 | **偏好设置中心** | 分类式 4 标签控制中心（*更新*、*常规*、*内存*、*存储与安全*） |
 | **托盘守护** | 高 DPI 原生 Win32 图标（`LoadCrispTrayIcon`），带实时 RAM 遥测与一键加速 |
@@ -145,7 +145,7 @@ Deltempo 完全开源、零遥测、无需安装，并提供端到端的套件�
 | **开发者与着色器缓存** | **NuGet、npm、pip、Cargo、Gradle、GPU 着色器** | ❌ 仅浏览器与 Windows | ⚠️ 部分支持 | ❌ 无 | ❌ 无 |
 | **大文件发现** | **AI 分类（>50MB，风险分级）** | ❌ 基础文件搜索 | ❌ 无 | ❌ 无 | 基础的磁盘分布统计 |
 | **系统文件修复** | **内置 SFC、DISM 与 CHKDSK** | ❌ 独立付费工具 | ❌ 无 | ❌ 无 | 手动命令提示符 |
-| **WinUtil（Chris Titus）集成** | **一键集成提权启动器** | ❌ 无 | ❌ 无 | ❌ 无 | ❌ 无 |
+| **WinUtil（Chris Titus）集成** | **一键链接 — 不提权、不执行**
 | **现代界面与护眼体验** | **黑曜石深色与瓷白浅色（WPF）** | 过时 / 杂乱 | 老旧的 GTK2/3 界面 | 老旧的 WinForms 界面 | Windows 内置设置 |
 | **完整 CLI 对等能力** | **是（`deltempo` CLI 支持 `--json` 与预演）** | ⚠️ 有限的命令开关 | 基础 CLI | 基础 CLI | ❌ 无 |
 | **分发方式** | **便携式单文件（68 MB，无需安装程序）** | 需要安装程序与后台服务 | 安装程序或便携 zip | 需要安装程序与运行时 | 内置于操作系统 |
@@ -247,7 +247,7 @@ Deltempo 面向系统、开发与游戏环境中的可丢弃数据，绝不触�
 * **DISM 服务**：检查、扫描并恢复 Windows 组件存储的健康状态（`/Cleanup-Image /RestoreHealth`）。
 * **WinSxS 基础重置**：清理被取代的组件存储版本，在大型 Windows 更新后找回数 GB 空间。
 * **CHKDSK 与网络重置**：安排下次启动时进行磁盘卷校验，或一键刷新 DNS 并重置 Winsock 协议栈。
-* **Chris Titus Tech WinUtil（CTT）**：内置一键启动器，运行著名的提权 PowerShell WinUtil 套件，用于去臃肿、移除遥测与自动化 winget 软件配置。
+ * **Chris Titus Tech WinUtil（CTT）**：在浏览器中打开官方 WinUtil 页面。Deltempo 不会下载或执行该第三方脚本，也不会为此请求提权 —— 是否运行请你自行审阅后决定。
 
 ---
 
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # Services\，因此按项目检查只会悄无声息地覆盖解决方案的一部分。
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# 执行自动化测试套件（1106 个通过的单元与集成测试）
+# 执行自动化测试套件（1108 个通过的单元与集成测试）
 # xunit.v3 运行在 Microsoft.Testing.Platform 上，.NET 10 SDK 的 `dotnet test` 无法驱动它
 #（"Testing with VSTest target is no longer supported"）。请先构建一次，
 # 然后直接调用测试可执行文件。

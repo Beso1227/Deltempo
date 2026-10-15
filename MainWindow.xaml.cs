@@ -728,11 +728,11 @@ public partial class MainWindow : Window
     private void HeroWinUtilBtn_Click(object sender, RoutedEventArgs e)
     {
         SoundService.PlayClickSound();
-        AddLog("[CTT WinUtil] Launching Chris Titus Tech Windows Utility in elevated session...", LogLevel.Info);
-        bool launched = SystemRepairService.LaunchChrisTitusWinUtil(out string error);
+        AddLog("[CTT WinUtil] Opening the Chris Titus Tech WinUtil page in your browser...", LogLevel.Info);
+        bool launched = SystemRepairService.OpenChrisTitusWinUtilPage(out string error);
         if (launched)
         {
-            AddLog("[CTT WinUtil] Chris Titus Tech WinUtil launched successfully in elevated PowerShell terminal.", LogLevel.Success);
+            AddLog($"[CTT WinUtil] Opened {SystemRepairService.ChrisTitusWinUtilUrl}. Deltempo does not run it for you - review the script before you do.", LogLevel.Success);
         }
         else if (!string.IsNullOrEmpty(error))
         {

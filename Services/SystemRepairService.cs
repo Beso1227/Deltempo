@@ -828,36 +828,48 @@ public static class SystemRepairService
     }
 
     /// <summary>
-    /// Constructs the ProcessStartInfo configured to launch the Chris Titus Tech Windows Utility (CTT WinUtil).
+    /// Canonical landing page for the Chris Titus Tech Windows Utility (CTT WinUtil).
+    /// Deltempo only ever links here; it never downloads or executes this third-party script.
     /// </summary>
-    public static ProcessStartInfo CreateChrisTitusProcessStartInfo()
+    public const string ChrisTitusWinUtilUrl = "https://christitus.com/win";
+
+    /// <summary>
+    /// Constructs the ProcessStartInfo that opens the CTT WinUtil page in the user's default browser.
+    /// </summary>
+    /// <remarks>
+    /// Deltempo deliberately does not download and execute this third-party script. The previous
+    /// implementation piped a remote script straight into an elevated PowerShell host via
+    /// <c>irm ... | iex</c> with <c>-ExecutionPolicy Bypass</c>, which handed whoever controls that
+    /// URL an arbitrary elevated code-execution primitive inside a cleaner whose entire value
+    /// proposition is that it never runs untrusted code. Handing the user the link keeps the tool
+    /// discoverable while leaving the run decision - and the UAC prompt - with them.
+    /// </remarks>
+    public static ProcessStartInfo CreateChrisTitusBrowseStartInfo()
     {
         return new ProcessStartInfo
         {
-            FileName = "powershell.exe",
-            Arguments = "-NoProfile -ExecutionPolicy Bypass -Command \"irm https://christitus.com/win | iex\"",
-            UseShellExecute = true,
-            Verb = ElevationService.IsAdministrator ? string.Empty : "runas"
+            FileName = ChrisTitusWinUtilUrl,
+            UseShellExecute = true
         };
     }
 
     /// <summary>
-    /// Launches Chris Titus Tech Windows Utility (CTT WinUtil) in an elevated PowerShell session.
+    /// Opens the CTT WinUtil page in the user's default browser. No elevation, no script execution.
     /// </summary>
     /// <param name="error">Out parameter populated with an error description if launch fails.</param>
-    /// <returns>True if the process was successfully dispatched; false otherwise.</returns>
-    public static bool LaunchChrisTitusWinUtil(out string error)
+    /// <returns>True if the browser was successfully dispatched; false otherwise.</returns>
+    public static bool OpenChrisTitusWinUtilPage(out string error)
     {
         error = string.Empty;
         try
         {
-            var psi = CreateChrisTitusProcessStartInfo();
+            var psi = CreateChrisTitusBrowseStartInfo();
             var proc = Process.Start(psi);
             return proc != null;
         }
         catch (System.ComponentModel.Win32Exception wEx) when (wEx.NativeErrorCode == 1223)
         {
-            error = "Elevation request was cancelled by the user.";
+            error = "Opening the browser was cancelled by the user.";
             return false;
         }
         catch (Exception ex)

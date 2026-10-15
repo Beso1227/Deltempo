@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Latest Release" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI Build Status" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1106_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 1106 passed, 0 failed" src="https://img.shields.io/badge/tests-1106_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 1108 passed, 0 failed" src="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="License: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **ライセンス** | オープンソース（[MIT](LICENSE)） |
 | **インターフェース** | モダンなデスクトップ GUI（WPF Fluent）とヘッドレスターミナル CLI |
 | **配布形態** | ポータブルな単一ファイル実行ファイル（自己完結、インストーラー不要） |
-| **テストカバレッジ** | 1106 件の自動テスト（合格率 100%、失敗 0、スキップ 0）、敵対的ファイルシステムファズィング |
+| **テストカバレッジ** | 1108 件の自動テスト（合格率 100%、失敗 0、スキップ 0）、敵対的ファイルシステムファズィング |
 | **CLI の利用** | `deltempo` コマンドは GUI 初回起動時に自動インストール — 手動設定は不要 |
 | **テレメトリー** | テレメトリーゼロ。スキャン、クリーンアップ、メモリ、アンインストーラーの操作は 100% オフラインで実行 |
 | **セーフティエンジン** | 2 段階のプランニング（`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`）、5 段階のリスクティア、トランザクションジャーナリング |
@@ -107,7 +107,7 @@
 | **復元ポイント** | アンインストール前の任意の Windows システム復元ポイント（ユーザー制御、デフォルト無効） |
 | **サービスインテリジェンス** | 3 段階の安全判定、オフラインヒューリスティクス、マルチモデル AI を用いて *"これを無効にすると問題が起きますか？"* に回答 |
 | **プロセスマネージャー** | リアルタイムのプロセス一覧、アプリアイコンのライブ高 DPI 抽出、メモリ使用量の分析 |
-| **WinUtil 連携** | Chris Titus Tech WinUtil（CTT）ツールをツールバーから 1 クリックで起動 |
+| **WinUtil 連携** | ツールバーから Chris Titus Tech WinUtil（CTT）の公式ページを 1 クリックで開く |
 | **メモリエンジン** | Windows NT カーネルのネイティブコール（`NtSetSystemInformation`、`EmptyWorkingSet`） |
 | **設定ハブ** | カテゴリ別 4 タブのコントロールセンター（*アップデート*、*一般*、*メモリ*、*ストレージと安全性*） |
 | **トレイガーディアン** | 高 DPI ネイティブ Win32 アイコン（`LoadCrispTrayIcon`）、ライブ RAM テレメトリと 1 クリック Boost |
@@ -145,7 +145,7 @@ Deltempo は完全にオープンソースで、テレメトリーゼロ、イ�
 | **開発者とシェーダーのキャッシュ** | **NuGet、npm、pip、Cargo、Gradle、GPU シェーダー** | ❌ ブラウザと Windows のみ | ⚠️ 部分的 | ❌ なし | ❌ なし |
 | **大きなファイルの検出** | **AI 分類（>50MB、リスク分類付き）** | ❌ 基本的なファイル検索 | ❌ なし | ❌ なし | 基本的なドライブ別内訳 |
 | **システムファイル修復** | **SFC、DISM、CHKDSK 統合** | ❌ 別途有料ツール | ❌ なし | ❌ なし | 手動のコマンドプロンプト |
-| **WinUtil（Chris Titus）連携** | **1 クリック統合昇格ランチャー** | ❌ なし | ❌ なし | ❌ なし | ❌ なし |
+| **WinUtil（Chris Titus）連携** | **1 クリックリンク — 昇格も実行もなし**
 | **モダン UI と目の快適性** | **Obsidian ダークと Porcelain Slate ライト（WPF）** | 古い / ガチャガチャ | 旧式 GTK2/3 インターフェース | 旧式 WinForms インターフェース | Windows 設定に内蔵 |
 | **完全な CLI 対応** | **あり（`--json` とドライラン対応の `deltempo` CLI）** | ⚠️ 限られたコマンドスイッチ | 基本 CLI | 基本 CLI | ❌ なし |
 | **配布形態** | **ポータブル単一ファイル（68MB、インストーラー不要）** | セットアップインストーラーとサービスが必要 | インストーラーまたはポータブル zip | インストーラーとランタイムが必要 | OS に内蔵 |
@@ -247,7 +247,7 @@ Deltempo は、システム・開発・ゲームの各環境にまたがる使�
 * **DISM サービシング**: Windows コンポーネントストアの健全性をチェック・スキャン・復元します（`/Cleanup-Image /RestoreHealth`）。
 * **WinSxS ベースリセット**: 上書きされたコンポーネントストアのバージョンをクリーンアップし、大規模な Windows アップグレード後に数 GB を回収します。
 * **CHKDSK とネットワークリセット**: 次回のブート時にディスクボリュームの検証をスケジュールするか、DNS フラッシュと Winsock スタックのリセットを 1 クリックで実行します。
-* **Chris Titus Tech WinUtil（CTT）**: 統合 1 クリックランチャーが、著名な昇格 PowerShell の WinUtil スイートを実行し、デバloat、テレメトリ除去、winget ソフトウェアの自動セットアップを行います。
+ * **Chris Titus Tech WinUtil（CTT）**: 公式 WinUtil ページをブラウザで開きます。Deltempo がこのサードパーティスクリプトをダウンロード・実行することはなく、昇格も求めません。実行するかを決める前に、ご自身で内容を確認してください。
 
 ---
 
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # Services\ を除外しているため、プロジェクト単位の検査はソリューションの一部だけを暗黙のうちに検査してしまいます。
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# 自動テストスイートを実行（ユニットテスト・統合テスト 1106 件合格）
+# 自動テストスイートを実行（ユニットテスト・統合テスト 1108 件合格）
 # xunit.v3 は Microsoft.Testing.Platform 上で動作し、.NET 10 SDK の `dotnet test` では
 # 実行できません（"Testing with VSTest target is no longer supported"）。一度ビルドしてから、
 # テスト実行ファイルを直接呼び出してください。

@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="नवीनतम रिलीज़" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI बिल्ड स्थिति" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1106_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="परीक्षण: 1106 पास, 0 विफल" src="https://img.shields.io/badge/tests-1106_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="परीक्षण: 1108 पास, 0 विफल" src="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="लाइसेंस: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **लाइसेंस** | ओपन-सोर्स ([MIT](LICENSE)) |
 | **इंटरफ़ेस** | आधुनिक डेस्कटॉप GUI (WPF Fluent) और हेडलेस टर्मिनल CLI |
 | **वितरण** | पोर्टेबल सिंगल-फ़ाइल एक्ज़ीक्यूटेबल (स्व-निहित, इंस्टॉलर की आवश्यकता नहीं) |
-| **परीक्षण कवरेज** | 1106 स्वचालित परीक्षण (100% पास दर, 0 विफल, 0 छोड़े गए), प्रतिस्पर्धी फ़ाइलसिस्टम फ़ज़िंग |
+| **परीक्षण कवरेज** | 1108 स्वचालित परीक्षण (100% पास दर, 0 विफल, 0 छोड़े गए), प्रतिस्पर्धी फ़ाइलसिस्टम फ़ज़िंग |
 | **CLI उपलब्धता** | `deltempo` कमांड पहली GUI लॉन्च पर स्वयं इंस्टॉल हो जाता है — कोई मैनुअल सेटअप नहीं |
 | **टेलीमेट्री** | शून्य टेलीमेट्री। स्कैन, सफ़ाई, मेमोरी और अनइंस्टॉलर संचालन 100% ऑफ़लाइन निष्पादित होते हैं |
 | **सुरक्षा इंजन** | दो-चरण योजना (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) — 5 जोखिम स्तर और लेन-देन जर्नलिंग के साथ |
@@ -107,7 +107,7 @@
 | **रिस्टोर पॉइंट्स** | वैकल्पिक अनइंस्टॉल-पूर्व Windows सिस्टम रिस्टोर पॉइंट्स (उपयोगकर्ता-नियंत्रित, डिफ़ॉल्ट रूप से अक्षम) |
 | **सेवा इंटेलिजेंस** | बताता है: *"क्या इसे अक्षम करने से कुछ गड़बड़ होगा?"* — 3 सुरक्षा निर्णयों, ऑफ़लाइन ह्यूरिस्टिक्स और मल्टी-मॉडल AI के माध्यम से |
 | **प्रोसेस मैनेजर** | लाइव हाई-DPI ऐप आइकन एक्सट्रैक्शन और मेमोरी फ़ुटप्रिंट विश्लेषण के साथ रीयल-टाइम प्रोसेस सूची |
-| **WinUtil इंटीग्रेशन** | टूलबार से सीधे Chris Titus Tech WinUtil (CTT) यूटिलिटी का 1-क्लिक लॉन्चर |
+| **WinUtil इंटीग्रेशन** | टूलबार से Chris Titus Tech WinUtil (CTT) के आधिकारिक पेज का 1-क्लिक लिंक |
 | **मेमोरी इंजन** | नेटिव Windows NT कर्नल कॉल्स (`NtSetSystemInformation`, `EmptyWorkingSet`) |
 | **प्राथमिकता हब** | श्रेणीबद्ध 4-टैब नियंत्रण केंद्र (*अपडेट*, *सामान्य*, *मेमोरी*, *स्टोरेज और सुरक्षा*) |
 | **ट्रे गार्जियन** | हाई-DPI नेटिव Win32 आइकन (`LoadCrispTrayIcon`) — लाइव RAM टेलीमेट्री और 1-क्लिक बूस्ट के साथ |
@@ -145,7 +145,7 @@ Deltempo पूर्णतः ओपन-सोर्स है, इसमें
 | **डेवलपर और शेडर कैश** | **NuGet, npm, pip, Cargo, Gradle, GPU शेडर्स** | ❌ केवल ब्राउज़र और Windows | ⚠️ आंशिक | ❌ कोई नहीं | ❌ कोई नहीं |
 | **बड़ी फ़ाइलें खोजना** | **AI-वर्गीकृत (>50MB, जोखिम-वर्गीकृत)** | ❌ बुनियादी फ़ाइल खोज | ❌ कोई नहीं | ❌ कोई नहीं | बुनियादी ड्राइव विभाजन |
 | **सिस्टम फ़ाइल मरम्मत** | **इंटीग्रेटेड SFC, DISM और CHKDSK** | ❌ अलग सशुल्क यूटिलिटी | ❌ कोई नहीं | ❌ कोई नहीं | मैनुअल कमांड प्रॉम्प्ट |
-| **WinUtil (Chris Titus) इंटीग्रेशन** | **1-क्लिक इंटीग्रेटेड एलिवेटेड लॉन्चर** | ❌ कोई नहीं | ❌ कोई नहीं | ❌ कोई नहीं | ❌ कोई नहीं |
+| **WinUtil (Chris Titus) इंटीग्रेशन** | **1-क्लिक लिंक — न एलिवेशन, न निष्पादन**
 | **आधुनिक UI और आँख आराम** | **Obsidian डार्क और Porcelain Slate लाइट (WPF)** | पुराना / अव्यवस्थित | पुराना GTK2/3 इंटरफ़ेस | पुराना WinForms इंटरफ़ेस | Windows सेटिंग्स में निर्मित |
 | **पूर्ण CLI समानता** | **हाँ (`deltempo` CLI — `--json` और dry-run के साथ)** | ⚠️ सीमित कमांड स्विच | बुनियादी CLI | बुनियादी CLI | ❌ कोई नहीं |
 | **वितरण** | **पोर्टेबल सिंगल-फ़ाइल (68 MB, बिना इंस्टॉलर)** | सेटअप इंस्टॉलर और सेवाओं की आवश्यकता | इंस्टॉलर या पोर्टेबल zip | इंस्टॉलर और रनटाइम की आवश्यकता | OS में निर्मित |
@@ -247,7 +247,7 @@ Deltempo सिस्टम, डेवलपर और गेमिंग वा
 * **DISM सर्विसिंग**: Windows कंपोनेंट स्टोर स्वास्थ्य की जाँच, स्कैन और पुनर्स्थापना करता है (`/Cleanup-Image /RestoreHealth`)।
 * **WinSxS बेस रीसेट**: बड़े Windows अपडेट के बाद गीगाबाइट पुनः प्राप्त करने के लिए पदनिर्णित कंपोनेंट स्टोर संस्करणों को साफ़ करता है।
 * **CHKDSK और नेटवर्क रीसेट**: अगली बूट पर डिस्क वॉल्यूम सत्यापन शेड्यूल करें या एक क्लिक में DNS फ़्लश करें और Winsock स्टैक रीसेट करें।
-* **Chris Titus Tech WinUtil (CTT)**: इंटीग्रेटेड 1-क्लिक लॉन्चर प्रख्यात एलिवेटेड PowerShell WinUtil सूट चलाता है — डिब्लोटिंग, टेलीमेट्री हटाने और स्वचालित winget सॉफ़्टवेयर सेटअप के लिए।
+ * **Chris Titus Tech WinUtil (CTT)**: आधिकारिक WinUtil पेज आपके ब्राउज़र में खोलता है। Deltempo यह तृतीय-पक्ष स्क्रिप्ट कभी डाउनलोड या नहीं चलाता, और उसके लिए एलिवेशन नहीं माँगता — चलाने का निर्णय लेने से पहले इसे स्वयं जाँचें।
 
 ---
 
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # Services\ को बाहर रखता है, इसलिए प्रति-प्रोजेक्ट जाँच चुपचाप समाधान का केवल एक हिस्सा कवर करती है।
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# स्वचालित परीक्षण सूट निष्पादित करें (1106 पासिंग यूनिट और इंटीग्रेशन परीक्षण)
+# स्वचालित परीक्षण सूट निष्पादित करें (1108 पासिंग यूनिट और इंटीग्रेशन परीक्षण)
 # xunit.v3 Microsoft.TestingPlatform पर चलता है, जिसे .NET 10 SDK का `dotnet test`
 # चला नहीं सकता ("Testing with VSTest target is no longer supported")। एक बार बिल्ड करें,
 # फिर टेस्ट एक्ज़ीक्यूटेबल को सीधे कॉल करें।

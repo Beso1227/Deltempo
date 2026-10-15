@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Latest Release" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI Build Status" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1106_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 1106 passed, 0 failed" src="https://img.shields.io/badge/tests-1106_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 1108 passed, 0 failed" src="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="License: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **License** | Open Source ([MIT](LICENSE)) |
 | **Interfaces** | Modern Desktop GUI (WPF Fluent) and Headless Terminal CLI |
 | **Distribution** | Portable single-file executable (self-contained, no installer required) |
-| **Test Coverage** | 1106 automated tests (100% pass rate, 0 failed, 0 skipped), adversarial filesystem fuzzing |
+| **Test Coverage** | 1108 automated tests (100% pass rate, 0 failed, 0 skipped), adversarial filesystem fuzzing |
 | **CLI Availability** | The `deltempo` command self-installs on first GUI launch — no manual setup |
 | **Telemetry** | Zero telemetry. Scan, clean, memory, and uninstaller operations execute 100% offline |
 | **Safety Engine** | Two-phase planning (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) with 5 risk tiers & transaction journaling |
@@ -107,7 +107,7 @@
 | **Restore Points** | Optional pre-uninstall Windows System Restore Points (user-controlled, disabled by default) |
 | **Service Intelligence** | Explains: *"Will anything go wrong if I disable this?"* via 3 safety verdicts, offline heuristics & multi-model AI |
 | **Process Manager** | Real-time process listing with live high-DPI application icon extraction and memory footprint analysis |
-| **WinUtil Integration** | 1-Click launcher for Chris Titus Tech WinUtil (CTT) utility directly from the toolbar |
+| **WinUtil Integration** | 1-Click link to the official Chris Titus Tech WinUtil (CTT) page from the toolbar |
 | **Memory Engine** | Native Windows NT kernel calls (`NtSetSystemInformation`, `EmptyWorkingSet`) |
 | **Preferences Hub** | Categorized 4-tab control center (*Updates*, *General*, *Memory*, *Storage & Safety*) |
 | **Tray Guardian** | High-DPI native Win32 icon (`LoadCrispTrayIcon`) with live RAM telemetry & 1-click Boost |
@@ -145,7 +145,7 @@ Deltempo is completely open-source, contains zero telemetry, requires no install
 | **Developer & Shader Caches** | **NuGet, npm, pip, Cargo, Gradle, GPU Shaders** | ❌ Browser & Windows only | ⚠️ Partial | ❌ None | ❌ None |
 | **Large Files Discovery** | **AI-Categorized (>50MB, risk-classified)** | ❌ Basic File Search | ❌ None | ❌ None | Basic drive breakdown |
 | **System File Repair** | **Integrated SFC, DISM & CHKDSK** | ❌ Separate paid utility | ❌ None | ❌ None | Manual Command Prompt |
-| **WinUtil (Chris Titus) Integration** | **1-Click Integrated Elevated Launcher** | ❌ None | ❌ None | ❌ None | ❌ None |
+| **WinUtil (Chris Titus) Integration** | **1-Click Link - No Elevation, No Execution**
 | **Modern UI & Eye Comfort** | **Obsidian Dark & Porcelain Slate Light (WPF)** | Outdated / Cluttered | Legacy GTK2/3 interface | Legacy WinForms interface | Built-in Windows Settings |
 | **Full CLI Parity** | **Yes (`deltempo` CLI with `--json` & dry-run)** | ⚠️ Limited command switches | Basic CLI | Basic CLI | ❌ None |
 | **Distribution** | **Portable Single-File (68 MB, no installer)** | Requires setup installer & services | Installer or portable zip | Requires installer & runtime | Built into OS |
@@ -247,7 +247,7 @@ Diagnose and repair Windows operating system corruption directly from the interf
 * **DISM Servicing**: Checks, scans, and restores Windows Component Store health (`/Cleanup-Image /RestoreHealth`).
 * **WinSxS Base Reset**: Cleans up superseded component store versions to recover gigabytes after major Windows updates.
 * **CHKDSK & Network Reset**: Schedule disk volume verification on next boot or flush DNS and reset Winsock stacks with one click.
-* **Chris Titus Tech WinUtil (CTT)**: Integrated 1-click launcher runs the renowned elevated PowerShell WinUtil suite for debloating, telemetry removal, and automated winget software setup.
+ * **Chris Titus Tech WinUtil (CTT)**: Opens the official WinUtil page in your browser. Deltempo never downloads or executes this third-party script and never elevates for it - review it yourself before you decide to run it.
 
 ---
 
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # Services\, so a per-project check silently covers only part of the solution.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# Execute the automated test suite (1106 passing unit & integration tests)
+# Execute the automated test suite (1108 passing unit & integration tests)
 # xunit.v3 runs on Microsoft.Testing.Platform, which the .NET 10 SDK's `dotnet test`
 # cannot drive ("Testing with VSTest target is no longer supported"). Build once,
 # then invoke the test executable directly.

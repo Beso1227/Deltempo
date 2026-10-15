@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Versão mais recente" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="Status de build do CI" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1106_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Testes: 1106 aprovados, 0 falhas" src="https://img.shields.io/badge/tests-1106_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Testes: 1108 aprovados, 0 falhas" src="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="Licença: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **Licença** | Código aberto ([MIT](LICENSE)) |
 | **Interfaces** | GUI moderna de desktop (WPF Fluent) e CLI de terminal headless |
 | **Distribuição** | Executável portátil de arquivo único (autocontido, sem necessidade de instalador) |
-| **Cobertura de testes** | 1106 testes automatizados (100% de aprovação, 0 falhas, 0 ignorados), fuzzing adversarial de sistema de arquivos |
+| **Cobertura de testes** | 1108 testes automatizados (100% de aprovação, 0 falhas, 0 ignorados), fuzzing adversarial de sistema de arquivos |
 | **Disponibilidade da CLI** | O comando `deltempo` se autoinstala na primeira inicialização da GUI — nenhuma configuração manual |
 | **Telemetria** | Zero telemetria. As operações de verificação, limpeza, memória e desinstalação são executadas 100% offline |
 | **Motor de segurança** | Planejamento em duas fases (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) com 5 níveis de risco e journalização de transações |
@@ -107,7 +107,7 @@
 | **Pontos de restauração** | Pontos de Restauração do Sistema do Windows opcionais antes da desinstalação (controlados pelo usuário, desativados por padrão) |
 | **Inteligência de serviços** | Explica: *"Algo pode dar errado se eu desativar isso?"* por meio de 3 veredictos de segurança, heurísticas offline e IA multimodelo |
 | **Gerenciador de processos** | Listagem de processos em tempo real com extração ao vivo de ícones de aplicativos em alta DPI e análise do uso de memória |
-| **Integração com WinUtil** | Inicializador com 1 clique para o utilitário Chris Titus Tech WinUtil (CTT) diretamente da barra de ferramentas |
+| **Integração com WinUtil** | Link com 1 clique para a página oficial do Chris Titus Tech WinUtil (CTT) a partir da barra de ferramentas |
 | **Motor de memória** | Chamadas nativas do kernel NT do Windows (`NtSetSystemInformation`, `EmptyWorkingSet`) |
 | **Central de preferências** | Central de controle com 4 abas categorizadas (*Atualizações*, *Geral*, *Memória*, *Armazenamento e Segurança*) |
 | **Guardião da bandeja** | Ícone Win32 nativo de alta DPI (`LoadCrispTrayIcon`) com telemetria de RAM ao vivo e Boost com 1 clique |
@@ -145,7 +145,7 @@ O Deltempo é totalmente de código aberto, contém zero telemetria, não requer
 | **Caches de desenvolvedor e shaders** | **NuGet, npm, pip, Cargo, Gradle, shaders de GPU** | ❌ Apenas navegador e Windows | ⚠️ Parcial | ❌ Nenhum | ❌ Nenhum |
 | **Descoberta de arquivos grandes** | **Categorizados por IA (>50 MB, classificados por risco)** | ❌ Busca básica de arquivos | ❌ Nenhum | ❌ Nenhum | Divisão básica por unidade |
 | **Reparo de arquivos do sistema** | **SFC, DISM e CHKDSK integrados** | ❌ Utilidade paga separada | ❌ Nenhum | ❌ Nenhum | Prompt de Comando manual |
-| **Integração com WinUtil (Chris Titus)** | **Inicializador integrado elevado com 1 clique** | ❌ Nenhum | ❌ Nenhum | ❌ Nenhum | ❌ Nenhum |
+| **Integração com WinUtil (Chris Titus)** | **Link com 1 clique — sem elevação e sem execução**
 | **UI moderna e conforto visual** | **Obsidian Dark e Porcelain Slate Light (WPF)** | Desatualizada / Sobrecarregada | Interface legada GTK2/3 | Interface legada WinForms | Configurações integradas do Windows |
 | **Paridade total com a CLI** | **Sim (CLI `deltempo` com `--json` e dry-run)** | ⚠️ Opções de comando limitadas | CLI básica | CLI básica | ❌ Nenhuma |
 | **Distribuição** | **Arquivo único portátil (68 MB, sem instalador)** | Requer instalador e serviços | Instalador ou zip portátil | Requer instalador e runtime | Integrado ao SO |
@@ -246,7 +246,7 @@ Diagnostique e repare a corrupção do sistema operacional Windows diretamente p
 * **Serviço DISM**: Verifica, escaneia e restaura a saúde do Component Store do Windows (`/Cleanup-Image /RestoreHealth`).
 * **Reset de Base do WinSxS**: Limpa versões do component store que foram substituídas para recuperar gigabytes após grandes atualizações do Windows.
 * **CHKDSK e Reset de Rede**: Agende a verificação do volume de disco na próxima inicialização ou libere o DNS e redefina as pilhas Winsock com um clique.
-* **Chris Titus Tech WinUtil (CTT)**: Launcher integrado de 1 clique que executa a renomada suíte WinUtil de PowerShell elevado para remoção de bloatware, remoção de telemetria e configuração automatizada de software via winget.
+ * **Chris Titus Tech WinUtil (CTT)**: abre a página oficial do WinUtil no seu navegador. O Deltempo nunca baixa nem executa esse script de terceiros nem solicita elevação para ele — revise-o por conta própria antes de decidir executá-lo.
 
 ---
 
@@ -467,7 +467,7 @@ dotnet build deltempo.sln -c Release
 # Services\, então uma verificação por projeto cobre silenciosamente apenas parte da solução.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# Executar a suíte de testes automatizados (1106 testes unitários e de integração aprovados)
+# Executar a suíte de testes automatizados (1108 testes unitários e de integração aprovados)
 # O xunit.v3 roda sobre o Microsoft.Testing.Platform, que o `dotnet test` do SDK
 # do .NET 10 não consegue acionar ("Testing with VSTest target is no longer
 # supported"). Compile uma vez e depois invoque o executável de testes diretamente.

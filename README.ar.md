@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="أحدث إصدار" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="حالة بناء التكامل المستمر" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1106_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبارات: 1106 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-1106_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبارات: 1108 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="الترخيص: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **الترخيص** | مفتوح المصدر ([MIT](LICENSE)) |
 | **الواجهات** | واجهة سطح مكتب حديثة (WPF Fluent) وطرفية سطرية بدون واجهة |
 | **التوزيع** | ملف تنفيذي محمول مفرد (كامل بذاته، لا يحتاج إلى مُثبِّت) |
-| **تغطية الاختبارات** | 1106 اختبارًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 مُتخطّى)، وفحص عشوائي خبيث لنظام الملفات |
+| **تغطية الاختبارات** | 1108 اختبارًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 مُتخطّى)، وفحص عشوائي خبيث لنظام الملفات |
 | **توافر الطرفية** | أمر `deltempo` يُثبّت نفسه عند أول تشغيل للواجهة — دون إعداد يدوي |
 | **بيانات الاتّصال** | صفر بيانات اتّصال. عمليات الفحص والتنظيف والذاكرة وإلغاء التثبيت تعمل 100% دون اتصال |
 | **محرّك الأمان** | تخطيط على مرحلتين (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) مع 5 مستويات للمخاطر وسجلّ معاملات |
@@ -107,7 +107,7 @@
 | **نقاط الاستعادة** | نقاط استعادة اختيارية لنظام ويندوز قبل إلغاء التثبيت (يتحكم بها المستخدم، معطّلة افتراضيًا) |
 | **ذكاء الخدمات** | يشرح: *«هل سيحدث خطأ ما إذا عطّلت هذا؟»* عبر 3 أحكام أمان، واستنتاجات دون اتصال، وذكاء اصطناعي متعدّد النماذج |
 | **مدير العمليات** | عرض فوري للعمليات مع استخراج حيّ لأيقونات التطبيقات عالية الدقة وتحليل استهلاك الذاكرة |
-| **تكامل WinUtil** | مشغّل بنقرة واحدة لأداة Chris Titus Tech WinUtil (CTT) مباشرة من شريط الأدوات |
+| **تكامل WinUtil** | رابط بنقرة واحدة إلى صفحة Chris Titus Tech WinUtil (CTT) الرسمية من شريط الأدوات |
 | **محرّك الذاكرة** | استدعاءات أصلية لنواة ويندوز NT (`NtSetSystemInformation`, `EmptyWorkingSet`) |
 | **مركز التفضيلات** | مركز تحكّم بأربع تبويبات مصنّفة (*التحديثات*، *عام*، *الذاكرة*، *التخزين والأمان*) |
 | **حارس منطقة الإشعارات** | أيقونة Win32 أصلية عالية الدقة (`LoadCrispTrayIcon`) مع بيانات ذاكرة عشوائية حيّة وزر ترقية بنقرة واحدة |
@@ -145,7 +145,7 @@ Deltempo مفتوح المصدر بالكامل، ويحتوي على صفر ب�
 | **ذاكرات المطوّرين وShaders** | **NuGet وnpm وpip وCargo وGradle وShaders معالج الرسوميات** | ❌ المتصفّح وويندوز فقط | ⚠️ جزئيًا | ❌ لا شيء | ❌ لا شيء |
 | **اكتشاف الملفات الكبيرة** | **مصنّفة بالذكاء الاصطناعي (>50MB، مصنّفة حسب المخاطر)** | ❌ بحث ملفات أساسي | ❌ لا شيء | ❌ لا شيء | تقسيم أساسي للأقراص |
 | **إصلاح ملفات النظام** | **SFC وDISM وCHKDSK مدمجة** | ❌ أداة مدفوعة منفصلة | ❌ لا شيء | ❌ لا شيء | سطر أوامر يدوي |
-| **تكامل WinUtil (Chris Titus)** | **مشغّل مدمج مُصرَّح بنقرة واحدة** | ❌ لا شيء | ❌ لا شيء | ❌ لا شيء | ❌ لا شيء |
+| **تكامل WinUtil (Chris Titus)** | **رابط بنقرة واحدة - بدون تصعيد وبدون تنفيذ**
 | **واجهة حديثة ومريح للعينين** | **Obsidian الداكن وPorcelain Slate الفاتح (WPF)** | قديمة / مزدحمة | واجهة GTK2/3 قديمة | واجهة WinForms قديمة | إعدادات ويندوز المدمجة |
 | **دعم طرفي كامل** | **نعم (`deltempo` CLI مع `--json` وتجربة جافة)** | ⚠️ خيارات أوامر محدودة | طرفية أساسية | طرفية أساسية | ❌ لا شيء |
 | **التوزيع** | **ملف محمول مفرد (68 MB، بلا مُثبِّت)** | يتطلّب مُثبِّت إعداد وخدمات | مُثبِّت أو ملف zip محمول | يتطلّب مُثبِّت وبيئة تشغيل | مدمج في نظام التشغيل |
@@ -247,7 +247,7 @@ Deltempo مفتوح المصدر بالكامل، ويحتوي على صفر ب�
 * **خدمة DISM**: يفحص ويرفع ويستعيد صحة مخزن مكوّنات ويندوز (`/Cleanup-Image /RestoreHealth`).
 * **إعادة تعيين WinSxS**: ينظّف إصدارات مخزن المكوّنات المُستبدلة لاستعادة غيغابايت بعد تحديثات ويندوز الكبرى.
 * **CHKDSK وإعادة ضبط الشبكة**: جدولة التحقّق من حجم القرص عند الإقلاع التالي أو إفراغ DNS وإعادة ضبط مكدّسات Winsock بنقرة واحدة.
-* **Chris Titus Tech WinUtil (CTT)**: مشغّل مدمج بنقرة واحدة يُشغّل مجموعة WinUtil الشهيرة عبر PowerShell بمُصرَّح لإزالة البرمجيات الزائدة وبيانات الاتّصال وإعداد البرمجيات عبر winget آليًا.
+ * **Chris Titus Tech WinUtil (CTT)**: يفتح صفحة WinUtil الرسمية في متصفحك. لا يُنزّل Deltempo هذا النص البرمجي الخارجي ولا ينفّذه ولا يطلبه بصلاحيات مُصرَّح - راجعه بنفسك قبل أن تقرر تشغيله.
 
 ---
 
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # Services\ فإن الفحص لكل مشروع يغطّي بصمت جزءًا فقط من الحل.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# تنفيذ مجموعة الاختبارات الآلية (1106 اختبار وحدة وتكامل ناجحًا)
+# تنفيذ مجموعة الاختبارات الآلية (1108 اختبار وحدة وتكامل ناجحًا)
 # يعمل xunit.v3 على Microsoft.Testing.Platform، وهو ما لا يستطيع `dotnet test` في
 # حزمة .NET 10 SDK تشغيله ("Testing with VSTest target is no longer supported"). ابنِ
 # المشروع مرة واحدة، ثم استدعِ الملف التنفيذي للاختبارات مباشرةً.
