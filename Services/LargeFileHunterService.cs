@@ -154,7 +154,22 @@ public class LargeFileInfo : INotifyPropertyChanged
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        var handler = PropertyChanged;
+        if (handler == null) return;
+
+        // BatchAnalyzeWithAiAsync fans out four-wide with ConfigureAwait(false), so once the
+        // semaphore is saturated the remaining items - and every continuation after their
+        // awaits - resume on a thread-pool thread with no SynchronizationContext. Raising
+        // PropertyChanged from there made WPF throw on the cross-thread collection/binding
+        // change, which surfaced as the analysis silently failing past the first four files.
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher != null && !dispatcher.CheckAccess())
+        {
+            dispatcher.BeginInvoke(() => handler(this, new PropertyChangedEventArgs(propertyName)));
+            return;
+        }
+
+        handler(this, new PropertyChangedEventArgs(propertyName));
     }
 }
 

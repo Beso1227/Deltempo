@@ -126,7 +126,17 @@ public static class OnlineFileIntelligenceService
         string filePath,
         CancellationToken ct = default)
     {
-        var profile = FileForensicsService.AnalyzeFile(filePath);
+        // FileForensicsService.AnalyzeFile is synchronous and hits the filesystem hard: it stats
+        // the file, reads its 32-byte header, then for .exe/.dll/.sys/.msi parses the version
+        // resource and calls X509Certificate.CreateFromSignedFile, which reads and parses the
+        // Authenticode certificate table. On a large signed installer that is tens to hundreds
+        // of milliseconds of blocking I/O.
+        //
+        // This method is reached directly from WPF click handlers ("Analyse with AI", "AI
+        // Analyse All"), so running it on the caller's thread put that blocking I/O on the UI
+        // thread and Windows declared the window not responding. Task.Run is not cosmetic
+        // here: it is the difference between a responsive app and a freeze.
+        var profile = await Task.Run(() => FileForensicsService.AnalyzeFile(filePath), ct).ConfigureAwait(false);
         var settings = SettingsService.Current;
         string cacheKey = GetCacheKey(profile, settings);
         OnlineSafetyReport report;

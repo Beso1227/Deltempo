@@ -325,7 +325,7 @@ public partial class MainWindow
             info.AiProviderLabel = "⚡ Analyzing...";
             try
             {
-                await LargeFileHunterService.AnalyzeItemWithAiAsync(info);
+                await LargeFileHunterService.AnalyzeItemWithAiAsync(info, _cts?.Token ?? default);
                 RefreshLargeFileHeroStats();
                 AddLog($"AI Intelligence analyzed '{info.FileName}': {info.AiVerdict}", LogLevel.Info);
             }
@@ -365,7 +365,7 @@ public partial class MainWindow
                 LargeFilesSelectedSummaryText.Text = $"AI Analyzing {selected.Count} files: {pct}%";
             });
 
-            await LargeFileHunterService.BatchAnalyzeWithAiAsync(selected, progress);
+            await LargeFileHunterService.BatchAnalyzeWithAiAsync(selected, progress, _cts?.Token ?? default);
             AddLog($"Completed AI intelligence analysis for {selected.Count} files.", LogLevel.Success);
             RefreshLargeFileHeroStats();
             UpdateLargeFileSelectionSummary();
