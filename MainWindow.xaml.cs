@@ -783,11 +783,12 @@ public partial class MainWindow : Window
     private void HeroWinUtilBtn_Click(object sender, RoutedEventArgs e)
     {
         SoundService.PlayClickSound();
-        AddLog("[CTT WinUtil] Opening the Chris Titus Tech WinUtil page in your browser...", LogLevel.Info);
-        bool launched = SystemRepairService.OpenChrisTitusWinUtilPage(out string error);
+        AddLog("[CTT WinUtil] Launching Chris Titus Tech Windows Utility in an elevated PowerShell session...", LogLevel.Info);
+        AddLog($"[CTT WinUtil] Third-party tool by {SystemRepairService.ChrisTitusAuthor} - {SystemRepairService.ChrisTitusWinUtilUrl}", LogLevel.Info);
+        bool launched = SystemRepairService.LaunchChrisTitusWinUtil(out string error);
         if (launched)
         {
-            AddLog($"[CTT WinUtil] Opened {SystemRepairService.ChrisTitusWinUtilUrl}. Deltempo does not run it for you - review the script before you do.", LogLevel.Success);
+            AddLog($"[CTT WinUtil] {SystemRepairService.ChrisTitusCreditLine}", LogLevel.Success);
         }
         else if (!string.IsNullOrEmpty(error))
         {

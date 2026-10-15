@@ -833,28 +833,66 @@ public static class SystemRepairService
     /// </summary>
     public const string ChrisTitusWinUtilUrl = "https://christitus.com/win";
 
+    /// <summary>Attribution for the third-party utility Deltempo launches. Not optional.</summary>
+    public const string ChrisTitusAuthor = "Chris Titus";
+
+    /// <summary>Homepage of the author of CTT WinUtil.</summary>
+    public const string ChrisTitusAuthorUrl = "https://christitus.com";
+
+    /// <summary>Credit line shown anywhere Deltempo offers CTT WinUtil.</summary>
+    public const string ChrisTitusCreditLine =
+        "Chris Titus Tech Windows Utility (WinUtil) by Chris Titus - https://christitus.com/win";
+
     /// <summary>
-    /// Constructs the ProcessStartInfo that opens the CTT WinUtil page in the user's default browser.
+    /// Constructs the ProcessStartInfo that opens CTT WinUtil in an elevated PowerShell window.
     /// </summary>
     /// <remarks>
-    /// Deltempo deliberately does not download and execute this third-party script. The previous
-    /// implementation piped a remote script straight into an elevated PowerShell host via
-    /// <c>irm ... | iex</c> with <c>-ExecutionPolicy Bypass</c>, which handed whoever controls that
-    /// URL an arbitrary elevated code-execution primitive inside a cleaner whose entire value
-    /// proposition is that it never runs untrusted code. Handing the user the link keeps the tool
-    /// discoverable while leaving the run decision - and the UAC prompt - with them.
+    /// WinUtil is a third-party PowerShell utility authored by Chris Titus. It is not part of
+    /// Deltempo and is not covered by Deltempo's audit. This downloads the current script from
+    /// <see cref="ChrisTitusWinUtilUrl"/> and runs it locally, elevated, with the PowerShell
+    /// execution policy bypassed - which is exactly what WinUtil's own documentation instructs.
+    /// Users who would rather read it first can use the browser path below instead.
     /// </remarks>
-    public static ProcessStartInfo CreateChrisTitusBrowseStartInfo()
+    public static ProcessStartInfo CreateChrisTitusProcessStartInfo()
     {
         return new ProcessStartInfo
         {
-            FileName = ChrisTitusWinUtilUrl,
-            UseShellExecute = true
+            FileName = "powershell.exe",
+            Arguments = "-NoProfile -ExecutionPolicy Bypass -Command \"irm " + ChrisTitusWinUtilUrl + " | iex\"",
+            UseShellExecute = true,
+            Verb = ElevationService.IsAdministrator ? string.Empty : "runas"
         };
     }
 
     /// <summary>
-    /// Opens the CTT WinUtil page in the user's default browser. No elevation, no script execution.
+    /// Launches Chris Titus Tech WinUtil in an elevated PowerShell session.
+    /// </summary>
+    /// <param name="error">Out parameter populated with an error description if launch fails.</param>
+    /// <returns>True if the process was successfully dispatched; false otherwise.</returns>
+    public static bool LaunchChrisTitusWinUtil(out string error)
+    {
+        error = string.Empty;
+        try
+        {
+            var psi = CreateChrisTitusProcessStartInfo();
+            var proc = Process.Start(psi);
+            return proc != null;
+        }
+        catch (System.ComponentModel.Win32Exception wEx) when (wEx.NativeErrorCode == 1223)
+        {
+            error = "Elevation request was cancelled by the user.";
+            return false;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Opens the CTT WinUtil page in the user's default browser, for users who want to read the
+    /// script before running it.
     /// </summary>
     /// <param name="error">Out parameter populated with an error description if launch fails.</param>
     /// <returns>True if the browser was successfully dispatched; false otherwise.</returns>
@@ -877,5 +915,18 @@ public static class SystemRepairService
             error = ex.Message;
             return false;
         }
+    }
+
+    /// <summary>
+    /// Constructs the ProcessStartInfo that opens the CTT WinUtil page in the default browser.
+    /// The inspect-first alternative to <see cref="LaunchChrisTitusWinUtil"/>.
+    /// </summary>
+    public static ProcessStartInfo CreateChrisTitusBrowseStartInfo()
+    {
+        return new ProcessStartInfo
+        {
+            FileName = ChrisTitusWinUtilUrl,
+            UseShellExecute = true
+        };
     }
 }

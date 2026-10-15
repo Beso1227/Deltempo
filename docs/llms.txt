@@ -29,7 +29,7 @@ One-line install: `irm https://beso1227.github.io/Deltempo/win | iex`
 - **Optional System Restore Points**: Pre-uninstall restore point creation is an optional toggle, turned off by default to conserve disk and avoid freezes.
 - **Application & Startup Intelligence**: Answers "Will anything go wrong if I disable or uninstall this?" with 3-tier verdicts (SafeToDisable, CautionNeeded, EssentialKeep), offline heuristics, and multi-provider AI support (OpenAI, Anthropic, Gemini, Groq, OpenRouter, Ollama, LM Studio).
 - **Process Manager with Native Icons**: Real-time process inspection with live high-DPI icon extraction from running executables.
-- **Chris Titus Tech WinUtil (CTT) 1-Click Link**: Opens the official utility's page in your browser. Deltempo never downloads or executes it.
+- **Chris Titus Tech WinUtil (CTT) 1-Click Launcher**: Runs the third-party WinUtil utility in an elevated PowerShell window. WinUtil is by Chris Titus (https://christitus.com/win), is not MIT licensed, is not part of Deltempo, and is not covered by Deltempo's safety audit or release verification.
 - **Native NT Memory Optimizer**: Standby list flushes and working set trims via `NtSetSystemInformation` and `EmptyWorkingSet`.
 - **Multilingual RTL Architecture (partial)**: Language selector for English, Arabic, Spanish, French, and German. The Cleaner workspace is translated and Arabic activates native RTL flow; modals and the other workspaces remain English.
 - **Pro Eye-Comfort Themes**: Obsidian Titanium (Dark) and Porcelain Slate (Light) engineered for reduced eye strain and zero glare.

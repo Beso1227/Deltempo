@@ -107,7 +107,7 @@
 | **Restore Points** | Optional pre-uninstall Windows System Restore Points (user-controlled, disabled by default) |
 | **Service Intelligence** | Explains: *"Will anything go wrong if I disable this?"* via 3 safety verdicts, offline heuristics & multi-model AI |
 | **Process Manager** | Real-time process listing with live high-DPI application icon extraction and memory footprint analysis |
-| **WinUtil Integration** | 1-Click link to the official Chris Titus Tech WinUtil (CTT) page from the toolbar |
+| **WinUtil Integration** | 1-Click launcher for [Chris Titus Tech WinUtil](https://christitus.com/win) (CTT), by Chris Titus |
 | **Memory Engine** | Native Windows NT kernel calls (`NtSetSystemInformation`, `EmptyWorkingSet`) |
 | **Preferences Hub** | Categorized 4-tab control center (*Updates*, *General*, *Memory*, *Storage & Safety*) |
 | **Tray Guardian** | High-DPI native Win32 icon (`LoadCrispTrayIcon`) with live RAM telemetry & 1-click Boost |
@@ -145,7 +145,7 @@ Deltempo is completely open-source, contains zero telemetry, requires no install
 | **Developer & Shader Caches** | **NuGet, npm, pip, Cargo, Gradle, GPU Shaders** | ❌ Browser & Windows only | ⚠️ Partial | ❌ None | ❌ None |
 | **Large Files Discovery** | **AI-Categorized (>50MB, risk-classified)** | ❌ Basic File Search | ❌ None | ❌ None | Basic drive breakdown |
 | **System File Repair** | **Integrated SFC, DISM & CHKDSK** | ❌ Separate paid utility | ❌ None | ❌ None | Manual Command Prompt |
-| **WinUtil (Chris Titus) Integration** | **1-Click Link - No Elevation, No Execution**
+| **WinUtil (Chris Titus) Integration** | **1-Click Elevated Launcher** (third-party, by Chris Titus)
 | **Modern UI & Eye Comfort** | **Obsidian Dark & Porcelain Slate Light (WPF)** | Outdated / Cluttered | Legacy GTK2/3 interface | Legacy WinForms interface | Built-in Windows Settings |
 | **Full CLI Parity** | **Yes (`deltempo` CLI with `--json` & dry-run)** | ⚠️ Limited command switches | Basic CLI | Basic CLI | ❌ None |
 | **Distribution** | **Portable Single-File (68 MB, no installer)** | Requires setup installer & services | Installer or portable zip | Requires installer & runtime | Built into OS |
@@ -247,7 +247,7 @@ Diagnose and repair Windows operating system corruption directly from the interf
 * **DISM Servicing**: Checks, scans, and restores Windows Component Store health (`/Cleanup-Image /RestoreHealth`).
 * **WinSxS Base Reset**: Cleans up superseded component store versions to recover gigabytes after major Windows updates.
 * **CHKDSK & Network Reset**: Schedule disk volume verification on next boot or flush DNS and reset Winsock stacks with one click.
- * **Chris Titus Tech WinUtil (CTT)**: Opens the official WinUtil page in your browser. Deltempo never downloads or executes this third-party script and never elevates for it - review it yourself before you decide to run it.
+ * **Chris Titus Tech WinUtil (CTT)**: 1-click launcher opens WinUtil in an elevated PowerShell session for debloating, telemetry removal and automated winget setup. WinUtil is a **third-party utility by [Chris Titus](https://christitus.com)** - it is not part of Deltempo and is not covered by Deltempo's audit. See [Third-Party Notices](THIRD-PARTY-NOTICES.md).
 
 ---
 
@@ -492,6 +492,29 @@ The resulting single-file executables will be published to:
 * `publish\deltempo_cli.exe` (CLI)
 
 ---
+
+## 🙏 Credits & Third-Party Tools
+
+Deltempo is built and maintained by the Deltempo contributors. One feature
+bundles somebody else's work, and that project is credited here in full:
+
+| Project | Author | What Deltempo does with it |
+|---|---|---|
+| **[Chris Titus Tech Windows Utility (WinUtil)](https://christitus.com/win)** | **[Chris Titus](https://christitus.com)** | The **CTT WinUtil** button in System Repair downloads this script and runs it in a new **elevated** PowerShell window, exactly as its own documentation instructs |
+
+### Please note
+
+- WinUtil is **not MIT licensed** and is **not** part of Deltempo. Deltempo does
+  not redistribute, mirror, pin or verify it, and cannot.
+- Because the script is fetched and executed in one step, **whatever that URL
+  serves runs with administrator rights on your machine.** Read it first if you
+  want to: <https://christitus.com/win>
+- Deltempo's safety engine, pre-deletion revalidation and release-signature
+  verification cover **Deltempo's own code only** - never code it has not seen.
+- Support [Chris Titus](https://christitus.com) directly if WinUtil helps you.
+
+Full details, including the exact command Deltempo runs, are in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 ## 📜 License
 

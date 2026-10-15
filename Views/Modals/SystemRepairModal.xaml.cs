@@ -336,15 +336,15 @@ public partial class SystemRepairModal : UserControl
     private void RunChrisTitusWinUtil_Click(object sender, RoutedEventArgs e)
     {
         SoundService.PlayClickSound();
-        AppendSystemRepairTerminal($"\n>>> [{DateTime.Now:HH:mm:ss}] Opening Chris Titus Tech Windows Utility (CTT WinUtil) in your browser...");
-        LogRequested?.Invoke("[CTT WinUtil] Opening the Chris Titus Tech WinUtil page in your browser...", LogLevel.Info);
+        AppendSystemRepairTerminal($"\n>>> [{DateTime.Now:HH:mm:ss}] Launching Chris Titus Tech Windows Utility (CTT WinUtil)...");
+        AppendSystemRepairTerminal($"    {SystemRepairService.ChrisTitusCreditLine}");
+        LogRequested?.Invoke("[CTT WinUtil] Launching Chris Titus Tech WinUtil in elevated PowerShell...", LogLevel.Info);
 
-        bool launched = SystemRepairService.OpenChrisTitusWinUtilPage(out string error);
+        bool launched = SystemRepairService.LaunchChrisTitusWinUtil(out string error);
         if (launched)
         {
-            AppendSystemRepairTerminal($"<<< [{DateTime.Now:HH:mm:ss}] Opened {SystemRepairService.ChrisTitusWinUtilUrl}.");
-            AppendSystemRepairTerminal("Deltempo never downloads or runs this third-party script. Review it before you run it yourself.");
-            LogRequested?.Invoke($"[CTT WinUtil] Opened {SystemRepairService.ChrisTitusWinUtilUrl}.", LogLevel.Success);
+            AppendSystemRepairTerminal($"<<< [{DateTime.Now:HH:mm:ss}] Chris Titus Tech WinUtil launched in an elevated PowerShell window.");
+            LogRequested?.Invoke($"[CTT WinUtil] {SystemRepairService.ChrisTitusCreditLine}", LogLevel.Success);
         }
         else if (!string.IsNullOrEmpty(error))
         {
