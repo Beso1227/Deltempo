@@ -8,10 +8,28 @@ public static class AutoCleanService
 {
     private static System.Timers.Timer? _timer;
     private static System.Timers.Timer? _idleTimer;
-    private static bool _isCleaning;
+    /// <summary>
+    /// Re-entrancy guard for the background auto-clean.
+    /// </summary>
+    /// <remarks>
+    /// This was a plain non-volatile bool with no lock. Two independent timers - the
+    /// interval timer and the idle timer - could both read it false and both enter
+    /// ExecuteSilentAutoCleanAsync, running two concurrent clean sweeps over the same
+    /// targets. CompareExchange makes the check-and-set atomic.
+    /// </remarks>
+    private static int _isCleaning;
+
+    /// <summary>The CTS of the in-flight background run, so it can actually be cancelled.</summary>
+    private static CancellationTokenSource? _currentRunCts;
+
     private static DateTime _lastIdleCleanUtc = DateTime.MinValue;
     private static CleanerService? _cleanerInstance;
     private static CleanerService CleanerInstance => _cleanerInstance ??= new CleanerService();
+
+    /// <summary>
+    /// True while a background auto-clean is in progress.
+    /// </summary>
+    public static bool IsCleaning => Volatile.Read(ref _isCleaning) != 0;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct LASTINPUTINFO
@@ -90,8 +108,8 @@ public static class AutoCleanService
 
     public static async Task ExecuteSilentAutoCleanAsync()
     {
-        if (_isCleaning) return;
-        _isCleaning = true;
+        // Atomic test-and-set: two timers must not both enter.
+        if (Interlocked.CompareExchange(ref _isCleaning, 1, 0) != 0) return;
 
         try
         {
@@ -99,7 +117,11 @@ public static class AutoCleanService
 
             // Only clean safe targets
             var safeTargets = targets.Where(t => !t.IsOrphanedAppFolder).ToList();
+            // Previously this CTS was never cancelled, so the token threaded into
+            // CleanFolderAsync was inert and a background auto-clean could not be stopped.
+            // It is now published so StopAutoClean can cancel it, and the loop honours it.
             using var cts = new CancellationTokenSource();
+            Volatile.Write(ref _currentRunCts, cts);
 
             long totalFreed = 0;
             int totalFiles = 0;
@@ -112,6 +134,9 @@ public static class AutoCleanService
             // while totalFreed from targets 1-2 still fired the success notification.
             foreach (var target in safeTargets)
             {
+                // Honour a StopAutoClean request instead of running every remaining target.
+                if (cts.IsCancellationRequested) break;
+
                 categoriesAttempted++;
                 try
                 {
@@ -172,7 +197,26 @@ public static class AutoCleanService
         }
         finally
         {
-            _isCleaning = false;
+            Volatile.Write(ref _isCleaning, 0);
+            Interlocked.Exchange(ref _currentRunCts, null);
+        }
+    }
+
+    /// <summary>
+    /// Cancels an in-flight background auto-clean. Previously impossible: the CTS created
+    /// per run was a local that was never cancelled, so the token passed into
+    /// CleanFolderAsync did nothing.
+    /// </summary>
+    public static void StopAutoClean()
+    {
+        CancellationTokenSource? cts = Interlocked.Exchange(ref _currentRunCts, null);
+        try
+        {
+            cts?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // The run finished between the exchange and the cancel.
         }
     }
 }

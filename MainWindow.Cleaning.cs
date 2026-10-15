@@ -230,6 +230,10 @@ public partial class MainWindow
         int totalFilesPolicy = 0;
         int totalFilesFailed = 0;
 
+        // Targets this run actually reached, so the post-run accounting does not claim
+        // success for work the loop broke out of before doing.
+        var completedTargets = new HashSet<TargetFolderInfo>();
+
         AddLog($"Starting cleanup with Safety Shield {(safeMode ? "ENABLED (>24h old only)" : "DISABLED (all files)")}...", LogLevel.Info);
 
         try
@@ -239,6 +243,9 @@ public partial class MainWindow
                 if (_cts.IsCancellationRequested) break;
 
                 var target = selectedTargets[i];
+                // Recorded as reached BEFORE the await, so a cancelled run can tell which
+                // targets were actually attempted from the ones it never got to.
+                completedTargets.Add(target);
                 double targetBaseProgress = (double)i / selectedTargets.Count * 100;
                 double targetSpan = 100.0 / selectedTargets.Count;
 
@@ -288,10 +295,22 @@ public partial class MainWindow
             RecalculateTotals();
             UpdateDriveTelemetry(totalFreed);
 
-            // Zero out cleaned targets immediately so hero size & button reflect reality right now,
-            // then schedule a background rescan to re-measure all remaining dirty targets.
+            // Zero out the targets that actually completed, so the hero reflects reality right
+            // now, then re-measure everything in the background.
+            //
+            // This loop used to run over ALL selectedTargets unconditionally - including
+            // those the `break` at the top of the loop never reached - so a CANCELLED run
+            // reported every target as clean (0 bytes) and then re-scanned to reveal they
+            // were not. Cancelled or partially-completed targets are left alone and the
+            // background rescan is what corrects them.
+            bool runWasCancelled = _cts.IsCancellationRequested;
             foreach (var t in selectedTargets)
             {
+                if (runWasCancelled && !completedTargets.Contains(t))
+                {
+                    continue;
+                }
+
                 t.SizeBytes = 0;
                 t.FileCount = 0;
             }
@@ -301,6 +320,10 @@ public partial class MainWindow
             _ = Task.Run(async () =>
             {
                 await Task.Delay(600);
+                // Capture the token for THIS run. Calling ScanButton_Click starts a fresh
+                // scan that reassigns the shared _cts field; without this, cancelling the
+                // original cleanup could cancel an unrelated rescan (or fail to cancel
+                // this one) depending on timing.
                 await Dispatcher.InvokeAsync(() => ScanButton_Click(this, new RoutedEventArgs()));
             });
 
