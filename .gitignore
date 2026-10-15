@@ -244,6 +244,13 @@ fix*.py
 checksums.sha256
 sbom-packages.json
 
+# WPF markup-compile temporaries. An interrupted or cancelled `dotnet build` can
+# leave `<Project>_<hash>_wpftmp[_*].csproj` behind at the repository root, and the
+# SDK also registers the temp project in deltempo.sln. Both are build byproducts
+# with a random hash in the name, never sources.
+*_wpftmp.csproj
+*_wpftmp_*.csproj
+
 # Elevated-UI verification captures. scripts/capture_layout_matrix.ps1 and the
 # PrintWindow recipe can be pointed at an in-repo directory; the documented default
 # lives outside the repo, so this is a backstop rather than the primary location.

@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="أحدث إصدار" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="حالة بناء التكامل المستمر" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبارات: 1108 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-1108_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1116_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبارات: 1116 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-1116_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="الترخيص: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **الترخيص** | مفتوح المصدر ([MIT](LICENSE)) |
 | **الواجهات** | واجهة سطح مكتب حديثة (WPF Fluent) وطرفية سطرية بدون واجهة |
 | **التوزيع** | ملف تنفيذي محمول مفرد (كامل بذاته، لا يحتاج إلى مُثبِّت) |
-| **تغطية الاختبارات** | 1108 اختبارًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 مُتخطّى)، وفحص عشوائي خبيث لنظام الملفات |
+| **تغطية الاختبارات** | 1116 اختبارًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 مُتخطّى)، وفحص عشوائي خبيث لنظام الملفات |
 | **توافر الطرفية** | أمر `deltempo` يُثبّت نفسه عند أول تشغيل للواجهة — دون إعداد يدوي |
 | **بيانات الاتّصال** | صفر بيانات اتّصال. عمليات الفحص والتنظيف والذاكرة وإلغاء التثبيت تعمل 100% دون اتصال |
 | **محرّك الأمان** | تخطيط على مرحلتين (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) مع 5 مستويات للمخاطر وسجلّ معاملات |
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # Services\ فإن الفحص لكل مشروع يغطّي بصمت جزءًا فقط من الحل.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# تنفيذ مجموعة الاختبارات الآلية (1108 اختبار وحدة وتكامل ناجحًا)
+# تنفيذ مجموعة الاختبارات الآلية (1116 اختبار وحدة وتكامل ناجحًا)
 # يعمل xunit.v3 على Microsoft.Testing.Platform، وهو ما لا يستطيع `dotnet test` في
 # حزمة .NET 10 SDK تشغيله ("Testing with VSTest target is no longer supported"). ابنِ
 # المشروع مرة واحدة، ثم استدعِ الملف التنفيذي للاختبارات مباشرةً.

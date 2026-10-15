@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WinTempCleaner.Core.Abstractions;
 
 namespace WinTempCleaner.Core.Safety;
 
@@ -112,24 +113,21 @@ public static class SystemRestorePointService
                     RedirectStandardError = true
                 };
 
-                using var proc = Process.Start(psi);
-                if (proc != null)
+                // stdout is redirected but was never drained here, so a chatty script filled the
+                // 64 KB pipe, blocked on write, and never exited - at which point the
+                // 30 s bound expired and the following ReadToEnd blocked forever too.
+                ProcessExecutionResult result = SystemProcessRunner.Instance.Run(
+                    psi.FileName, psi.Arguments, TimeSpan.FromSeconds(30));
+                if (!result.TimedOut && result.ExitCode == 0)
                 {
-                    bool exited = proc.WaitForExit(30000);
-                    if (exited && proc.ExitCode == 0)
-                    {
-                        return (true, 0, $"Created restore point via PowerShell: '{description}'.");
-                    }
-                    string err = proc.StandardError.ReadToEnd();
-                    return (false, 0, $"System Restore checkpoint skipped or not enabled on system: {err.Trim()}");
+                    return (true, 0, $"Created restore point via PowerShell: '{description}'.");
                 }
+                return (false, 0, $"System Restore checkpoint skipped or not enabled on system: {result.StandardError.Trim()}");
             }
             catch (Exception ex)
             {
                 return (false, 0, $"System Restore unavailable: {ex.Message}");
             }
-
-            return (false, 0, "System Restore is disabled on this system or requires elevated Administrator privileges.");
         });
     }
 }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using WinTempCleaner.Core.Abstractions;
 using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
@@ -78,8 +79,7 @@ public partial class CleanerService
             using var proc = Process.Start(psi);
             if (proc != null)
             {
-                string output = proc.StandardOutput.ReadToEnd();
-                proc.WaitForExit(10_000);
+                string output = SystemProcessRunner.DrainOutput(proc, TimeSpan.FromSeconds(10));
 
                 foreach (var line in output.Split('\n'))
                 {
@@ -116,8 +116,7 @@ public partial class CleanerService
             using var proc = Process.Start(psi);
             if (proc != null)
             {
-                string output = proc.StandardOutput.ReadToEnd();
-                proc.WaitForExit(10_000);
+                string output = SystemProcessRunner.DrainOutput(proc, TimeSpan.FromSeconds(10));
 
                 foreach (var line in output.Split('\n'))
                 {

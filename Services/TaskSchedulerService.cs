@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using WinTempCleaner.Core.Abstractions;
 
 namespace WinTempCleaner.Services;
 
@@ -63,17 +64,22 @@ public static class TaskSchedulerService
                 RedirectStandardError = true
             };
 
-            using var proc = Process.Start(psi);
-            if (proc == null) return (false, "Failed to launch schtasks.exe");
-            string err = proc.StandardError.ReadToEnd();
-            proc.WaitForExit(5000);
+            // schtasks.exe can block indefinitely if it cannot reach the scheduler, and the
+            // old ReadToEnd()-then-WaitForExit(5000) shape never applied the 5 s bound at all.
+            ProcessExecutionResult result = SystemProcessRunner.Instance.Run(
+                psi.FileName, psi.Arguments, TimeSpan.FromSeconds(5));
 
-            if (proc.ExitCode == 0)
+            if (result.TimedOut)
+            {
+                return (false, "schtasks.exe did not respond within 5 seconds.");
+            }
+
+            if (result.ExitCode == 0)
             {
                 return (true, "Successfully scheduled Deltempo silent weekly maintenance for every Sunday at 03:00 AM.");
             }
 
-            return (false, $"schtasks failed (Exit code {proc.ExitCode}): {err.Trim()}");
+            return (false, $"schtasks failed (Exit code {result.ExitCode}): {result.StandardError.Trim()}");
         }
         catch (Exception ex)
         {
@@ -95,17 +101,20 @@ public static class TaskSchedulerService
                 RedirectStandardError = true
             };
 
-            using var proc = Process.Start(psi);
-            if (proc == null) return (false, "Failed to launch schtasks.exe");
-            string err = proc.StandardError.ReadToEnd();
-            proc.WaitForExit(5000);
+            ProcessExecutionResult result = SystemProcessRunner.Instance.Run(
+                psi.FileName, psi.Arguments, TimeSpan.FromSeconds(5));
 
-            if (proc.ExitCode == 0)
+            if (result.TimedOut)
+            {
+                return (false, "schtasks.exe did not respond within 5 seconds.");
+            }
+
+            if (result.ExitCode == 0)
             {
                 return (true, "Deltempo scheduled maintenance task removed successfully.");
             }
 
-            return (false, $"schtasks failed: {err.Trim()}");
+            return (false, $"schtasks failed: {result.StandardError.Trim()}");
         }
         catch (Exception ex)
         {

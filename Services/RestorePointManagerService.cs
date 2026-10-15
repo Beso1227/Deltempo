@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
+using WinTempCleaner.Core.Abstractions;
 using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
@@ -58,46 +59,43 @@ public static class RestorePointManagerService
                     RedirectStandardError = true
                 };
 
-                using var proc = Process.Start(psi);
-                if (proc != null)
+                ProcessExecutionResult result = SystemProcessRunner.Instance.Run(
+                    psi.FileName, psi.Arguments, TimeSpan.FromSeconds(6));
+                string output = result.StandardOutput;
+
+                var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (lines.Length > 1) // skip header
                 {
-                    string output = proc.StandardOutput.ReadToEnd();
-                    proc.WaitForExit(6000);
-
-                    var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    if (lines.Length > 1) // skip header
+                    foreach (var rawLine in lines.Skip(1))
                     {
-                        foreach (var rawLine in lines.Skip(1))
+                        var parts = ParseCsvLine(rawLine);
+                        if (parts.Count >= 3)
                         {
-                            var parts = ParseCsvLine(rawLine);
-                            if (parts.Count >= 3)
+                            int.TryParse(parts[0], out int seq);
+                            string desc = parts[1];
+                            DateTime dt = DateTime.Now;
+                            DateTime.TryParse(parts[2], out dt);
+
+                            string typeDesc = "System Checkpoint";
+                            if (parts.Count >= 4 && int.TryParse(parts[3], out int typeCode))
                             {
-                                int.TryParse(parts[0], out int seq);
-                                string desc = parts[1];
-                                DateTime dt = DateTime.Now;
-                                DateTime.TryParse(parts[2], out dt);
-
-                                string typeDesc = "System Checkpoint";
-                                if (parts.Count >= 4 && int.TryParse(parts[3], out int typeCode))
+                                typeDesc = typeCode switch
                                 {
-                                    typeDesc = typeCode switch
-                                    {
-                                        0 => "Application Install",
-                                        1 => "Application Uninstall",
-                                        10 => "Device Driver Install",
-                                        12 => "System Modify",
-                                        _ => "System Checkpoint"
-                                    };
-                                }
-
-                                info.Points.Add(new RestorePointDetail
-                                {
-                                    SequenceNumber = seq,
-                                    Description = desc,
-                                    CreationTime = dt,
-                                    EventType = typeDesc
-                                });
+                                    0 => "Application Install",
+                                    1 => "Application Uninstall",
+                                    10 => "Device Driver Install",
+                                    12 => "System Modify",
+                                    _ => "System Checkpoint"
+                                };
                             }
+
+                            info.Points.Add(new RestorePointDetail
+                            {
+                                SequenceNumber = seq,
+                                Description = desc,
+                                CreationTime = dt,
+                                EventType = typeDesc
+                            });
                         }
                     }
                 }
@@ -122,41 +120,38 @@ public static class RestorePointManagerService
                         RedirectStandardError = true
                     };
 
-                    using var proc = Process.Start(psi);
-                    if (proc != null)
+                    ProcessExecutionResult result = SystemProcessRunner.Instance.Run(
+                        psi.FileName, psi.Arguments, TimeSpan.FromSeconds(8));
+                    string output = result.StandardOutput;
+
+                    int seq = 1;
+                    RestorePointDetail? current = null;
+
+                    foreach (var rawLine in output.Split('\n'))
                     {
-                        string output = proc.StandardOutput.ReadToEnd();
-                        proc.WaitForExit(8000);
-
-                        int seq = 1;
-                        RestorePointDetail? current = null;
-
-                        foreach (var rawLine in output.Split('\n'))
+                        string line = rawLine.Trim();
+                        if (line.StartsWith("Shadow Copy ID:", StringComparison.OrdinalIgnoreCase))
                         {
-                            string line = rawLine.Trim();
-                            if (line.StartsWith("Shadow Copy ID:", StringComparison.OrdinalIgnoreCase))
+                            if (current != null) info.Points.Add(current);
+                            current = new RestorePointDetail
                             {
-                                if (current != null) info.Points.Add(current);
-                                current = new RestorePointDetail
-                                {
-                                    SequenceNumber = seq++,
-                                    ShadowId = line.Substring(15).Trim()
-                                };
-                            }
-                            else if (current != null && line.StartsWith("Creation Time:", StringComparison.OrdinalIgnoreCase))
-                            {
-                                string dateStr = line.Substring(14).Trim();
-                                if (DateTime.TryParse(dateStr, out var parsedDt))
-                                {
-                                    current.CreationTime = parsedDt;
-                                }
-                                current.Description = "Volume Shadow Copy";
-                                current.EventType = "VSS Snapshot";
-                            }
+                                SequenceNumber = seq++,
+                                ShadowId = line.Substring(15).Trim()
+                            };
                         }
-
-                        if (current != null) info.Points.Add(current);
+                        else if (current != null && line.StartsWith("Creation Time:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string dateStr = line.Substring(14).Trim();
+                            if (DateTime.TryParse(dateStr, out var parsedDt))
+                            {
+                                current.CreationTime = parsedDt;
+                            }
+                            current.Description = "Volume Shadow Copy";
+                            current.EventType = "VSS Snapshot";
+                        }
                     }
+
+                    if (current != null) info.Points.Add(current);
                 }
                 catch (Exception ex)
                 {

@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WinTempCleaner.Core.Abstractions;
 using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
@@ -389,11 +390,9 @@ public static class StartupManagerService
                 StandardOutputEncoding = Encoding.UTF8
             };
 
-            using var proc = Process.Start(psi);
-            if (proc == null) return;
-
-            string csvOutput = proc.StandardOutput.ReadToEnd();
-            proc.WaitForExit(4000);
+            ProcessExecutionResult result = SystemProcessRunner.Instance.Run(
+                psi.FileName, psi.Arguments, TimeSpan.FromSeconds(4), standardOutputEncoding: Encoding.UTF8);
+            string csvOutput = result.StandardOutput;
 
             if (string.IsNullOrWhiteSpace(csvOutput)) return;
 

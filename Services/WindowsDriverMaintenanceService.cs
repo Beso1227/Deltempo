@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
+using WinTempCleaner.Core.Abstractions;
 using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
@@ -165,8 +166,7 @@ public static class WindowsDriverMaintenanceService
             using var proc = Process.Start(psi);
             if (proc == null) return activeInfs;
 
-            string output = proc.StandardOutput.ReadToEnd();
-            proc.WaitForExit(10000);
+            string output = SystemProcessRunner.DrainOutput(proc, TimeSpan.FromSeconds(10));
 
             using var reader = new StringReader(output);
             string? line;
@@ -220,8 +220,7 @@ public static class WindowsDriverMaintenanceService
                 using var proc = Process.Start(psi);
                 if (proc == null) return result;
 
-                string output = proc.StandardOutput.ReadToEnd();
-                proc.WaitForExit(15000);
+                string output = SystemProcessRunner.DrainOutput(proc, TimeSpan.FromSeconds(15));
 
                 if (ct.IsCancellationRequested) return result;
 
@@ -375,8 +374,7 @@ public static class WindowsDriverMaintenanceService
                             using var proc = Process.Start(psi);
                             if (proc != null)
                             {
-                                string outText = proc.StandardOutput.ReadToEnd();
-                                proc.WaitForExit(10000);
+                                string outText = SystemProcessRunner.DrainOutput(proc, TimeSpan.FromSeconds(10));
 
                                 if (proc.ExitCode == 0 || outText.Contains("Driver package deleted successfully", StringComparison.OrdinalIgnoreCase))
                                 {
@@ -503,8 +501,7 @@ public static class WindowsDriverMaintenanceService
             using var proc = Process.Start(psi);
             if (proc == null) return result;
 
-            string output = proc.StandardOutput.ReadToEnd();
-            proc.WaitForExit(15000);
+            string output = SystemProcessRunner.DrainOutput(proc, TimeSpan.FromSeconds(15));
 
             var allPackages = ParsePnpUtilOutput(output);
             if (allPackages.Count == 0) return result;

@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
+using WinTempCleaner.Core.Abstractions;
+
 namespace WinTempCleaner.Services;
 
 public class GameBoostResult
@@ -164,8 +166,7 @@ public static class GameBoostService
             using var process = Process.Start(psi);
             if (process == null) return null;
 
-            string output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit(2000);
+            string output = SystemProcessRunner.DrainOutput(process, TimeSpan.FromSeconds(2));
             return ExtractPowerSchemeGuid(output);
         }
         catch
