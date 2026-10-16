@@ -169,5 +169,10 @@
                                   Grid.Row="1"
                                   Visibility="Collapsed" />
 
+        <views:ForceDeleteView x:Name="ForceDeleteOverlay"
+                               Grid.Column="1"
+                               Grid.Row="1"
+                               Visibility="Collapsed" />
+
     </Grid>
 </Window>

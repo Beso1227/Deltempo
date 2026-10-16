@@ -49,6 +49,7 @@ public sealed partial class MainWindow : Window
             OpenAppDataFootprint();
             LoadSelfTestLockedFiles();
             OpenMemoryOptimizerForSelfTest();
+            LoadSelfTestForceDelete();
         }
 
         ShellDiagnostics.MaybeSelfTest(this);
@@ -112,6 +113,77 @@ public sealed partial class MainWindow : Window
         ShellDiagnostics.Write(
             $"locked files inspector loaded (self-test, display only): " +
             $"{LockedFilesOverlay.ViewModel.Rows.Count} row(s)");
+    }
+
+    /// <summary>
+    /// Exercises the force-delete staging surface WITHOUT deleting anything.
+    ///
+    /// Only the read-only profiling path runs: InspectPath walks the target and
+    /// reports its gate tier. ExecuteCommand and DryRunCommand are never invoked,
+    /// so nothing is deleted, no locking process is terminated, and
+    /// ScheduleRebootIfLocked never reaches the Session Manager.
+    ///
+    /// The value of this probe is the SHIELDING assertion. It stages a real
+    /// System32 path alongside a harmless temp file and proves the shielded one
+    /// lands pre-deselected and is excluded from EligibleTargets(). That is the
+    /// single most important safety property on this screen, so it is worth
+    /// proving at runtime rather than trusting the tier enum alone.
+    /// </summary>
+    private async void LoadSelfTestForceDelete()
+    {
+        ForceDeleteOverlay.ViewModel.LogRequested += OnFootprintLog;
+        ForceDeleteOverlay.OpenEmpty();
+
+        string scratchFile = Path.Combine(
+            Path.GetTempPath(),
+            $"deltempo-selftest-{Guid.NewGuid():N}.tmp");
+
+        await File.WriteAllTextAsync(scratchFile, "force delete self-test scratch file");
+
+        try
+        {
+            await ForceDeleteOverlay.ViewModel.StagePathsAsync(
+            [
+                scratchFile,
+                // Read-only reference to a strictly-shielded system path. Profiling
+                // this reads directory metadata; it does not touch the file.
+                Path.Combine(Environment.SystemDirectory, "notepad.exe"),
+            ]);
+        }
+        finally
+        {
+            try
+            {
+                File.Delete(scratchFile);
+            }
+            catch (IOException)
+            {
+                // A locked scratch file is not a self-test failure.
+            }
+        }
+
+        List<Deltempo.App.WinUI.ViewModels.ForceDeleteTargetRowViewModel> eligible =
+            ForceDeleteOverlay.ViewModel.EligibleTargets();
+
+        int shieldedStaged = ForceDeleteOverlay.ViewModel.Targets
+            .Count(t => t.IsShielded && !t.IsSelected);
+
+        ShellDiagnostics.Write(
+            $"force delete loaded (self-test, staging only): " +
+            $"{ForceDeleteOverlay.ViewModel.Targets.Count} staged, " +
+            $"{eligible.Count} eligible, {shieldedStaged} shielded-and-deselected, " +
+            $"canRun={ForceDeleteOverlay.ViewModel.CanRunPurge}");
+
+        if (shieldedStaged != 1)
+        {
+            ShellDiagnostics.Write(
+                "FAIL: expected exactly 1 shielded target staged pre-deselected.");
+        }
+
+        if (eligible.Any(t => t.IsShielded))
+        {
+            ShellDiagnostics.Write("FAIL: a shielded target reached the eligible list.");
+        }
     }
 
     /// <summary>
