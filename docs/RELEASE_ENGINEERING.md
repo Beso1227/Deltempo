@@ -227,6 +227,12 @@ never reference a digest that differs from what was published. It hard-fails if 
 winget install Beso1227.Deltempo
 ```
 
+**Status: not yet published.** The manifest for `3.2.0` is generated and submitted to
+`microsoft/winget-pkgs`, but the package is still sitting in the moderation queue, so the
+command above does not resolve yet. `winget search deltempo` returns nothing until a
+moderator approves and the package lands in the winget-pkgs repository. Until then,
+point users at the one-line installer on the download page.
+
 Installer type is `portable`, so winget shims the single-file exe onto PATH rather than
 running an installer.
 
