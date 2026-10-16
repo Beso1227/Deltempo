@@ -40,8 +40,39 @@ public sealed partial class MainWindow : Window
         ApplyWindowChrome();
         BuildNavigation();
         VerifyCoreLink();
+
+        // Self-test drives the ported report directly: selecting a nav item does not
+        // fire SelectionChanged for the initial selection, so the overlay would
+        // otherwise stay closed and the self-test would prove nothing about it.
+        if (ShellDiagnostics.IsSelfTest)
+        {
+            OpenAppDataFootprint();
+        }
+
         ShellDiagnostics.MaybeSelfTest(this);
     }
+
+    /// <summary>
+    /// Opens the ported AppData footprint report over the content area. This is the
+    /// Stage 2 proof screen: real Core data, no delete affordance.
+    /// </summary>
+    private void OpenAppDataFootprint()
+    {
+        FootprintView.LogRequested += OnFootprintLog;
+        FootprintView.CloseRequested += CloseAppDataFootprint;
+        FootprintView.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        FootprintView.PopulateAndOpen();
+    }
+
+    private void CloseAppDataFootprint()
+    {
+        FootprintView.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        FootprintView.CloseRequested -= CloseAppDataFootprint;
+        FootprintView.LogRequested -= OnFootprintLog;
+    }
+
+    private void OnFootprintLog(string message, WinTempCleaner.Models.LogLevel level)
+        => ShellDiagnostics.Write($"[{level}] {message}");
 
     private void ApplyWindowChrome()
     {
@@ -93,6 +124,13 @@ public sealed partial class MainWindow : Window
                 PlaceholderTitle.Text = label;
                 PlaceholderBody.Text =
                     $"Stage 1 shell placeholder for '{label}'. No cleanup logic is wired up; nothing on this screen touches disk.";
+
+                // The footprint report is the one Stage 2 screen that exists, so it
+                // hangs off the Cleaner workspace until it has a real home.
+                if (label == Sections[0].Label)
+                {
+                    OpenAppDataFootprint();
+                }
             }
         };
     }

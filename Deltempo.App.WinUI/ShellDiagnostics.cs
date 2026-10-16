@@ -33,9 +33,12 @@ internal static class ShellDiagnostics
         }
     }
 
+    public static bool IsSelfTest =>
+        Environment.GetCommandLineArgs().Contains("--self-test", StringComparer.OrdinalIgnoreCase);
+
     public static void MaybeSelfTest(Window window)
     {
-        if (!Environment.GetCommandLineArgs().Contains("--self-test", StringComparer.OrdinalIgnoreCase))
+        if (!IsSelfTest)
         {
             return;
         }
@@ -43,7 +46,8 @@ internal static class ShellDiagnostics
         var queue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
         _ = Task.Run(async () =>
         {
-            await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+            // AppData analysis walks three trees recursively; give it room before closing.
+            await Task.Delay(TimeSpan.FromSeconds(20)).ConfigureAwait(false);
             queue.TryEnqueue(() =>
             {
                 Write("self-test close");
