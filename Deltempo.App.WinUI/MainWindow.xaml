@@ -159,5 +159,10 @@
                                     Grid.Row="1"
                                     Visibility="Collapsed" />
 
+        <views:LockedFilesView x:Name="LockedFilesOverlay"
+                               Grid.Column="1"
+                               Grid.Row="1"
+                               Visibility="Collapsed" />
+
     </Grid>
 </Window>

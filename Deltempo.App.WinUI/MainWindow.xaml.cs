@@ -41,15 +41,56 @@ public sealed partial class MainWindow : Window
         BuildNavigation();
         VerifyCoreLink();
 
-        // Self-test drives the ported report directly: selecting a nav item does not
-        // fire SelectionChanged for the initial selection, so the overlay would
-        // otherwise stay closed and the self-test would prove nothing about it.
+        // Self-test drives the ported overlays directly: selecting a nav item does not
+        // fire SelectionChanged for the initial selection, so the overlays would
+        // otherwise stay closed and the self-test would prove nothing about them.
         if (ShellDiagnostics.IsSelfTest)
         {
             OpenAppDataFootprint();
+            LoadSelfTestLockedFiles();
         }
 
         ShellDiagnostics.MaybeSelfTest(this);
+    }
+
+    /// <summary>
+    /// Exercises the locked-files inspector with display-only rows.
+    ///
+    /// It never calls RestartManagerService.ScheduleRebootDeletion: that registers a
+    /// pending deletion with the Windows Session Manager, which is a real system
+    /// mutation and has no place in a self-test.
+    /// </summary>
+    private void LoadSelfTestLockedFiles()
+    {
+        LockedFilesOverlay.LogRequested += OnFootprintLog;
+
+        LockedFilesOverlay.Load(
+        [
+            new LockedFileItem
+            {
+                FilePath = @"C:\Users\example\AppData\Local\Cache\locked.tmp",
+                FileName = "locked.tmp",
+                SizeBytes = 12_582_912,
+                LockingProcessName = "exampleapp",
+                LockingProcessId = 4242,
+                LockReason = "Process holds an open handle",
+                StatusText = "Detected",
+            },
+            new LockedFileItem
+            {
+                FilePath = @"C:\Users\example\AppData\Local\Other\held.dat",
+                FileName = "held.dat",
+                SizeBytes = 1_048_576,
+                LockingProcessName = "otherexample",
+                LockingProcessId = 918,
+                LockReason = "Process holds an open handle",
+                StatusText = "Detected",
+            },
+        ]);
+
+        ShellDiagnostics.Write(
+            $"locked files inspector loaded (self-test, display only): " +
+            $"{LockedFilesOverlay.ViewModel.Rows.Count} row(s)");
     }
 
     /// <summary>
