@@ -1,0 +1,154 @@
+<Window
+    x:Class="Deltempo.App.WinUI.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Deltempo">
+
+    <Grid Background="{StaticResource CanvasDarkBrush}">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="28" />
+        </Grid.RowDefinitions>
+
+        <!-- Custom title bar. ExtendsContentIntoTitleBar is set in code-behind; the
+             48px drag region mirrors the WPF caption height. -->
+        <Grid x:Name="TitleBarHost"
+              Grid.Row="0"
+              Background="{StaticResource HeaderDockBrush}"
+              BorderBrush="{StaticResource HairlineBorderBrush}"
+              BorderThickness="0,0,0,1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Orientation="Horizontal"
+                        Spacing="10"
+                        VerticalAlignment="Center"
+                        Padding="16,0,0,0">
+                <Border Width="3"
+                        Height="16"
+                        CornerRadius="2"
+                        Background="{StaticResource ElectricCyanBrush}" />
+                <TextBlock Text="Deltempo"
+                           FontFamily="{StaticResource AppFont}"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextHighBrush}"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+
+            <TextBlock x:Name="SectionLabel"
+                       Grid.Column="1"
+                       Margin="0,0,16,0"
+                       VerticalAlignment="Center"
+                       FontFamily="{StaticResource AppFont}"
+                       FontSize="12"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       Text="Cleaner Workspace" />
+        </Grid>
+
+        <!-- Body: navigation rail + content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="248" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Background="{StaticResource HeaderDockBrush}"
+                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                    BorderThickness="0,0,1,0">
+                <ListView x:Name="NavList"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          SelectionMode="Single"
+                          IsItemClickEnabled="False"
+                          Padding="8"
+                          VerticalAlignment="Stretch">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Padding" Value="12,10" />
+                            <Setter Property="CornerRadius" Value="6" />
+                            <Setter Property="Margin" Value="0,2" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
+            </Border>
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Stage 1 content placeholder. Real screens land in Stage 2. -->
+                <StackPanel Grid.Row="0"
+                            Margin="32"
+                            Spacing="14"
+                            VerticalAlignment="Top">
+                    <TextBlock x:Name="PlaceholderTitle"
+                               FontFamily="{StaticResource AppFont}"
+                               FontSize="22"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextHighBrush}"
+                               Text="Cleaner Workspace" />
+                    <TextBlock x:Name="PlaceholderBody"
+                               FontFamily="{StaticResource AppFont}"
+                               FontSize="13"
+                               Foreground="{StaticResource TextMediumBrush}"
+                               TextWrapping="Wrap"
+                               MaxWidth="640"
+                               HorizontalAlignment="Left"
+                               Text="Stage 1 shell. This screen is a placeholder - no cleanup logic is wired up and nothing here touches disk." />
+                </StackPanel>
+
+                <!-- Core connectivity proof: proves the WinUI 3 app can consume the
+                     existing Core assembly, which is the whole point of this stage. -->
+                <Border Grid.Row="1"
+                        Margin="32,0,32,24"
+                        Padding="14"
+                        CornerRadius="8"
+                        Background="{StaticResource SurfaceCardBrush}"
+                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="6">
+                        <TextBlock FontFamily="{StaticResource AppFont}"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextMediumBrush}"
+                                   Text="CORE LINK CHECK" />
+                        <TextBlock x:Name="CoreStatus"
+                                   FontFamily="{StaticResource MonoFont}"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextHighBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="checking..." />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- Status bar -->
+        <Border Grid.Row="2"
+                Background="{StaticResource HeaderDockBrush}"
+                BorderBrush="{StaticResource HairlineBorderBrush}"
+                BorderThickness="0,1,0,0">
+            <Grid Padding="16,0">
+                <TextBlock x:Name="FooterText"
+                           VerticalAlignment="Center"
+                           FontFamily="{StaticResource AppFont}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           Text="Deltempo - WinUI 3 shell (Stage 1)" />
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>

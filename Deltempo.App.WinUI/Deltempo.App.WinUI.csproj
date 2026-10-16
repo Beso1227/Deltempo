@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Deltempo WinUI 3 shell (Stage 1 of the WinUI 3 migration).
+
+    Lives alongside the existing WPF app (WinTempCleaner.csproj) rather than replacing it.
+    The WPF app stays the shipping UI until the WinUI 3 shell reaches feature parity.
+
+    Verified toolchain (Stage 0 gate, 2026-10-16):
+      .NET SDK 10.0.402 + Windows App SDK 2.4.0, unpackaged + self-contained.
+      Tray / global hotkey / Mica / extended title bar all proved working.
+  -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>Deltempo.App.WinUI</RootNamespace>
+    <AssemblyName>Deltempo.WinUI</AssemblyName>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
+
+    <!-- Unpackaged: no MSIX, no installer. See Stage 0 findings on payload size. -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <EnableMsixTooling>false</EnableMsixTooling>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Versions come from Directory.Packages.props (Central Package Management). -->
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Deltempo.Core.csproj" />
+  </ItemGroup>
+
+</Project>

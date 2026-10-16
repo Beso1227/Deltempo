@@ -58,6 +58,13 @@
     <None Remove="ProbeLib\**" />
     <EmbeddedResource Remove="Assets\**" />
     <None Remove="Assets\**" />
+    <!-- The WinUI 3 shell is a separate project with its own project root; its XAML must
+         not be globbed into this WPF project (Page items) or the two XAML stacks collide. -->
+    <Compile Remove="Deltempo.App.WinUI\**" />
+    <Page Remove="Deltempo.App.WinUI\**" />
+    <ApplicationDefinition Remove="Deltempo.App.WinUI\**" />
+    <EmbeddedResource Remove="Deltempo.App.WinUI\**" />
+    <None Remove="Deltempo.App.WinUI\**" />
   </ItemGroup>
 
   <!--

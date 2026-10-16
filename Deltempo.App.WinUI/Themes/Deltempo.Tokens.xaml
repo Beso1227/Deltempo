@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Deltempo design tokens - WinUI 3 port of the brushes defined in the WPF
+    App.xaml (dark theme). Values are copied verbatim from the WPF dictionary so the
+    two UIs stay visually identical during the migration.
+
+    Ported from App.xaml lines 23-108 / 168-173.
+    Still dark-only: the WPF app's light-theme override never existed, so the light
+    theme is deliberate new design work, not a port.
+-->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Surfaces -->
+    <SolidColorBrush x:Key="CanvasDarkBrush" Color="#06080B" />
+    <SolidColorBrush x:Key="HeaderDockBrush" Color="#0A0E13" />
+    <SolidColorBrush x:Key="SurfaceCardBrush" Color="#0E1318" />
+    <SolidColorBrush x:Key="SurfaceCardHoverBrush" Color="#131B22" />
+    <SolidColorBrush x:Key="SurfaceCardSelectedBrush" Color="#101820" />
+    <SolidColorBrush x:Key="SurfaceSubCardBrush" Color="#0A0F14" />
+    <SolidColorBrush x:Key="HairlineBorderBrush" Color="#16212B" />
+
+    <!-- Dividers / borders -->
+    <SolidColorBrush x:Key="NavDividerBrush" Color="#2E3D4A" />
+    <SolidColorBrush x:Key="AccentBorderBrush" Color="#1A3B35" />
+
+    <!-- Text -->
+    <SolidColorBrush x:Key="TextHighBrush" Color="#F8FAFC" />
+    <SolidColorBrush x:Key="TextMediumBrush" Color="#94A3B8" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#78899D" />
+
+    <!-- Controls -->
+    <SolidColorBrush x:Key="PillButtonBgBrush" Color="#0F161C" />
+    <SolidColorBrush x:Key="PillButtonHoverBrush" Color="#152028" />
+    <SolidColorBrush x:Key="PillButtonBorderBrush" Color="#1E2E38" />
+    <SolidColorBrush x:Key="HeroActionBtnTextBrush" Color="#030D0C" />
+    <SolidColorBrush x:Key="TrackBgBrush" Color="#0E141C" />
+    <SolidColorBrush x:Key="TrackThumbBrush" Color="#64748B" />
+    <SolidColorBrush x:Key="ScrollThumbBrush" Color="#4E6478" />
+    <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#00F2B0" />
+
+    <!-- Semantic status -->
+    <SolidColorBrush x:Key="AdminBadgeBgBrush" Color="#081D17" />
+    <SolidColorBrush x:Key="AdminBadgeBorderBrush" Color="#00F2B0" />
+    <SolidColorBrush x:Key="AdminBadgeTextBrush" Color="#00F2B0" />
+    <SolidColorBrush x:Key="SafetyBadgeBgBrush" Color="#081D17" />
+    <SolidColorBrush x:Key="SafetyBadgeBorderBrush" Color="#00F2B0" />
+    <SolidColorBrush x:Key="SafetyBadgeTextBrush" Color="#00F2B0" />
+    <SolidColorBrush x:Key="WarningBadgeBgBrush" Color="#261C0D" />
+    <SolidColorBrush x:Key="WarningBadgeBorderBrush" Color="#F59E0B" />
+    <SolidColorBrush x:Key="WarningBadgeTextBrush" Color="#F59E0B" />
+    <SolidColorBrush x:Key="ElectricCyanBrush" Color="#00F2B0" />
+    <SolidColorBrush x:Key="AccentBlueBrush" Color="#0DD3BA" />
+    <SolidColorBrush x:Key="AccentIndigoBrush" Color="#06B6D4" />
+    <SolidColorBrush x:Key="AccentVioletBrush" Color="#8B5CF6" />
+    <SolidColorBrush x:Key="AmberWarningBrush" Color="#F59E0B" />
+    <SolidColorBrush x:Key="RoseErrorBrush" Color="#F43F5E" />
+    <SolidColorBrush x:Key="DestructiveRedBrush" Color="#F43F5E" />
+    <SolidColorBrush x:Key="DestructiveRedSoftBrush" Color="#F87171" />
+    <SolidColorBrush x:Key="DestructiveRedTextBrush" Color="#FCA5A5" />
+    <SolidColorBrush x:Key="SuccessAccentBrush" Color="#10B981" />
+    <SolidColorBrush x:Key="SuccessTextBrightBrush" Color="#34D399" />
+    <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#0D2818" />
+    <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#241B12" />
+    <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#2A0E0E" />
+    <SolidColorBrush x:Key="InfoAccentBrush" Color="#3B82F6" />
+    <SolidColorBrush x:Key="IndigoAccentBrush" Color="#6366F1" />
+
+    <!-- Navigation -->
+    <SolidColorBrush x:Key="NavIconMutedBrush" Color="#5E6E80" />
+    <SolidColorBrush x:Key="NavIconHoverBrush" Color="#9FB0C3" />
+    <SolidColorBrush x:Key="NavIconDangerMutedBrush" Color="#8C4B58" />
+    <SolidColorBrush x:Key="NavIconDangerHoverBrush" Color="#F87171" />
+
+    <!-- Fonts
+         WPF used Segoe MDL2 Assets for glyphs. WinUI 3 ships Segoe Fluent Icons,
+         which is the supported replacement; glyph coverage needs auditing during
+         screen porting (some MDL2 code points moved). -->
+    <FontFamily x:Key="IconFont">Segoe Fluent Icons</FontFamily>
+    <FontFamily x:Key="AppFont">Segoe UI Variable Text, Segoe UI</FontFamily>
+    <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
+
+</ResourceDictionary>
