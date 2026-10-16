@@ -60,9 +60,12 @@
     <SolidColorBrush x:Key="DestructiveRedSoftBrush" Color="#F87171" />
     <SolidColorBrush x:Key="DestructiveRedTextBrush" Color="#FCA5A5" />
     <SolidColorBrush x:Key="SuccessAccentBrush" Color="#10B981" />
+    <SolidColorBrush x:Key="SuccessGlowBrush" Color="#00F2B0" />
     <SolidColorBrush x:Key="SuccessTextBrightBrush" Color="#34D399" />
     <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#0D2818" />
     <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#241B12" />
+    <SolidColorBrush x:Key="WarningBorderSoftBrush" Color="#8CF59E0B" />
+    <SolidColorBrush x:Key="AccentHairlineBrush" Color="#2600F2B0" />
     <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#2A0E0E" />
     <SolidColorBrush x:Key="InfoAccentBrush" Color="#3B82F6" />
     <SolidColorBrush x:Key="IndigoAccentBrush" Color="#6366F1" />
@@ -80,5 +83,21 @@
     <FontFamily x:Key="IconFont">Segoe Fluent Icons</FontFamily>
     <FontFamily x:Key="AppFont">Segoe UI Variable Text, Segoe UI</FontFamily>
     <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
+
+    <!--
+        NOT YET PORTED - keys the remaining WPF screens still reference:
+
+          AccessibleFocusVisualStyle        WCAG 2.2 AA focus ring
+          WindowControlButton              custom caption button
+          WindowCloseButton                 custom close button (red on hover)
+          WidthToCompactDoubleConverter     window width -> compact nav MinWidth
+          WidthToCompactThicknessConverter  window width -> compact nav padding
+          WidthToCompactVisibilityConverter window width -> icon-only nav
+
+        These are NOT drop-in ports. The WPF versions rely on
+        ControlTemplate.Triggers, which WinUI 3 does not support; each needs
+        re-authoring with VisualStateManager states instead. The ported views use
+        explicit properties in the meantime, so nothing references these yet.
+    -->
 
 </ResourceDictionary>

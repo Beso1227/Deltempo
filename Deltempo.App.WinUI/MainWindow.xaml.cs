@@ -48,9 +48,30 @@ public sealed partial class MainWindow : Window
         {
             OpenAppDataFootprint();
             LoadSelfTestLockedFiles();
+            OpenMemoryOptimizerForSelfTest();
         }
 
         ShellDiagnostics.MaybeSelfTest(this);
+    }
+
+    /// <summary>
+    /// Exercises the memory optimizer's read paths: live telemetry plus the zone
+    /// list.
+    ///
+    /// It deliberately does NOT invoke OptimizeAreaAsync, OptimizeRamAsync,
+    /// QuickTrim, FlushZone or PurgeSelected. Those issue privileged NT memory
+    /// operations against the running system and have no place in a self-test.
+    /// </summary>
+    private void OpenMemoryOptimizerForSelfTest()
+    {
+        MemoryOverlay.LogRequested += OnFootprintLog;
+        MemoryOverlay.Open();
+
+        ShellDiagnostics.Write(
+            $"memory optimizer loaded (self-test, read only): " +
+            $"{MemoryOverlay.ViewModel.Zones.Count} zone(s), " +
+            $"RAM {MemoryOverlay.ViewModel.TotalRamText}, " +
+            $"standby {MemoryOverlay.ViewModel.StandbyCacheText}");
     }
 
     /// <summary>
