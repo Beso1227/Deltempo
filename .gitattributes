@@ -63,6 +63,17 @@ LICENSE text
 *.dmp binary
 
 # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Test Fixture Key Material
+# -----------------------------------------------------------------------------
+# The `* text=auto` rule above would normalise line endings on these PEM files. PEM is
+# conventionally LF, and the update-manifest tests decode the base64 body directly, so the
+# committed bytes should stay exactly as generated rather than depending on each developer's
+# core.autocrlf. Belt-and-braces: the parsers already strip whitespace, but pinning LF means
+# the tracked key is byte-identical everywhere.
+Tests/Deltempo.Tests/Fixtures/*.pem text eol=lf
+Tests/Deltempo.Tests/Fixtures/*.pub text eol=lf
+
 # GitHub Linguist Overrides
 # -----------------------------------------------------------------------------
 docs/** linguist-documentation

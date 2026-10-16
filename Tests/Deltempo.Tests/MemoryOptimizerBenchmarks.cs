@@ -44,7 +44,7 @@ public class MemoryOptimizerBenchmarks
         sw.Stop();
 
         _output.WriteLine($"WorkingSet Optimize Elapsed: {sw.ElapsedMilliseconds} ms");
-        _output.WriteLine($"Reclaimed: {result.FormattedReclaimed} | Delta: {result.FormattedMeasuredDelta}");
+        _output.WriteLine($"Confirmed: {result.SucceededTargetCount}/{result.RequestedTargetCount} | Available-RAM delta: {result.FormattedMeasuredDelta}");
         _output.WriteLine($"Processes Trimmed: {result.ProcessesOptimized}");
 
         Assert.NotNull(result);

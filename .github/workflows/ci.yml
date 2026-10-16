@@ -48,12 +48,34 @@ jobs:
       - name: Audit NuGet Packages for Known Vulnerabilities
         shell: pwsh
         run: |
-          $output = dotnet list package --vulnerable --include-transitive | Out-String
+          # Fail CLOSED. Previously this step only string-matched the tool's own output, so
+          # three separate conditions silently passed the gate:
+          #   a) the audit command itself failed (network/restore error) - output contained no
+          #      match, so the step exited 0 with nothing audited;
+          #   b) an SDK wording change to the summary line - the match string no longer occurs;
+          #   c) vulnerabilities found, but reported only in the non-transitive form.
+          # An audit that cannot run must not read as an audit that found nothing.
+          $output = dotnet list package --vulnerable --include-transitive 2>&1 | Out-String
+          $auditExit = $LASTEXITCODE
           Write-Host $output
+
+          if ($auditExit -ne 0 -and $output -notmatch 'has the following vulnerable packages|has no vulnerable packages') {
+            Write-Error "::error::`n$output"
+            Write-Error "::error::NuGet vulnerability audit could not complete (exit $auditExit). Treating an unrunnable audit as a failure, not a pass."
+            exit 1
+          }
+
           if ($output -match 'has the following vulnerable packages') {
             Write-Error "::error::Vulnerable NuGet packages detected. Update or pin safe versions (see audit output above)."
             exit 1
           }
+
+          if ($output -notmatch 'has no vulnerable packages') {
+            Write-Error "::error::`n$output"
+            Write-Error "::error::NuGet vulnerability audit produced no verdict line. Refusing to treat an unrecognised audit result as clean."
+            exit 1
+          }
+          Write-Host "NuGet vulnerability audit clean."
 
       - name: Report Outdated NuGet Packages (read-only)
         # Report-only by design: surfaces available updates in the CI log without failing the
@@ -83,19 +105,28 @@ jobs:
           $all = [regex]::Matches($build, ': warning ([A-Z]+)(\d+):')
           Write-Host ("Total analyzer diagnostics (advisory): {0}" -f $all.Count)
 
-          $top = $all | ForEach-Object { $_.Groups[1].Value + $_.Groups[2].Value } |
-            Group-Object | Sort-Object Count -Descending | Select-Object -First 12
+          # Count EVERY rule, not just the reported top 12. The previous version filtered
+          # $top (already truncated to 12 rows), so a blocking rule with a handful of hits
+          # could fall off the end of the list and the gate would report success.
+          $byRule = @{}
+          foreach ($m in $all) {
+            $name = $m.Groups[1].Value + $m.Groups[2].Value
+            if ($byRule.ContainsKey($name)) { $byRule[$name]++ } else { $byRule[$name] = 1 }
+          }
+
           Write-Host "Top rules:"
-          foreach ($rule in $top) { Write-Host ("  {0,-8} {1}" -f $rule.Count, $rule.Name) }
+          foreach ($rule in ($byRule.GetEnumerator() | Sort-Object Value -Descending | Select-Object -First 12)) {
+            Write-Host ("  {0,-8} {1}" -f $rule.Value, $rule.Key)
+          }
 
           # CA5350/CA5351 (weak crypto) and CA2201 (reserved exception type) indicate real
           # security or correctness bugs, and are genuinely at zero today. CA1062/CA1816/
           # CA2016 do fire in this codebase but are dominated by style-level noise, so they
           # are reported rather than gated until their families are cleaned up.
           $blocking = @('CA5350','CA5351','CA2201')
-          $hits = $top | Where-Object { $blocking -contains $_.Name }
+          $hits = $blocking | Where-Object { $byRule.ContainsKey($_) }
           if ($hits) {
-            foreach ($hit in $hits) { Write-Host "::error file=Directory.Build.props::Blocking analyzer rule $($hit.Name) reported $($hit.Count) occurrence(s)." }
+            foreach ($hit in $hits) { Write-Host "::error file=Directory.Build.props::Blocking analyzer rule $hit reported $($byRule[$hit]) occurrence(s)." }
             Write-Error "::error::Analyzer rules that indicate real security/correctness defects must stay at zero."
             exit 1
           }
@@ -113,6 +144,14 @@ jobs:
           # --coverage comes from Microsoft.Testing.Extensions.CodeCoverage and replaces the
           # VSTest-only --collect:"XPlat Code Coverage" flag.
           dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
+
+          # Clear any previous TestResults first. The coverage gate below selects the newest
+          # *.cobertura.xml by timestamp, so a report left over from an earlier run could be
+          # picked up when collection fails on this run - letting the gate pass on stale data.
+          if (Test-Path "Tests/Deltempo.Tests/TestResults") {
+            Remove-Item -Recurse -Force "Tests/Deltempo.Tests/TestResults"
+          }
+          New-Item -ItemType Directory -Force -Path "Tests/Deltempo.Tests/TestResults" | Out-Null
 
           $testExe = "Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe"
           if (-not (Test-Path $testExe)) {
@@ -142,16 +181,64 @@ jobs:
           # The result summary is the verdict - NOT the process exit code.
           # Microsoft.Testing.Platform force-exits non-zero when foreground threads outlive
           # the run ("[FATAL ERROR] Foreground threads were left running"), even with every
-          # test green. Fail on a real failure, fail if the run did not complete, and warn
-          # loudly rather than failing an all-green run on a harness diagnostic.
-          if (Select-String -Path "Tests/Deltempo.Tests/TestResults/test-run.log" -Pattern 'failed: [1-9]' -Quiet) {
-            Write-Error "::error::One or more tests failed; see test-run.log."
+          # test green. So the summary is parsed and asserted directly.
+          #
+          # The previous check was `-match 'succeeded: 9\d\d|succeeded: \d+'`, which any digit
+          # count satisfies - including a run that aborted mid-suite and still printed a
+          # summary for the handful of tests it had completed. A truncated run read as green.
+          $log = "Tests/Deltempo.Tests/TestResults/test-run.log"
+          if (-not (Test-Path $log)) {
+            Write-Error "::error::No test-run.log was produced - the suite never started or never reported."
             exit 1
           }
-          if (-not (Select-String -Path "Tests/Deltempo.Tests/TestResults/test-run.log" -Pattern 'succeeded: 9\d\d|succeeded: \d+' -Quiet)) {
+
+          $summary = Select-String -Path $log -Pattern '^\s*total:\s*(\d+)' | Select-Object -Last 1
+          if (-not $summary) {
             Write-Error "::error::No test summary found in test-run.log - the run did not complete."
             exit 1
           }
+
+          function Get-SummaryValue([string]$name) {
+            $m = Select-String -Path $log -Pattern "^\s*$name`:\s*(\d+)" | Select-Object -Last 1
+            if ($m) { return [int]$m.Matches[0].Groups[1].Value }
+            return $null
+          }
+
+          $total     = Get-SummaryValue 'total'
+          $failed    = Get-SummaryValue 'failed'
+          $succeeded = Get-SummaryValue 'succeeded'
+          $skipped   = Get-SummaryValue 'skipped'
+
+          Write-Host ("Test summary: total={0} succeeded={1} failed={2} skipped={3}" -f $total, $succeeded, $failed, $skipped)
+
+          if ($null -eq $failed -or $null -eq $succeeded -or $null -eq $total) {
+            Write-Error "::error::Test summary is incomplete (total/succeeded/failed not all reported) - the run did not complete."
+            exit 1
+          }
+          if ($failed -ne 0) {
+            Write-Error "::error::$failed test(s) failed; see test-run.log."
+            exit 1
+          }
+          if ($total -le 0) {
+            Write-Error "::error::Test run reported 0 total tests. An empty selection is not a passing suite."
+            exit 1
+          }
+          if ($succeeded -ne $total - $skipped) {
+            Write-Error "::error::Test summary is internally inconsistent: succeeded + skipped != total. The run was truncated."
+            exit 1
+          }
+
+          # Truncation tripwire. A suite this size is well into four figures; a run that
+          # collapses to hundreds means tests were silently filtered out or the host died
+          # partway. This is a deliberately loose floor - it is not a test-count assertion
+          # (DocumentationConsistencyTests owns exact count reconciliation) - it exists only
+          # to catch a short run that would otherwise self-report as green.
+          $truncationFloor = 900
+          if ($total -lt $truncationFloor) {
+            Write-Error "::error::Only $total tests ran, below the truncation floor of $truncationFloor. The suite did not run to completion."
+            exit 1
+          }
+
           if ($testExit -ne 0) {
             Write-Warning "::warning::Test host exited with code $testExit after reporting every test passed (lingering foreground thread at shutdown). Treating as a pass."
           }

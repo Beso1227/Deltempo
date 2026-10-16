@@ -32,7 +32,7 @@ public class MemoryAreaSnapshot
     public double UsedPercent { get; set; }
     public bool IsAvailableOnThisOs { get; set; } = true;
     public bool IsSelected { get; set; } = true;
-    public string SafetyBadge { get; set; } = "SAFE TO PURGE";
+    public string SafetyBadge { get; set; } = "UNCATEGORIZED";
 
     public string FormattedCurrent => TargetFolderInfo.FormatBytes(CurrentBytes);
     public string FormattedTotal => TargetFolderInfo.FormatBytes(TotalBytes);
@@ -92,17 +92,54 @@ public enum MemoryOperationStatus
     Failed
 }
 
+/// <summary>
+/// Outcome of a memory optimization run.
+///
+/// Measurement semantics, kept deliberately distinct:
+/// <list type="bullet">
+/// <item><description><b>Requested</b> â€” <see cref="RequestedTargetCount"/> targets the caller asked for.</description></item>
+/// <item><description><b>Confirmed</b> â€” <see cref="SucceededTargetCount"/> / <see cref="FailedTargetCount"/>, derived from the NTSTATUS each native call actually returned.</description></item>
+/// <item><description><b>Measured</b> â€” <see cref="MeasuredAvailableDelta"/>, the observed change in
+/// <c>GlobalMemoryStatusEx.ullAvailPhys</c> around the run.</description></item>
+/// </list>
+/// <para>
+/// <see cref="MeasuredAvailableDelta"/> is <b>not</b> the amount of cache purged and is <b>not</b> a
+/// performance measurement. Available physical memory already includes the standby cache, so discarding
+/// the standby list can raise this figure while removing data Windows had cached to make file access fast.
+/// A larger number here does not imply the machine will perform better; it may well perform slightly
+/// worse until that cache is re-read from disk.
+/// </para>
+/// </summary>
 public class MemoryOptimizationResult
 {
-    public long MeasuredBytesFreed { get; set; }
     public MemoryOperationStatus Status { get; set; } = MemoryOperationStatus.Failed;
     public int ProcessesOptimized { get; set; }
     public long ExecutionTimeMs { get; set; }
+
+    /// <summary>Available physical RAM sampled before the run, in bytes.</summary>
     public long MeasuredAvailableBefore { get; set; }
+
+    /// <summary>Available physical RAM sampled after the run, in bytes.</summary>
     public long MeasuredAvailableAfter { get; set; }
-    public long MeasuredDelta => Math.Max(0, MeasuredAvailableAfter - MeasuredAvailableBefore);
-    public string FormattedReclaimed => TargetFolderInfo.FormatBytes(MeasuredBytesFreed);
-    public string FormattedMeasuredDelta => TargetFolderInfo.FormatBytes(MeasuredDelta);
+
+    /// <summary>
+    /// Observed change in available physical RAM, clamped at zero. Never negative, because a drop in
+    /// available memory does not mean negative bytes were freed. Not a cache-purge total and not a
+    /// performance score â€” see the remarks on <see cref="MemoryOptimizationResult"/>.
+    /// </summary>
+    public long MeasuredAvailableDelta => Math.Max(0, MeasuredAvailableAfter - MeasuredAvailableBefore);
+
+    /// <summary>Number of targets the caller requested.</summary>
+    public int RequestedTargetCount { get; set; }
+
+    /// <summary>Number of targets whose native call reported success.</summary>
+    public int SucceededTargetCount => AreaResults.Count(r => r.Success);
+
+    /// <summary>Number of targets whose native call did not report success.</summary>
+    public int FailedTargetCount => AreaResults.Count(r => !r.Success);
+
+    public string FormattedMeasuredDelta => TargetFolderInfo.FormatBytes(MeasuredAvailableDelta);
+
     public List<MemoryAreaResult> AreaResults { get; set; } = new();
     public bool Success => Status is MemoryOperationStatus.Success or MemoryOperationStatus.PartialSuccess;
 }
@@ -112,8 +149,6 @@ public class MemoryAreaResult
     public MemoryTargetType Target { get; set; }
     public MemoryOperationStatus Status { get; set; } = MemoryOperationStatus.Failed;
     public bool Success => Status is MemoryOperationStatus.Success or MemoryOperationStatus.PartialSuccess;
-    public long MeasuredBytesFreed { get; set; }
-    public string FormattedFreed => TargetFolderInfo.FormatBytes(MeasuredBytesFreed);
     public string ErrorMessage { get; set; } = "";
     public int? ProcessesOptimized { get; set; }
 }
@@ -161,6 +196,14 @@ public static partial class MemoryOptimizerService
 
     #region Privilege Escalation (WinMemoryCleaner Implementation)
 
+    /// <summary>
+    /// Enables a token privilege for the current process.
+    /// </summary>
+    /// <returns>
+    /// True if the privilege was successfully enabled. False if the privilege could not
+    /// be acquired (for example, the process lacks it, or <see cref="ERROR_NOT_ALL_ASSIGNED"/>
+    /// indicates only some requested privileges were adjusted).
+    /// </returns>
     private static bool SetIncreasePrivilege(string privilegeName)
     {
         try
@@ -178,7 +221,20 @@ public static partial class MemoryOptimizerService
 
                     if (LookupPrivilegeValue(null, privilegeName, ref newState.Luid))
                     {
-                        return AdjustTokenPrivileges(tokenHandle, false, ref newState, 0, IntPtr.Zero, IntPtr.Zero);
+                        bool adjusted = AdjustTokenPrivileges(tokenHandle, false, ref newState, 0, IntPtr.Zero, IntPtr.Zero);
+                        if (adjusted)
+                        {
+                            // AdjustTokenPrivileges can return TRUE even when not all
+                            // requested privileges were granted. Check GetLastError to
+                            // detect ERROR_NOT_ALL_ASSIGNED and treat it as failure.
+                            int lastError = Marshal.GetLastWin32Error();
+                            if (lastError == ERROR_NOT_ALL_ASSIGNED)
+                            {
+                                Trace.WriteLine($"[Deltempo] Privilege '{privilegeName}' not all assigned (ERROR_NOT_ALL_ASSIGNED).");
+                                return false;
+                            }
+                            return true;
+                        }
                     }
                 }
                 finally
@@ -192,6 +248,20 @@ public static partial class MemoryOptimizerService
             // Suppressed
         }
         return false;
+    }
+
+    /// <summary>
+    /// Attempts to enable a privilege and records the outcome.
+    /// A failed acquisition is not fatal â€” the underlying NT call may still succeed for an
+    /// elevated process, or for operations that do not strictly require the privilege. The
+    /// result is traced so a silent degradation is visible rather than reported as success.
+    /// </summary>
+    private static bool TryEnablePrivilege(string privilegeName)
+    {
+        bool acquired = SetIncreasePrivilege(privilegeName);
+        if (!acquired)
+            Trace.WriteLine($"[Deltempo] Could not enable '{privilegeName}'. The operation may still proceed but is not guaranteed to succeed.");
+        return acquired;
     }
 
     /// <summary>
@@ -368,11 +438,14 @@ public static partial class MemoryOptimizerService
                 sw.Stop();
                 var afterMem = GetMemoryInfo();
                 long measured = Math.Max(0, afterMem.AvailablePhysicalBytes - beforeMem.AvailablePhysicalBytes);
+                Trace.WriteLine($"[Deltempo] Memory run measured available-RAM delta of {measured} bytes across {targetTypes.Length} requested target(s). Delta is an observation, not a performance gain.");
 
                 var succeededCount = results.Count(r => r.Success);
                 var failedCount = results.Count(r => !r.Success);
                 MemoryOperationStatus overallStatus;
-                if (failedCount == 0)
+                if (targetTypes.Length == 0)
+                    overallStatus = MemoryOperationStatus.NoApplicableTargets;
+                else if (failedCount == 0)
                     overallStatus = MemoryOperationStatus.Success;
                 else if (succeededCount > 0)
                     overallStatus = MemoryOperationStatus.PartialSuccess;
@@ -381,12 +454,12 @@ public static partial class MemoryOptimizerService
 
                 return new MemoryOptimizationResult
                 {
-                    MeasuredBytesFreed = measured,
                     Status = overallStatus,
                     ProcessesOptimized = totalProcessesTrimmed,
                     ExecutionTimeMs = sw.ElapsedMilliseconds,
                     MeasuredAvailableBefore = beforeMem.AvailablePhysicalBytes,
                     MeasuredAvailableAfter = afterMem.AvailablePhysicalBytes,
+                    RequestedTargetCount = targetTypes.Length,
                     AreaResults = results
                 };
             }
@@ -418,6 +491,44 @@ public static partial class MemoryOptimizerService
         }, ct);
     }
 
+    /// <summary>
+    /// Maps a raw NTSTATUS (or a Win32 error folded into the NTSTATUS space) onto an
+    /// explicit outcome. Returning a bare <c>Failed</c> for every non-zero status hid the
+    /// difference between "this build cannot do that" and "you need Administrator", which are
+    /// very different things to show a user.
+    /// </summary>
+    private static MemoryOperationStatus MapNativeStatus(int status)
+    {
+        if (status == STATUS_SUCCESS) return MemoryOperationStatus.Success;
+
+        // Native NTSTATUS values.
+        if (status is STATUS_NOT_IMPLEMENTED or STATUS_NOT_SUPPORTED or STATUS_INVALID_INFO_CLASS)
+            return MemoryOperationStatus.Unsupported;
+        if (status is STATUS_ACCESS_DENIED or STATUS_PRIVILEGE_NOT_HELD)
+            return MemoryOperationStatus.AccessDenied;
+
+        // Win32 errors folded in by NTSTATUS_FROM_WIN32 (0xC0000000 | (err & 0xFFFF)).
+        if (status == StatusFromWin32(ERROR_ACCESS_DENIED_WIN32)
+            || status == StatusFromWin32(ERROR_PRIVILEGE_NOT_HELD_WIN32))
+            return MemoryOperationStatus.AccessDenied;
+
+        return MemoryOperationStatus.Failed;
+    }
+
+    /// <summary>Human-readable reason for a non-success status, for logs and tooltips.</summary>
+    private static string DescribeNativeStatus(int status)
+    {
+        if (status == STATUS_SUCCESS) return "";
+
+        string kind = MapNativeStatus(status) switch
+        {
+            MemoryOperationStatus.Unsupported => "not supported by this build of Windows",
+            MemoryOperationStatus.AccessDenied => "access denied - run Deltempo as Administrator",
+            _ => "the kernel rejected the operation",
+        };
+        return $"0x{status:X8}: {kind}";
+    }
+
     private static MemoryAreaResult ExecuteAreaClean(MemoryTargetType target)
     {
         var result = new MemoryAreaResult { Target = target };
@@ -434,58 +545,69 @@ public static partial class MemoryOptimizerService
 
         try
         {
-            bool success = false;
+            // Every helper returns the raw NTSTATUS so the outcome can be mapped explicitly.
+            int ntStatus = STATUS_SUCCESS;
             int procs = 0;
 
             switch (target)
             {
                 case MemoryTargetType.WorkingSet:
                     procs = OptimizeWorkingSet();
-                    success = procs > 0;
+                    // Working-set trimming is a best-effort sweep over many processes; zero
+                    // trimmed is only a failure if the very first handle could not be opened.
+                    ntStatus = procs > 0
+                        ? STATUS_SUCCESS
+                        : StatusFromWin32(Marshal.GetLastWin32Error());
                     result.ProcessesOptimized = procs;
                     break;
 
                 case MemoryTargetType.StandbyList:
-                    success = OptimizeStandbyList(lowPriority: false);
+                    ntStatus = OptimizeStandbyList(lowPriority: false);
                     break;
 
                 case MemoryTargetType.StandbyListLowPriority:
-                    success = OptimizeStandbyList(lowPriority: true);
+                    ntStatus = OptimizeStandbyList(lowPriority: true);
                     break;
 
                 case MemoryTargetType.ModifiedPageList:
-                    success = OptimizeModifiedPageList();
+                    ntStatus = OptimizeModifiedPageList();
                     break;
 
                 case MemoryTargetType.CombinedPageList:
-                    success = OptimizeCombinedPageList();
+                    ntStatus = OptimizeCombinedPageList();
                     break;
 
                 case MemoryTargetType.SystemFileCache:
-                    success = OptimizeSystemFileCache();
+                    ntStatus = OptimizeSystemFileCache();
                     break;
 
                 case MemoryTargetType.ModifiedFileCache:
-                    success = OptimizeModifiedFileCache();
+                    ntStatus = OptimizeModifiedFileCache();
                     break;
 
                 case MemoryTargetType.RegistryCache:
-                    success = OptimizeRegistryCache();
+                    ntStatus = OptimizeRegistryCache();
+                    break;
+
+                default:
+                    ntStatus = STATUS_NOT_IMPLEMENTED;
                     break;
             }
 
             var afterMem = GetMemoryInfo();
             long measured = Math.Max(0, afterMem.AvailablePhysicalBytes - beforeMem.AvailablePhysicalBytes);
+            if (measured > 0)
+                Trace.WriteLine($"[Deltempo] OptimizeArea({target}) measured available-RAM delta of {measured} bytes. Observation only, not a performance gain.");
 
-            result.Status = success ? MemoryOperationStatus.Success : MemoryOperationStatus.Failed;
-            result.MeasuredBytesFreed = measured;
-            result.ErrorMessage = success ? "" : "Operation rejected or privilege denied";
+            result.Status = MapNativeStatus(ntStatus);
+            result.ErrorMessage = result.Status == MemoryOperationStatus.Success
+                ? ""
+                : DescribeNativeStatus(ntStatus);
             return result;
         }
         catch (Exception ex)
         {
             result.Status = MemoryOperationStatus.Failed;
-            result.MeasuredBytesFreed = 0;
             result.ErrorMessage = ex.Message;
             return result;
         }
@@ -503,7 +625,7 @@ public static partial class MemoryOptimizerService
     private static int OptimizeWorkingSet()
     {
         // 1. Global NT Kernel Empty Working Sets (ALL processes across Windows in 1 call!)
-        SetIncreasePrivilege(SeProfSingleProcessName);
+        TryEnablePrivilege(SeProfSingleProcessName);
         var handle = GCHandle.Alloc(MemoryEmptyWorkingSets, GCHandleType.Pinned);
         try
         {
@@ -519,7 +641,7 @@ public static partial class MemoryOptimizerService
         }
 
         // 2. Process-by-process EmptyWorkingSet using SeDebugPrivilege
-        SetIncreasePrivilege(SeDebugName);
+        TryEnablePrivilege(SeDebugName);
         int trimmedCount = 0;
         var processes = Process.GetProcesses();
 
@@ -568,21 +690,20 @@ public static partial class MemoryOptimizerService
     /// <summary>
     /// Optimize the standby list (WinMemoryCleaner specification).
     /// </summary>
-    private static bool OptimizeStandbyList(bool lowPriority = false)
+    private static int OptimizeStandbyList(bool lowPriority = false)
     {
-        SetIncreasePrivilege(SeProfSingleProcessName);
+        TryEnablePrivilege(SeProfSingleProcessName);
 
         int cmd = lowPriority ? MemoryPurgeLowPriorityStandbyList : MemoryPurgeStandbyList;
         var handle = GCHandle.Alloc(cmd, GCHandleType.Pinned);
 
         try
         {
-            int status = NtSetSystemInformation(SystemMemoryListInformation, handle.AddrOfPinnedObject(), (uint)Marshal.SizeOf<int>());
-            return status == 0;
+            return NtSetSystemInformation(SystemMemoryListInformation, handle.AddrOfPinnedObject(), (uint)Marshal.SizeOf<int>());
         }
         catch
         {
-            return false;
+            return STATUS_UNSUCCESSFUL;
         }
         finally
         {
@@ -594,20 +715,24 @@ public static partial class MemoryOptimizerService
     /// Optimize the system file cache (WinMemoryCleaner specification).
     /// Calls BOTH NtSetSystemInformation(SystemFileCacheInformation) AND SetSystemFileCacheSize.
     /// </summary>
-    private static bool OptimizeSystemFileCache()
+    private static int OptimizeSystemFileCache()
     {
-        SetIncreasePrivilege(SeIncreaseQuotaName);
+        TryEnablePrivilege(SeIncreaseQuotaName);
 
-        bool ntSuccess = false;
+        int ntStatus = STATUS_UNSUCCESSFUL;
         try
         {
             object systemFileCacheInformation;
-            if (Environment.Is64BitOperatingSystem)
+            // Is64BitProcess, NOT Is64BitOperatingSystem. NtSetSystemInformation interprets
+            // the buffer according to the CALLER's view, so a 32-bit (WOW64) process running
+            // on 64-bit Windows must supply the 32-bit layout. Branching on the OS bitness
+            // would hand the kernel a 64-bit struct it would misparse.
+            if (Environment.Is64BitProcess)
             {
                 systemFileCacheInformation = new SystemFileCacheInformation64
                 {
                     MinimumWorkingSet = -1L,
-                    MaximumWorkingSet = -1L
+                    PeakWorkingSet = -1L
                 };
             }
             else
@@ -615,7 +740,7 @@ public static partial class MemoryOptimizerService
                 systemFileCacheInformation = new SystemFileCacheInformation32
                 {
                     MinimumWorkingSet = int.MaxValue,
-                    MaximumWorkingSet = int.MaxValue
+                    PeakWorkingSet = int.MaxValue
                 };
             }
 
@@ -623,7 +748,7 @@ public static partial class MemoryOptimizerService
             try
             {
                 int status = NtSetSystemInformation(SystemFileCacheInformation, handle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(systemFileCacheInformation));
-                ntSuccess = (status == 0);
+                ntStatus = status;
             }
             finally
             {
@@ -635,36 +760,43 @@ public static partial class MemoryOptimizerService
             // Ignored, proceed to Win32 cache size flush
         }
 
+        // Win32 fallback. Prefer the NT result when it succeeded; otherwise report the
+        // Win32 failure so an access-denied is distinguishable from a silent no-op.
         bool win32Success = false;
+        int win32Status = STATUS_UNSUCCESSFUL;
         try
         {
             var fileCacheSize = IntPtr.Subtract(IntPtr.Zero, 1); // Flush
             win32Success = SetSystemFileCacheSize(fileCacheSize, fileCacheSize, 0);
+            if (!win32Success)
+                win32Status = StatusFromWin32(Marshal.GetLastWin32Error());
         }
-        catch
+        catch (Exception ex)
         {
-            // Suppressed
+            System.Diagnostics.Trace.WriteLine($"[Deltempo] SetSystemFileCacheSize threw: {ex.Message}");
         }
 
-        return ntSuccess || win32Success;
+        if (ntStatus == STATUS_SUCCESS || win32Success) return STATUS_SUCCESS;
+        // Prefer the access-denied signal over a generic NT failure when both failed.
+        if (MapNativeStatus(ntStatus) == MemoryOperationStatus.AccessDenied) return ntStatus;
+        return win32Status;
     }
 
     /// <summary>
     /// Optimize the modified page list (WinMemoryCleaner specification).
     /// </summary>
-    private static bool OptimizeModifiedPageList()
+    private static int OptimizeModifiedPageList()
     {
-        SetIncreasePrivilege(SeProfSingleProcessName);
+        TryEnablePrivilege(SeProfSingleProcessName);
 
         var handle = GCHandle.Alloc(MemoryFlushModifiedList, GCHandleType.Pinned);
         try
         {
-            int status = NtSetSystemInformation(SystemMemoryListInformation, handle.AddrOfPinnedObject(), (uint)Marshal.SizeOf<int>());
-            return status == 0;
+            return NtSetSystemInformation(SystemMemoryListInformation, handle.AddrOfPinnedObject(), (uint)Marshal.SizeOf<int>());
         }
         catch
         {
-            return false;
+            return STATUS_UNSUCCESSFUL;
         }
         finally
         {
@@ -675,21 +807,20 @@ public static partial class MemoryOptimizerService
     /// <summary>
     /// Optimize the combined page list (WinMemoryCleaner specification).
     /// </summary>
-    private static bool OptimizeCombinedPageList()
+    private static int OptimizeCombinedPageList()
     {
-        SetIncreasePrivilege(SeProfSingleProcessName);
+        TryEnablePrivilege(SeProfSingleProcessName);
 
         var memoryCombineInformationEx = new MemoryCombineInformationEx();
         var handle = GCHandle.Alloc(memoryCombineInformationEx, GCHandleType.Pinned);
 
         try
         {
-            int status = NtSetSystemInformation(SystemCombinePhysicalMemoryInformation, handle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(memoryCombineInformationEx));
-            return status == 0;
+            return NtSetSystemInformation(SystemCombinePhysicalMemoryInformation, handle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(memoryCombineInformationEx));
         }
         catch
         {
-            return false;
+            return STATUS_UNSUCCESSFUL;
         }
         finally
         {
@@ -701,9 +832,10 @@ public static partial class MemoryOptimizerService
     /// Optimize the modified file cache across all local fixed drives (WinMemoryCleaner specification).
     /// Discards volume cache and resets write order on \\.\Drive: raw handles.
     /// </summary>
-    private static bool OptimizeModifiedFileCache()
+    private static int OptimizeModifiedFileCache()
     {
         bool anySuccess = false;
+        int lastFailure = STATUS_UNSUCCESSFUL;
 
         foreach (var drive in DriveInfo.GetDrives())
         {
@@ -714,7 +846,12 @@ public static partial class MemoryOptimizerService
             {
                 using var handle = OpenVolumeHandle(drive.Name);
                 if (handle == null || handle.IsInvalid)
+                {
+                    // Requires Administrator to open \\.\C: with write access. Recording the
+                    // reason lets the caller report access-denied instead of a bare failure.
+                    lastFailure = StatusFromWin32(Marshal.GetLastWin32Error());
                     continue;
+                }
 
                 var buffer = Marshal.AllocHGlobal(1);
                 try
@@ -740,13 +877,14 @@ public static partial class MemoryOptimizerService
                     anySuccess = true;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Suppressed
+                lastFailure = StatusFromWin32(Marshal.GetLastWin32Error());
+                System.Diagnostics.Trace.WriteLine($"[Deltempo] Volume cache flush failed: {ex.Message}");
             }
         }
 
-        return anySuccess;
+        return anySuccess ? STATUS_SUCCESS : lastFailure;
     }
 
     private static SafeFileHandle? OpenVolumeHandle(string driveLetter)
@@ -774,16 +912,15 @@ public static partial class MemoryOptimizerService
     /// <summary>
     /// Optimize the registry cache (WinMemoryCleaner specification).
     /// </summary>
-    private static bool OptimizeRegistryCache()
+    private static int OptimizeRegistryCache()
     {
         try
         {
-            int status = NtSetSystemInformation(SystemRegistryReconciliationInformation, IntPtr.Zero, 0);
-            return status == 0;
+            return NtSetSystemInformation(SystemRegistryReconciliationInformation, IntPtr.Zero, 0);
         }
         catch
         {
-            return false;
+            return STATUS_UNSUCCESSFUL;
         }
     }
 
@@ -811,19 +948,19 @@ public static partial class MemoryOptimizerService
     private static readonly Dictionary<MemoryTargetType, (string DisplayName, string Description, bool IsAvailableOnThisOs, string SafetyBadge)>
         _targetDescriptions = new()
         {
-            { MemoryTargetType.WorkingSet,             ("Process Working Sets",       "Global NT Kernel working set sweep + process trim with SeDebugPrivilege.", true, "SAFE TO TRIM") },
-            { MemoryTargetType.StandbyList,             ("Standby List (Full)",        "Clears entire cached RAM pool from closed applications. Maximum reclaim.", true, "100% SAFE") },
-            { MemoryTargetType.StandbyListLowPriority,  ("Standby (Low Priority)",     "Purges only low-priority cached pages. Gentle reclaim with minimal disruption.", true, "GENTLE TRIM") },
-            { MemoryTargetType.SystemFileCache,        ("System File Cache",          "Flushes Windows filesystem cache via NT Information & Win32 CacheSize.", true, "SAFE TO FLUSH") },
-            { MemoryTargetType.ModifiedPageList,       ("Modified Page List",         "Writes modified dirty pages to disk, then clears them from active RAM.", true, "DIRTY FLUSH") },
-            { MemoryTargetType.CombinedPageList,       ("Combined Page List",         "Triggers memory page combiner (de-duplicated identical physical pages).", true, "SAFE DE-DUP") },
-            { MemoryTargetType.ModifiedFileCache,      ("Volume File Cache",          "Flushes volume write order & discards volume cache on fixed drive handles.", true, "DISK FLUSH") },
-            { MemoryTargetType.RegistryCache,          ("Registry Cache",             "Reconciles & flushes cached registry hives from active RAM.", true, "SAFE TO FLUSH") }
+            { MemoryTargetType.WorkingSet,             ("Process Working Sets",       "Global NT Kernel working set sweep + process trim with SeDebugPrivilege. Trims active pages back to disk; apps may re-fault them in, causing brief slowdowns.", true, "TRIMS ACTIVE PAGES") },
+            { MemoryTargetType.StandbyList,             ("Standby List (Full)",        "Discards the standby cache of closed applications. Windows re-reads these files on next open. No data loss, but cold-start reads get slower.", true, "DISCARDS FILE CACHE") },
+            { MemoryTargetType.StandbyListLowPriority,  ("Standby (Low Priority)",     "Purges only low-priority cached pages. Least disruptive option; mostly frees zero unless memory is under pressure.", true, "LEAST DISRUPTIVE") },
+            { MemoryTargetType.SystemFileCache,        ("System File Cache",          "Flushes the Windows filesystem cache to disk. Files must be re-read from disk afterwards.", true, "FLUSHES TO DISK") },
+            { MemoryTargetType.ModifiedPageList,       ("Modified Page List",         "Writes modified dirty pages to disk, then clears them from active RAM. Adds disk I/O pressure.", true, "WRITES DIRTY PAGES") },
+            { MemoryTargetType.CombinedPageList,       ("Combined Page List",         "Triggers the memory page combiner to merge identical physical pages. Purely an internal de-duplication pass.", true, "DE-DUPLICATES") },
+            { MemoryTargetType.ModifiedFileCache,      ("Volume File Cache",          "Flushes volume write order & discards volume cache on fixed drive handles. Requires Administrator.", true, "REQUIRES ADMIN") },
+            { MemoryTargetType.RegistryCache,          ("Registry Cache",             "Reconciles & flushes cached registry hives from active RAM. Registry access may briefly stall.", true, "FLUSHES HIVES") }
         };
 
     private static (string DisplayName, string Description, bool IsAvailableOnThisOs, string SafetyBadge) TargetDescription(MemoryTargetType t)
     {
-        return _targetDescriptions.TryGetValue(t, out var d) ? d : (t.ToString(), "", true, "SAFE");
+        return _targetDescriptions.TryGetValue(t, out var d) ? d : (t.ToString(), "Unknown target", true, "UNCATEGORIZED");
     }
 
     public static MemoryTargetType[] AllTargetTypes()

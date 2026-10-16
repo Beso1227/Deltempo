@@ -27,7 +27,7 @@ public static partial class CliRunner
         var beforeMem = MemoryOptimizerService.GetMemoryInfo();
 
         List<MemoryTargetType>? selectedTargets = null;
-        string boostType = "Standard RAM Boost";
+        string boostType = "Standard Memory Trim";
 
         if (deepAll)
         {
@@ -86,20 +86,27 @@ public static partial class CliRunner
 
         var res = await MemoryOptimizerService.OptimizeRamAsync(selectedTargets?.ToArray());
         var afterMem = MemoryOptimizerService.GetMemoryInfo();
-        long actualFreed = Math.Max(res.MeasuredBytesFreed, Math.Max(0, afterMem.AvailablePhysicalBytes - beforeMem.AvailablePhysicalBytes));
+        long measuredDelta = Math.Max(0, afterMem.AvailablePhysicalBytes - beforeMem.AvailablePhysicalBytes);
 
         if (isJson)
         {
+            // measuredAvailableDeltaBytes is an observation of available-RAM change, NOT bytes of
+            // cache purged and NOT a performance score. Discarding standby pages can raise it
+            // while making the next file access slower.
             Console.WriteLine(JsonSerializer.Serialize(new
             {
                 boostType = boostType,
                 executionTimeMs = res.ExecutionTimeMs,
                 processesOptimized = res.ProcessesOptimized,
-                reclaimedBytes = actualFreed,
-                formattedReclaimed = TargetFolderInfo.FormatBytes(actualFreed),
+                requestedTargetCount = res.RequestedTargetCount,
+                confirmedTargetCount = res.SucceededTargetCount,
+                status = res.Status.ToString(),
+                measuredAvailableDeltaBytes = measuredDelta,
+                formattedMeasuredAvailableDelta = TargetFolderInfo.FormatBytes(measuredDelta),
+                measurementCaveat = "Available-RAM delta is an observation, not reclaimed cache and not a performance gain.",
                 before = beforeMem,
                 after = afterMem,
-                areaResults = res.AreaResults.Select(a => new { a.Target, a.Success, a.FormattedFreed })
+                areaResults = res.AreaResults.Select(a => new { target = a.Target.ToString(), confirmed = a.Success, error = a.ErrorMessage })
             }, new JsonSerializerOptions { WriteIndented = true }));
             return 0;
         }
@@ -109,9 +116,13 @@ public static partial class CliRunner
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"  ✓ {boostType} Completed in {res.ExecutionTimeMs}ms!");
-            Console.WriteLine($"     • Memory Reclaimed:   {TargetFolderInfo.FormatBytes(actualFreed)}");
+            Console.WriteLine($"     • Kernel Confirmed:   {res.SucceededTargetCount}/{res.RequestedTargetCount} targets ({res.Status})");
+            Console.WriteLine($"     • Available RAM Moved: {TargetFolderInfo.FormatBytes(measuredDelta)}  (observation, not cache freed)");
             Console.WriteLine($"     • Processes Trimmed:  {res.ProcessesOptimized}");
             Console.WriteLine($"     • RAM Now In Use:     {afterMem.FormattedUsed} ({afterMem.UsedPercent:F0}%) — Available: {afterMem.FormattedAvailable}");
+            Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("     Note: purged pages are re-read from disk on demand. A higher available-RAM figure does not imply a performance gain.");
             Console.ResetColor();
         }
 

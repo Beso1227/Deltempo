@@ -66,10 +66,10 @@ public static class DeepCleanEngine
         try
         {
             var ramRes = await MemoryOptimizerService.OptimizeRamAsync(null, ct);
-            result.RamFreedBytes = ramRes.MeasuredBytesFreed;
-            if (ramRes.MeasuredBytesFreed > 0)
+            result.RamFreedBytes = ramRes.MeasuredAvailableDelta;
+            if (ramRes.MeasuredAvailableDelta > 0)
             {
-                result.SummaryHighlights.Add($"RAM Memory Freed: {ramRes.FormattedReclaimed}");
+                result.SummaryHighlights.Add($"Available RAM increased: {ramRes.FormattedMeasuredDelta} ({ramRes.SucceededTargetCount}/{ramRes.RequestedTargetCount} targets confirmed; not cache freed)");
                 logAction?.Invoke($"RAM Optimization: measured available memory increased by {ramRes.FormattedMeasuredDelta}", LogLevel.Success);
             }
             else if (ramRes.Success)

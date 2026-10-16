@@ -98,7 +98,7 @@ public partial class MemoryOptimizerModal : UserControl
         var res = await MemoryOptimizerService.OptimizeAreaAsync(MemoryTargetType.WorkingSet);
         if (res.Success)
         {
-            LogRequested?.Invoke($"✓ Process Working Sets Trimmed: Reclaimed {res.FormattedFreed} across {res.ProcessesOptimized} tasks.", LogLevel.Success);
+            LogRequested?.Invoke($"✓ Process Working Sets Trimmed across {res.ProcessesOptimized ?? 0} tasks. Trimmed pages are re-faulted from disk on next access.", LogLevel.Success);
             RefreshData();
             TelemetryRefreshRequested?.Invoke();
         }
@@ -127,7 +127,7 @@ public partial class MemoryOptimizerModal : UserControl
         try
         {
             var result = await MemoryOptimizerService.OptimizeRamAsync(selected);
-            LogRequested?.Invoke($"[NT Kernel] Memory Clean Complete: Purged {result.FormattedReclaimed} in {result.ExecutionTimeMs}ms across {result.AreaResults.Count} zones.", LogLevel.Success);
+            LogRequested?.Invoke($"[NT Kernel] Memory Clean Complete: {result.SucceededTargetCount}/{result.RequestedTargetCount} zones confirmed by the kernel in {result.ExecutionTimeMs}ms. Available RAM moved {result.FormattedMeasuredDelta}; purged cache is re-read from disk on demand.", LogLevel.Success);
             RefreshData();
             TelemetryRefreshRequested?.Invoke();
         }
@@ -156,7 +156,7 @@ public partial class MemoryOptimizerModal : UserControl
             var result = await MemoryOptimizerService.OptimizeAreaAsync(target);
             if (result.Success)
             {
-                LogRequested?.Invoke($"Flushed {target}: Reclaimed {result.FormattedFreed}.", LogLevel.Success);
+                LogRequested?.Invoke($"Flushed {target}: kernel confirmed the operation. Purged pages are re-read from disk on next access.", LogLevel.Success);
                 RefreshData();
                 TelemetryRefreshRequested?.Invoke();
             }

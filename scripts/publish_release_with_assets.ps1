@@ -45,8 +45,8 @@ $bodyText = "## Deltempo 1.8.0 — Frosted Glass UI/UX, Deep Multi-Drive Root Le
 "### 📦 Quarantine Vault Architecture`n" +
 "- Transactional pre-purge ZIP backups saved to LocalAppData with instant 1-click restoration.`n`n" +
 "### ✅ Verification & Quality`n" +
-"- 640 automated tests passing with 100% success rate.`n" +
-"- Compiled under TreatWarningsAsErrors with zero compiler warnings.`n"
+"- 1220 automated tests passing with 100% success rate.`n" +
+"- Compiled under TreatWarningsAsErrors. The only non-fatal diagnostic is xUnit1051 (cancellation-responsiveness preference, deliberately demoted in the test project).`n"
 
 # Step 1: Create as draft
 Write-Host "Creating draft release for $Tag ($ReleaseName)..." -ForegroundColor Cyan

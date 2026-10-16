@@ -57,7 +57,7 @@ Before any release artifact is built or distributed:
 
 2. **Quality Gates Enforced:**
    - `<Nullable>enable</Nullable>`
-   - `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` (0 warnings allowed)
+   - `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` — every warning is an error except `xUnit1051`, which is deliberately demoted in the test project (see the comment in `Tests/Deltempo.Tests/Deltempo.Tests.csproj`).
 3. **Automated Test Suite:**
 
    ```powershell

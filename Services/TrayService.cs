@@ -505,13 +505,13 @@ public static class TrayService
             var openItem = CreateMenuItem("\uE80F", "Open Deltempo Dashboard", () => RestoreMainWindow(), new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00F2B0")));
             menu.Items.Add(openItem);
 
-            // 3. Boost RAM (Working Sets)
-            var boostItem = CreateMenuItem("\uE768", "Boost RAM (Flush Working Sets)", async () =>
+            // 3. Trim working sets (evicts cached pages; not a speed boost)
+            var boostItem = CreateMenuItem("\uE768", "Trim Working Sets (cache eviction)", async () =>
             {
                 if (_onOptimizeRam != null)
                 {
                     var res = await _onOptimizeRam();
-                    ShowNotification("RAM Engine Optimization", $"Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} tasks in {res.ExecutionTimeMs}ms!");
+                    ShowNotification("RAM Engine Optimization", $"{res.SucceededTargetCount}/{res.RequestedTargetCount} targets confirmed across {res.ProcessesOptimized} tasks in {res.ExecutionTimeMs}ms. Trimmed pages re-read from disk on demand.");
                     UpdateTooltip();
                 }
             }, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00F2B0")));
@@ -523,7 +523,7 @@ public static class TrayService
                 if (_onPurgeStandby != null)
                 {
                     var res = await _onPurgeStandby();
-                    ShowNotification("Standby List Purged", $"Successfully flushed cached standby pages ({res.FormattedReclaimed} reclaimed) in {res.ExecutionTimeMs}ms!");
+                    ShowNotification("Standby List Purged", $"Kernel confirmed {res.SucceededTargetCount}/{res.RequestedTargetCount} zones in {res.ExecutionTimeMs}ms. Discarded cache is re-read from disk on next file open.");
                     UpdateTooltip();
                 }
             }, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A78BFA")));

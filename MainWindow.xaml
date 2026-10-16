@@ -903,8 +903,8 @@
                                                    VerticalAlignment="Center"/>
                                         <Button x:Name="HeroBoostRamBtn"
                                                 Content="Quick Boost"
-                                                AutomationProperties.Name="Quick RAM Boost"
-                                                AutomationProperties.HelpText="Trim working sets and optimize system memory"
+                                                AutomationProperties.Name="Trim memory (cache eviction)"
+                                                AutomationProperties.HelpText="Trims working sets and discards cached pages. This raises available memory but is not a speed boost - evicted pages are re-read from disk on demand."
                                                 Style="{DynamicResource PillButton}"
                                                 FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                 Padding="8,3"
@@ -4651,7 +4651,7 @@
                                                     FontWeight="Bold"
                                                     Margin="0,0,6,0"
                                                     Click="SelectSafeLargeFiles_Click"
-                                                    ToolTip="Instantly select only verified 100% safe-to-delete installers, dumps, and old setup files with zero risk">
+                                                    ToolTip="Instantly select only installers, dumps, and old setup files classified as safe to delete. Files still open or in use are skipped.">
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="&#xE8E5;" FontFamily="{DynamicResource IconFont}" FontSize="11" Foreground="{DynamicResource EmeraldGreenBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                     <TextBlock Text="Select Safe Files" Foreground="{DynamicResource EmeraldGreenBrush}" FontWeight="Bold" VerticalAlignment="Center"/>

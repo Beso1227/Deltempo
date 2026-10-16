@@ -99,8 +99,12 @@ public class MemoryOptimizationViewModel : ViewModelBase
         {
             var res = await MemoryOptimizerService.OptimizeRamAsync();
             RefreshTelemetry();
-            BoostButtonText = $"✓ -{res.FormattedReclaimed}";
-            LogRequested?.Invoke($"[RAM Engine] Boost Complete: Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} processes in {res.ExecutionTimeMs}ms.", LogLevel.Success);
+            BoostButtonText = $"✓ -{res.FormattedMeasuredDelta}";
+            LogRequested?.Invoke(
+                $"[RAM Engine] Boost Complete: {res.SucceededTargetCount}/{res.RequestedTargetCount} targets confirmed by the kernel, " +
+                $"available RAM moved {res.FormattedMeasuredDelta} ({res.ExecutionTimeMs}ms). " +
+                "An available-RAM increase is not a performance gain — trimmed pages are re-read on demand.",
+                LogLevel.Success);
             await Task.Delay(1500);
             return res;
         }

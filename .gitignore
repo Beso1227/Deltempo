@@ -68,6 +68,17 @@ altoutcli/
 *.cer
 *.pfx
 *.pem
+# EXCEPTION: the update-manifest test fixture key. `*.pem` above would otherwise exclude it,
+# and nothing warns you - git simply reports the directory as tracked while the file inside is
+# missing. UpdatePipelineSecurityTests and ManifestKeyProvisioningTests both read this file at
+# runtime, so a fresh clone and every CI run would fail with a file-not-found instead of a
+# skipped test.
+#
+# It is safe to track: this is a deliberately public, throwaway ECDSA P-256 test key that signs
+# nothing outside the test suite, is not a trusted update key, and is documented as such in
+# Tests/Deltempo.Tests/Fixtures/README.md. A production release key must NEVER be placed in
+# this directory - it would be committed by this rule.
+!Tests/Deltempo.Tests/Fixtures/*.pem
 *.key
 *.p12
 *.crt

@@ -199,7 +199,8 @@ public partial class MainWindow
             await UpdateService.DownloadAndApplyUpdateAsync(
                 _pendingRelease.DownloadUrl,
                 progress,
-                expectedSha256: !string.IsNullOrWhiteSpace(_pendingRelease.Sha256) ? _pendingRelease.Sha256 : null);
+                expectedSha256: !string.IsNullOrWhiteSpace(_pendingRelease.Sha256) ? _pendingRelease.Sha256 : null,
+                manifestUrl: _pendingRelease.ManifestUrl);
         }
         catch (Exception ex)
         {

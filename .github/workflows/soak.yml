@@ -77,19 +77,49 @@ jobs:
 
           # The exit code is not the verdict: Microsoft.Testing.Platform force-exits
           # non-zero when foreground threads outlive the run even with every test green.
-          if (Select-String -Path "deep-fuzz-run.log" -Pattern 'failed: [1-9]' -Quiet) {
-            Write-Error "::error::The deep fuzz campaign reported a failure; see deep-fuzz-run.log."
+          #
+          # A summary is parsed rather than pattern-matched. The previous check accepted any
+          # log containing the literal text 'failed: 0' - which a run that executed ZERO fuzz
+          # tests also produces. A renamed or re-trait-ed test would silently stop being
+          # fuzzed while the nightly campaign reported success.
+          $log = "deep-fuzz-run.log"
+          if (-not (Test-Path $log)) {
+            Write-Error "::error::No deep-fuzz-run.log was produced - the campaign never started or never reported."
             exit 1
           }
 
-          if (-not (Select-String -Path "deep-fuzz-run.log" -Pattern 'failed: 0' -Quiet)) {
-            Write-Error "::error::The deep fuzz campaign did not report a clean summary."
+          function Get-FuzzSummaryValue([string]$name) {
+            $m = Select-String -Path $log -Pattern "^\s*$name`:\s*(\d+)" | Select-Object -Last 1
+            if ($m) { return [int]$m.Matches[0].Groups[1].Value }
+            return $null
+          }
+
+          $total   = Get-FuzzSummaryValue 'total'
+          $failed  = Get-FuzzSummaryValue 'failed'
+          $passed  = Get-FuzzSummaryValue 'succeeded'
+
+          if ($null -eq $total -or $null -eq $failed -or $null -eq $passed) {
+            Write-Error "::error::The deep fuzz campaign produced no complete summary - it did not run to completion."
+            exit 1
+          }
+          Write-Host ("Deep fuzz summary: total={0} succeeded={1} failed={2}" -f $total, $passed, $failed)
+
+          if ($failed -ne 0) {
+            Write-Error "::error::$failed fuzz test(s) failed; see deep-fuzz-run.log."
+            exit 1
+          }
+          if ($total -lt 1) {
+            Write-Error "::error::The Category=FuzzDeep filter matched 0 tests. The deep fuzz campaign is not running - check the trait is still applied to PathSecurityFuzzTests.NormalizeCanonicalPath_DeepFuzz_MillionCases."
+            exit 1
+          }
+          if ($passed -ne $total) {
+            Write-Error "::error::Deep fuzz summary inconsistent: succeeded != total. The run was truncated."
             exit 1
           }
 
       - name: Upload campaign log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deep-fuzz-log
           path: deep-fuzz-run.log

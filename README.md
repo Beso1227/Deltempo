@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Latest Release" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI Build Status" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1134_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 1134 passed, 0 failed" src="https://img.shields.io/badge/tests-1134_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1273_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 1273 passed, 0 failed" src="https://img.shields.io/badge/tests-1273_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="License: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **License** | Open Source ([MIT](LICENSE)) |
 | **Interfaces** | Modern Desktop GUI (WPF Fluent) and Headless Terminal CLI |
 | **Distribution** | Portable single-file executable (self-contained, no installer required) |
-| **Test Coverage** | 1134 automated tests (100% pass rate, 0 failed, 0 skipped), adversarial filesystem fuzzing |
+| **Test Coverage** | 1273 automated tests (100% pass rate, 0 failed, 0 skipped), adversarial filesystem fuzzing |
 | **CLI Availability** | The `deltempo` command self-installs on first GUI launch — no manual setup |
 | **Telemetry** | Zero telemetry. Scan, clean, memory, and uninstaller operations execute 100% offline |
 | **Safety Engine** | Two-phase planning (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) with 5 risk tiers & transaction journaling |
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # Services\, so a per-project check silently covers only part of the solution.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# Execute the automated test suite (1134 passing unit & integration tests)
+# Execute the automated test suite (1273 passing unit & integration tests)
 # xunit.v3 runs on Microsoft.Testing.Platform, which the .NET 10 SDK's `dotnet test`
 # cannot drive ("Testing with VSTest target is no longer supported"). Build once,
 # then invoke the test executable directly.
@@ -543,8 +543,12 @@ No. It is a portable single-file executable (~68 MB). Run `Deltempo.exe` directl
 **Will cleaning browser caches log me out of my accounts?**
 No. Only disposable cache directories are removed. Login sessions, cookies, and passwords are strictly preserved.
 
-**Will it really free up RAM, or is it just cosmetic?**
-Deltempo uses real NT kernel APIs — standby list flushes via `NtSetSystemInformation` and per-process `EmptyWorkingSet` — which genuinely release physical memory, unlike tools that only shrink the working set to make task managers look better.
+**Does trimming memory actually do anything, or is it just cosmetic?**
+It genuinely moves memory, but it is **not** a performance optimisation, and we won't claim otherwise.
+
+Deltempo calls real NT kernel APIs — standby flushes via `NtSetSystemInformation` and per-process `EmptyWorkingSet`. Discarding the standby cache does raise the *available* memory figure, because Windows counts standby pages as available. What it does not do is make the machine faster. Standby is precisely the cache Windows uses to satisfy new allocations without touching disk, so throwing it away usually means the next allocation takes a page fault. Trimming working sets has the same trade-off in miniature: pages get pushed to disk and re-faulted on next touch, which can make an application briefly *slower*.
+
+So the honest summary: **memory that gets freed is memory that gets re-read.** The realistic benefit is narrower than "more free RAM" — it can help an application that has genuinely ballooned, and it can free address space in a constrained situation. It is not a speed button, and Deltempo does not present it as one. Every target in the UI states its actual consequence rather than a safety score.
 
 **Does Deltempo create a system restore point automatically?**
 No, not by default. Restore point creation is an explicit optional toggle, so you are never slowed down by a forced multi-minute checkpoint.

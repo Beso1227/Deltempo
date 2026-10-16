@@ -478,7 +478,7 @@ public partial class MainWindow
     {
         SoundService.PlayClickSound();
         var res = await MemoryOptimizerService.OptimizeRamAsync();
-        AddLog($"[Process Optimizer] Trimmed background working sets: Reclaimed {res.FormattedReclaimed}.", LogLevel.Success);
+        AddLog($"[Process Optimizer] Trimmed background working sets across {res.ProcessesOptimized} tasks in {res.ExecutionTimeMs}ms. Trimmed pages are re-faulted from disk on next access.", LogLevel.Success);
         UpdateMemoryTelemetry();
         _ = ReloadProcessesAsync();
     }

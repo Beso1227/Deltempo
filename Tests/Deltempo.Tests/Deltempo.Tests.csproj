@@ -22,9 +22,13 @@
 
          xUnit1051 - v3 asks every CancellationToken-taking call to pass
                     TestContext.Current.CancellationToken. That is a cancellation-
-                    responsiveness preference for 67 test call sites, not a correctness
-                    rule, and threading it through the safety-critical suite is a
-                    separate, testable change. Surfaced in the build log; not fatal. -->
+                    responsiveness preference, not a correctness rule, and threading it
+                    through the safety-critical suite is a separate, testable change.
+                    Surfaced in the build log; not fatal. This is the ONLY non-fatal
+                    diagnostic in the repository - every other warning is still an error.
+                    NOTE: several sites (notably the cancellation-path tests) must supply
+                    their own token rather than TestContext's, so a clean sweep of this
+                    rule is not a mechanical change and must not be attempted casually. -->
     <WarningsNotAsErrors>$(WarningsNotAsErrors);xUnit1051</WarningsNotAsErrors>
   </PropertyGroup>
 

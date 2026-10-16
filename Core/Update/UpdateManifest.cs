@@ -32,6 +32,9 @@ public class UpdateManifest
     [JsonPropertyName("publishedAtUtc")]
     public DateTime PublishedAtUtc { get; set; } = DateTime.UtcNow;
 
+    [JsonPropertyName("keyId")]
+    public string KeyId { get; set; } = string.Empty;
+
     [JsonPropertyName("artifact")]
     public UpdateArtifactInfo? Artifact { get; set; }
 
@@ -45,11 +48,35 @@ public class UpdateManifest
     /// Produces the canonical JSON string for signature verification.
     /// Excludes the signature field itself. Uses deterministic key ordering.
     /// </summary>
+    /// <remarks>
+    /// The artifact descriptors MUST be inside the signed payload. If they are not, the
+    /// signature only authenticates metadata (version, channel) and not *what will be
+    /// downloaded* - anyone able to alter the manifest could substitute a different
+    /// downloadUrl and a matching sha256, and the signature would still verify.
+    /// </remarks>
     public string ToCanonicalJson()
     {
         // Build canonical form manually for deterministic signature
-        return $"{{\"architecture\":\"{Architecture}\",\"channel\":\"{Channel}\",\"commitSha\":\"{CommitSha}\",\"minimumSupportedWindows\":\"{MinimumSupportedWindows}\",\"product\":\"{Product}\",\"publishedAtUtc\":\"{PublishedAtUtc:O}\",\"schemaVersion\":{SchemaVersion},\"version\":\"{Version}\"}}";
+        return $"{{\"architecture\":{Json(Architecture)},\"artifact\":{ArtifactJson(Artifact)}," +
+               $"\"channel\":{Json(Channel)},\"cliArtifact\":{ArtifactJson(CliArtifact)}," +
+               $"\"commitSha\":{Json(CommitSha)},\"keyId\":{Json(KeyId)}," +
+               $"\"minimumSupportedWindows\":{Json(MinimumSupportedWindows)},\"product\":{Json(Product)}," +
+               $"\"publishedAtUtc\":\"{PublishedAtUtc:O}\",\"schemaVersion\":{SchemaVersion},\"version\":{Json(Version)}}}";
     }
+
+    /// <summary>
+    /// JSON-escapes a string. Without this, any quote or backslash inside a value would
+    /// corrupt the canonical form and could make two different manifests produce the same
+    /// signed bytes.
+    /// </summary>
+    private static string Json(string? value) =>
+        System.Text.Json.JsonSerializer.Serialize(value ?? string.Empty);
+
+    private static string ArtifactJson(UpdateArtifactInfo? a) =>
+        a == null
+            ? "null"
+            : $"{{\"downloadUrl\":{Json(a.DownloadUrl)},\"name\":{Json(a.Name)}," +
+              $"\"sha256\":{Json(a.Sha256)},\"sizeBytes\":{a.SizeBytes}}}";
 }
 
 public class UpdateArtifactInfo

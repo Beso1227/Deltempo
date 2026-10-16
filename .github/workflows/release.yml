@@ -94,14 +94,54 @@ jobs:
           # Observed on this repo: 909/909 green, then exit code 1 on the GitHub runner.
           # So: fail on a real test failure, fail when the run did not complete, and warn -
           # never silently - when the host force-exited with an all-green summary.
-          if (Select-String -Path "$env:RUNNER_TEMP/test-run.log" -Pattern 'failed: [1-9]' -Quiet) {
-            Write-Error "::error::One or more tests failed; see test-run.log."
+          #
+          # The summary is parsed rather than pattern-matched. `-match 'succeeded: \d+'` is
+          # satisfied by any digit count, so a run that aborted partway and reported only the
+          # tests it had reached read as a pass on the very workflow that produces releases.
+          $log = "$env:RUNNER_TEMP/test-run.log"
+          if (-not (Test-Path $log)) {
+            Write-Error "::error::No test-run.log was produced - the suite never started or never reported."
             exit 1
           }
-          if (-not (Select-String -Path "$env:RUNNER_TEMP/test-run.log" -Pattern 'succeeded: \d+' -Quiet)) {
-            Write-Error "::error::No test summary found in test-run.log - the run did not complete."
+
+          function Get-SummaryValue([string]$name) {
+            $m = Select-String -Path $log -Pattern "^\s*$name`:\s*(\d+)" | Select-Object -Last 1
+            if ($m) { return [int]$m.Matches[0].Groups[1].Value }
+            return $null
+          }
+
+          $total     = Get-SummaryValue 'total'
+          $failed    = Get-SummaryValue 'failed'
+          $succeeded = Get-SummaryValue 'succeeded'
+          $skipped   = Get-SummaryValue 'skipped'
+
+          if ($null -eq $total -or $null -eq $failed -or $null -eq $succeeded) {
+            Write-Error "::error::Test summary is incomplete (total/succeeded/failed not all reported) - the run did not complete."
             exit 1
           }
+          Write-Host ("Test summary: total={0} succeeded={1} failed={2} skipped={3}" -f $total, $succeeded, $failed, $skipped)
+
+          if ($failed -ne 0) {
+            Write-Error "::error::$failed test(s) failed; see test-run.log."
+            exit 1
+          }
+          if ($total -le 0) {
+            Write-Error "::error::Test run reported 0 total tests. An empty selection is not a passing suite."
+            exit 1
+          }
+          if ($succeeded -ne $total - $skipped) {
+            Write-Error "::error::Test summary is internally inconsistent: succeeded + skipped != total. The run was truncated."
+            exit 1
+          }
+          # Truncation tripwire. The release gate runs the whole suite including the
+          # million-case fuzz campaign, so a collapse into the hundreds means the run died
+          # partway. Exact count reconciliation is owned by DocumentationConsistencyTests,
+          # which only runs if the suite actually completes.
+          if ($total -lt 900) {
+            Write-Error "::error::Only $total tests ran, below the truncation floor of 900. The suite did not run to completion."
+            exit 1
+          }
+
           if ($testExit -ne 0) {
             Write-Warning "::warning::Test host exited with code $testExit after reporting every test passed (lingering foreground thread at shutdown). Treating as a pass; the leak is tracked separately and does not indicate a test failure."
           }
@@ -128,23 +168,6 @@ jobs:
           Move-Item ./dist_cli/deltempo_cli.exe ./dist/deltempo_cli.exe -Force
           Move-Item ./dist_arm64/Deltempo.exe ./dist/Deltempo-arm64.exe -Force
           Move-Item ./dist_cli_arm64/deltempo_cli.exe ./dist/deltempo_cli-arm64.exe -Force
-
-      - name: Generate SHA-256 Checksums
-        shell: pwsh
-        run: |
-          $files = @("./dist/Deltempo.exe", "./dist/deltempo_cli.exe", "./dist/Deltempo-arm64.exe", "./dist/deltempo_cli-arm64.exe")
-          $lines = @()
-          foreach ($f in $files) {
-            $hash = (Get-FileHash $f -Algorithm SHA256).Hash.ToLower()
-            $name = [System.IO.Path]::GetFileName($f)
-            $lines += "$hash  $name"
-            Write-Host "$hash  $name"
-          }
-          # Out-File -NoNewline on an ARRAY concatenates elements with no
-          # separator, producing a single unparseable line. Join explicitly.
-          $manifest = ($lines -join "`n") + "`n"
-          $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-          [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'dist/checksums.sha256'), $manifest, $utf8NoBom)
 
       # Signing is skipped only when a maintainer explicitly opts out via
       # REQUIRE_SIGNING == 'false'. Otherwise a missing certificate is a hard
@@ -202,6 +225,54 @@ jobs:
             # Never leave the private key on the runner.
             Remove-Item $pfxPath -Force -ErrorAction SilentlyContinue
           }
+
+      # MUST run AFTER Authenticode signing. Authenticode appends a WIN_CERTIFICATE
+      # structure to the PE and rewrites the certificate data directory, which changes both
+      # the file size and its bytes - and therefore its SHA-256. This step used to run BEFORE
+      # signing, so the published checksums.sha256 described the pre-signing binaries and could
+      # never match the binaries users actually downloaded. Any user verifying the manifest
+      # against a signed release got a mismatch, and had no way to tell whether the download
+      # or the manifest was at fault.
+      - name: Generate SHA-256 Checksums
+        shell: pwsh
+        run: |
+          $files = @("./dist/Deltempo.exe", "./dist/deltempo_cli.exe", "./dist/Deltempo-arm64.exe", "./dist/deltempo_cli-arm64.exe")
+          $lines = @()
+          foreach ($f in $files) {
+            if (-not (Test-Path $f)) {
+              Write-Error "::error::Expected release binary $f is missing; cannot produce a checksum manifest."
+              exit 1
+            }
+            $hash = (Get-FileHash $f -Algorithm SHA256).Hash.ToLower()
+            $name = [System.IO.Path]::GetFileName($f)
+            $lines += "$hash  $name"
+            Write-Host "$hash  $name"
+          }
+          # Out-File -NoNewline on an ARRAY concatenates elements with no
+          # separator, producing a single unparseable line. Join explicitly.
+          $manifest = ($lines -join "`n") + "`n"
+          $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+          [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'dist/checksums.sha256'), $manifest, $utf8NoBom)
+
+          # Prove the manifest describes the bytes that will actually be uploaded, by
+          # re-hashing from disk and comparing against what was just written. This is what
+          # would have caught the pre-signing ordering bug.
+          $written = [System.IO.File]::ReadAllLines((Join-Path (Get-Location) 'dist/checksums.sha256')) |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+          if ($written.Count -ne $files.Count) {
+            Write-Error "::error::Checksum manifest has $($written.Count) entries but $($files.Count) binaries were published."
+            exit 1
+          }
+          foreach ($line in $written) {
+            $parts = $line -split '\s+', 2
+            $actual = (Get-FileHash (Join-Path "dist" $parts[1]) -Algorithm SHA256).Hash.ToLower()
+            if ($actual -ne $parts[0]) {
+              Write-Error "::error::Checksum mismatch for $($parts[1]): manifest says $($parts[0]), file on disk is $actual."
+              exit 1
+            }
+            Write-Host "verified: $($parts[1])"
+          }
+          Write-Host "Checksum manifest verified against the exact bytes being published."
 
       # Pack the MSIX installable channel alongside the portable exe. Reuses the
       # repository packager so local and CI artefacts are byte-identical.

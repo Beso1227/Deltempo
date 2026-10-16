@@ -437,7 +437,7 @@ Signer Name:        Microsoft Windows Hardware Compatibility Publisher
         var result = await MemoryOptimizerService.OptimizeAreaAsync(MemoryTargetType.WorkingSet);
         Assert.NotNull(result);
         Assert.Equal(MemoryTargetType.WorkingSet, result.Target);
-        Assert.True(result.MeasuredBytesFreed >= 0);
+        Assert.True(result.Success == (result.Status is MemoryOperationStatus.Success or MemoryOperationStatus.PartialSuccess));
     }
 
     [Fact]
@@ -446,7 +446,7 @@ Signer Name:        Microsoft Windows Hardware Compatibility Publisher
         var result = await MemoryOptimizerService.OptimizeRamAsync();
         Assert.NotNull(result);
         Assert.True(result.ExecutionTimeMs >= 0);
-        Assert.True(result.MeasuredBytesFreed >= 0);
+        Assert.True(result.MeasuredAvailableDelta >= 0);
         Assert.NotEmpty(result.AreaResults);
         Assert.Equal(7, result.AreaResults.Count);
     }

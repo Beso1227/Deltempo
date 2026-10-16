@@ -311,7 +311,7 @@ public partial class MainWindow : Window
                 {
                     var res = await MemoryOptimizerService.OptimizeRamAsync();
                     UpdateMemoryTelemetry();
-                    AddLog($"[Hotkey Ctrl+Shift+M] Instant RAM optimization complete: Purged {res.FormattedReclaimed} in {res.ExecutionTimeMs}ms.", LogLevel.Success);
+                    AddLog($"[Hotkey Ctrl+Shift+M] Instant RAM optimization complete: {res.SucceededTargetCount}/{res.RequestedTargetCount} targets confirmed in {res.ExecutionTimeMs}ms. Available RAM moved {res.FormattedMeasuredDelta}; purged cache is re-read from disk on demand.", LogLevel.Success);
                 }
                 catch (Exception ex)
                 {
@@ -406,14 +406,14 @@ public partial class MainWindow : Window
             {
                 var res = await MemoryOptimizerService.OptimizeRamAsync();
                 UpdateMemoryTelemetry();
-                AddLog($"[RAM Engine] Reclaimed {res.FormattedReclaimed} across {res.ProcessesOptimized} tasks in {res.ExecutionTimeMs}ms.", LogLevel.Success);
+                AddLog($"[RAM Engine] {res.SucceededTargetCount}/{res.RequestedTargetCount} targets confirmed across {res.ProcessesOptimized} tasks in {res.ExecutionTimeMs}ms. Available RAM moved {res.FormattedMeasuredDelta}.", LogLevel.Success);
                 return res;
             }),
             () => Dispatcher.Invoke(async () =>
             {
                 var res = await MemoryOptimizerService.OptimizeRamAsync(new[] { MemoryTargetType.StandbyList, MemoryTargetType.StandbyListLowPriority });
                 UpdateMemoryTelemetry();
-                AddLog($"[RAM Engine] Purged standby list: reclaimed {res.FormattedReclaimed} in {res.ExecutionTimeMs}ms.", LogLevel.Success);
+                AddLog($"[RAM Engine] Standby purge: {res.SucceededTargetCount}/{res.RequestedTargetCount} zones confirmed in {res.ExecutionTimeMs}ms. Discarded cached pages are re-read from disk on next file open.", LogLevel.Success);
                 return res;
             }),
             () => Dispatcher.InvokeAsync(async () =>

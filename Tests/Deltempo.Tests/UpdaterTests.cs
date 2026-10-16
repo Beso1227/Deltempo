@@ -222,6 +222,7 @@ public class ManifestSignatureVerifierTests
             Channel = "stable",
             Version = "1.3.3",
             CommitSha = "abc1234",
+            KeyId = "test-key",
             Artifact = null
         };
         string json = JsonSerializer.Serialize(manifest);
@@ -240,6 +241,7 @@ public class ManifestSignatureVerifierTests
             Channel = "stable",
             Version = "1.3.3",
             CommitSha = "abc1234",
+            KeyId = "test-key",
             Artifact = new UpdateArtifactInfo
             {
                 Name = "Deltempo.exe",

@@ -248,7 +248,9 @@ public static partial class CliRunner
             {
                 await UpdateService.DownloadAndApplyUpdateAsync(
                     release.DownloadUrl,
-                    progress);
+                    progress,
+                    expectedSha256: !string.IsNullOrWhiteSpace(release.Sha256) ? release.Sha256 : null,
+                    manifestUrl: release.ManifestUrl);
 
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("\n  ✓ Update verified and staged successfully. Deltempo will now restart.");

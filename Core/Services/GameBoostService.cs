@@ -109,7 +109,7 @@ public static class GameBoostService
                 try
                 {
                     var optResult = await MemoryOptimizerService.OptimizeRamAsync(targets: null, ct: ct);
-                    result.StandbyMemoryFreedBytes = optResult.MeasuredBytesFreed;
+                    result.StandbyMemoryFreedBytes = optResult.MeasuredAvailableDelta;
                 }
                 catch
                 {
