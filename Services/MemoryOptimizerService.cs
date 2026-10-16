@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Windows.Media;
 using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
@@ -52,34 +51,35 @@ public class MemoryAreaSnapshot
         _ => "\uE950"
     };
 
-    // Cached frozen brushes. These properties are read on every memory-telemetry
-    // refresh tick; allocating a new SolidColorBrush per read created steady GC
-    // pressure. Frozen brushes are thread-safe and skip change-notification overhead.
-    private static readonly Brush HighUsageBrush = CreateFrozenBrush("#EF4444");     // red
-    private static readonly Brush ElevatedUsageBrush = CreateFrozenBrush("#F59E0B"); // amber
-    private static readonly Brush NormalUsageBrush = CreateFrozenBrush("#00F2B0");   // cyber mint
-
-    private static SolidColorBrush CreateFrozenBrush(string hex)
+    // Severity is data, not a brush.
+    //
+    // This used to expose WPF SolidColorBrush properties, which forced Core to
+    // compile against System.Windows.Media and made the WinUI 3 port unable to
+    // consume this model at all. The 70/90 thresholds are design intent worth
+    // keeping, so they live here as a level plus an ARGB hex string; each UI
+    // resolves the hex with its own brush factory.
+    public MemoryUsageSeverity Severity => UsedPercent switch
     {
-        var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
-        brush.Freeze();
-        return brush;
-    }
-
-    public Brush UsedPercentBrush => UsedPercent switch
-    {
-        > 90 => HighUsageBrush,
-        > 70 => ElevatedUsageBrush,
-        _ => NormalUsageBrush
+        > 90 => MemoryUsageSeverity.High,
+        > 70 => MemoryUsageSeverity.Elevated,
+        _ => MemoryUsageSeverity.Normal
     };
 
-    public Brush UsageBarBrush => UsedPercent switch
+    /// <summary>ARGB hex for <see cref="Severity"/>; opaque.</summary>
+    public string SeverityColorHex => Severity switch
     {
-        > 90 => HighUsageBrush,
-        > 70 => ElevatedUsageBrush,
-        _ => (System.Windows.Application.Current?.FindResource("BrandHeroGradientBrush") as Brush)
-                ?? NormalUsageBrush
+        MemoryUsageSeverity.High => "#FFEF4444",     // red
+        MemoryUsageSeverity.Elevated => "#FFF59E0B", // amber
+        _ => "#FF00F2B0"                             // cyber mint
     };
+}
+
+/// <summary>Usage band for a memory area, so UIs can style without WPF types.</summary>
+public enum MemoryUsageSeverity
+{
+    Normal,
+    Elevated,
+    High
 }
 
 public enum MemoryOperationStatus
