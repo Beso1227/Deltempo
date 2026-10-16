@@ -273,7 +273,7 @@
                                                                        VerticalAlignment="Center"/>
                                                         </Border>
                                                         <!-- Native Extracted Windows App Icon -->
-                                                        <Image Source="{Binding AppIcon}"
+                                                        <Image Source="{Binding AppIcon, Converter={StaticResource ByteArrayToImageSourceConverter}}"
                                                                Width="20"
                                                                Height="20"
                                                                RenderOptions.BitmapScalingMode="HighQuality"
@@ -471,7 +471,7 @@
                                         </Grid>
 
                                         <!-- Expandable In-Depth Intelligence & System Details Card -->
-                                        <Border Visibility="{Binding ExpandedVisibility}"
+                                        <Border Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisConverter}}"
                                                 Background="{DynamicResource SurfaceSubCardBrush}"
                                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
                                                 BorderThickness="1"
@@ -615,7 +615,7 @@
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Grid.Column="0" Text="Install Location:" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                                         <TextBlock Grid.Column="1" Text="{Binding InstallLocationDisplay}" FontSize="10.5" Foreground="{DynamicResource TextMediumBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding InstallLocation}" VerticalAlignment="Center"/>
-                                                        <Button Grid.Column="2" Style="{DynamicResource PillButton}" Padding="7,2" Margin="8,0,0,0" ToolTip="Open install folder in File Explorer" Visibility="{Binding OpenFolderVisibility}" Click="OpenInstallLocation_Click">
+                                                        <Button Grid.Column="2" Style="{DynamicResource PillButton}" Padding="7,2" Margin="8,0,0,0" ToolTip="Open install folder in File Explorer" Visibility="{Binding CanOpenInstallFolder, Converter={StaticResource BoolToVisConverter}}" Click="OpenInstallLocation_Click">
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBlock Text="&#xED25;" FontFamily="{DynamicResource IconFont}" FontSize="10.5" Foreground="{DynamicResource ElectricCyanBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
                                                                 <TextBlock Text="Open Folder" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextHighBrush}"/>

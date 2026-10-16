@@ -139,4 +139,52 @@ public class AppIntelligenceTests
         Assert.Null(icon2);
         Assert.Null(icon3);
     }
+
+    /// <summary>
+    /// Guards the real extraction path, not just the failure paths.
+    ///
+    /// <see cref="AppIconService"/> used to return a WPF ImageSource; it now
+    /// returns PNG-encoded bytes so WinUI 3 can render the same icons. The
+    /// existing test only asserted that bad paths return null, which means a
+    /// completely broken encoder would have passed. This asserts that a real
+    /// system binary yields bytes with a valid PNG signature.
+    /// </summary>
+    [Fact]
+    public void AppIconService_ExtractsRealIconAsPngBytes()
+    {
+        string exe = Path.Combine(Environment.SystemDirectory, "notepad.exe");
+        Assert.True(File.Exists(exe), $"Expected a known system binary at {exe}");
+
+        byte[]? icon = AppIconService.GetAppIcon($"{exe},0", "", "Notepad");
+
+        Assert.NotNull(icon);
+        Assert.True(icon.Length > 0, "Extracted icon should not be empty.");
+
+        // PNG signature: 89 50 4E 47 0D 0A 1A 0A
+        byte[] expected = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+        Assert.True(icon.Length >= expected.Length, "Icon bytes are too short to be a PNG.");
+
+        for (int i = 0; i < expected.Length; i++)
+        {
+            Assert.True(
+                icon[i] == expected[i],
+                $"PNG signature mismatch at byte {i}: expected 0x{expected[i]:X2}, got 0x{icon[i]:X2}.");
+        }
+    }
+
+    /// <summary>
+    /// The app item must report an icon only when it actually has usable bytes,
+    /// not merely a non-null array.
+    /// </summary>
+    [Fact]
+    public void InstalledAppItem_EmptyIconBytesDoNotCountAsAnIcon()
+    {
+        var item = new InstalledAppItem { AppIcon = [] };
+
+        Assert.False(item.HasAppIcon);
+
+        item.AppIcon = [0x89, 0x50];
+
+        Assert.True(item.HasAppIcon);
+    }
 }

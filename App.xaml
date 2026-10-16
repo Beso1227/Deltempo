@@ -18,6 +18,11 @@
         <!-- WidthToCompactDoubleConverter (window width → smaller nav MinWidth when compact) -->
         <converters:WidthToCompactDoubleConverter x:Key="WidthToCompactDoubleConverter"/>
 
+        <!-- ByteArrayToImageSourceConverter (PNG icon bytes → WPF ImageSource).
+             Core returns bytes rather than WPF types so WinUI 3 can render the same
+             icons; this is the WPF half of that pair. -->
+        <converters:ByteArrayToImageSourceConverter x:Key="ByteArrayToImageSourceConverter"/>
+
         <!-- High-End Dynamic Palette Tokens (Initial Dark State: Luxury Obsidian & Cyber Mint) -->
         <!-- Canvas & base layers -->
         <SolidColorBrush x:Key="CanvasDarkBrush" Color="#06080B"/>

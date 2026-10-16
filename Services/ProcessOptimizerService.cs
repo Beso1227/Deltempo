@@ -18,8 +18,9 @@ public class ProcessMemoryInfo
     public string CategoryDescription { get; set; } = "Background Application";
     public string CategoryIcon { get; set; } = "\uE713";
     public string ExePath { get; set; } = string.Empty;
-    public System.Windows.Media.ImageSource? AppIcon { get; set; }
-    public bool HasAppIcon => AppIcon != null;
+    /// <summary>PNG-encoded icon bytes, or null. See AppIconService for why bytes.</summary>
+    public byte[]? AppIcon { get; set; }
+    public bool HasAppIcon => AppIcon is { Length: > 0 };
     public long WorkingSetBytes { get; set; }
     public string FormattedMemory => TargetFolderInfo.FormatBytes(WorkingSetBytes);
     public bool IsSafeToClose { get; set; } = true;

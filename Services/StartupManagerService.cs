@@ -164,8 +164,10 @@ public class StartupItem : INotifyPropertyChanged
         _ => "#0D2818"
     };
 
-    private System.Windows.Media.ImageSource? _appIcon;
-    public System.Windows.Media.ImageSource? AppIcon
+    private byte[]? _appIcon;
+
+    /// <summary>PNG-encoded icon bytes, or null. See AppIconService for why bytes.</summary>
+    public byte[]? AppIcon
     {
         get => _appIcon;
         set
@@ -178,7 +180,7 @@ public class StartupItem : INotifyPropertyChanged
             }
         }
     }
-    public bool HasAppIcon => AppIcon != null;
+    public bool HasAppIcon => AppIcon is { Length: > 0 };
 
     public string FallbackGlyph => DisableVerdict switch
     {

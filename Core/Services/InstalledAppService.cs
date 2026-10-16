@@ -3,15 +3,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using WinTempCleaner.Services;
 
@@ -77,7 +74,7 @@ public class InstalledAppItem : INotifyPropertyChanged
     public string InstallLocation
     {
         get => _installLocation;
-        set { if (_installLocation != value) { _installLocation = value; OnPropertyChanged(); OnPropertyChanged(nameof(InstallLocationDisplay)); OnPropertyChanged(nameof(CanOpenInstallFolder)); OnPropertyChanged(nameof(OpenFolderVisibility)); } }
+        set { if (_installLocation != value) { _installLocation = value; OnPropertyChanged(); OnPropertyChanged(nameof(InstallLocationDisplay)); OnPropertyChanged(nameof(CanOpenInstallFolder)); } }
     }
 
     public string DisplayIcon { get; set; } = string.Empty;
@@ -100,13 +97,18 @@ public class InstalledAppItem : INotifyPropertyChanged
     }
 
     // Visual Icon & Fallback Glyph
-    private ImageSource? _appIcon;
-    public ImageSource? AppIcon
+    private byte[]? _appIcon;
+
+    /// <summary>
+    /// PNG-encoded icon bytes, or null when no icon could be extracted.
+    /// Deliberately not a WPF ImageSource: WinUI 3 cannot consume one.
+    /// </summary>
+    public byte[]? AppIcon
     {
         get => _appIcon;
         set { if (_appIcon != value) { _appIcon = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasAppIcon)); } }
     }
-    public bool HasAppIcon => AppIcon != null;
+    public bool HasAppIcon => AppIcon is { Length: > 0 };
     public string FallbackGlyph => Category switch
     {
         "Browsers" => "\uE774",           // Globe / Web
@@ -222,12 +224,13 @@ public class InstalledAppItem : INotifyPropertyChanged
             {
                 _isExpanded = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(ExpandedVisibility));
                 OnPropertyChanged(nameof(ExpandGlyph));
             }
         }
     }
-    public Visibility ExpandedVisibility => IsExpanded ? Visibility.Visible : Visibility.Collapsed;
+    // Expansion and folder-availability are exposed as plain bools. This type
+    // used to also publish WPF Visibility properties, which made every consumer
+    // a WPF consumer; each UI now binds the bool through its own converter.
     public string ExpandGlyph => IsExpanded ? "\uE70E" : "\uE70D"; // Chevron Up vs Down
 
     // Formatted Inspection Helpers
@@ -247,7 +250,6 @@ public class InstalledAppItem : INotifyPropertyChanged
 
     public string InstallLocationDisplay => !string.IsNullOrWhiteSpace(InstallLocation) ? InstallLocation : "Not specified by installer";
     public bool CanOpenInstallFolder => !string.IsNullOrWhiteSpace(InstallLocation) && (Directory.Exists(InstallLocation) || Directory.Exists(Path.GetDirectoryName(InstallLocation) ?? ""));
-    public Visibility OpenFolderVisibility => CanOpenInstallFolder ? Visibility.Visible : Visibility.Collapsed;
 
     public string UninstallCommandDisplay => !string.IsNullOrWhiteSpace(QuietUninstallString)
         ? QuietUninstallString
@@ -936,9 +938,18 @@ public static class InstalledAppService
     }
 }
 
+/// <summary>
+/// Extracts an application's icon and returns it as PNG-encoded bytes.
+///
+/// The returned bytes are framework-neutral on purpose. This used to hand back
+/// a WPF <c>ImageSource</c>, which made every consumer of the icon a WPF
+/// consumer - and WinUI 3 cannot render an ImageSource at all. Bytes let the
+/// WPF app build a BitmapImage and the WinUI app build a SoftwareBitmapSource
+/// from one shared extraction path, so the two cannot drift apart.
+/// </summary>
 public static class AppIconService
 {
-    private static readonly ConcurrentDictionary<string, ImageSource?> Cache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, byte[]?> Cache = new(StringComparer.OrdinalIgnoreCase);
 
     [DllImport("shell32.dll", CharSet = CharSet.Unicode, EntryPoint = "ExtractIconExW")]
     private static extern uint ExtractIconEx(string szFileName, int nIconIndex, IntPtr[]? phiconLarge, IntPtr[]? phiconSmall, uint nIcons);
@@ -947,7 +958,7 @@ public static class AppIconService
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool DestroyIcon(IntPtr hIcon);
 
-    public static ImageSource? GetAppIcon(string displayIcon, string installLocation, string displayName)
+    public static byte[]? GetAppIcon(string displayIcon, string installLocation, string displayName)
     {
         string rawKey = $"{displayIcon}|{installLocation}|{displayName}";
         if (Cache.TryGetValue(rawKey, out var cached))
@@ -955,12 +966,12 @@ public static class AppIconService
             return cached;
         }
 
-        ImageSource? icon = ExtractIconInternal(displayIcon, installLocation, displayName);
+        byte[]? icon = ExtractIconInternal(displayIcon, installLocation, displayName);
         Cache[rawKey] = icon;
         return icon;
     }
 
-    private static ImageSource? ExtractIconInternal(string displayIcon, string installLocation, string displayName)
+    private static byte[]? ExtractIconInternal(string displayIcon, string installLocation, string displayName)
     {
         try
         {
@@ -1041,15 +1052,22 @@ public static class AppIconService
         return (clean, 0);
     }
 
-    private static ImageSource? ExtractFromFile(string filePath, int index)
+    private static byte[]? ExtractFromFile(string filePath, int index)
     {
         if (string.IsNullOrWhiteSpace(filePath)) return null;
 
-        if (filePath.EndsWith(".ico", StringComparison.OrdinalIgnoreCase) ||
-            filePath.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+        if (filePath.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
         {
+            // Already the format we hand back - no decode/re-encode round trip.
             var direct = LoadDirectImage(filePath);
             if (direct != null) return direct;
+        }
+        else if (filePath.EndsWith(".ico", StringComparison.OrdinalIgnoreCase))
+        {
+            // An .ico is a container, not a PNG. The old WPF path could hand the
+            // container straight to BitmapImage; bytes have to be re-encoded.
+            var converted = ConvertIcoFileToPng(filePath);
+            if (converted != null) return converted;
         }
 
         IntPtr[] largeIcons = new IntPtr[1];
@@ -1062,12 +1080,7 @@ public static class AppIconService
 
             if (hIcon != IntPtr.Zero)
             {
-                var bmp = Imaging.CreateBitmapSourceFromHIcon(
-                    hIcon,
-                    Int32Rect.Empty,
-                    BitmapSizeOptions.FromEmptyOptions());
-                bmp.Freeze();
-                return bmp;
+                return EncodeHIcon(hIcon);
             }
         }
         catch
@@ -1083,20 +1096,57 @@ public static class AppIconService
         return null;
     }
 
-    private static BitmapImage? LoadDirectImage(string filePath)
+    /// <summary>
+    /// Encodes a live HICON to PNG bytes.
+    ///
+    /// <see cref="Icon.FromHandle(IntPtr)"/> does not take ownership of the
+    /// handle, so the caller still destroys it. Going through FromHandle (rather
+    /// than constructing an Icon at a chosen size) keeps GDI+ at the icon's own
+    /// resolution instead of resampling a 16x16 shell icon up to 32x32.
+    /// </summary>
+    private static byte[]? EncodeHIcon(IntPtr hIcon)
+    {
+        try
+        {
+            using var icon = Icon.FromHandle(hIcon);
+            using var bitmap = icon.ToBitmap();
+            using var buffer = new MemoryStream();
+
+            bitmap.Save(buffer, System.Drawing.Imaging.ImageFormat.Png);
+            return buffer.ToArray();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static byte[]? ConvertIcoFileToPng(string filePath)
+    {
+        try
+        {
+            using var icon = new Icon(filePath);
+            using var bitmap = icon.ToBitmap();
+            using var buffer = new MemoryStream();
+
+            bitmap.Save(buffer, System.Drawing.Imaging.ImageFormat.Png);
+            return buffer.ToArray();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Returns a PNG file's bytes verbatim.
+    /// </summary>
+    private static byte[]? LoadDirectImage(string filePath)
     {
         try
         {
             if (!File.Exists(filePath)) return null;
-
-            var bi = new BitmapImage();
-            bi.BeginInit();
-            bi.UriSource = new Uri(filePath, UriKind.Absolute);
-            bi.CacheOption = BitmapCacheOption.OnLoad;
-            bi.DecodePixelWidth = 32;
-            bi.EndInit();
-            bi.Freeze();
-            return bi;
+            return File.ReadAllBytes(filePath);
         }
         catch
         {

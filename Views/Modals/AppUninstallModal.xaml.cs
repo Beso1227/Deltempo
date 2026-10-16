@@ -319,9 +319,16 @@ public partial class AppUninstallModal : UserControl
             DrawerSafetyBadge.BorderBrush = new System.Windows.Media.SolidColorBrush(safetyColor);
             DrawerSafetyBadge.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(25, safetyColor.R, safetyColor.G, safetyColor.B));
 
-            if (app.AppIcon != null)
+            if (app.AppIcon is { Length: > 0 })
             {
-                DrawerAppIconImage.Source = app.AppIcon;
+                var iconImage = new System.Windows.Media.Imaging.BitmapImage();
+                iconImage.BeginInit();
+                iconImage.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                iconImage.StreamSource = new MemoryStream(app.AppIcon, writable: false);
+                iconImage.EndInit();
+                iconImage.Freeze();
+
+                DrawerAppIconImage.Source = iconImage;
                 DrawerAppIconImage.Visibility = Visibility.Visible;
                 DrawerIconFallbackBorder.Visibility = Visibility.Collapsed;
             }
