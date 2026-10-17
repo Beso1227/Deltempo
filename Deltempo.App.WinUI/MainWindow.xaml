@@ -197,5 +197,15 @@
                                    Grid.Row="1"
                                    Visibility="Collapsed" />
 
+        <views:LargeFilesWorkspaceView x:Name="LargeFilesWorkspacePanel"
+                                      Grid.Column="1"
+                                      Grid.Row="1"
+                                      Visibility="Collapsed" />
+
+        <views:CleanerWorkspaceView x:Name="CleanerWorkspacePanel"
+                                    Grid.Column="1"
+                                    Grid.Row="1"
+                                    Visibility="Collapsed" />
+
     </Grid>
 </Window>

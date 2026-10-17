@@ -54,6 +54,8 @@ public sealed partial class MainWindow : Window
             LoadSelfTestSystemRepair();
             LoadSelfTestMemoryWorkspace();
             _ = LoadSelfTestStartupWorkspace();
+            _ = LoadSelfTestLargeFilesWorkspace();
+            _ = LoadSelfTestCleanerWorkspace();
         }
 
         ShellDiagnostics.MaybeSelfTest(this);
@@ -409,6 +411,58 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Exercises the Large Files workspace.
+    ///
+    /// ScanAsync is read-only: it enumerates files and classifies them with
+    /// FileSafetyEngine, deleting nothing. Safe to run in the self-test.
+    ///
+    /// RecycleSelectedAsync / RecycleItemAsync / AnalyzeItemAsync are never
+    /// invoked: the first two delete files, the third makes a network call.
+    /// A bare ViewModel is used, with no confirmation host, so even an
+    /// accidental mutating call would fail closed.
+    /// </summary>
+    private async Task LoadSelfTestLargeFilesWorkspace()
+    {
+        var probe = new Deltempo.App.WinUI.ViewModels.LargeFilesWorkspaceViewModel();
+
+        probe.LogRequested += OnFootprintLog;
+        await probe.ScanAsync();
+
+        int safeCount = probe.Items.Count(f => f.IsSafe);
+        int protectedCount = probe.Items.Count - safeCount;
+
+        ShellDiagnostics.Write(
+            $"large files workspace loaded (self-test, read only): " +
+            $"{probe.Items.Count} files, {safeCount} safe, {protectedCount} protected");
+    }
+
+    /// <summary>
+    /// Exercises the Cleaner workspace.
+    ///
+    /// ScanAllAsync is read-only: it enumerates and measures files in target
+    /// categories, deleting nothing. Safe to run in the self-test.
+    ///
+    /// CleanSelectedAsync (destructive) is never invoked. A bare ViewModel is
+    /// used, with no confirmation host, so even an accidental mutating call
+    /// fails closed.
+    /// </summary>
+    private async Task LoadSelfTestCleanerWorkspace()
+    {
+        var probe = new Deltempo.App.WinUI.ViewModels.CleanerWorkspaceViewModel();
+
+        probe.LogRequested += OnFootprintLog;
+        await probe.ScanAllAsync();
+
+        int selectedBytes = 0;
+        int cleanable = probe.Targets.Count(t => t.SizeBytes > 0);
+
+        ShellDiagnostics.Write(
+            $"cleaner workspace loaded (self-test, read only): " +
+            $"{probe.Targets.Count} targets, {cleanable} with reclaimable space, " +
+            $"status=\"{probe.StatusText}\"");
+    }
+
+    /// <summary>
     /// Opens the ported AppData footprint report over the content area. This is the
     /// Stage 2 proof screen: real Core data, no delete affordance.
     /// </summary>
@@ -494,16 +548,20 @@ public sealed partial class MainWindow : Window
                     OpenAppDataFootprint();
                 }
 
-                // Stage 3 workspace panels. Two nav items have real panels now;
-                // the other four still show the placeholder. Each panel loads
+                // Stage 3 workspace panels. Four nav items have real panels now;
+                // the other two still show the placeholder. Each panel loads
                 // lazily on first selection so its scan cost is paid once.
                 bool isMemory = label == Sections[3].Label;
                 bool isStartup = label == Sections[2].Label;
+                bool isLargeFile = label == Sections[1].Label;
+                bool isCleaner = label == Sections[0].Label;
 
                 MemoryWorkspacePanel.Visibility = isMemory ? Visibility.Visible : Visibility.Collapsed;
                 StartupWorkspacePanel.Visibility = isStartup ? Visibility.Visible : Visibility.Collapsed;
+                LargeFilesWorkspacePanel.Visibility = isLargeFile ? Visibility.Visible : Visibility.Collapsed;
+                CleanerWorkspacePanel.Visibility = isCleaner ? Visibility.Visible : Visibility.Collapsed;
 
-                bool hasPanel = isMemory || isStartup;
+                bool hasPanel = isMemory || isStartup || isLargeFile || isCleaner;
                 PlaceholderPanel.Visibility = hasPanel ? Visibility.Collapsed : Visibility.Visible;
 
                 if (isMemory)
@@ -514,6 +572,14 @@ public sealed partial class MainWindow : Window
                 {
                     StartupWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
                     StartupWorkspacePanel.Open();
+                }
+                else if (isLargeFile)
+                {
+                    LargeFilesWorkspacePanel.Open();
+                }
+                else if (isCleaner)
+                {
+                    CleanerWorkspacePanel.Open();
                 }
             }
         };
