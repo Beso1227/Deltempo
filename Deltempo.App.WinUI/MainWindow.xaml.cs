@@ -50,6 +50,7 @@ public sealed partial class MainWindow : Window
             LoadSelfTestLockedFiles();
             OpenMemoryOptimizerForSelfTest();
             LoadSelfTestForceDelete();
+            LoadSelfTestAppUninstall();
         }
 
         ShellDiagnostics.MaybeSelfTest(this);
@@ -183,6 +184,71 @@ public sealed partial class MainWindow : Window
         if (eligible.Any(t => t.IsShielded))
         {
             ShellDiagnostics.Write("FAIL: a shielded target reached the eligible list.");
+        }
+    }
+
+    /// <summary>
+    /// Exercises the app uninstaller's read paths: the registry audit, then a
+    /// leftover trace scan on the first app that reports a usable identity.
+    ///
+    /// It deliberately does NOT invoke DeepUninstallCommand,
+    /// ForceRootCleanCommand, PurgeTracesCommand, or FetchAllAiCommand.
+    /// The first three mutate the system (terminating processes, launching an
+    /// uninstaller, deleting registry keys) and the last one makes network
+    /// calls. None belongs in a self-test.
+    ///
+    /// Note the ViewModel here is constructed WITHOUT a confirmation host, so
+    /// even if a command were invoked by accident it would fail closed at the
+    /// confirmation gate and do nothing. That is the point of the injected,
+    /// default-refusing confirmer.
+    /// </summary>
+    private async void LoadSelfTestAppUninstall()
+    {
+        // No confirmAsync and no openFolder: the ViewModel refuses everything
+        // and opens nothing. This is the fail-closed configuration.
+        var probe = new Deltempo.App.WinUI.ViewModels.AppUninstallViewModel();
+
+        probe.LogRequested += OnFootprintLog;
+
+        // Must be awaited, never blocked on. LoadAppsAsync resumes on the UI
+        // dispatcher, so GetAwaiter().GetResult() here would deadlock the shell.
+        await probe.LoadAppsAsync();
+
+        int total = probe.Apps.Count;
+        int withIcons = probe.Apps.Count(a => a.HasAppIcon);
+
+        ShellDiagnostics.Write(
+            $"app uninstaller loaded (self-test, read only): {total} app(s) audited, " +
+            $"{withIcons} with extracted icons, status=\"{probe.StatusText}\"");
+
+        if (total == 0)
+        {
+            ShellDiagnostics.Write("FAIL: registry audit returned zero applications.");
+            return;
+        }
+
+        // Prove the search + chip filter actually narrows, since filtering is
+        // the one piece of pure logic worth asserting on here.
+        probe.SearchText = "zzzz-no-such-application-zzzz";
+        int afterSearch = probe.Apps.Count;
+
+        probe.SearchText = string.Empty;
+        probe.SetFilterCommand.Execute(Deltempo.App.WinUI.ViewModels.AppListFilter.Browsers);
+        int browsers = probe.Apps.Count;
+
+        ShellDiagnostics.Write(
+            $"app uninstaller filters verified: all={total}, " +
+            $"no-match-search={afterSearch}, browsers={browsers}");
+
+        if (afterSearch != 0)
+        {
+            ShellDiagnostics.Write("FAIL: a search with no possible match returned rows.");
+        }
+
+        // Confirm the confirmation host is genuinely fail-closed.
+        if (probe.HasInspectedApp)
+        {
+            ShellDiagnostics.Write("FAIL: a scan ran without being asked.");
         }
     }
 

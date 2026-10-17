@@ -1,0 +1,736 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    WinUI 3 port of Views/Modals/AppUninstallModal.xaml (909 lines).
+
+    Layout preserved: the WPF modal's five rows are header, search + filter
+    toolbar, app list, root-leftovers drawer, and footer.
+
+    Why this view uses classic {Binding} instead of x:Bind in its item
+    templates: InstalledAppItem and LeftoverItem are live INotifyPropertyChanged
+    models, and AI enrichment mutates DisplayName-adjacent fields (Description,
+    Category, SafetyVerdict, IsCoreRuntime) in place while the list is on
+    screen. x:Bind OneTime would freeze those values at first render, losing an
+    update the WPF modal showed live. {Binding} observes the models directly.
+
+    Every other ported screen uses x:Bind; this one is the exception and the
+    reason is recorded here so it is not "fixed" later without understanding.
+-->
+<UserControl
+    x:Class="Deltempo.App.WinUI.Views.AppUninstallView"
+    x:Name="Root"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:Deltempo.App.WinUI.Converters"
+    xmlns:viewmodels="using:Deltempo.App.WinUI.ViewModels"
+    mc:Ignorable="d"
+    d:DesignWidth="1050"
+    d:DesignHeight="760">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisInv" Invert="True" />
+        <converters:HexToBrushConverter x:Key="HexToBrush" />
+        <converters:BytesToBitmapImageConverter x:Key="BytesToImage" DecodePixelWidth="48" />
+
+        <!-- Pill chip used by both the filter row and the drawer tabs. -->
+        <Style x:Key="FilterChip" TargetType="RadioButton">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Padding" Value="9,4" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="Foreground" Value="{StaticResource TextMediumBrush}" />
+            <Setter Property="Background" Value="{StaticResource PillButtonBgBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PillButtonBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="MinWidth" Value="0" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="Transparent">
+        <Border Margin="24,14,24,14"
+                Background="{StaticResource SurfaceSubCardBrush}"
+                BorderBrush="{StaticResource HairlineBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="16"
+                Padding="20,16">
+
+            <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
+
+                <!-- ============================ 0. HEADER ============================ -->
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="40"
+                                Height="40"
+                                CornerRadius="12"
+                                Background="{StaticResource SurfaceCardBrush}"
+                                BorderBrush="{StaticResource ElectricCyanBrush}"
+                                BorderThickness="1"
+                                Margin="0,0,12,0">
+                            <FontIcon Glyph="&#xE77B;"
+                                      FontFamily="{StaticResource IconFont}"
+                                      FontSize="18"
+                                      Foreground="{StaticResource ElectricCyanBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="App Uninstaller &amp; Deep Root Clean"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextHighBrush}" />
+                            <TextBlock Text="Audit installed applications, run their official uninstallers, and eradicate leftover traces"
+                                       FontSize="11.5"
+                                       Foreground="{StaticResource TextMediumBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                            AutomationProperties.Name="Close app uninstaller"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="6"
+                            VerticalAlignment="Top"
+                            Command="{x:Bind ViewModel.CloseCommand, Mode=OneTime}">
+                        <FontIcon Glyph="&#xE8BB;"
+                                  FontFamily="{StaticResource IconFont}"
+                                  FontSize="12"
+                                  Foreground="{StaticResource TextMediumBrush}" />
+                    </Button>
+                </Grid>
+
+                <!-- ==================== 1. SEARCH + FILTER TOOLBAR ==================== -->
+                <Grid Grid.Row="1" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Search box -->
+                    <Grid Grid.Column="0" Margin="0,0,10,0">
+                        <TextBox PlaceholderText="Search name, publisher, engine, category..."
+                                 Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="11.5"
+                                 Padding="26,6,8,6"
+                                 CornerRadius="14"
+                                 Background="{StaticResource SurfaceCardBrush}"
+                                 BorderBrush="{StaticResource HairlineBorderBrush}"
+                                 BorderThickness="1"
+                                 Foreground="{StaticResource TextHighBrush}" />
+                        <FontIcon Glyph="&#xE721;"
+                                  FontFamily="{StaticResource IconFont}"
+                                  FontSize="11"
+                                  Foreground="{StaticResource TextMutedBrush}"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="8,0,0,0"
+                                  IsHitTestVisible="False" />
+                    </Grid>
+
+                    <!-- Filter chips -->
+                    <ScrollViewer Grid.Column="1"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  HorizontalScrollMode="Enabled"
+                                  VerticalScrollMode="Disabled"
+                                  VerticalScrollBarVisibility="Disabled">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <RadioButton x:Name="FilterAllChip" GroupName="AppFilter" Content="All"
+                                         Style="{StaticResource FilterChip}" Tag="All" IsChecked="True"
+                                         Checked="OnFilterChipChanged" />
+                            <RadioButton x:Name="FilterBrowsersChip" GroupName="AppFilter" Content="Browsers"
+                                         Style="{StaticResource FilterChip}" Tag="Browsers"
+                                         Checked="OnFilterChipChanged" />
+                            <RadioButton x:Name="FilterGamingChip" GroupName="AppFilter" Content="Gaming"
+                                         Style="{StaticResource FilterChip}" Tag="Gaming"
+                                         Checked="OnFilterChipChanged" />
+                            <RadioButton x:Name="FilterDevChip" GroupName="AppFilter" Content="Dev Tools"
+                                         Style="{StaticResource FilterChip}" Tag="DevTools"
+                                         Checked="OnFilterChipChanged" />
+                            <RadioButton x:Name="FilterRuntimesChip" GroupName="AppFilter" Content="Runtimes"
+                                         Style="{StaticResource FilterChip}" Tag="Runtimes"
+                                         Checked="OnFilterChipChanged" />
+                            <RadioButton x:Name="FilterLargeChip" GroupName="AppFilter" Content="Large (&gt;500MB)"
+                                         Style="{StaticResource FilterChip}" Tag="Large"
+                                         Checked="OnFilterChipChanged" />
+                            <RadioButton x:Name="FilterBrokenChip" GroupName="AppFilter" Content="Broken"
+                                         Style="{StaticResource FilterChip}" Tag="Broken"
+                                         Checked="OnFilterChipChanged" />
+                            <RadioButton x:Name="FilterStoreChip" GroupName="AppFilter" Content="Store / MSIX"
+                                         Style="{StaticResource FilterChip}" Tag="Store"
+                                         Checked="OnFilterChipChanged" />
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Refresh, AI, count -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="Refresh"
+                                Background="{StaticResource PillButtonBgBrush}"
+                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="14"
+                                Padding="12,5"
+                                FontSize="11"
+                                Margin="0,0,6,0"
+                                IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisInv}}"
+                                Command="{x:Bind ViewModel.RefreshCommand, Mode=OneTime}" />
+
+                        <Button Content="AI Classify All"
+                                ToolTipService.ToolTip="Ask the AI engine to classify and describe every unclassified application"
+                                Background="{StaticResource PillButtonBgBrush}"
+                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="14"
+                                Padding="12,5"
+                                FontSize="11"
+                                Margin="0,0,8,0"
+                                IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisInv}}"
+                                Command="{x:Bind ViewModel.FetchAllAiCommand, Mode=OneTime}" />
+
+                        <Border Background="{StaticResource SurfaceCardBrush}"
+                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="10,4"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="{x:Bind ViewModel.AppCountText, Mode=OneWay}"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource ElectricCyanBrush}" />
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- ======================= 2. APP LIST ======================= -->
+                <Border Grid.Row="2"
+                        Background="{StaticResource SurfaceCardBrush}"
+                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Padding="8,6"
+                        Margin="0,0,0,10">
+                    <ListView ItemsSource="{x:Bind ViewModel.Apps, Mode=OneWay}"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              SelectionMode="None"
+                              IsItemClickEnabled="False"
+                              HorizontalContentAlignment="Stretch">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0,0,0,6" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource SurfaceSubCardBrush}"
+                                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="10"
+                                        Padding="12,10">
+                                    <StackPanel>
+
+                                        <!-- Row 1: icon, name, badges, actions -->
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Icon, or the category fallback glyph -->
+                                            <Grid Grid.Column="0" Width="32" Height="32"
+                                                  VerticalAlignment="Center" Margin="0,0,10,0">
+                                                <Border Background="{StaticResource SurfaceCardBrush}"
+                                                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="8">
+                                                    <TextBlock Text="{Binding FallbackGlyph}"
+                                                               FontFamily="{StaticResource IconFont}"
+                                                               FontSize="15"
+                                                               Foreground="{StaticResource ElectricCyanBrush}"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center" />
+                                                </Border>
+                                                <Image Source="{Binding AppIcon, Converter={StaticResource BytesToImage}}"
+                                                       Width="32"
+                                                       Height="32"
+                                                       Stretch="UniformToFill"
+                                                       Visibility="{Binding HasAppIcon, Converter={StaticResource BoolToVis}}" />
+                                            </Grid>
+
+                                            <!-- Name + badges -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding DisplayName}"
+                                                               FontSize="12.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{StaticResource TextHighBrush}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               MaxWidth="300" />
+
+                                                    <Border Background="{Binding CategoryBadgeBackground, Converter={StaticResource HexToBrush}}"
+                                                            BorderBrush="{Binding CategoryBadgeBorder, Converter={StaticResource HexToBrush}}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="5"
+                                                            Padding="6,1.5"
+                                                            Margin="8,0,0,0">
+                                                        <TextBlock Text="{Binding Category}"
+                                                                   FontSize="10.5"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{Binding CategoryBadgeColor, Converter={StaticResource HexToBrush}}" />
+                                                    </Border>
+
+                                                    <Border Background="{StaticResource SurfaceCardBrush}"
+                                                            BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="5"
+                                                            Padding="6,1.5"
+                                                            Margin="6,0,0,0">
+                                                        <TextBlock Text="{Binding UninstallEngine}"
+                                                                   FontSize="10.5"
+                                                                   Foreground="{StaticResource TextMutedBrush}" />
+                                                    </Border>
+
+                                                    <!-- Core runtime / driver: removing this can destabilise Windows. -->
+                                                    <Border Background="{StaticResource WarningBadgeBgBrush}"
+                                                            BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="5"
+                                                            Padding="6,1.5"
+                                                            Margin="6,0,0,0"
+                                                            Visibility="{Binding IsCoreRuntime, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="Core Runtime"
+                                                                   FontSize="10.5"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource WarningBadgeTextBrush}" />
+                                                    </Border>
+
+                                                    <Border Background="{StaticResource SurfaceCardBrush}"
+                                                            BorderBrush="{StaticResource ElectricCyanBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="5"
+                                                            Padding="6,1.5"
+                                                            Margin="6,0,0,0"
+                                                            Visibility="{Binding IsAiEnriched, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="AI"
+                                                                   FontSize="10.5"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource ElectricCyanBrush}" />
+                                                    </Border>
+                                                </StackPanel>
+
+                                                <TextBlock Text="{Binding Publisher}"
+                                                           FontSize="10.5"
+                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           MaxWidth="420"
+                                                           Margin="0,2,0,0" />
+                                            </StackPanel>
+
+                                            <!-- Actions -->
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button Content="AI"
+                                                        ToolTipService.ToolTip="Fetch AI intelligence for this application"
+                                                        Background="{StaticResource PillButtonBgBrush}"
+                                                        BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="12"
+                                                        Padding="10,4"
+                                                        FontSize="11"
+                                                        Margin="0,0,6,0"
+                                                        Command="{Binding DataContext.ViewModel.FetchAiCommand, ElementName=Root}"
+                                                        CommandParameter="{Binding}" />
+
+                                                <Button Content="Open"
+                                                        ToolTipService.ToolTip="Open the install folder in File Explorer"
+                                                        Background="{StaticResource PillButtonBgBrush}"
+                                                        BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="12"
+                                                        Padding="10,4"
+                                                        FontSize="11"
+                                                        Margin="0,0,6,0"
+                                                        Visibility="{Binding CanOpenInstallFolder, Converter={StaticResource BoolToVis}}"
+                                                        Command="{Binding DataContext.ViewModel.OpenInstallFolderCommand, ElementName=Root}"
+                                                        CommandParameter="{Binding}" />
+
+                                                <Button Content="Scan"
+                                                        ToolTipService.ToolTip="Scan for leftover files, registry keys, and shortcuts"
+                                                        Background="{StaticResource PillButtonBgBrush}"
+                                                        BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="12"
+                                                        Padding="10,4"
+                                                        FontSize="11"
+                                                        Margin="0,0,6,0"
+                                                        Command="{Binding DataContext.ViewModel.ScanTracesCommand, ElementName=Root}"
+                                                        CommandParameter="{Binding}" />
+
+                                                <Button Content="Force Clean"
+                                                        ToolTipService.ToolTip="Scan and purge all remnants. Use when the official uninstaller is broken."
+                                                        Background="{StaticResource PillButtonBgBrush}"
+                                                        BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="12"
+                                                        Padding="10,4"
+                                                        FontSize="11"
+                                                        Margin="0,0,6,0"
+                                                        Command="{Binding DataContext.ViewModel.ForceRootCleanCommand, ElementName=Root}"
+                                                        CommandParameter="{Binding}" />
+
+                                                <Button Content="Uninstall"
+                                                        ToolTipService.ToolTip="Run the official uninstaller, then eradicate leftover traces"
+                                                        Background="{StaticResource DestructiveRedBrush}"
+                                                        Foreground="White"
+                                                        BorderThickness="0"
+                                                        CornerRadius="12"
+                                                        Padding="14,5"
+                                                        FontSize="11"
+                                                        Command="{Binding DataContext.ViewModel.DeepUninstallCommand, ElementName=Root}"
+                                                        CommandParameter="{Binding}" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Row 2: description + expand chevron -->
+                                        <Grid Margin="42,8,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding Description}"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource TextMediumBrush}"
+                                                       TextWrapping="Wrap"
+                                                       MaxLines="2"
+                                                       TextTrimming="CharacterEllipsis" />
+
+                                            <Button Grid.Column="1"
+                                                    AutomationProperties.Name="Expand application details"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Padding="4"
+                                                    Command="{Binding DataContext.ViewModel.ToggleExpandCommand, ElementName=Root}"
+                                                    CommandParameter="{Binding}">
+                                                <FontIcon Glyph="{Binding ExpandGlyph}"
+                                          FontFamily="{StaticResource IconFont}"
+                                          FontSize="11"
+                                          Foreground="{StaticResource TextMutedBrush}" />
+                                            </Button>
+                                        </Grid>
+
+                                        <!-- Row 3: safety verdict -->
+                                        <TextBlock Text="{Binding SafetyAdviceDisplay}"
+                                                   Margin="42,6,0,0"
+                                                   FontSize="10.5"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{Binding SafetyBadgeColor, Converter={StaticResource HexToBrush}}"
+                                                   TextWrapping="Wrap" />
+
+                                        <!-- Row 4: metadata -->
+                                        <StackPanel Orientation="Horizontal" Margin="42,6,0,0">
+                                            <TextBlock FontSize="10.5"
+                                                       Foreground="{StaticResource TextMutedBrush}">
+                                                <Run Text="Version " />
+                                                <Run Text="{Binding DisplayVersion, Mode=OneWay}" />
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding FormattedSize}"
+                                                       FontSize="10.5"
+                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                       Margin="14,0,0,0" />
+                                            <TextBlock Text="{Binding InstallDate}"
+                                                       FontSize="10.5"
+                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                       Margin="14,0,0,0" />
+                                        </StackPanel>
+
+                                        <!-- Row 5: expandable detail card -->
+                                        <Border Margin="42,8,0,0"
+                                                Background="{StaticResource SurfaceCardBrush}"
+                                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="10"
+                                                Padding="12,10"
+                                                Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Description}"
+                                                           FontSize="11.5"
+                                                           Foreground="{StaticResource TextHighBrush}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,0,0,8" />
+
+                                                <TextBlock FontSize="10.5"
+                                                           Foreground="{StaticResource TextMutedBrush}">
+                                                    <Run Text="Install path: " />
+                                                    <Run Text="{Binding InstallLocationDisplay, Mode=OneWay}" />
+                                                </TextBlock>
+                                                <TextBlock FontSize="10.5"
+                                                           FontFamily="{StaticResource MonoFont}"
+                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,3,0,0">
+                                                    <Run Text="Uninstall command: " />
+                                                    <Run Text="{Binding UninstallCommandDisplay, Mode=OneWay}" />
+                                                </TextBlock>
+                                                <TextBlock FontSize="10.5"
+                                                           FontFamily="{StaticResource MonoFont}"
+                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,3,0,0">
+                                                    <Run Text="Registry: " />
+                                                    <Run Text="{Binding RegistryKeyPathDisplay, Mode=OneWay}" />
+                                                </TextBlock>
+                                                <TextBlock FontSize="10.5"
+                                                           Foreground="{StaticResource ElectricCyanBrush}"
+                                                           Margin="0,6,0,0">
+                                                    <Run Text="Intelligence source: " />
+                                                    <Run Text="{Binding AiProviderDisplay, Mode=OneWay}" />
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Border>
+
+                <!-- ================= 3. ROOT LEFTOVERS DRAWER ================= -->
+                <Border Grid.Row="3"
+                        Visibility="{x:Bind ViewModel.IsDrawerOpen, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                        Background="{StaticResource SurfaceCardBrush}"
+                        BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Padding="12,10"
+                        Margin="0,0,0,10">
+                    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+                        <!-- Drawer header -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0"
+                                       Text="{x:Bind ViewModel.DrawerTitle, Mode=OneWay}"
+                                       FontSize="12.5"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextHighBrush}"
+                                       VerticalAlignment="Center" />
+
+                            <Border Grid.Column="1"
+                                    Background="{StaticResource WarningBadgeBgBrush}"
+                                    BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
+                                    Padding="10,3"
+                                    Margin="0,0,8,0"
+                                    VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind ViewModel.DrawerReclaimableText, Mode=OneWay}"
+                                           FontSize="10.5"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource WarningBadgeTextBrush}" />
+                            </Border>
+
+                            <Button Grid.Column="2"
+                                    AutomationProperties.Name="Close root remnants drawer"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="4"
+                                    Command="{x:Bind ViewModel.CloseDrawerCommand, Mode=OneTime}">
+                                <FontIcon Glyph="&#xE8BB;"
+                                          FontFamily="{StaticResource IconFont}"
+                                          FontSize="11"
+                                          Foreground="{StaticResource TextMutedBrush}" />
+                            </Button>
+                        </Grid>
+
+                        <!-- Drawer toolbar -->
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,8">
+                            <RadioButton GroupName="DrawerFilter" Content="All"
+                                         Style="{StaticResource FilterChip}" Tag="All" IsChecked="True"
+                                         Checked="OnDrawerChipChanged" />
+                            <RadioButton GroupName="DrawerFilter" Content="Files"
+                                         Style="{StaticResource FilterChip}" Tag="Files"
+                                         Checked="OnDrawerChipChanged" />
+                            <RadioButton GroupName="DrawerFilter" Content="Registry"
+                                         Style="{StaticResource FilterChip}" Tag="Registry"
+                                         Checked="OnDrawerChipChanged" />
+                            <RadioButton GroupName="DrawerFilter" Content="Shortcuts / Tasks"
+                                         Style="{StaticResource FilterChip}" Tag="Shortcuts"
+                                         Checked="OnDrawerChipChanged" />
+
+                            <Button Content="Select Recommended"
+                                    ToolTipService.ToolTip="Tick every trace except low-confidence matches, which the scanner only inferred"
+                                    Background="{StaticResource PillButtonBgBrush}"
+                                    BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
+                                    Padding="10,4"
+                                    FontSize="11"
+                                    Margin="12,0,6,0"
+                                    Command="{x:Bind ViewModel.SelectRecommendedTracesCommand, Mode=OneTime}" />
+
+                            <Button Content="Select All"
+                                    Background="{StaticResource PillButtonBgBrush}"
+                                    BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
+                                    Padding="10,4"
+                                    FontSize="11"
+                                    Command="{x:Bind ViewModel.SelectAllTracesCommand, Mode=OneTime}" />
+                        </StackPanel>
+
+                        <!-- Leftover list -->
+                        <ListView Grid.Row="2"
+                                  ItemsSource="{x:Bind ViewModel.Leftovers, Mode=OneWay}"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  SelectionMode="None"
+                                  MaxHeight="220"
+                                  HorizontalContentAlignment="Stretch">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Margin" Value="0,0,0,4" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
+
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource SurfaceSubCardBrush}"
+                                            BorderBrush="{StaticResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="10,6">
+                                        <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+                                            <CheckBox Grid.Column="0"
+                                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                      VerticalAlignment="Center"
+                                                      Margin="0,0,8,0"
+                                                      Checked="OnLeftoverChecked"
+                                                      Unchecked="OnLeftoverChecked" />
+
+                                            <FontIcon Grid.Column="1"
+                                                      Glyph="{Binding IconGlyph}"
+                                                      FontFamily="{StaticResource IconFont}"
+                                                      FontSize="12"
+                                                      Foreground="{StaticResource ElectricCyanBrush}"
+                                                      VerticalAlignment="Center"
+                                                      Margin="0,0,8,0" />
+
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding PathOrKey}"
+                                                           FontSize="11"
+                                                           FontFamily="{StaticResource MonoFont}"
+                                                           Foreground="{StaticResource TextHighBrush}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock FontSize="10"
+                                                           Foreground="{StaticResource TextMutedBrush}">
+                                                    <Run Text="{Binding TypeBadge, Mode=OneWay}" />
+                                                    <Run Text=" - " />
+                                                    <Run Text="{Binding Confidence, Mode=OneWay}" />
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="3"
+                                                       Text="{Binding FormattedSize}"
+                                                       FontSize="10.5"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource ElectricCyanBrush}"
+                                                       VerticalAlignment="Center"
+                                                       Margin="8,0" />
+
+                                            <!-- Low confidence is never pre-ticked; flag it so the
+                                                 user can see why Select Recommended skipped it. -->
+                                            <Border Grid.Column="4"
+                                                    Background="{StaticResource WarningBadgeBgBrush}"
+                                                    BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="5"
+                                                    Padding="5,1"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="Check me"
+                                                           FontSize="9.5"
+                                                           Foreground="{StaticResource WarningBadgeTextBrush}" />
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <!-- Drawer footer -->
+                        <Grid Grid.Row="3" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0"
+                                       Text="{x:Bind ViewModel.DrawerSelectionSummary, Mode=OneWay}"
+                                       FontSize="10.5"
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       VerticalAlignment="Center"
+                                       TextWrapping="Wrap" />
+
+                            <Button Grid.Column="1"
+                                    Content="Eradicate Selected Traces"
+                                    AutomationProperties.Name="Permanently delete the selected leftover traces"
+                                    ToolTipService.ToolTip="Permanently removes the selected file, registry, service, task, and PATH remnants."
+                                    Background="{StaticResource DestructiveRedBrush}"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    CornerRadius="12"
+                                    Padding="16,5"
+                                    FontSize="11.5"
+                                    IsEnabled="{x:Bind ViewModel.CanPurgeTraces, Mode=OneWay}"
+                                    Command="{x:Bind ViewModel.PurgeTracesCommand, Mode=OneTime}" />
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- ========================= 4. FOOTER ========================= -->
+                <Grid Grid.Row="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Restore point stays opt-in: creating one is a privileged
+                         system mutation and must never happen by surprise. -->
+                    <CheckBox Grid.Column="0"
+                              Content="Create System Restore Point before uninstall"
+                              ToolTipService.ToolTip="Optional safety checkpoint: creates a Windows System Restore Point prior to uninstalling. Off by default."
+                              IsChecked="{x:Bind ViewModel.CreateRestorePoint, Mode=TwoWay}"
+                              FontSize="11"
+                              Foreground="{StaticResource TextMediumBrush}"
+                              VerticalAlignment="Center"
+                              Margin="0,0,14,0" />
+
+                    <TextBlock Grid.Column="1"
+                               Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
+                               FontSize="11"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               VerticalAlignment="Center"
+                               TextWrapping="Wrap"
+                               TextTrimming="CharacterEllipsis" />
+                </Grid>
+
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -174,5 +174,10 @@
                                Grid.Row="1"
                                Visibility="Collapsed" />
 
+        <views:AppUninstallView x:Name="AppUninstallOverlay"
+                                Grid.Column="1"
+                                Grid.Row="1"
+                                Visibility="Collapsed" />
+
     </Grid>
 </Window>
