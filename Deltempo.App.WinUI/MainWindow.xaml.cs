@@ -40,6 +40,7 @@ public sealed partial class MainWindow : Window
         ApplyWindowChrome();
         BuildNavigation();
         VerifyCoreLink();
+        WireWorkspaceSurfaces();
 
         // Self-test drives the ported overlays directly: selecting a nav item does not
         // fire SelectionChanged for the initial selection, so the overlays would
@@ -71,7 +72,8 @@ public sealed partial class MainWindow : Window
     /// </summary>
     private void OpenMemoryOptimizerForSelfTest()
     {
-        MemoryOverlay.LogRequested += OnFootprintLog;
+        // LogRequested is subscribed once in WireWorkspaceSurfaces, so this only
+        // opens the overlay. Subscribing here as well would double every log line.
         MemoryOverlay.Open();
 
         ShellDiagnostics.Write(
@@ -453,7 +455,6 @@ public sealed partial class MainWindow : Window
         probe.LogRequested += OnFootprintLog;
         await probe.ScanAllAsync();
 
-        int selectedBytes = 0;
         int cleanable = probe.Targets.Count(t => t.SizeBytes > 0);
 
         ShellDiagnostics.Write(
@@ -466,6 +467,46 @@ public sealed partial class MainWindow : Window
     /// Opens the ported AppData footprint report over the content area. This is the
     /// Stage 2 proof screen: real Core data, no delete affordance.
     /// </summary>
+    /// <summary>
+    /// Wires the workspace panels to the shell surfaces they share.
+    ///
+    /// Subscriptions live here, once, rather than inside each panel's Open(), so
+    /// repeated navigation cannot stack duplicate handlers (which would double
+    /// every log line) and so the shell keeps ownership of which overlay is up -
+    /// the same division of labour the WPF modal host had.
+    /// </summary>
+    private void WireWorkspaceSurfaces()
+    {
+        MemoryWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
+        MemoryWorkspacePanel.ViewModel.DetailedViewRequested += OpenMemoryOptimizerOverlay;
+
+        MemoryOverlay.LogRequested += OnFootprintLog;
+        MemoryOverlay.CloseRequested += CloseMemoryOptimizerOverlay;
+
+        StartupWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
+
+        CleanerWorkspacePanel.FootprintRequested += OpenAppDataFootprint;
+
+        SystemRepairWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
+        SystemRepairWorkspacePanel.ViewModel.CloseRequested += ReturnToFirstWorkspace;
+
+        AppUninstallWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
+        AppUninstallWorkspacePanel.ViewModel.CloseRequested += ReturnToFirstWorkspace;
+    }
+
+    /// <summary>Opens the detailed memory manager over whatever workspace is showing.</summary>
+    private void OpenMemoryOptimizerOverlay() => MemoryOverlay.Open();
+
+    private void CloseMemoryOptimizerOverlay()
+        => MemoryOverlay.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+
+    /// <summary>
+    /// The close button on a promoted panel returns to the first workspace, which
+    /// is what closing the matching WPF modal did
+    /// (AppDataFootprintModalOverlay.Closed =&gt; SwitchWorkspaceView(Cleaner)).
+    /// </summary>
+    private void ReturnToFirstWorkspace() => NavList.SelectedIndex = 0;
+
     private void OpenAppDataFootprint()
     {
         FootprintView.LogRequested += OnFootprintLog;
@@ -536,53 +577,84 @@ public sealed partial class MainWindow : Window
         {
             if (NavList.SelectedItem is ListViewItem selected && selected.Tag is string label)
             {
-                SectionLabel.Text = label;
-                PlaceholderTitle.Text = label;
-                PlaceholderBody.Text =
-                    $"Stage 1 shell placeholder for '{label}'. No cleanup logic is wired up; nothing on this screen touches disk.";
-
-                // The footprint report is the one Stage 2 screen that exists, so it
-                // hangs off the Cleaner workspace until it has a real home.
-                if (label == Sections[0].Label)
-                {
-                    OpenAppDataFootprint();
-                }
-
-                // Stage 3 workspace panels. Four nav items have real panels now;
-                // the other two still show the placeholder. Each panel loads
-                // lazily on first selection so its scan cost is paid once.
-                bool isMemory = label == Sections[3].Label;
-                bool isStartup = label == Sections[2].Label;
-                bool isLargeFile = label == Sections[1].Label;
-                bool isCleaner = label == Sections[0].Label;
-
-                MemoryWorkspacePanel.Visibility = isMemory ? Visibility.Visible : Visibility.Collapsed;
-                StartupWorkspacePanel.Visibility = isStartup ? Visibility.Visible : Visibility.Collapsed;
-                LargeFilesWorkspacePanel.Visibility = isLargeFile ? Visibility.Visible : Visibility.Collapsed;
-                CleanerWorkspacePanel.Visibility = isCleaner ? Visibility.Visible : Visibility.Collapsed;
-
-                bool hasPanel = isMemory || isStartup || isLargeFile || isCleaner;
-                PlaceholderPanel.Visibility = hasPanel ? Visibility.Collapsed : Visibility.Visible;
-
-                if (isMemory)
-                {
-                    MemoryWorkspacePanel.ViewModel.RefreshTelemetry();
-                }
-                else if (isStartup)
-                {
-                    StartupWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
-                    StartupWorkspacePanel.Open();
-                }
-                else if (isLargeFile)
-                {
-                    LargeFilesWorkspacePanel.Open();
-                }
-                else if (isCleaner)
-                {
-                    CleanerWorkspacePanel.Open();
-                }
+                ShowWorkspace(label, playSound: true);
             }
         };
+
+        // Paint the section that starts selected. SelectionChanged only fires on a
+        // change, so selecting index 0 above left the Stage 1 placeholder on screen
+        // until the user picked another nav item - a screen the WPF app never showed,
+        // because it opened straight into the Cleaner workspace.
+        if (NavList.SelectedItem is ListViewItem initial && initial.Tag is string initialLabel)
+        {
+            ShowWorkspace(initialLabel, playSound: false);
+        }
+    }
+
+    /// <summary>
+    /// Shows one workspace: sets the heading, swaps which panel is visible, and loads
+    /// that panel lazily so its read-only scan is paid for once. Every nav item has a
+    /// real panel, so the placeholder is only ever seen if a section is added without
+    /// one. The AppData footprint report opens from inside the Cleaner workspace (its
+    /// HeroAppDataReportBtn in WPF), not from selecting the nav item.
+    /// </summary>
+    /// <param name="playSound">
+    /// False for the startup paint, which is not a user click and must not blip.
+    /// </param>
+    private void ShowWorkspace(string label, bool playSound)
+    {
+        SectionLabel.Text = label;
+        PlaceholderTitle.Text = label;
+        PlaceholderBody.Text =
+            $"Stage 1 shell placeholder for '{label}'. No cleanup logic is wired up; nothing on this screen touches disk.";
+
+        bool isMemory = label == Sections[3].Label;
+        bool isStartup = label == Sections[2].Label;
+        bool isLargeFile = label == Sections[1].Label;
+        bool isCleaner = label == Sections[0].Label;
+        bool isSystemRepair = label == Sections[4].Label;
+        bool isAppUninstall = label == Sections[5].Label;
+
+        MemoryWorkspacePanel.Visibility = isMemory ? Visibility.Visible : Visibility.Collapsed;
+        StartupWorkspacePanel.Visibility = isStartup ? Visibility.Visible : Visibility.Collapsed;
+        LargeFilesWorkspacePanel.Visibility = isLargeFile ? Visibility.Visible : Visibility.Collapsed;
+        CleanerWorkspacePanel.Visibility = isCleaner ? Visibility.Visible : Visibility.Collapsed;
+        SystemRepairWorkspacePanel.Visibility = isSystemRepair ? Visibility.Visible : Visibility.Collapsed;
+        AppUninstallWorkspacePanel.Visibility = isAppUninstall ? Visibility.Visible : Visibility.Collapsed;
+
+        bool hasPanel = isMemory || isStartup || isLargeFile || isCleaner
+            || isSystemRepair || isAppUninstall;
+        PlaceholderPanel.Visibility = hasPanel ? Visibility.Collapsed : Visibility.Visible;
+
+        // Every panel paints the window brush, but the Core link card sits in the same
+        // content column and would otherwise show through the two promoted modals,
+        // whose own surface is deliberately transparent.
+        CoreLinkCard.Visibility = hasPanel ? Visibility.Collapsed : Visibility.Visible;
+
+        if (isMemory)
+        {
+            MemoryWorkspacePanel.ViewModel.RefreshTelemetry();
+        }
+        else if (isStartup)
+        {
+            StartupWorkspacePanel.Open(playSound);
+        }
+        else if (isLargeFile)
+        {
+            LargeFilesWorkspacePanel.Open(playSound);
+        }
+        else if (isCleaner)
+        {
+            CleanerWorkspacePanel.Open(playSound);
+        }
+        else if (isSystemRepair)
+        {
+            SystemRepairWorkspacePanel.Open(playSound);
+        }
+        else if (isAppUninstall)
+        {
+            AppUninstallWorkspacePanel.Open(playSound);
+        }
     }
 
     private static UIElement BuildNavContent(string label, string glyph)

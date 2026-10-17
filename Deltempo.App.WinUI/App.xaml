@@ -13,6 +13,26 @@
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
 
             </ResourceDictionary.MergedDictionaries>
+
+            <!--
+                Accent. The WPF app drove every selected/highlighted control from
+                ElectricCyanBrush (#00F2B0). WinUI's stock templates instead read the
+                OS accent (SystemAccentColor), which made ToggleSwitch, the checked
+                RadioButton/CheckBox glyph, the ProgressBar and the default Button pick
+                up whatever colour the user had chosen in Windows personalisation - a
+                magenta there looked nothing like the WPF UI. These keys are the ones
+                XamlControlsResources derives its accent brushes from, so overriding
+                them re-tints the stock templates without restyling each control.
+
+                Keep in sync with ElectricCyanBrush in Themes/Deltempo.Tokens.xaml.
+            -->
+            <Color x:Key="SystemAccentColor">#00F2B0</Color>
+            <Color x:Key="SystemAccentColorLight1">#33F5C0</Color>
+            <Color x:Key="SystemAccentColorLight2">#66F8D0</Color>
+            <Color x:Key="SystemAccentColorLight3">#99FAE0</Color>
+            <Color x:Key="SystemAccentColorDark1">#00C28D</Color>
+            <Color x:Key="SystemAccentColorDark2">#00926A</Color>
+            <Color x:Key="SystemAccentColorDark3">#006148</Color>
         </ResourceDictionary>
     </Application.Resources>
 

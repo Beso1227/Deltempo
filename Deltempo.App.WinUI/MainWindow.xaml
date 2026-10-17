@@ -113,7 +113,8 @@
 
                 <!-- Core connectivity proof: proves the WinUI 3 app can consume the
                      existing Core assembly, which is the whole point of this stage. -->
-                <Border Grid.Row="1"
+                <Border x:Name="CoreLinkCard"
+                        Grid.Row="1"
                         Margin="32,0,32,24"
                         Padding="14"
                         CornerRadius="8"
@@ -134,6 +135,42 @@
                                    Text="checking..." />
                     </StackPanel>
                 </Border>
+
+                <!-- Stage 3 workspace panels. They live inside the content column
+                     and span both of its rows, so a panel can never cover the
+                     navigation rail the way a child of the outer grid's full-width
+                     row would. Exactly one is visible at a time; the panels paint
+                     CanvasDarkBrush through to the window background, so both the
+                     placeholder and the Core link card are hidden behind them. -->
+                <views:MemoryWorkspaceView x:Name="MemoryWorkspacePanel"
+                                           Grid.Row="0"
+                                           Grid.RowSpan="2"
+                                           Visibility="Collapsed" />
+
+                <views:StartupWorkspaceView x:Name="StartupWorkspacePanel"
+                                            Grid.Row="0"
+                                            Grid.RowSpan="2"
+                                            Visibility="Collapsed" />
+
+                <views:LargeFilesWorkspaceView x:Name="LargeFilesWorkspacePanel"
+                                               Grid.Row="0"
+                                               Grid.RowSpan="2"
+                                               Visibility="Collapsed" />
+
+                <views:CleanerWorkspaceView x:Name="CleanerWorkspacePanel"
+                                            Grid.Row="0"
+                                            Grid.RowSpan="2"
+                                            Visibility="Collapsed" />
+
+                <views:SystemRepairView x:Name="SystemRepairWorkspacePanel"
+                                        Grid.Row="0"
+                                        Grid.RowSpan="2"
+                                        Visibility="Collapsed" />
+
+                <views:AppUninstallView x:Name="AppUninstallWorkspacePanel"
+                                        Grid.Row="0"
+                                        Grid.RowSpan="2"
+                                        Visibility="Collapsed" />
             </Grid>
         </Grid>
 
@@ -152,9 +189,10 @@
             </Grid>
         </Border>
 
-        <!-- Stage 2 overlay: the first real ported screen. Covers the whole content
-             column, mirroring how the WPF modal overlays MainWindow. Sits last so it
-             renders above the placeholder content. -->
+        <!-- Stage 2 modal overlays. Declared after the body grid so they render
+             above the placeholder and every Stage 3 workspace panel, mirroring how
+             the WPF modals are the last children of the root grid. Covers the whole
+             middle row, including the navigation rail, the way a WPF modal does. -->
         <views:AppDataFootprintView x:Name="FootprintView"
                                     Grid.Column="1"
                                     Grid.Row="1"
@@ -184,28 +222,6 @@
                                Grid.Column="1"
                                Grid.Row="1"
                                Visibility="Collapsed" />
-
-        <!-- Stage 3: the first nav item with a real workspace panel instead of
-             the Stage 1 placeholder. The rest still show PlaceholderPanel. -->
-        <views:MemoryWorkspaceView x:Name="MemoryWorkspacePanel"
-                                   Grid.Column="1"
-                                   Grid.Row="1"
-                                   Visibility="Collapsed" />
-
-        <views:StartupWorkspaceView x:Name="StartupWorkspacePanel"
-                                   Grid.Column="1"
-                                   Grid.Row="1"
-                                   Visibility="Collapsed" />
-
-        <views:LargeFilesWorkspaceView x:Name="LargeFilesWorkspacePanel"
-                                      Grid.Column="1"
-                                      Grid.Row="1"
-                                      Visibility="Collapsed" />
-
-        <views:CleanerWorkspaceView x:Name="CleanerWorkspacePanel"
-                                    Grid.Column="1"
-                                    Grid.Row="1"
-                                    Visibility="Collapsed" />
 
     </Grid>
 </Window>

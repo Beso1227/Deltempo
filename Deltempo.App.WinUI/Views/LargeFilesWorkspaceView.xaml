@@ -25,6 +25,7 @@
 
     <UserControl.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisInv" Invert="True" />
         <converters:BoolNegationConverter x:Key="NotBool" />
         <converters:HexToBrushConverter x:Key="HexToBrush" />
 
@@ -36,17 +37,8 @@
             <Setter Property="Padding" Value="12,9" />
         </Style>
 
-        <Style x:Key="LargeFileChip" TargetType="RadioButton">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Padding" Value="10,4" />
-            <Setter Property="Margin" Value="0,0,6,0" />
-            <Setter Property="Foreground" Value="{StaticResource TextMediumBrush}" />
-            <Setter Property="Background" Value="{StaticResource PillButtonBgBrush}" />
-            <Setter Property="BorderBrush" Value="{StaticResource PillButtonBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="14" />
-            <Setter Property="MinWidth" Value="0" />
-        </Style>
+        <!-- Shares the ported WPF chip template with the other filter rows. -->
+        <Style x:Key="LargeFileChip" TargetType="RadioButton" BasedOn="{StaticResource FilterChipRadio}" />
 
         <DataTemplate x:Key="LargeFileRowTemplate" x:DataType="services:LargeFileInfo">
             <Border
@@ -63,9 +55,8 @@
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
                         <CheckBox
-                            IsChecked="{Binding IsSelected, Mode=OneWay}"
-                            Checked="OnItemChecked"
-                            Unchecked="OnItemUnchecked"
+                            MinWidth="0"
+                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
                             AutomationProperties.Name="{Binding FileName}" />
                         <FontIcon
                             Glyph="{Binding CategoryIcon}"
@@ -209,7 +200,7 @@
                     CornerRadius="14"
                     Padding="14,6"
                     FontSize="11.5"
-                    IsEnabled="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource NotBool}}"
+                    IsEnabled="{x:Bind ViewModel.HasSelection, Mode=OneWay}"
                     Command="{x:Bind ViewModel.RecycleSelectedCommand, Mode=OneTime}" />
             </StackPanel>
         </Grid>
@@ -265,7 +256,7 @@
             BorderThickness="1"
             CornerRadius="12"
             Padding="24"
-            Visibility="{x:Bind ViewModel.HasItems, Mode=OneWay, Converter={StaticResource NotBool}}">
+            Visibility="{x:Bind ViewModel.HasItems, Mode=OneWay, Converter={StaticResource BoolToVisInv}}">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
                 <FontIcon Glyph="&#xE8B7;" FontFamily="{StaticResource IconFont}" FontSize="34" Foreground="{StaticResource TextMutedBrush}" />
                 <TextBlock Text="No large files found"
@@ -276,13 +267,15 @@
             </StackPanel>
         </Border>
 
-        <!-- Selection summary + actions -->
+        <!-- Selection summary + actions. Visible whenever there is something to
+             select, so Select Safe / Select All / Clear stay reachable without a
+             first manual tick. -->
         <Border Grid.Row="3"
                 Background="{StaticResource SurfaceCardBrush}"
                 BorderBrush="{StaticResource HairlineBorderBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="12,8"
-                Visibility="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource NotBool}}">
+                Visibility="{x:Bind ViewModel.HasItems, Mode=OneWay, Converter={StaticResource BoolToVis}}">
             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                 <TextBlock Text="{x:Bind ViewModel.SelectedSummaryText, Mode=OneWay}"
                            FontSize="11" Foreground="{StaticResource TextMediumBrush}" VerticalAlignment="Center" />

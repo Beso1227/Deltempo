@@ -45,6 +45,11 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     private List<TargetFolderInfo> _allTargets = [];
     private bool _isBusy;
 
+    // ScanFolderAsync / CleanFolderAsync are instance members on the shared
+    // CleanerService (the WPF code-behind kept a _cleanerService field too), so
+    // the ViewModel owns one rather than calling them statically.
+    private readonly CleanerService _cleanerService = new();
+
     public CleanerWorkspaceViewModel(
         Func<string, string, Task<bool>>? confirmAsync = null)
     {
@@ -90,7 +95,6 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
 
     public int SelectedCount => Targets.Count(t => t.IsSelected);
     public long SelectedBytes => Targets.Where(t => t.IsSelected).Sum(t => t.SizeBytes);
-    public bool HasSelection => SelectedCount > 0;
 
     public IAsyncRelayCommand ScanCommand { get; }
     public IRelayCommand SelectSafeCommand { get; }
@@ -118,7 +122,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
 
             foreach (var target in targets)
             {
-                await CleanerService.ScanFolderAsync(target, Log, CancellationToken.None, safeMode);
+                await _cleanerService.ScanFolderAsync(target, Log, CancellationToken.None, safeMode);
             }
 
             RecalculateTotals();
@@ -137,7 +141,10 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         catch (Exception ex)
         {
             StatusText = $"Scan error: {ex.Message}";
-            LogRequested?.Invoke($"[Cleaner] Scan error: {ex.Message}", WinTempCleaner.Models.LogLevel.Error);
+            // ex.ToString() rather than ex.Message: the first failure this port hit
+            // threw with an empty Message, which logged an anonymous "Scan error:" and
+            // told nobody anything.
+            LogRequested?.Invoke($"[Cleaner] Scan error: {ex}", WinTempCleaner.Models.LogLevel.Error);
         }
         finally
         {
@@ -245,14 +252,13 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
                 var target = selected[i];
                 completedTargets.Add(target);
 
-                var (freed, filesDel, foldersDel, filesSkip, filesFailed) =
-                    await CleanerService.CleanFolderAsync(
-                        target, safeMode, Log,
-                        _ => { }, // progress reported via StatusText
-                        CancellationToken.None);
+                var result = await _cleanerService.CleanFolderAsync(
+                    target, safeMode, Log,
+                    _ => { }, // progress reported via StatusText
+                    CancellationToken.None);
 
-                totalFreed += freed;
-                totalDeleted += filesDel;
+                totalFreed += result.freedBytes;
+                totalDeleted += result.filesDeleted;
             }
 
             RecalculateTotals();
@@ -286,7 +292,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         target.StatusMessage = "Retrying...";
         target.IsScanning = true;
 
-        await CleanerService.ScanFolderAsync(target, Log, CancellationToken.None, false);
+        await _cleanerService.ScanFolderAsync(target, Log, CancellationToken.None, false);
         RecalculateTotals();
     }
 
@@ -300,6 +306,6 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     }
 
     /// <summary>Logs a line from the cleaning pipeline. Routed to the shell log.</summary>
-    public void Log(string message, WinTempCleaner.Models.LogLevel level)
+    public void Log(string message, WinTempCleaner.Models.LogLevel level = WinTempCleaner.Models.LogLevel.Info)
         => LogRequested?.Invoke(message, level);
 }

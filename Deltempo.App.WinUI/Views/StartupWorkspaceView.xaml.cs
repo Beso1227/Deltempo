@@ -34,9 +34,14 @@ public sealed partial class StartupWorkspaceView : UserControl
     /// Mirrors ReloadStartupItemsAsync. Read-only: this discovers entries
     /// across the registry hives and Task Scheduler, and changes nothing.
     /// </summary>
-    public async void Open()
+    public async void Open(bool playSound = true)
     {
-        SoundService.PlayClickSound();
+        // The shell's initial workspace paint is not a user click, so it asks for a
+        // silent load; a nav click keeps the WPF click blip.
+        if (playSound)
+        {
+            SoundService.PlayClickSound();
+        }
         await ViewModel.LoadAsync();
     }
 

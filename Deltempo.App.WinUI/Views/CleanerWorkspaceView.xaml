@@ -22,6 +22,8 @@
 
     <UserControl.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisInv" Invert="True" />
+        <!-- IsEnabled needs a bool; a Visibility converter throws in WinUI 3. -->
         <converters:BoolNegationConverter x:Key="NotBool" />
         <converters:HexToBrushConverter x:Key="HexToBrush" />
 
@@ -33,17 +35,8 @@
             <Setter Property="Padding" Value="12,9" />
         </Style>
 
-        <Style x:Key="CleanerChip" TargetType="RadioButton">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Padding" Value="10,4" />
-            <Setter Property="Margin" Value="0,0,6,0" />
-            <Setter Property="Foreground" Value="{StaticResource TextMediumBrush}" />
-            <Setter Property="Background" Value="{StaticResource PillButtonBgBrush}" />
-            <Setter Property="BorderBrush" Value="{StaticResource PillButtonBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="14" />
-            <Setter Property="MinWidth" Value="0" />
-        </Style>
+        <!-- Shares the ported WPF chip template with the other filter rows. -->
+        <Style x:Key="CleanerChip" TargetType="RadioButton" BasedOn="{StaticResource FilterChipRadio}" />
 
         <DataTemplate x:Key="TargetRowTemplate" x:DataType="models:TargetFolderInfo">
             <Border
@@ -55,7 +48,8 @@
                 <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
                     <CheckBox
                         Grid.Column="0"
-                        IsChecked="{Binding IsSelected, Mode=OneWay}"
+                        MinWidth="0"
+                        IsChecked="{Binding IsSelected, Mode=TwoWay}"
                         AutomationProperties.Name="{Binding Name}" />
 
                     <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
@@ -159,6 +153,19 @@
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
                 <Button
+                    Content="AppData Report"
+                    ToolTipService.ToolTip="Read-only report: show where your AppData space goes. Nothing is selected and nothing is deleted."
+                    AutomationProperties.Name="AppData Footprint Report (read only)"
+                    Background="{StaticResource PillButtonBgBrush}"
+                    BorderBrush="{StaticResource PillButtonBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="14"
+                    Padding="14,6"
+                    FontSize="11.5"
+                    Margin="0,0,8,0"
+                    Click="OnFootprintRequested" />
+
+                <Button
                     Content="Scan Now"
                     Background="{StaticResource PillButtonBgBrush}"
                     BorderBrush="{StaticResource PillButtonBorderBrush}"
@@ -177,7 +184,7 @@
                     CornerRadius="14"
                     Padding="14,6"
                     FontSize="11.5"
-                    IsEnabled="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource NotBool}}"
+                    IsEnabled="{x:Bind ViewModel.HasSelection, Mode=OneWay}"
                     Command="{x:Bind ViewModel.CleanSelectedCommand, Mode=OneTime}" />
             </StackPanel>
         </Grid>
@@ -185,12 +192,12 @@
         <!-- Filter + selection chips -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0,12,0,10" VerticalAlignment="Center">
             <TextBlock Text="Selection:" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
-            <RadioButton Content="Safe Only" Style="{StaticResource CleanerChip}" Tag="SAFE" Checked="OnSafeOnly" />
-            <RadioButton Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" IsChecked="True" Checked="OnSelectAll" />
-            <RadioButton Content="None" Style="{StaticResource CleanerChip}" Tag="NONE" Checked="OnDeselectAll" />
+            <RadioButton GroupName="CleanerScope" Content="Safe Only" Style="{StaticResource CleanerChip}" Tag="SAFE" Checked="OnSafeOnly" />
+            <RadioButton GroupName="CleanerScope" Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" IsChecked="True" Checked="OnSelectAll" />
+            <RadioButton GroupName="CleanerScope" Content="None" Style="{StaticResource CleanerChip}" Tag="NONE" Checked="OnDeselectAll" />
 
             <TextBlock Text="Filter:" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,6,0" />
-            <RadioButton GroupName="CleanerFilter" Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" Checked="OnFilterChanged" />
+            <RadioButton GroupName="CleanerFilter" Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" IsChecked="True" Checked="OnFilterChanged" />
             <RadioButton GroupName="CleanerFilter" Content="Safe Mode" Style="{StaticResource CleanerChip}" Tag="SAFE" Checked="OnFilterChanged" />
             <RadioButton GroupName="CleanerFilter" Content="System" Style="{StaticResource CleanerChip}" Tag="SYSTEM" Checked="OnFilterChanged" />
         </StackPanel>
@@ -229,7 +236,7 @@
             BorderThickness="1"
             CornerRadius="12"
             Padding="24"
-            Visibility="{x:Bind ViewModel.HasItems, Mode=OneWay, Converter={StaticResource NotBool}}">
+            Visibility="{x:Bind ViewModel.HasItems, Mode=OneWay, Converter={StaticResource BoolToVisInv}}">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
                 <FontIcon Glyph="&#xE8B7;" FontFamily="{StaticResource IconFont}" FontSize="34" Foreground="{StaticResource TextMutedBrush}" />
                 <TextBlock Text="No categories to scan"
@@ -246,7 +253,7 @@
                 BorderBrush="{StaticResource HairlineBorderBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="12,8"
-                Visibility="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource NotBool}}">
+                Visibility="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource BoolToVis}}">
             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                 <TextBlock Text="{x:Bind ViewModel.CleanButtonText, Mode=OneWay}"
                            FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMediumBrush}" VerticalAlignment="Center" />

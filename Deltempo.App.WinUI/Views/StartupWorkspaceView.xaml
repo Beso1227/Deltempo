@@ -28,16 +28,8 @@
         <converters:HexToBrushConverter x:Key="HexToBrush" />
         <converters:BytesToBitmapImageConverter x:Key="BytesToImage" DecodePixelWidth="40" />
 
-        <Style x:Key="StartupChip" TargetType="RadioButton">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Padding" Value="10,4" />
-            <Setter Property="Margin" Value="0,0,6,0" />
-            <Setter Property="Foreground" Value="{StaticResource TextMediumBrush}" />
-            <Setter Property="Background" Value="{StaticResource PillButtonBgBrush}" />
-            <Setter Property="BorderBrush" Value="{StaticResource PillButtonBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="MinWidth" Value="0" />
-        </Style>
+        <!-- Shares the ported WPF chip template with the other filter rows. -->
+        <Style x:Key="StartupChip" TargetType="RadioButton" BasedOn="{StaticResource FilterChipRadio}" />
 
         <Style x:Key="StatCard" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource SurfaceCardBrush}" />

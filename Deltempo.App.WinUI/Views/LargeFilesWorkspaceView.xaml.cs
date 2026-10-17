@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Text;
 using System.Diagnostics;
 using WinTempCleaner.Core.Discovery;
 using WinTempCleaner.Models;
@@ -47,9 +48,14 @@ public sealed partial class LargeFilesWorkspaceView : UserControl
     public LargeFilesWorkspaceViewModel ViewModel { get; }
 
     /// <summary>Read-only scan of drives for large files. Safe to call from the self-test.</summary>
-    public async void Open()
+    public async void Open(bool playSound = true)
     {
-        SoundService.PlayClickSound();
+        // The shell's initial workspace paint is not a user click, so it asks for a
+        // silent load; a nav click keeps the WPF click blip.
+        if (playSound)
+        {
+            SoundService.PlayClickSound();
+        }
         await ViewModel.ScanAsync();
     }
 
@@ -103,11 +109,14 @@ public sealed partial class LargeFilesWorkspaceView : UserControl
                 BorderThickness = item.IsSelected ? new Thickness(2) : new Thickness(1),
                 Background = new SolidColorBrush(ParseColor(item.IsAiSafe ? "#13271E" : "#27161A")),
                 BorderBrush = new SolidColorBrush(ParseColor(item.IsAiSafe ? "#00E676" : "#FF8A80")),
-                ToolTip = new ToolTip
-                {
-                    Content = $"{item.FileName}\nSize: {item.FormattedSize}\nCategory: {item.Category}\nVerdict: {item.VerdictShort}\n{item.FilePath}\n\nClick to select"
-                }
             };
+
+            // WinUI has no FrameworkElement.ToolTip (that is WPF); the attached
+            // property is the only way to set one from code.
+            ToolTipService.SetToolTip(border, new ToolTip
+            {
+                Content = $"{item.FileName}\nSize: {item.FormattedSize}\nCategory: {item.Category}\nVerdict: {item.VerdictShort}\n{item.FilePath}\n\nClick to select"
+            });
 
             if (tileW > 45 && tileH > 28)
             {
@@ -202,22 +211,6 @@ public sealed partial class LargeFilesWorkspaceView : UserControl
         {
             var mode = tag == "TREEMAP" ? LargeFileViewMode.Treemap : LargeFileViewMode.List;
             ViewModel.ViewModeCommand.Execute(mode);
-        }
-    }
-
-    private void OnItemChecked(object sender, RoutedEventArgs e)
-    {
-        if (sender is CheckBox { DataContext: LargeFileInfo item })
-        {
-            ViewModel.ToggleSelectionCommand.Execute(item);
-        }
-    }
-
-    private void OnItemUnchecked(object sender, RoutedEventArgs e)
-    {
-        if (sender is CheckBox { DataContext: LargeFileInfo item })
-        {
-            ViewModel.ToggleSelectionCommand.Execute(item);
         }
     }
 

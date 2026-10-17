@@ -84,6 +84,106 @@
     <FontFamily x:Key="AppFont">Segoe UI Variable Text, Segoe UI</FontFamily>
     <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
 
+    <!-- Active filter-chip fill, copied from the WPF GlassSurfaceActiveBrush. -->
+    <LinearGradientBrush x:Key="GlassSurfaceActiveBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#2000F2B0" Offset="0.0" />
+        <GradientStop Color="#100DD3BA" Offset="0.6" />
+        <GradientStop Color="#0800BFA5" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <!--
+        WinUI 3 port of the WPF FilterChipRadio (App.xaml lines 924-962).
+
+        The WPF style replaced the RadioButton template outright so a filter chip is a
+        bordered pill with no radio glyph; without this port the chips fall back to the
+        stock WinUI RadioButton, which draws the classic circle and reads nothing like
+        the WPF filter row.
+
+        WPF drove the states from ControlTemplate.Triggers, which WinUI 3 does not have.
+        They are VisualStates here. CommonStates is listed before CheckStates on purpose:
+        when both groups have an active state, the later group's setters win, which is
+        the same precedence the WPF trigger order produced (checked beats hover).
+
+        MinWidth/MinHeight are zeroed because the stock WinUI RadioButton style reserves
+        a 120x32 box for its glyph; the pill sizes itself from Padding instead.
+
+        UseSystemFocusVisuals stays on so dropping the template does not drop the
+        keyboard focus ring with it.
+    -->
+    <Style x:Key="FilterChipRadio" TargetType="RadioButton">
+        <Setter Property="Background" Value="{StaticResource SurfaceSubCardBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextMediumBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource HairlineBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="9,4" />
+        <Setter Property="Margin" Value="0,0,5,0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="ChipBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8"
+                            Padding="{TemplateBinding Padding}">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal">
+                                    <VisualState.Setters>
+                                        <Setter Target="ChipBorder.Background" Value="{StaticResource SurfaceSubCardBrush}" />
+                                        <Setter Target="ChipBorder.BorderBrush" Value="{StaticResource HairlineBorderBrush}" />
+                                        <Setter Target="ChipContent.Foreground" Value="{StaticResource TextMediumBrush}" />
+                                        <Setter Target="ChipContent.FontWeight" Value="SemiBold" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="ChipBorder.Background" Value="{StaticResource SurfaceCardHoverBrush}" />
+                                        <Setter Target="ChipBorder.BorderBrush" Value="{StaticResource AccentBlueBrush}" />
+                                        <Setter Target="ChipContent.Foreground" Value="{StaticResource TextHighBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="ChipBorder.Background" Value="{StaticResource SurfaceCardHoverBrush}" />
+                                        <Setter Target="ChipBorder.BorderBrush" Value="{StaticResource AccentBlueBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="ChipBorder.Opacity" Value="0.4" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="CheckStates">
+                                <VisualState x:Name="Checked">
+                                    <VisualState.Setters>
+                                        <Setter Target="ChipBorder.Background" Value="{StaticResource GlassSurfaceActiveBrush}" />
+                                        <Setter Target="ChipBorder.BorderBrush" Value="{StaticResource ElectricCyanBrush}" />
+                                        <Setter Target="ChipContent.Foreground" Value="{StaticResource ElectricCyanBrush}" />
+                                        <Setter Target="ChipContent.FontWeight" Value="Bold" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Unchecked" />
+                                <VisualState x:Name="Indeterminate" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <ContentPresenter x:Name="ChipContent"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!--
         NOT YET PORTED - keys the remaining WPF screens still reference:
 

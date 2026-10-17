@@ -29,11 +29,32 @@ public sealed partial class CleanerWorkspaceView : UserControl
 
     public CleanerWorkspaceViewModel ViewModel { get; }
 
+    /// <summary>
+    /// Raised when the hero's AppData Report button is pressed. The shell owns the
+    /// footprint overlay, mirroring the WPF hero button
+    /// (MainWindow.Cleaning.cs HeroAppDataReportBtn_Click, which opens
+    /// AppDataFootprintModalOverlay). The report is read-only and deliberately does
+    /// not block a scan or a clean in flight.
+    /// </summary>
+    public event Action? FootprintRequested;
+
     /// <summary>Read-only scan of all target categories. Safe to call from the self-test.</summary>
-    public async void Open()
+    public async void Open(bool playSound = true)
+    {
+        // The shell's initial workspace paint is not a user click, so it asks for a
+        // silent load; a nav click keeps the WPF click blip.
+        if (playSound)
+        {
+            SoundService.PlayClickSound();
+        }
+        await ViewModel.ScanAllAsync();
+    }
+
+    private void OnFootprintRequested(object sender, RoutedEventArgs e)
     {
         SoundService.PlayClickSound();
-        await ViewModel.ScanAllAsync();
+        ViewModel.Log("Opened the AppData footprint report (read only - nothing is deleted)", LogLevel.Info);
+        FootprintRequested?.Invoke();
     }
 
     private void OnSafeOnly(object sender, RoutedEventArgs e)
