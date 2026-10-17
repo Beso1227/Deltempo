@@ -4245,7 +4245,7 @@
                                                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                                             <!-- Clean Orphaned Button -->
                                                             <Button Style="{DynamicResource PillButton}"
-                                                                    Visibility="{Binding OrphanedCleanVisibility}"
+                                                                    Visibility="{Binding CanCleanOrphaned, Converter={StaticResource BoolToVisConverter}}"
                                                                     Padding="7,3"
                                                                     Margin="0,0,5,0"
                                                                     ToolTip="Delete this orphaned startup entry cleanly"
@@ -4270,7 +4270,7 @@
 
                                                             <!-- Reveal in Explorer Button -->
                                                             <Button Style="{DynamicResource PillButton}"
-                                                                    Visibility="{Binding RevealVisibility}"
+                                                                    Visibility="{Binding CanReveal, Converter={StaticResource BoolToVisConverter}}"
                                                                     Padding="7,3"
                                                                     Margin="0,0,5,0"
                                                                     ToolTip="Reveal file location in File Explorer"
@@ -4288,7 +4288,7 @@
                                                             </Button>
 
                                                             <!-- Protected Badge -->
-                                                            <Border Visibility="{Binding ProtectedBadgeVisibility}"
+                                                            <Border Visibility="{Binding IsProtected, Converter={StaticResource BoolToVisConverter}}"
                                                                     Background="{DynamicResource SuccessSurfaceBrush}"
                                                                     BorderBrush="{DynamicResource SuccessBorderSoftBrush}"
                                                                     BorderThickness="1"
@@ -4314,7 +4314,7 @@
                                                     </Grid>
 
                                                     <!-- Expandable AI Deep Intelligence Card -->
-                                                    <Border Visibility="{Binding ExpandedVisibility}"
+                                                    <Border Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisConverter}}"
                                                             Background="{DynamicResource SurfaceSubCardBrush}"
                                                             BorderBrush="{DynamicResource HairlineBorderBrush}"
                                                             BorderThickness="1"

@@ -65,12 +65,13 @@ public class StartupItem : INotifyPropertyChanged
         BootImpact.Medium => "#F59E0B",
         _ => "#10B981"
     };
+    // Availability is exposed as plain bools. This type used to also publish WPF
+    // Visibility properties, which made every consumer a WPF consumer; WinUI 3
+    // cannot read System.Windows.Visibility. Each bool below is the same
+    // condition the matching Visibility property encoded.
     public bool IsProtected => StartupManagerService.IsProtectedStartupItem(this);
-    public System.Windows.Visibility ProtectedBadgeVisibility => IsProtected ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
     public bool CanCleanOrphaned => IsFileMissing && !IsProtected;
-    public System.Windows.Visibility OrphanedCleanVisibility => CanCleanOrphaned ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
     public bool CanReveal => !string.IsNullOrWhiteSpace(ExePath) && (File.Exists(ExePath) || Directory.Exists(Path.GetDirectoryName(ExePath) ?? ""));
-    public System.Windows.Visibility RevealVisibility => CanReveal ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
     public bool CanToggle => !IsProtected;
 
     // AI & Catalog Intelligence
@@ -137,11 +138,9 @@ public class StartupItem : INotifyPropertyChanged
             {
                 _isExpanded = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(ExpandedVisibility));
             }
         }
     }
-    public System.Windows.Visibility ExpandedVisibility => IsExpanded ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
 
     public string DisableVerdictDisplay => DisableVerdict switch
     {
