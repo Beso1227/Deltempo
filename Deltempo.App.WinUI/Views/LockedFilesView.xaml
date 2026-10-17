@@ -173,6 +173,7 @@
                                                            FontWeight="SemiBold"
                                                            Foreground="{StaticResource TextHighBrush}"
                                                            TextTrimming="CharacterEllipsis"
+                                                           HorizontalAlignment="Left"
                                                            MaxWidth="380" />
                                                 <Border Background="#FF2A1E16"
                                                         BorderBrush="{StaticResource AmberWarningBrush}"
@@ -191,6 +192,7 @@
                                                        FontFamily="{StaticResource MonoFont}"
                                                        Foreground="{StaticResource TextMutedBrush}"
                                                        TextTrimming="CharacterEllipsis"
+                                                       HorizontalAlignment="Left"
                                                        MaxWidth="440"
                                                        Margin="0,2,0,0" />
                                         </StackPanel>

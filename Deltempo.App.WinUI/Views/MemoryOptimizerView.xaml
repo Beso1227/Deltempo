@@ -213,6 +213,7 @@
                                                        FontSize="10"
                                                        Foreground="{StaticResource TextMutedBrush}"
                                                        TextTrimming="CharacterEllipsis"
+                                                       HorizontalAlignment="Left"
                                                        MaxWidth="360"
                                                        Margin="0,1,0,0" />
                                         </StackPanel>

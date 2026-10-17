@@ -261,6 +261,7 @@
                                                            FontWeight="SemiBold"
                                                            Foreground="{StaticResource TextHighBrush}"
                                                            TextTrimming="CharacterEllipsis"
+                                                           HorizontalAlignment="Left"
                                                            MaxWidth="330" />
                                                 <Border Background="{StaticResource SurfaceSubCardBrush}"
                                                         BorderBrush="{StaticResource HairlineBorderBrush}"
@@ -280,6 +281,7 @@
                                                        FontFamily="{StaticResource MonoFont}"
                                                        Foreground="{StaticResource TextMutedBrush}"
                                                        TextTrimming="CharacterEllipsis"
+                                                       HorizontalAlignment="Left"
                                                        MaxWidth="420"
                                                        Margin="0,2,0,0" />
 
@@ -288,6 +290,7 @@
                                                            FontSize="10.5"
                                                            Foreground="{StaticResource AmberWarningBrush}"
                                                            TextTrimming="CharacterEllipsis"
+                                                           HorizontalAlignment="Left"
                                                            MaxWidth="330" />
                                                 <TextBlock Text="{x:Bind Item.DisplayProcessInfo, Mode=OneTime}"
                                                            FontSize="10.5"

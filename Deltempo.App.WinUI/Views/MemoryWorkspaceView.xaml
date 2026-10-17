@@ -29,8 +29,10 @@
         <converters:BoolNegationConverter x:Key="NotBool" />
     </UserControl.Resources>
 
-    <!-- Opaque background: a transparent panel lets the nav rail bleed through. -->
-    <Grid Padding="18,16" Background="{StaticResource CanvasDarkBrush}">
+    <!-- Transparent, not a fill of its own: the shell paints the one canvas scrim over
+         the Mica backdrop, and a second copy here would make the content darker than the
+         navigation pane. ShowWorkspace collapses what this panel would otherwise reveal. -->
+    <Grid Padding="18,16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />

@@ -40,11 +40,10 @@
         </Style>
     </UserControl.Resources>
 
-    <!-- Opaque background, not transparent. A panel with no background lets the
-         nav rail and the workspace behind it show through, which is very
-         visible once maximized. -->
+    <!-- Transparent, not a fill of its own: the shell paints the one canvas scrim over
+         the Mica backdrop, and a second copy here would make the content darker than the
+         navigation pane. ShowWorkspace collapses what this panel would otherwise reveal. -->
     <Grid Padding="18,16"
-          Background="{StaticResource CanvasDarkBrush}"
           RowDefinitions="Auto,Auto,*">
 
         <!-- Hero stats + actions -->
@@ -180,6 +179,7 @@
                                                        FontWeight="SemiBold"
                                                        Foreground="{StaticResource TextHighBrush}"
                                                        TextTrimming="CharacterEllipsis"
+                                                       HorizontalAlignment="Left"
                                                        MaxWidth="320" />
 
                                             <Border Background="{StaticResource SurfaceCardBrush}"
@@ -238,6 +238,7 @@
                                                    FontSize="10.5"
                                                    Foreground="{StaticResource TextMutedBrush}"
                                                    TextTrimming="CharacterEllipsis"
+                                                   HorizontalAlignment="Left"
                                                    MaxWidth="460"
                                                    Margin="0,2,0,0" />
                                     </StackPanel>

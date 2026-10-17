@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -45,6 +46,12 @@ public sealed partial class MainWindow : Window
     /// </summary>
     private readonly Dictionary<string, (UIElement Panel, Action? Open)> _workspacePanels = [];
 
+    /// <summary>
+    /// Navigation entries that need repainting when the selection moves, keyed by
+    /// section label. See <see cref="UpdateNavSelection"/>.
+    /// </summary>
+    private readonly Dictionary<string, NavEntry> _navEntries = [];
+
     public MainWindow()
     {
         InitializeComponent();
@@ -57,6 +64,13 @@ public sealed partial class MainWindow : Window
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(TitleBarHost);
+
+        // The title bar names the app and then the one piece of state that changes what
+        // every destructive screen can do: whether this process is elevated. WPF showed
+        // the same fact as an admin badge, but only inside System Repair.
+        PrivilegeLabel.Text = ElevationService.IsAdministrator ? "Administrator" : "Standard user";
+
+        FooterVersion.Text = $"v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0"} · WinUI 3";
 
         ApplyWindowChrome();
         BuildNavigation();
@@ -558,7 +572,38 @@ public sealed partial class MainWindow : Window
             IntPtr hwnd = WindowNative.GetWindowHandle(this);
             AppWindow appWindow = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(hwnd));
 
-            appWindow.Resize(new Windows.Graphics.SizeInt32(1180, 780));
+            // WPF's MainWindow.xaml declared Width=1360 Height=840, MinWidth=800
+            // MinHeight=560 and WindowStartupLocation=CenterScreen. The port had drifted
+            // to a hard-coded 1180x780 with no minimum and no centring - and AppWindow
+            // sizes in physical pixels, so even that number shrank on a scaled display.
+            // These are the WPF numbers, converted from device-independent units, and the
+            // size is clamped to the work area so the status bar can never end up below
+            // the bottom edge of the screen.
+            double scale = Math.Max(1.0, GetDpiForWindow(hwnd) / 96.0);
+
+            const int preferredWidth = 1360;
+            const int preferredHeight = 840;
+            const int minimumWidth = 800;
+            const int minimumHeight = 560;
+
+            Windows.Graphics.RectInt32 workArea = DisplayArea
+                .GetFromWindowId(appWindow.Id, DisplayAreaFallback.Primary)
+                .WorkArea;
+
+            var size = new Windows.Graphics.SizeInt32(
+                Math.Min((int)Math.Round(preferredWidth * scale), workArea.Width),
+                Math.Min((int)Math.Round(preferredHeight * scale), workArea.Height));
+
+            appWindow.Resize(size);
+            appWindow.Move(new Windows.Graphics.PointInt32(
+                workArea.X + ((workArea.Width - size.Width) / 2),
+                workArea.Y + ((workArea.Height - size.Height) / 2)));
+
+            if (appWindow.Presenter is OverlappedPresenter presenter)
+            {
+                presenter.PreferredMinimumWidth = (int)Math.Round(minimumWidth * scale);
+                presenter.PreferredMinimumHeight = (int)Math.Round(minimumHeight * scale);
+            }
 
             // Suppress the default caption inset so the custom title bar aligns with
             // the left edge of the nav rail. SetTitleBar(TitleBarHost) already sizes the
@@ -575,17 +620,29 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Physical pixels per logical pixel for this window's monitor. WinUI 3 exposes no
+    /// managed accessor for that before the content is loaded, and the window is sized in
+    /// the constructor.
+    /// </summary>
+    [DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(IntPtr hwnd);
+
     private void BuildNavigation()
     {
         BuildWorkspacePanelMap();
 
         foreach (var (label, glyph, danger) in Sections)
         {
+            (UIElement content, FontIcon icon, Border indicator) = BuildNavContent(label, glyph);
+
             var item = new ListViewItem
             {
                 Tag = label,
-                Content = BuildNavContent(label, glyph, danger),
+                Content = content,
             };
+
+            _navEntries[label] = new NavEntry(icon, indicator, danger);
 
             // Without this the item announces as an empty list item. The WPF nav
             // set AutomationProperties.Name on each workspace, and dropping it
@@ -634,7 +691,7 @@ public sealed partial class MainWindow : Window
     /// </param>
     private void ShowWorkspace(string label, bool playSound)
     {
-        SectionLabel.Text = label;
+        SetPageHeader(label);
         PlaceholderTitle.Text = label;
         PlaceholderBody.Text =
             $"Stage 1 shell placeholder for '{label}'. No cleanup logic is wired up; nothing on this screen touches disk.";
@@ -643,6 +700,8 @@ public sealed partial class MainWindow : Window
         {
             SoundService.PlayClickSound();
         }
+
+        UpdateNavSelection(label);
 
         _workspacePanels.TryGetValue(label, out (UIElement Panel, Action? Open) active);
         UIElement? activePanel = active.Panel;
@@ -666,6 +725,39 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Section copy for the shell-owned page header: the eyebrow names the area, the
+    /// title names the screen, and the description says what the screen will and will not
+    /// do to the machine. Every destructive screen says so in its own words, which is why
+    /// this is a table of prose rather than a format string over the label.
+    /// </summary>
+    private static readonly Dictionary<string, (string Eyebrow, string Description)> SectionCopy = new()
+    {
+        [CleanerSectionLabel] = ("CLEANUP", "Temp files, caches and junk Windows can rebuild. Nothing is removed until you press Clean."),
+        [LargeFilesSectionLabel] = ("DISK SPACE", "Files above your size threshold. Protected system locations are listed but held back."),
+        [StartupSectionLabel] = ("BOOT AND LOGIN", "What runs when Windows starts. Disabling an entry never deletes it."),
+        [MemorySectionLabel] = ("PERFORMANCE", "Working sets, standby cache and per-process memory pressure, read from the live system."),
+        [SystemRepairSectionLabel] = ("INTEGRITY", "System health first, then one repair at a time, only when you ask for it."),
+        [AppUninstallerSectionLabel] = ("SOFTWARE", "Installed programs with their uninstall strings, estimates and leftover folders."),
+        [ForceDeleteSectionLabel] = ("LAST RESORT", "Staged paths removed with a forced purge, for files that refuse a normal delete."),
+    };
+
+    /// <summary>
+    /// Paints the page header for one section. The header belongs to the shell rather
+    /// than to the panels so the eight workspaces cannot drift apart: same eyebrow, same
+    /// title size, same description treatment everywhere.
+    /// </summary>
+    private void SetPageHeader(string label)
+    {
+        (string eyebrow, string description) = SectionCopy.TryGetValue(label, out var copy)
+            ? copy
+            : ("WORKSPACE", string.Empty);
+
+        PageEyebrow.Text = eyebrow;
+        PageTitle.Text = label;
+        PageDescription.Text = description;
+    }
+
+    /// <summary>
     /// Maps each navigation section to its panel and to the loader that fills it in.
     /// Called after the visual tree exists and before the first paint.
     /// </summary>
@@ -682,9 +774,21 @@ public sealed partial class MainWindow : Window
         _workspacePanels[ForceDeleteSectionLabel] = (ForceDeleteWorkspacePanel, ForceDeleteWorkspacePanel.Open);
     }
 
-    private static UIElement BuildNavContent(string label, string glyph, bool danger)
+    private static (UIElement Content, FontIcon Icon, Border Indicator) BuildNavContent(
+        string label,
+        string glyph)
     {
-        var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
+        // Flush with the item's left edge (the item carries no left padding) so the bar
+        // sits against the pane the way a NavigationViewItem's does.
+        var indicator = new Border
+        {
+            Width = 3,
+            Height = 16,
+            CornerRadius = new CornerRadius(2),
+            Margin = new Thickness(0, 0, 10, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            Opacity = 0,
+        };
 
         var icon = new FontIcon
         {
@@ -693,24 +797,61 @@ public sealed partial class MainWindow : Window
             FontSize = 16,
         };
 
-        // WPF tinted the Force Delete pill's icon with its danger brushes. Only the
-        // resting tint carries over: the hover variant needs a per-item VisualState
-        // that the stock ListViewItem template does not expose.
-        if (danger && Application.Current.Resources["NavIconDangerMutedBrush"] is Brush dangerBrush)
-        {
-            icon.Foreground = dangerBrush;
-        }
+        var panel = new StackPanel { Orientation = Orientation.Horizontal };
 
+        panel.Children.Add(indicator);
         panel.Children.Add(icon);
 
         panel.Children.Add(new TextBlock
         {
             Text = label,
+            Margin = new Thickness(10, 0, 0, 0),
             VerticalAlignment = VerticalAlignment.Center,
         });
 
-        return panel;
+        return (panel, icon, indicator);
     }
+
+    /// <summary>
+    /// Paints the active section's glyph and selection bar with the accent and leaves
+    /// the others muted, which is what a WinUI NavigationViewItem does when selected.
+    /// Neither can be done in the item template: the glyph carries an explicit
+    /// Foreground, so the presenter's SelectedForeground never reaches it, and this
+    /// WinUI version's ListViewItemPresenter has no selection-indicator members.
+    ///
+    /// Dangerous sections (Force Delete) keep their danger tint in both states - WPF
+    /// styled that pill with its danger brushes rather than the accent.
+    /// </summary>
+    private void UpdateNavSelection(string activeLabel)
+    {
+        foreach ((string label, NavEntry entry) in _navEntries)
+        {
+            bool isActive = label == activeLabel;
+
+            (string IconKey, string IndicatorKey) = (entry.Danger, isActive) switch
+            {
+                (true, true) => ("NavIconDangerHoverBrush", "DestructiveRedBrush"),
+                (true, false) => ("NavIconDangerMutedBrush", "DestructiveRedBrush"),
+                (false, true) => ("ElectricCyanBrush", "ElectricCyanBrush"),
+                (false, false) => ("NavIconMutedBrush", "ElectricCyanBrush"),
+            };
+
+            if (Application.Current.Resources[IconKey] is Brush iconBrush)
+            {
+                entry.Icon.Foreground = iconBrush;
+            }
+
+            if (Application.Current.Resources[IndicatorKey] is Brush indicatorBrush)
+            {
+                entry.Indicator.Background = indicatorBrush;
+            }
+
+            entry.Indicator.Opacity = isActive ? 1 : 0;
+        }
+    }
+
+    /// <summary>One navigation entry's parts that change with the selection.</summary>
+    private sealed record NavEntry(FontIcon Icon, Border Indicator, bool Danger);
 
     /// <summary>
     /// Proves the WinUI 3 app can consume the existing Core assembly. Uses only

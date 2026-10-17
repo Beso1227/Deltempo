@@ -37,17 +37,11 @@
         <converters:HexToBrushConverter x:Key="HexToBrush" />
         <converters:BytesToBitmapImageConverter x:Key="BytesToImage" DecodePixelWidth="48" />
 
-        <!-- Pill chip used by both the filter row and the drawer tabs. -->
-        <Style x:Key="FilterChip" TargetType="RadioButton">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Padding" Value="9,4" />
-            <Setter Property="Margin" Value="0,0,6,0" />
-            <Setter Property="Foreground" Value="{StaticResource TextMediumBrush}" />
-            <Setter Property="Background" Value="{StaticResource PillButtonBgBrush}" />
-            <Setter Property="BorderBrush" Value="{StaticResource PillButtonBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="MinWidth" Value="0" />
-        </Style>
+        <!-- Pill chip used by both the filter row and the drawer tabs.
+             Based on the shared FilterChipRadio so these chips match the Cleaner /
+             Large Files / Startup filter rows; a local-only style fell back to the
+             stock RadioButton circle, which reads nothing like the WPF filter row. -->
+        <Style x:Key="FilterChip" TargetType="RadioButton" BasedOn="{StaticResource FilterChipRadio}" />
     </UserControl.Resources>
 
     <Grid Background="Transparent">
@@ -277,6 +271,7 @@
                                                                FontWeight="SemiBold"
                                                                Foreground="{StaticResource TextHighBrush}"
                                                                TextTrimming="CharacterEllipsis"
+                                                               HorizontalAlignment="Left"
                                                                MaxWidth="300" />
 
                                                     <Border Background="{Binding CategoryBadgeBackground, Converter={StaticResource HexToBrush}}"
@@ -334,6 +329,7 @@
                                                            FontSize="10.5"
                                                            Foreground="{StaticResource TextMutedBrush}"
                                                            TextTrimming="CharacterEllipsis"
+                                                           HorizontalAlignment="Left"
                                                            MaxWidth="420"
                                                            Margin="0,2,0,0" />
                                             </StackPanel>

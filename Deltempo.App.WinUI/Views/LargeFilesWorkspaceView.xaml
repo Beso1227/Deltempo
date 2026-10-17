@@ -70,6 +70,7 @@
                             FontWeight="SemiBold"
                             Foreground="{StaticResource TextHighBrush}"
                             TextTrimming="CharacterEllipsis"
+                            HorizontalAlignment="Left"
                             MaxWidth="260"
                             VerticalAlignment="Center" />
                         <Border
@@ -110,6 +111,7 @@
                             FontSize="10"
                             Foreground="{StaticResource TextMutedBrush}"
                             TextTrimming="CharacterEllipsis"
+                            HorizontalAlignment="Left"
                             MaxWidth="150"
                             VerticalAlignment="Center" />
                     </StackPanel>
@@ -144,8 +146,10 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <!-- Opaque background: a transparent panel lets the nav rail bleed through. -->
-    <Grid Padding="18,16" Background="{StaticResource CanvasDarkBrush}" RowDefinitions="Auto,Auto,*,Auto">
+    <!-- Transparent, not a fill of its own: the shell paints the one canvas scrim over
+         the Mica backdrop, and a second copy here would make the content darker than the
+         navigation pane. ShowWorkspace collapses what this panel would otherwise reveal. -->
+    <Grid Padding="18,16" RowDefinitions="Auto,Auto,*,Auto">
 
         <!-- Hero stats + actions -->
         <Grid Grid.Row="0">

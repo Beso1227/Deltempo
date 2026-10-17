@@ -24,8 +24,13 @@
               BorderBrush="{StaticResource HairlineBorderBrush}"
               BorderThickness="0,0,0,1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <!-- Reserved for the system caption buttons. With
+                     ExtendsContentIntoTitleBar the min/max/close buttons are drawn over
+                     this row by the shell, so nothing of ours may live in this column -
+                     the section label used to sit here and ran under the buttons. -->
+                <ColumnDefinition Width="144" />
             </Grid.ColumnDefinitions>
 
             <StackPanel Orientation="Horizontal"
@@ -38,144 +43,221 @@
                         Background="{StaticResource ElectricCyanBrush}" />
                 <TextBlock Text="Deltempo"
                            FontFamily="{StaticResource AppFont}"
-                           FontSize="14"
+                           FontSize="13"
                            FontWeight="SemiBold"
                            Foreground="{StaticResource TextHighBrush}"
                            VerticalAlignment="Center" />
+                <Border Width="1"
+                        Height="13"
+                        Background="{StaticResource HairlineStrongBrush}"
+                        VerticalAlignment="Center" />
+                <TextBlock x:Name="PrivilegeLabel"
+                           Style="{StaticResource CaptionText}"
+                           VerticalAlignment="Center"
+                           Text="" />
             </StackPanel>
-
-            <TextBlock x:Name="SectionLabel"
-                       Grid.Column="1"
-                       Margin="0,0,16,0"
-                       VerticalAlignment="Center"
-                       FontFamily="{StaticResource AppFont}"
-                       FontSize="12"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       Text="Cleaner Workspace" />
         </Grid>
 
         <!-- Body: navigation rail + content -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="248" />
+                <ColumnDefinition Width="240" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
+            <!-- Navigation pane. Acrylic rather than a flat fill, which is what a WinUI
+                 NavigationView pane uses and what lets the Mica backdrop read through
+                 the rail as well as the content. -->
             <Border Grid.Column="0"
-                    Background="{StaticResource HeaderDockBrush}"
+                    Background="{StaticResource PaneAcrylicBrush}"
                     BorderBrush="{StaticResource HairlineBorderBrush}"
                     BorderThickness="0,0,1,0">
-                <ListView x:Name="NavList"
-                          Background="Transparent"
-                          BorderThickness="0"
-                          SelectionMode="Single"
-                          IsItemClickEnabled="False"
-                          Padding="8"
-                          VerticalAlignment="Stretch">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               Style="{StaticResource EyebrowText}"
+                               Margin="18,18,16,10"
+                               Text="WORKSPACES" />
+
+                    <ListView x:Name="NavList"
+                              Grid.Row="1"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              SelectionMode="Single"
+                              IsItemClickEnabled="False"
+                              Padding="8,0,8,8"
+                              VerticalAlignment="Stretch"
+                              ScrollViewer.HorizontalScrollMode="Disabled"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <!-- Retemplated from ListViewItemPresenter for the translucent
+                         selected fill and hover. The stock presenter in this WinUI
+                         version has no SelectionIndicator* members, so the 3px accent
+                         bar that a NavigationViewItem draws is added by the item
+                         content instead (see BuildNavContent). Every brush here is one
+                         of our tokens - no ThemeResource lookups, because a missing
+                         resource key kills the process rather than falling back. -->
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
-                            <Setter Property="Padding" Value="12,10" />
+                            <Setter Property="MinHeight" Value="40" />
+                            <Setter Property="Padding" Value="0,0,12,0" />
                             <Setter Property="CornerRadius" Value="6" />
                             <Setter Property="Margin" Value="0,2" />
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListViewItem">
+                                        <ListViewItemPresenter
+                                            Content="{TemplateBinding Content}"
+                                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                                            Padding="{TemplateBinding Padding}"
+                                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                            CornerRadius="{TemplateBinding CornerRadius}"
+                                            Foreground="{TemplateBinding Foreground}"
+                                            Background="{TemplateBinding Background}"
+                                            PointerOverBackground="{StaticResource SurfaceCardHoverBrush}"
+                                            PointerOverForeground="{StaticResource TextHighBrush}"
+                                            PressedBackground="{StaticResource SurfaceCardHoverBrush}"
+                                            SelectedBackground="{StaticResource SurfaceCardSelectedBrush}"
+                                            SelectedForeground="{StaticResource TextHighBrush}"
+                                            SelectedPointerOverBackground="{StaticResource SurfaceCardSelectedBrush}"
+                                            SelectedPressedBackground="{StaticResource SurfaceCardSelectedBrush}"
+                                            SelectionCheckMarkVisualEnabled="False" />
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
                         </Style>
                     </ListView.ItemContainerStyle>
                 </ListView>
+                </Grid>
             </Border>
 
+            <!-- Content column: a shell-owned page header, then the workspace host.
+                 The page header lives here rather than in each panel so all eight
+                 workspaces announce themselves with the same eyebrow / title /
+                 description treatment and the title cannot drift per view. -->
             <Grid Grid.Column="1">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!-- Stage 1 content placeholder. Real screens land in Stage 2. -->
-                <StackPanel x:Name="PlaceholderPanel"
-                            Grid.Row="0"
-                            Margin="32"
-                            Spacing="14"
-                            VerticalAlignment="Top">
-                    <TextBlock x:Name="PlaceholderTitle"
-                               FontFamily="{StaticResource AppFont}"
-                               FontSize="22"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource TextHighBrush}"
+                <StackPanel Grid.Row="0"
+                            Margin="20,16,20,12"
+                            Spacing="3">
+                    <TextBlock x:Name="PageEyebrow"
+                               Style="{StaticResource EyebrowText}"
+                               Text="WORKSPACE" />
+                    <TextBlock x:Name="PageTitle"
+                               Style="{StaticResource PageTitleText}"
                                Text="Cleaner Workspace" />
-                    <TextBlock x:Name="PlaceholderBody"
-                               FontFamily="{StaticResource AppFont}"
-                               FontSize="13"
-                               Foreground="{StaticResource TextMediumBrush}"
-                               TextWrapping="Wrap"
-                               MaxWidth="640"
+                    <TextBlock x:Name="PageDescription"
+                               Style="{StaticResource PageDescriptionText}"
+                               MaxWidth="760"
                                HorizontalAlignment="Left"
-                               Text="Stage 1 shell. This screen is a placeholder - no cleanup logic is wired up and nothing here touches disk." />
+                               Text="Finds temp files and caches. Nothing is deleted until you press Clean." />
                 </StackPanel>
 
-                <!-- Core connectivity proof: proves the WinUI 3 app can consume the
-                     existing Core assembly, which is the whole point of this stage. -->
-                <Border x:Name="CoreLinkCard"
-                        Grid.Row="1"
-                        Margin="32,0,32,24"
-                        Padding="14"
-                        CornerRadius="8"
-                        Background="{StaticResource SurfaceCardBrush}"
-                        BorderBrush="{StaticResource HairlineBorderBrush}"
-                        BorderThickness="1">
-                    <StackPanel Spacing="6">
-                        <TextBlock FontFamily="{StaticResource AppFont}"
-                                   FontSize="12"
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Stage 1 content placeholder. Real screens land in Stage 2. -->
+                    <StackPanel x:Name="PlaceholderPanel"
+                                Grid.Row="0"
+                                Margin="32"
+                                Spacing="14"
+                                VerticalAlignment="Top">
+                        <TextBlock x:Name="PlaceholderTitle"
+                                   FontFamily="{StaticResource AppFont}"
+                                   FontSize="22"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextMediumBrush}"
-                                   Text="CORE LINK CHECK" />
-                        <TextBlock x:Name="CoreStatus"
-                                   FontFamily="{StaticResource MonoFont}"
-                                   FontSize="12"
                                    Foreground="{StaticResource TextHighBrush}"
+                                   Text="Cleaner Workspace" />
+                        <TextBlock x:Name="PlaceholderBody"
+                                   FontFamily="{StaticResource AppFont}"
+                                   FontSize="13"
+                                   Foreground="{StaticResource TextMediumBrush}"
                                    TextWrapping="Wrap"
-                                   Text="checking..." />
+                                   MaxWidth="640"
+                                   HorizontalAlignment="Left"
+                                   Text="Stage 1 shell. This screen is a placeholder - no cleanup logic is wired up and nothing here touches disk." />
                     </StackPanel>
-                </Border>
 
-                <!-- Stage 3 workspace panels. They live inside the content column
-                     and span both of its rows, so a panel can never cover the
-                     navigation rail the way a child of the outer grid's full-width
-                     row would. Exactly one is visible at a time; the panels paint
-                     CanvasDarkBrush through to the window background, so both the
-                     placeholder and the Core link card are hidden behind them. -->
-                <views:MemoryWorkspaceView x:Name="MemoryWorkspacePanel"
-                                           Grid.Row="0"
-                                           Grid.RowSpan="2"
-                                           Visibility="Collapsed" />
+                    <!-- Core connectivity proof: proves the WinUI 3 app can consume the
+                         existing Core assembly, which is the whole point of this stage. -->
+                    <Border x:Name="CoreLinkCard"
+                            Grid.Row="1"
+                            Margin="32,0,32,24"
+                            Padding="14"
+                            CornerRadius="8"
+                            Background="{StaticResource SurfaceCardBrush}"
+                            BorderBrush="{StaticResource HairlineBorderBrush}"
+                            BorderThickness="1">
+                        <StackPanel Spacing="6">
+                            <TextBlock FontFamily="{StaticResource AppFont}"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextMediumBrush}"
+                                       Text="CORE LINK CHECK" />
+                            <TextBlock x:Name="CoreStatus"
+                                       FontFamily="{StaticResource MonoFont}"
+                                       FontSize="12"
+                                       Foreground="{StaticResource TextHighBrush}"
+                                       TextWrapping="Wrap"
+                                       Text="checking..." />
+                        </StackPanel>
+                    </Border>
 
-                <views:StartupWorkspaceView x:Name="StartupWorkspacePanel"
-                                            Grid.Row="0"
-                                            Grid.RowSpan="2"
-                                            Visibility="Collapsed" />
-
-                <views:LargeFilesWorkspaceView x:Name="LargeFilesWorkspacePanel"
+                    <!-- Stage 3 workspace panels. They live inside the workspace host
+                         and span both of its rows, so a panel can never cover the
+                         navigation rail or the page header the way a child of the outer
+                         grid's full-width row would. Exactly one is visible at a time;
+                         the panels paint CanvasDarkBrush through to the window
+                         background, so both the placeholder and the Core link card are
+                         hidden behind them. -->
+                    <views:MemoryWorkspaceView x:Name="MemoryWorkspacePanel"
                                                Grid.Row="0"
                                                Grid.RowSpan="2"
                                                Visibility="Collapsed" />
 
-                <views:CleanerWorkspaceView x:Name="CleanerWorkspacePanel"
+                    <views:StartupWorkspaceView x:Name="StartupWorkspacePanel"
+                                                Grid.Row="0"
+                                                Grid.RowSpan="2"
+                                                Visibility="Collapsed" />
+
+                    <views:LargeFilesWorkspaceView x:Name="LargeFilesWorkspacePanel"
+                                                   Grid.Row="0"
+                                                   Grid.RowSpan="2"
+                                                   Visibility="Collapsed" />
+
+                    <views:CleanerWorkspaceView x:Name="CleanerWorkspacePanel"
+                                                Grid.Row="0"
+                                                Grid.RowSpan="2"
+                                                Visibility="Collapsed" />
+
+                    <views:SystemRepairView x:Name="SystemRepairWorkspacePanel"
                                             Grid.Row="0"
                                             Grid.RowSpan="2"
                                             Visibility="Collapsed" />
 
-                <views:SystemRepairView x:Name="SystemRepairWorkspacePanel"
-                                        Grid.Row="0"
-                                        Grid.RowSpan="2"
-                                        Visibility="Collapsed" />
+                    <views:AppUninstallView x:Name="AppUninstallWorkspacePanel"
+                                            Grid.Row="0"
+                                            Grid.RowSpan="2"
+                                            Visibility="Collapsed" />
 
-                <views:AppUninstallView x:Name="AppUninstallWorkspacePanel"
-                                        Grid.Row="0"
-                                        Grid.RowSpan="2"
-                                        Visibility="Collapsed" />
-
-                <views:ForceDeleteView x:Name="ForceDeleteWorkspacePanel"
-                                       Grid.Row="0"
-                                       Grid.RowSpan="2"
-                                       Visibility="Collapsed" />
+                    <views:ForceDeleteView x:Name="ForceDeleteWorkspacePanel"
+                                           Grid.Row="0"
+                                           Grid.RowSpan="2"
+                                           Visibility="Collapsed" />
+                </Grid>
             </Grid>
         </Grid>
 
@@ -185,12 +267,31 @@
                 BorderBrush="{StaticResource HairlineBorderBrush}"
                 BorderThickness="0,1,0,0">
             <Grid Padding="16,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Ellipse Grid.Column="0"
+                         Width="6"
+                         Height="6"
+                         VerticalAlignment="Center"
+                         Fill="{StaticResource ElectricCyanBrush}" />
+
                 <TextBlock x:Name="FooterText"
+                           Grid.Column="1"
+                           Margin="8,0,0,0"
                            VerticalAlignment="Center"
-                           FontFamily="{StaticResource AppFont}"
-                           FontSize="11"
-                           Foreground="{StaticResource TextMutedBrush}"
-                           Text="Deltempo - WinUI 3 shell" />
+                           Style="{StaticResource CaptionText}"
+                           Text="Ready"
+                           TextTrimming="CharacterEllipsis" />
+
+                <TextBlock x:Name="FooterVersion"
+                           Grid.Column="2"
+                           VerticalAlignment="Center"
+                           Style="{StaticResource CaptionText}"
+                           Text="WinUI 3" />
             </Grid>
         </Border>
 

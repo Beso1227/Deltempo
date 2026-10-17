@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Deltempo WinUI 3 shell - application manifest.
+
+  The project shipped without one, so the process came up DPI-unaware: GetDpiForWindow
+  reported 96 on a 125% display and XamlRoot.RasterizationScale stayed at 1.00, which
+  laid the UI out in physical pixels. The WPF app it ports is DPI-aware, so every panel
+  rendered ~20% smaller than the original and text was not rasterised for the display.
+
+  PerMonitorV2 (with the legacy true/PM fallback for older shells) puts the window back on
+  the monitor's real DPI: XamlRoot reports device-independent units and RasterizationScale
+  picks up 1.25 on this machine, matching the WPF sizing and text rendering.
+
+  activeCodePage UTF-8 is the Windows App SDK recommendation for unpackaged apps.
+-->
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+  <assemblyIdentity version="1.0.0.0" name="Deltempo.WinUI.app" />
+
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <!-- Windows 10 / 11 -->
+      <maxversiontested Id="10.0.22000.0" />
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
+    </application>
+  </compatibility>
+
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/PM</dpiAware>
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2, PerMonitor</dpiAwareness>
+      <activeCodePage xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">UTF-8</activeCodePage>
+    </windowsSettings>
+  </application>
+</assembly>

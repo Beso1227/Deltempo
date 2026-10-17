@@ -64,6 +64,7 @@
                             FontSize="10"
                             Foreground="{StaticResource TextMutedBrush}"
                             TextTrimming="CharacterEllipsis"
+                            HorizontalAlignment="Left"
                             MaxWidth="320" />
                     </StackPanel>
 
@@ -123,8 +124,12 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <!-- Opaque background: a transparent panel lets the nav rail bleed through. -->
-    <Grid Padding="18,16" Background="{StaticResource CanvasDarkBrush}" RowDefinitions="Auto,Auto,*,Auto">
+    <!-- Transparent, not a fill of its own. The shell window already paints the canvas
+         scrim over the Mica backdrop, so a panel that painted it again would double the
+         scrim and make the content column darker than the navigation pane. What this
+         panel has to hide - the Stage 1 placeholder and the Core link card - is collapsed
+         by ShowWorkspace instead. -->
+    <Grid Padding="18,16" RowDefinitions="Auto,Auto,*,Auto">
 
         <!-- Hero stats + actions -->
         <Grid Grid.Row="0">
