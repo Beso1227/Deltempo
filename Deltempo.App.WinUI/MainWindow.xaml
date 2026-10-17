@@ -90,7 +90,8 @@
                 </Grid.RowDefinitions>
 
                 <!-- Stage 1 content placeholder. Real screens land in Stage 2. -->
-                <StackPanel Grid.Row="0"
+                <StackPanel x:Name="PlaceholderPanel"
+                            Grid.Row="0"
                             Margin="32"
                             Spacing="14"
                             VerticalAlignment="Top">
@@ -183,6 +184,13 @@
                                Grid.Column="1"
                                Grid.Row="1"
                                Visibility="Collapsed" />
+
+        <!-- Stage 3: the first nav item with a real workspace panel instead of
+             the Stage 1 placeholder. The rest still show PlaceholderPanel. -->
+        <views:MemoryWorkspaceView x:Name="MemoryWorkspacePanel"
+                                   Grid.Column="1"
+                                   Grid.Row="1"
+                                   Visibility="Collapsed" />
 
     </Grid>
 </Window>

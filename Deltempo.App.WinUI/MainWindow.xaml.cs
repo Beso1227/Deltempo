@@ -52,6 +52,7 @@ public sealed partial class MainWindow : Window
             LoadSelfTestForceDelete();
             LoadSelfTestAppUninstall();
             LoadSelfTestSystemRepair();
+            LoadSelfTestMemoryWorkspace();
         }
 
         ShellDiagnostics.MaybeSelfTest(this);
@@ -320,6 +321,41 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Exercises the Memory Optimization workspace panel.
+    ///
+    /// Telemetry only. ExecuteBoostAsync is NEVER invoked here: it issues
+    /// privileged NT memory operations (working-set trimming and standby cache
+    /// eviction) against the running system.
+    ///
+    /// This is the first Stage 3 workspace probe. It proves the panel's
+    /// ViewModel reads live RAM state and that the hero bindings have real
+    /// values, rather than proving the panel merely compiles.
+    /// </summary>
+    private void LoadSelfTestMemoryWorkspace()
+    {
+        MemoryWorkspacePanel.ViewModel.RefreshTelemetry();
+
+        Deltempo.App.WinUI.ViewModels.MemoryWorkspaceViewModel vm =
+            MemoryWorkspacePanel.ViewModel;
+
+        ShellDiagnostics.Write(
+            $"memory workspace loaded (self-test, telemetry only): " +
+            $"{vm.UsedPercentText} used, detail=\"{vm.RamDetailText}\", " +
+            $"boost=\"{vm.BoostButtonText}\", boosting={vm.IsBoosting}");
+
+        if (vm.RamDetailText == "Reading RAM telemetry...")
+        {
+            ShellDiagnostics.Write("FAIL: RAM telemetry did not populate.");
+        }
+
+        if (double.IsNaN(vm.UsedPercent) || vm.UsedPercent < 0 || vm.UsedPercent > 100)
+        {
+            ShellDiagnostics.Write(
+                $"FAIL: RAM usage out of range: {vm.UsedPercent}.");
+        }
+    }
+
+    /// <summary>
     /// Opens the ported AppData footprint report over the content area. This is the
     /// Stage 2 proof screen: real Core data, no delete affordance.
     /// </summary>
@@ -397,6 +433,23 @@ public sealed partial class MainWindow : Window
                 if (label == Sections[0].Label)
                 {
                     OpenAppDataFootprint();
+                }
+
+                // Stage 3's first real workspace: Memory Optimization has its own
+                // panel rather than borrowing the placeholder. The remaining five
+                // still show the placeholder.
+                bool hasPanel = label == Sections[3].Label;
+                MemoryWorkspacePanel.Visibility = hasPanel
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+
+                PlaceholderPanel.Visibility = hasPanel
+                    ? Visibility.Collapsed
+                    : Visibility.Visible;
+
+                if (hasPanel)
+                {
+                    MemoryWorkspacePanel.ViewModel.RefreshTelemetry();
                 }
             }
         };
