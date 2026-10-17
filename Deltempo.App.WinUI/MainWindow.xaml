@@ -171,6 +171,11 @@
                                         Grid.Row="0"
                                         Grid.RowSpan="2"
                                         Visibility="Collapsed" />
+
+                <views:ForceDeleteView x:Name="ForceDeleteWorkspacePanel"
+                                       Grid.Row="0"
+                                       Grid.RowSpan="2"
+                                       Visibility="Collapsed" />
             </Grid>
         </Grid>
 
@@ -189,39 +194,27 @@
             </Grid>
         </Border>
 
-        <!-- Stage 2 modal overlays. Declared after the body grid so they render
-             above the placeholder and every Stage 3 workspace panel, mirroring how
-             the WPF modals are the last children of the root grid. Covers the whole
-             middle row, including the navigation rail, the way a WPF modal does. -->
+        <!-- Surfaces that are genuinely overlays: they open over whichever workspace is
+             showing instead of replacing it in the navigation. Declared after the body
+             grid so they render above the placeholder and every workspace panel,
+             mirroring how the WPF modals are the last children of the root grid. Row 1
+             is the whole middle row, including the navigation rail, the way a WPF modal
+             is.
+
+             System Repair, App Uninstaller and Force Delete were declared here as well
+             while they were Stage 2 modals. All three are workspace panels now, and
+             nothing referenced the leftover copies - each one quietly built a second
+             ViewModel and a second copy of its list. -->
         <views:AppDataFootprintView x:Name="FootprintView"
-                                    Grid.Column="1"
                                     Grid.Row="1"
                                     Visibility="Collapsed" />
 
         <views:LockedFilesView x:Name="LockedFilesOverlay"
-                               Grid.Column="1"
                                Grid.Row="1"
                                Visibility="Collapsed" />
 
         <views:MemoryOptimizerView x:Name="MemoryOverlay"
-                                  Grid.Column="1"
-                                  Grid.Row="1"
-                                  Visibility="Collapsed" />
-
-        <views:ForceDeleteView x:Name="ForceDeleteOverlay"
-                               Grid.Column="1"
-                               Grid.Row="1"
-                               Visibility="Collapsed" />
-
-        <views:AppUninstallView x:Name="AppUninstallOverlay"
-                                Grid.Column="1"
-                                Grid.Row="1"
-                                Visibility="Collapsed" />
-
-        <views:SystemRepairView x:Name="SystemRepairOverlay"
-                               Grid.Column="1"
-                               Grid.Row="1"
-                               Visibility="Collapsed" />
-
+                                   Grid.Row="1"
+                                   Visibility="Collapsed" />
     </Grid>
 </Window>

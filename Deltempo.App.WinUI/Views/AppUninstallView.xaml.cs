@@ -42,14 +42,8 @@ public sealed partial class AppUninstallView : UserControl
     ///
     /// The caller owns LogRequested, matching the other ported overlays.
     /// </summary>
-    public async void Open(bool playSound = true)
+    public async void Open()
     {
-        // The shell's initial workspace paint is not a user click, so it asks for a
-        // silent load; a nav click keeps the WPF click blip.
-        if (playSound)
-        {
-            SoundService.PlayClickSound();
-        }
         Visibility = Visibility.Visible;
         await ViewModel.LoadAppsAsync();
     }

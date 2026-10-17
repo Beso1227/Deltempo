@@ -39,14 +39,8 @@ public sealed partial class CleanerWorkspaceView : UserControl
     public event Action? FootprintRequested;
 
     /// <summary>Read-only scan of all target categories. Safe to call from the self-test.</summary>
-    public async void Open(bool playSound = true)
+    public async void Open()
     {
-        // The shell's initial workspace paint is not a user click, so it asks for a
-        // silent load; a nav click keeps the WPF click blip.
-        if (playSound)
-        {
-            SoundService.PlayClickSound();
-        }
         await ViewModel.ScanAllAsync();
     }
 

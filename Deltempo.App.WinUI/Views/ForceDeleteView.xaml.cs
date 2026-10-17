@@ -42,6 +42,14 @@ public sealed partial class ForceDeleteView : UserControl, IPathPicker
     /// <summary>Opens with an empty staging list, mirroring the WPF OpenEmpty().</summary>
     public void OpenEmpty() => ViewModel.OpenEmpty();
 
+    /// <summary>
+    /// Loads the panel the way selecting its nav item does, which is what WPF's
+    /// SwitchWorkspaceView(WorkspaceView.ForceDelete) did: a fresh empty staging list
+    /// every time the tab is entered, so a previous session's picks cannot linger
+    /// behind a "0 selected" summary. The shell owns the click sound.
+    /// </summary>
+    public void Open() => OpenEmpty();
+
     // ---- IPathPicker -------------------------------------------------------
 
     public async Task<IReadOnlyList<string>> PickFilesAsync()

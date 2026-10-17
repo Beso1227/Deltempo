@@ -44,14 +44,8 @@ public sealed partial class SystemRepairView : UserControl
     /// Mirrors the WPF Open(): refresh elevation, then enumerate restore points.
     /// Both are read-only.
     /// </summary>
-    public async void Open(bool playSound = true)
+    public async void Open()
     {
-        // The shell's initial workspace paint is not a user click, so it asks for a
-        // silent load; a nav click keeps the WPF click blip.
-        if (playSound)
-        {
-            SoundService.PlayClickSound();
-        }
         Visibility = Visibility.Visible;
         await ViewModel.OpenAsync();
     }

@@ -6,23 +6,44 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using WinRT.Interop;
 using WinTempCleaner.Models;
+using WinTempCleaner.Services;
 
 namespace Deltempo.App.WinUI;
 
 public sealed partial class MainWindow : Window
 {
-    // The six workspaces of the WPF MainWindow (MainWindow.xaml AutomationProperties.Name
-    // values: Cleaner Workspace, Large Files Tool, Startup Applications Tool,
-    // Memory Optimization Tool, System Repair Tool, App Uninstaller Tool).
-    private static readonly (string Label, string Glyph)[] Sections =
+    // The eight workspaces of the WPF MainWindow's top-bar tabs, in tab order. The labels
+    // are the WPF AutomationProperties.Name values verbatim (MainWindow.xaml), and the
+    // glyphs are the code points its nav pills used.
+    private const string CleanerSectionLabel = "Cleaner Workspace";
+    private const string LargeFilesSectionLabel = "Large Files Tool";
+    private const string StartupSectionLabel = "Startup Applications Tool";
+    private const string MemorySectionLabel = "Memory Optimization Tool";
+    private const string SystemRepairSectionLabel = "System Repair Tool";
+    private const string AppUninstallerSectionLabel = "App Uninstaller Tool";
+    private const string ForceDeleteSectionLabel = "Force Delete Tool";
+
+    // Named constants rather than literals so the panel map below keys off identity, not
+    // off positions: inserting a tab mid-list used to silently re-point the later nav
+    // items at the wrong panels.
+    private static readonly (string Label, string Glyph, bool Danger)[] Sections =
     {
-        ("Cleaner Workspace", "\uE80F"),
-        ("Large Files Tool", "\uE8B7"),
-        ("Startup Applications Tool", "\uE7C3"),
-        ("Memory Optimization Tool", "\uE9F9"),
-        ("System Repair Tool", "\uE90F"),
-        ("App Uninstaller Tool", "\uE77B"),
+        (CleanerSectionLabel, "\uE80F", false),
+        (LargeFilesSectionLabel, "\uE8B7", false),
+        (StartupSectionLabel, "\uE7C3", false),
+        (MemorySectionLabel, "\uE9F9", false),
+        (SystemRepairSectionLabel, "\uE90F", false),
+        (AppUninstallerSectionLabel, "\uE77B", false),
+        // WPF styled this one's pill with its danger brushes.
+        (ForceDeleteSectionLabel, "\uE74D", true),
     };
+
+    /// <summary>
+    /// Which panel backs each navigation section, and how to load it. Built once, after
+    /// the visual tree exists. A section with no entry shows the Stage 1 placeholder,
+    /// which is what keeps adding a section safe.
+    /// </summary>
+    private readonly Dictionary<string, (UIElement Panel, Action? Open)> _workspacePanels = [];
 
     public MainWindow()
     {
@@ -42,9 +63,9 @@ public sealed partial class MainWindow : Window
         VerifyCoreLink();
         WireWorkspaceSurfaces();
 
-        // Self-test drives the ported overlays directly: selecting a nav item does not
-        // fire SelectionChanged for the initial selection, so the overlays would
-        // otherwise stay closed and the self-test would prove nothing about them.
+        // The shell paints only the selected workspace, so the self-test drives every
+        // other surface's load path directly. SelectionChanged cannot do it: the
+        // initial selection is assigned before the handler is attached.
         if (ShellDiagnostics.IsSelfTest)
         {
             OpenAppDataFootprint();
@@ -139,8 +160,8 @@ public sealed partial class MainWindow : Window
     /// </summary>
     private async void LoadSelfTestForceDelete()
     {
-        ForceDeleteOverlay.ViewModel.LogRequested += OnFootprintLog;
-        ForceDeleteOverlay.OpenEmpty();
+        ForceDeleteWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
+        ForceDeleteWorkspacePanel.OpenEmpty();
 
         string scratchFile = Path.Combine(
             Path.GetTempPath(),
@@ -150,7 +171,7 @@ public sealed partial class MainWindow : Window
 
         try
         {
-            await ForceDeleteOverlay.ViewModel.StagePathsAsync(
+            await ForceDeleteWorkspacePanel.ViewModel.StagePathsAsync(
             [
                 scratchFile,
                 // Read-only reference to a strictly-shielded system path. Profiling
@@ -171,16 +192,16 @@ public sealed partial class MainWindow : Window
         }
 
         List<Deltempo.App.WinUI.ViewModels.ForceDeleteTargetRowViewModel> eligible =
-            ForceDeleteOverlay.ViewModel.EligibleTargets();
+            ForceDeleteWorkspacePanel.ViewModel.EligibleTargets();
 
-        int shieldedStaged = ForceDeleteOverlay.ViewModel.Targets
+        int shieldedStaged = ForceDeleteWorkspacePanel.ViewModel.Targets
             .Count(t => t.IsShielded && !t.IsSelected);
 
         ShellDiagnostics.Write(
             $"force delete loaded (self-test, staging only): " +
-            $"{ForceDeleteOverlay.ViewModel.Targets.Count} staged, " +
+            $"{ForceDeleteWorkspacePanel.ViewModel.Targets.Count} staged, " +
             $"{eligible.Count} eligible, {shieldedStaged} shielded-and-deselected, " +
-            $"canRun={ForceDeleteOverlay.ViewModel.CanRunPurge}");
+            $"canRun={ForceDeleteWorkspacePanel.ViewModel.CanRunPurge}");
 
         if (shieldedStaged != 1)
         {
@@ -492,6 +513,11 @@ public sealed partial class MainWindow : Window
 
         AppUninstallWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
         AppUninstallWorkspacePanel.ViewModel.CloseRequested += ReturnToFirstWorkspace;
+
+        // Force Delete closed back to the Cleaner workspace in WPF
+        // (ForceDeleteModalOverlay.Closed => SwitchWorkspaceView(WorkspaceView.Cleaner)).
+        ForceDeleteWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
+        ForceDeleteWorkspacePanel.ViewModel.CloseRequested += ReturnToFirstWorkspace;
     }
 
     /// <summary>Opens the detailed memory manager over whatever workspace is showing.</summary>
@@ -551,12 +577,14 @@ public sealed partial class MainWindow : Window
 
     private void BuildNavigation()
     {
-        foreach (var (label, glyph) in Sections)
+        BuildWorkspacePanelMap();
+
+        foreach (var (label, glyph, danger) in Sections)
         {
             var item = new ListViewItem
             {
                 Tag = label,
-                Content = BuildNavContent(label, glyph),
+                Content = BuildNavContent(label, glyph, danger),
             };
 
             // Without this the item announces as an empty list item. The WPF nav
@@ -593,10 +621,13 @@ public sealed partial class MainWindow : Window
 
     /// <summary>
     /// Shows one workspace: sets the heading, swaps which panel is visible, and loads
-    /// that panel lazily so its read-only scan is paid for once. Every nav item has a
-    /// real panel, so the placeholder is only ever seen if a section is added without
-    /// one. The AppData footprint report opens from inside the Cleaner workspace (its
-    /// HeroAppDataReportBtn in WPF), not from selecting the nav item.
+    /// that panel lazily so its read-only scan is paid for once. A section with no panel
+    /// shows the Stage 1 placeholder, so adding a nav item can never leave a blank
+    /// content column.
+    ///
+    /// The click sound lives here rather than in each panel's Open() because that is
+    /// where WPF had it (SwitchWorkspaceView played it for every tab), and because a
+    /// per-panel copy is how the Memory tab ended up silent.
     /// </summary>
     /// <param name="playSound">
     /// False for the startup paint, which is not a user click and must not blip.
@@ -608,65 +639,69 @@ public sealed partial class MainWindow : Window
         PlaceholderBody.Text =
             $"Stage 1 shell placeholder for '{label}'. No cleanup logic is wired up; nothing on this screen touches disk.";
 
-        bool isMemory = label == Sections[3].Label;
-        bool isStartup = label == Sections[2].Label;
-        bool isLargeFile = label == Sections[1].Label;
-        bool isCleaner = label == Sections[0].Label;
-        bool isSystemRepair = label == Sections[4].Label;
-        bool isAppUninstall = label == Sections[5].Label;
+        if (playSound)
+        {
+            SoundService.PlayClickSound();
+        }
 
-        MemoryWorkspacePanel.Visibility = isMemory ? Visibility.Visible : Visibility.Collapsed;
-        StartupWorkspacePanel.Visibility = isStartup ? Visibility.Visible : Visibility.Collapsed;
-        LargeFilesWorkspacePanel.Visibility = isLargeFile ? Visibility.Visible : Visibility.Collapsed;
-        CleanerWorkspacePanel.Visibility = isCleaner ? Visibility.Visible : Visibility.Collapsed;
-        SystemRepairWorkspacePanel.Visibility = isSystemRepair ? Visibility.Visible : Visibility.Collapsed;
-        AppUninstallWorkspacePanel.Visibility = isAppUninstall ? Visibility.Visible : Visibility.Collapsed;
+        _workspacePanels.TryGetValue(label, out (UIElement Panel, Action? Open) active);
+        UIElement? activePanel = active.Panel;
 
-        bool hasPanel = isMemory || isStartup || isLargeFile || isCleaner
-            || isSystemRepair || isAppUninstall;
+        foreach ((UIElement panel, _) in _workspacePanels.Values)
+        {
+            panel.Visibility = panel == activePanel
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        bool hasPanel = activePanel is not null;
         PlaceholderPanel.Visibility = hasPanel ? Visibility.Collapsed : Visibility.Visible;
 
         // Every panel paints the window brush, but the Core link card sits in the same
-        // content column and would otherwise show through the two promoted modals,
-        // whose own surface is deliberately transparent.
+        // content column and would otherwise show through the promoted panels, whose
+        // own surface is deliberately transparent.
         CoreLinkCard.Visibility = hasPanel ? Visibility.Collapsed : Visibility.Visible;
 
-        if (isMemory)
-        {
-            MemoryWorkspacePanel.ViewModel.RefreshTelemetry();
-        }
-        else if (isStartup)
-        {
-            StartupWorkspacePanel.Open(playSound);
-        }
-        else if (isLargeFile)
-        {
-            LargeFilesWorkspacePanel.Open(playSound);
-        }
-        else if (isCleaner)
-        {
-            CleanerWorkspacePanel.Open(playSound);
-        }
-        else if (isSystemRepair)
-        {
-            SystemRepairWorkspacePanel.Open(playSound);
-        }
-        else if (isAppUninstall)
-        {
-            AppUninstallWorkspacePanel.Open(playSound);
-        }
+        active.Open?.Invoke();
     }
 
-    private static UIElement BuildNavContent(string label, string glyph)
+    /// <summary>
+    /// Maps each navigation section to its panel and to the loader that fills it in.
+    /// Called after the visual tree exists and before the first paint.
+    /// </summary>
+    private void BuildWorkspacePanelMap()
+    {
+        _workspacePanels[CleanerSectionLabel] = (CleanerWorkspacePanel, CleanerWorkspacePanel.Open);
+        _workspacePanels[LargeFilesSectionLabel] = (LargeFilesWorkspacePanel, LargeFilesWorkspacePanel.Open);
+        _workspacePanels[StartupSectionLabel] = (StartupWorkspacePanel, StartupWorkspacePanel.Open);
+        _workspacePanels[MemorySectionLabel] =
+            (MemoryWorkspacePanel, MemoryWorkspacePanel.ViewModel.RefreshTelemetry);
+        _workspacePanels[SystemRepairSectionLabel] = (SystemRepairWorkspacePanel, SystemRepairWorkspacePanel.Open);
+        _workspacePanels[AppUninstallerSectionLabel] =
+            (AppUninstallWorkspacePanel, AppUninstallWorkspacePanel.Open);
+        _workspacePanels[ForceDeleteSectionLabel] = (ForceDeleteWorkspacePanel, ForceDeleteWorkspacePanel.Open);
+    }
+
+    private static UIElement BuildNavContent(string label, string glyph, bool danger)
     {
         var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
 
-        panel.Children.Add(new FontIcon
+        var icon = new FontIcon
         {
             Glyph = glyph,
             FontFamily = new FontFamily("Segoe Fluent Icons"),
             FontSize = 16,
-        });
+        };
+
+        // WPF tinted the Force Delete pill's icon with its danger brushes. Only the
+        // resting tint carries over: the hover variant needs a per-item VisualState
+        // that the stock ListViewItem template does not expose.
+        if (danger && Application.Current.Resources["NavIconDangerMutedBrush"] is Brush dangerBrush)
+        {
+            icon.Foreground = dangerBrush;
+        }
+
+        panel.Children.Add(icon);
 
         panel.Children.Add(new TextBlock
         {

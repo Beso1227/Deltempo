@@ -48,14 +48,8 @@ public sealed partial class LargeFilesWorkspaceView : UserControl
     public LargeFilesWorkspaceViewModel ViewModel { get; }
 
     /// <summary>Read-only scan of drives for large files. Safe to call from the self-test.</summary>
-    public async void Open(bool playSound = true)
+    public async void Open()
     {
-        // The shell's initial workspace paint is not a user click, so it asks for a
-        // silent load; a nav click keeps the WPF click blip.
-        if (playSound)
-        {
-            SoundService.PlayClickSound();
-        }
         await ViewModel.ScanAsync();
     }
 
