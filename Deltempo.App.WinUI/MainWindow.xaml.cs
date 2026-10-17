@@ -51,6 +51,7 @@ public sealed partial class MainWindow : Window
             OpenMemoryOptimizerForSelfTest();
             LoadSelfTestForceDelete();
             LoadSelfTestAppUninstall();
+            LoadSelfTestSystemRepair();
         }
 
         ShellDiagnostics.MaybeSelfTest(this);
@@ -249,6 +250,72 @@ public sealed partial class MainWindow : Window
         if (probe.HasInspectedApp)
         {
             ShellDiagnostics.Write("FAIL: a scan ran without being asked.");
+        }
+    }
+
+    /// <summary>
+    /// Exercises the system repair console WITHOUT running any repair.
+    ///
+    /// Nothing here shells out. Quick Assessment, SFC, DISM, WinSxS cleanup,
+    /// CHKDSK, the Windows Update reset, and the Winsock reset are all skipped:
+    /// they mutate the live system, several need Administrator, and an
+    /// interrupted CHKDSK or network reset can leave Windows needing further
+    /// repair. CTT WinUtil is skipped because it opens an elevated PowerShell.
+    ///
+    /// What this DOES prove is the part worth proving - the re-entrancy lock.
+    /// It claims the lock without running a tool, then verifies that a second
+    /// tool request is refused and that the cancel affordance is live. That is
+    /// the invariant that stops DISM and CHKDSK running concurrently.
+    /// </summary>
+    private void LoadSelfTestSystemRepair()
+    {
+        // No confirmation host and no elevation action: fail closed and never
+        // relaunch the process during an automated run.
+        var probe = new Deltempo.App.WinUI.ViewModels.SystemRepairViewModel();
+
+        probe.LogRequested += OnFootprintLog;
+
+        ShellDiagnostics.Write(
+            $"system repair loaded (self-test, no tools run): " +
+            $"admin={probe.IsAdministrator}, badge=\"{probe.ElevationBadgeText}\", " +
+            $"canRun={probe.CanRunTools}, canCancel={probe.CanCancel}, " +
+            $"subsystems={probe.Subsystems.Length}");
+
+        // Claim the lock without executing a repair. IsRunning is what every
+        // tool button and the cancel button read, so setting it directly is a
+        // faithful simulation of "a repair is in flight".
+        probe.IsRunning = true;
+
+        bool cancelReachable = probe.CanCancel;
+        bool toolsBlocked = !probe.CanRunTools;
+
+        ShellDiagnostics.Write(
+            $"system repair re-entrancy lock verified: " +
+            $"toolsBlocked={toolsBlocked}, cancelReachable={cancelReachable}");
+
+        if (!toolsBlocked)
+        {
+            ShellDiagnostics.Write("FAIL: repair tools stayed enabled while an operation was running.");
+        }
+
+        if (!cancelReachable)
+        {
+            ShellDiagnostics.Write("FAIL: no way to cancel a running operation.");
+        }
+
+        // Releasing the lock must re-enable the tools.
+        probe.IsRunning = false;
+
+        if (!probe.CanRunTools)
+        {
+            ShellDiagnostics.Write("FAIL: tools stayed disabled after the operation ended.");
+        }
+
+        // The default confirmation host must refuse, so pruning cannot run.
+        if (probe.CanPruneRestorePoints)
+        {
+            ShellDiagnostics.Write(
+                "FAIL: prune offered with no restore points loaded.");
         }
     }
 

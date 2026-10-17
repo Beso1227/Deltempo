@@ -179,5 +179,10 @@
                                 Grid.Row="1"
                                 Visibility="Collapsed" />
 
+        <views:SystemRepairView x:Name="SystemRepairOverlay"
+                               Grid.Column="1"
+                               Grid.Row="1"
+                               Visibility="Collapsed" />
+
     </Grid>
 </Window>
