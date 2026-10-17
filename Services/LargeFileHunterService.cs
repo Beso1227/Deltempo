@@ -169,6 +169,14 @@ public class LargeFileInfo : INotifyPropertyChanged
             return;
         }
 
+        // No WPF Application (the WinUI 3 shell): the same cross-thread raise now fails
+        // with RPC_E_WRONG_THREAD instead, so hand it to the host's UI marshaler.
+        if (dispatcher == null)
+        {
+            UiDispatcher.Invoke(() => handler(this, new PropertyChangedEventArgs(propertyName)));
+            return;
+        }
+
         handler(this, new PropertyChangedEventArgs(propertyName));
     }
 }

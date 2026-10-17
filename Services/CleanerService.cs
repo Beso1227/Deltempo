@@ -27,7 +27,10 @@ public partial class CleanerService
         {
             System.Diagnostics.Debug.WriteLine($"[Deltempo.Cleaner] UiInvoke dispatcher fallback: {ex.Message}");
         }
-        action();
+
+        // No WPF Application (the WinUI 3 shell): ask the host how to reach its UI
+        // thread instead of running the callback inline on a worker thread.
+        UiDispatcher.Invoke(action);
     }
 
 
