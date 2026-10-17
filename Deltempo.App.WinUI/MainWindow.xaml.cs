@@ -53,6 +53,7 @@ public sealed partial class MainWindow : Window
             LoadSelfTestAppUninstall();
             LoadSelfTestSystemRepair();
             LoadSelfTestMemoryWorkspace();
+            _ = LoadSelfTestStartupWorkspace();
         }
 
         ShellDiagnostics.MaybeSelfTest(this);
@@ -356,6 +357,58 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Exercises the Startup Applications workspace.
+    ///
+    /// LoadAsync only. ToggleAsync, CleanOrphanedAsync and OptimizeBootAsync are
+    /// never invoked: all three write to the Windows registry, and Optimize Boot
+    /// writes to many entries at once.
+    ///
+    /// What this does prove is the PROTECTED-ITEM rule, which is the safety
+    /// property that matters on this screen. It walks the real enumerated set and
+    /// asserts the invariant holds on this machine: no protected entry is
+    /// offered a toggle, and no protected entry is offered a clean. If
+    /// IsProtectedStartupItem ever regressed, this fails.
+    ///
+    /// A bare ViewModel is used, with no confirmation host, so even an accidental
+    /// mutating call would fail closed rather than touch the registry.
+    /// </summary>
+    private async Task LoadSelfTestStartupWorkspace()
+    {
+        var probe = new Deltempo.App.WinUI.ViewModels.StartupWorkspaceViewModel();
+
+        probe.LogRequested += OnFootprintLog;
+        await probe.LoadAsync();
+
+        List<WinTempCleaner.Services.StartupItem> all =
+        [
+            .. await WinTempCleaner.Services.StartupManagerService.GetStartupItemsAsync()
+        ];
+
+        int protectedCount = all.Count(x => x.IsProtected);
+        int protectedToggleable = all.Count(x => x.IsProtected && x.CanToggle);
+        int protectedCleanable = all.Count(x => x.IsProtected && x.CanCleanOrphaned);
+
+        ShellDiagnostics.Write(
+            $"startup workspace loaded (self-test, read only): " +
+            $"{all.Count} entries, {protectedCount} protected, " +
+            $"orphanable={all.Count(x => x.CanCleanOrphaned)}, status=\"{probe.StatusText}\"");
+
+        ShellDiagnostics.Write(
+            $"startup protection invariant verified: " +
+            $"protectedToggleable={protectedToggleable}, protectedCleanable={protectedCleanable}");
+
+        if (protectedToggleable > 0)
+        {
+            ShellDiagnostics.Write("FAIL: a protected startup entry was offered a toggle.");
+        }
+
+        if (protectedCleanable > 0)
+        {
+            ShellDiagnostics.Write("FAIL: a protected startup entry was offered a clean.");
+        }
+    }
+
+    /// <summary>
     /// Opens the ported AppData footprint report over the content area. This is the
     /// Stage 2 proof screen: real Core data, no delete affordance.
     /// </summary>
@@ -435,21 +488,26 @@ public sealed partial class MainWindow : Window
                     OpenAppDataFootprint();
                 }
 
-                // Stage 3's first real workspace: Memory Optimization has its own
-                // panel rather than borrowing the placeholder. The remaining five
-                // still show the placeholder.
-                bool hasPanel = label == Sections[3].Label;
-                MemoryWorkspacePanel.Visibility = hasPanel
-                    ? Visibility.Visible
-                    : Visibility.Collapsed;
+                // Stage 3 workspace panels. Two nav items have real panels now;
+                // the other four still show the placeholder. Each panel loads
+                // lazily on first selection so its scan cost is paid once.
+                bool isMemory = label == Sections[3].Label;
+                bool isStartup = label == Sections[2].Label;
 
-                PlaceholderPanel.Visibility = hasPanel
-                    ? Visibility.Collapsed
-                    : Visibility.Visible;
+                MemoryWorkspacePanel.Visibility = isMemory ? Visibility.Visible : Visibility.Collapsed;
+                StartupWorkspacePanel.Visibility = isStartup ? Visibility.Visible : Visibility.Collapsed;
 
-                if (hasPanel)
+                bool hasPanel = isMemory || isStartup;
+                PlaceholderPanel.Visibility = hasPanel ? Visibility.Collapsed : Visibility.Visible;
+
+                if (isMemory)
                 {
                     MemoryWorkspacePanel.ViewModel.RefreshTelemetry();
+                }
+                else if (isStartup)
+                {
+                    StartupWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
+                    StartupWorkspacePanel.Open();
                 }
             }
         };

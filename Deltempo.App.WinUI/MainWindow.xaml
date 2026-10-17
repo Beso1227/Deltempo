@@ -192,5 +192,10 @@
                                    Grid.Row="1"
                                    Visibility="Collapsed" />
 
+        <views:StartupWorkspaceView x:Name="StartupWorkspacePanel"
+                                   Grid.Column="1"
+                                   Grid.Row="1"
+                                   Visibility="Collapsed" />
+
     </Grid>
 </Window>
