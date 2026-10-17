@@ -36,6 +36,8 @@
     <UserControl.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisInv" Invert="True" />
+        <!-- IsEnabled needs a bool; a Visibility converter throws in WinUI 3. -->
+        <converters:BoolNegationConverter x:Key="NotBool" />
         <converters:HexToBrushConverter x:Key="HexToBrush" />
     </UserControl.Resources>
 
@@ -586,7 +588,7 @@
                                         Padding="10,4"
                                         FontSize="11"
                                         Margin="0,0,0,6"
-                                        IsEnabled="{x:Bind ViewModel.IsLoadingRestorePoints, Mode=OneWay, Converter={StaticResource BoolToVisInv}}"
+                                        IsEnabled="{x:Bind ViewModel.IsLoadingRestorePoints, Mode=OneWay, Converter={StaticResource NotBool}}"
                                         Command="{x:Bind ViewModel.RefreshRestorePointsCommand, Mode=OneTime}" />
 
                                 <!-- Prune only unlocks with more than one snapshot, so

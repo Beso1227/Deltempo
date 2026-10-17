@@ -24,10 +24,13 @@
     d:DesignHeight="420">
 
     <UserControl.Resources>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisInv" Invert="True" />
+        <!-- NotBool, not a Visibility converter: IsEnabled needs a bool and WinUI 3
+         throws if handed one. -->
+        <converters:BoolNegationConverter x:Key="NotBool" />
     </UserControl.Resources>
 
-    <Grid Padding="18,16">
+    <!-- Opaque background: a transparent panel lets the nav rail bleed through. -->
+    <Grid Padding="18,16" Background="{StaticResource CanvasDarkBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -131,7 +134,7 @@
                             FontWeight="SemiBold"
                             Margin="10,0,0,0"
                             VerticalAlignment="Center"
-                            IsEnabled="{x:Bind ViewModel.IsBoosting, Mode=OneWay, Converter={StaticResource BoolToVisInv}}"
+                            IsEnabled="{x:Bind ViewModel.IsBoosting, Mode=OneWay, Converter={StaticResource NotBool}}"
                             Click="OnBoostClick" />
                 </Grid>
             </StackPanel>

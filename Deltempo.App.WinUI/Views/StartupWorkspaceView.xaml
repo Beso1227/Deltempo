@@ -24,7 +24,7 @@
 
     <UserControl.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisInv" Invert="True" />
+        <converters:BoolNegationConverter x:Key="NotBool" />
         <converters:HexToBrushConverter x:Key="HexToBrush" />
         <converters:BytesToBitmapImageConverter x:Key="BytesToImage" DecodePixelWidth="40" />
 
@@ -48,7 +48,12 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid Padding="18,16" RowDefinitions="Auto,Auto,*">
+    <!-- Opaque background, not transparent. A panel with no background lets the
+         nav rail and the workspace behind it show through, which is very
+         visible once maximized. -->
+    <Grid Padding="18,16"
+          Background="{StaticResource CanvasDarkBrush}"
+          RowDefinitions="Auto,Auto,*">
 
         <!-- Hero stats + actions -->
         <Grid Grid.Row="0">
@@ -118,7 +123,7 @@
                         CornerRadius="14"
                         Padding="14,6"
                         FontSize="11.5"
-                        IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisInv}}"
+                        IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource NotBool}}"
                         Command="{x:Bind ViewModel.RefreshCommand, Mode=OneTime}" />
             </StackPanel>
         </Grid>

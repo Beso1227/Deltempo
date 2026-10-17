@@ -464,6 +464,12 @@ public sealed partial class MainWindow : Window
                 Content = BuildNavContent(label, glyph),
             };
 
+            // Without this the item announces as an empty list item. The WPF nav
+            // set AutomationProperties.Name on each workspace, and dropping it
+            // made every nav destination unreachable by name - for screen
+            // readers and for UI automation alike.
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(item, label);
+
             NavList.Items.Add(item);
         }
 

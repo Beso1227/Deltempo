@@ -31,6 +31,9 @@
     <UserControl.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisInv" Invert="True" />
+        <!-- IsEnabled needs a bool. Handing it a Visibility converter works in
+             WPF (which coerces implicitly) and throws in WinUI 3. -->
+        <converters:BoolNegationConverter x:Key="NotBool" />
         <converters:HexToBrushConverter x:Key="HexToBrush" />
         <converters:BytesToBitmapImageConverter x:Key="BytesToImage" DecodePixelWidth="48" />
 
@@ -177,7 +180,7 @@
                                 Padding="12,5"
                                 FontSize="11"
                                 Margin="0,0,6,0"
-                                IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisInv}}"
+                                IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource NotBool}}"
                                 Command="{x:Bind ViewModel.RefreshCommand, Mode=OneTime}" />
 
                         <Button Content="AI Classify All"
@@ -189,7 +192,7 @@
                                 Padding="12,5"
                                 FontSize="11"
                                 Margin="0,0,8,0"
-                                IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisInv}}"
+                                IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource NotBool}}"
                                 Command="{x:Bind ViewModel.FetchAllAiCommand, Mode=OneTime}" />
 
                         <Border Background="{StaticResource SurfaceCardBrush}"
