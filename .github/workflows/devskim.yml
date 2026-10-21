@@ -29,6 +29,18 @@ jobs:
         uses: microsoft/DevSkim-Action@v1
         with:
           ignore-globs: "**/.git/**,**/bin/**,**/obj/**,**/scripts/vendor/**"
+          # -E makes devskim's exit code the NUMBER OF ISSUES, and the action's
+          # entrypoint passes that exit code straight through to the step. Without
+          # it the scan always exits 0 and the check is decorative: the "DevSkim"
+          # status stayed green on main while 7 alerts sat open in the Security tab,
+          # because nothing was ever going to fail the build on a finding. A
+          # scanner that cannot fail a build is a report, not a gate.
+          #
+          # Verified against the version this action actually runs (1.0.90, pinned
+          # in the action's Dockerfile): 0 findings on the current tree, and the 7
+          # suppressed test-fixture findings in UpdatePipelineSecurityTests.cs
+          # reproduce without their same-line "// DevSkim: ignore DS<id>" comments.
+          extra-options: "-E"
 
       - name: Upload DevSkim scan results to GitHub Security tab
         if: hashFiles('devskim-results.sarif') != ''

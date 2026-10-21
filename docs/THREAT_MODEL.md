@@ -116,3 +116,16 @@ This document identifies potential attack vectors, adversarial edge cases, and t
 * **Mitigation**:
   * Privileges are acquired on-demand only for the duration of the memory call.
   * `RevertBoostPrivileges()` is called immediately following working set and cache optimization, ensuring privileges are restored to `SE_PRIVILEGE_DISABLED`.
+
+### 2.8 CI & Release Pipeline Integrity
+
+* **Threat**: A compromised or hijacked build dependency produces a signed Deltempo binary that users install and run with Administrator rights. The signing certificate is the trust anchor for the whole distribution channel, so a build-time compromise is strictly worse than the runtime threats above.
+* **Mitigation**:
+  * Every third-party GitHub Action is pinned to a full commit SHA with the version kept as a trailing comment, so a moved major tag cannot change what a workflow executes without a reviewable diff in this repository.
+  * The release job's tag reaches the shell through `env:` (`TAG`), never through a `${{ }}` interpolation inside a `run:` body. Interpolating `workflow_dispatch` input directly into a script let a tag such as `v1"; whoami; "` break out of the PowerShell string and execute arbitrary code in the one job holding `SIGNING_CERTIFICATE_PFX` and `contents: write`.
+  * The NuGet vulnerability audit fails closed: an audit that cannot run, or that produces no verdict line, is treated as a failure rather than as a clean result.
+  * `CodeQL` runs `security-extended` over the C# sources on every push and pull request, and the results are surfaced in the repository's Security tab rather than only in the run log.
+* **Known gaps**:
+  * Branch protection does not apply to administrators (`enforce_admins: false`), so the required status check can be bypassed by a direct push. This is not theoretical: on 2026-10-17 a red `Build, Test & Quality Gate` reached `main` this way.
+  * The release job downloads the MSIX and portable artefacts it signs from the same runner that built them, with no independent attestation of the build environment. Reproducible-build verification is not performed.
+  * There is no second maintainer, so a change to the release workflow is reviewed by the same person who authored it. GitHub's approval rule does not allow self-approval, which is why `required_pull_request_reviews` cannot simply be switched on.

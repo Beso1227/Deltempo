@@ -24,14 +24,28 @@ jobs:
       SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
 
     steps:
+      # The tag reaches the shell through the environment, never through the
+      # script body. Interpolating `${{ github.event.inputs.tag }}` directly
+      # into a `run:` block lets a tag like `v1"; whoami; "` break out of the
+      # PowerShell string and execute arbitrary code in the one job that holds
+      # the signing certificate and `contents: write`. An env var is passed as
+      # data, so a hostile value stays a string.
       - name: Resolve Tag
         id: tag
         shell: pwsh
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_TAG: ${{ github.event.inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
-            $tag = "${{ github.event.inputs.tag }}"
+          if ($env:EVENT_NAME -eq "workflow_dispatch") {
+            $tag = $env:DISPATCH_TAG
           } else {
-            $tag = "${{ github.ref_name }}"
+            $tag = $env:REF_NAME
+          }
+          if ([string]::IsNullOrWhiteSpace($tag)) {
+            Write-Error "::error::No tag to release. Pass one to workflow_dispatch, or push a v* tag."
+            exit 1
           }
           Write-Host "Building for tag: $tag"
           echo "value=$tag" >> $env:GITHUB_OUTPUT
@@ -48,8 +62,10 @@ jobs:
 
       - name: Validate Version Matches Tag
         shell: pwsh
+        env:
+          TAG: ${{ steps.tag.outputs.value }}
         run: |
-          $tag = "${{ steps.tag.outputs.value }}"
+          $tag = $env:TAG
           $tagVersion = $tag.TrimStart('v')
           [xml]$props = Get-Content "Directory.Build.props"
           $assemblyVersion = $props.Project.PropertyGroup.AssemblyVersion
@@ -321,10 +337,12 @@ jobs:
 
       - name: Generate Winget Manifests
         shell: pwsh
+        env:
+          TAG: ${{ steps.tag.outputs.value }}
         run: |
           # Fill the InstallerSha256 placeholders in the committed manifest from the
           # artefacts just built, so winget and the release can never disagree.
-          $tag = "${{ steps.tag.outputs.value }}"
+          $tag = $env:TAG
           $version = $tag.TrimStart('v')
 
           $installer = "./packaging/winget/Beso1227.Deltempo.installer.yaml"
@@ -358,12 +376,13 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.value }}
         run: |
           # Must be safe on a FIRST release, not just on re-runs. `gh release view` exits
           # non-zero when the release does not exist yet, and under `pwsh` a native
           # command's exit code becomes the step's exit code - so the previous version of
           # this step failed every first-time release with "there is nothing to clean".
-          $tag = "${{ steps.tag.outputs.value }}"
+          $tag = $env:TAG
           $raw = gh release view $tag --json assets 2>$null
           if ($LASTEXITCODE -ne 0 -or -not $raw) {
             Write-Host "No existing release for $tag - nothing to clean."
@@ -435,13 +454,14 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.value }}
         run: |
-          gh release upload "${{ steps.tag.outputs.value }}" ./dist/checksums.sha256 --clobber
+          gh release upload "$env:TAG" ./dist/checksums.sha256 --clobber
           if ($LASTEXITCODE -ne 0) {
-            Write-Error "::error::checksums.sha256 could not be attached to ${{ steps.tag.outputs.value }}. The one-line installer will fail closed until this is fixed."
+            Write-Error "::error::checksums.sha256 could not be attached to $env:TAG. The one-line installer will fail closed until this is fixed."
             exit 1
           }
-          Write-Host "checksums.sha256 attached to ${{ steps.tag.outputs.value }}."
+          Write-Host "checksums.sha256 attached to $env:TAG."
 
       # Same fail-closed treatment for the MSIX packages: softprops has been
       # observed to drop assets, and the winget/store channel depends on them.
@@ -450,8 +470,9 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.value }}
         run: |
-          $tag = "${{ steps.tag.outputs.value }}"
+          $tag = $env:TAG
           $msixFiles = Get-ChildItem ./dist -Filter *.msix -ErrorAction SilentlyContinue
           if (-not $msixFiles) {
             Write-Error "::error::No .msix artefacts found in ./dist. MSIX packaging must produce at least one package."
@@ -473,8 +494,9 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.value }}
         run: |
-          $tag = "${{ steps.tag.outputs.value }}"
+          $tag = $env:TAG
           $version = $tag.TrimStart('v')
           $stage = Join-Path $env:RUNNER_TEMP "winget_manifests"
           $dest = Join-Path $stage "$version"

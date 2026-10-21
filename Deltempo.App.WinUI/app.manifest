@@ -12,9 +12,27 @@
   picks up 1.25 on this machine, matching the WPF sizing and text rendering.
 
   activeCodePage UTF-8 is the Windows App SDK recommendation for unpackaged apps.
+
+  requireAdministrator and longPathAware were added for the same reason the WPF
+  app.manifest declares them. Without requireAdministrator the shell runs
+  UNelevated, so its cleanup, registry and force-delete panels hit access
+  denied - the CLI already reports "Administrator privileges required to query or
+  clean restore points." Without longPathAware the process is bound by the
+  legacy 260-character path limit, while Core/Safety/PathSecurity.cs performs
+  the extended-length (\\?\) canonicalisation that needs the opt-in.
 -->
 <assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
   <assemblyIdentity version="1.0.0.0" name="Deltempo.WinUI.app" />
+
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    <security>
+      <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
+        <!-- requireAdministrator: guarantees Deltempo always prompts for UAC elevation
+             and runs with full Administrator privileges on launch. -->
+        <requestedExecutionLevel level="requireAdministrator" uiAccess="false" />
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
 
   <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
     <application>
@@ -29,6 +47,7 @@
       <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/PM</dpiAware>
       <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2, PerMonitor</dpiAwareness>
       <activeCodePage xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">UTF-8</activeCodePage>
+      <longPathAware xmlns="urn:schemas-microsoft-com:asm.v3">true</longPathAware>
     </windowsSettings>
   </application>
 </assembly>
