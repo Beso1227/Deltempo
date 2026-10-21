@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Deltempo.Core\Deltempo.Core.csproj" />
+    <ProjectReference Include="..\Deltempo.Core\Deltempo.Core.csproj" />
   </ItemGroup>
 
 </Project>

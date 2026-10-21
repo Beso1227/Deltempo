@@ -37,7 +37,7 @@ public class PackagingConfigurationTests
 
     [Theory]
     [InlineData("src/Deltempo.App.Wpf/WinTempCleaner.csproj")]
-    [InlineData("Cli/Deltempo.Cli.csproj")]
+    [InlineData("src/Deltempo.Cli/Deltempo.Cli.csproj")]
     public void PublishableProjects_DeclareX64AndArm64RuntimeIdentifiers(string projectRelativePath)
     {
         var content = Read(projectRelativePath.Split('/'));
@@ -56,7 +56,7 @@ public class PackagingConfigurationTests
     {
         // The release pipeline relies on these three settings; dropping any of them would
         // silently produce a multi-file or uncompressed build that breaks the one-liner.
-        foreach (var project in new[] { "src/Deltempo.App.Wpf/WinTempCleaner.csproj", "Cli/Deltempo.Cli.csproj" })
+        foreach (var project in new[] { "src/Deltempo.App.Wpf/WinTempCleaner.csproj", "src/Deltempo.Cli/Deltempo.Cli.csproj" })
         {
             var content = Read(project.Split('/'));
 
@@ -71,7 +71,7 @@ public class PackagingConfigurationTests
     {
         // UseWPF sets WPF's non-trimmable Illink descriptors, which fails any future
         // PublishAot trial with NETSDK1168. The CLI has no System.Windows.* usage.
-        var content = Read("Cli", "Deltempo.Cli.csproj");
+        var content = Read("src", "Deltempo.Cli", "Deltempo.Cli.csproj");
 
         Assert.DoesNotContain("<UseWPF>true</UseWPF>", content);
     }

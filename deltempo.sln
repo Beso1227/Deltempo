@@ -9,15 +9,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cli", "Cli", "{342A349A-D34
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.Cli", "Cli\Deltempo.Cli.csproj", "{F307F402-C705-C9D1-6949-89182F32B747}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.Cli", "src\Deltempo.Cli\Deltempo.Cli.csproj", "{F307F402-C705-C9D1-6949-89182F32B747}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.Tests", "Tests\Deltempo.Tests\Deltempo.Tests.csproj", "{EEB4135B-885E-8A48-A117-D74C76298C46}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.Tests", "tests\Deltempo.Tests\Deltempo.Tests.csproj", "{EEB4135B-885E-8A48-A117-D74C76298C46}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{FBF56CC3-7AE6-AD2D-3F14-7F97FD322CD6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.Core", "src\Deltempo.Core\Deltempo.Core.csproj", "{68457075-A84B-4639-B544-F993AED9AA84}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.App.WinUI", "Deltempo.App.WinUI\Deltempo.App.WinUI.csproj", "{DF922A2E-5E35-49AF-85B5-9810CB1572B2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.App.WinUI", "src\Deltempo.App.WinUI\Deltempo.App.WinUI.csproj", "{DF922A2E-5E35-49AF-85B5-9810CB1572B2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
