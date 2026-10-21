@@ -30,8 +30,8 @@
         <converters:HexToBrushConverter x:Key="HexToBrush" />
 
         <Style x:Key="StatCard" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource SurfaceCardBrush}" />
-            <Setter Property="BorderBrush" Value="{StaticResource HairlineBorderBrush}" />
+            <Setter Property="Background" Value="{ThemeResource SurfaceCardBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource HairlineBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="12" />
             <Setter Property="Padding" Value="12,9" />
@@ -42,8 +42,8 @@
 
         <DataTemplate x:Key="LargeFileRowTemplate" x:DataType="services:LargeFileInfo">
             <Border
-                Background="{StaticResource SurfaceSubCardBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource SurfaceSubCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="10"
                 Padding="12,9">
@@ -62,27 +62,27 @@
                             Glyph="{Binding CategoryIcon}"
                             FontFamily="{StaticResource IconFont}"
                             FontSize="14"
-                            Foreground="{StaticResource TextMutedBrush}"
+                            Foreground="{ThemeResource TextMutedBrush}"
                             VerticalAlignment="Center" />
                         <TextBlock
                             Text="{Binding FileName}"
                             FontSize="12.5"
                             FontWeight="SemiBold"
-                            Foreground="{StaticResource TextHighBrush}"
+                            Foreground="{ThemeResource TextHighBrush}"
                             TextTrimming="CharacterEllipsis"
                             HorizontalAlignment="Left"
                             MaxWidth="260"
                             VerticalAlignment="Center" />
                         <Border
-                            Background="{StaticResource SurfaceCardBrush}"
-                            BorderBrush="{StaticResource HairlineBorderBrush}"
+                            Background="{ThemeResource SurfaceCardBrush}"
+                            BorderBrush="{ThemeResource HairlineBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="5"
                             Padding="6,1.5">
                             <TextBlock
                                 Text="{Binding Category}"
                                 FontSize="10"
-                                Foreground="{StaticResource TextMutedBrush}"
+                                Foreground="{ThemeResource TextMutedBrush}"
                                 VerticalAlignment="Center" />
                         </Border>
                         <TextBlock
@@ -109,7 +109,7 @@
                         <TextBlock
                             Text="{Binding FormattedDate}"
                             FontSize="10"
-                            Foreground="{StaticResource TextMutedBrush}"
+                            Foreground="{ThemeResource TextMutedBrush}"
                             TextTrimming="CharacterEllipsis"
                             HorizontalAlignment="Left"
                             MaxWidth="150"
@@ -119,8 +119,8 @@
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
                         <Button
                             Content="Reveal"
-                            Background="{StaticResource PillButtonBgBrush}"
-                            BorderBrush="{StaticResource PillButtonBorderBrush}"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource PillButtonBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="12"
                             Padding="10,4"
@@ -161,25 +161,25 @@
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
                 <Border Style="{StaticResource StatCard}">
                     <StackPanel>
-                        <TextBlock Text="Total storage" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
+                        <TextBlock Text="Total storage" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
                         <TextBlock Text="{x:Bind ViewModel.TotalStorageText, Mode=OneWay}"
-                                   FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextHighBrush}" />
+                                   FontSize="12.5" FontWeight="SemiBold" Foreground="{ThemeResource TextHighBrush}" />
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource StatCard}">
                     <StackPanel>
-                        <TextBlock Text="Safe to clean" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
+                        <TextBlock Text="Safe to clean" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
                         <TextBlock Text="{x:Bind ViewModel.SafeStorageText, Mode=OneWay}"
-                                   FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource SuccessTextBrightBrush}" />
+                                   FontSize="12.5" FontWeight="SemiBold" Foreground="{ThemeResource SuccessTextBrightBrush}" />
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource StatCard}">
                     <StackPanel>
-                        <TextBlock Text="Protected" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
+                        <TextBlock Text="Protected" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
                         <TextBlock Text="{x:Bind ViewModel.ProtectedStorageText, Mode=OneWay}"
-                                   FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource RoseErrorBrush}" />
+                                   FontSize="12.5" FontWeight="SemiBold" Foreground="{ThemeResource RoseErrorBrush}" />
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -187,8 +187,8 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
                 <Button
                     Content="Scan Now"
-                    Background="{StaticResource PillButtonBgBrush}"
-                    BorderBrush="{StaticResource PillButtonBorderBrush}"
+                    Background="{ThemeResource PillButtonBgBrush}"
+                    BorderBrush="{ThemeResource PillButtonBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="14"
                     Padding="14,6"
@@ -211,15 +211,15 @@
 
         <!-- Filter chips + view mode -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0,12,0,10" VerticalAlignment="Center">
-            <TextBlock Text="Scope:" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
+            <TextBlock Text="Scope:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
             <RadioButton GroupName="LargeFileScope" Content="All Drives" Style="{StaticResource LargeFileChip}" Tag="ALL" Checked="OnScopeChanged" />
             <RadioButton GroupName="LargeFileScope" Content="User Profile" Style="{StaticResource LargeFileChip}" Tag="USER" Checked="OnScopeChanged" />
 
-            <TextBlock Text="Min size:" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,6,0" />
+            <TextBlock Text="Min size:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,6,0" />
             <RadioButton GroupName="LargeFileSize" Content="50 MB" Style="{StaticResource LargeFileChip}" Tag="50MB" IsChecked="True" Checked="OnSizeChanged" />
             <RadioButton GroupName="LargeFileSize" Content="100 MB" Style="{StaticResource LargeFileChip}" Tag="100MB" Checked="OnSizeChanged" />
 
-            <TextBlock Text="View:" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,6,0" />
+            <TextBlock Text="View:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,6,0" />
             <RadioButton GroupName="LargeFileView" Content="List" Style="{StaticResource LargeFileChip}" Tag="LIST" IsChecked="True" Checked="OnViewModeChanged" />
             <RadioButton GroupName="LargeFileView" Content="Treemap" Style="{StaticResource LargeFileChip}" Tag="TREEMAP" Checked="OnViewModeChanged" />
         </StackPanel>
@@ -247,7 +247,7 @@
 
             <Canvas
                 x:Name="TreemapCanvas"
-                Background="{StaticResource SurfaceCardBrush}"
+                Background="{ThemeResource SurfaceCardBrush}"
                 Visibility="Collapsed"
                 SizeChanged="OnTreemapSizeChanged" />
         </Grid>
@@ -255,19 +255,19 @@
         <!-- Empty state -->
         <Border
             Grid.Row="2"
-            Background="{StaticResource SurfaceCardBrush}"
-            BorderBrush="{StaticResource HairlineBorderBrush}"
+            Background="{ThemeResource SurfaceCardBrush}"
+            BorderBrush="{ThemeResource HairlineBorderBrush}"
             BorderThickness="1"
             CornerRadius="12"
             Padding="24"
             Visibility="{x:Bind ViewModel.HasItems, Mode=OneWay, Converter={StaticResource BoolToVisInv}}">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-                <FontIcon Glyph="&#xE8B7;" FontFamily="{StaticResource IconFont}" FontSize="34" Foreground="{StaticResource TextMutedBrush}" />
+                <FontIcon Glyph="&#xE8B7;" FontFamily="{StaticResource IconFont}" FontSize="34" Foreground="{ThemeResource TextMutedBrush}" />
                 <TextBlock Text="No large files found"
-                           FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextHighBrush}"
+                           FontSize="15" FontWeight="SemiBold" Foreground="{ThemeResource TextHighBrush}"
                            HorizontalAlignment="Center" />
                 <TextBlock Text="Scan your drives to see large files. Safe-to-clean files are marked with a green badge."
-                           FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" TextAlignment="Center" MaxWidth="460" />
+                           FontSize="11.5" Foreground="{ThemeResource TextMutedBrush}" TextAlignment="Center" MaxWidth="460" />
             </StackPanel>
         </Border>
 
@@ -275,18 +275,18 @@
              select, so Select Safe / Select All / Clear stay reachable without a
              first manual tick. -->
         <Border Grid.Row="3"
-                Background="{StaticResource SurfaceCardBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource SurfaceCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="12,8"
                 Visibility="{x:Bind ViewModel.HasItems, Mode=OneWay, Converter={StaticResource BoolToVis}}">
             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                 <TextBlock Text="{x:Bind ViewModel.SelectedSummaryText, Mode=OneWay}"
-                           FontSize="11" Foreground="{StaticResource TextMediumBrush}" VerticalAlignment="Center" />
+                           FontSize="11" Foreground="{ThemeResource TextMediumBrush}" VerticalAlignment="Center" />
                 <Button
                     Content="Select Safe"
-                    Background="{StaticResource PillButtonBgBrush}"
-                    BorderBrush="{StaticResource PillButtonBorderBrush}"
+                    Background="{ThemeResource PillButtonBgBrush}"
+                    BorderBrush="{ThemeResource PillButtonBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="12"
                     Padding="10,4"
@@ -294,8 +294,8 @@
                     Command="{x:Bind ViewModel.SelectSafeCommand, Mode=OneTime}" />
                 <Button
                     Content="Select All"
-                    Background="{StaticResource PillButtonBgBrush}"
-                    BorderBrush="{StaticResource PillButtonBorderBrush}"
+                    Background="{ThemeResource PillButtonBgBrush}"
+                    BorderBrush="{ThemeResource PillButtonBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="12"
                     Padding="10,4"
@@ -303,8 +303,8 @@
                     Command="{x:Bind ViewModel.SelectAllCommand, Mode=OneTime}" />
                 <Button
                     Content="Clear"
-                    Background="{StaticResource PillButtonBgBrush}"
-                    BorderBrush="{StaticResource PillButtonBorderBrush}"
+                    Background="{ThemeResource PillButtonBgBrush}"
+                    BorderBrush="{ThemeResource PillButtonBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="12"
                     Padding="10,4"

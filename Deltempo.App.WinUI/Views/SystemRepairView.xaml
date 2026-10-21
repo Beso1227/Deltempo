@@ -43,8 +43,8 @@
 
     <Grid Background="Transparent">
         <Border Margin="24,14,24,14"
-                Background="{StaticResource SurfaceSubCardBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource SurfaceSubCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="16"
                 Padding="20,16">
@@ -64,14 +64,14 @@
                         <Border Width="40"
                                 Height="40"
                                 CornerRadius="12"
-                                Background="{StaticResource SurfaceCardBrush}"
-                                BorderBrush="{StaticResource ElectricCyanBrush}"
+                                Background="{ThemeResource SurfaceCardBrush}"
+                                BorderBrush="{ThemeResource ElectricCyanBrush}"
                                 BorderThickness="1"
                                 Margin="0,0,12,0">
                             <FontIcon Glyph="&#xE90F;"
                                       FontFamily="{StaticResource IconFont}"
                                       FontSize="18"
-                                      Foreground="{StaticResource ElectricCyanBrush}"
+                                      Foreground="{ThemeResource ElectricCyanBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -79,18 +79,18 @@
                             <TextBlock Text="System Repair &amp; Health Console"
                                        FontSize="16"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextHighBrush}" />
+                                       Foreground="{ThemeResource TextHighBrush}" />
                             <TextBlock Text="Diagnose and repair Windows integrity, component store, filesystem, and networking"
                                        FontSize="11.5"
-                                       Foreground="{StaticResource TextMediumBrush}" />
+                                       Foreground="{ThemeResource TextMediumBrush}" />
                         </StackPanel>
                     </StackPanel>
 
                     <!-- Elevation badge: colour follows IsAdministrator from the
                          ViewModel so it cannot disagree with the banner. -->
                     <Border Grid.Column="1"
-                            Background="{StaticResource SurfaceCardBrush}"
-                            BorderBrush="{StaticResource ElectricCyanBrush}"
+                            Background="{ThemeResource SurfaceCardBrush}"
+                            BorderBrush="{ThemeResource ElectricCyanBrush}"
                             BorderThickness="1"
                             CornerRadius="12"
                             Padding="10,4"
@@ -100,14 +100,14 @@
                         <TextBlock Text="{x:Bind ViewModel.ElevationBadgeText, Mode=OneWay}"
                                    FontSize="10.5"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource ElectricCyanBrush}" />
+                                   Foreground="{ThemeResource ElectricCyanBrush}" />
                     </Border>
 
                     <!-- Standard-user badge. Both badges read one flag, so the
                          shell can never claim elevation it does not have. -->
                     <Border Grid.Column="1"
-                            Background="{StaticResource WarningBadgeBgBrush}"
-                            BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                            Background="{ThemeResource WarningBadgeBgBrush}"
+                            BorderBrush="{ThemeResource WarningBadgeBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="12"
                             Padding="10,4"
@@ -117,13 +117,13 @@
                         <TextBlock Text="{x:Bind ViewModel.ElevationBadgeText, Mode=OneWay}"
                                    FontSize="10.5"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource WarningBadgeTextBrush}" />
+                                   Foreground="{ThemeResource WarningBadgeTextBrush}" />
                     </Border>
 
                     <Button Grid.Column="2"
                             Content="Copy Log"
-                            Background="{StaticResource PillButtonBgBrush}"
-                            BorderBrush="{StaticResource PillButtonBorderBrush}"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource PillButtonBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="14"
                             Padding="12,5"
@@ -142,7 +142,7 @@
                         <FontIcon Glyph="&#xE8BB;"
                                   FontFamily="{StaticResource IconFont}"
                                   FontSize="12"
-                                  Foreground="{StaticResource TextMediumBrush}" />
+                                  Foreground="{ThemeResource TextMediumBrush}" />
                     </Button>
                 </Grid>
 
@@ -150,8 +150,8 @@
                 <StackPanel Grid.Row="1" Margin="0,0,0,10">
 
                     <!-- Non-admin users see this instead of silently failing mid-operation. -->
-                    <Border Background="{StaticResource WarningBadgeBgBrush}"
-                            BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                    <Border Background="{ThemeResource WarningBadgeBgBrush}"
+                            BorderBrush="{ThemeResource WarningBadgeBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="10"
                             Padding="12,8"
@@ -168,14 +168,14 @@
                                       Glyph="&#xE7BA;"
                                       FontFamily="{StaticResource IconFont}"
                                       FontSize="13"
-                                      Foreground="{StaticResource WarningBadgeTextBrush}"
+                                      Foreground="{ThemeResource WarningBadgeTextBrush}"
                                       VerticalAlignment="Center"
                                       Margin="0,0,10,0" />
 
                             <TextBlock Grid.Column="1"
                                        Text="Repair tools need Administrator. Deltempo is running unprivileged, so DISM, SFC, CHKDSK, and the stack resets will fail or be incomplete."
                                        FontSize="11"
-                                       Foreground="{StaticResource WarningBadgeTextBrush}"
+                                       Foreground="{ThemeResource WarningBadgeTextBrush}"
                                        TextWrapping="Wrap"
                                        VerticalAlignment="Center" />
 
@@ -204,8 +204,8 @@
                         <Button Grid.Column="0"
                                 AutomationProperties.Name="Run quick integrity assessment"
                                 ToolTipService.ToolTip="Read-only 4-point check of the component store, system files, filesystem, and servicing stack."
-                                Background="{StaticResource SurfaceCardBrush}"
-                                BorderBrush="{StaticResource ElectricCyanBrush}"
+                                Background="{ThemeResource SurfaceCardBrush}"
+                                BorderBrush="{ThemeResource ElectricCyanBrush}"
                                 BorderThickness="1"
                                 CornerRadius="14"
                                 Padding="16,7"
@@ -218,7 +218,7 @@
                                 <FontIcon Glyph="&#xE9D9;"
                                           FontFamily="{StaticResource IconFont}"
                                           FontSize="12"
-                                          Foreground="{StaticResource ElectricCyanBrush}"
+                                          Foreground="{ThemeResource ElectricCyanBrush}"
                                           Margin="0,0,6,0" />
                                 <TextBlock Text="Quick Assessment" />
                             </StackPanel>
@@ -264,14 +264,14 @@
                                        Text="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
                                        FontSize="11"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource ElectricCyanBrush}"
+                                       Foreground="{ThemeResource ElectricCyanBrush}"
                                        VerticalAlignment="Center"
                                        Margin="10,0,10,0" />
 
                             <Button Grid.Column="2"
                                     Content="Cancel"
                                     ToolTipService.ToolTip="Stop the running repair. Interrupting DISM or CHKDSK can leave Windows needing further repair."
-                                    Background="{StaticResource PillButtonBgBrush}"
+                                    Background="{ThemeResource PillButtonBgBrush}"
                                     BorderBrush="{StaticResource DestructiveRedBrush}"
                                     BorderThickness="1"
                                     CornerRadius="12"
@@ -292,14 +292,14 @@
                         <TextBlock Text="REPAIR TOOLS"
                                    FontSize="10"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextMutedBrush}"
+                                   Foreground="{ThemeResource TextMutedBrush}"
                                    Margin="0,0,0,6" />
 
                         <Button Content="System File Checker (SFC)"
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Left"
-                                Background="{StaticResource SurfaceCardBrush}"
-                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                Background="{ThemeResource SurfaceCardBrush}"
+                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 Padding="12,8"
@@ -311,8 +311,8 @@
                         <Button Content="DISM RestoreHealth"
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Left"
-                                Background="{StaticResource SurfaceCardBrush}"
-                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                Background="{ThemeResource SurfaceCardBrush}"
+                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 Padding="12,8"
@@ -325,8 +325,8 @@
                                 ToolTipService.ToolTip="Scavenges superseded component versions. Reclaims disk but cannot be undone."
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Left"
-                                Background="{StaticResource SurfaceCardBrush}"
-                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                Background="{ThemeResource SurfaceCardBrush}"
+                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 Padding="12,8"
@@ -338,8 +338,8 @@
                         <Button Content="Filesystem Integrity (CHKDSK C:)"
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Left"
-                                Background="{StaticResource SurfaceCardBrush}"
-                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                Background="{ThemeResource SurfaceCardBrush}"
+                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 Padding="12,8"
@@ -352,8 +352,8 @@
                                 ToolTipService.ToolTip="Stops update services, renames the SoftwareDistribution cache, and restarts them."
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Left"
-                                Background="{StaticResource SurfaceCardBrush}"
-                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                Background="{ThemeResource SurfaceCardBrush}"
+                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 Padding="12,8"
@@ -366,8 +366,8 @@
                                 ToolTipService.ToolTip="Resets the Winsock catalog. Usually requires a reboot afterwards."
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Left"
-                                Background="{StaticResource SurfaceCardBrush}"
-                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                Background="{ThemeResource SurfaceCardBrush}"
+                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 Padding="12,8"
@@ -380,8 +380,8 @@
                                 ToolTipService.ToolTip="Opens the Chris Titus Tech Windows Utility in an elevated PowerShell window."
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Left"
-                                Background="{StaticResource PillButtonBgBrush}"
-                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                Background="{ThemeResource PillButtonBgBrush}"
+                                BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 Padding="12,8"
@@ -389,8 +389,8 @@
                                 Margin="0,0,0,10"
                                 Command="{x:Bind ViewModel.LaunchWinUtilCommand, Mode=OneTime}" />
 
-                        <Border Background="{StaticResource SurfaceCardBrush}"
-                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                        <Border Background="{ThemeResource SurfaceCardBrush}"
+                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="12"
                                 Padding="12,10">
@@ -398,7 +398,7 @@
                                 <TextBlock Text="SUBSYSTEM HEALTH"
                                            FontSize="10"
                                            FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextMutedBrush}"
+                                           Foreground="{ThemeResource TextMutedBrush}"
                                            Margin="0,0,0,8" />
 
                                 <ItemsControl ItemsSource="{x:Bind ViewModel.Subsystems, Mode=OneTime}">
@@ -421,7 +421,7 @@
                                                     <TextBlock Text="{x:Bind Name, Mode=OneTime}"
                                                                FontSize="11"
                                                                FontWeight="SemiBold"
-                                                               Foreground="{StaticResource TextHighBrush}" />
+                                                               Foreground="{ThemeResource TextHighBrush}" />
                                                     <TextBlock Text="{x:Bind Details, Mode=OneWay}"
                                                                FontSize="10"
                                                                Foreground="{x:Bind IndicatorHex, Mode=OneWay, Converter={StaticResource HexToBrush}}"
@@ -433,7 +433,7 @@
                                 </ItemsControl>
 
                                 <Border Height="1"
-                                        Background="{StaticResource HairlineBorderBrush}"
+                                        Background="{ThemeResource HairlineBorderBrush}"
                                         Margin="0,6,0,8" />
 
                                 <TextBlock Text="{x:Bind ViewModel.OverallRatingText, Mode=OneWay}"
@@ -468,7 +468,7 @@
                                         <TextBlock Text="{x:Bind ViewModel.Verdict.Details, Mode=OneWay}"
                                                    Margin="0,5,0,0"
                                                    FontSize="10.5"
-                                                   Foreground="{StaticResource TextMediumBrush}"
+                                                   Foreground="{ThemeResource TextMediumBrush}"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Border>
@@ -478,8 +478,8 @@
 
                     <!-- Terminal -->
                     <Border Grid.Column="1"
-                            Background="{StaticResource HeaderDockBrush}"
-                            BorderBrush="{StaticResource HairlineBorderBrush}"
+                            Background="{ThemeResource HeaderDockBrush}"
+                            BorderBrush="{ThemeResource HairlineBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="12"
                             Padding="10,8"
@@ -495,13 +495,13 @@
                                            Text="TERMINAL OUTPUT"
                                            FontSize="10"
                                            FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextMutedBrush}"
+                                           Foreground="{ThemeResource TextMutedBrush}"
                                            VerticalAlignment="Center" />
 
                                 <Button Grid.Column="1"
                                         Content="Clear"
-                                        Background="{StaticResource PillButtonBgBrush}"
-                                        BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                        Background="{ThemeResource PillButtonBgBrush}"
+                                        BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="12"
                                         Padding="10,3"
@@ -518,7 +518,7 @@
                                      TextWrapping="NoWrap"
                                      FontFamily="{StaticResource MonoFont}"
                                      FontSize="10.5"
-                                     Foreground="{StaticResource ElectricCyanBrush}"
+                                     Foreground="{ThemeResource ElectricCyanBrush}"
                                      Background="Transparent"
                                      BorderThickness="0"
                                      VerticalContentAlignment="Top" />
@@ -528,8 +528,8 @@
                     <!-- Restore points -->
                     <Border Grid.Column="2"
                             Width="230"
-                            Background="{StaticResource SurfaceCardBrush}"
-                            BorderBrush="{StaticResource HairlineBorderBrush}"
+                            Background="{ThemeResource SurfaceCardBrush}"
+                            BorderBrush="{ThemeResource HairlineBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="12"
                             Padding="10,10">
@@ -538,19 +538,19 @@
                                        Text="RESTORE POINTS"
                                        FontSize="10"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextMutedBrush}" />
+                                       Foreground="{ThemeResource TextMutedBrush}" />
 
                             <TextBlock Grid.Row="1"
                                        Text="{x:Bind ViewModel.RestorePointsBadgeText, Mode=OneWay}"
                                        FontSize="12"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource ElectricCyanBrush}"
+                                       Foreground="{ThemeResource ElectricCyanBrush}"
                                        Margin="0,2,0,4" />
 
                             <TextBlock Grid.Row="2"
                                        Text="{x:Bind ViewModel.RestorePointsSummaryText, Mode=OneWay}"
                                        FontSize="10"
-                                       Foreground="{StaticResource TextMutedBrush}"
+                                       Foreground="{ThemeResource TextMutedBrush}"
                                        TextWrapping="Wrap" />
 
                             <ListView Grid.Row="3"
@@ -565,10 +565,10 @@
                                         <StackPanel Margin="0,0,0,6">
                                             <TextBlock Text="{Binding Description}"
                                                        FontSize="10.5"
-                                                       Foreground="{StaticResource TextHighBrush}"
+                                                       Foreground="{ThemeResource TextHighBrush}"
                                                        TextTrimming="CharacterEllipsis" />
                                             <TextBlock FontSize="9.5"
-                                                       Foreground="{StaticResource TextMutedBrush}">
+                                                       Foreground="{ThemeResource TextMutedBrush}">
                                                 <Run Text="{Binding FormattedTime, Mode=OneWay}" />
                                                 <Run Text=" - seq " />
                                                 <Run Text="{Binding SequenceNumber, Mode=OneWay}" />
@@ -581,8 +581,8 @@
                             <StackPanel Grid.Row="4" Margin="0,8,0,0">
                                 <Button Content="Refresh"
                                         HorizontalAlignment="Stretch"
-                                        Background="{StaticResource PillButtonBgBrush}"
-                                        BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                        Background="{ThemeResource PillButtonBgBrush}"
+                                        BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="12"
                                         Padding="10,4"
@@ -596,8 +596,8 @@
                                 <Button Content="Prune Older"
                                         HorizontalAlignment="Stretch"
                                         ToolTipService.ToolTip="Purges older VSS snapshots while keeping the newest one intact."
-                                        Background="{StaticResource PillButtonBgBrush}"
-                                        BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                                        Background="{ThemeResource PillButtonBgBrush}"
+                                        BorderBrush="{ThemeResource WarningBadgeBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="12"
                                         Padding="10,4"
@@ -619,15 +619,15 @@
                     <TextBlock Grid.Column="0"
                                Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
                                FontSize="11"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               Foreground="{ThemeResource TextMutedBrush}"
                                VerticalAlignment="Center"
                                TextWrapping="Wrap"
                                TextTrimming="CharacterEllipsis" />
 
                     <Button Grid.Column="1"
                             Content="Close"
-                            Background="{StaticResource PillButtonBgBrush}"
-                            BorderBrush="{StaticResource PillButtonBorderBrush}"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource PillButtonBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="14"
                             Padding="18,6"

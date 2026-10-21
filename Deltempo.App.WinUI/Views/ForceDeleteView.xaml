@@ -31,8 +31,8 @@
 
     <Grid Background="Transparent">
         <Border Margin="24,14,24,14"
-                Background="{StaticResource SurfaceSubCardBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource SurfaceSubCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="16"
                 Padding="22,18">
@@ -50,14 +50,14 @@
                         <Border Width="40"
                                 Height="40"
                                 CornerRadius="12"
-                                Background="{StaticResource SurfaceSubCardBrush}"
+                                Background="{ThemeResource SurfaceSubCardBrush}"
                                 BorderBrush="{StaticResource DestructiveRedBrush}"
                                 BorderThickness="1"
                                 Margin="0,0,12,0">
                             <FontIcon Glyph="&#xE74D;"
                                       FontFamily="{StaticResource IconFont}"
                                       FontSize="18"
-                                      Foreground="{StaticResource DestructiveRedBrush}"
+                                      Foreground="{ThemeResource DestructiveRedTextBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -65,10 +65,10 @@
                             <TextBlock Text="Force Delete &amp; Stubborn Purge"
                                        FontSize="16"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextHighBrush}" />
+                                       Foreground="{ThemeResource TextHighBrush}" />
                             <TextBlock Text="Bypass locks, attributes, ownership and ACLs to permanently remove stubborn files and folders"
                                        FontSize="11.5"
-                                       Foreground="{StaticResource TextMediumBrush}" />
+                                       Foreground="{ThemeResource TextMediumBrush}" />
                         </StackPanel>
                     </StackPanel>
 
@@ -82,14 +82,14 @@
                         <FontIcon Glyph="&#xE8BB;"
                                   FontFamily="{StaticResource IconFont}"
                                   FontSize="12"
-                                  Foreground="{StaticResource TextMediumBrush}" />
+                                  Foreground="{ThemeResource TextMediumBrush}" />
                     </Button>
                 </Grid>
 
                 <!-- 1. Picker bar -->
                 <Border Grid.Row="1"
-                        Background="{StaticResource SurfaceCardBrush}"
-                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                        Background="{ThemeResource SurfaceCardBrush}"
+                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="10"
                         Padding="12,9"
@@ -99,8 +99,8 @@
                         <Button Grid.Column="0"
                                 AutomationProperties.Name="Add files to the force delete list"
                                 ToolTipService.ToolTip="Choose one or more files to permanently force delete"
-                                Background="{StaticResource PillButtonBgBrush}"
-                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                Background="{ThemeResource PillButtonBgBrush}"
+                                BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="14"
                                 Padding="14,6"
@@ -113,7 +113,7 @@
                                           FontFamily="{StaticResource IconFont}"
                                           FontSize="11"
                                           Margin="0,0,5,0"
-                                          Foreground="{StaticResource ElectricCyanBrush}" />
+                                          Foreground="{ThemeResource ElectricCyanBrush}" />
                                 <TextBlock Text="Add Files" FontWeight="SemiBold" />
                             </StackPanel>
                         </Button>
@@ -121,8 +121,8 @@
                         <Button Grid.Column="1"
                                 AutomationProperties.Name="Add a folder to the force delete list"
                                 ToolTipService.ToolTip="Choose a folder to recursively force delete"
-                                Background="{StaticResource PillButtonBgBrush}"
-                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                Background="{ThemeResource PillButtonBgBrush}"
+                                BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="14"
                                 Padding="14,6"
@@ -135,7 +135,7 @@
                                           FontFamily="{StaticResource IconFont}"
                                           FontSize="11"
                                           Margin="0,0,5,0"
-                                          Foreground="{StaticResource ElectricCyanBrush}" />
+                                          Foreground="{ThemeResource ElectricCyanBrush}" />
                                 <TextBlock Text="Add Folder" FontWeight="SemiBold" />
                             </StackPanel>
                         </Button>
@@ -143,7 +143,7 @@
                         <TextBlock Grid.Column="2"
                                    Text="Pick files or folders to purge. Add as many as you need before running."
                                    FontSize="10.5"
-                                   Foreground="{StaticResource TextMutedBrush}"
+                                   Foreground="{ThemeResource TextMutedBrush}"
                                    VerticalAlignment="Center"
                                    TextWrapping="Wrap"
                                    Margin="0,0,12,0" />
@@ -152,8 +152,8 @@
                                 AutomationProperties.Name="Clear all staged targets"
                                 ToolTipService.ToolTip="Remove every staged target from the list"
                                 Content="Clear All"
-                                Background="{StaticResource PillButtonBgBrush}"
-                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                Background="{ThemeResource PillButtonBgBrush}"
+                                BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="14"
                                 Padding="12,6"
@@ -165,8 +165,8 @@
 
                 <!-- 2. Summary + options -->
                 <Border Grid.Row="2"
-                        Background="{StaticResource SurfaceCardBrush}"
-                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                        Background="{ThemeResource SurfaceCardBrush}"
+                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="10"
                         Padding="14,10"
@@ -177,10 +177,10 @@
                                 <TextBlock Text="{x:Bind ViewModel.SummaryText, Mode=OneWay}"
                                            FontSize="12"
                                            FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextHighBrush}" />
+                                           Foreground="{ThemeResource TextHighBrush}" />
                                 <TextBlock Text="Absolute-blocked system paths are shielded and can never be removed."
                                            FontSize="10.5"
-                                           Foreground="{StaticResource TextMutedBrush}"
+                                           Foreground="{ThemeResource TextMutedBrush}"
                                            Margin="0,2,0,0" />
                             </StackPanel>
 
@@ -197,8 +197,8 @@
                             </StackPanel>
                         </Grid>
 
-                        <Border Background="{StaticResource WarningBadgeBgBrush}"
-                                BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                        <Border Background="{ThemeResource WarningBadgeBgBrush}"
+                                BorderBrush="{ThemeResource WarningBadgeBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="8"
                                 Padding="10,6"
@@ -207,7 +207,7 @@
                             <TextBlock Text="{x:Bind ViewModel.ProtectedNotice, Mode=OneWay}"
                                        FontSize="10.5"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource WarningBadgeTextBrush}"
+                                       Foreground="{ThemeResource WarningBadgeTextBrush}"
                                        TextWrapping="Wrap" />
                         </Border>
                     </StackPanel>
@@ -215,8 +215,8 @@
 
                 <!-- 3. Target list -->
                 <Border Grid.Row="3"
-                        Background="{StaticResource SurfaceCardBrush}"
-                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                        Background="{ThemeResource SurfaceCardBrush}"
+                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="12"
                         Padding="12,8"
@@ -237,8 +237,8 @@
 
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="viewmodels:ForceDeleteTargetRowViewModel">
-                                <Border Background="{StaticResource SurfaceCardBrush}"
-                                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                                <Border Background="{ThemeResource SurfaceCardBrush}"
+                                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="10"
                                         Padding="12,10">
@@ -259,12 +259,12 @@
                                                 <TextBlock Text="{x:Bind FileName, Mode=OneTime}"
                                                            FontSize="12"
                                                            FontWeight="SemiBold"
-                                                           Foreground="{StaticResource TextHighBrush}"
+                                                           Foreground="{ThemeResource TextHighBrush}"
                                                            TextTrimming="CharacterEllipsis"
                                                            HorizontalAlignment="Left"
                                                            MaxWidth="330" />
-                                                <Border Background="{StaticResource SurfaceSubCardBrush}"
-                                                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                <Border Background="{ThemeResource SurfaceSubCardBrush}"
+                                                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                                                         BorderThickness="1"
                                                         CornerRadius="5"
                                                         Padding="6,1.5"
@@ -272,14 +272,14 @@
                                                     <TextBlock Text="{x:Bind Item.KindLabel, Mode=OneTime}"
                                                                FontSize="10.5"
                                                                FontWeight="SemiBold"
-                                                               Foreground="{StaticResource TextMediumBrush}" />
+                                                               Foreground="{ThemeResource TextMediumBrush}" />
                                                 </Border>
                                             </StackPanel>
 
                                             <TextBlock Text="{x:Bind FilePath, Mode=OneTime}"
                                                        FontSize="10.5"
                                                        FontFamily="{StaticResource MonoFont}"
-                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                       Foreground="{ThemeResource TextMutedBrush}"
                                                        TextTrimming="CharacterEllipsis"
                                                        HorizontalAlignment="Left"
                                                        MaxWidth="420"
@@ -288,21 +288,21 @@
                                             <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                                                 <TextBlock Text="{x:Bind IssueSummary, Mode=OneTime}"
                                                            FontSize="10.5"
-                                                           Foreground="{StaticResource AmberWarningBrush}"
+                                                           Foreground="{ThemeResource AmberWarningBrush}"
                                                            TextTrimming="CharacterEllipsis"
                                                            HorizontalAlignment="Left"
                                                            MaxWidth="330" />
                                                 <TextBlock Text="{x:Bind Item.DisplayProcessInfo, Mode=OneTime}"
                                                            FontSize="10.5"
                                                            FontWeight="SemiBold"
-                                                           Foreground="{StaticResource RoseErrorBrush}"
+                                                           Foreground="{ThemeResource RoseErrorBrush}"
                                                            Margin="8,0,0,0" />
                                             </StackPanel>
                                         </StackPanel>
 
                                         <Border Grid.Column="2"
-                                                Background="{StaticResource SurfaceSubCardBrush}"
-                                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                Background="{ThemeResource SurfaceSubCardBrush}"
+                                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="6"
                                                 Padding="8,4"
@@ -311,7 +311,7 @@
                                             <TextBlock Text="{x:Bind FormattedSize, Mode=OneTime}"
                                                        FontSize="11"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource ElectricCyanBrush}" />
+                                                       Foreground="{ThemeResource ElectricCyanBrush}" />
                                         </Border>
 
                                         <!-- Gate tier badge: colours resolved in the ViewModel. -->
@@ -330,8 +330,8 @@
                                         </Border>
 
                                         <Border Grid.Column="4"
-                                                Background="{StaticResource SurfaceSubCardBrush}"
-                                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                Background="{ThemeResource SurfaceSubCardBrush}"
+                                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="6"
                                                 Padding="8,4"
@@ -340,7 +340,7 @@
                                             <TextBlock Text="{x:Bind StatusText, Mode=OneTime}"
                                                        FontSize="10.5"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextMutedBrush}" />
+                                                       Foreground="{ThemeResource TextMutedBrush}" />
                                         </Border>
                                     </Grid>
                                 </Border>
@@ -354,14 +354,14 @@
                     <TextBlock Grid.Column="0"
                                Text="A confirmation prompt appears before anything is deleted."
                                FontSize="10.5"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               Foreground="{ThemeResource TextMutedBrush}"
                                VerticalAlignment="Center"
                                TextWrapping="Wrap" />
 
                     <Button Grid.Column="1"
                             Content="Dry Run"
-                            Background="{StaticResource PillButtonBgBrush}"
-                            BorderBrush="{StaticResource PillButtonBorderBrush}"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource PillButtonBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="14"
                             Padding="16,6"
@@ -388,8 +388,8 @@
 
                     <Button Grid.Column="3"
                             Content="Close"
-                            Background="{StaticResource PillButtonBgBrush}"
-                            BorderBrush="{StaticResource PillButtonBorderBrush}"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource PillButtonBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="14"
                             Padding="18,6"

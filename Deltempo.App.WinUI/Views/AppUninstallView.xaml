@@ -46,8 +46,8 @@
 
     <Grid Background="Transparent">
         <Border Margin="24,14,24,14"
-                Background="{StaticResource SurfaceSubCardBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource SurfaceSubCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="16"
                 Padding="20,16">
@@ -65,14 +65,14 @@
                         <Border Width="40"
                                 Height="40"
                                 CornerRadius="12"
-                                Background="{StaticResource SurfaceCardBrush}"
-                                BorderBrush="{StaticResource ElectricCyanBrush}"
+                                Background="{ThemeResource SurfaceCardBrush}"
+                                BorderBrush="{ThemeResource ElectricCyanBrush}"
                                 BorderThickness="1"
                                 Margin="0,0,12,0">
                             <FontIcon Glyph="&#xE77B;"
                                       FontFamily="{StaticResource IconFont}"
                                       FontSize="18"
-                                      Foreground="{StaticResource ElectricCyanBrush}"
+                                      Foreground="{ThemeResource ElectricCyanBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -80,10 +80,10 @@
                             <TextBlock Text="App Uninstaller &amp; Deep Root Clean"
                                        FontSize="16"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextHighBrush}" />
+                                       Foreground="{ThemeResource TextHighBrush}" />
                             <TextBlock Text="Audit installed applications, run their official uninstallers, and eradicate leftover traces"
                                        FontSize="11.5"
-                                       Foreground="{StaticResource TextMediumBrush}" />
+                                       Foreground="{ThemeResource TextMediumBrush}" />
                         </StackPanel>
                     </StackPanel>
 
@@ -97,7 +97,7 @@
                         <FontIcon Glyph="&#xE8BB;"
                                   FontFamily="{StaticResource IconFont}"
                                   FontSize="12"
-                                  Foreground="{StaticResource TextMediumBrush}" />
+                                  Foreground="{ThemeResource TextMediumBrush}" />
                     </Button>
                 </Grid>
 
@@ -116,14 +116,14 @@
                                  FontSize="11.5"
                                  Padding="26,6,8,6"
                                  CornerRadius="14"
-                                 Background="{StaticResource SurfaceCardBrush}"
-                                 BorderBrush="{StaticResource HairlineBorderBrush}"
+                                 Background="{ThemeResource SurfaceCardBrush}"
+                                 BorderBrush="{ThemeResource HairlineBorderBrush}"
                                  BorderThickness="1"
-                                 Foreground="{StaticResource TextHighBrush}" />
+                                 Foreground="{ThemeResource TextHighBrush}" />
                         <FontIcon Glyph="&#xE721;"
                                   FontFamily="{StaticResource IconFont}"
                                   FontSize="11"
-                                  Foreground="{StaticResource TextMutedBrush}"
+                                  Foreground="{ThemeResource TextMutedBrush}"
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
                                   Margin="8,0,0,0"
@@ -167,8 +167,8 @@
                     <!-- Refresh, AI, count -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Content="Refresh"
-                                Background="{StaticResource PillButtonBgBrush}"
-                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                Background="{ThemeResource PillButtonBgBrush}"
+                                BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="14"
                                 Padding="12,5"
@@ -179,8 +179,8 @@
 
                         <Button Content="AI Classify All"
                                 ToolTipService.ToolTip="Ask the AI engine to classify and describe every unclassified application"
-                                Background="{StaticResource PillButtonBgBrush}"
-                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                Background="{ThemeResource PillButtonBgBrush}"
+                                BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="14"
                                 Padding="12,5"
@@ -189,8 +189,8 @@
                                 IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource NotBool}}"
                                 Command="{x:Bind ViewModel.FetchAllAiCommand, Mode=OneTime}" />
 
-                        <Border Background="{StaticResource SurfaceCardBrush}"
-                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                        <Border Background="{ThemeResource SurfaceCardBrush}"
+                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="12"
                                 Padding="10,4"
@@ -198,15 +198,15 @@
                             <TextBlock Text="{x:Bind ViewModel.AppCountText, Mode=OneWay}"
                                        FontSize="11"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource ElectricCyanBrush}" />
+                                       Foreground="{ThemeResource ElectricCyanBrush}" />
                         </Border>
                     </StackPanel>
                 </Grid>
 
                 <!-- ======================= 2. APP LIST ======================= -->
                 <Border Grid.Row="2"
-                        Background="{StaticResource SurfaceCardBrush}"
-                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                        Background="{ThemeResource SurfaceCardBrush}"
+                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="12"
                         Padding="8,6"
@@ -227,8 +227,8 @@
 
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="{StaticResource SurfaceSubCardBrush}"
-                                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                                <Border Background="{ThemeResource SurfaceSubCardBrush}"
+                                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="10"
                                         Padding="12,10">
@@ -245,14 +245,14 @@
                                             <!-- Icon, or the category fallback glyph -->
                                             <Grid Grid.Column="0" Width="32" Height="32"
                                                   VerticalAlignment="Center" Margin="0,0,10,0">
-                                                <Border Background="{StaticResource SurfaceCardBrush}"
-                                                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                <Border Background="{ThemeResource SurfaceCardBrush}"
+                                                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                                                         BorderThickness="1"
                                                         CornerRadius="8">
                                                     <TextBlock Text="{Binding FallbackGlyph}"
                                                                FontFamily="{StaticResource IconFont}"
                                                                FontSize="15"
-                                                               Foreground="{StaticResource ElectricCyanBrush}"
+                                                               Foreground="{ThemeResource ElectricCyanBrush}"
                                                                HorizontalAlignment="Center"
                                                                VerticalAlignment="Center" />
                                                 </Border>
@@ -269,7 +269,7 @@
                                                     <TextBlock Text="{Binding DisplayName}"
                                                                FontSize="12.5"
                                                                FontWeight="SemiBold"
-                                                               Foreground="{StaticResource TextHighBrush}"
+                                                               Foreground="{ThemeResource TextHighBrush}"
                                                                TextTrimming="CharacterEllipsis"
                                                                HorizontalAlignment="Left"
                                                                MaxWidth="300" />
@@ -286,20 +286,20 @@
                                                                    Foreground="{Binding CategoryBadgeColor, Converter={StaticResource HexToBrush}}" />
                                                     </Border>
 
-                                                    <Border Background="{StaticResource SurfaceCardBrush}"
-                                                            BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                    <Border Background="{ThemeResource SurfaceCardBrush}"
+                                                            BorderBrush="{ThemeResource HairlineBorderBrush}"
                                                             BorderThickness="1"
                                                             CornerRadius="5"
                                                             Padding="6,1.5"
                                                             Margin="6,0,0,0">
                                                         <TextBlock Text="{Binding UninstallEngine}"
                                                                    FontSize="10.5"
-                                                                   Foreground="{StaticResource TextMutedBrush}" />
+                                                                   Foreground="{ThemeResource TextMutedBrush}" />
                                                     </Border>
 
                                                     <!-- Core runtime / driver: removing this can destabilise Windows. -->
-                                                    <Border Background="{StaticResource WarningBadgeBgBrush}"
-                                                            BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                                                    <Border Background="{ThemeResource WarningBadgeBgBrush}"
+                                                            BorderBrush="{ThemeResource WarningBadgeBorderBrush}"
                                                             BorderThickness="1"
                                                             CornerRadius="5"
                                                             Padding="6,1.5"
@@ -308,11 +308,11 @@
                                                         <TextBlock Text="Core Runtime"
                                                                    FontSize="10.5"
                                                                    FontWeight="SemiBold"
-                                                                   Foreground="{StaticResource WarningBadgeTextBrush}" />
+                                                                   Foreground="{ThemeResource WarningBadgeTextBrush}" />
                                                     </Border>
 
-                                                    <Border Background="{StaticResource SurfaceCardBrush}"
-                                                            BorderBrush="{StaticResource ElectricCyanBrush}"
+                                                    <Border Background="{ThemeResource SurfaceCardBrush}"
+                                                            BorderBrush="{ThemeResource ElectricCyanBrush}"
                                                             BorderThickness="1"
                                                             CornerRadius="5"
                                                             Padding="6,1.5"
@@ -321,13 +321,13 @@
                                                         <TextBlock Text="AI"
                                                                    FontSize="10.5"
                                                                    FontWeight="SemiBold"
-                                                                   Foreground="{StaticResource ElectricCyanBrush}" />
+                                                                   Foreground="{ThemeResource ElectricCyanBrush}" />
                                                     </Border>
                                                 </StackPanel>
 
                                                 <TextBlock Text="{Binding Publisher}"
                                                            FontSize="10.5"
-                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           Foreground="{ThemeResource TextMutedBrush}"
                                                            TextTrimming="CharacterEllipsis"
                                                            HorizontalAlignment="Left"
                                                            MaxWidth="420"
@@ -338,8 +338,8 @@
                                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <Button Content="AI"
                                                         ToolTipService.ToolTip="Fetch AI intelligence for this application"
-                                                        Background="{StaticResource PillButtonBgBrush}"
-                                                        BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                                        Background="{ThemeResource PillButtonBgBrush}"
+                                                        BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                                         BorderThickness="1"
                                                         CornerRadius="12"
                                                         Padding="10,4"
@@ -350,8 +350,8 @@
 
                                                 <Button Content="Open"
                                                         ToolTipService.ToolTip="Open the install folder in File Explorer"
-                                                        Background="{StaticResource PillButtonBgBrush}"
-                                                        BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                                        Background="{ThemeResource PillButtonBgBrush}"
+                                                        BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                                         BorderThickness="1"
                                                         CornerRadius="12"
                                                         Padding="10,4"
@@ -363,8 +363,8 @@
 
                                                 <Button Content="Scan"
                                                         ToolTipService.ToolTip="Scan for leftover files, registry keys, and shortcuts"
-                                                        Background="{StaticResource PillButtonBgBrush}"
-                                                        BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                                        Background="{ThemeResource PillButtonBgBrush}"
+                                                        BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                                         BorderThickness="1"
                                                         CornerRadius="12"
                                                         Padding="10,4"
@@ -375,8 +375,8 @@
 
                                                 <Button Content="Force Clean"
                                                         ToolTipService.ToolTip="Scan and purge all remnants. Use when the official uninstaller is broken."
-                                                        Background="{StaticResource PillButtonBgBrush}"
-                                                        BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                                                        Background="{ThemeResource PillButtonBgBrush}"
+                                                        BorderBrush="{ThemeResource WarningBadgeBorderBrush}"
                                                         BorderThickness="1"
                                                         CornerRadius="12"
                                                         Padding="10,4"
@@ -408,7 +408,7 @@
                                             <TextBlock Grid.Column="0"
                                                        Text="{Binding Description}"
                                                        FontSize="11"
-                                                       Foreground="{StaticResource TextMediumBrush}"
+                                                       Foreground="{ThemeResource TextMediumBrush}"
                                                        TextWrapping="Wrap"
                                                        MaxLines="2"
                                                        TextTrimming="CharacterEllipsis" />
@@ -423,7 +423,7 @@
                                                 <FontIcon Glyph="{Binding ExpandGlyph}"
                                           FontFamily="{StaticResource IconFont}"
                                           FontSize="11"
-                                          Foreground="{StaticResource TextMutedBrush}" />
+                                          Foreground="{ThemeResource TextMutedBrush}" />
                                             </Button>
                                         </Grid>
 
@@ -438,24 +438,24 @@
                                         <!-- Row 4: metadata -->
                                         <StackPanel Orientation="Horizontal" Margin="42,6,0,0">
                                             <TextBlock FontSize="10.5"
-                                                       Foreground="{StaticResource TextMutedBrush}">
+                                                       Foreground="{ThemeResource TextMutedBrush}">
                                                 <Run Text="Version " />
                                                 <Run Text="{Binding DisplayVersion, Mode=OneWay}" />
                                             </TextBlock>
                                             <TextBlock Text="{Binding FormattedSize}"
                                                        FontSize="10.5"
-                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                       Foreground="{ThemeResource TextMutedBrush}"
                                                        Margin="14,0,0,0" />
                                             <TextBlock Text="{Binding InstallDate}"
                                                        FontSize="10.5"
-                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                       Foreground="{ThemeResource TextMutedBrush}"
                                                        Margin="14,0,0,0" />
                                         </StackPanel>
 
                                         <!-- Row 5: expandable detail card -->
                                         <Border Margin="42,8,0,0"
-                                                Background="{StaticResource SurfaceCardBrush}"
-                                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                Background="{ThemeResource SurfaceCardBrush}"
+                                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="10"
                                                 Padding="12,10"
@@ -463,18 +463,18 @@
                                             <StackPanel>
                                                 <TextBlock Text="{Binding Description}"
                                                            FontSize="11.5"
-                                                           Foreground="{StaticResource TextHighBrush}"
+                                                           Foreground="{ThemeResource TextHighBrush}"
                                                            TextWrapping="Wrap"
                                                            Margin="0,0,0,8" />
 
                                                 <TextBlock FontSize="10.5"
-                                                           Foreground="{StaticResource TextMutedBrush}">
+                                                           Foreground="{ThemeResource TextMutedBrush}">
                                                     <Run Text="Install path: " />
                                                     <Run Text="{Binding InstallLocationDisplay, Mode=OneWay}" />
                                                 </TextBlock>
                                                 <TextBlock FontSize="10.5"
                                                            FontFamily="{StaticResource MonoFont}"
-                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           Foreground="{ThemeResource TextMutedBrush}"
                                                            TextWrapping="Wrap"
                                                            Margin="0,3,0,0">
                                                     <Run Text="Uninstall command: " />
@@ -482,14 +482,14 @@
                                                 </TextBlock>
                                                 <TextBlock FontSize="10.5"
                                                            FontFamily="{StaticResource MonoFont}"
-                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           Foreground="{ThemeResource TextMutedBrush}"
                                                            TextWrapping="Wrap"
                                                            Margin="0,3,0,0">
                                                     <Run Text="Registry: " />
                                                     <Run Text="{Binding RegistryKeyPathDisplay, Mode=OneWay}" />
                                                 </TextBlock>
                                                 <TextBlock FontSize="10.5"
-                                                           Foreground="{StaticResource ElectricCyanBrush}"
+                                                           Foreground="{ThemeResource ElectricCyanBrush}"
                                                            Margin="0,6,0,0">
                                                     <Run Text="Intelligence source: " />
                                                     <Run Text="{Binding AiProviderDisplay, Mode=OneWay}" />
@@ -506,8 +506,8 @@
                 <!-- ================= 3. ROOT LEFTOVERS DRAWER ================= -->
                 <Border Grid.Row="3"
                         Visibility="{x:Bind ViewModel.IsDrawerOpen, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                        Background="{StaticResource SurfaceCardBrush}"
-                        BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                        Background="{ThemeResource SurfaceCardBrush}"
+                        BorderBrush="{ThemeResource WarningBadgeBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="12"
                         Padding="12,10"
@@ -526,12 +526,12 @@
                                        Text="{x:Bind ViewModel.DrawerTitle, Mode=OneWay}"
                                        FontSize="12.5"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextHighBrush}"
+                                       Foreground="{ThemeResource TextHighBrush}"
                                        VerticalAlignment="Center" />
 
                             <Border Grid.Column="1"
-                                    Background="{StaticResource WarningBadgeBgBrush}"
-                                    BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                                    Background="{ThemeResource WarningBadgeBgBrush}"
+                                    BorderBrush="{ThemeResource WarningBadgeBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="12"
                                     Padding="10,3"
@@ -540,7 +540,7 @@
                                 <TextBlock Text="{x:Bind ViewModel.DrawerReclaimableText, Mode=OneWay}"
                                            FontSize="10.5"
                                            FontWeight="SemiBold"
-                                           Foreground="{StaticResource WarningBadgeTextBrush}" />
+                                           Foreground="{ThemeResource WarningBadgeTextBrush}" />
                             </Border>
 
                             <Button Grid.Column="2"
@@ -552,7 +552,7 @@
                                 <FontIcon Glyph="&#xE8BB;"
                                           FontFamily="{StaticResource IconFont}"
                                           FontSize="11"
-                                          Foreground="{StaticResource TextMutedBrush}" />
+                                          Foreground="{ThemeResource TextMutedBrush}" />
                             </Button>
                         </Grid>
 
@@ -573,8 +573,8 @@
 
                             <Button Content="Select Recommended"
                                     ToolTipService.ToolTip="Tick every trace except low-confidence matches, which the scanner only inferred"
-                                    Background="{StaticResource PillButtonBgBrush}"
-                                    BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                    Background="{ThemeResource PillButtonBgBrush}"
+                                    BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="12"
                                     Padding="10,4"
@@ -583,8 +583,8 @@
                                     Command="{x:Bind ViewModel.SelectRecommendedTracesCommand, Mode=OneTime}" />
 
                             <Button Content="Select All"
-                                    Background="{StaticResource PillButtonBgBrush}"
-                                    BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                    Background="{ThemeResource PillButtonBgBrush}"
+                                    BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="12"
                                     Padding="10,4"
@@ -610,8 +610,8 @@
 
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="{StaticResource SurfaceSubCardBrush}"
-                                            BorderBrush="{StaticResource HairlineBorderBrush}"
+                                    <Border Background="{ThemeResource SurfaceSubCardBrush}"
+                                            BorderBrush="{ThemeResource HairlineBorderBrush}"
                                             BorderThickness="1"
                                             CornerRadius="8"
                                             Padding="10,6">
@@ -627,7 +627,7 @@
                                                       Glyph="{Binding IconGlyph}"
                                                       FontFamily="{StaticResource IconFont}"
                                                       FontSize="12"
-                                                      Foreground="{StaticResource ElectricCyanBrush}"
+                                                      Foreground="{ThemeResource ElectricCyanBrush}"
                                                       VerticalAlignment="Center"
                                                       Margin="0,0,8,0" />
 
@@ -635,10 +635,10 @@
                                                 <TextBlock Text="{Binding PathOrKey}"
                                                            FontSize="11"
                                                            FontFamily="{StaticResource MonoFont}"
-                                                           Foreground="{StaticResource TextHighBrush}"
+                                                           Foreground="{ThemeResource TextHighBrush}"
                                                            TextTrimming="CharacterEllipsis" />
                                                 <TextBlock FontSize="10"
-                                                           Foreground="{StaticResource TextMutedBrush}">
+                                                           Foreground="{ThemeResource TextMutedBrush}">
                                                     <Run Text="{Binding TypeBadge, Mode=OneWay}" />
                                                     <Run Text=" - " />
                                                     <Run Text="{Binding Confidence, Mode=OneWay}" />
@@ -649,22 +649,22 @@
                                                        Text="{Binding FormattedSize}"
                                                        FontSize="10.5"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource ElectricCyanBrush}"
+                                                       Foreground="{ThemeResource ElectricCyanBrush}"
                                                        VerticalAlignment="Center"
                                                        Margin="8,0" />
 
                                             <!-- Low confidence is never pre-ticked; flag it so the
                                                  user can see why Select Recommended skipped it. -->
                                             <Border Grid.Column="4"
-                                                    Background="{StaticResource WarningBadgeBgBrush}"
-                                                    BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                                                    Background="{ThemeResource WarningBadgeBgBrush}"
+                                                    BorderBrush="{ThemeResource WarningBadgeBorderBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="5"
                                                     Padding="5,1"
                                                     VerticalAlignment="Center">
                                                 <TextBlock Text="Check me"
                                                            FontSize="9.5"
-                                                           Foreground="{StaticResource WarningBadgeTextBrush}" />
+                                                           Foreground="{ThemeResource WarningBadgeTextBrush}" />
                                             </Border>
                                         </Grid>
                                     </Border>
@@ -682,7 +682,7 @@
                             <TextBlock Grid.Column="0"
                                        Text="{x:Bind ViewModel.DrawerSelectionSummary, Mode=OneWay}"
                                        FontSize="10.5"
-                                       Foreground="{StaticResource TextMutedBrush}"
+                                       Foreground="{ThemeResource TextMutedBrush}"
                                        VerticalAlignment="Center"
                                        TextWrapping="Wrap" />
 
@@ -716,14 +716,14 @@
                               ToolTipService.ToolTip="Optional safety checkpoint: creates a Windows System Restore Point prior to uninstalling. Off by default."
                               IsChecked="{x:Bind ViewModel.CreateRestorePoint, Mode=TwoWay}"
                               FontSize="11"
-                              Foreground="{StaticResource TextMediumBrush}"
+                              Foreground="{ThemeResource TextMediumBrush}"
                               VerticalAlignment="Center"
                               Margin="0,0,14,0" />
 
                     <TextBlock Grid.Column="1"
                                Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
                                FontSize="11"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               Foreground="{ThemeResource TextMutedBrush}"
                                VerticalAlignment="Center"
                                TextWrapping="Wrap"
                                TextTrimming="CharacterEllipsis" />

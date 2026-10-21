@@ -32,8 +32,8 @@
         <Style x:Key="StartupChip" TargetType="RadioButton" BasedOn="{StaticResource FilterChipRadio}" />
 
         <Style x:Key="StatCard" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource SurfaceCardBrush}" />
-            <Setter Property="BorderBrush" Value="{StaticResource HairlineBorderBrush}" />
+            <Setter Property="Background" Value="{ThemeResource SurfaceCardBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource HairlineBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="12" />
             <Setter Property="Padding" Value="12,9" />
@@ -56,41 +56,41 @@
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
                 <Border Style="{StaticResource StatCard}">
                     <StackPanel>
-                        <TextBlock Text="Total" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
+                        <TextBlock Text="Total" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
                         <TextBlock Text="{x:Bind ViewModel.TotalText, Mode=OneWay}"
                                    FontSize="12.5"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextHighBrush}" />
+                                   Foreground="{ThemeResource TextHighBrush}" />
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource StatCard}">
                     <StackPanel>
-                        <TextBlock Text="High impact" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
+                        <TextBlock Text="High impact" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
                         <TextBlock Text="{x:Bind ViewModel.HighImpactText, Mode=OneWay}"
                                    FontSize="12.5"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource AmberWarningBrush}" />
+                                   Foreground="{ThemeResource AmberWarningBrush}" />
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource StatCard}">
                     <StackPanel>
-                        <TextBlock Text="Boot delay" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
+                        <TextBlock Text="Boot delay" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
                         <TextBlock Text="{x:Bind ViewModel.BootDelayText, Mode=OneWay}"
                                    FontSize="12.5"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource ElectricCyanBrush}" />
+                                   Foreground="{ThemeResource ElectricCyanBrush}" />
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource StatCard}">
                     <StackPanel>
-                        <TextBlock Text="Orphaned" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
+                        <TextBlock Text="Orphaned" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
                         <TextBlock Text="{x:Bind ViewModel.OrphanedText, Mode=OneWay}"
                                    FontSize="12.5"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource RoseErrorBrush}" />
+                                   Foreground="{ThemeResource RoseErrorBrush}" />
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -98,8 +98,8 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Content="Optimize Boot"
                         ToolTipService.ToolTip="Disable non-essential high-impact startup entries to shorten the next boot."
-                        Background="{StaticResource PillButtonBgBrush}"
-                        BorderBrush="{StaticResource PillButtonBorderBrush}"
+                        Background="{ThemeResource PillButtonBgBrush}"
+                        BorderBrush="{ThemeResource PillButtonBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="14"
                         Padding="14,6"
@@ -108,8 +108,8 @@
                         Command="{x:Bind ViewModel.OptimizeBootCommand, Mode=OneTime}" />
 
                 <Button Content="Refresh"
-                        Background="{StaticResource PillButtonBgBrush}"
-                        BorderBrush="{StaticResource PillButtonBorderBrush}"
+                        Background="{ThemeResource PillButtonBgBrush}"
+                        BorderBrush="{ThemeResource PillButtonBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="14"
                         Padding="14,6"
@@ -137,8 +137,8 @@
 
         <!-- Item list -->
         <Border Grid.Row="2"
-                Background="{StaticResource SurfaceCardBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource SurfaceCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="12"
                 Padding="8,6">
@@ -160,8 +160,8 @@
                      rather than through a row wrapper. -->
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="{StaticResource SurfaceSubCardBrush}"
-                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                        <Border Background="{ThemeResource SurfaceSubCardBrush}"
+                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 Padding="12,9">
@@ -177,23 +177,23 @@
                                             <TextBlock Text="{Binding DisplayTitle}"
                                                        FontSize="12.5"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextHighBrush}"
+                                                       Foreground="{ThemeResource TextHighBrush}"
                                                        TextTrimming="CharacterEllipsis"
                                                        HorizontalAlignment="Left"
                                                        MaxWidth="320" />
 
-                                            <Border Background="{StaticResource SurfaceCardBrush}"
-                                                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                                            <Border Background="{ThemeResource SurfaceCardBrush}"
+                                                    BorderBrush="{ThemeResource HairlineBorderBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="5"
                                                     Padding="6,1.5"
                                                     Margin="8,0,0,0">
                                                 <TextBlock Text="{Binding LocationDisplay}"
                                                            FontSize="10.5"
-                                                           Foreground="{StaticResource TextMutedBrush}" />
+                                                           Foreground="{ThemeResource TextMutedBrush}" />
                                             </Border>
 
-                                            <Border Background="{StaticResource SurfaceCardBrush}"
+                                            <Border Background="{ThemeResource SurfaceCardBrush}"
                                                     BorderBrush="{Binding ImpactColor, Converter={StaticResource HexToBrush}}"
                                                     BorderThickness="1"
                                                     CornerRadius="5"
@@ -207,8 +207,8 @@
                                             <!-- Protected entries are labelled rather than
                                                  silently locked: the user deserves to know
                                                  why a control is missing. -->
-                                            <Border Background="{StaticResource WarningBadgeBgBrush}"
-                                                    BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                                            <Border Background="{ThemeResource WarningBadgeBgBrush}"
+                                                    BorderBrush="{ThemeResource WarningBadgeBorderBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="5"
                                                     Padding="6,1.5"
@@ -217,11 +217,11 @@
                                                 <TextBlock Text="Protected"
                                                            FontSize="10.5"
                                                            FontWeight="SemiBold"
-                                                           Foreground="{StaticResource WarningBadgeTextBrush}" />
+                                                           Foreground="{ThemeResource WarningBadgeTextBrush}" />
                                             </Border>
 
-                                            <Border Background="{StaticResource WarningBadgeBgBrush}"
-                                                    BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                                            <Border Background="{ThemeResource WarningBadgeBgBrush}"
+                                                    BorderBrush="{ThemeResource WarningBadgeBorderBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="5"
                                                     Padding="6,1.5"
@@ -230,13 +230,13 @@
                                                 <TextBlock Text="File Missing"
                                                            FontSize="10.5"
                                                            FontWeight="SemiBold"
-                                                           Foreground="{StaticResource WarningBadgeTextBrush}" />
+                                                           Foreground="{ThemeResource WarningBadgeTextBrush}" />
                                             </Border>
                                         </StackPanel>
 
                                         <TextBlock Text="{Binding Publisher}"
                                                    FontSize="10.5"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Foreground="{ThemeResource TextMutedBrush}"
                                                    TextTrimming="CharacterEllipsis"
                                                    HorizontalAlignment="Left"
                                                    MaxWidth="460"
@@ -245,8 +245,8 @@
 
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                         <Button Content="Reveal"
-                                                Background="{StaticResource PillButtonBgBrush}"
-                                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                                Background="{ThemeResource PillButtonBgBrush}"
+                                                BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="12"
                                                 Padding="10,4"
@@ -258,8 +258,8 @@
 
                                         <Button Content="Clean"
                                                 ToolTipService.ToolTip="Remove this orphaned registry entry."
-                                                Background="{StaticResource PillButtonBgBrush}"
-                                                BorderBrush="{StaticResource WarningBadgeBorderBrush}"
+                                                Background="{ThemeResource PillButtonBgBrush}"
+                                                BorderBrush="{ThemeResource WarningBadgeBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="12"
                                                 Padding="10,4"
@@ -299,15 +299,15 @@
                                             <FontIcon Glyph="&#xE70D;"
                                                       FontFamily="{StaticResource IconFont}"
                                                       FontSize="11"
-                                                      Foreground="{StaticResource TextMutedBrush}" />
+                                                      Foreground="{ThemeResource TextMutedBrush}" />
                                         </Button>
                                     </StackPanel>
                                 </Grid>
 
                                 <!-- Expandable detail -->
                                 <Border Margin="0,8,0,0"
-                                        Background="{StaticResource SurfaceCardBrush}"
-                                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                                        Background="{ThemeResource SurfaceCardBrush}"
+                                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="9"
                                         Padding="12,9"
@@ -315,13 +315,13 @@
                                     <StackPanel>
                                         <TextBlock Text="{Binding Description}"
                                                    FontSize="11"
-                                                   Foreground="{StaticResource TextHighBrush}"
+                                                   Foreground="{ThemeResource TextHighBrush}"
                                                    TextWrapping="Wrap" />
 
                                         <TextBlock Margin="0,6,0,0"
                                                    FontSize="10"
                                                    FontFamily="{StaticResource MonoFont}"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Foreground="{ThemeResource TextMutedBrush}"
                                                    TextWrapping="Wrap">
                                             <Run Text="Command: " />
                                             <Run Text="{Binding Command, Mode=OneWay}" />
@@ -329,7 +329,7 @@
 
                                         <TextBlock Margin="0,3,0,0"
                                                    FontSize="10.5"
-                                                   Foreground="{StaticResource ElectricCyanBrush}"
+                                                   Foreground="{ThemeResource ElectricCyanBrush}"
                                                    TextWrapping="Wrap">
                                             <Run Text="Recommendation: " />
                                             <Run Text="{Binding Recommendation, Mode=OneWay}" />
@@ -337,7 +337,7 @@
 
                                         <TextBlock Margin="0,3,0,0"
                                                    FontSize="10.5"
-                                                   Foreground="{StaticResource AmberWarningBrush}"
+                                                   Foreground="{ThemeResource AmberWarningBrush}"
                                                    TextWrapping="Wrap">
                                             <Run Text="Impact: " />
                                             <Run Text="{Binding DisableImpact, Mode=OneWay}" />

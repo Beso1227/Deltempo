@@ -258,7 +258,7 @@ public sealed partial class ForceDeleteViewModel : ObservableObject
         {
             IsBusy = false;
             OnPropertyChanged(nameof(CanRunPurge));
-        OnPropertyChanged(nameof(CanStage));
+            OnPropertyChanged(nameof(CanStage));
         }
 
         foreach (string error in errors)

@@ -8,7 +8,7 @@
     mc:Ignorable="d"
     Title="Deltempo">
 
-    <Grid Background="{StaticResource CanvasDarkBrush}">
+    <Grid Background="{ThemeResource CanvasDarkBrush}">
 
         <Grid.RowDefinitions>
             <RowDefinition Height="48" />
@@ -20,8 +20,8 @@
              48px drag region mirrors the WPF caption height. -->
         <Grid x:Name="TitleBarHost"
               Grid.Row="0"
-              Background="{StaticResource HeaderDockBrush}"
-              BorderBrush="{StaticResource HairlineBorderBrush}"
+              Background="{ThemeResource HeaderDockBrush}"
+              BorderBrush="{ThemeResource HairlineBorderBrush}"
               BorderThickness="0,0,0,1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -40,28 +40,56 @@
                 <Border Width="3"
                         Height="16"
                         CornerRadius="2"
-                        Background="{StaticResource ElectricCyanBrush}" />
+                        Background="{ThemeResource ElectricCyanBrush}" />
                 <TextBlock Text="Deltempo"
                            FontFamily="{StaticResource AppFont}"
                            FontSize="13"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource TextHighBrush}"
+                           Foreground="{ThemeResource TextHighBrush}"
                            VerticalAlignment="Center" />
                 <Border Width="1"
                         Height="13"
-                        Background="{StaticResource HairlineStrongBrush}"
+                        Background="{ThemeResource HairlineStrongBrush}"
                         VerticalAlignment="Center" />
                 <TextBlock x:Name="PrivilegeLabel"
                            Style="{StaticResource CaptionText}"
                            VerticalAlignment="Center"
                            Text="" />
             </StackPanel>
+
+            <!-- Theme toggle. Right-aligned in the free column so it sits at the far
+                 end of the title bar, clear of the caption buttons, and out of the
+                 drag region's way of anything else. The glyph shows the theme the
+                 button SWITCHES TO, and the tooltip says so in words. -->
+            <Button x:Name="ThemeToggleButton"
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Width="40"
+                    Height="32"
+                    Margin="0,0,8,0"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="OnThemeToggleClick"
+                    ToolTipService.ToolTip="Switch to light theme"
+                    AutomationProperties.Name="Switch between light and dark theme">
+                <FontIcon x:Name="ThemeToggleIcon"
+                          Glyph="&#xE706;"
+                          FontFamily="{StaticResource IconFont}"
+                          FontSize="14" />
+            </Button>
         </Grid>
 
         <!-- Body: navigation rail + content -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="240" />
+                <!-- Icon strip. The WPF header collapsed its labels below 1280px and
+                     showed glyphs alone; here the rail is icon-only at every width and
+                     the section name arrives as a tooltip on hover (BuildNavigation),
+                     which is what keeps 64px of rail able to carry eight destinations
+                     without guessing from glyphs alone. -->
+                <ColumnDefinition Width="64" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
@@ -69,30 +97,18 @@
                  NavigationView pane uses and what lets the Mica backdrop read through
                  the rail as well as the content. -->
             <Border Grid.Column="0"
-                    Background="{StaticResource PaneAcrylicBrush}"
-                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                    Background="{ThemeResource PaneAcrylicBrush}"
+                    BorderBrush="{ThemeResource HairlineBorderBrush}"
                     BorderThickness="0,0,1,0">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Grid.Row="0"
-                               Style="{StaticResource EyebrowText}"
-                               Margin="18,18,16,10"
-                               Text="WORKSPACES" />
-
-                    <ListView x:Name="NavList"
-                              Grid.Row="1"
-                              Background="Transparent"
-                              BorderThickness="0"
-                              SelectionMode="Single"
-                              IsItemClickEnabled="False"
-                              Padding="8,0,8,8"
-                              VerticalAlignment="Stretch"
-                              ScrollViewer.HorizontalScrollMode="Disabled"
-                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListView x:Name="NavList"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          SelectionMode="Single"
+                          IsItemClickEnabled="False"
+                          Padding="6,10,6,10"
+                          VerticalAlignment="Stretch"
+                          ScrollViewer.HorizontalScrollMode="Disabled"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <!-- Retemplated from ListViewItemPresenter for the translucent
                          selected fill and hover. The stock presenter in this WinUI
                          version has no SelectionIndicator* members, so the 3px accent
@@ -102,10 +118,12 @@
                          resource key kills the process rather than falling back. -->
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
-                            <Setter Property="MinHeight" Value="40" />
-                            <Setter Property="Padding" Value="0,0,12,0" />
-                            <Setter Property="CornerRadius" Value="6" />
-                            <Setter Property="Margin" Value="0,2" />
+                            <!-- 44 DIP tall: the icon is the only affordance in the strip,
+                                 so the hit target is the whole row, not the glyph. -->
+                            <Setter Property="MinHeight" Value="44" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="CornerRadius" Value="8" />
+                            <Setter Property="Margin" Value="0,1" />
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                             <Setter Property="VerticalContentAlignment" Value="Center" />
                             <Setter Property="Template">
@@ -120,13 +138,13 @@
                                             CornerRadius="{TemplateBinding CornerRadius}"
                                             Foreground="{TemplateBinding Foreground}"
                                             Background="{TemplateBinding Background}"
-                                            PointerOverBackground="{StaticResource SurfaceCardHoverBrush}"
-                                            PointerOverForeground="{StaticResource TextHighBrush}"
-                                            PressedBackground="{StaticResource SurfaceCardHoverBrush}"
-                                            SelectedBackground="{StaticResource SurfaceCardSelectedBrush}"
-                                            SelectedForeground="{StaticResource TextHighBrush}"
-                                            SelectedPointerOverBackground="{StaticResource SurfaceCardSelectedBrush}"
-                                            SelectedPressedBackground="{StaticResource SurfaceCardSelectedBrush}"
+                                            PointerOverBackground="{ThemeResource SurfaceCardHoverBrush}"
+                                            PointerOverForeground="{ThemeResource TextHighBrush}"
+                                            PressedBackground="{ThemeResource SurfaceCardHoverBrush}"
+                                            SelectedBackground="{ThemeResource SurfaceCardSelectedBrush}"
+                                            SelectedForeground="{ThemeResource TextHighBrush}"
+                                            SelectedPointerOverBackground="{ThemeResource SurfaceCardSelectedBrush}"
+                                            SelectedPressedBackground="{ThemeResource SurfaceCardSelectedBrush}"
                                             SelectionCheckMarkVisualEnabled="False" />
                                     </ControlTemplate>
                                 </Setter.Value>
@@ -134,14 +152,14 @@
                         </Style>
                     </ListView.ItemContainerStyle>
                 </ListView>
-                </Grid>
             </Border>
 
             <!-- Content column: a shell-owned page header, then the workspace host.
                  The page header lives here rather than in each panel so all eight
                  workspaces announce themselves with the same eyebrow / title /
-                 description treatment and the title cannot drift per view. -->
-            <Grid Grid.Column="1">
+                 description treatment and the title cannot drift per view. Named
+                 because ShowWorkspace hands it to ShellMotion on every switch. -->
+            <Grid Grid.Column="1" x:Name="ContentColumn">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -179,12 +197,12 @@
                                    FontFamily="{StaticResource AppFont}"
                                    FontSize="22"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextHighBrush}"
+                                   Foreground="{ThemeResource TextHighBrush}"
                                    Text="Cleaner Workspace" />
                         <TextBlock x:Name="PlaceholderBody"
                                    FontFamily="{StaticResource AppFont}"
                                    FontSize="13"
-                                   Foreground="{StaticResource TextMediumBrush}"
+                                   Foreground="{ThemeResource TextMediumBrush}"
                                    TextWrapping="Wrap"
                                    MaxWidth="640"
                                    HorizontalAlignment="Left"
@@ -198,19 +216,19 @@
                             Margin="32,0,32,24"
                             Padding="14"
                             CornerRadius="8"
-                            Background="{StaticResource SurfaceCardBrush}"
-                            BorderBrush="{StaticResource HairlineBorderBrush}"
+                            Background="{ThemeResource SurfaceCardBrush}"
+                            BorderBrush="{ThemeResource HairlineBorderBrush}"
                             BorderThickness="1">
                         <StackPanel Spacing="6">
                             <TextBlock FontFamily="{StaticResource AppFont}"
                                        FontSize="12"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextMediumBrush}"
+                                       Foreground="{ThemeResource TextMediumBrush}"
                                        Text="CORE LINK CHECK" />
                             <TextBlock x:Name="CoreStatus"
                                        FontFamily="{StaticResource MonoFont}"
                                        FontSize="12"
-                                       Foreground="{StaticResource TextHighBrush}"
+                                       Foreground="{ThemeResource TextHighBrush}"
                                        TextWrapping="Wrap"
                                        Text="checking..." />
                         </StackPanel>
@@ -263,8 +281,8 @@
 
         <!-- Status bar -->
         <Border Grid.Row="2"
-                Background="{StaticResource HeaderDockBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource HeaderDockBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="0,1,0,0">
             <Grid Padding="16,0">
                 <Grid.ColumnDefinitions>
@@ -277,7 +295,7 @@
                          Width="6"
                          Height="6"
                          VerticalAlignment="Center"
-                         Fill="{StaticResource ElectricCyanBrush}" />
+                         Fill="{ThemeResource ElectricCyanBrush}" />
 
                 <TextBlock x:Name="FooterText"
                            Grid.Column="1"

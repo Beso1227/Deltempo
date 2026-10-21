@@ -28,8 +28,8 @@
         <converters:HexToBrushConverter x:Key="HexToBrush" />
 
         <Style x:Key="StatCard" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource SurfaceCardBrush}" />
-            <Setter Property="BorderBrush" Value="{StaticResource HairlineBorderBrush}" />
+            <Setter Property="Background" Value="{ThemeResource SurfaceCardBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource HairlineBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="12" />
             <Setter Property="Padding" Value="12,9" />
@@ -40,8 +40,8 @@
 
         <DataTemplate x:Key="TargetRowTemplate" x:DataType="models:TargetFolderInfo">
             <Border
-                Background="{StaticResource SurfaceSubCardBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource SurfaceSubCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="10"
                 Padding="12,9">
@@ -57,12 +57,12 @@
                             Text="{Binding Name}"
                             FontSize="12.5"
                             FontWeight="SemiBold"
-                            Foreground="{StaticResource TextHighBrush}"
+                            Foreground="{ThemeResource TextHighBrush}"
                             TextTrimming="CharacterEllipsis" />
                         <TextBlock
                             Text="{Binding Description}"
                             FontSize="10"
-                            Foreground="{StaticResource TextMutedBrush}"
+                            Foreground="{ThemeResource TextMutedBrush}"
                             TextTrimming="CharacterEllipsis"
                             HorizontalAlignment="Left"
                             MaxWidth="320" />
@@ -70,7 +70,7 @@
 
                     <Border
                         Grid.Column="2"
-                        Background="{StaticResource SurfaceCardBrush}"
+                        Background="{ThemeResource SurfaceCardBrush}"
                         BorderBrush="{Binding CategoryColor, Converter={StaticResource HexToBrush}}"
                         BorderThickness="1"
                         CornerRadius="5"
@@ -88,7 +88,7 @@
                         Text="{Binding FormattedSize}"
                         FontSize="11"
                         FontWeight="SemiBold"
-                        Foreground="{StaticResource TextMutedBrush}"
+                        Foreground="{ThemeResource TextMutedBrush}"
                         VerticalAlignment="Center" />
 
                     <Border
@@ -103,15 +103,15 @@
                         <TextBlock
                             Text="{Binding SafetyBadge}"
                             FontSize="9.5"
-                            Foreground="{StaticResource TextHighBrush}"
+                            Foreground="{ThemeResource TextHighBrush}"
                             VerticalAlignment="Center" />
                     </Border>
 
                     <Button
                         Grid.Column="5"
                         Content="Retry"
-                        Background="{StaticResource PillButtonBgBrush}"
-                        BorderBrush="{StaticResource PillButtonBorderBrush}"
+                        Background="{ThemeResource PillButtonBgBrush}"
+                        BorderBrush="{ThemeResource PillButtonBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="10"
                         Padding="8,3"
@@ -141,17 +141,17 @@
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
                 <Border Style="{StaticResource StatCard}">
                     <StackPanel>
-                        <TextBlock Text="Reclaimable" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
+                        <TextBlock Text="Reclaimable" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
                         <TextBlock Text="{x:Bind ViewModel.HeroSizeText, Mode=OneWay}"
-                                   FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource ElectricCyanBrush}" />
+                                   FontSize="12.5" FontWeight="SemiBold" Foreground="{ThemeResource ElectricCyanBrush}" />
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource StatCard}">
                     <StackPanel>
-                        <TextBlock Text="Categories" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
+                        <TextBlock Text="Categories" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
                         <TextBlock Text="{x:Bind ViewModel.Targets.Count, Mode=OneWay}"
-                                   FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextHighBrush}" />
+                                   FontSize="12.5" FontWeight="SemiBold" Foreground="{ThemeResource TextHighBrush}" />
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -161,8 +161,8 @@
                     Content="AppData Report"
                     ToolTipService.ToolTip="Read-only report: show where your AppData space goes. Nothing is selected and nothing is deleted."
                     AutomationProperties.Name="AppData Footprint Report (read only)"
-                    Background="{StaticResource PillButtonBgBrush}"
-                    BorderBrush="{StaticResource PillButtonBorderBrush}"
+                    Background="{ThemeResource PillButtonBgBrush}"
+                    BorderBrush="{ThemeResource PillButtonBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="14"
                     Padding="14,6"
@@ -172,8 +172,8 @@
 
                 <Button
                     Content="Scan Now"
-                    Background="{StaticResource PillButtonBgBrush}"
-                    BorderBrush="{StaticResource PillButtonBorderBrush}"
+                    Background="{ThemeResource PillButtonBgBrush}"
+                    BorderBrush="{ThemeResource PillButtonBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="14"
                     Padding="14,6"
@@ -196,12 +196,12 @@
 
         <!-- Filter + selection chips -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0,12,0,10" VerticalAlignment="Center">
-            <TextBlock Text="Selection:" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
+            <TextBlock Text="Selection:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
             <RadioButton GroupName="CleanerScope" Content="Safe Only" Style="{StaticResource CleanerChip}" Tag="SAFE" Checked="OnSafeOnly" />
             <RadioButton GroupName="CleanerScope" Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" IsChecked="True" Checked="OnSelectAll" />
             <RadioButton GroupName="CleanerScope" Content="None" Style="{StaticResource CleanerChip}" Tag="NONE" Checked="OnDeselectAll" />
 
-            <TextBlock Text="Filter:" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,6,0" />
+            <TextBlock Text="Filter:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,6,0" />
             <RadioButton GroupName="CleanerFilter" Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" IsChecked="True" Checked="OnFilterChanged" />
             <RadioButton GroupName="CleanerFilter" Content="Safe Mode" Style="{StaticResource CleanerChip}" Tag="SAFE" Checked="OnFilterChanged" />
             <RadioButton GroupName="CleanerFilter" Content="System" Style="{StaticResource CleanerChip}" Tag="SYSTEM" Checked="OnFilterChanged" />
@@ -209,8 +209,8 @@
 
         <!-- Target list -->
         <Border Grid.Row="2"
-                Background="{StaticResource SurfaceCardBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource SurfaceCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="12"
                 Padding="8,6">
@@ -236,34 +236,34 @@
         <!-- Empty state -->
         <Border
             Grid.Row="2"
-            Background="{StaticResource SurfaceCardBrush}"
-            BorderBrush="{StaticResource HairlineBorderBrush}"
+            Background="{ThemeResource SurfaceCardBrush}"
+            BorderBrush="{ThemeResource HairlineBorderBrush}"
             BorderThickness="1"
             CornerRadius="12"
             Padding="24"
             Visibility="{x:Bind ViewModel.HasItems, Mode=OneWay, Converter={StaticResource BoolToVisInv}}">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-                <FontIcon Glyph="&#xE8B7;" FontFamily="{StaticResource IconFont}" FontSize="34" Foreground="{StaticResource TextMutedBrush}" />
+                <FontIcon Glyph="&#xE8B7;" FontFamily="{StaticResource IconFont}" FontSize="34" Foreground="{ThemeResource TextMutedBrush}" />
                 <TextBlock Text="No categories to scan"
-                           FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextHighBrush}"
+                           FontSize="15" FontWeight="SemiBold" Foreground="{ThemeResource TextHighBrush}"
                            HorizontalAlignment="Center" />
                 <TextBlock Text="Click Scan Now to discover cleanable temporary locations."
-                           FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" TextAlignment="Center" MaxWidth="460" />
+                           FontSize="11.5" Foreground="{ThemeResource TextMutedBrush}" TextAlignment="Center" MaxWidth="460" />
             </StackPanel>
         </Border>
 
         <!-- Selection summary -->
         <Border Grid.Row="3"
-                Background="{StaticResource SurfaceCardBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource SurfaceCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="12,8"
                 Visibility="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource BoolToVis}}">
             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                 <TextBlock Text="{x:Bind ViewModel.CleanButtonText, Mode=OneWay}"
-                           FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMediumBrush}" VerticalAlignment="Center" />
+                           FontSize="11" FontWeight="SemiBold" Foreground="{ThemeResource TextMediumBrush}" VerticalAlignment="Center" />
                 <TextBlock Text="{x:Bind ViewModel.HeroSubtext, Mode=OneWay}"
-                           FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                           FontSize="11" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" />
             </StackPanel>
         </Border>
     </Grid>

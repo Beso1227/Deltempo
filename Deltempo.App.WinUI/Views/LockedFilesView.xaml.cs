@@ -49,6 +49,7 @@ public sealed partial class LockedFilesView : UserControl
     {
         ViewModel.Load(lockedItems);
         Visibility = Visibility.Visible;
+        ShellMotion.Enter(this, riseDip: 14);
     }
 
     private async void ShowScheduleOutcomeAsync(RebootScheduleOutcome outcome)

@@ -4,9 +4,9 @@
     App.xaml (dark theme). Values are copied verbatim from the WPF dictionary so the
     two UIs stay visually identical during the migration.
 
-    Ported from App.xaml lines 23-108 / 168-173.
-    Still dark-only: the WPF app's light-theme override never existed, so the light
-    theme is deliberate new design work, not a port.
+    Ported from App.xaml lines 23-108 / 168-173. The dark values are the WPF ones;
+    the WPF app's light-theme override never existed, so the light theme is
+    deliberate new design work, not a port (see the theme dictionaries below).
 -->
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -24,101 +24,201 @@
          palette expressed as alpha over Mica: the canvas is a scrim of the WPF canvas
          colour, and the cards are white layers on the scrim, which is how a card reads
          over a translucent backdrop. Saturated surfaces (badges, warning fills) stay
-         opaque - translucency there would only cost contrast. -->
-    <SolidColorBrush x:Key="CanvasDarkBrush" Color="#5906080B" />
-    <SolidColorBrush x:Key="HeaderDockBrush" Color="#400A0E13" />
-    <SolidColorBrush x:Key="SurfaceCardBrush" Color="#14FFFFFF" />
-    <SolidColorBrush x:Key="SurfaceCardHoverBrush" Color="#1FFFFFFF" />
-    <SolidColorBrush x:Key="SurfaceCardSelectedBrush" Color="#2BFFFFFF" />
-    <SolidColorBrush x:Key="SurfaceSubCardBrush" Color="#0AFFFFFF" />
-    <SolidColorBrush x:Key="HairlineBorderBrush" Color="#1FFFFFFF" />
-    <SolidColorBrush x:Key="HairlineStrongBrush" Color="#33FFFFFF" />
+         opaque - translucency there would only cost contrast.
 
-    <!-- In-app acrylic for the navigation pane, matching what a WinUI NavigationView
-         pane does. Tinted darker than the content scrim on purpose: the pane is chrome
-         and the content is the page, so the rail has to sit below the canvas in
-         luminance. FallbackColor is what paints when the user has turned transparency
-         effects off in Windows settings. -->
-    <AcrylicBrush x:Key="PaneAcrylicBrush"
-                  TintColor="#05070A"
-                  TintOpacity="0.70"
-                  TintLuminosityOpacity="0.22"
-                  FallbackColor="#0A0E13" />
+         The brushes below are theme-varying, so light mode is not a second palette but
+         the same surface system with its relationships inverted:
 
-    <!-- Dividers / borders -->
-    <SolidColorBrush x:Key="NavDividerBrush" Color="#2E3D4A" />
-    <SolidColorBrush x:Key="AccentBorderBrush" Color="#1A3B35" />
+           - over light Mica the canvas is a translucent *black* scrim, which is what
+             gives white cards something to sit on while the backdrop still reads;
+           - text flips to a dark slate ramp that keeps the same three-step hierarchy;
+           - the mint accent deepens to teal, because #00F2B0 on a light surface is
+             about 1.9:1 - unreadable as text and too faint to mark a selected row.
 
-    <!-- Text.
-         TextMuted moved up from the WPF #78899D. That value was chosen against an
-         opaque #06080B canvas; against a Mica-tinted surface it lands at roughly
-         4.4:1, just under the 4.5:1 WCAG AA floor for the 11px labels it is used for.
-         TextMedium is unchanged - it was always over the floor - but the two are kept
-         far enough apart to still read as a hierarchy. -->
-    <SolidColorBrush x:Key="TextHighBrush" Color="#F8FAFC" />
-    <SolidColorBrush x:Key="TextMediumBrush" Color="#9AABBE" />
-    <SolidColorBrush x:Key="TextMutedBrush" Color="#8395A8" />
+         Two rules for this block, both of which kill the process when broken rather
+         than degrading: every key must exist in BOTH dictionaries, and every reference
+         from XAML must use ThemeResource (StaticResource freezes the first theme). -->
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="CanvasDarkBrush" Color="#5906080B" />
+            <SolidColorBrush x:Key="HeaderDockBrush" Color="#400A0E13" />
+            <SolidColorBrush x:Key="SurfaceCardBrush" Color="#14FFFFFF" />
+            <SolidColorBrush x:Key="SurfaceCardHoverBrush" Color="#1FFFFFFF" />
+            <SolidColorBrush x:Key="SurfaceCardSelectedBrush" Color="#2BFFFFFF" />
+            <SolidColorBrush x:Key="SurfaceSubCardBrush" Color="#0AFFFFFF" />
+            <SolidColorBrush x:Key="HairlineBorderBrush" Color="#1FFFFFFF" />
+            <SolidColorBrush x:Key="HairlineStrongBrush" Color="#33FFFFFF" />
 
-    <!-- Controls -->
-    <SolidColorBrush x:Key="PillButtonBgBrush" Color="#0F161C" />
-    <SolidColorBrush x:Key="PillButtonHoverBrush" Color="#152028" />
-    <SolidColorBrush x:Key="PillButtonBorderBrush" Color="#1E2E38" />
-    <SolidColorBrush x:Key="HeroActionBtnTextBrush" Color="#030D0C" />
-    <SolidColorBrush x:Key="TrackBgBrush" Color="#0E141C" />
-    <SolidColorBrush x:Key="TrackThumbBrush" Color="#64748B" />
-    <SolidColorBrush x:Key="ScrollThumbBrush" Color="#4E6478" />
-    <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#00F2B0" />
+            <!-- In-app acrylic for the navigation pane, matching what a WinUI
+                 NavigationView pane does. Tinted darker than the content scrim on
+                 purpose: the pane is chrome and the content is the page, so the rail
+                 has to sit below the canvas in luminance. FallbackColor is what paints
+                 when the user has turned transparency effects off in Windows settings. -->
+            <AcrylicBrush x:Key="PaneAcrylicBrush"
+                          TintColor="#05070A"
+                          TintOpacity="0.70"
+                          TintLuminosityOpacity="0.22"
+                          FallbackColor="#0A0E13" />
 
-    <!-- Semantic status -->
-    <SolidColorBrush x:Key="AdminBadgeBgBrush" Color="#081D17" />
-    <SolidColorBrush x:Key="AdminBadgeBorderBrush" Color="#00F2B0" />
-    <SolidColorBrush x:Key="AdminBadgeTextBrush" Color="#00F2B0" />
-    <SolidColorBrush x:Key="SafetyBadgeBgBrush" Color="#081D17" />
-    <SolidColorBrush x:Key="SafetyBadgeBorderBrush" Color="#00F2B0" />
-    <SolidColorBrush x:Key="SafetyBadgeTextBrush" Color="#00F2B0" />
-    <SolidColorBrush x:Key="WarningBadgeBgBrush" Color="#261C0D" />
-    <SolidColorBrush x:Key="WarningBadgeBorderBrush" Color="#F59E0B" />
-    <SolidColorBrush x:Key="WarningBadgeTextBrush" Color="#F59E0B" />
-    <SolidColorBrush x:Key="ElectricCyanBrush" Color="#00F2B0" />
-    <SolidColorBrush x:Key="AccentBlueBrush" Color="#0DD3BA" />
-    <SolidColorBrush x:Key="AccentIndigoBrush" Color="#06B6D4" />
-    <SolidColorBrush x:Key="AccentVioletBrush" Color="#8B5CF6" />
-    <SolidColorBrush x:Key="AmberWarningBrush" Color="#F59E0B" />
-    <SolidColorBrush x:Key="RoseErrorBrush" Color="#F43F5E" />
-    <SolidColorBrush x:Key="DestructiveRedBrush" Color="#F43F5E" />
-    <SolidColorBrush x:Key="DestructiveRedSoftBrush" Color="#F87171" />
-    <SolidColorBrush x:Key="DestructiveRedTextBrush" Color="#FCA5A5" />
-    <SolidColorBrush x:Key="SuccessAccentBrush" Color="#10B981" />
-    <SolidColorBrush x:Key="SuccessGlowBrush" Color="#00F2B0" />
-    <SolidColorBrush x:Key="SuccessTextBrightBrush" Color="#34D399" />
-    <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#0D2818" />
-    <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#241B12" />
-    <SolidColorBrush x:Key="WarningBorderSoftBrush" Color="#8CF59E0B" />
-    <SolidColorBrush x:Key="AccentHairlineBrush" Color="#2600F2B0" />
-    <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#2A0E0E" />
-    <SolidColorBrush x:Key="InfoAccentBrush" Color="#3B82F6" />
-    <SolidColorBrush x:Key="IndigoAccentBrush" Color="#6366F1" />
+            <SolidColorBrush x:Key="NavDividerBrush" Color="#2E3D4A" />
+            <SolidColorBrush x:Key="AccentBorderBrush" Color="#1A3B35" />
 
-    <!-- Navigation -->
-    <SolidColorBrush x:Key="NavIconMutedBrush" Color="#5E6E80" />
-    <SolidColorBrush x:Key="NavIconHoverBrush" Color="#9FB0C3" />
-    <SolidColorBrush x:Key="NavIconDangerMutedBrush" Color="#8C4B58" />
-    <SolidColorBrush x:Key="NavIconDangerHoverBrush" Color="#F87171" />
+            <!-- Text. TextMuted moved up from the WPF #78899D: that value was chosen
+                 against an opaque #06080B canvas, and against a Mica-tinted surface it
+                 lands at roughly 4.4:1, just under the 4.5:1 WCAG AA floor for the 11px
+                 labels it is used for. -->
+            <SolidColorBrush x:Key="TextHighBrush" Color="#F8FAFC" />
+            <SolidColorBrush x:Key="TextMediumBrush" Color="#9AABBE" />
+            <SolidColorBrush x:Key="TextMutedBrush" Color="#8395A8" />
 
-    <!-- Fonts
-         WPF used Segoe MDL2 Assets for glyphs. WinUI 3 ships Segoe Fluent Icons,
-         which is the supported replacement; glyph coverage needs auditing during
-         screen porting (some MDL2 code points moved). -->
+            <SolidColorBrush x:Key="PillButtonBgBrush" Color="#0F161C" />
+            <SolidColorBrush x:Key="PillButtonHoverBrush" Color="#152028" />
+            <SolidColorBrush x:Key="PillButtonBorderBrush" Color="#1E2E38" />
+            <SolidColorBrush x:Key="HeroActionBtnTextBrush" Color="#030D0C" />
+            <SolidColorBrush x:Key="TrackBgBrush" Color="#0E141C" />
+            <SolidColorBrush x:Key="TrackThumbBrush" Color="#64748B" />
+            <SolidColorBrush x:Key="ScrollThumbBrush" Color="#4E6478" />
+            <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#00F2B0" />
+
+            <SolidColorBrush x:Key="AdminBadgeBgBrush" Color="#081D17" />
+            <SolidColorBrush x:Key="AdminBadgeBorderBrush" Color="#00F2B0" />
+            <SolidColorBrush x:Key="AdminBadgeTextBrush" Color="#00F2B0" />
+            <SolidColorBrush x:Key="SafetyBadgeBgBrush" Color="#081D17" />
+            <SolidColorBrush x:Key="SafetyBadgeBorderBrush" Color="#00F2B0" />
+            <SolidColorBrush x:Key="SafetyBadgeTextBrush" Color="#00F2B0" />
+            <SolidColorBrush x:Key="WarningBadgeBgBrush" Color="#261C0D" />
+            <SolidColorBrush x:Key="WarningBadgeBorderBrush" Color="#F59E0B" />
+            <SolidColorBrush x:Key="WarningBadgeTextBrush" Color="#F59E0B" />
+            <SolidColorBrush x:Key="ElectricCyanBrush" Color="#00F2B0" />
+            <SolidColorBrush x:Key="AccentBlueBrush" Color="#0DD3BA" />
+            <SolidColorBrush x:Key="AccentIndigoBrush" Color="#06B6D4" />
+            <SolidColorBrush x:Key="AmberWarningBrush" Color="#F59E0B" />
+            <SolidColorBrush x:Key="RoseErrorBrush" Color="#F43F5E" />
+            <SolidColorBrush x:Key="DestructiveRedTextBrush" Color="#FCA5A5" />
+            <SolidColorBrush x:Key="SuccessGlowBrush" Color="#00F2B0" />
+            <SolidColorBrush x:Key="SuccessTextBrightBrush" Color="#34D399" />
+            <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#0D2818" />
+            <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#241B12" />
+            <SolidColorBrush x:Key="WarningBorderSoftBrush" Color="#8CF59E0B" />
+            <SolidColorBrush x:Key="AccentHairlineBrush" Color="#2600F2B0" />
+            <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#2A0E0E" />
+
+            <SolidColorBrush x:Key="NavIconMutedBrush" Color="#5E6E80" />
+            <SolidColorBrush x:Key="NavIconHoverBrush" Color="#9FB0C3" />
+            <SolidColorBrush x:Key="NavIconDangerMutedBrush" Color="#8C4B58" />
+            <SolidColorBrush x:Key="NavIconDangerHoverBrush" Color="#F87171" />
+
+            <!-- Active filter-chip fill, copied from the WPF GlassSurfaceActiveBrush. -->
+            <LinearGradientBrush x:Key="GlassSurfaceActiveBrush" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#2000F2B0" Offset="0.0" />
+                <GradientStop Color="#100DD3BA" Offset="0.6" />
+                <GradientStop Color="#0800BFA5" Offset="1.0" />
+            </LinearGradientBrush>
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Light">
+            <!-- Surfaces. The scrim darkens the light Mica to about #D0D0D0 so the
+                 90%-white cards (#FAFAFA over it) have a plane to rise from; the rail
+                 acrylic is the same chrome-below-page relationship, done with a cooler
+                 tint instead of a darker one. -->
+            <SolidColorBrush x:Key="CanvasDarkBrush" Color="#26000000" />
+            <SolidColorBrush x:Key="HeaderDockBrush" Color="#99FFFFFF" />
+            <SolidColorBrush x:Key="SurfaceCardBrush" Color="#E6FFFFFF" />
+            <SolidColorBrush x:Key="SurfaceCardHoverBrush" Color="#0F000000" />
+            <SolidColorBrush x:Key="SurfaceCardSelectedBrush" Color="#1F000000" />
+            <SolidColorBrush x:Key="SurfaceSubCardBrush" Color="#0A000000" />
+            <SolidColorBrush x:Key="HairlineBorderBrush" Color="#1F000000" />
+            <SolidColorBrush x:Key="HairlineStrongBrush" Color="#33000000" />
+
+            <AcrylicBrush x:Key="PaneAcrylicBrush"
+                          TintColor="#D2D8E0"
+                          TintOpacity="0.86"
+                          TintLuminosityOpacity="0.55"
+                          FallbackColor="#DDE2E8" />
+
+            <SolidColorBrush x:Key="NavDividerBrush" Color="#CBD5E1" />
+            <SolidColorBrush x:Key="AccentBorderBrush" Color="#3300806A" />
+
+            <!-- Text. The muted step is the tight one: it has to clear 4.5:1 on the
+                 scrimmed canvas (#D0D0D0), not just on the white cards, because the
+                 11px row counts and file sizes sit on both. -->
+            <SolidColorBrush x:Key="TextHighBrush" Color="#0F172A" />
+            <SolidColorBrush x:Key="TextMediumBrush" Color="#334155" />
+            <SolidColorBrush x:Key="TextMutedBrush" Color="#4E5F70" />
+
+            <SolidColorBrush x:Key="PillButtonBgBrush" Color="#EEF1F5" />
+            <SolidColorBrush x:Key="PillButtonHoverBrush" Color="#E2E7ED" />
+            <SolidColorBrush x:Key="PillButtonBorderBrush" Color="#D3DAE2" />
+            <!-- White on the deep-teal accent fill (4.9:1); in dark mode the same
+                 button is mint fill with near-black text. -->
+            <SolidColorBrush x:Key="HeroActionBtnTextBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="TrackBgBrush" Color="#DCE1E6" />
+            <SolidColorBrush x:Key="TrackThumbBrush" Color="#94A3B8" />
+            <SolidColorBrush x:Key="ScrollThumbBrush" Color="#A9B6C2" />
+            <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#00806A" />
+
+            <!-- Badges keep their hue but move onto tinted backgrounds with solid
+                 borders, which is how a status pill has to work on a light surface. -->
+            <SolidColorBrush x:Key="AdminBadgeBgBrush" Color="#CCFBF1" />
+            <SolidColorBrush x:Key="AdminBadgeBorderBrush" Color="#0D9488" />
+            <SolidColorBrush x:Key="AdminBadgeTextBrush" Color="#0F766E" />
+            <SolidColorBrush x:Key="SafetyBadgeBgBrush" Color="#CCFBF1" />
+            <SolidColorBrush x:Key="SafetyBadgeBorderBrush" Color="#0D9488" />
+            <SolidColorBrush x:Key="SafetyBadgeTextBrush" Color="#0F766E" />
+            <SolidColorBrush x:Key="WarningBadgeBgBrush" Color="#FEF3C7" />
+            <SolidColorBrush x:Key="WarningBadgeBorderBrush" Color="#D97706" />
+            <SolidColorBrush x:Key="WarningBadgeTextBrush" Color="#B45309" />
+
+            <!-- The accent, deepened: fills, borders, the rail's selection bar and
+                 accent-filled buttons all read from ElectricCyanBrush, and at teal it
+                 clears 3:1 as a UI boundary and 4.9:1 under the white hero-button
+                 text. -->
+            <SolidColorBrush x:Key="ElectricCyanBrush" Color="#00806A" />
+            <SolidColorBrush x:Key="AccentBlueBrush" Color="#00806A" />
+            <SolidColorBrush x:Key="AccentIndigoBrush" Color="#0E7490" />
+            <SolidColorBrush x:Key="AmberWarningBrush" Color="#B45309" />
+            <SolidColorBrush x:Key="RoseErrorBrush" Color="#E11D48" />
+            <SolidColorBrush x:Key="DestructiveRedTextBrush" Color="#BE123C" />
+            <SolidColorBrush x:Key="SuccessGlowBrush" Color="#00806A" />
+            <SolidColorBrush x:Key="SuccessTextBrightBrush" Color="#047857" />
+            <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#D8F5E8" />
+            <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#FDF3E0" />
+            <SolidColorBrush x:Key="WarningBorderSoftBrush" Color="#66D97706" />
+            <SolidColorBrush x:Key="AccentHairlineBrush" Color="#3300806A" />
+            <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#FCE3E6" />
+
+            <!-- Nav glyphs. Muted has to stay a *state*, not a watermark: the rail is
+                 icon-only, so the difference between muted, hover and active is the
+                 only thing telling the user where they are. -->
+            <SolidColorBrush x:Key="NavIconMutedBrush" Color="#6B7A89" />
+            <SolidColorBrush x:Key="NavIconHoverBrush" Color="#334155" />
+            <SolidColorBrush x:Key="NavIconDangerMutedBrush" Color="#C2415A" />
+            <SolidColorBrush x:Key="NavIconDangerHoverBrush" Color="#E11D48" />
+
+            <!-- Active chip fill: the same teal wash, at the alpha the dark stops use
+                 so the checked pill keeps the same weight in both themes. -->
+            <LinearGradientBrush x:Key="GlassSurfaceActiveBrush" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#3300806A" Offset="0.0" />
+                <GradientStop Color="#26008F78" Offset="0.6" />
+                <GradientStop Color="#1A006B5A" Offset="1.0" />
+            </LinearGradientBrush>
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+    <!-- Theme-invariant: fonts, and the brushes that carry a category hue rather than
+         a UI state (category dots, the destructive fill, the soft red outline). They
+         are the same colour in both themes on purpose - they identify *what*, and the
+         theme-varying brushes above carry *whether*. -->
     <FontFamily x:Key="IconFont">Segoe Fluent Icons</FontFamily>
     <FontFamily x:Key="AppFont">Segoe UI Variable Text, Segoe UI</FontFamily>
     <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
 
-    <!-- Active filter-chip fill, copied from the WPF GlassSurfaceActiveBrush. -->
-    <LinearGradientBrush x:Key="GlassSurfaceActiveBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#2000F2B0" Offset="0.0" />
-        <GradientStop Color="#100DD3BA" Offset="0.6" />
-        <GradientStop Color="#0800BFA5" Offset="1.0" />
-    </LinearGradientBrush>
+    <SolidColorBrush x:Key="AccentVioletBrush" Color="#8B5CF6" />
+    <SolidColorBrush x:Key="DestructiveRedBrush" Color="#F43F5E" />
+    <SolidColorBrush x:Key="DestructiveRedSoftBrush" Color="#F87171" />
+    <SolidColorBrush x:Key="SuccessAccentBrush" Color="#10B981" />
+    <SolidColorBrush x:Key="InfoAccentBrush" Color="#3B82F6" />
+    <SolidColorBrush x:Key="IndigoAccentBrush" Color="#6366F1" />
 
     <!--
         WinUI 3 port of the WPF FilterChipRadio (App.xaml lines 924-962).
@@ -140,9 +240,9 @@
         keyboard focus ring with it.
     -->
     <Style x:Key="FilterChipRadio" TargetType="RadioButton">
-        <Setter Property="Background" Value="{StaticResource SurfaceSubCardBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextMediumBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource HairlineBorderBrush}" />
+        <Setter Property="Background" Value="{ThemeResource SurfaceSubCardBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextMediumBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource HairlineBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="FontSize" Value="10.5" />
         <Setter Property="FontWeight" Value="SemiBold" />
@@ -163,23 +263,23 @@
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal">
                                     <VisualState.Setters>
-                                        <Setter Target="ChipBorder.Background" Value="{StaticResource SurfaceSubCardBrush}" />
-                                        <Setter Target="ChipBorder.BorderBrush" Value="{StaticResource HairlineBorderBrush}" />
-                                        <Setter Target="ChipContent.Foreground" Value="{StaticResource TextMediumBrush}" />
+                                        <Setter Target="ChipBorder.Background" Value="{ThemeResource SurfaceSubCardBrush}" />
+                                        <Setter Target="ChipBorder.BorderBrush" Value="{ThemeResource HairlineBorderBrush}" />
+                                        <Setter Target="ChipContent.Foreground" Value="{ThemeResource TextMediumBrush}" />
                                         <Setter Target="ChipContent.FontWeight" Value="SemiBold" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
-                                        <Setter Target="ChipBorder.Background" Value="{StaticResource SurfaceCardHoverBrush}" />
-                                        <Setter Target="ChipBorder.BorderBrush" Value="{StaticResource AccentBlueBrush}" />
-                                        <Setter Target="ChipContent.Foreground" Value="{StaticResource TextHighBrush}" />
+                                        <Setter Target="ChipBorder.Background" Value="{ThemeResource SurfaceCardHoverBrush}" />
+                                        <Setter Target="ChipBorder.BorderBrush" Value="{ThemeResource AccentBlueBrush}" />
+                                        <Setter Target="ChipContent.Foreground" Value="{ThemeResource TextHighBrush}" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Pressed">
                                     <VisualState.Setters>
-                                        <Setter Target="ChipBorder.Background" Value="{StaticResource SurfaceCardHoverBrush}" />
-                                        <Setter Target="ChipBorder.BorderBrush" Value="{StaticResource AccentBlueBrush}" />
+                                        <Setter Target="ChipBorder.Background" Value="{ThemeResource SurfaceCardHoverBrush}" />
+                                        <Setter Target="ChipBorder.BorderBrush" Value="{ThemeResource AccentBlueBrush}" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Disabled">
@@ -191,9 +291,9 @@
                             <VisualStateGroup x:Name="CheckStates">
                                 <VisualState x:Name="Checked">
                                     <VisualState.Setters>
-                                        <Setter Target="ChipBorder.Background" Value="{StaticResource GlassSurfaceActiveBrush}" />
-                                        <Setter Target="ChipBorder.BorderBrush" Value="{StaticResource ElectricCyanBrush}" />
-                                        <Setter Target="ChipContent.Foreground" Value="{StaticResource ElectricCyanBrush}" />
+                                        <Setter Target="ChipBorder.Background" Value="{ThemeResource GlassSurfaceActiveBrush}" />
+                                        <Setter Target="ChipBorder.BorderBrush" Value="{ThemeResource ElectricCyanBrush}" />
+                                        <Setter Target="ChipContent.Foreground" Value="{ThemeResource ElectricCyanBrush}" />
                                         <Setter Target="ChipContent.FontWeight" Value="Bold" />
                                     </VisualState.Setters>
                                 </VisualState>
@@ -230,20 +330,20 @@
         <Setter Property="FontSize" Value="10.5" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="CharacterSpacing" Value="80" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextMutedBrush}" />
     </Style>
 
     <Style x:Key="PageTitleText" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="FontSize" Value="20" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="{StaticResource TextHighBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextHighBrush}" />
     </Style>
 
     <Style x:Key="PageDescriptionText" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="FontSize" Value="12" />
-        <Setter Property="Foreground" Value="{StaticResource TextMediumBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextMediumBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
@@ -251,13 +351,13 @@
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="{StaticResource TextHighBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextHighBrush}" />
     </Style>
 
     <Style x:Key="CaptionText" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="FontSize" Value="11" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextMutedBrush}" />
     </Style>
 
     <Style x:Key="StatLabelText" TargetType="TextBlock">
@@ -265,7 +365,7 @@
         <Setter Property="FontSize" Value="10.5" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="CharacterSpacing" Value="60" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextMutedBrush}" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
 
@@ -273,22 +373,22 @@
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="FontSize" Value="17" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="{StaticResource TextHighBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextHighBrush}" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
 
     <Style x:Key="StatMetaText" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="FontSize" Value="11" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextMutedBrush}" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
 
     <!-- The one card shape. Every panel surface is this: an 8px radius, a hairline and
          a translucent fill. Declared once so the radius cannot drift per view. -->
     <Style x:Key="CardBorderStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource SurfaceCardBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource HairlineBorderBrush}" />
+        <Setter Property="Background" Value="{ThemeResource SurfaceCardBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource HairlineBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
     </Style>

@@ -66,5 +66,9 @@ public sealed partial class MemoryOptimizerView : UserControl
         SoundService.PlayClickSound();
         Visibility = Microsoft.UI.Xaml.Visibility.Visible;
         ViewModel.Refresh();
+
+        // Modal entrance: one fade and a short rise, the same beat the shell uses when
+        // it swaps a workspace, so every surface in the app arrives the same way.
+        ShellMotion.Enter(this, riseDip: 14);
     }
 }

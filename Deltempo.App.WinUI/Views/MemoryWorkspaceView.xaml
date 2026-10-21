@@ -40,8 +40,8 @@
 
         <!-- Telemetry card -->
         <Border Grid.Row="0"
-                Background="{StaticResource SurfaceCardBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource SurfaceCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="13"
                 Padding="14,10"
@@ -57,13 +57,13 @@
                         <FontIcon Glyph="&#xE950;"
                                   FontFamily="{StaticResource IconFont}"
                                   FontSize="12"
-                                  Foreground="{StaticResource ElectricCyanBrush}"
+                                  Foreground="{ThemeResource ElectricCyanBrush}"
                                   Margin="0,0,6,0"
                                   VerticalAlignment="Center" />
                         <TextBlock Text="RAM Memory"
                                    FontSize="12"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextHighBrush}"
+                                   Foreground="{ThemeResource TextHighBrush}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
 
@@ -71,12 +71,12 @@
                         <TextBlock Text="{x:Bind ViewModel.UsedPercentText, Mode=OneWay}"
                                    FontSize="12"
                                    FontWeight="Bold"
-                                   Foreground="{StaticResource ElectricCyanBrush}"
+                                   Foreground="{ThemeResource ElectricCyanBrush}"
                                    Margin="0,0,10,0"
                                    VerticalAlignment="Center" />
 
-                        <Button Background="{StaticResource PillButtonBgBrush}"
-                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                        <Button Background="{ThemeResource PillButtonBgBrush}"
+                                BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="12"
                                 Padding="10,3"
@@ -86,13 +86,13 @@
                                 <FontIcon Glyph="&#xE950;"
                                           FontFamily="{StaticResource IconFont}"
                                           FontSize="10.5"
-                                          Foreground="{StaticResource ElectricCyanBrush}"
+                                          Foreground="{ThemeResource ElectricCyanBrush}"
                                           Margin="0,0,5,0"
                                           VerticalAlignment="Center" />
                                 <TextBlock Text="Memory Manager"
                                            FontSize="10.5"
                                            FontWeight="SemiBold"
-                                           Foreground="{StaticResource ElectricCyanBrush}"
+                                           Foreground="{ThemeResource ElectricCyanBrush}"
                                            VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
@@ -103,8 +103,8 @@
                              Maximum="100"
                              Value="{x:Bind ViewModel.UsedPercent, Mode=OneWay}"
                              Height="6"
-                             Foreground="{StaticResource ElectricCyanBrush}"
-                             Background="{StaticResource TrackBgBrush}"
+                             Foreground="{ThemeResource ElectricCyanBrush}"
+                             Background="{ThemeResource TrackBgBrush}"
                              BorderThickness="0"
                              Margin="0,0,0,6" />
 
@@ -117,7 +117,7 @@
                     <TextBlock Grid.Column="0"
                                Text="{x:Bind ViewModel.RamDetailText, Mode=OneWay}"
                                FontSize="10.5"
-                               Foreground="{StaticResource TextMediumBrush}"
+                               Foreground="{ThemeResource TextMediumBrush}"
                                VerticalAlignment="Center"
                                TextWrapping="Wrap" />
 
@@ -127,8 +127,8 @@
                             Content="{x:Bind ViewModel.BoostButtonText, Mode=OneWay}"
                             AutomationProperties.Name="Trim memory (cache eviction)"
                             AutomationProperties.HelpText="Trims working sets and discards cached pages. This raises available memory but is not a speed boost - evicted pages are re-read from disk on demand."
-                            Background="{StaticResource PillButtonBgBrush}"
-                            BorderBrush="{StaticResource PillButtonBorderBrush}"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource PillButtonBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="12"
                             Padding="12,4"
@@ -144,8 +144,8 @@
 
         <!-- Standby + zone summary. The per-zone detail lives in the overlay. -->
         <Border Grid.Row="1"
-                Background="{StaticResource SurfaceCardBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource SurfaceCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="13"
                 Padding="18,16"
@@ -154,19 +154,19 @@
                 <FontIcon Glyph="&#xE9F9;"
                           FontFamily="{StaticResource IconFont}"
                           FontSize="34"
-                          Foreground="{StaticResource ElectricCyanBrush}"
+                          Foreground="{ThemeResource ElectricCyanBrush}"
                           HorizontalAlignment="Center" />
 
                 <TextBlock Text="Memory Optimization"
                            FontSize="15"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource TextHighBrush}"
+                           Foreground="{ThemeResource TextHighBrush}"
                            HorizontalAlignment="Center"
                            Margin="0,12,0,0" />
 
                 <TextBlock Text="Trim working sets, evict the standby cache, and reclaim locked or standby-only pages."
                            FontSize="11.5"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           Foreground="{ThemeResource TextMutedBrush}"
                            HorizontalAlignment="Center"
                            TextWrapping="Wrap"
                            TextAlignment="Center"

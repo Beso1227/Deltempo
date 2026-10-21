@@ -28,8 +28,8 @@
 
     <Grid Background="Transparent">
         <Border Margin="24,14,24,14"
-                Background="{StaticResource SurfaceSubCardBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource SurfaceSubCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="16"
                 Padding="22,18">
@@ -47,14 +47,14 @@
                         <Border Width="40"
                                 Height="40"
                                 CornerRadius="12"
-                                Background="{StaticResource SurfaceSubCardBrush}"
-                                BorderBrush="{StaticResource ElectricCyanBrush}"
+                                Background="{ThemeResource SurfaceSubCardBrush}"
+                                BorderBrush="{ThemeResource ElectricCyanBrush}"
                                 BorderThickness="1"
                                 Margin="0,0,12,0">
                             <FontIcon Glyph="&#xE7B3;"
                                       FontFamily="{StaticResource IconFont}"
                                       FontSize="18"
-                                      Foreground="{StaticResource ElectricCyanBrush}"
+                                      Foreground="{ThemeResource ElectricCyanBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -63,10 +63,10 @@
                             <TextBlock Text="AppData Footprint"
                                        FontSize="16"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextHighBrush}" />
+                                       Foreground="{ThemeResource TextHighBrush}" />
                             <TextBlock Text="Where your application data is actually stored"
                                        FontSize="11.5"
-                                       Foreground="{StaticResource TextMediumBrush}" />
+                                       Foreground="{ThemeResource TextMediumBrush}" />
                         </StackPanel>
                     </StackPanel>
 
@@ -81,14 +81,14 @@
                         <FontIcon Glyph="&#xE8BB;"
                                   FontFamily="{StaticResource IconFont}"
                                   FontSize="12"
-                                  Foreground="{StaticResource TextMediumBrush}" />
+                                  Foreground="{ThemeResource TextMediumBrush}" />
                     </Button>
                 </Grid>
 
                 <!-- 1. Summary + the read-only contract, stated in the UI itself -->
                 <Border Grid.Row="1"
-                        Background="{StaticResource SurfaceCardBrush}"
-                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                        Background="{ThemeResource SurfaceCardBrush}"
+                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="10"
                         Padding="14,10"
@@ -97,25 +97,25 @@
                         <TextBlock Text="{x:Bind ViewModel.SummaryText, Mode=OneWay}"
                                    FontSize="12.5"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextHighBrush}"
+                                   Foreground="{ThemeResource TextHighBrush}"
                                    TextWrapping="Wrap" />
                         <TextBlock Text="Report only - nothing here is selected, and nothing is deleted. Rows marked 'covered by an existing scope' can be cleaned by the matching Deltempo scope in the Cleaner."
                                    FontSize="11"
                                    TextWrapping="Wrap"
-                                   Foreground="{StaticResource TextMutedBrush}"
+                                   Foreground="{ThemeResource TextMutedBrush}"
                                    Margin="0,4,0,0" />
                         <ProgressBar IsIndeterminate="True"
                                      Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                      Height="2"
                                      Margin="0,8,0,0"
-                                     Foreground="{StaticResource ElectricCyanBrush}" />
+                                     Foreground="{ThemeResource ElectricCyanBrush}" />
                     </StackPanel>
                 </Border>
 
                 <!-- 2. Folder list -->
                 <Border Grid.Row="2"
-                        Background="{StaticResource SurfaceCardBrush}"
-                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                        Background="{ThemeResource SurfaceCardBrush}"
+                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="12"
                         Padding="12,8"
@@ -136,8 +136,8 @@
 
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="viewmodels:FootprintRowViewModel">
-                                <Border Background="{StaticResource SurfaceCardBrush}"
-                                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                                <Border Background="{ThemeResource SurfaceCardBrush}"
+                                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="10"
                                         Padding="12,10">
@@ -148,15 +148,15 @@
                                                 Width="34"
                                                 Height="34"
                                                 CornerRadius="8"
-                                                Background="{StaticResource SurfaceSubCardBrush}"
-                                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                Background="{ThemeResource SurfaceSubCardBrush}"
+                                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                                 BorderThickness="1"
                                                 Margin="0,0,12,0"
                                                 VerticalAlignment="Center">
                                             <FontIcon Glyph="&#xE8B7;"
                                                       FontFamily="{StaticResource IconFont}"
                                                       FontSize="13"
-                                                      Foreground="{StaticResource ElectricCyanBrush}"
+                                                      Foreground="{ThemeResource ElectricCyanBrush}"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
@@ -166,12 +166,12 @@
                                             <TextBlock Text="{x:Bind DisplayName}"
                                                        FontSize="12"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextHighBrush}"
+                                                       Foreground="{ThemeResource TextHighBrush}"
                                                        TextTrimming="CharacterEllipsis" />
                                             <TextBlock Text="{x:Bind Path}"
                                                        FontSize="10.5"
                                                        FontFamily="{StaticResource MonoFont}"
-                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                       Foreground="{ThemeResource TextMutedBrush}"
                                                        TextTrimming="CharacterEllipsis"
                                                        Margin="0,2,0,0" />
                                         </StackPanel>
@@ -184,8 +184,8 @@
                                               Margin="0,0,14,0">
                                             <Border Height="6"
                                                     CornerRadius="3"
-                                                    Background="{StaticResource SurfaceSubCardBrush}"
-                                                    BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                    Background="{ThemeResource SurfaceSubCardBrush}"
+                                                    BorderBrush="{ThemeResource HairlineBorderBrush}"
                                                     BorderThickness="1" />
                                             <Border Height="6"
                                                     CornerRadius="3"
@@ -201,7 +201,7 @@
                                             <TextBlock Text="{x:Bind FormattedSize}"
                                                        FontSize="12"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextHighBrush}"
+                                                       Foreground="{ThemeResource TextHighBrush}"
                                                        HorizontalAlignment="Right" />
                                             <Border Background="{x:Bind BadgeBackground, Converter={StaticResource HexToBrush}}"
                                                     BorderBrush="{x:Bind BadgeForeground, Converter={StaticResource HexToBrush}}"
@@ -233,7 +233,7 @@
                     <TextBlock Text="{x:Bind ViewModel.FooterText, Mode=OneWay}"
                                VerticalAlignment="Center"
                                FontSize="11"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               Foreground="{ThemeResource TextMutedBrush}"
                                TextTrimming="CharacterEllipsis"
                                Margin="0,0,12,0" />
 
@@ -241,8 +241,8 @@
                             AutomationProperties.Name="Re-measure the AppData footprint"
                             ToolTipService.ToolTip="Rescan the three AppData trees and re-measure every folder"
                             Command="{x:Bind ViewModel.RefreshCommand}"
-                            Background="{StaticResource PillButtonBgBrush}"
-                            BorderBrush="{StaticResource PillButtonBorderBrush}"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource PillButtonBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="14"
                             Padding="14,6"
@@ -252,7 +252,7 @@
                                       FontFamily="{StaticResource IconFont}"
                                       FontSize="11"
                                       Margin="0,0,5,0"
-                                      Foreground="{StaticResource ElectricCyanBrush}" />
+                                      Foreground="{ThemeResource ElectricCyanBrush}" />
                             <TextBlock Text="Re-measure" FontWeight="SemiBold" FontSize="11" />
                         </StackPanel>
                     </Button>

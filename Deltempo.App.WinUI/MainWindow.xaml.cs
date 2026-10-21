@@ -27,16 +27,21 @@ public sealed partial class MainWindow : Window
     // Named constants rather than literals so the panel map below keys off identity, not
     // off positions: inserting a tab mid-list used to silently re-point the later nav
     // items at the wrong panels.
-    private static readonly (string Label, string Glyph, bool Danger)[] Sections =
+    //
+    // Glyph and Help are the WPF header's own values (MainWindow.xaml ToolCleanerBtn ..
+    // ToolForceDeleteBtn): the icon is what represents the section now that the rail is
+    // icon-only, so it has to be the same icon the old UI trained people on, and Help is
+    // the same tooltip copy that button carried.
+    private static readonly (string Label, string Glyph, string Help, bool Danger)[] Sections =
     {
-        (CleanerSectionLabel, "\uE80F", false),
-        (LargeFilesSectionLabel, "\uE8B7", false),
-        (StartupSectionLabel, "\uE7C3", false),
-        (MemorySectionLabel, "\uE9F9", false),
-        (SystemRepairSectionLabel, "\uE90F", false),
-        (AppUninstallerSectionLabel, "\uE77B", false),
+        (CleanerSectionLabel, "\uE856", "Switch to Junk Cleaner workspace & storage dashboard", false),
+        (LargeFilesSectionLabel, "\uE8B7", "Scan and locate large space-consuming files across your drives safely", false),
+        (StartupSectionLabel, "\uE7B5", "Inspect and manage applications configured to launch on Windows boot", false),
+        (MemorySectionLabel, "\uE950", "Purge standby memory and trim inactive process working sets using native Windows APIs", false),
+        (SystemRepairSectionLabel, "\uE74C", "Diagnose and repair Windows system file corruption (SFC, DISM, and CHKDSK)", false),
+        (AppUninstallerSectionLabel, "\uE71D", "Installed applications manager, uninstaller & residual bloatware purger", false),
         // WPF styled this one's pill with its danger brushes.
-        (ForceDeleteSectionLabel, "\uE74D", true),
+        (ForceDeleteSectionLabel, "\uE74D", "Pick stubborn files or folders (locked, read-only, permission-denied) and permanently force delete them", true),
     };
 
     /// <summary>
@@ -51,6 +56,13 @@ public sealed partial class MainWindow : Window
     /// section label. See <see cref="UpdateNavSelection"/>.
     /// </summary>
     private readonly Dictionary<string, NavEntry> _navEntries = [];
+
+    /// <summary>The section the rail currently has selected. Kept so a theme switch
+    /// can repaint the active glyph, which caches a brush rather than inheriting one.</summary>
+    private string _activeSectionLabel = string.Empty;
+
+    /// <summary>True while the shell is in the dark theme.</summary>
+    private bool _isDarkTheme = true;
 
     public MainWindow()
     {
@@ -73,6 +85,7 @@ public sealed partial class MainWindow : Window
         FooterVersion.Text = $"v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0"} · WinUI 3";
 
         ApplyWindowChrome();
+        ApplyTheme(SettingsService.Current.IsDarkMode, persist: false);
         BuildNavigation();
         VerifyCoreLink();
         WireWorkspaceSurfaces();
@@ -538,7 +551,9 @@ public sealed partial class MainWindow : Window
     private void OpenMemoryOptimizerOverlay() => MemoryOverlay.Open();
 
     private void CloseMemoryOptimizerOverlay()
-        => MemoryOverlay.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        => ShellMotion.Exit(
+            MemoryOverlay,
+            () => MemoryOverlay.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed);
 
     /// <summary>
     /// The close button on a promoted panel returns to the first workspace, which
@@ -553,13 +568,18 @@ public sealed partial class MainWindow : Window
         FootprintView.CloseRequested += CloseAppDataFootprint;
         FootprintView.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
         FootprintView.PopulateAndOpen();
+        ShellMotion.Enter(FootprintView, riseDip: 14);
     }
 
     private void CloseAppDataFootprint()
     {
-        FootprintView.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        // Unsubscribe immediately - only the *paint* waits for the fade. A handler that
+        // stayed subscribed for 140ms would still be live for a second close.
         FootprintView.CloseRequested -= CloseAppDataFootprint;
         FootprintView.LogRequested -= OnFootprintLog;
+        ShellMotion.Exit(
+            FootprintView,
+            () => FootprintView.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed);
     }
 
     private void OnFootprintLog(string message, WinTempCleaner.Models.LogLevel level)
@@ -621,6 +641,78 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Switches the shell between the dark and light token sets.
+    ///
+    /// The tokens live in ThemeDictionaries, so the switch is a RequestedTheme change
+    /// on the window content: every ThemeResource in the tree re-resolves against the
+    /// other dictionary. That is exactly why the views reference theme brushes with
+    /// ThemeResource and never StaticResource - a static reference freezes whichever
+    /// theme it happened to resolve in.
+    ///
+    /// The choice is shared state, not window state: it goes through Core's
+    /// SettingsService so it survives a restart and both UIs agree on it.
+    /// </summary>
+    private void ApplyTheme(bool isDark, bool persist)
+    {
+        _isDarkTheme = isDark;
+
+        if (Content is FrameworkElement root)
+        {
+            root.RequestedTheme = isDark ? ElementTheme.Dark : ElementTheme.Light;
+        }
+
+        // The glyph shows the theme the button switches TO, so the icon and the
+        // tooltip always agree about what a click will do.
+        ThemeToggleIcon.Glyph = isDark ? "\uE706" : "\uE708";
+        ToolTipService.SetToolTip(
+            ThemeToggleButton,
+            isDark ? "Switch to light theme" : "Switch to dark theme");
+
+        UpdateCaptionColors(isDark);
+
+        // The rail glyphs carry an explicit brush (the presenter's SelectedForeground
+        // never reaches a FontIcon), so they have to be repainted by hand when the
+        // palette changes underneath them.
+        if (_activeSectionLabel.Length > 0)
+        {
+            UpdateNavSelection(_activeSectionLabel);
+        }
+
+        if (persist)
+        {
+            SettingsService.Update(s => s.IsDarkMode = isDark);
+        }
+    }
+
+    private void OnThemeToggleClick(object sender, RoutedEventArgs e)
+        => ApplyTheme(!_isDarkTheme, persist: true);
+
+    /// <summary>
+    /// Caption buttons are drawn by the system, not by XAML, so they do not follow the
+    /// theme resources - they have to be told. White glyphs on a light title bar are
+    /// unreadable, which is the whole reason this method exists.
+    /// </summary>
+    private void UpdateCaptionColors(bool isDark)
+    {
+        try
+        {
+            IntPtr hwnd = WindowNative.GetWindowHandle(this);
+            AppWindow appWindow = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(hwnd));
+
+            appWindow.TitleBar.ButtonForegroundColor = isDark
+                ? Microsoft.UI.Colors.White
+                : Microsoft.UI.Colors.Black;
+            appWindow.TitleBar.ButtonInactiveForegroundColor = isDark
+                ? Microsoft.UI.Colors.Gray
+                : Microsoft.UI.Colors.DimGray;
+        }
+        catch (Exception ex)
+        {
+            ShellDiagnostics.Write($"caption colors failed: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Physical pixels per logical pixel for this window's monitor. WinUI 3 exposes no
     /// managed accessor for that before the content is loaded, and the window is sized in
     /// the constructor.
@@ -632,9 +724,9 @@ public sealed partial class MainWindow : Window
     {
         BuildWorkspacePanelMap();
 
-        foreach (var (label, glyph, danger) in Sections)
+        foreach (var (label, glyph, help, danger) in Sections)
         {
-            (UIElement content, FontIcon icon, Border indicator) = BuildNavContent(label, glyph);
+            (UIElement content, FontIcon icon, Border indicator) = BuildNavContent(glyph);
 
             var item = new ListViewItem
             {
@@ -648,7 +740,17 @@ public sealed partial class MainWindow : Window
             // set AutomationProperties.Name on each workspace, and dropping it
             // made every nav destination unreachable by name - for screen
             // readers and for UI automation alike.
+            //
+            // The rail shows glyphs only, so the name also has to reach a sighted
+            // pointer: that is the tooltip, carrying the label on hover. HelpText
+            // keeps the WPF button's descriptive tooltip copy available to assistive
+            // tech instead of putting a two-line balloon over every row.
             Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(item, label);
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(item, help);
+            ToolTipService.SetToolTip(item, label);
+            ToolTipService.SetPlacement(item, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Right);
+
+            WireNavHover(item, label, danger);
 
             NavList.Items.Add(item);
         }
@@ -702,6 +804,7 @@ public sealed partial class MainWindow : Window
         }
 
         UpdateNavSelection(label);
+        _activeSectionLabel = label;
 
         _workspacePanels.TryGetValue(label, out (UIElement Panel, Action? Open) active);
         UIElement? activePanel = active.Panel;
@@ -722,6 +825,11 @@ public sealed partial class MainWindow : Window
         CoreLinkCard.Visibility = hasPanel ? Visibility.Collapsed : Visibility.Visible;
 
         active.Open?.Invoke();
+
+        // Content that replaced other content gets one short entrance so a section
+        // change reads as a change instead of a teleport. Same curve, same length,
+        // every section - the motion belongs to the shell, not to each panel.
+        ShellMotion.Enter(ContentColumn);
     }
 
     /// <summary>
@@ -774,18 +882,20 @@ public sealed partial class MainWindow : Window
         _workspacePanels[ForceDeleteSectionLabel] = (ForceDeleteWorkspacePanel, ForceDeleteWorkspacePanel.Open);
     }
 
-    private static (UIElement Content, FontIcon Icon, Border Indicator) BuildNavContent(
-        string label,
-        string glyph)
+    /// <summary>
+    /// Builds one rail item's visual: the selection bar pinned to the pane edge and the
+    /// section glyph centred in what is left. The section name is deliberately not in
+    /// the content - the strip is icon-only and the name arrives as the item's tooltip -
+    /// so this must stay a centred icon, not a label with its text removed.
+    /// </summary>
+    private static (UIElement Content, FontIcon Icon, Border Indicator) BuildNavContent(string glyph)
     {
-        // Flush with the item's left edge (the item carries no left padding) so the bar
-        // sits against the pane the way a NavigationViewItem's does.
         var indicator = new Border
         {
             Width = 3,
-            Height = 16,
+            Height = 20,
             CornerRadius = new CornerRadius(2),
-            Margin = new Thickness(0, 0, 10, 0),
+            HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center,
             Opacity = 0,
         };
@@ -794,22 +904,19 @@ public sealed partial class MainWindow : Window
         {
             Glyph = glyph,
             FontFamily = new FontFamily("Segoe Fluent Icons"),
-            FontSize = 16,
+            FontSize = 18,
         };
 
-        var panel = new StackPanel { Orientation = Orientation.Horizontal };
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        panel.Children.Add(indicator);
-        panel.Children.Add(icon);
+        Grid.SetColumn(indicator, 0);
+        Grid.SetColumn(icon, 1);
+        grid.Children.Add(indicator);
+        grid.Children.Add(icon);
 
-        panel.Children.Add(new TextBlock
-        {
-            Text = label,
-            Margin = new Thickness(10, 0, 0, 0),
-            VerticalAlignment = VerticalAlignment.Center,
-        });
-
-        return (panel, icon, indicator);
+        return (grid, icon, indicator);
     }
 
     /// <summary>
@@ -828,26 +935,70 @@ public sealed partial class MainWindow : Window
         {
             bool isActive = label == activeLabel;
 
-            (string IconKey, string IndicatorKey) = (entry.Danger, isActive) switch
-            {
-                (true, true) => ("NavIconDangerHoverBrush", "DestructiveRedBrush"),
-                (true, false) => ("NavIconDangerMutedBrush", "DestructiveRedBrush"),
-                (false, true) => ("ElectricCyanBrush", "ElectricCyanBrush"),
-                (false, false) => ("NavIconMutedBrush", "ElectricCyanBrush"),
-            };
+            string iconKey = IconKey(entry.Danger, isActive, hovered: false);
+            string indicatorKey = entry.Danger ? "DestructiveRedBrush" : "ElectricCyanBrush";
 
-            if (Application.Current.Resources[IconKey] is Brush iconBrush)
+            if (Application.Current.Resources[iconKey] is Brush iconBrush)
             {
                 entry.Icon.Foreground = iconBrush;
             }
 
-            if (Application.Current.Resources[IndicatorKey] is Brush indicatorBrush)
+            if (Application.Current.Resources[indicatorKey] is Brush indicatorBrush)
             {
                 entry.Indicator.Background = indicatorBrush;
             }
 
-            entry.Indicator.Opacity = isActive ? 1 : 0;
+            if (isActive)
+            {
+                entry.Indicator.Opacity = 1;
+
+                // The bar arrives rather than appears. 120ms of opacity only - a bar
+                // that slides on every click would make the rail feel loose.
+                ShellMotion.Enter(entry.Indicator, riseDip: 0, milliseconds: 120);
+            }
+            else
+            {
+                entry.Indicator.Opacity = 0;
+            }
         }
+    }
+
+    /// <summary>Which icon brush a rail item wears: active beats hover beats muted.</summary>
+    private static string IconKey(bool danger, bool isActive, bool hovered) => (danger, isActive, hovered) switch
+    {
+        (true, true, _) => "NavIconDangerHoverBrush",
+        (true, false, true) => "NavIconDangerHoverBrush",
+        (true, false, false) => "NavIconDangerMutedBrush",
+        (false, true, _) => "ElectricCyanBrush",
+        (false, false, true) => "NavIconHoverBrush",
+        (false, false, false) => "NavIconMutedBrush",
+    };
+
+    /// <summary>
+    /// Hover feedback for an icon-only rail item: the glyph brightens while the pointer
+    /// is on the row and returns to its selection colour on exit. The brushes are read
+    /// per event rather than captured once, so a theme switch is picked up by the very
+    /// next hover instead of needing the rail rebuilt.
+    /// </summary>
+    private void WireNavHover(ListViewItem item, string label, bool danger)
+    {
+        void Paint(bool hovered)
+        {
+            if (!_navEntries.TryGetValue(label, out NavEntry? entry) || entry is null)
+            {
+                return;
+            }
+
+            bool isActive = ReferenceEquals(NavList.SelectedItem, item);
+
+            if (Application.Current.Resources[IconKey(danger, isActive, hovered)] is Brush brush)
+            {
+                entry.Icon.Foreground = brush;
+            }
+        }
+
+        item.PointerEntered += (_, _) => Paint(hovered: true);
+        item.PointerExited += (_, _) => Paint(hovered: false);
     }
 
     /// <summary>One navigation entry's parts that change with the selection.</summary>

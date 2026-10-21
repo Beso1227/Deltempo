@@ -24,8 +24,8 @@
 
     <Grid Background="Transparent">
         <Border Margin="18,8,18,6"
-                Background="{StaticResource SurfaceSubCardBrush}"
-                BorderBrush="{StaticResource HairlineBorderBrush}"
+                Background="{ThemeResource SurfaceSubCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="16"
                 Padding="20,18">
@@ -43,14 +43,14 @@
                         <Border Width="40"
                                 Height="40"
                                 CornerRadius="12"
-                                Background="{StaticResource SurfaceSubCardBrush}"
-                                BorderBrush="{StaticResource ElectricCyanBrush}"
+                                Background="{ThemeResource SurfaceSubCardBrush}"
+                                BorderBrush="{ThemeResource ElectricCyanBrush}"
                                 BorderThickness="1"
                                 Margin="0,0,12,0">
                             <FontIcon Glyph="&#xE950;"
                                       FontFamily="{StaticResource IconFont}"
                                       FontSize="18"
-                                      Foreground="{StaticResource ElectricCyanBrush}"
+                                      Foreground="{ThemeResource ElectricCyanBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -59,13 +59,13 @@
                             <TextBlock Text="Windows Memory Cleaner &amp; Standby Cache"
                                        FontSize="16"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextHighBrush}" />
+                                       Foreground="{ThemeResource TextHighBrush}" />
                             <TextBlock Text="Kernel-level Standby List, System File Cache &amp; Working Set Optimizer"
                                        FontSize="11.5"
-                                       Foreground="{StaticResource TextMediumBrush}" />
+                                       Foreground="{ThemeResource TextMediumBrush}" />
                             <TextBlock Text="Note: Windows automatically reclaims and reallocates cached memory as needed by active applications."
                                        FontSize="10"
-                                       Foreground="{StaticResource TextMutedBrush}"
+                                       Foreground="{ThemeResource TextMutedBrush}"
                                        Margin="0,2,0,0" />
                         </StackPanel>
                     </StackPanel>
@@ -80,45 +80,45 @@
                         <FontIcon Glyph="&#xE8BB;"
                                   FontFamily="{StaticResource IconFont}"
                                   FontSize="12"
-                                  Foreground="{StaticResource TextMediumBrush}" />
+                                  Foreground="{ThemeResource TextMediumBrush}" />
                     </Button>
                 </Grid>
 
                 <!-- 1. Telemetry strip -->
                 <Grid Margin="0,0,0,12" ColumnDefinitions="*,*,*">
                     <Border Grid.Column="0" Margin="0,0,6,0"
-                            Background="{StaticResource SurfaceCardBrush}"
-                            BorderBrush="{StaticResource HairlineBorderBrush}"
+                            Background="{ThemeResource SurfaceCardBrush}"
+                            BorderBrush="{ThemeResource HairlineBorderBrush}"
                             BorderThickness="1" CornerRadius="10" Padding="12,10">
                         <StackPanel>
-                            <TextBlock Text="TOTAL PHYSICAL RAM" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" />
+                            <TextBlock Text="TOTAL PHYSICAL RAM" FontSize="10.5" FontWeight="SemiBold" Foreground="{ThemeResource TextMutedBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.TotalRamText, Mode=OneWay}"
-                                       FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextHighBrush}" Margin="0,2,0,0" />
+                                       FontSize="18" FontWeight="SemiBold" Foreground="{ThemeResource TextHighBrush}" Margin="0,2,0,0" />
                             <TextBlock Text="{x:Bind ViewModel.UsedRamText, Mode=OneWay}"
-                                       FontSize="10.5" Foreground="{StaticResource ElectricCyanBrush}" Margin="0,1,0,0" />
+                                       FontSize="10.5" Foreground="{ThemeResource ElectricCyanBrush}" Margin="0,1,0,0" />
                         </StackPanel>
                     </Border>
 
                     <Border Grid.Column="1" Margin="3,0,3,0"
-                            Background="{StaticResource SurfaceCardBrush}"
-                            BorderBrush="{StaticResource HairlineBorderBrush}"
+                            Background="{ThemeResource SurfaceCardBrush}"
+                            BorderBrush="{ThemeResource HairlineBorderBrush}"
                             BorderThickness="1" CornerRadius="10" Padding="12,10">
                         <StackPanel>
-                            <TextBlock Text="RECLAIMABLE STANDBY CACHE" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" />
+                            <TextBlock Text="RECLAIMABLE STANDBY CACHE" FontSize="10.5" FontWeight="SemiBold" Foreground="{ThemeResource TextMutedBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.StandbyCacheText, Mode=OneWay}"
-                                       FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource SuccessGlowBrush}" Margin="0,2,0,0" />
-                            <TextBlock Text="Cached inactive pages" FontSize="10.5" Foreground="{StaticResource SuccessGlowBrush}" Margin="0,1,0,0" />
+                                       FontSize="18" FontWeight="SemiBold" Foreground="{ThemeResource SuccessGlowBrush}" Margin="0,2,0,0" />
+                            <TextBlock Text="Cached inactive pages" FontSize="10.5" Foreground="{ThemeResource SuccessGlowBrush}" Margin="0,1,0,0" />
                         </StackPanel>
                     </Border>
 
                     <Border Grid.Column="2" Margin="6,0,0,0"
-                            Background="{StaticResource SurfaceCardBrush}"
-                            BorderBrush="{StaticResource HairlineBorderBrush}"
+                            Background="{ThemeResource SurfaceCardBrush}"
+                            BorderBrush="{ThemeResource HairlineBorderBrush}"
                             BorderThickness="1" CornerRadius="10" Padding="12,10">
                         <StackPanel>
-                            <TextBlock Text="KERNEL ISOLATION SHIELD" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" />
-                            <TextBlock Text="100% IMMUNE" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextHighBrush}" Margin="0,2,0,0" />
-                            <TextBlock Text="Windows, Explorer &amp; Security protected" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}" Margin="0,1,0,0" />
+                            <TextBlock Text="KERNEL ISOLATION SHIELD" FontSize="10.5" FontWeight="SemiBold" Foreground="{ThemeResource TextMutedBrush}" />
+                            <TextBlock Text="100% IMMUNE" FontSize="18" FontWeight="SemiBold" Foreground="{ThemeResource TextHighBrush}" Margin="0,2,0,0" />
+                            <TextBlock Text="Windows, Explorer &amp; Security protected" FontSize="10.5" Foreground="{ThemeResource TextMutedBrush}" Margin="0,1,0,0" />
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -127,8 +127,8 @@
                 <Grid Margin="0,0,0,8">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Content="Select All"
-                                Background="{StaticResource PillButtonBgBrush}"
-                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                Background="{ThemeResource PillButtonBgBrush}"
+                                BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="14"
                                 Padding="8,3"
@@ -136,8 +136,8 @@
                                 Margin="0,0,6,0"
                                 Command="{x:Bind ViewModel.SelectAllCommand, Mode=OneTime}" />
                         <Button Content="Deselect All"
-                                Background="{StaticResource PillButtonBgBrush}"
-                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                Background="{ThemeResource PillButtonBgBrush}"
+                                BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="14"
                                 Padding="8,3"
@@ -147,14 +147,14 @@
 
                     <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
                                FontSize="10.5"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               Foreground="{ThemeResource TextMutedBrush}"
                                HorizontalAlignment="Right"
                                VerticalAlignment="Center" />
                 </Grid>
 
                 <!-- 3. Zone list -->
-                <Border Background="{StaticResource SurfaceCardBrush}"
-                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                <Border Background="{ThemeResource SurfaceCardBrush}"
+                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="12"
                         Padding="10,6"
@@ -176,8 +176,8 @@
 
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="viewmodels:MemoryZoneRowViewModel">
-                                <Border Background="{StaticResource SurfaceCardBrush}"
-                                        BorderBrush="{StaticResource HairlineBorderBrush}"
+                                <Border Background="{ThemeResource SurfaceCardBrush}"
+                                        BorderBrush="{ThemeResource HairlineBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="8"
                                         Padding="12,8">
@@ -191,15 +191,15 @@
                                         <Border Grid.Column="1"
                                                 Width="32" Height="32"
                                                 CornerRadius="8"
-                                                Background="{StaticResource SurfaceSubCardBrush}"
-                                                BorderBrush="{StaticResource ElectricCyanBrush}"
+                                                Background="{ThemeResource SurfaceSubCardBrush}"
+                                                BorderBrush="{ThemeResource ElectricCyanBrush}"
                                                 BorderThickness="1"
                                                 Margin="0,0,10,0"
                                                 VerticalAlignment="Center">
                                             <FontIcon Glyph="{x:Bind IconGlyph, Mode=OneTime}"
                                                       FontFamily="{StaticResource IconFont}"
                                                       FontSize="13"
-                                                      Foreground="{StaticResource ElectricCyanBrush}"
+                                                      Foreground="{ThemeResource ElectricCyanBrush}"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
@@ -208,10 +208,10 @@
                                             <TextBlock Text="{x:Bind DisplayName, Mode=OneTime}"
                                                        FontSize="12"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextHighBrush}" />
+                                                       Foreground="{ThemeResource TextHighBrush}" />
                                             <TextBlock Text="{x:Bind Description, Mode=OneTime}"
                                                        FontSize="10"
-                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                       Foreground="{ThemeResource TextMutedBrush}"
                                                        TextTrimming="CharacterEllipsis"
                                                        HorizontalAlignment="Left"
                                                        MaxWidth="360"
@@ -219,8 +219,8 @@
                                         </StackPanel>
 
                                         <Border Grid.Column="3"
-                                                Background="{StaticResource SurfaceSubCardBrush}"
-                                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                Background="{ThemeResource SurfaceSubCardBrush}"
+                                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="6"
                                                 Padding="7,2"
@@ -229,12 +229,12 @@
                                             <TextBlock Text="{x:Bind SafetyBadge, Mode=OneTime}"
                                                        FontSize="10"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource ElectricCyanBrush}" />
+                                                       Foreground="{ThemeResource ElectricCyanBrush}" />
                                         </Border>
 
                                         <Border Grid.Column="4"
-                                                Background="{StaticResource SurfaceSubCardBrush}"
-                                                BorderBrush="{StaticResource HairlineBorderBrush}"
+                                                Background="{ThemeResource SurfaceSubCardBrush}"
+                                                BorderBrush="{ThemeResource HairlineBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="6"
                                                 Padding="8,3"
@@ -244,14 +244,14 @@
                                             <TextBlock Text="{x:Bind FormattedCurrent, Mode=OneTime}"
                                                        FontSize="10.5"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextHighBrush}"
+                                                       Foreground="{ThemeResource TextHighBrush}"
                                                        HorizontalAlignment="Right" />
                                         </Border>
 
                                         <Button Grid.Column="5"
                                                 Content="Flush"
-                                                Background="{StaticResource PillButtonBgBrush}"
-                                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                                Background="{ThemeResource PillButtonBgBrush}"
+                                                BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="14"
                                                 Padding="10,4"
@@ -276,8 +276,8 @@
 
                     <Button Grid.Column="0"
                             Content="Quick Trim Working Sets"
-                            Background="{StaticResource PillButtonBgBrush}"
-                            BorderBrush="{StaticResource PillButtonBorderBrush}"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource PillButtonBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="14"
                             HorizontalAlignment="Left"
@@ -291,8 +291,8 @@
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center">
                         <Button Content="Purge Selected Zones"
-                                Background="{StaticResource ElectricCyanBrush}"
-                                Foreground="{StaticResource HeroActionBtnTextBrush}"
+                                Background="{ThemeResource ElectricCyanBrush}"
+                                Foreground="{ThemeResource HeroActionBtnTextBrush}"
                                 BorderThickness="0"
                                 CornerRadius="14"
                                 Padding="18,7"
@@ -300,8 +300,8 @@
                                 Margin="0,0,8,0"
                                 Command="{x:Bind ViewModel.PurgeSelectedCommand, Mode=OneTime}" />
                         <Button Content="Close"
-                                Background="{StaticResource PillButtonBgBrush}"
-                                BorderBrush="{StaticResource PillButtonBorderBrush}"
+                                Background="{ThemeResource PillButtonBgBrush}"
+                                BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="14"
                                 Padding="16,7"
