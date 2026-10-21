@@ -6,7 +6,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/bin/Debug/net10.0-windows/Deltempo.dll",
+      "program": "${workspaceFolder}/src/Deltempo.App.Wpf/bin/Debug/net10.0-windows/Deltempo.dll",
       "args": [],
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
@@ -17,7 +17,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/Cli/bin/Debug/net10.0-windows/Deltempo.Cli.dll",
+      "program": "${workspaceFolder}/src/Deltempo.Cli/bin/Debug/net10.0-windows/Deltempo.Cli.dll",
       "args": [
         "--help"
       ],
@@ -30,7 +30,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/Cli/bin/Debug/net10.0-windows/Deltempo.Cli.dll",
+      "program": "${workspaceFolder}/src/Deltempo.Cli/bin/Debug/net10.0-windows/Deltempo.Cli.dll",
       "args": [
         "scan"
       ],

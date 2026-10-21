@@ -74,10 +74,10 @@ jobs:
           # so `dotnet test` cannot be used here - the test application is invoked directly.
           # Kept in step with .github/workflows/ci.yml so a green CI run and a green
           # release run cannot disagree about what "the tests passed" means.
-          dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
+          dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
           if ($LASTEXITCODE -ne 0) { Write-Error "::error::Test build failed."; exit 1 }
 
-          $testExe = "Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe"
+          $testExe = "tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe"
           if (-not (Test-Path $testExe)) {
             Write-Error "::error::MTP test executable not found at $testExe."
             exit 1
@@ -156,10 +156,10 @@ jobs:
           $cliOut = @{ 'win-x64' = './dist_cli'; 'win-arm64' = './dist_cli_arm64' }
 
           foreach ($rid in $rids) {
-            dotnet publish WinTempCleaner.csproj -c Release -r $rid --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o $guiOut[$rid]
+            dotnet publish src/Deltempo.App.Wpf/WinTempCleaner.csproj -c Release -r $rid --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o $guiOut[$rid]
             if ($LASTEXITCODE -ne 0) { Write-Error "::error::GUI publish failed for $rid"; exit 1 }
 
-            dotnet publish Cli/Deltempo.Cli.csproj -c Release -r $rid --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o $cliOut[$rid]
+            dotnet publish src/Deltempo.Cli/Deltempo.Cli.csproj -c Release -r $rid --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o $cliOut[$rid]
             if ($LASTEXITCODE -ne 0) { Write-Error "::error::CLI publish failed for $rid"; exit 1 }
           }
 

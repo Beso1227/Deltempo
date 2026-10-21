@@ -42,7 +42,7 @@ Because the test project targets net10.0-windows on Microsoft.Testing.Platform, 
 test executable directly, exactly as `.github/workflows/ci.yml` does:
 
 ```powershell
-dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
+dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
 ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 ```
 
@@ -52,7 +52,7 @@ The style gate must be run the same way CI runs it, against the solution:
 dotnet format deltempo.sln --verify-no-changes --no-restore
 ```
 
-Running it against `WinTempCleaner.csproj` instead is a strictly weaker check — that
+Running it against `src/Deltempo.App.Wpf/WinTempCleaner.csproj` instead is a strictly weaker check — that
 project explicitly excludes `Core\`, `Tests\`, `Cli\` and `Services\`, so a per-project
 run reports clean while CI fails. This has happened.
 
@@ -89,7 +89,7 @@ campaigns run via the built test executable (matching `.github/workflows/ci.yml`
 not `dotnet test`:
 
 ```powershell
-dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
+dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
 # Standard campaign (100k cases, Category=Fuzz - also runs in CI via Category!=Benchmark)
 ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category=Fuzz"
 # Deep campaign (1M cases, Category=FuzzDeep - local runs, excluded from CI)
@@ -103,12 +103,12 @@ already wired into the test project. Pass `--coverage` to the test executable �
 external tool install is involved:
 
 ```powershell
-dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
+dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
 ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe `
   --filter "Category!=Benchmark" `
   --coverage `
   --coverage-output-format cobertura `
-  --results-directory Tests/Deltempo.Tests/TestResults
+  --results-directory tests/Deltempo.Tests/TestResults
 ```
 
 This replaces the VSTest-only `--collect:"XPlat Code Coverage"` flag and the retired

@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 Set-Location "$PSScriptRoot\.."
 
 Write-Host ">>> Building Release configuration..." -ForegroundColor Cyan
-dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --nologo -v q
+dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --nologo -v q
 
 Write-Host ""
 Write-Host ">>> Running cleaning-engine throughput benchmark..." -ForegroundColor Cyan
@@ -18,7 +18,7 @@ Write-Host ""
 # xunit.v3 runs on Microsoft.Testing.Platform. On the .NET 10 SDK `dotnet test`
 # cannot drive it ("Testing with VSTest target is no longer supported"), so the
 # test executable is invoked directly, exactly as .github/workflows/ci.yml does.
-$testExe = "Tests\Deltempo.Tests\bin\Release\net10.0-windows\Deltempo.Tests.exe"
+$testExe = "tests\Deltempo.Tests\bin\Release\net10.0-windows\Deltempo.Tests.exe"
 if (-not (Test-Path $testExe)) {
     Write-Error "Test executable not found at $testExe - build failed?"
     exit 1

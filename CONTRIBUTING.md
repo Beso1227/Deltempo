@@ -25,8 +25,8 @@ Security vulnerabilities should never be opened as a public issue — see [SECUR
    dotnet build deltempo.sln -c Release
 
    # 2. Verify code style. Run this against deltempo.sln - never against a single
-   #    project. The root WinTempCleaner.csproj excludes Core\, Tests\, Cli\ and
-   #    Services\, so a per-project check silently covers only part of the solution
+   #    project. The solution holds the WPF app, Core, the CLI, the WinUI shell and the
+   #    test project, so a per-project check silently covers only part of the solution
    #    and will pass while CI fails.
    dotnet format deltempo.sln --verify-no-changes --no-restore
 

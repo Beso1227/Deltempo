@@ -10,13 +10,13 @@ rem application is built once and invoked directly, matching
 rem .github/workflows/ci.yml. dotnet-coverage treats the first argument after
 rem `collect` as the child command, so it is given one simple command.
 setlocal
-set "TEST_EXE=Tests\Deltempo.Tests\bin\Release\net10.0-windows\Deltempo.Tests.exe"
+set "TEST_EXE=tests\Deltempo.Tests\bin\Release\net10.0-windows\Deltempo.Tests.exe"
 
-dotnet build Tests\Deltempo.Tests\Deltempo.Tests.csproj -c Release --nologo -v q || exit /b 1
+dotnet build tests\Deltempo.Tests\Deltempo.Tests.csproj -c Release --nologo -v q || exit /b 1
 if not exist "%TEST_EXE%" (
     echo Test executable not found at %TEST_EXE% - build failed?
     exit /b 1
 )
 
-dotnet-coverage collect "%TEST_EXE% --filter Category!=Benchmark" -f cobertura -o Tests\Deltempo.Tests\TestResults\coverage.cobertura.xml %*
+dotnet-coverage collect "%TEST_EXE% --filter Category!=Benchmark" -f cobertura -o tests\Deltempo.Tests\TestResults\coverage.cobertura.xml %*
 endlocal

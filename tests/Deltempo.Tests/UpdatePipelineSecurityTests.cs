@@ -12,7 +12,7 @@ namespace Deltempo.Tests;
 /// <summary>
 /// Security tests for the Deltempo update pipeline.
 ///
-/// Uses a dedicated ECDSA P-256 test key pair stored under Tests/Deltempo.Tests/Fixtures/.
+/// Uses a dedicated ECDSA P-256 test key pair stored under tests/Deltempo.Tests/Fixtures/.
 /// The private key is used ONLY to sign test manifests in this file; it is never embedded
 /// in production code. The public key is configured as a trusted key in tests that exercise
 /// signature verification.

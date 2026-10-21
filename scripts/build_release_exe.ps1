@@ -59,7 +59,7 @@ foreach ($arch in $architectures) {
 
     # 1. Publish self-contained single-file GUI binary
     Write-Host ">>> Publishing GUI Standalone [$($arch.Rid)] (Deltempo.exe) with SourceRevisionId $sha..." -ForegroundColor Cyan
-    dotnet publish WinTempCleaner.csproj `
+    dotnet publish src/Deltempo.App.Wpf/WinTempCleaner.csproj `
         -c Release `
         -r $arch.Rid `
         --self-contained true `
@@ -85,7 +85,7 @@ foreach ($arch in $architectures) {
 
     # 2. Publish self-contained single-file CLI binary
     Write-Host ">>> Publishing CLI Standalone [$($arch.Rid)] (deltempo_cli.exe)..." -ForegroundColor Cyan
-    dotnet publish Cli/Deltempo.Cli.csproj `
+    dotnet publish src/Deltempo.Cli/Deltempo.Cli.csproj `
         -c Release `
         -r $arch.Rid `
         --self-contained true `

@@ -143,17 +143,17 @@ jobs:
           # so `dotnet test` cannot be used here - the test application is invoked directly.
           # --coverage comes from Microsoft.Testing.Extensions.CodeCoverage and replaces the
           # VSTest-only --collect:"XPlat Code Coverage" flag.
-          dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
+          dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
 
           # Clear any previous TestResults first. The coverage gate below selects the newest
           # *.cobertura.xml by timestamp, so a report left over from an earlier run could be
           # picked up when collection fails on this run - letting the gate pass on stale data.
-          if (Test-Path "Tests/Deltempo.Tests/TestResults") {
-            Remove-Item -Recurse -Force "Tests/Deltempo.Tests/TestResults"
+          if (Test-Path "tests/Deltempo.Tests/TestResults") {
+            Remove-Item -Recurse -Force "tests/Deltempo.Tests/TestResults"
           }
-          New-Item -ItemType Directory -Force -Path "Tests/Deltempo.Tests/TestResults" | Out-Null
+          New-Item -ItemType Directory -Force -Path "tests/Deltempo.Tests/TestResults" | Out-Null
 
-          $testExe = "Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe"
+          $testExe = "tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe"
           if (-not (Test-Path $testExe)) {
             Write-Error "::error::MTP test executable not found at $testExe."
             exit 1
@@ -174,8 +174,8 @@ jobs:
             --filter "Category!=Benchmark&Category!=FuzzDeep" `
             --coverage `
             --coverage-output-format cobertura `
-            --results-directory Tests/Deltempo.Tests/TestResults `
-            *>&1 | Tee-Object -FilePath "Tests/Deltempo.Tests/TestResults/test-run.log"
+            --results-directory tests/Deltempo.Tests/TestResults `
+            *>&1 | Tee-Object -FilePath "tests/Deltempo.Tests/TestResults/test-run.log"
           $testExit = $LASTEXITCODE
 
           # The result summary is the verdict - NOT the process exit code.
@@ -186,7 +186,7 @@ jobs:
           # The previous check was `-match 'succeeded: 9\d\d|succeeded: \d+'`, which any digit
           # count satisfies - including a run that aborted mid-suite and still printed a
           # summary for the handful of tests it had completed. A truncated run read as green.
-          $log = "Tests/Deltempo.Tests/TestResults/test-run.log"
+          $log = "tests/Deltempo.Tests/TestResults/test-run.log"
           if (-not (Test-Path $log)) {
             Write-Error "::error::No test-run.log was produced - the suite never started or never reported."
             exit 1
@@ -247,7 +247,7 @@ jobs:
       - name: Enforce Core Coverage Threshold
         shell: pwsh
         run: |
-          $reports = Get-ChildItem -Path "Tests/Deltempo.Tests/TestResults" -Recurse -Filter "*.cobertura.xml" |
+          $reports = Get-ChildItem -Path "tests/Deltempo.Tests/TestResults" -Recurse -Filter "*.cobertura.xml" |
             Sort-Object LastWriteTime -Descending
           if (-not $reports) {
             Write-Error "::error::No coverage report found. Code coverage collection failed."

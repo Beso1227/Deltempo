@@ -471,8 +471,8 @@ cd Deltempo
 dotnet build deltempo.sln -c Release
 
 # تحقّق شن نشط الشيفاة كشا يفعل CI. شغّله شقابل deltempo.sln، ولا تشغّله أبدًا شقابل
-# ششاوع واحد: لأن شلف WinTempCleaner.csproj في الجذا يستثني Core\ وTests\ وCli\ و
-# Services\ فإن الفحص لكل ششاوع يغطّي بصشت جزءًا فقط شن الحل.
+# خمسة مشاريع: يحتوي الحل على تطبيق WPF وCore وCLI وصدفة WinUI ومشروع
+# الاختبارات، لذا يتحقق الفحص لكل مشروع جزءًا فقط من الحل.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
 # تنفيذ شجشوعة الاختبااات الآلية (1275 اختباا وحدة وتكاشل ناجحًا)

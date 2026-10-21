@@ -471,8 +471,8 @@ cd Deltempo
 dotnet build deltempo.sln -c Release
 
 # Verify code style the way CI does. Run it against deltempo.sln, never against a
-# single project: the root WinTempCleaner.csproj excludes Core\, Tests\, Cli\ and
-# Services\, so a per-project check silently covers only part of the solution.
+# five projects: the solution holds the WPF app, Core, the CLI, the WinUI shell and the
+# test project, so a per-project check silently covers only part of the solution.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
 # Execute the automated test suite (1275 passing unit & integration tests)

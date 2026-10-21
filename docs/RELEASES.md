@@ -50,7 +50,7 @@ Every official release artifact is verified through automated pipelines:
 1. Verify working directory is clean and all tests pass:
 
    ```powershell
-   dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+   dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
    ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
    ```
 

@@ -73,7 +73,7 @@ profiling targets CPUs without SHA extensions.
 
 Deltempo achieves high throughput through deterministic Windows-native engineering rather than heuristic approximations.
 
-Benchmarks reside under `Tests/Deltempo.Tests/CleanEngineBenchmarks.cs` and `Tests/Deltempo.Tests/MemoryOptimizerBenchmarks.cs`, tagged with `[Trait("Category", "Benchmark")]`.
+Benchmarks reside under `tests/Deltempo.Tests/CleanEngineBenchmarks.cs` and `tests/Deltempo.Tests/MemoryOptimizerBenchmarks.cs`, tagged with `[Trait("Category", "Benchmark")]`.
 
 ---
 

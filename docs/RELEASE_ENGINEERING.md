@@ -57,11 +57,11 @@ Before any release artifact is built or distributed:
 
 2. **Quality Gates Enforced:**
    - `<Nullable>enable</Nullable>`
-   - `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` — every warning is an error except `xUnit1051`, which is deliberately demoted in the test project (see the comment in `Tests/Deltempo.Tests/Deltempo.Tests.csproj`).
+   - `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` — every warning is an error except `xUnit1051`, which is deliberately demoted in the test project (see the comment in `tests/Deltempo.Tests/Deltempo.Tests.csproj`).
 3. **Automated Test Suite:**
 
    ```powershell
-   dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+   dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
    ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
    ```
 
@@ -85,7 +85,7 @@ Before any release artifact is built or distributed:
 ### 3.1 GUI Executable (Self-Contained Single-File)
 
 ```powershell
-dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained `
+dotnet publish src/Deltempo.App.Wpf/WinTempCleaner.csproj -c Release -r win-x64 --self-contained `
   -p:PublishSingleFile=true `
   -p:IncludeNativeLibrariesForSelfExtract=true `
   -p:EnableCompressionInSingleFile=true `
@@ -96,7 +96,7 @@ dotnet publish WinTempCleaner.csproj -c Release -r win-x64 --self-contained `
 ### 3.2 CLI Executable (Self-Contained Single-File)
 
 ```powershell
-dotnet publish Cli/Deltempo.Cli.csproj -c Release -r win-x64 --self-contained `
+dotnet publish src/Deltempo.Cli/Deltempo.Cli.csproj -c Release -r win-x64 --self-contained `
   -p:PublishSingleFile=true `
   -p:IncludeNativeLibrariesForSelfExtract=true `
   -p:EnableCompressionInSingleFile=true `
@@ -128,7 +128,7 @@ placeholder. See `docs/THREAT_MODEL.md` §2.5 before relying on either as a trus
 
 ### 3.4 Architectures (x64 + ARM64)
 
-`WinTempCleaner.csproj` and `Cli/Deltempo.Cli.csproj` both declare
+`src/Deltempo.App.Wpf/WinTempCleaner.csproj` and `src/Deltempo.Cli/Deltempo.Cli.csproj` both declare
 `<RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>`.
 
 - **win-x64** is the primary target: it lands at the repo root, in `dist/`, and is the
@@ -164,7 +164,7 @@ placeholder. See `docs/THREAT_MODEL.md` §2.5 before relying on either as a trus
 
 ### 3.6 CLI NativeAOT Trial — Result: Not Adopted
 
-`PublishAot=true` was trialled against `Cli/Deltempo.Cli.csproj` for faster automation
+`PublishAot=true` was trialled against `src/Deltempo.Cli/Deltempo.Cli.csproj` for faster automation
 startup, as planned. **It does not build and is not enabled.** Measured result:
 
 ```
@@ -192,7 +192,7 @@ automation path without requiring Core to be trim-safe. Re-run the trial after C
 source-gen clean:
 
 ```powershell
-dotnet publish Cli/Deltempo.Cli.csproj -c Release -r win-x64 -p:PublishAot=true --self-contained true
+dotnet publish src/Deltempo.Cli/Deltempo.Cli.csproj -c Release -r win-x64 -p:PublishAot=true --self-contained true
 ```
 
 The WPF head is never AOT'd — `WinTempCleaner` is not trimmable by design.

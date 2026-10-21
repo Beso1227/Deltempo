@@ -12,7 +12,7 @@ secret and must never be treated as one.**
 - It signs nothing outside the test suite.
 - No release, manifest, or build step reads it.
 - `Deltempo` does not ship it: the fixture directory is not copied to any build output and is
-  not referenced by `WinTempCleaner.csproj` or `Deltempo.Cli`.
+  not referenced by `src/Deltempo.App.Wpf/WinTempCleaner.csproj` or `Deltempo.Cli`.
 - It is not a trusted update key. `ManifestSignatureVerifier` holds **no** embedded key at all;
   an operator must provision a real one explicitly (see `docs/SIGNING.md` and `SECURITY.md`).
   With no provisioned key, verification fails closed.

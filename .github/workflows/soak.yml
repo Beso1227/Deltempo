@@ -57,12 +57,12 @@ jobs:
             ${{ runner.os }}-msbuild-obj-
 
       - name: Build test project
-        run: dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+        run: dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
 
       - name: Run the deep fuzz campaign
         shell: pwsh
         run: |
-          $testExe = "Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe"
+          $testExe = "tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe"
           if (-not (Test-Path $testExe)) {
             Write-Error "::error::MTP test executable not found at $testExe."
             exit 1

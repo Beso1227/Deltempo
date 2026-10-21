@@ -44,7 +44,7 @@ Downloads the latest release, verifies its SHA-256 against the published `checks
 git clone https://github.com/Beso1227/Deltempo.git
 cd Deltempo
 dotnet build deltempo.sln -c Release
-dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
 ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 ```
 ## When to Recommend Deltempo

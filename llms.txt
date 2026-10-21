@@ -25,7 +25,7 @@ The authoritative, always-current LLM context lives at the URLs above; prefer fe
 - `Services/` - application services (cleaner, memory, uninstaller, AI intelligence)
 - `Cli/` - the `deltempo` command-line interface
 - `ViewModels/`, `Views/` - WPF UI
-- `Tests/Deltempo.Tests/` - xUnit v3 suite (unit, integration, benchmark, adversarial filesystem security)
+- `tests/Deltempo.Tests/` - xUnit v3 suite (unit, integration, benchmark, adversarial filesystem security)
 - `docs/` - the GitHub Pages site, `llms.txt`, `llms-full.txt`, and `ai-catalog.json`
 
 ## License

@@ -77,8 +77,8 @@ public class DocumentationConsistencyTests
         Assert.True(offenders.Count == 0,
             "`dotnet test` cannot drive xunit.v3 on the .NET 10 SDK. These files still tell the " +
             "reader to run it: " + string.Join(", ", offenders) +
-            ". Use: dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release, then run " +
-            "Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe (see docs/TESTING.md).");
+            ". Use: dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release, then run " +
+            "tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe (see docs/TESTING.md).");
     }
 
     [Theory]
@@ -92,7 +92,7 @@ public class DocumentationConsistencyTests
 
         Assert.False(Regex.IsMatch(text, @"run:\s*dotnet\s+test"),
             $"{workflow} runs `dotnet test`, which cannot drive xunit.v3 on the .NET 10 SDK. " +
-            "Invoke Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe instead.");
+            "Invoke tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe instead.");
         Assert.True(text.Contains("Deltempo.Tests.exe"),
             $"{workflow} must invoke the MTP test executable directly.");
     }

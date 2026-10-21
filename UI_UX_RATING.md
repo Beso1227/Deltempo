@@ -252,7 +252,7 @@ Row 5: Collapsible Log Stream
 
 **Test coverage:**
 
-- `Tests/Deltempo.Tests/CleaningPipelineViewModelTests.cs` exists — covers `MatchesFilter` tag filtering, search matching, and `ComputeSelectionSummary` (zero-byte selection, mixed safe/review, all-safe).
+- `tests/Deltempo.Tests/CleaningPipelineViewModelTests.cs` exists — covers `MatchesFilter` tag filtering, search matching, and `ComputeSelectionSummary` (zero-byte selection, mixed safe/review, all-safe).
 
 ### Recommendations
 

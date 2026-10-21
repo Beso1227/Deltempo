@@ -471,8 +471,8 @@ cd Deltempo
 dotnet build deltempo.sln -c Release
 
 # CI की तरह कोड शैली सत्यापित करें। इसे deltempo.sln पर चलाएँ, किसी एक प्रोजेक्ू
-# पर कभी नहीं: रूू WinTempCleaner.csproj Core\, Tests\, Cli\ और
-# Services\ को बाहर रखता है, इसलिए प्रति-प्रोजेक्ू जाँच चुपचाप समाधान का केवल एक हिस्सा कवर करती है।
+# पाँच प्रोजेक्ट: समाधान में WPF ऐप, Core, CLI, WinUI शेल और टेस्ट
+# प्रोजेक्ट शामिल हैं, इसलिए प्रति-प्रोजेक्ट जाँच समाधान का हिस्सा ही कवर करती है।
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
 # स्वचालित परीक्षण सूू निष्पादित करें (1275 पासिंग यूनिू और इंूीग्रेशन परीक्षण)

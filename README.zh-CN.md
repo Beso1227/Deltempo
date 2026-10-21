@@ -471,8 +471,8 @@ cd Deltempo
 dotnet build deltempo.sln -c Release
 
 # 像 CI 一样校验代码风格。要对 deltempo.sln 运行，绝不要对单个项目运行：
-# 根 WinTempCleaner.csproj 排除了 Core\、Tests\、Cli\ 和
-# Services\，因此按项目检查只会悄无声息地覆盖解决方案的一部分。
+# 五个项目：解决方案包含 WPF 应用、Core、CLI、WinUI 外壳以及测试
+# 项目，因此按项目检查只会覆盖解决方案的一部分。
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
 # 执行自动化测试套件（1275 个通过的单元与集成测试）

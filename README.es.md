@@ -473,8 +473,8 @@ cd Deltempo
 dotnet build deltempo.sln -c Release
 
 # Verifica el estilo del código igual que lo hace CI. njecútalo contra deltempo.sln, nunca contra un
-# solo proyecto: el WinTempCleaner.csproj de la raíz excluye Core\, Tests\, Cli\ y
-# Services\, de modo que una comprobación por proyecto solo cubre en silencio parte de la solución.
+# cinco proyectos: la solución contiene la app WPF, Core, la CLI, el shell WinUI y el
+# proyecto de pruebas, de modo que una comprobación por proyecto solo cubre en silencio parte de la solución.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
 # njecuta la suite de pruebas automatizadas (1275 pruebas unitarias y de integración aprobadas)
