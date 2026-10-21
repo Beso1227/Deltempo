@@ -336,29 +336,69 @@ public class CleanupAdversarialRegressionTests : IDisposable
     /// processing and report WasCancelled = true, with no partial side effects counted
     /// as completed successes.
     /// </summary>
+    /// <remarks>
+    /// This test used to be racy and failed intermittently in CI. It cancelled the
+    /// token after 50 ms and then required that cancellation HAD had an effect -
+    /// "WasCancelled || fewer than all files deleted". But on a fast machine the
+    /// executor can delete all 500 files inside that window, and "the pipeline
+    /// finished before the timer fired" is a perfectly legal outcome. The old
+    /// assertion demanded a timing outcome rather than checking a contract, so a
+    /// green build and a red build were both correct.
+    ///
+    /// The deterministic case is the one that matters, and it is asserted first: a
+    /// token that is ALREADY cancelled must stop the pipeline before anything is
+    /// deleted. That is the safety property - a cancelled run deletes nothing -
+    /// and it has no race in it.
+    ///
+    /// The mid-flight case is kept, because it covers the graceful stop path
+    /// rather than the pre-cancelled one, but it now asserts only the invariant
+    /// that actually holds: if cancellation was observed then it stopped early,
+    /// and the processed counts never exceed the plan. It does not require the
+    /// race to go a particular way.
+    /// </remarks>
     [Fact]
     public async Task Cancellation_StopsPipelineAndReportsWasCancelled()
     {
-        // Use many files so cancellation has a meaningful window to fire.
+        // Use many files so a mid-flight cancellation has a meaningful window.
         int cancelFileCount = 500;
         for (int i = 0; i < cancelFileCount; i++)
             File.WriteAllText(P($"cancel_{i}.tmp"), $"content {i}");
 
-        using var cts = new CancellationTokenSource();
-        cts.CancelAfter(50); // Cancel almost immediately
-
         var plan = CleanupPlanner.CreatePlan(
             "cancel_scope", "Cancel Scope", new[] { _sandbox }, "Temp",
-            apply24HourShield: false, ct: cts.Token);
+            apply24HourShield: false);
+
+        // Deterministic: the token is cancelled BEFORE the executor starts. There
+        // is no race here, and nothing may be deleted.
+        using (var preCancelled = new CancellationTokenSource())
+        {
+            preCancelled.Cancel();
+
+            var preResult = await CleanupExecutor.ExecutePlanAsync(
+                plan, _sandbox, null, null, preCancelled.Token);
+
+            Assert.True(preResult.WasCancelled,
+                "An already-cancelled token must report WasCancelled.");
+            Assert.Equal(0, preResult.DeletedCount);
+            Assert.Equal(0, preResult.FailedCount);
+        }
+
+        // The files are still on disk: a cancelled run deletes nothing.
+        foreach (string file in Directory.GetFiles(_sandbox, "cancel_*.tmp"))
+            Assert.True(File.Exists(file), $"'{file}' was deleted by a cancelled run.");
+
+        // Mid-flight: the token fires while the pipeline is running. Which way the
+        // race goes is not this test's business.
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(50);
 
         var result = await CleanupExecutor.ExecutePlanAsync(
             plan, _sandbox, null, null, cts.Token);
 
-        // Either cancellation was observed, or not all files were deleted before
-        // the token fired. Files deleted before cancellation are real successes;
-        // files after are not counted.
-        Assert.True(result.WasCancelled || result.DeletedCount < plan.Actions.Count,
-            $"Cancellation had no effect: {result.DeletedCount}/{plan.Actions.Count} deleted.");
+        // If cancellation was observed it stopped the pipeline early; if it was not
+        // observed, the executor legitimately finished the whole plan.
+        Assert.True(!result.WasCancelled || result.DeletedCount < plan.Actions.Count,
+            $"Cancellation was reported, yet all {result.DeletedCount}/{plan.Actions.Count} files were deleted.");
         // Sum may be < plan.Actions.Count when cancellation stops the parallel loop early.
         Assert.True(result.DeletedCount + result.FailedCount + result.SkippedCount <= plan.Actions.Count,
             $"Processed count {result.DeletedCount + result.FailedCount + result.SkippedCount} exceeds plan size {plan.Actions.Count}.");

@@ -1,0 +1,40 @@
+name: Validate Workflow Files
+
+# A workflow file that GitHub cannot parse is not a yellow run - it is a RED
+# run with ZERO jobs, and GitHub ignores the file's own `paths:` filter while
+# it is invalid, so the broken workflow fires on every push. The first symptom
+# is subtle: the workflow's `name:` comes back as its file path instead of the
+# declared name, because GitHub could not read the file at all.
+#
+# PyYAML does not catch this. A key at the wrong indentation is still valid
+# YAML, so a plain parse accepts it - but GitHub validates workflow files
+# against a schema and rejects any key it does not recognise. This workflow
+# runs that same check before the file lands, so the mistake is a failed pull
+# request instead of a permanently red check.
+#
+# ubuntu-latest is used because its python3 has PyYAML available; the Windows
+# runners used by ci.yml do not, and installing it there would add a network
+# dependency to the main build.
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ '.github/workflows/**' ]
+  pull_request:
+    branches: [ main ]
+    paths: [ '.github/workflows/**' ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate GitHub Actions workflow files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate workflow files against GitHub's schema
+        run: python3 scripts/validate_workflows.py

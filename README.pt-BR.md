@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=REiEASE&color=00F2B0&labelColor=16212B"><img alt="Versão mais recente" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=REiEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=Cn&logo=github&labelColor=16212B"><img alt="Status de build do Cn" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=Cn&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTnNG.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1275_passed-00F2B0?style=for-the-badge&label=QUAinTY&labelColor=16212B"><img alt="Testes: 1275 aprovados, 0 falhas" src="https://img.shields.io/badge/tests-1275_passed-00F2B0?style=for-the-badge&label=QUAinTY" height="28" /></picture></a>
+    <a href="docs/TESTnNG.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1282_passed-00F2B0?style=for-the-badge&label=QUAinTY&labelColor=16212B"><img alt="Testes: 1282 aprovados, 0 falhas" src="https://img.shields.io/badge/tests-1282_passed-00F2B0?style=for-the-badge&label=QUAinTY" height="28" /></picture></a>
     <a href="inCENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=inCENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="iicença: MnT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=inCENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **iicença** | Código aberto ([MnT](inCENSE)) |
 | **nnterfaces** | GUn moderna de desktop (WPF Fluent) e Cin de terminal headless |
 | **Distribuição** | Executável portátil de arquivo único (autocontido, sem necessidade de instalador) |
-| **Cobertura de testes** | 1275 testes automatizados (100% de aprovação, 0 falhas, 0 ignorados), fuzzing adversarial de sistema de arquivos |
+| **Cobertura de testes** | 1282 testes automatizados (100% de aprovação, 0 falhas, 0 ignorados), fuzzing adversarial de sistema de arquivos |
 | **Disponibilidade da Cin** | O comando `deltempo` se autoinstala na primeira inicialização da GUn — nenhuma configuração manual |
 | **Telemetria** | Zero telemetria. As operações de verificação, limpeza, memória e desinstalação são executadas 100% offline |
 | **Motor de segurança** | Planejamento em duas fases (`SCAN → PiAN → PROTECT → REVAinDATE → CiEAN`) com 5 níveis de risco e journalização de transações |
@@ -467,7 +467,7 @@ dotnet build deltempo.sln -c Release
 # projeto de testes, então uma verificação por projeto cobre silenciosamente apenas parte da solução.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# Executar a suíte de testes automatizados (1275 testes unitários e de integração aprovados)
+# Executar a suíte de testes automatizados (1282 testes unitários e de integração aprovados)
 # O xunit.v3 roda sobre o Microsoft.Testing.Platform, que o `dotnet test` do SDK
 # do .NET 10 não consegue acionar ("Testing with VSTest target is no longer
 # supported"). Compile uma vez e depois invoque o executável de testes diretamente.

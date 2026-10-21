@@ -601,12 +601,40 @@ public static class InstalledAppService
         return leftovers.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 
+    /// <summary>
+    /// True when the path is drive-relative: a drive letter with no separator, or a
+    /// drive letter followed by a directory but no separator ("C:", "C:Windows").
+    /// Such a path is resolved against the current directory on that drive, so it does
+    /// not denote a fixed location and must never be approved as a deletion target.
+    /// </summary>
+    private static bool IsDriveRelative(string path)
+    {
+        if (path.Length < 2 || path[1] != ':') return false;
+        if (path.Length == 2) return true;
+
+        char third = path[2];
+        return third != '\\' && third != '/';
+    }
+
     public static bool IsSafeToDeleteResidual(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return false;
 
         try
         {
+            // A DRIVE-RELATIVE path ("C:" or "C:Windows") is not the drive root. Windows
+            // resolves it against the process's current directory ON THAT DRIVE, so
+            // Path.GetFullPath("C:") returns the working directory when the app runs from
+            // C:, and the drive root when it runs from D:. Canonicalizing first therefore
+            // judges a DIFFERENT directory depending on the machine - and on a C: machine
+            // it blesses the working directory itself as a deletion target. The guard
+            // failed OPEN here: the old test that asserts "C:" is refused passed on D:
+            // and failed on C:.
+            //
+            // Refuse the form outright. A leftover path is always absolute; anything else
+            // is ambiguous, and an ambiguous path must never be approved for deletion.
+            if (IsDriveRelative(path)) return false;
+
             string fullPath = Path.GetFullPath(path).TrimEnd('\\', '/');
 
             // Must not be root of a drive (e.g. C:\)

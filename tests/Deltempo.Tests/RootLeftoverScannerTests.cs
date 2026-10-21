@@ -67,6 +67,50 @@ public class RootLeftoverScannerTests
         Assert.True(isSafe);
     }
 
+    /// <summary>
+    /// A bare drive letter is DRIVE-RELATIVE, not the drive root. Windows resolves it
+    /// against the current directory on that drive, so Path.GetFullPath("C:") yields the
+    /// working directory when the app runs from C: and the drive root when it runs from
+    /// D:. The guard used to canonicalize first and judge the result, which meant it
+    /// refused "C:" on a D: machine and APPROVED it - the working directory - on a C:
+    /// machine. These assertions are written against the CURRENT drive so they hold
+    /// wherever the suite runs, which is the whole point: the original test hardcoded
+    /// "C:" and therefore only passed on a machine whose current drive was not C:.
+    /// </summary>
+    [Fact]
+    public void IsSafeToDeleteResidual_CurrentDriveForms_AreRefused()
+    {
+        string currentRoot = Path.GetPathRoot(Environment.CurrentDirectory) ?? "C:\\";
+        string driveLetter = currentRoot.Length >= 2 ? currentRoot.Substring(0, 2) : "C:";
+
+        // The absolute root of the current drive.
+        Assert.False(InstalledAppService.IsSafeToDeleteResidual(currentRoot));
+
+        // The bare drive letter - the form that failed open.
+        Assert.False(InstalledAppService.IsSafeToDeleteResidual(driveLetter));
+
+        // A drive-relative path that also carries a directory component.
+        Assert.False(InstalledAppService.IsSafeToDeleteResidual(driveLetter + "Windows"));
+    }
+
+    /// <summary>
+    /// Drive-relative forms are refused on EVERY drive, not just the current one, and
+    /// on every platform layout. "C:Windows" resolves to C:\Windows on a D: machine and
+    /// to a directory beside the working directory on a C: machine - the ambiguity is
+    /// the hazard, so the form is refused outright rather than resolved.
+    /// </summary>
+    [Theory]
+    [InlineData("C:")]
+    [InlineData("C:Windows")]
+    [InlineData("C:Program Files")]
+    [InlineData("D:")]
+    [InlineData("D:Windows")]
+    [InlineData("Z:")]
+    public void IsSafeToDeleteResidual_DriveRelativeForms_AreRefused(string path)
+    {
+        Assert.False(InstalledAppService.IsSafeToDeleteResidual(path));
+    }
+
     [Fact]
     public void CalculateDirectorySizeSafe_NonExistent_ReturnsZero()
     {

@@ -105,7 +105,7 @@ public class UpdatePipelineSecurityTests
             Artifact = new UpdateArtifactInfo
             {
                 Name = artifactName ?? "Deltempo.exe",
-                Sha256 = sha256 ?? "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                Sha256 = sha256 ?? "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", // DevSkim: ignore DS173237
                 SizeBytes = sizeBytes ?? 1024,
                 DownloadUrl = downloadUrl ?? "https://github.com/Beso1227/Deltempo/releases/download/v2.0.0-test/Deltempo.exe"
             }
@@ -222,7 +222,7 @@ public class UpdatePipelineSecurityTests
         try
         {
             // Generate an unrelated key pair and sign with its private key.
-            using var otherKey = ECDsa.Create(ECCurve.CreateFromFriendlyName("nistP256"));
+            using var otherKey = ECDsa.Create(ECCurve.CreateFromFriendlyName("nistP256")); // DevSkim: ignore DS440100
             var manifest = new UpdateManifest
             {
                 SchemaVersion = 2,
@@ -237,7 +237,7 @@ public class UpdatePipelineSecurityTests
                 Artifact = new UpdateArtifactInfo
                 {
                     Name = "Deltempo.exe",
-                    Sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    Sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", // DevSkim: ignore DS173237
                     SizeBytes = 1024,
                     DownloadUrl = "https://github.com/Beso1227/Deltempo/releases/download/v2.0.0-test/Deltempo.exe"
                 }
@@ -341,7 +341,7 @@ public class UpdatePipelineSecurityTests
                 Artifact = new UpdateArtifactInfo
                 {
                     Name = "Deltempo.exe",
-                    Sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    Sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", // DevSkim: ignore DS173237
                     SizeBytes = 1024,
                     DownloadUrl = "https://github.com/Beso1227/Deltempo/releases/download/v2.0.0-test/Deltempo.exe"
                 }
@@ -398,7 +398,7 @@ public class UpdatePipelineSecurityTests
     }
 
     [Theory]
-    [InlineData("http://github.com/Beso1227/Deltempo/releases/download/v2.0.0/Deltempo.exe")] // plain HTTP
+    [InlineData("http://github.com/Beso1227/Deltempo/releases/download/v2.0.0/Deltempo.exe")] // plain HTTP // DevSkim: ignore DS137138
     [InlineData("https://evil.com/Beso1227/Deltempo/releases/download/v2.0.0/Deltempo.exe")] // disallowed host
     [InlineData("https://github.com/attacker/Deltempo/releases/download/v2.0.0/Deltempo.exe")] // wrong org
     [InlineData("https://github.com/Beso1227/Deltempo/releases/download/v2.0.0/malware.exe")] // wrong filename
@@ -454,7 +454,7 @@ public class UpdatePipelineSecurityTests
             peBytes[0x80] = 0x50; peBytes[0x81] = 0x45; peBytes[0x82] = 0x00; peBytes[0x83] = 0x00; // PE\0\0
             File.WriteAllBytes(tempFile, peBytes);
 
-            string wrongSha = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+            string wrongSha = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"; // DevSkim: ignore DS173237
 
             // VerifyStagedArtifact with wrong expected hash must fail.
             bool result = PatchIntegrityVerifier.VerifyStagedArtifact(
@@ -535,7 +535,7 @@ public class UpdatePipelineSecurityTests
         await Assert.ThrowsAsync<SecurityException>(async () =>
         {
             await UpdateService.DownloadAndApplyUpdateAsync(
-                "http://github.com/Beso1227/Deltempo/releases/download/v2.0.0/Deltempo.exe",
+                "http://github.com/Beso1227/Deltempo/releases/download/v2.0.0/Deltempo.exe", // DevSkim: ignore DS137138
                 progress);
         });
 
