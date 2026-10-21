@@ -9,11 +9,14 @@
     <RootNamespace>WinTempCleaner</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Include="..\Services\**\*.cs" Link="Services\%(RecursiveDir)%(FileName)%(Extension)" />
-    <Compile Include="..\Models\**\*.cs" Link="Models\%(RecursiveDir)%(FileName)%(Extension)" />
-    <Compile Include="..\ViewModels\**\*.cs" Link="ViewModels\%(RecursiveDir)%(FileName)%(Extension)" />
-  </ItemGroup>
+  <!--
+    Core's sources are physical now, not linked: Services\, Models\ and ViewModels\
+    live inside this project directory and are picked up by the SDK's default globs.
+    They used to be compiled through <Compile Include="..\Services\**"> links, which
+    meant one project's folder tree was compiled by another assembly - the root WPF
+    project had to exclude them explicitly, and every path inside the repository
+    that referenced Services\ broke the moment the tree moved.
+  -->
 
   <!--
     Core compiles Services\SoundService.cs, so it needs its own copy of the
@@ -21,16 +24,16 @@
     LogicalName matches the copy in the GUI project exactly.
   -->
   <ItemGroup>
-    <EmbeddedResource Include="..\Assets\Sounds\click.wav">
+    <EmbeddedResource Include="Assets\Sounds\click.wav">
       <LogicalName>WinTempCleaner.Assets.Sounds.click.wav</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\Assets\Sounds\success.wav">
+    <EmbeddedResource Include="Assets\Sounds\success.wav">
       <LogicalName>WinTempCleaner.Assets.Sounds.success.wav</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\Assets\Sounds\error.wav">
+    <EmbeddedResource Include="Assets\Sounds\error.wav">
       <LogicalName>WinTempCleaner.Assets.Sounds.error.wav</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\Assets\Sounds\warning.wav">
+    <EmbeddedResource Include="Assets\Sounds\warning.wav">
       <LogicalName>WinTempCleaner.Assets.Sounds.warning.wav</LogicalName>
     </EmbeddedResource>
   </ItemGroup>

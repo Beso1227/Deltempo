@@ -35,29 +35,18 @@
 
   <ItemGroup>
     <Resource Include="app.ico" />
+    <!-- Nested projects. Each of these folders is its own project with its own
+         root, and their sources must not be globbed into this one - otherwise the
+         same types are compiled twice (CS0579 duplicate assembly attributes). -->
+    <Compile Remove="src\**" />
+    <EmbeddedResource Remove="src\**" />
+    <None Remove="src\**" />
     <Compile Remove="Cli\**" />
     <EmbeddedResource Remove="Cli\**" />
     <None Remove="Cli\**" />
     <Compile Remove="Tests\**" />
     <EmbeddedResource Remove="Tests\**" />
     <None Remove="Tests\**" />
-    <Compile Remove="Core\**" />
-    <EmbeddedResource Remove="Core\**" />
-    <None Remove="Core\**" />
-    <Compile Remove="Services\**" />
-    <EmbeddedResource Remove="Services\**" />
-    <None Remove="Services\**" />
-    <Compile Remove="Models\**" />
-    <EmbeddedResource Remove="Models\**" />
-    <None Remove="Models\**" />
-    <Compile Remove="ViewModels\**" />
-    <EmbeddedResource Remove="ViewModels\**" />
-    <None Remove="ViewModels\**" />
-    <Compile Remove="ProbeLib\**" />
-    <EmbeddedResource Remove="ProbeLib\**" />
-    <None Remove="ProbeLib\**" />
-    <EmbeddedResource Remove="Assets\**" />
-    <None Remove="Assets\**" />
     <!-- The WinUI 3 shell is a separate project with its own project root; its XAML must
          not be globbed into this WPF project (Page items) or the two XAML stacks collide. -->
     <Compile Remove="Deltempo.App.WinUI\**" />
@@ -74,16 +63,16 @@
     Services\SoundService.cs too), and both copies must resolve the same name.
   -->
   <ItemGroup>
-    <EmbeddedResource Include="Assets\Sounds\click.wav">
+    <EmbeddedResource Include="src\Deltempo.Core\Assets\Sounds\click.wav">
       <LogicalName>WinTempCleaner.Assets.Sounds.click.wav</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Sounds\success.wav">
+    <EmbeddedResource Include="src\Deltempo.Core\Assets\Sounds\success.wav">
       <LogicalName>WinTempCleaner.Assets.Sounds.success.wav</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Sounds\error.wav">
+    <EmbeddedResource Include="src\Deltempo.Core\Assets\Sounds\error.wav">
       <LogicalName>WinTempCleaner.Assets.Sounds.error.wav</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Sounds\warning.wav">
+    <EmbeddedResource Include="src\Deltempo.Core\Assets\Sounds\warning.wav">
       <LogicalName>WinTempCleaner.Assets.Sounds.warning.wav</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
@@ -101,7 +90,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="Core\Deltempo.Core.csproj" />
+    <ProjectReference Include="src\Deltempo.Core\Deltempo.Core.csproj" />
   </ItemGroup>
 
 </Project>

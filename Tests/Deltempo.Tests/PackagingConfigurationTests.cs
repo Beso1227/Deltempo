@@ -81,7 +81,7 @@ public class PackagingConfigurationTests
     {
         // InstalledAppService depends on BitmapSource, so Core must keep UseWPF even
         // though the CLI does not. This test locks the pair so neither drifts.
-        var content = Read("Core", "Deltempo.Core.csproj");
+        var content = Read("src", "Deltempo.Core", "Deltempo.Core.csproj");
 
         Assert.Contains("<UseWPF>true</UseWPF>", content);
     }

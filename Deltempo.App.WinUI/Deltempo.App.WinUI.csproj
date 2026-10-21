@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Deltempo.Core.csproj" />
+    <ProjectReference Include="..\src\Deltempo.Core\Deltempo.Core.csproj" />
   </ItemGroup>
 
 </Project>

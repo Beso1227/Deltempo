@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.320.0
@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.Tests", "Tests\Del
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{FBF56CC3-7AE6-AD2D-3F14-7F97FD322CD6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.Core", "Core\Deltempo.Core.csproj", "{68457075-A84B-4639-B544-F993AED9AA84}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.Core", "src\Deltempo.Core\Deltempo.Core.csproj", "{68457075-A84B-4639-B544-F993AED9AA84}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.App.WinUI", "Deltempo.App.WinUI\Deltempo.App.WinUI.csproj", "{DF922A2E-5E35-49AF-85B5-9810CB1572B2}"
 EndProject

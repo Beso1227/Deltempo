@@ -101,12 +101,12 @@ public class SoundDesignTests
         // The samples are third-party files. If the pack or its license is dropped, the
         // repo must not silently keep shipping unattributed audio.
         string root = RepoRoot();
-        Assert.True(File.Exists(Path.Combine(root, "Assets", "Sounds", "CREDITS.md")),
-            "Assets/Sounds/CREDITS.md is missing - sound provenance must stay documented.");
-        Assert.True(File.Exists(Path.Combine(root, "Assets", "Sounds", "KENNEY-LICENSE.txt")),
+        Assert.True(File.Exists(Path.Combine(root, "src", "Deltempo.Core", "Assets", "Sounds", "CREDITS.md")),
+            "src/Deltempo.Core/Assets/Sounds/CREDITS.md is missing - sound provenance must stay documented.");
+        Assert.True(File.Exists(Path.Combine(root, "src", "Deltempo.Core", "Assets", "Sounds", "KENNEY-LICENSE.txt")),
             "The upstream CC0 license text must be kept alongside the samples.");
 
-        string credits = File.ReadAllText(Path.Combine(root, "Assets", "Sounds", "CREDITS.md"));
+        string credits = File.ReadAllText(Path.Combine(root, "src", "Deltempo.Core", "Assets", "Sounds", "CREDITS.md"));
         Assert.Contains("CC0", credits, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("kenney.nl", credits, StringComparison.OrdinalIgnoreCase);
     }
@@ -114,11 +114,11 @@ public class SoundDesignTests
     [Fact]
     public void AllFourSourceSamplesArePresentOnDisk()
     {
-        string dir = Path.Combine(RepoRoot(), "Assets", "Sounds");
+        string dir = Path.Combine(RepoRoot(), "src", "Deltempo.Core", "Assets", "Sounds");
         foreach (string name in new[] { "click.wav", "success.wav", "error.wav", "warning.wav" })
         {
             string path = Path.Combine(dir, name);
-            Assert.True(File.Exists(path), $"Assets/Sounds/{name} is missing.");
+            Assert.True(File.Exists(path), $"src/Deltempo.Core/Assets/Sounds/{name} is missing.");
             Assert.True(new FileInfo(path).Length > 512, $"{name} is suspiciously small.");
         }
     }
@@ -225,7 +225,7 @@ public class SoundDesignTests
     {
         // The click path runs on nearly every interaction; re-reading and re-normalising
         // the resource per call would be wasteful work on the interaction path.
-        string source = File.ReadAllText(Path.Combine(RepoRoot(), "Services", "SoundService.cs"));
+        string source = File.ReadAllText(Path.Combine(RepoRoot(), "src", "Deltempo.Core", "Services", "SoundService.cs"));
 
         Assert.Contains("ConcurrentDictionary<SoundCue, byte[]>", source);
         Assert.Contains("GetOrAdd", source);
