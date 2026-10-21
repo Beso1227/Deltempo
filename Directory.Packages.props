@@ -16,7 +16,7 @@
     <PackageVersion Include="Blake3" Version="3.0.2" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageVersion Include="coverlet.collector" Version="10.1.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.401" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.402" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <!-- MTP-native coverage extension. Replaces the VSTest-only coverlet.collector path,
          which dotnet test cannot reach on .NET 10. -->
