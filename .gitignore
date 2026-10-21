@@ -267,3 +267,8 @@ sbom-packages.json
 # lives outside the repo, so this is a backstop rather than the primary location.
 nav-shots*/
 nav-shots*/**
+
+# Live-state snapshots written by .github/workflows/apply-repo-settings.yml
+live-repo.json
+live-protection.json
+live-labels.json

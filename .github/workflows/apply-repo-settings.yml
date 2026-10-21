@@ -5,6 +5,34 @@ name: Apply Repository Settings
 # has_wiki value contradicted the live repository, and its branch-protection block
 # claimed review requirements that were not in effect. A settings file that is never
 # applied is worse than no settings file, because it reads as governance.
+#
+# WHY THIS FILE IS NOT A THIRD-PARTY ACTION
+#
+# The previous version called `probdens/settings-action@v1`. That repository does
+# not exist. GitHub resolves `owner/repo@ref` at RUN time, so an unresolvable
+# reference is not merely broken - it is an unclaimed name. Anyone who registered
+# that account and created that repository would have had their code executed
+# inside a job whose stated purpose is to rewrite this repository's governance.
+# A workflow that mutates branch protection and labels is the last place to
+# accept an unpinnable third-party dependency, so this one calls the API
+# directly and pins nothing it does not control.
+#
+# The workflow had never run successfully: `permissions: administration: write` is
+# an enterprise-only scope and is rejected on github.com, which made the whole
+# file invalid. GitHub reports an invalid workflow as a red run with zero jobs
+# and ignores its `paths:` filter, so it failed on every push and was easy to
+# mistake for a settings problem rather than a workflow problem.
+#
+# WHAT THIS CAN AND CANNOT DO
+#
+# On github.com the GITHUB_TOKEN has no Administration scope, so it CANNOT write
+# repository settings or branch protection - only an admin PAT or a GitHub App
+# can. What it CAN do is manage labels (the issues scope covers them), so labels
+# are applied here and everything else is verified and reported. The live state
+# is compared against the declaration on every run, and the job fails loudly when
+# they disagree - except for the differences the declaration itself records in
+# `known_divergences`, which are the ones this project has deliberately decided
+# to live with.
 
 on:
   # Applies automatically when the declaration itself changes, so the two cannot
@@ -22,7 +50,7 @@ on:
 
 permissions:
   contents: read
-  administration: write
+  issues: write
 
 concurrency:
   group: apply-repo-settings
@@ -37,42 +65,54 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v7
 
-      # Correctness over convenience: this workflow MUTATES repository governance.
-      # Pinning to a tag is standard hygiene, but a moving major tag means the
-      # behaviour of a governance change can change without a reviewable diff.
-      # Bump deliberately, and read the upstream release notes when you do.
-      - name: Apply repository settings
-        uses: probdens/settings-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: ${{ inputs.dry_run == false && 'false' || 'true' }}
-          config-file: ./.github/settings.yml
+      # Labels are the one part of the declaration GITHUB_TOKEN can actually
+      # write on github.com, so they are applied here. `gh label create --force`
+      # is idempotent: it creates a missing label and updates an existing one,
+      # which is exactly the "make the declared state real" behaviour wanted.
+      - name: Apply label taxonomy
+        if: ${{ inputs.dry_run == false }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "== Applying labels =="
+          python3 - <<'PY' > "$RUNNER_TEMP/labels.tsv"
+          import yaml
+          with open('.github/settings.yml', encoding='utf-8') as fh:
+              settings = yaml.safe_load(fh)
+          for label in settings.get('labels', []):
+              print('{}|{}|{}'.format(label['name'], label['color'], label.get('description', '')))
+          PY
+          while IFS='|' read -r name color description; do
+            gh label create "$name" --color "$color" --description "$description" --force
+          done < "$RUNNER_TEMP/labels.tsv"
+          echo "Labels applied."
 
+      # settings-action reports success, but "the action did not error" and "the
+      # repository is now in the declared state" are different claims. This step
+      # re-reads the repository and fails loudly if they diverge, which is the
+      # only way this file stops being aspirational.
       - name: Verify the applied state matches reality
-        # settings-action reports success, but "the action did not error" and "the
-        # repository is now in the declared state" are different claims. This step
-        # re-reads the repository and fails loudly if they diverge, which is the
-        # only way this file stops being aspirational.
         if: ${{ always() }}
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
 
           echo "== Live repository description =="
-          live_desc=$(gh api repos/${{ github.repository }} --jq '.description')
+          live_desc=$(gh api "repos/$REPO" --jq '.description')
           want_desc=$(grep -A1 '^  description:' .github/settings.yml | tail -1 | sed 's/^ *description: *"//; s/"$//')
           echo "live:  $live_desc"
           echo "want:  $want_desc"
-          if [ "$live_desc" != "$want_desc" ]; then
-            echo "::error::Repository description does not match .github/settings.yml"
-            exit 1
-          fi
 
           echo "== Required status checks =="
-          gh api repos/${{ github.repository }}/branches/main/protection --jq '.required_status_checks.contexts[]'
+          gh api "repos/$REPO/branches/main/protection" --jq '.required_status_checks.contexts[]'
 
           echo "== Required pull request reviews =="
-          reviews=$(gh api repos/${{ github.repository }}/branches/main/protection --jq '.required_pull_request_reviews // "NONE"')
+          reviews=$(gh api "repos/$REPO/branches/main/protection" --jq '.required_pull_request_reviews // "NONE"')
           echo "$reviews"
           if [ "$reviews" = "NONE" ]; then
             echo "::warning::main has no required pull-request review. CODEOWNERS is inert - see the note in .github/settings.yml."
@@ -80,6 +120,22 @@ jobs:
 
           echo "== Labels =="
           gh label list --limit 100
+
+      - name: Compare every declared field against the live repository
+        if: ${{ always() }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          DRY_RUN: ${{ inputs.dry_run == false && 'false' || 'true' }}
+        run: |
+          set -euo pipefail
+
+          gh api "repos/$REPO" > live-repo.json
+          gh api "repos/$REPO/branches/main/protection" > live-protection.json 2>/dev/null || echo '{}' > live-protection.json
+          gh label list --limit 200 --json name,color,description > live-labels.json
+
+          python3 scripts/verify_settings.py
 
       - name: Fail if declarations could not be applied
         if: failure()

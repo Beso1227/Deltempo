@@ -8,34 +8,34 @@
 
 repository:
   name: Deltempo
-  description: "Deltempo: Free, open-source Windows cleaner & RAM optimizer for Windows 11/10 - a zero-telemetry CCleaner alternative. Reclaim 10-40+ GB from temp files, AppData junk & GPU shader caches. Deep uninstaller, duplicate finder, treemap disk analyzer. No install, GUI + CLI."
+  description: "Deltempo: Free, open-source disk cleaner & RAM optimizer for Windows 11/10 - a zero-telemetry CCleaner alternative. Reclaim 10-40+ GB from temp files, AppData junk & GPU shader caches. Deep uninstaller, duplicate finder, treemap disk analyzer. No install, GUI + CLI."
   homepage: https://beso1227.github.io/Deltempo/
   topics:
-    - windows
-    - csharp
-    - dotnet
-    - wpf
-    - cleaner
-    - windows-cleaner
-    - disk-cleanup
     - ccleaner-alternative
+    - disk-analyzer
+    - disk-cleaner
+    - disk-cleanup
+    - disk-space
+    - disk-space-analyzer
+    - disk-usage
+    - duplicate-finder
+    - junk-file-cleaner
+    - memory-cleaner
     - memory-optimizer
+    - portable-app
+    - privacy
+    - ram-cleaner
+    - treemap
     - uninstaller
-    - temp-cleaner
-    - appdata-cleaner
-    - shader-cache
+    - windows-11
+    - windows-cleaner
     - windows-optimizer
     - zero-telemetry
-    - open-source
-    - portable-app
-    - cli
-    - windows11
-    - windows10
 
   has_issues: true
-  has_projects: false
+  has_projects: true
   has_wiki: true
-  has_downloads: true
+  has_downloads: false
   # Discussions is the natural home for usage questions. It is currently OFF in the
   # live repository. Turning it on is a deliberate choice, not an oversight - see
   # the "Known divergences" note at the bottom of this file.
@@ -43,11 +43,11 @@ repository:
 
   # Pull Request merge configurations
   allow_squash_merge: true
-  allow_merge_commit: false
+  allow_merge_commit: true
   allow_rebase_merge: true
-  delete_branch_on_merge: true
-  squash_merge_commit_title: PR_TITLE
-  squash_merge_commit_message: PR_BODY
+  delete_branch_on_merge: false
+  squash_merge_commit_title: COMMIT_OR_PR_TITLE
+  squash_merge_commit_message: COMMIT_MESSAGES
 
 # Branch protection configuration for main branch
 #
@@ -181,6 +181,12 @@ labels:
 # ---------------------------------------------------------------------------
 # Known divergences between this file and the live repository
 # ---------------------------------------------------------------------------
+# These are the differences the project has DELIBERATELY chosen to live with.
+# They are listed in machine-readable form as well, because the workflow that
+# verifies this file against the live repository has to be able to tell an
+# intentional divergence from an accident: a field named here is reported as a
+# warning, and anything else that disagrees fails the job.
+#
 # 1. required_pull_request_reviews is declared above but NOT applied live. See the
 #    long note on the branches block.
 # 2. "CodeQL" is declared as a required status check but is not one live.
@@ -189,4 +195,15 @@ labels:
 # 4. has_discussions is declared false and IS false live. Turning it on is worth
 #    considering: usage questions currently have to become issues, which is a poor
 #    fit for a project that explicitly invites questions.
+# 5. Everything else in this file was reconciled against the live repository on
+#    2026-10-22. It previously declared a DIFFERENT description, topic list,
+#    has_projects, has_downloads, allow_merge_commit, delete_branch_on_merge and
+#    squash-merge title/message than the live repository actually had - because
+#    the workflow that was supposed to apply this file had never run once. The
+#    declaration now states what is true, so that drift is detectable rather
+#    than merely declared.
 # ---------------------------------------------------------------------------
+known_divergences:
+  # Intent, not yet applied. See the branches block for why.
+  - main.required_pull_request_reviews
+  - main.required_status_checks.contexts

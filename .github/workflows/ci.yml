@@ -192,14 +192,31 @@ jobs:
             exit 1
           }
 
-          $summary = Select-String -Path $log -Pattern '^\s*total:\s*(\d+)' | Select-Object -Last 1
+          # The xunit console reporter colourises its summary block, and the ANSI
+          # escape sequences land at DIFFERENT offsets depending on how the output
+          # was chunked - sometimes at the start of the "total:" line, sometimes in
+          # the middle of a word. A line that begins with an escape sequence does
+          # not match "^\s*total:", so a run in which every single test passed was
+          # reported as an "incomplete summary" and failed the build. The colours
+          # are decoration; the counts are the verdict, so strip the colours
+          # before parsing.
+          #
+          # \x1b rather than a PowerShell escape sequence: "`e" is only recognised
+          # from PowerShell 6, and this script must also work under Windows
+          # PowerShell 5.1.
+          $raw = Get-Content -Path $log -Raw
+          $clean = [regex]::Replace($raw, "\x1b\[[\x30-\x3F]*[\x20-\x2F]*[\x40-\x7E]", "")
+          $clean = ($clean -replace "`r`n", "`n").Replace([char]13, [char]10)
+          $summaryLines = $clean -split "`n"
+
+          $summary = $summaryLines | Select-String -Pattern '^\s*total:\s*(\d+)' | Select-Object -Last 1
           if (-not $summary) {
             Write-Error "::error::No test summary found in test-run.log - the run did not complete."
             exit 1
           }
 
           function Get-SummaryValue([string]$name) {
-            $m = Select-String -Path $log -Pattern "^\s*$name`:\s*(\d+)" | Select-Object -Last 1
+            $m = $summaryLines | Select-String -Pattern "^\s*$name`:\s*(\d+)" | Select-Object -Last 1
             if ($m) { return [int]$m.Matches[0].Groups[1].Value }
             return $null
           }
