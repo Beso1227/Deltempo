@@ -62,15 +62,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Validate every workflow file before this one mutates anything. If a
+      # workflow file is invalid, this workflow is invalid too, and the right
+      # response is to stop rather than to apply a half-understood declaration.
       - name: Checkout Source Code
         uses: actions/checkout@v7
+
+      - name: Validate workflow files against GitHub's schema
+        shell: bash
+        run: python3 scripts/validate_workflows.py
 
       # Labels are the one part of the declaration GITHUB_TOKEN can actually
       # write on github.com, so they are applied here. `gh label create --force`
       # is idempotent: it creates a missing label and updates an existing one,
       # which is exactly the "make the declared state real" behaviour wanted.
+      #
+      # The condition is explicit about the event rather than relying on
+      # `inputs.dry_run` being unset outside workflow_dispatch: on a pull
+      # request there is no inputs context at all, and an unset input compares
+      # equal to false, which would silently let a pull request rewrite the
+      # repository's labels.
       - name: Apply label taxonomy
-        if: ${{ inputs.dry_run == false }}
+        if: github.event_name == 'push' || inputs.dry_run == false
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -98,7 +111,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        REPO: ${{ github.repository }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
 
