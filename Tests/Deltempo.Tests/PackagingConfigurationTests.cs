@@ -36,7 +36,7 @@ public class PackagingConfigurationTests
         => File.ReadAllText(Path.Combine(new[] { RepoRoot }.Concat(relativeParts).ToArray()));
 
     [Theory]
-    [InlineData("WinTempCleaner.csproj")]
+    [InlineData("src/Deltempo.App.Wpf/WinTempCleaner.csproj")]
     [InlineData("Cli/Deltempo.Cli.csproj")]
     public void PublishableProjects_DeclareX64AndArm64RuntimeIdentifiers(string projectRelativePath)
     {
@@ -56,7 +56,7 @@ public class PackagingConfigurationTests
     {
         // The release pipeline relies on these three settings; dropping any of them would
         // silently produce a multi-file or uncompressed build that breaks the one-liner.
-        foreach (var project in new[] { "WinTempCleaner.csproj", "Cli/Deltempo.Cli.csproj" })
+        foreach (var project in new[] { "src/Deltempo.App.Wpf/WinTempCleaner.csproj", "Cli/Deltempo.Cli.csproj" })
         {
             var content = Read(project.Split('/'));
 

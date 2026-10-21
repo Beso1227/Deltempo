@@ -214,7 +214,7 @@ public class AppDataFootprintServiceTests
         // PercentWidthConverter to say why it must not be used there, and a naive substring scan
         // would match the explanation and fail the very test that documents it.
         string xaml = Regex.Replace(
-            ReadRepoFile(@"Views\Modals\AppDataFootprintModal.xaml"), @"<!--.*?-->", string.Empty,
+            ReadRepoFile(@"src\Deltempo.App.Wpf\Views\Modals\AppDataFootprintModal.xaml"), @"<!--.*?-->", string.Empty,
             RegexOptions.Singleline);
 
         var track = Regex.Match(xaml, "<Grid Grid.Column=\"2\"[^>]*>");
@@ -236,7 +236,7 @@ public class AppDataFootprintServiceTests
     [Fact]
     public void ShareWidthConverter_IsRegisteredInAppResources()
     {
-        string appXaml = ReadRepoFile("App.xaml");
+        string appXaml = ReadRepoFile("src/Deltempo.App.Wpf/App.xaml");
 
         Assert.Contains("x:Key=\"ShareWidthConverter\"", appXaml);
     }
@@ -270,7 +270,7 @@ public class AppDataFootprintServiceTests
     [Fact]
     public void AppDataFootprintModal_HasNoDeleteAffordance()
     {
-        string xaml = ReadRepoFile(@"Views\Modals\AppDataFootprintModal.xaml");
+        string xaml = ReadRepoFile(@"src\Deltempo.App.Wpf\Views\Modals\AppDataFootprintModal.xaml");
 
         var buttons = Regex.Matches(xaml, "<Button\\b.*?(?:/>|</Button>)", RegexOptions.Singleline)
             .Select(m => m.Value)
@@ -300,7 +300,7 @@ public class AppDataFootprintServiceTests
     [Fact]
     public void AppDataFootprintModal_StatesItDeletesNothing()
     {
-        string xaml = ReadRepoFile(@"Views\Modals\AppDataFootprintModal.xaml");
+        string xaml = ReadRepoFile(@"src\Deltempo.App.Wpf\Views\Modals\AppDataFootprintModal.xaml");
 
         Assert.Contains("Report only", xaml, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("nothing is deleted", xaml, StringComparison.OrdinalIgnoreCase);
@@ -313,9 +313,9 @@ public class AppDataFootprintServiceTests
     [Fact]
     public void AppDataFootprintModal_IsWiredIntoTheMainWindow()
     {
-        string windowXaml = ReadRepoFile("MainWindow.xaml");
-        string windowCode = ReadRepoFile("MainWindow.xaml.cs");
-        string cleaningCode = ReadRepoFile("MainWindow.Cleaning.cs");
+        string windowXaml = ReadRepoFile("src/Deltempo.App.Wpf/MainWindow.xaml");
+        string windowCode = ReadRepoFile("src/Deltempo.App.Wpf/MainWindow.xaml.cs");
+        string cleaningCode = ReadRepoFile("src/Deltempo.App.Wpf/MainWindow.Cleaning.cs");
 
         Assert.Contains("AppDataFootprintModalOverlay", windowXaml);
         Assert.Contains("AppDataFootprintModalOverlay.CloseModal()", windowCode);
@@ -337,7 +337,7 @@ public class AppDataFootprintServiceTests
     [Fact]
     public void AppDataFootprintModal_ReferencesOnlyDeclaredElementNames()
     {
-        string xaml = ReadRepoFile(@"Views\Modals\AppDataFootprintModal.xaml");
+        string xaml = ReadRepoFile(@"src\Deltempo.App.Wpf\Views\Modals\AppDataFootprintModal.xaml");
 
         var declared = Regex.Matches(xaml, "x:Name=\"([A-Za-z0-9_]+)\"")
             .Select(m => m.Groups[1].Value)
@@ -365,7 +365,7 @@ public class AppDataFootprintServiceTests
     [Fact]
     public void AppDataFootprintModal_IsDeclaredAsAColapsedOverlay()
     {
-        string xaml = ReadRepoFile("MainWindow.xaml");
+        string xaml = ReadRepoFile("src/Deltempo.App.Wpf/MainWindow.xaml");
 
         var declaration = Regex.Match(xaml, "<modals:AppDataFootprintModal\\b[^>]*>", RegexOptions.Singleline);
 

@@ -49,10 +49,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Deltempo.Core\Deltempo.Core.csproj" />
-    <Compile Include="..\..\Converters\PercentWidthConverter.cs" Link="Converters\PercentWidthConverter.cs" />
-    <Compile Include="..\..\Converters\ShareWidthConverter.cs" Link="Converters\ShareWidthConverter.cs" />
-    <Compile Include="..\..\Converters\SubtractConverter.cs" Link="Converters\SubtractConverter.cs" />
-    <Compile Include="..\..\Converters\WidthConverters.cs" Link="Converters\WidthConverters.cs" />
+    <Compile Include="..\..\src\Deltempo.App.Wpf\Converters\PercentWidthConverter.cs" Link="Converters\PercentWidthConverter.cs" />
+    <Compile Include="..\..\src\Deltempo.App.Wpf\Converters\ShareWidthConverter.cs" Link="Converters\ShareWidthConverter.cs" />
+    <Compile Include="..\..\src\Deltempo.App.Wpf\Converters\SubtractConverter.cs" Link="Converters\SubtractConverter.cs" />
+    <Compile Include="..\..\src\Deltempo.App.Wpf\Converters\WidthConverters.cs" Link="Converters\WidthConverters.cs" />
   </ItemGroup>
 
 </Project>

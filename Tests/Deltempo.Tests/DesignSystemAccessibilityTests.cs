@@ -59,7 +59,7 @@ public class DesignSystemAccessibilityTests
     [InlineData("TextMutedBrush")]
     public void TextBrushes_MeetWcagAA_ForBodyText(string brushKey)
     {
-        string appXaml = ReadRepoFile("App.xaml");
+        string appXaml = ReadRepoFile("src/Deltempo.App.Wpf/App.xaml");
 
         // Against every surface these are actually painted on.
         string[] surfaces = { "CanvasDarkBrush", "SurfaceCardBrush", "SurfaceSubCardBrush", "HeaderDockBrush" };
@@ -75,7 +75,7 @@ public class DesignSystemAccessibilityTests
     [Fact]
     public void ScrollThumbBrush_MeetsNonTextContrast_Bar()
     {
-        string appXaml = ReadRepoFile("App.xaml");
+        string appXaml = ReadRepoFile("src/Deltempo.App.Wpf/App.xaml");
 
         double vsCanvas = ContrastRatio(BrushColor(appXaml, "ScrollThumbBrush"), BrushColor(appXaml, "CanvasDarkBrush"));
         Assert.True(vsCanvas >= 3.0,
@@ -85,7 +85,7 @@ public class DesignSystemAccessibilityTests
     [Fact]
     public void AccentColors_MeetNonTextContrast_Bar()
     {
-        string appXaml = ReadRepoFile("App.xaml");
+        string appXaml = ReadRepoFile("src/Deltempo.App.Wpf/App.xaml");
         string canvas = BrushColor(appXaml, "CanvasDarkBrush");
 
         foreach (string key in new[] { "ElectricCyanBrush", "AmberWarningBrush", "RoseErrorBrush", "EmeraldGreenBrush" })
@@ -102,7 +102,7 @@ public class DesignSystemAccessibilityTests
     [Fact]
     public void TypeScale_IsDocumented_AndHasALegibilityFloor()
     {
-        string appXaml = ReadRepoFile("App.xaml");
+        string appXaml = ReadRepoFile("src/Deltempo.App.Wpf/App.xaml");
 
         foreach (string key in new[]
                  {
@@ -117,7 +117,7 @@ public class DesignSystemAccessibilityTests
     [Fact]
     public void TypeScale_StepsAreMonotonic()
     {
-        string appXaml = ReadRepoFile("App.xaml");
+        string appXaml = ReadRepoFile("src/Deltempo.App.Wpf/App.xaml");
 
         double Value(string key)
         {
@@ -144,14 +144,14 @@ public class DesignSystemAccessibilityTests
     }
 
     [Theory]
-    [InlineData("MainWindow.xaml")]
-    [InlineData("App.xaml")]
-    [InlineData(@"Views\Modals\SystemRepairModal.xaml")]
-    [InlineData(@"Views\Modals\AppUninstallModal.xaml")]
-    [InlineData(@"Views\Modals\ForceDeleteModal.xaml")]
-    [InlineData(@"Views\Modals\MemoryOptimizerModal.xaml")]
-    [InlineData(@"Views\Modals\LockedFilesModal.xaml")]
-    [InlineData(@"Views\Modals\AppDataFootprintModal.xaml")]
+    [InlineData("src/Deltempo.App.Wpf/MainWindow.xaml")]
+    [InlineData("src/Deltempo.App.Wpf/App.xaml")]
+    [InlineData(@"src\Deltempo.App.Wpf\Views\Modals\SystemRepairModal.xaml")]
+    [InlineData(@"src\Deltempo.App.Wpf\Views\Modals\AppUninstallModal.xaml")]
+    [InlineData(@"src\Deltempo.App.Wpf\Views\Modals\ForceDeleteModal.xaml")]
+    [InlineData(@"src\Deltempo.App.Wpf\Views\Modals\MemoryOptimizerModal.xaml")]
+    [InlineData(@"src\Deltempo.App.Wpf\Views\Modals\LockedFilesModal.xaml")]
+    [InlineData(@"src\Deltempo.App.Wpf\Views\Modals\AppDataFootprintModal.xaml")]
     public void NoUiFile_UsesIllegibleFontSizes(string file)
     {
         string xaml = ReadRepoFile(file);
@@ -173,11 +173,11 @@ public class DesignSystemAccessibilityTests
     // ------------------------------------------------------------------
 
     [Theory]
-    [InlineData("MainWindow.xaml")]
-    [InlineData(@"Views\Modals\AppUninstallModal.xaml")]
-    [InlineData(@"Views\Modals\ForceDeleteModal.xaml")]
-    [InlineData(@"Views\Modals\LockedFilesModal.xaml")]
-    [InlineData(@"Views\Modals\AppDataFootprintModal.xaml")]
+    [InlineData("src/Deltempo.App.Wpf/MainWindow.xaml")]
+    [InlineData(@"src\Deltempo.App.Wpf\Views\Modals\AppUninstallModal.xaml")]
+    [InlineData(@"src\Deltempo.App.Wpf\Views\Modals\ForceDeleteModal.xaml")]
+    [InlineData(@"src\Deltempo.App.Wpf\Views\Modals\LockedFilesModal.xaml")]
+    [InlineData(@"src\Deltempo.App.Wpf\Views\Modals\AppDataFootprintModal.xaml")]
     public void EveryButton_HasTextOrAccessibleName(string file)
     {
         string xaml = ReadRepoFile(file);
@@ -203,7 +203,7 @@ public class DesignSystemAccessibilityTests
     [Fact]
     public void HeaderToolButton_HasAccessibleHitTarget()
     {
-        string appXaml = ReadRepoFile("App.xaml");
+        string appXaml = ReadRepoFile("src/Deltempo.App.Wpf/App.xaml");
 
         var style = Regex.Match(appXaml, "<Style x:Key=\"HeaderToolButton\".*?</Style>", RegexOptions.Singleline);
         Assert.True(style.Success, "HeaderToolButton style missing.");
@@ -222,7 +222,7 @@ public class DesignSystemAccessibilityTests
     [Fact]
     public void FocusVisualStyle_IsDefined_AndUsedByInteractiveStyles()
     {
-        string appXaml = ReadRepoFile("App.xaml");
+        string appXaml = ReadRepoFile("src/Deltempo.App.Wpf/App.xaml");
 
         Assert.Contains("x:Key=\"AccessibleFocusVisualStyle\"", appXaml);
 

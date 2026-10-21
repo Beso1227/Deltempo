@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.320.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinTempCleaner", "WinTempCleaner.csproj", "{AA4C6A49-DD3B-E0D3-34C2-8A6A9DBFAFBA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinTempCleaner", "src\Deltempo.App.Wpf\WinTempCleaner.csproj", "{AA4C6A49-DD3B-E0D3-34C2-8A6A9DBFAFBA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cli", "Cli", "{342A349A-D343-8551-4064-2E2800C39E13}"
 EndProject
