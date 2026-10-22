@@ -107,7 +107,7 @@
 | **Pontos de restauração** | Pontos de Restauração do Sistema do Windows opcionais antes da desinstalação (controlados pelo usuário, desativados por padrão) |
 | **Inteligência de serviços** | Explica: *"Algo pode dar errado se eu desativar isso?"* por meio de 3 vereditos de segurança, heurísticas offline e IA multimodelo |
 | **Gerenciador de processos** | Listagem de processos em tempo real com extração ao vivo de ícones de aplicativos em alta DPI e análise do uso de memória |
-| **Integração com WinUtil** | Lançador de 1 clique para o Chris Titus Tech WinUtil (CTT), de Chris Titus |
+| **Integração com WinUtil** | Lançador de 1 clique para o [Chris Titus Tech WinUtil](https://christitus.com/win) (CTT), de Chris Titus |
 | **Motor de memória** | Chamadas nativas do kernel NT do Windows (`NtSetSystemInformation`, `EmptyWorkingSet`) |
 | **Central de preferências** | Central de controle com 4 abas categorizadas (*Atualizações*, *Geral*, *Memória*, *Armazenamento e Segurança*) |
 | **Guardião da bandeja** | Ícone Win32 nativo de alta DPI (`LoadCrispTrayIcon`) com telemetria de RAM ao vivo e Boost com 1 clique |
@@ -577,4 +577,4 @@ Todos os três recursos do site são permitidos abertamente no `robots.txt` para
 | **Guia de contribuição** | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | **Código de conduta** | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
 | **Política de segurança** | [SECURITY.md](SECURITY.md) |
-| **Relatórios de Bugs e Issues** | [GitHub Issues](https://github.com/Beso1227/Deltempo/issues)
+| **Relatórios de Bugs e Issues** | [GitHub Issues](https://github.com/Beso1227/Deltempo/issues) |

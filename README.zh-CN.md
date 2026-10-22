@@ -107,7 +107,7 @@
 | **还原点** | 可选的卸载前 Windows 系统还原点（由用户控制，默认关闭） |
 | **服务智能分析** | 回答：*"禁用它会不会出问题？"* —— 通过 3 级安全判定、离线启发式规则与多模型 AI |
 | **进程管理器** | 实时进程列表，支持高 DPI 应用图标的即时提取与内存占用分析 |
-| **WinUtil 集成** | Chris Titus Tech WinUtil（CTT）的一键提权启动器，作者为 Chris Titus |
+| **WinUtil 集成** | [Chris Titus Tech WinUtil](https://christitus.com/win)（CTT）的一键提权启动器，作者为 Chris Titus |
 | **内存引擎** | 原生 Windows NT 内核调用（`NtSetSystemInformation`、`EmptyWorkingSet`） |
 | **偏好设置中心** | 分类式 4 标签控制中心（*更新*、*常规*、*内存*、*存储与安全*） |
 | **托盘守护** | 高 DPI 原生 Win32 图标（`LoadCrispTrayIcon`），带实时 RAM 遥测与一键加速 |

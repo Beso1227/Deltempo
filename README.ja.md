@@ -107,7 +107,7 @@
 | **復元ポイント** | アンインストール前の任意の Windows システム復元ポイント（ユーザー制御、デフォルト無効） |
 | **サービスインテリジェンス** | 3 段階の安全判定、オフラインヒューリスティクス、マルチモデル AI を用いて「これを無効にすると問題が起きますか？」という疑問に答えます |
 | **プロセスマネージャー** | リアルタイムのプロセス一覧、ライブな高 DPI アプリアイコン抽出、メモリ使用量の分析 |
-| **WinUtil 連携** | Chris Titus Tech WinUtil（CTT）を 1 クリックで起動（Chris Titus によるサードパーティ製） |
+| **WinUtil 連携** | [Chris Titus Tech WinUtil](https://christitus.com/win)（CTT）を 1 クリックで起動（Chris Titus によるサードパーティ製） |
 | **メモリエンジン** | Windows NT カーネルのネイティブコール（`NtSetSystemInformation`、`EmptyWorkingSet`） |
 | **設定ハブ** | カテゴリ別 4 タブのコントロールセンター（*アップデート*、*一般*、*メモリ*、*ストレージと安全性*） |
 | **トレイガーディアン** | 高 DPI ネイティブ Win32 アイコン（`LoadCrispTrayIcon`）、ライブ RAM テレメトリと 1 クリックのブースト |

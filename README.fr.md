@@ -107,7 +107,7 @@
 | **Points de restauration** | Points de restauration système Windows facultatifs avant désinstallation (contrôlés par l'utilisateur, désactivés par défaut) |
 | **Intelligence des services** | Explique : *« Quelque chose risque-t-il de casser si je désactive ceci ? »* via 3 verdicts de sécurité, heuristiques hors ligne et IA multi-modèles |
 | **Gestionnaire de processus** | Liste des processus en temps réel avec extraction en direct des icônes haute densité (high-DPI) des applications et analyse de l'empreinte mémoire |
-| **Intégration WinUtil** | Lanceur en 1 clic pour Chris Titus Tech WinUtil (CTT), par Chris Titus |
+| **Intégration WinUtil** | Lanceur en 1 clic pour [Chris Titus Tech WinUtil](https://christitus.com/win) (CTT), par Chris Titus |
 | **Moteur de mémoire** | Appels natifs au noyau NT Windows (`NtSetSystemInformation`, `EmptyWorkingSet`) |
 | **Centre de préférences** | Centre de contrôle en 4 onglets catégorisés (*Mises à jour*, *Général*, *Mémoire*, *Stockage et sécurité*) |
 | **Gardien de la zone de notification** | Icône Win32 native haute densité (`LoadCrispTrayIcon`) avec télémétrie RAM en direct et Boost en 1 clic |
