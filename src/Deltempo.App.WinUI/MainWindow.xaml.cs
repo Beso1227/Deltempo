@@ -35,7 +35,7 @@ public sealed partial class MainWindow : Window
     // ToolForceDeleteBtn): the icon is what represents the section now that the rail is
     // icon-only, so it has to be the same icon the old UI trained people on, and Help is
     // the same tooltip copy that button carried.
-    private static readonly (string Label, string Glyph, string Help, bool Danger)[] Sections =
+    private static readonly (string Label, string Glyph, string Help, bool Danger)[] ToolSections =
     {
         (CleanerSectionLabel, "\uE856", "Switch to Junk Cleaner workspace & storage dashboard", false),
         (LargeFilesSectionLabel, "\uE8B7", "Scan and locate large space-consuming files across your drives safely", false),
@@ -46,9 +46,22 @@ public sealed partial class MainWindow : Window
         (AppUninstallerSectionLabel, "\uE71D", "Installed applications manager, uninstaller & residual bloatware purger", false),
         // WPF styled this one's pill with its danger brushes.
         (ForceDeleteSectionLabel, "\uE74D", "Pick stubborn files or folders (locked, read-only, permission-denied) and permanently force delete them", true),
-        (SettingsSectionLabel, "\uE713", "Appearance, sound, language, automation and update preferences", false),
-        (AboutSectionLabel, "\uE946", "Version, license and links", false),
     };
+
+    /// <summary>
+    /// The preferences, pinned to the bottom of the rail behind a rule. A tool is
+    /// something the user goes and does; a preference is something they set once and
+    /// forget. Splitting them keeps the tool list short enough to scan.
+    /// </summary>
+    private static readonly (string Label, string Glyph, string Help, bool Danger)[] FooterSections =
+    {
+        (SettingsSectionLabel, "\uE713", "Appearance, sound, language, automation and update preferences", false),
+        (AboutSectionLabel, "\uE946", "Version, license and where to find the source", false),
+    };
+
+    /// <summary>Section label to glyph, for the page header's leading tile.</summary>
+    private static readonly Dictionary<string, string> SectionGlyphs =
+        ToolSections.Concat(FooterSections).ToDictionary(s => s.Label, s => s.Glyph);
 
     /// <summary>
     /// Which panel backs each navigation section, and how to load it. Built once, after
@@ -752,36 +765,20 @@ public sealed partial class MainWindow : Window
     {
         BuildWorkspacePanelMap();
 
-        foreach (var (label, glyph, help, danger) in Sections)
+        foreach (var (label, glyph, help, danger) in ToolSections)
         {
-            (UIElement content, FontIcon icon, Border indicator) = BuildNavContent(glyph);
-
-            var item = new ListViewItem
-            {
-                Tag = label,
-                Content = content,
-            };
-
-            _navEntries[label] = new NavEntry(icon, indicator, danger);
-
-            // Without this the item announces as an empty list item. The WPF nav
-            // set AutomationProperties.Name on each workspace, and dropping it
-            // made every nav destination unreachable by name - for screen
-            // readers and for UI automation alike.
-            //
-            // The rail shows glyphs only, so the name also has to reach a sighted
-            // pointer: that is the tooltip, carrying the label on hover. HelpText
-            // keeps the WPF button's descriptive tooltip copy available to assistive
-            // tech instead of putting a two-line balloon over every row.
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(item, label);
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(item, help);
-            ToolTipService.SetToolTip(item, label);
-            ToolTipService.SetPlacement(item, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Right);
-
-            WireNavHover(item, label, danger);
-
-            NavList.Items.Add(item);
+            AddNavItem(NavList, label, glyph, help, danger);
         }
+
+        foreach (var (label, glyph, help, danger) in FooterSections)
+        {
+            AddNavItem(NavFooterList, label, glyph, help, danger);
+        }
+
+        // The search box offers exactly the destinations the rail offers, so it can
+        // never send the user somewhere the rail does not have.
+        SectionSearchBox.ItemsSource =
+            ToolSections.Concat(FooterSections).Select(s => s.Label).ToList();
 
         if (NavList.Items.Count > 0)
         {
@@ -792,6 +789,18 @@ public sealed partial class MainWindow : Window
         {
             if (NavList.SelectedItem is ListViewItem selected && selected.Tag is string label)
             {
+                // One list is selected at a time: picking a tool clears the
+                // preferences, and the other way round.
+                NavFooterList.SelectedIndex = -1;
+                ShowWorkspace(label, playSound: true);
+            }
+        };
+
+        NavFooterList.SelectionChanged += (_, _) =>
+        {
+            if (NavFooterList.SelectedItem is ListViewItem selected && selected.Tag is string label)
+            {
+                NavList.SelectedIndex = -1;
                 ShowWorkspace(label, playSound: true);
             }
         };
@@ -803,6 +812,68 @@ public sealed partial class MainWindow : Window
         if (NavList.SelectedItem is ListViewItem initial && initial.Tag is string initialLabel)
         {
             ShowWorkspace(initialLabel, playSound: false);
+        }
+    }
+
+    /// <summary>
+    /// Adds one rail item: the glyph, the accent bar that marks the active section,
+    /// and the name that reaches a screen reader and a pointer.
+    /// </summary>
+    private void AddNavItem(ListView list, string label, string glyph, string help, bool danger)
+    {
+        (UIElement content, FontIcon icon, Border indicator) = BuildNavContent(glyph);
+
+        var item = new ListViewItem
+        {
+            Tag = label,
+            Content = content,
+        };
+
+        _navEntries[label] = new NavEntry(icon, indicator, danger);
+
+        // Without this the item announces as an empty list item. The WPF nav
+        // set AutomationProperties.Name on each workspace, and dropping it
+        // made every nav destination unreachable by name - for screen
+        // readers and for UI automation alike.
+        //
+        // The rail shows glyphs only, so the name also has to reach a sighted
+        // pointer: that is the tooltip, carrying the label on hover. HelpText
+        // keeps the WPF button's descriptive tooltip copy available to assistive
+        // tech instead of putting a two-line balloon over every row.
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(item, label);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(item, help);
+        ToolTipService.SetToolTip(item, label);
+        ToolTipService.SetPlacement(item, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Right);
+
+        WireNavHover(item, label, danger);
+
+        list.Items.Add(item);
+    }
+
+    /// <summary>
+    /// Selects a section by name, wherever it lives in the rail. Used by the title
+    /// bar search, which lists the sections rather than the rail's own items.
+    /// </summary>
+    private void SelectSection(string label)
+    {
+        foreach (ListView list in new[] { NavList, NavFooterList })
+        {
+            for (int i = 0; i < list.Items.Count; i++)
+            {
+                if (list.Items[i] is ListViewItem item && item.Tag as string == label)
+                {
+                    list.SelectedIndex = i;
+                    return;
+                }
+            }
+        }
+    }
+
+    private void OnSectionSearchChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+    {
+        if (args.SelectedItem is string label)
+        {
+            SelectSection(label);
         }
     }
 
@@ -894,6 +965,12 @@ public sealed partial class MainWindow : Window
         PageEyebrow.Text = eyebrow;
         PageTitle.Text = label;
         PageDescription.Text = description;
+
+        // The leading tile carries the section's own glyph, so the header and the
+        // rail always agree about which section is open.
+        PageHeaderIcon.Glyph = SectionGlyphs.TryGetValue(label, out string? glyph)
+            ? glyph
+            : "\uE8F1";
     }
 
     /// <summary>
