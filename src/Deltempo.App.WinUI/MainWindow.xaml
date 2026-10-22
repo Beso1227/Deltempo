@@ -10,6 +10,16 @@
 
     <Grid Background="{ThemeResource CanvasDarkBrush}">
 
+        <!-- Shortcut parity with the WPF window's Window_KeyDown handler: Escape
+             closes the overlay on top, F5 / Ctrl+R re-runs the active workspace's
+             scan, Ctrl+Enter starts the cleaner's confirmed clean. -->
+        <Grid.KeyboardAccelerators>
+            <KeyboardAccelerator Key="Escape" Invoked="OnEscapeInvoked" />
+            <KeyboardAccelerator Key="F5" Invoked="OnRefreshInvoked" />
+            <KeyboardAccelerator Key="R" Modifiers="Control" Invoked="OnRefreshInvoked" />
+            <KeyboardAccelerator Key="Enter" Modifiers="Control" Invoked="OnCleanSelectedInvoked" />
+        </Grid.KeyboardAccelerators>
+
         <Grid.RowDefinitions>
             <RowDefinition Height="48" />
             <RowDefinition Height="*" />

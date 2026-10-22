@@ -4,6 +4,7 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using WinRT.Interop;
@@ -185,6 +186,12 @@ public sealed partial class MainWindow : Window
     private void LoadSelfTestLockedFiles()
     {
         LockedFilesOverlay.LogRequested += OnFootprintLog;
+
+        // The overlay's OK button raises CloseRequested through the ViewModel. Nothing
+        // subscribed, so the overlay could not be dismissed - not by the button and not
+        // by Escape.
+        LockedFilesOverlay.CloseRequested -= CloseLockedFilesOverlay;
+        LockedFilesOverlay.CloseRequested += CloseLockedFilesOverlay;
 
         LockedFilesOverlay.Load(
         [
@@ -609,6 +616,96 @@ public sealed partial class MainWindow : Window
         => ShellMotion.Exit(
             MemoryOverlay,
             () => MemoryOverlay.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed);
+
+    private void CloseLockedFilesOverlay()
+        => ShellMotion.Exit(
+            LockedFilesOverlay,
+            () => LockedFilesOverlay.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed);
+
+    /// <summary>
+    /// Escape closes whichever overlay is on top.
+    ///
+    /// The WPF window listed every modal in Window_KeyDown, because an overlay that
+    /// covers the whole window leaves no way back otherwise. Only three surfaces are
+    /// genuine overlays in this shell; the rest are workspaces or ContentDialogs, and a
+    /// dialog already answers Escape itself.
+    /// </summary>
+    private void OnEscapeInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        if (MemoryOverlay.Visibility == Visibility.Visible)
+        {
+            CloseMemoryOptimizerOverlay();
+            args.Handled = true;
+        }
+        else if (FootprintView.Visibility == Visibility.Visible)
+        {
+            CloseAppDataFootprint();
+            args.Handled = true;
+        }
+        else if (LockedFilesOverlay.Visibility == Visibility.Visible)
+        {
+            CloseLockedFilesOverlay();
+            args.Handled = true;
+        }
+    }
+
+    /// <summary>
+    /// F5 / Ctrl+R re-runs the scan of the workspace that is showing.
+    ///
+    /// WPF bound both keys to the cleaner's Scan button because the cleaner dashboard
+    /// was the only place a scan lived. Here every list workspace owns its own refresh,
+    /// so the same key refreshes what the user is actually looking at.
+    /// </summary>
+    private void OnRefreshInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        if (CleanerWorkspacePanel.Visibility == Visibility.Visible)
+        {
+            CleanerWorkspacePanel.ViewModel.ScanCommand.Execute(null);
+        }
+        else if (LargeFilesWorkspacePanel.Visibility == Visibility.Visible)
+        {
+            LargeFilesWorkspacePanel.ViewModel.ScanCommand.Execute(null);
+        }
+        else if (StartupWorkspacePanel.Visibility == Visibility.Visible)
+        {
+            StartupWorkspacePanel.ViewModel.RefreshCommand.Execute(null);
+        }
+        else if (ProcessWorkspacePanel.Visibility == Visibility.Visible)
+        {
+            ProcessWorkspacePanel.ViewModel.RefreshCommand.Execute(null);
+        }
+        else if (AppUninstallWorkspacePanel.Visibility == Visibility.Visible)
+        {
+            AppUninstallWorkspacePanel.ViewModel.RefreshCommand.Execute(null);
+        }
+        else
+        {
+            return;
+        }
+
+        args.Handled = true;
+    }
+
+    /// <summary>
+    /// Ctrl+Enter starts the cleaner's clean, confirmation first.
+    ///
+    /// WPF did the same from any workspace. Restricting it to the cleaner removes the
+    /// one way a stray key chord could start a destructive operation from a screen that
+    /// shows no selection.
+    /// </summary>
+    private void OnCleanSelectedInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        if (CleanerWorkspacePanel.Visibility != Visibility.Visible)
+        {
+            return;
+        }
+
+        if (CleanerWorkspacePanel.ViewModel.CleanSelectedCommand.CanExecute(null))
+        {
+            CleanerWorkspacePanel.ViewModel.CleanSelectedCommand.Execute(null);
+            args.Handled = true;
+        }
+    }
 
     /// <summary>
     /// The close button on a promoted panel returns to the first workspace, which
