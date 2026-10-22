@@ -84,12 +84,14 @@ repository:
 # workflow becomes: push a branch, let CI run on it, then merge the PR - or push
 # that already-green SHA.
 #
-# Branch protection is NOT verifiable from CI. The workflow token has no
-# Administration scope on github.com, so the Apply Repository Settings job can read
-# the repository and the labels but not the protection block. It reports those
-# fields as unverified rather than comparing them against a live state it never saw.
-# Check them by hand after changing this block:
+# Not everything here is verifiable from CI, and the verifier says so instead of
+# guessing. The workflow token has no Administration scope on github.com, so the
+# Apply Repository Settings job cannot read branch protection at all, and GitHub
+# omits the merge/squash settings from the repository payload it can read. Those
+# fields are reported as NOT VERIFIED rather than compared against a live state
+# nobody observed. Check them by hand after changing this block:
 #   gh api repos/Beso1227/Deltempo/branches/main/protection
+#   gh api repos/Beso1227/Deltempo --jq '{allow_squash_merge,allow_merge_commit,allow_rebase_merge,delete_branch_on_merge,squash_merge_commit_title,squash_merge_commit_message}'
 branches:
   - name: main
     protection:
