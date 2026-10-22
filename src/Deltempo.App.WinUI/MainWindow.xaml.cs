@@ -4,9 +4,11 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
+using Windows.Foundation;
 using WinRT.Interop;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
@@ -119,6 +121,7 @@ public sealed partial class MainWindow : Window
         FooterVersion.Text = $"v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0"} · WinUI 3";
 
         ApplyWindowChrome();
+        InitializeTray();
         ApplyTheme(SettingsService.Current.IsDarkMode, persist: false);
         BuildNavigation();
         VerifyCoreLink();
@@ -736,6 +739,205 @@ public sealed partial class MainWindow : Window
 
     private void OnFootprintLog(string message, WinTempCleaner.Models.LogLevel level)
         => ShellDiagnostics.Write($"[{level}] {message}");
+
+    // ---------------------------------------------------------------------
+    // Tray
+    // ---------------------------------------------------------------------
+
+    private bool _isExiting;
+
+    /// <summary>
+    /// Creates the tray icon when Settings asks for one.
+    ///
+    /// WPF did the same thing from its MainWindow with the WPF TrayService overload.
+    /// The shell owns the presentation - the flyout menu, hide and restore - because
+    /// those need WinUI types; the icon, tooltip, Explorer-restart recovery, balloon
+    /// notifications and the low-disk alert are the shared Core implementation.
+    /// </summary>
+    private void InitializeTray()
+    {
+        if (!SettingsService.Current.MemoryShowInTray)
+        {
+            return;
+        }
+
+        IntPtr hwnd = WindowNative.GetWindowHandle(this);
+
+        TrayService.InitializeForHwnd(
+            hwnd,
+            action => DispatcherQueue.TryEnqueue(() => action()),
+            showContextMenu: ShowTrayMenu,
+            restoreWindow: RestoreFromTray,
+            hideWindow: HideToTray,
+            onCleanSafeNow: () => NavigateTo(CleanerSectionLabel),
+            onOpenSettings: () => NavigateTo(SettingsSectionLabel),
+            onOptimizeRam: OptimizeRamFromTrayAsync,
+            onPurgeStandby: PurgeStandbyFromTrayAsync,
+            onCheckUpdates: () => SettingsWorkspacePanel.ViewModel.CheckForUpdatesCommand.Execute(null),
+            onExit: ExitFromTray);
+
+        if (TrayService.IsVisible)
+        {
+            AppWindow.Closing += OnAppWindowClosing;
+
+            // Same probe the WPF app ran from UpdateDriveTelemetry: a machine that is
+            // already below the threshold hears about it once the guardian is up.
+            TrayService.CheckLowDiskSpaceAndNotify(DriveTelemetryService.GetSystemDriveTelemetry());
+        }
+        else
+        {
+            ShellDiagnostics.Write("tray: the shell refused the icon; close-to-tray stays off");
+        }
+    }
+
+    /// <summary>
+    /// Close-to-tray, with the two guards that keep the app from becoming unquittable:
+    /// the user must have asked for it, and an icon must actually exist to restore from.
+    /// </summary>
+    private void OnAppWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        if (_isExiting)
+        {
+            return;
+        }
+
+        if (!SettingsService.Current.MemoryCloseToTray || !SettingsService.Current.MemoryShowInTray)
+        {
+            return;
+        }
+
+        args.Cancel = true;
+        HideToTray();
+
+        if (!TrayService.IsVisible)
+        {
+            args.Cancel = false;
+        }
+    }
+
+    private void HideToTray() => AppWindow.Hide();
+
+    private void RestoreFromTray()
+    {
+        AppWindow.Show();
+        Activate();
+        SetForegroundWindow(WindowNative.GetWindowHandle(this));
+    }
+
+    /// <summary>Real exit path: clears the close interception, drops the icon, closes.</summary>
+    private void ExitFromTray()
+    {
+        _isExiting = true;
+        TrayService.Dispose();
+        Close();
+    }
+
+    private void ShowTrayMenu()
+    {
+        var flyout = new MenuFlyout();
+
+        var mem = MemoryOptimizerService.GetMemoryInfo();
+        var drive = DriveTelemetryService.GetSystemDriveTelemetry();
+
+        flyout.Items.Add(new MenuFlyoutItem
+        {
+            Text = "Deltempo Guardian",
+            IsEnabled = false,
+        });
+        flyout.Items.Add(new MenuFlyoutItem
+        {
+            Text = $"RAM {mem.UsedPercent:0.0}%  ·  {drive.DriveLetter} {drive.FormattedFree} free",
+            IsEnabled = false,
+        });
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        AddTrayItem(flyout, "\uE74D", "Clean Safe Files…", () =>
+        {
+            NavigateTo(CleanerSectionLabel);
+            CleanerWorkspacePanel.ViewModel.SelectSafeCommand.Execute(null);
+        });
+        AddTrayItem(flyout, "\uE713", "Open Settings", () => NavigateTo(SettingsSectionLabel));
+        AddTrayItem(flyout, "\uE945", "Optimize RAM", () => _ = OptimizeRamFromTrayAsync());
+        AddTrayItem(flyout, "\uE9D9", "Purge Standby Memory", () => _ = PurgeStandbyFromTrayAsync());
+        AddTrayItem(flyout, "\uE895", "Check for Updates", () =>
+            SettingsWorkspacePanel.ViewModel.CheckForUpdatesCommand.Execute(null));
+        flyout.Items.Add(new MenuFlyoutSeparator());
+        AddTrayItem(flyout, "\uE7E8", "Exit Deltempo", ExitFromTray);
+
+        // WPF opened the context menu at the cursor. FlyoutShowOptions wants client
+        // coordinates in DIPs, so the screen point is converted with the window handle
+        // and divided by the rasterization scale.
+        Point position = new(24, 24);
+        double scale = RootGrid.XamlRoot?.RasterizationScale ?? 1.0;
+        if (GetCursorPos(out POINT cursor) && ScreenToClient(WindowNative.GetWindowHandle(this), ref cursor))
+        {
+            position = new Point(cursor.X / scale, cursor.Y / scale);
+        }
+
+        flyout.ShowAt(RootGrid, new FlyoutShowOptions { Position = position });
+    }
+
+    private static void AddTrayItem(MenuFlyout flyout, string glyph, string text, Action action)
+    {
+        var item = new MenuFlyoutItem
+        {
+            Text = text,
+            Icon = new FontIcon { Glyph = glyph, FontFamily = (FontFamily)Application.Current.Resources["IconFont"] },
+        };
+        item.Click += (_, _) => action();
+        flyout.Items.Add(item);
+    }
+
+    private async Task<MemoryOptimizationResult> OptimizeRamFromTrayAsync()
+    {
+        var result = await MemoryOptimizerService.OptimizeRamAsync();
+        MemoryWorkspacePanel.ViewModel.RefreshTelemetry();
+        ShellDiagnostics.Write(
+            $"[Tray] RAM optimize: {result.SucceededTargetCount}/{result.RequestedTargetCount} targets, " +
+            $"{result.FormattedMeasuredDelta}");
+        return result;
+    }
+
+    private async Task<MemoryOptimizationResult> PurgeStandbyFromTrayAsync()
+    {
+        var result = await MemoryOptimizerService.OptimizeRamAsync(
+            [MemoryTargetType.StandbyList, MemoryTargetType.StandbyListLowPriority]);
+        MemoryWorkspacePanel.ViewModel.RefreshTelemetry();
+        ShellDiagnostics.Write(
+            $"[Tray] Standby purge: {result.SucceededTargetCount}/{result.RequestedTargetCount} zones");
+        return result;
+    }
+
+    private void NavigateTo(string label)
+    {
+        foreach (var list in new[] { NavList, NavFooterList })
+        {
+            foreach (var entry in list.Items)
+            {
+                if (entry is ListViewItem { Tag: string tag } && tag == label)
+                {
+                    list.SelectedItem = entry;
+                    return;
+                }
+            }
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct POINT
+    {
+        public int X;
+        public int Y;
+    }
+
+    [DllImport("user32.dll")]
+    private static extern bool GetCursorPos(out POINT point);
+
+    [DllImport("user32.dll")]
+    private static extern bool ScreenToClient(IntPtr hWnd, ref POINT point);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
 
     private void ApplyWindowChrome()
     {

@@ -8,7 +8,7 @@
     mc:Ignorable="d"
     Title="Deltempo">
 
-    <Grid Background="{ThemeResource CanvasDarkBrush}">
+    <Grid x:Name="RootGrid" Background="{ThemeResource CanvasDarkBrush}">
 
         <!-- Shortcut parity with the WPF window's Window_KeyDown handler: Escape
              closes the overlay on top, F5 / Ctrl+R re-runs the active workspace's

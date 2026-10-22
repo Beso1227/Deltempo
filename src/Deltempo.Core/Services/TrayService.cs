@@ -22,7 +22,21 @@ public static class TrayService
     private static bool _isInitialized;
     private static IntPtr _hIcon = IntPtr.Zero;
     private static int _wmTaskbarCreated;
+    private static int _wmShowWindow;
     private static DateTime _lastHoverTime = DateTime.MinValue;
+
+    // --- Shell-agnostic state -------------------------------------------------
+    // The tray icon belongs to a window handle, not to a particular UI framework,
+    // so everything below is expressed in HWND terms. The WPF entry point fills
+    // these from its Window; the WinUI entry point supplies them directly and
+    // subclasses its own window.
+    private static IntPtr _trayHwnd = IntPtr.Zero;
+    private static Action<Action>? _invoke;
+    private static Action? _showContextMenu;
+    private static Action? _restoreWindow;
+    private static Action? _hideWindow;
+    private static SUBCLASSPROC? _subclassProc;
+    private static readonly UIntPtr TraySubclassId = 0xD317;
 
     private const int WM_USER = 0x0400;
     private const int WM_TRAYICON = WM_USER + 101;
@@ -102,6 +116,34 @@ public static class TrayService
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern int RegisterWindowMessage(string lpString);
 
+    // Subclassing is how a shell that owns its own window procedure (WinUI 3) lets
+    // this service see tray messages on its window. SetWindowSubclass chains with
+    // whatever the shell installed instead of replacing it, and supports more than
+    // one subclass per window.
+    private delegate IntPtr SUBCLASSPROC(
+        IntPtr hWnd,
+        uint uMsg,
+        IntPtr wParam,
+        IntPtr lParam,
+        UIntPtr uIdSubclass,
+        IntPtr dwRefData);
+
+    [DllImport("comctl32.dll", SetLastError = true)]
+    private static extern bool SetWindowSubclass(
+        IntPtr hWnd,
+        SUBCLASSPROC pfnSubclass,
+        UIntPtr uIdSubclass,
+        IntPtr dwRefData);
+
+    [DllImport("comctl32.dll")]
+    private static extern IntPtr DefSubclassProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
+
+    /// <summary>
+    /// Initialises the tray for the WPF shell.
+    ///
+    /// Unchanged for callers: the WPF window owns the menu, the show/hide and the
+    /// dispatcher, and this overload supplies all three from the Window it is given.
+    /// </summary>
     public static void Initialize(
         Window mainWindow,
         Action onCleanSafeNow,
@@ -112,12 +154,6 @@ public static class TrayService
         Action? onExit = null)
     {
         _mainWindow = mainWindow;
-        _onCleanSafeNow = onCleanSafeNow;
-        _onOpenSettings = onOpenSettings;
-        _onOptimizeRam = onOptimizeRam;
-        _onPurgeStandby = onPurgeStandby;
-        _onCheckUpdates = onCheckUpdates;
-        _onExit = onExit;
 
         var helper = new WindowInteropHelper(_mainWindow);
         var hWnd = helper.Handle;
@@ -125,12 +161,77 @@ public static class TrayService
         _hwndSource = HwndSource.FromHwnd(hWnd);
         _hwndSource?.AddHook(WndProc);
 
+        _trayHwnd = hWnd;
+        _invoke = action => mainWindow.Dispatcher.Invoke(action);
+        _showContextMenu = ShowLuxuryContextMenu;
+        _restoreWindow = RestoreWpfWindow;
+        _hideWindow = () => mainWindow.Hide();
+
+        InitializeCore(onCleanSafeNow, onOpenSettings, onOptimizeRam, onPurgeStandby, onCheckUpdates, onExit);
+    }
+
+    /// <summary>
+    /// Initialises the tray for a shell that is not WPF.
+    ///
+    /// The caller owns the chrome: it supplies the window handle that receives tray
+    /// messages, a way to marshal onto its UI thread, and the three presentation
+    /// callbacks (show menu, restore window, hide window). Everything the tray itself
+    /// does - registering the icon, reshaping it after an Explorer restart, the
+    /// tooltip, ballon notifications and the low-disk alert - is shared with WPF.
+    /// </summary>
+    public static void InitializeForHwnd(
+        IntPtr hwnd,
+        Action<Action> invoke,
+        Action showContextMenu,
+        Action restoreWindow,
+        Action hideWindow,
+        Action onCleanSafeNow,
+        Action onOpenSettings,
+        Func<Task<MemoryOptimizationResult>>? onOptimizeRam = null,
+        Func<Task<MemoryOptimizationResult>>? onPurgeStandby = null,
+        Action? onCheckUpdates = null,
+        Action? onExit = null)
+    {
+        _trayHwnd = hwnd;
+        _invoke = invoke;
+        _showContextMenu = showContextMenu;
+        _restoreWindow = restoreWindow;
+        _hideWindow = hideWindow;
+
+        // Keep the delegate alive for the lifetime of the window: the OS holds a raw
+        // pointer to it and a collected delegate would crash on the next message.
+        _subclassProc ??= SubclassProc;
+        SetWindowSubclass(hwnd, _subclassProc, TraySubclassId, IntPtr.Zero);
+
+        InitializeCore(onCleanSafeNow, onOpenSettings, onOptimizeRam, onPurgeStandby, onCheckUpdates, onExit);
+    }
+
+    private static void InitializeCore(
+        Action onCleanSafeNow,
+        Action onOpenSettings,
+        Func<Task<MemoryOptimizationResult>>? onOptimizeRam,
+        Func<Task<MemoryOptimizationResult>>? onPurgeStandby,
+        Action? onCheckUpdates,
+        Action? onExit)
+    {
+        _onCleanSafeNow = onCleanSafeNow;
+        _onOpenSettings = onOpenSettings;
+        _onOptimizeRam = onOptimizeRam;
+        _onPurgeStandby = onPurgeStandby;
+        _onCheckUpdates = onCheckUpdates;
+        _onExit = onExit;
+
         _wmTaskbarCreated = RegisterWindowMessage("TaskbarCreated");
+
+        // SingleInstanceManager broadcasts this from the second launch. A window that is
+        // hidden in the tray has no MainWindowHandle, so process enumeration cannot find
+        // it; the broadcast is the only way to surface the running copy again.
+        _wmShowWindow = RegisterWindowMessage(SingleInstanceManager.ShowWindowMessageName);
 
         // Load crisp, true-alpha, DPI-native tray icon
         _hIcon = LoadCrispTrayIcon();
 
-        CreateTrayIcon(hWnd);
+        CreateTrayIcon(_trayHwnd);
         _isInitialized = true;
     }
 
@@ -271,9 +372,8 @@ public static class TrayService
 
     public static void UpdateTooltip()
     {
-        if (!_isInitialized || _mainWindow == null) return;
-        var helper = new WindowInteropHelper(_mainWindow);
-        var nid = CreateNotifyData(helper.Handle);
+        if (!_isInitialized || _trayHwnd == IntPtr.Zero) return;
+        var nid = CreateNotifyData(_trayHwnd);
         nid.uFlags = NIF_TIP;
         nid.szTip = GetFormattedTooltip();
         Shell_NotifyIconW(NIM_MODIFY, ref nid);
@@ -293,10 +393,37 @@ public static class TrayService
 
     private static IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
+        IntPtr result = HandleTrayMessage(hwnd, msg, wParam, lParam, ref handled);
+        return result;
+    }
+
+    /// <summary>Window procedure for a shell that let us subclass its window.</summary>
+    private static IntPtr SubclassProc(
+        IntPtr hWnd,
+        uint uMsg,
+        IntPtr wParam,
+        IntPtr lParam,
+        UIntPtr uIdSubclass,
+        IntPtr dwRefData)
+    {
+        bool handled = false;
+        IntPtr result = HandleTrayMessage(hWnd, (int)uMsg, wParam, lParam, ref handled);
+        return handled ? result : DefSubclassProc(hWnd, uMsg, wParam, lParam);
+    }
+
+    private static IntPtr HandleTrayMessage(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
         // Handle taskbar recreation (e.g. explorer.exe restart)
         if (_wmTaskbarCreated != 0 && msg == _wmTaskbarCreated)
         {
             CreateTrayIcon(hwnd);
+            handled = true;
+            return IntPtr.Zero;
+        }
+
+        if (_wmShowWindow != 0 && msg == _wmShowWindow)
+        {
+            _restoreWindow?.Invoke();
             handled = true;
             return IntPtr.Zero;
         }
@@ -309,13 +436,13 @@ public static class TrayService
             {
                 case WM_LBUTTONUP:
                 case WM_LBUTTONDBLCLK:
-                    RestoreMainWindow();
+                    _restoreWindow?.Invoke();
                     handled = true;
                     break;
 
                 case WM_RBUTTONUP:
                 case WM_CONTEXTMENU:
-                    ShowLuxuryContextMenu(hwnd);
+                    _invoke?.Invoke(() => _showContextMenu?.Invoke());
                     handled = true;
                     break;
 
@@ -333,12 +460,13 @@ public static class TrayService
         return IntPtr.Zero;
     }
 
-    private static void ShowLuxuryContextMenu(IntPtr hWnd)
+    private static void ShowLuxuryContextMenu()
     {
         if (_mainWindow == null) return;
 
         _mainWindow.Dispatcher.Invoke(() =>
         {
+            IntPtr hWnd = _trayHwnd;
             var menu = new ContextMenu
             {
                 Style = Application.Current.TryFindResource("LuxuryTrayContextMenu") as Style,
@@ -645,8 +773,8 @@ public static class TrayService
 
     public static void MinimizeToTray()
     {
-        if (_mainWindow == null) return;
-        _mainWindow.Hide();
+        if (_hideWindow == null) return;
+        _hideWindow();
         if (SettingsService.Current.AutoCleanNotify)
         {
             ShowNotification("Deltempo Running in Background", "Standing guard to protect your disk space and memory. Click tray icon to restore.");
@@ -654,6 +782,9 @@ public static class TrayService
     }
 
     public static void RestoreMainWindow()
+        => _restoreWindow?.Invoke();
+
+    private static void RestoreWpfWindow()
     {
         if (_mainWindow == null) return;
         _mainWindow.Dispatcher.Invoke(() =>
@@ -672,9 +803,8 @@ public static class TrayService
 
     public static void ShowNotification(string title, string message)
     {
-        if (!_isInitialized || _mainWindow == null) return;
-        var helper = new WindowInteropHelper(_mainWindow);
-        var nid = CreateNotifyData(helper.Handle);
+        if (!_isInitialized || _trayHwnd == IntPtr.Zero) return;
+        var nid = CreateNotifyData(_trayHwnd);
         nid.uFlags = NIF_INFO | NIF_ICON;
         nid.szInfoTitle = title.Length > 63 ? title[..63] : title;
         nid.szInfo = message.Length > 255 ? message[..255] : message;
@@ -706,9 +836,8 @@ public static class TrayService
     public static void Dispose()
     {
         IsVisible = false;
-        if (!_isInitialized || _mainWindow == null) return;
-        var helper = new WindowInteropHelper(_mainWindow);
-        var nid = CreateNotifyData(helper.Handle);
+        if (!_isInitialized || _trayHwnd == IntPtr.Zero) return;
+        var nid = CreateNotifyData(_trayHwnd);
         Shell_NotifyIconW(NIM_DELETE, ref nid);
         if (_hIcon != IntPtr.Zero)
         {

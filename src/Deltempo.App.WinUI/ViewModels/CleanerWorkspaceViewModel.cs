@@ -161,6 +161,12 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
                 ? "Scan completed. No reclaimable space found."
                 : $"Scan completed. Ready to clean. {Targets.Count(t => t.SizeBytes > 0)} categories with reclaimable space.";
             LogRequested?.Invoke("[Cleaner] Scan finished", WinTempCleaner.Models.LogLevel.Info);
+
+            // WPF re-checked the free-space threshold every time its dashboard refreshed.
+            // The WinUI shell has no dashboard card, so the scan that produces the numbers
+            // is also the moment to warn. Read-only: TrayService only raises a balloon, and
+            // CheckLowDiskSpaceAndNotify self-guards on the Settings toggle and a 2h cooldown.
+            TrayService.CheckLowDiskSpaceAndNotify(DriveTelemetryService.GetSystemDriveTelemetry());
         }
         catch (OperationCanceledException)
         {
