@@ -79,6 +79,14 @@ repository:
 #   remote: - Required status check "Build, Test & Quality Gate" is expected.
 # The rule existed and was enforceable for everyone except the administrator.
 #
+# After applying it, the same shape of push is refused instead - this is the
+# before/after that matters, not the setting itself:
+#   remote: error: GH006: Protected branch update failed for refs/heads/main.
+#   remote: - Required status check "Build, Test & Quality Gate" is expected.
+#    ! [remote rejected] HEAD -> main (protected branch hook declined)
+# That rejection was produced by an empty commit with no check status, pushed by
+# the repository owner. Enforcement now applies to the account that can change it.
+#
 # Consequence, deliberately accepted: the maintainer can no longer push an untested
 # commit straight to main. Status checks are recorded per commit SHA, so the
 # workflow becomes: push a branch, let CI run on it, then merge the PR - or push
