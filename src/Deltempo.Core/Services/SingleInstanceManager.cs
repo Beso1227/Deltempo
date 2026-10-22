@@ -28,7 +28,15 @@ public static class SingleInstanceManager
     private const int SW_RESTORE = 9;
     private static Mutex? _mutex;
 
-    public static bool TryAcquire()
+    /// <summary>
+    /// Acquires the single-instance mutex.
+    ///
+    /// <paramref name="mutexName"/> exists so a second shell (the WinUI preview) can
+    /// own its own instance instead of colliding with the shipped WPF app: two
+    /// different products sharing one mutex would refuse to run side by side. The
+    /// shipped app keeps the default name, so its behaviour is unchanged.
+    /// </summary>
+    public static bool TryAcquire(string? mutexName = null)
     {
         // Single authority: the named mutex. No process killing.
         //
@@ -42,7 +50,7 @@ public static class SingleInstanceManager
         // destroyed when its owning process dies, so acquisition succeeds.
         try
         {
-            _mutex = new Mutex(true, MutexName, out bool createdNew);
+            _mutex = new Mutex(true, mutexName ?? MutexName, out bool createdNew);
             return createdNew;
         }
         catch (Exception ex)
@@ -52,7 +60,7 @@ public static class SingleInstanceManager
         }
     }
 
-    public static void NotifyExistingInstance()
+    public static void NotifyExistingInstance(params string[] processNames)
     {
         try
         {
@@ -63,8 +71,10 @@ public static class SingleInstanceManager
             }
 
             int currentPid = Process.GetCurrentProcess().Id;
-            var processes = Process.GetProcessesByName("Deltempo")
-                .Concat(Process.GetProcessesByName("WinTempCleaner"));
+            string[] names = processNames.Length > 0
+                ? processNames
+                : ["Deltempo", "WinTempCleaner"];
+            var processes = names.SelectMany(Process.GetProcessesByName);
 
             foreach (var p in processes)
             {

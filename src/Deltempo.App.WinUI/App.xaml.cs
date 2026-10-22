@@ -5,6 +5,12 @@ namespace Deltempo.App.WinUI;
 
 public partial class App : Application
 {
+    /// <summary>
+    /// Preview-only mutex. Deliberately distinct from the shipped app's
+    /// "Global\Deltempo_App_SingleInstance_Mutex_v2" so both can run at once.
+    /// </summary>
+    private const string SingleInstanceMutexName = "Global\\Deltempo_WinUI_Preview_SingleInstance_Mutex_v1";
+
     private Window? _window;
 
     public App()
@@ -27,6 +33,17 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        // Same contract as the shipped app: one instance owns the machine, a second
+        // launch surfaces the first instead of opening a twin window. The preview
+        // uses its own mutex name so it can run beside the WPF app while both are
+        // installed.
+        if (!WinTempCleaner.Services.SingleInstanceManager.TryAcquire(SingleInstanceMutexName))
+        {
+            WinTempCleaner.Services.SingleInstanceManager.NotifyExistingInstance("Deltempo.WinUI");
+            Exit();
+            return;
+        }
+
         // Shared services (CleanerService, LargeFileHunterService) raise
         // INotifyPropertyChanged from worker threads and used to marshal through the WPF
         // dispatcher, which does not exist here. Without this the notification crosses
@@ -67,6 +84,7 @@ public partial class App : Application
         }
 
         _window = new MainWindow();
+        _window.Closed += (_, _) => WinTempCleaner.Services.SingleInstanceManager.Release();
         _window.Activate();
     }
 }
