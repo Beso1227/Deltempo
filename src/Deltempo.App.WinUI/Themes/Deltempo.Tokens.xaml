@@ -122,6 +122,102 @@
         <Setter Property="Background" Value="{ThemeResource HairlineStrongBrush}" />
     </Style>
 
+    <!--
+        One rail item, used by both the tool list and the preference list.
+
+        Two things here are the whole point:
+
+        - BrushTransition. The stock ListViewItemPresenter swaps its background
+          brush between states, so hover and selection arrive as a flicker. A
+          brush transition interpolates the brush over 170ms instead, which is
+          the same beat a WinUI NavigationViewItem uses.
+
+        - The surface is inset 6 DIP from the pane edge. That gutter is where the
+          selection pill sits, so the pill reads as belonging to the pane rather
+          than to the row, and the row's fill never paints over it.
+    -->
+    <Style x:Key="RailItemStyle" TargetType="ListViewItem">
+        <Setter Property="MinHeight" Value="46" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0,1" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListViewItem">
+                    <!-- 40 is the tap target's visible surface, not the row: the row is
+                         the full 46-DIP height and the full rail width, so the pointer
+                         target stays generous while the tile reads as an icon button.
+                         The 12-DIP left inset centres the tile on the 64-DIP rail
+                         (12 + 40/2 = 32), and it is pinned rather than centred in the
+                         item because the item stretches wider than the rail. -->
+                    <Grid x:Name="RailItemRoot"
+                          Width="40"
+                          Height="40"
+                          HorizontalAlignment="Left"
+                          Background="Transparent"
+                          CornerRadius="11"
+                          Margin="12,0">
+                        <Grid.BackgroundTransition>
+                            <BrushTransition Duration="0:0:0.17" />
+                        </Grid.BackgroundTransition>
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="RailItemRoot.Background"
+                                                Value="{ThemeResource SurfaceCardHoverBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="RailItemRoot.Background"
+                                                Value="{ThemeResource SurfaceCardSelectedBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Target="RailItemRoot.Background"
+                                                Value="{ThemeResource SurfaceCardSelectedBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="SelectedPointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="RailItemRoot.Background"
+                                                Value="{ThemeResource SurfaceSubCardBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="SelectedPressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="RailItemRoot.Background"
+                                                Value="{ThemeResource SurfaceSubCardBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <!-- The icon is centred in the row, not stretched: the strip is
+                             icon-only, so the glyph has to sit on the pane's optical
+                             centre rather than drift with content width. -->
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalAlignment="Stretch"
+                                          HorizontalContentAlignment="Center"
+                                          VerticalContentAlignment="Center" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="CommandBarButton" TargetType="Button">
         <Setter Property="Background" Value="{ThemeResource PillButtonBgBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource PillButtonBorderBrush}" />

@@ -108,6 +108,70 @@ internal static class ShellMotion
     }
 
     /// <summary>
+    /// Carries an element along Y with the shell's ease-out. Only the end keyframe is
+    /// inserted, so composition interpolates from whatever value the element is showing
+    /// at that instant: a second navigation landing mid-flight retargets the bar
+    /// instead of flashing it back to the row it was leaving.
+    /// </summary>
+    public static void SlideTo(UIElement element, float y, double milliseconds = 280)
+    {
+        if (element is null)
+        {
+            return;
+        }
+
+        var visual = ElementCompositionPreview.GetElementVisual(element);
+
+        if (!MotionEnabled)
+        {
+            visual.Offset = new Vector3(visual.Offset.X, y, visual.Offset.Z);
+            return;
+        }
+
+        var animation = visual.Compositor.CreateScalarKeyFrameAnimation();
+        animation.Duration = TimeSpan.FromMilliseconds(milliseconds);
+        animation.InsertKeyFrame(1f, y, EaseOut(visual.Compositor));
+        visual.StartAnimation("Offset.Y", animation);
+    }
+
+    /// <summary>
+    /// Nudges an element's scale around its own centre. Used for the rail's glyphs:
+    /// a six percent lift says "the pointer is on this row" without the row itself
+    /// shifting, which is what makes a rail feel stiff rather than responsive.
+    /// </summary>
+    public static void ScaleTo(UIElement element, float scale, double milliseconds = 140)
+    {
+        if (element is null)
+        {
+            return;
+        }
+
+        var visual = ElementCompositionPreview.GetElementVisual(element);
+
+        // Scale happens around the visual's centre point, and layout only reports a
+        // size once the element has been measured. Until then the glyph would grow
+        // out of its top-left corner, so the lift waits for a size.
+        Vector2 size = element.ActualSize;
+        if (size.X > 0f && size.Y > 0f)
+        {
+            visual.CenterPoint = new Vector3(size.X / 2f, size.Y / 2f, 0f);
+        }
+
+        var target = new Vector3(scale, scale, 1f);
+
+        if (!MotionEnabled)
+        {
+            visual.Scale = target;
+            return;
+        }
+
+        var animation = visual.Compositor.CreateVector3KeyFrameAnimation();
+        animation.Duration = TimeSpan.FromMilliseconds(milliseconds);
+        animation.InsertKeyFrame(1f, target, EaseOut(visual.Compositor));
+        visual.StartAnimation("Scale", animation);
+    }
+
+    /// <summary>
     /// Exit pair for <see cref="Enter"/>: fade out over a shorter beat, then hand back
     /// to the caller to collapse the element. The callback runs on the element's own
     /// dispatcher queue, so it is safe to touch UI from it.
