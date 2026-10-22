@@ -70,11 +70,11 @@ public sealed partial class CleanerWorkspaceView : UserControl
     {
         if (sender is RadioButton { Tag: string tag })
         {
-            ViewModel.Log($"filter -> {tag}");
-            // Category filtering is applied in CleaningPipelineViewModel.MatchesFilter
-            // (unit-tested). This port reflects chip state visually; server-side
-            // filtering of the target list can be added when the filter chips
-            // are wired to ItemsSource filtering.
+            // The filter is applied by the ViewModel through the shared
+            // CleaningPipelineViewModel.MatchesFilter predicate, so the chip and the
+            // list cannot disagree.
+            ViewModel.FilterTag = tag;
+            SoundService.PlayClickSound();
         }
     }
 

@@ -212,12 +212,16 @@
         <!-- Filter chips + view mode -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0,12,0,10" VerticalAlignment="Center">
             <TextBlock Text="Scope:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
-            <RadioButton GroupName="LargeFileScope" Content="All Drives" Style="{StaticResource LargeFileChip}" Tag="ALL" Checked="OnScopeChanged" />
-            <RadioButton GroupName="LargeFileScope" Content="User Profile" Style="{StaticResource LargeFileChip}" Tag="USER" Checked="OnScopeChanged" />
+            <!-- Filled at load: All Drives, then one chip per drive, then User Profile.
+                 A fixed pair of chips could not express "scan only D:". -->
+            <StackPanel x:Name="ScopeChips" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" />
 
             <TextBlock Text="Min size:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,6,0" />
-            <RadioButton GroupName="LargeFileSize" Content="50 MB" Style="{StaticResource LargeFileChip}" Tag="50MB" IsChecked="True" Checked="OnSizeChanged" />
-            <RadioButton GroupName="LargeFileSize" Content="100 MB" Style="{StaticResource LargeFileChip}" Tag="100MB" Checked="OnSizeChanged" />
+            <RadioButton GroupName="LargeFileSize" Content="50 MB" Style="{StaticResource LargeFileChip}" Tag="52428800" IsChecked="True" Checked="OnSizeChanged" />
+            <RadioButton GroupName="LargeFileSize" Content="100 MB" Style="{StaticResource LargeFileChip}" Tag="104857600" Checked="OnSizeChanged" />
+            <RadioButton GroupName="LargeFileSize" Content="500 MB" Style="{StaticResource LargeFileChip}" Tag="524288000" Checked="OnSizeChanged" />
+            <RadioButton GroupName="LargeFileSize" Content="1 GB" Style="{StaticResource LargeFileChip}" Tag="1073741824" Checked="OnSizeChanged" />
+            <RadioButton GroupName="LargeFileSize" Content="5 GB" Style="{StaticResource LargeFileChip}" Tag="5368709120" Checked="OnSizeChanged" />
 
             <TextBlock Text="View:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,6,0" />
             <RadioButton GroupName="LargeFileView" Content="List" Style="{StaticResource LargeFileChip}" Tag="LIST" IsChecked="True" Checked="OnViewModeChanged" />

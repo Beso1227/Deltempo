@@ -56,6 +56,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     internal void LoadFrom(IReadOnlyList<TargetFolderInfo> targets)
     {
         _allTargets = [.. targets];
+        TrackSelection(targets);
         ApplyTargets();
     }
     private bool _isBusy;
@@ -108,6 +109,18 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsLoading { get; set; }
 
+    /// <summary>Category chip selection: ALL, SAFE, SYSTEM, GAMING, MEDIA, DEV or RULEPACK.</summary>
+    [ObservableProperty]
+    public partial string FilterTag { get; set; } = "ALL";
+
+    /// <summary>Free-text filter over target name, category and scope path.</summary>
+    [ObservableProperty]
+    public partial string SearchText { get; set; } = string.Empty;
+
+    partial void OnFilterTagChanged(string value) => ApplyTargets();
+
+    partial void OnSearchTextChanged(string value) => ApplyTargets();
+
     public int SelectedCount => Targets.Count(t => t.IsSelected);
     public long SelectedBytes => Targets.Where(t => t.IsSelected).Sum(t => t.SizeBytes);
 
@@ -133,6 +146,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
             var targets = CleanerService.GetDefaultTargets();
 
             _allTargets = targets;
+            TrackSelection(targets);
             ApplyTargets();
 
             foreach (var target in targets)
@@ -173,9 +187,38 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         Targets.Clear();
         foreach (var t in _allTargets)
         {
-            Targets.Add(t);
+            // One shared predicate: CleaningPipelineViewModel.MatchesFilter is the
+            // same code the WPF cleaner filters through, so the chips cannot drift.
+            if (CleaningPipelineViewModel.MatchesFilter(t, FilterTag, SearchText))
+            {
+                Targets.Add(t);
+            }
         }
         RecalculateTotals();
+    }
+
+    /// <summary>
+    /// Recomputes the selection summary whenever a row checkbox flips.
+    ///
+    /// The chip commands recompute themselves, but a user ticking one target directly
+    /// in the list is the common case and used to leave the hero and the Clean button
+    /// showing the pre-click total.
+    /// </summary>
+    private void TrackSelection(IEnumerable<TargetFolderInfo> targets)
+    {
+        foreach (var t in targets)
+        {
+            t.PropertyChanged -= OnTargetPropertyChanged;
+            t.PropertyChanged += OnTargetPropertyChanged;
+        }
+    }
+
+    private void OnTargetPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(TargetFolderInfo.IsSelected))
+        {
+            RecalculateTotals();
+        }
     }
 
     private void RecalculateTotals()
@@ -234,7 +277,11 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
             if (!relaunch) return;
 
             LogRequested?.Invoke("[Cleaner] Relaunch as admin requested", WinTempCleaner.Models.LogLevel.Info);
-            return; // WinUI 3 has no ElevationService.RestartAsAdmin; shell would handle this
+
+            // Same call the WPF cleaner made. It starts an elevated copy and exits this
+            // process, which also releases the single-instance mutex the new copy needs.
+            WinTempCleaner.Services.ElevationService.RestartAsAdmin();
+            return;
         }
 
         bool safeMode = false; // UI preference, kept false for the port

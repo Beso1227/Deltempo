@@ -147,6 +147,16 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
     [ObservableProperty]
     public partial LargeFileViewMode ActiveViewMode { get; set; } = LargeFileViewMode.List;
 
+    /// <summary>
+    /// Scan scope as the chip tags express it: "ALL", "USER", or a drive root such as
+    /// "C:\". The chips write it and ScanAsync reads it, so the visible scope is the
+    /// scope that was actually scanned.
+    /// </summary>
+    public string ScanScope { get; set; } = "ALL";
+
+    /// <summary>Minimum file size in bytes, chosen by the min-size chips.</summary>
+    public long MinSizeBytes { get; set; } = 50L * 1024 * 1024;
+
     public int SelectedCount => Items.Count(f => f.IsSelected);
     public long SelectedBytes => Items.Where(f => f.IsSelected).Sum(f => f.SizeBytes);
 
@@ -173,8 +183,8 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
         {
             // Read-only discovery. No deletion, no network, no registry writes.
             var result = await LargeFileHunterService.ScanLargeFilesAsync(
-                minSizeBytes: 50L * 1024 * 1024,
-                targetScope: "ALL",
+                minSizeBytes: MinSizeBytes,
+                targetScope: ScanScope,
                 maxResults: 250);
 
             _allFiles = result.Files;

@@ -31,6 +31,9 @@ public sealed partial class LargeFilesWorkspaceView : UserControl
             openFolder: OpenInFolder);
         InitializeComponent();
 
+        // Scope chips are data-driven: a fixed pair could not scan one drive.
+        PopulateScopeChips();
+
         // Toggle list/treemap visibility when the view mode changes.
         ViewModel.PropertyChanged += (_, e) =>
         {
@@ -182,21 +185,50 @@ public sealed partial class LargeFilesWorkspaceView : UserControl
     {
         if (sender is RadioButton { Tag: string tag })
         {
-            ViewModel.Log($"scope filter -> {tag}");
-            // Re-scan applied by the scan command; filter stored on ViewModel via tag is not
-            // wired to ScanAsync parameters in this port - ScanAsync scans ALL drives at
-            // 50 MB minimum. Chip state is reflected visually only.
+            ViewModel.ScanScope = tag;
+            SoundService.PlayClickSound();
             _ = ViewModel.ScanAsync();
         }
     }
 
     private void OnSizeChanged(object sender, RoutedEventArgs e)
     {
-        if (sender is RadioButton { Tag: string tag })
+        if (sender is RadioButton { Tag: string tag } && long.TryParse(tag, out long bytes) && bytes > 0)
         {
-            ViewModel.Log($"size filter -> {tag}");
+            ViewModel.MinSizeBytes = bytes;
+            SoundService.PlayClickSound();
             _ = ViewModel.ScanAsync();
         }
+    }
+
+    /// <summary>
+    /// Builds the scope chips in the same order as the WPF combo: All Drives, then one
+    /// chip per drive reported by the shared hunter, then User Profile &amp; OneDrive.
+    /// </summary>
+    private void PopulateScopeChips()
+    {
+        if (ScopeChips.Children.Count > 0) return;
+
+        AddScopeChip("All Drives", "ALL", isChecked: true);
+        foreach (string drive in LargeFileHunterService.GetAvailableDrives())
+        {
+            AddScopeChip($"Drive {drive}", drive);
+        }
+        AddScopeChip("User Profile", "USER");
+    }
+
+    private void AddScopeChip(string label, string tag, bool isChecked = false)
+    {
+        var chip = new RadioButton
+        {
+            Content = label,
+            Tag = tag,
+            GroupName = "LargeFileScope",
+            Style = (Style)Resources["LargeFileChip"],
+            IsChecked = isChecked,
+        };
+        chip.Checked += OnScopeChanged;
+        ScopeChips.Children.Add(chip);
     }
 
     private void OnViewModeChanged(object sender, RoutedEventArgs e)

@@ -208,16 +208,44 @@
         </Grid>
 
         <!-- Filter + selection chips -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0,12,0,10" VerticalAlignment="Center">
-            <TextBlock Text="Selection:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
-            <RadioButton GroupName="CleanerScope" Content="Safe Only" Style="{StaticResource CleanerChip}" Tag="SAFE" Checked="OnSafeOnly" />
-            <RadioButton GroupName="CleanerScope" Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" IsChecked="True" Checked="OnSelectAll" />
-            <RadioButton GroupName="CleanerScope" Content="None" Style="{StaticResource CleanerChip}" Tag="NONE" Checked="OnDeselectAll" />
+        <StackPanel Grid.Row="1" Spacing="8" Margin="0,12,0,10">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <TextBlock Text="Selection:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <RadioButton GroupName="CleanerScope" Content="Safe Only" Style="{StaticResource CleanerChip}" Tag="SAFE" Checked="OnSafeOnly" />
+                <RadioButton GroupName="CleanerScope" Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" IsChecked="True" Checked="OnSelectAll" />
+                <RadioButton GroupName="CleanerScope" Content="None" Style="{StaticResource CleanerChip}" Tag="NONE" Checked="OnDeselectAll" />
 
-            <TextBlock Text="Filter:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,6,0" />
-            <RadioButton GroupName="CleanerFilter" Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" IsChecked="True" Checked="OnFilterChanged" />
-            <RadioButton GroupName="CleanerFilter" Content="Safe Mode" Style="{StaticResource CleanerChip}" Tag="SAFE" Checked="OnFilterChanged" />
-            <RadioButton GroupName="CleanerFilter" Content="System" Style="{StaticResource CleanerChip}" Tag="SYSTEM" Checked="OnFilterChanged" />
+                <Grid Width="240" Margin="16,0,0,0">
+                    <TextBox PlaceholderText="Search targets..."
+                             Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             FontSize="11.5"
+                             Padding="26,5,8,5"
+                             CornerRadius="14"
+                             Background="{ThemeResource SurfaceCardBrush}"
+                             BorderBrush="{ThemeResource HairlineBorderBrush}"
+                             BorderThickness="1"
+                             Foreground="{ThemeResource TextHighBrush}" />
+                    <FontIcon Glyph="&#xE721;"
+                              FontFamily="{StaticResource IconFont}"
+                              FontSize="11"
+                              Foreground="{ThemeResource TextMutedBrush}"
+                              HorizontalAlignment="Left"
+                              VerticalAlignment="Center"
+                              Margin="8,0,0,0"
+                              IsHitTestVisible="False" />
+                </Grid>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <TextBlock Text="Filter:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <RadioButton GroupName="CleanerFilter" Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" IsChecked="True" Checked="OnFilterChanged" />
+                <RadioButton GroupName="CleanerFilter" Content="Safe Mode" Style="{StaticResource CleanerChip}" Tag="SAFE" Checked="OnFilterChanged" />
+                <RadioButton GroupName="CleanerFilter" Content="System" Style="{StaticResource CleanerChip}" Tag="SYSTEM" Checked="OnFilterChanged" />
+                <RadioButton GroupName="CleanerFilter" Content="Gaming" Style="{StaticResource CleanerChip}" Tag="GAMING" Checked="OnFilterChanged" />
+                <RadioButton GroupName="CleanerFilter" Content="Media" Style="{StaticResource CleanerChip}" Tag="MEDIA" Checked="OnFilterChanged" />
+                <RadioButton GroupName="CleanerFilter" Content="Dev" Style="{StaticResource CleanerChip}" Tag="DEV" Checked="OnFilterChanged" />
+                <RadioButton GroupName="CleanerFilter" Content="Rulepacks" Style="{StaticResource CleanerChip}" Tag="RULEPACK" Checked="OnFilterChanged" />
+            </StackPanel>
         </StackPanel>
 
         <!-- Target list -->

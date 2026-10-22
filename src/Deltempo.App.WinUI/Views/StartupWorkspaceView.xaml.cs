@@ -1,6 +1,7 @@
 using Deltempo.App.WinUI.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System.Diagnostics;
 using WinTempCleaner.Services;
 
 namespace Deltempo.App.WinUI.Views;
@@ -24,11 +25,37 @@ public sealed partial class StartupWorkspaceView : UserControl
 {
     public StartupWorkspaceView()
     {
-        ViewModel = new StartupWorkspaceViewModel(confirmAsync: AskForConfirmationAsync);
+        ViewModel = new StartupWorkspaceViewModel(
+            confirmAsync: AskForConfirmationAsync,
+            openFolder: RevealInExplorer);
         InitializeComponent();
     }
 
     public StartupWorkspaceViewModel ViewModel { get; }
+
+    /// <summary>
+    /// Explorer hand-off for the Reveal action.
+    ///
+    /// The column is shown for every entry, so an unwired host made the button a no-op.
+    /// A directory entry (the startup folder's .lnk) opens the folder; a file is
+    /// selected in its parent, which is what the WPF handler did.
+    /// </summary>
+    private void RevealInExplorer(string path)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = System.IO.Directory.Exists(path) ? $"\"{path}\"" : $"/select,\"{path}\"",
+                UseShellExecute = true,
+            });
+        }
+        catch (Exception ex)
+        {
+            ShellDiagnostics.Write($"[Startup] Reveal failed for '{path}': {ex.Message}");
+        }
+    }
 
     /// <summary>
     /// Mirrors ReloadStartupItemsAsync. Read-only: this discovers entries
