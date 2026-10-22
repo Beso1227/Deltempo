@@ -83,6 +83,12 @@ public partial class App : Application
             });
         }
 
+        // Settings the shell itself acts on at launch. Both were previously applied
+        // only when the Settings panel happened to be constructed, so a saved
+        // preference was dead until the user visited that screen.
+        WinTempCleaner.Services.SoundService.IsSoundEnabled = WinTempCleaner.Services.SettingsService.Current.SoundEnabled;
+        WinTempCleaner.Services.AutoCleanService.Start();
+
         _window = new MainWindow();
         _window.Closed += (_, _) => WinTempCleaner.Services.SingleInstanceManager.Release();
         _window.Activate();

@@ -174,7 +174,14 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
     }
 
     partial void OnSoundEnabledChanged(bool value)
-        => SettingsService.Update(s => s.SoundEnabled = value);
+    {
+        SettingsService.Update(s => s.SoundEnabled = value);
+
+        // SoundService holds the switch the click/scrape effects actually read. The
+        // WPF app pushes it on save; without this the toggle persisted a preference
+        // that no sound ever consulted.
+        SoundService.IsSoundEnabled = value;
+    }
 
     partial void OnLanguageChanged(string value)
     {
@@ -193,14 +200,12 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
 
         // The idle watcher lives in Core and is started and stopped by the same
         // service the WPF app used. Nothing here reimplements its timer.
-        if (value)
-        {
-            AutoCleanService.Start();
-        }
-        else
-        {
-            AutoCleanService.StopAutoClean();
-        }
+        //
+        // Start() re-reads every gate and stops the previous timers first, so it is
+        // also the correct call when the user switches the watcher off: the old code
+        // called StopAutoClean(), which cancels the run in flight but leaves the
+        // 60-second timer armed.
+        AutoCleanService.Start();
     }
 
     partial void OnAutoCleanIdleMinutesChanged(int value)
@@ -211,6 +216,10 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         int clamped = Math.Clamp(value, 1, 600);
         SettingsService.Update(s => s.AutoCleanIdleMinutes = clamped);
         OnPropertyChanged(nameof(AutoCleanIdleMinutesValue));
+
+        // Re-arm with the new threshold. A running watcher would otherwise keep
+        // polling the old number until the process restarted.
+        AutoCleanService.Start();
     }
 
     partial void OnLowDiskAlertEnabledChanged(bool value)
