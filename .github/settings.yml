@@ -52,33 +52,46 @@ repository:
 # Branch protection configuration for main branch
 #
 # KNOWN DIVERGENCE - read before trusting this block.
-# The live repository currently has NO required_pull_request_reviews at all, and
-# CodeQL is NOT among the required status checks. The intent recorded here has not
-# been applied, which has two consequences worth stating plainly:
+#
+# Two declarations are still NOT applied live:
 #
 #   1. Nobody is required to review any PR. CODEOWNERS is INERT - it only has effect
 #      when branch protection requires a code-owner review. It is currently advisory.
 #   2. "CodeQL" is not a required check, so a PR can merge with CodeQL red.
-#   3. enforce_admins is FALSE, which means the required status check does not
-#      apply to administrators. This is the one divergence that has ALLOWED a
-#      broken main: on 2026-10-17 PR #19 (11,381 additions across 73 files)
-#      merged with "Build, Test & Quality Gate" RED, and the push that landed it
-#      was also red - run 39035500169 on 30a77aa. The check did its job; it was
-#      simply not applied to the account that pushed. Setting it to true makes
-#      the gate real for everyone, and the cost is that the single maintainer
-#      can no longer push directly to main - which is the intended trade.
 #
-# This is left declared-but-unapplied deliberately rather than silently deleted,
-# because the gap is the thing that needs fixing, not forgetting.
+# Both are listed in known_divergences below, so the verifier reports them as
+# recorded gaps instead of failing on them. Applying the review requirement is not
+# currently possible in practice either: this project has exactly one maintainer and
+# GitHub does not let you approve your own PR, so require_code_owner_reviews would
+# block the maintainer from merging. The realistic options are to require the CodeQL
+# status check only, or to find a second maintainer. Do not flip the review block on
+# without deciding that.
 #
-# Applying the review requirement as written is NOT currently possible in practice:
-# this project has exactly one maintainer, and GitHub does not let you approve your
-# own PR. Turning on require_code_owner_reviews would block the maintainer from
-# merging. The realistic options are to require the CodeQL status check only, or to
-# find a second maintainer. Do not flip the review block on without deciding that.
+# CLOSED on 2026-10-22: enforce_admins.
+# It was FALSE, which is what ALLOWED a broken main: on 2026-10-17 PR #19 (11,381
+# additions across 73 files) merged with "Build, Test & Quality Gate" RED, and the
+# push that landed it was also red - run 39035500169 on 30a77aa. The check did its
+# job; it was simply not applied to the account that pushed.
 #
-# Verify live state with:
+# Evidence that this was the actual hole, from pushing 7ea0461 to main while the
+# setting was still false:
+#   remote: Bypassed rule violations for refs/heads/main:
+#   remote: - Required status check "Build, Test & Quality Gate" is expected.
+# The rule existed and was enforceable for everyone except the administrator.
+#
+# Consequence, deliberately accepted: the maintainer can no longer push an untested
+# commit straight to main. Status checks are recorded per commit SHA, so the
+# workflow becomes: push a branch, let CI run on it, then merge the PR - or push
+# that already-green SHA.
+#
+# Not everything here is verifiable from CI, and the verifier says so instead of
+# guessing. The workflow token has no Administration scope on github.com, so the
+# Apply Repository Settings job cannot read branch protection at all, and GitHub
+# omits the merge/squash settings from the repository payload it can read. Those
+# fields are reported as NOT VERIFIED rather than compared against a live state
+# nobody observed. Check them by hand after changing this block:
 #   gh api repos/Beso1227/Deltempo/branches/main/protection
+#   gh api repos/Beso1227/Deltempo --jq '{allow_squash_merge,allow_merge_commit,allow_rebase_merge,delete_branch_on_merge,squash_merge_commit_title,squash_merge_commit_message}'
 branches:
   - name: main
     protection:
@@ -91,7 +104,7 @@ branches:
         contexts:
           - "Build, Test & Quality Gate"
           - "CodeQL"
-      enforce_admins: false
+      enforce_admins: true
       allow_force_pushes: false
       allow_deletions: false
 

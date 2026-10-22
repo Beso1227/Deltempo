@@ -399,21 +399,14 @@ public sealed partial class SystemRepairViewModel : ObservableObject
             OnPropertyChanged(nameof(TerminalText));
         }
 
-        var dispatcher = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
-        if (dispatcher is null)
-        {
-            Append();
-            return;
-        }
-
-        if (dispatcher.HasThreadAccess)
-        {
-            Append();
-        }
-        else
-        {
-            dispatcher.TryEnqueue(() => Append());
-        }
+        // Marshalled through the shared UiDispatcher abstraction rather than
+        // DispatcherQueue directly, for two reasons. The host installs a
+        // DispatcherQueue-backed marshaler at startup, so the UI-thread guarantee
+        // is unchanged; and the abstraction runs the callback synchronously
+        // instead of fire-and-forget, which is what Core/Services/UiDispatcher.cs
+        // asks for - the caller reads the value back immediately afterwards, so
+        // queueing the work and returning would race it.
+        UiDispatcher.Invoke(Append);
     }
 
     /// <summary>Single funnel for log lines raised outside this class.</summary>
@@ -613,15 +606,7 @@ public sealed partial class SystemRepairViewModel : ObservableObject
             OnPropertyChanged(nameof(ProgressPercent));
         }
 
-        var dispatcher = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
-        if (dispatcher is null || dispatcher.HasThreadAccess)
-        {
-            Apply();
-        }
-        else
-        {
-            dispatcher.TryEnqueue(() => Apply());
-        }
+        UiDispatcher.Invoke(Apply);
     }
 
     // ---- Tool bodies. Named so the command wiring above reads as a list. ----
@@ -664,15 +649,7 @@ public sealed partial class SystemRepairViewModel : ObservableObject
                 IsVerdictVisible = true;
             }
 
-            var dispatcher = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
-            if (dispatcher is null || dispatcher.HasThreadAccess)
-            {
-                Apply();
-            }
-            else
-            {
-                dispatcher.TryEnqueue(() => Apply());
-            }
+            UiDispatcher.Invoke(Apply);
         }
 
         return result;

@@ -50,6 +50,15 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Deltempo.Core\Deltempo.Core.csproj" />
+    <!-- The ViewModels are compiled by Deltempo.App.WinUI.ViewModels so that the
+         test project can reference the SAME compilation the app ships. They are
+         excluded here to avoid compiling them twice. -->
+    <ProjectReference Include="..\Deltempo.App.WinUI.ViewModels\Deltempo.App.WinUI.ViewModels.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="ViewModels\**" />
+    <None Remove="ViewModels\**" />
   </ItemGroup>
 
 </Project>

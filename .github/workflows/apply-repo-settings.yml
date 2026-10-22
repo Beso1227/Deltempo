@@ -121,14 +121,22 @@ jobs:
           echo "live:  $live_desc"
           echo "want:  $want_desc"
 
-          echo "== Required status checks =="
-          gh api "repos/$REPO/branches/main/protection" --jq '.required_status_checks.contexts[]'
-
-          echo "== Required pull request reviews =="
-          reviews=$(gh api "repos/$REPO/branches/main/protection" --jq '.required_pull_request_reviews // "NONE"')
-          echo "$reviews"
-          if [ "$reviews" = "NONE" ]; then
-            echo "::warning::main has no required pull-request review. CODEOWNERS is inert - see the note in .github/settings.yml."
+          # GITHUB_TOKEN has no Administration scope on github.com, so this read
+          # fails on every run. That is expected, not an error: handle it here so
+          # `set -e` does not turn it into an unexplained red job, and never print
+          # silence that reads as "there is no protection".
+          echo "== Branch protection =="
+          if protection=$(gh api "repos/$REPO/branches/main/protection" 2>/dev/null); then
+            echo "required status checks:"
+            jq -r '.required_status_checks.contexts[]?' <<< "$protection"
+            reviews=$(jq -r '.required_pull_request_reviews // "NONE"' <<< "$protection")
+            echo "required pull request reviews: $reviews"
+            echo "enforce_admins: $(jq -r '.enforce_admins.enabled' <<< "$protection")"
+            if [ "$reviews" = "NONE" ]; then
+              echo "::warning::main has no required pull-request review. CODEOWNERS is inert - see the note in .github/settings.yml."
+            fi
+          else
+            echo "::notice::Branch protection was NOT read: GITHUB_TOKEN cannot see it (it needs the Administration scope, which workflow tokens do not get on github.com). Protection fields are unverified by this run; check them by hand - see the note in .github/settings.yml."
           fi
 
           echo "== Labels =="
@@ -145,7 +153,15 @@ jobs:
           set -euo pipefail
 
           gh api "repos/$REPO" > live-repo.json
-          gh api "repos/$REPO/branches/main/protection" > live-protection.json 2>/dev/null || echo '{}' > live-protection.json
+          # Write `null` when the protection read fails, never `{}`. An empty object
+          # is indistinguishable from "this repository has no protection at all",
+          # and comparing the declaration against that fabricated state is how this
+          # step reported drift that did not exist while hiding the fact that it had
+          # checked nothing. `null` reaches the verifier as "unreadable, not
+          # compared", and it says so.
+          if ! gh api "repos/$REPO/branches/main/protection" > live-protection.json 2>/dev/null; then
+            echo 'null' > live-protection.json
+          fi
           gh label list --limit 200 --json name,color,description > live-labels.json
 
           python3 scripts/verify_settings.py

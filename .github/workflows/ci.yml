@@ -261,7 +261,7 @@ jobs:
           }
           Write-Host "Test suite completed successfully."
 
-      - name: Enforce Core Coverage Threshold
+      - name: Enforce Coverage Thresholds
         shell: pwsh
         run: |
           $reports = Get-ChildItem -Path "tests/Deltempo.Tests/TestResults" -Recurse -Filter "*.cobertura.xml" |
@@ -272,10 +272,6 @@ jobs:
           }
           $coverage = $reports | Select-Object -First 1
 
-          # Gate Core/ only, as intended: the safety, cleaning, update and scanning
-          # pipelines. The WPF UI head is excluded because a headless CI run cannot
-          # exercise views, and dragging it in would make the number meaningless.
-          #
           # XPath rather than [xml] property access: the report repeats <class> nodes many
           # times and PowerShell silently collapses them into a single node, which yields a
           # bogus 0% (measured - see docs/TESTING.md).
@@ -283,35 +279,63 @@ jobs:
           $nav = $x.CreateNavigator()
           $classes = $nav.Select('//class')
 
-          $totalLines = 0
-          $coveredLines = 0
-          foreach ($class in $classes) {
-            $name = $class.GetAttribute('name', '')
-            if ($name -notlike 'WinTempCleaner.Core*') { continue }
-            foreach ($line in $class.Select('./lines/line')) {
-              $totalLines++
-              if ([int]$line.GetAttribute('hits', '') -gt 0) { $coveredLines++ }
+          # Two scopes, two thresholds, one implementation.
+          #
+          # Core/ is the safety, cleaning, update and scanning pipelines. The WPF UI
+          # head is excluded because a headless CI run cannot exercise views, and
+          # dragging it in would make the number meaningless.
+          #
+          # Deltempo.App.WinUI.* is the WinUI 3 shell's ViewModels. Those were
+          # outside every gate until 2026-10-22: the shell's ViewModels were not
+          # compiled into the test project at all, so thousands of lines of the
+          # shipping UI had no tests and no coverage measurement. They now live in
+          # their own assembly (Deltempo.App.WinUI.ViewModels) so the coverage
+          # collector can SEE them. Linking them into the test project instead would
+          # have executed them while excluding them from the report, because the
+          # collector excludes the test assembly - tested but unmeasured.
+          #
+          # The WinUI threshold is a FLOOR, not a target: it sits below the measured
+          # value with headroom, so that deleting a test file is caught while
+          # ordinary churn is not. Raise it as more seams appear.
+          $scopes = @(
+            @{ Name = 'Core/';       Pattern = 'WinTempCleaner.Core*'; Threshold = 0.65 },
+            @{ Name = 'WinUI shell'; Pattern = 'Deltempo.App.WinUI*'; Threshold = 0.25 }
+          )
+
+          $failed = $false
+          foreach ($scope in $scopes) {
+            $totalLines = 0
+            $coveredLines = 0
+            foreach ($class in $classes) {
+              $name = $class.GetAttribute('name', '')
+              if ($name -notlike $scope.Pattern) { continue }
+              foreach ($line in $class.Select('./lines/line')) {
+                $totalLines++
+                if ([int]$line.GetAttribute('hits', '') -gt 0) { $coveredLines++ }
+              }
+            }
+
+            if ($totalLines -eq 0) {
+              Write-Error ("::error::Coverage report contained no {0} classes ({1}) - the gate cannot be evaluated." -f $scope.Name, $scope.Pattern)
+              $failed = $true
+              continue
+            }
+
+            $lineRate = $coveredLines / $totalLines
+            Write-Host ("{0,-12} line coverage: {1:P2} ({2}/{3}) - enforced threshold {4:P0}" -f $scope.Name, $lineRate, $coveredLines, $totalLines, $scope.Threshold)
+
+            if ($lineRate -lt $scope.Threshold) {
+              Write-Error ("::error::{0} line coverage {1:P2} is below the enforced threshold {2:P0}." -f $scope.Name, $lineRate, $scope.Threshold)
+              $failed = $true
             }
           }
 
-          if ($totalLines -eq 0) {
-            Write-Error "::error::Coverage report contained no WinTempCleaner.Core* classes - the gate cannot be evaluated."
-            exit 1
-          }
-
-          $lineRate = $coveredLines / $totalLines
-          $threshold = 0.65
-
           # Overall figure is printed for trend visibility but is NOT gated.
           $overall = [double]$nav.SelectSingleNode('/coverage').GetAttribute('line-rate', '')
-          Write-Host ("Core/ line coverage:      {0:P2} ({1}/{2}) - enforced threshold {3:P0}" -f $lineRate, $coveredLines, $totalLines, $threshold)
           Write-Host ("Whole-solution coverage:  {0:P2} (informational)" -f $overall)
 
-          if ($lineRate -lt $threshold) {
-            Write-Error ("::error::Core/ line coverage {0:P2} is below the enforced threshold {1:P0}." -f $lineRate, $threshold)
-            exit 1
-          }
-          Write-Host "Core/ coverage gate passed."
+          if ($failed) { exit 1 }
+          Write-Host "Coverage gates passed."
 
       - name: Generate Software Bill of Materials (SBOM) Package Inventory
         shell: pwsh

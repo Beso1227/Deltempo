@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The WinUI 3 shell's ViewModels, compiled as their own assembly.
+
+    WHY A SEPARATE ASSEMBLY
+    ========================
+    The ViewModels are deliberately framework-free: each takes its confirmation
+    host, path picker and folder opener through its constructor and DEFAULTS TO
+    REFUSING, which is what makes them testable without a UI. That made a test
+    seam possible - but the coverage collector EXCLUDES the test assembly, so
+    ViewModels that were merely linked into the test project were executed by
+    every test and never appeared in the coverage report. They would have been
+    tested and still unmeasured.
+
+    Compiling them here fixes both problems at once. The WinUI app references
+    this project, the test project references this project, and there is exactly
+    ONE compilation of the code - the code the app ships is the code the tests
+    measure, which is the only version worth measuring.
+
+    The source files stay in the WinUI app's own folder rather than moving here,
+    so the shell's layout remains readable and a ViewModel added next to them is
+    picked up by the glob below without ceremony.
+
+    This project is a plain net10.0-windows class library: no Windows App SDK,
+    no XAML compiler, no unpackaged-app runtime. That is deliberate - the
+    ViewModels must stay free of Microsoft.UI types or they could not be
+    referenced from a test host at all. SystemRepairViewModel was the last one
+    holding a direct Microsoft.UI.Dispatching reference; it now goes through the
+    shared UiDispatcher abstraction like every other service.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AssemblyName>Deltempo.WinUI.ViewModels</AssemblyName>
+    <!-- The namespace comes from the source files, not from this. It is set so
+         that anything the SDK generates lands in the shell's namespace. -->
+    <RootNamespace>Deltempo.App.WinUI</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Versions come from Directory.Packages.props (Central Package Management). -->
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Deltempo.Core\Deltempo.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Same convention as Deltempo.Core: the test assembly may see internals,
+         which is how the confirmation-text builder is asserted on. -->
+    <InternalsVisibleTo Include="Deltempo.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The ViewModels live in the shell's folder but are compiled here, so the
+         WinUI app must NOT compile them a second time. -->
+    <Compile Include="..\Deltempo.App.WinUI\ViewModels\*.cs" Link="ViewModels\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

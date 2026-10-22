@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -103,6 +104,20 @@ public sealed partial class AppUninstallViewModel : ObservableObject
 
     /// <summary>Every application found by the registry/manifest audit.</summary>
     private List<InstalledAppItem> _allApps = [];
+
+    /// <summary>
+    /// Replaces the scanned set and re-applies the active search and filter.
+    ///
+    /// The search and category filtering is pure presentation over the scanned
+    /// set, and it is the part most likely to drift from the WPF app this was
+    /// ported from. Exposing the seam lets that logic be exercised without a
+    /// registry scan of the whole machine.
+    /// </summary>
+    internal void LoadFrom(IReadOnlyList<InstalledAppItem> apps)
+    {
+        _allApps = [.. apps];
+        ApplyFilter();
+    }
 
     /// <summary>Scan result for the app whose traces are in the drawer.</summary>
     private RootScanResult? _scanResult;

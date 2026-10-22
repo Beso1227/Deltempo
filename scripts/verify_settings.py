@@ -36,6 +36,13 @@ def main():
         repo = json.load(handle)
     with open("live-protection.json", encoding="utf-8-sig") as handle:
         protection = json.load(handle)
+
+    # `null` means the live branch-protection payload could not be read. On
+    # github.com the GITHUB_TOKEN has no Administration scope, so this is what CI
+    # always gets - not an accident, and not evidence of drift. Say "unverified"
+    # rather than comparing the declaration against a state nobody observed.
+    protection_readable = protection is not None
+    protection = protection or {}
     with open("live-labels.json", encoding="utf-8-sig") as handle:
         labels = json.load(handle)
 
@@ -56,6 +63,7 @@ def main():
         else:
             failures.append("{}: declared {!r}, live {!r}".format(key, declared, actual))
 
+    unverifiable = []
     for field in (
         "description",
         "homepage",
@@ -71,19 +79,52 @@ def main():
         "squash_merge_commit_title",
         "squash_merge_commit_message",
     ):
-        if field in declared_repo:
-            compare("repository." + field, declared_repo[field], repo.get(field))
+        if field not in declared_repo:
+            continue
+        if field not in repo:
+            # GitHub omits the merge and squash settings from the repository
+            # payload when the caller lacks admin access, rather than returning
+            # false. Comparing a declared True against an absent key reports drift
+            # that does not exist, so record it as unverified instead of inventing
+            # a live value for it.
+            unverifiable.append(field)
+            continue
+        compare("repository." + field, declared_repo[field], repo.get(field))
 
     if "topics" in declared_repo:
-        compare(
-            "repository.topics",
-            sorted(declared_repo["topics"] or []),
-            sorted(repo.get("topics") or []),
+        if "topics" in repo:
+            compare(
+                "repository.topics",
+                sorted(declared_repo["topics"] or []),
+                sorted(repo.get("topics") or []),
+            )
+        else:
+            unverifiable.append("topics")
+
+    if unverifiable:
+        warnings.append(
+            "repository.{}: NOT VERIFIED - the live payload does not contain these "
+            "fields, so the declaration was not compared against anything. That is a "
+            "token-permission gap (they need admin access), not drift. Check "
+            "out-of-band: gh api repos/{}".format(
+                ", ".join(unverifiable), repo.get("full_name") or "<owner>/<repo>"
+            )
         )
 
     for branch in settings.get("branches") or []:
         name = branch.get("name", "main")
         declared_protection = branch.get("protection") or {}
+
+        if not protection_readable:
+            warnings.append(
+                "{}.protection: NOT VERIFIED - the token running this check cannot "
+                "read branch protection, so the declaration was not compared against "
+                "anything. Check it out-of-band: gh api "
+                "repos/{}/branches/{}/protection".format(
+                    name, repo.get("full_name") or "<owner>/<repo>", name
+                )
+            )
+            continue
 
         contexts = (protection.get("required_status_checks") or {}).get("contexts") or []
         compare(
@@ -149,9 +190,8 @@ def main():
         return 1
 
     print(
-        "Declaration matches the live repository ({} known divergence(s)).".format(
-            len(warnings)
-        )
+        "No undeclared drift found ({} warning(s); see above for anything this run "
+        "could not verify).".format(len(warnings))
     )
     return 0
 
