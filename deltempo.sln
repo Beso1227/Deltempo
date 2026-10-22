@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.320.0
@@ -18,6 +18,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.Core", "src\Deltempo.Core\Deltempo.Core.csproj", "{68457075-A84B-4639-B544-F993AED9AA84}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.App.WinUI", "src\Deltempo.App.WinUI\Deltempo.App.WinUI.csproj", "{DF922A2E-5E35-49AF-85B5-9810CB1572B2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deltempo.App.WinUI.ViewModels", "src\Deltempo.App.WinUI.ViewModels\Deltempo.App.WinUI.ViewModels.csproj", "{02A18C86-533D-43A8-A9DA-1FDAB7EC504A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,6 +93,18 @@ Global
 		{DF922A2E-5E35-49AF-85B5-9810CB1572B2}.Release|x64.Build.0 = Release|x64
 		{DF922A2E-5E35-49AF-85B5-9810CB1572B2}.Release|x86.ActiveCfg = Release|x64
 		{DF922A2E-5E35-49AF-85B5-9810CB1572B2}.Release|x86.Build.0 = Release|x64
+		{02A18C86-533D-43A8-A9DA-1FDAB7EC504A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02A18C86-533D-43A8-A9DA-1FDAB7EC504A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02A18C86-533D-43A8-A9DA-1FDAB7EC504A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{02A18C86-533D-43A8-A9DA-1FDAB7EC504A}.Debug|x64.Build.0 = Debug|Any CPU
+		{02A18C86-533D-43A8-A9DA-1FDAB7EC504A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{02A18C86-533D-43A8-A9DA-1FDAB7EC504A}.Debug|x86.Build.0 = Debug|Any CPU
+		{02A18C86-533D-43A8-A9DA-1FDAB7EC504A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02A18C86-533D-43A8-A9DA-1FDAB7EC504A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02A18C86-533D-43A8-A9DA-1FDAB7EC504A}.Release|x64.ActiveCfg = Release|Any CPU
+		{02A18C86-533D-43A8-A9DA-1FDAB7EC504A}.Release|x64.Build.0 = Release|Any CPU
+		{02A18C86-533D-43A8-A9DA-1FDAB7EC504A}.Release|x86.ActiveCfg = Release|Any CPU
+		{02A18C86-533D-43A8-A9DA-1FDAB7EC504A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,6 +113,7 @@ Global
 		{F307F402-C705-C9D1-6949-89182F32B747} = {342A349A-D343-8551-4064-2E2800C39E13}
 		{EEB4135B-885E-8A48-A117-D74C76298C46} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{68457075-A84B-4639-B544-F993AED9AA84} = {FBF56CC3-7AE6-AD2D-3F14-7F97FD322CD6}
+		{02A18C86-533D-43A8-A9DA-1FDAB7EC504A} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {48FE6840-7F96-4E38-9F2A-E528ACFDF891}

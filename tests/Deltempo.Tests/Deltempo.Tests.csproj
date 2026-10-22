@@ -53,6 +53,23 @@
     <Compile Include="..\..\src\Deltempo.App.Wpf\Converters\ShareWidthConverter.cs" Link="Converters\ShareWidthConverter.cs" />
     <Compile Include="..\..\src\Deltempo.App.Wpf\Converters\SubtractConverter.cs" Link="Converters\SubtractConverter.cs" />
     <Compile Include="..\..\src\Deltempo.App.Wpf\Converters\WidthConverters.cs" Link="Converters\WidthConverters.cs" />
+
+    <!-- The WinUI 3 shell's ViewModels are referenced, not linked.
+
+         They are compiled by src/Deltempo.App.WinUI.ViewModels into their own
+         assembly, which the WinUI app also references. Referencing rather than
+         linking matters for the coverage gate: the coverage collector excludes
+         the test assembly, so ViewModels linked into it would be executed by
+         every test and never reported - tested but unmeasured.
+
+         Every ViewModel is deliberately framework-free: each takes its
+         dependencies (the confirmation host, the path picker, the folder opener)
+         through its constructor and DEFAULTS TO REFUSING, which is what makes
+         them testable at all. SystemRepairViewModel was the last one holding a
+         direct Microsoft.UI.Dispatching reference; it now goes through the
+         shared UiDispatcher abstraction like every other service, which also
+         removes a fire-and-forget race the abstraction was written to avoid. -->
+    <ProjectReference Include="..\..\src\Deltempo.App.WinUI.ViewModels\Deltempo.App.WinUI.ViewModels.csproj" />
   </ItemGroup>
 
 </Project>

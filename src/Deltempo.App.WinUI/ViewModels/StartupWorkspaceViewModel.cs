@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -49,6 +50,20 @@ public sealed partial class StartupWorkspaceViewModel : ObservableObject
     private readonly Action<string>? _openFolder;
 
     private List<StartupItem> _allItems = [];
+
+    /// <summary>
+    /// Replaces the scanned set and re-applies the active filter.
+    ///
+    /// The filter and the hero counters are pure presentation over the scanned
+    /// set, and they are the part most likely to drift from the WPF app this was
+    /// ported from. Exposing the seam lets them be exercised without a registry
+    /// and Task Scheduler scan of the whole machine.
+    /// </summary>
+    internal void LoadFrom(IReadOnlyList<StartupItem> items)
+    {
+        _allItems = [.. items];
+        ApplyFilter();
+    }
 
     public StartupWorkspaceViewModel(
         Func<string, string, Task<bool>>? confirmAsync = null,

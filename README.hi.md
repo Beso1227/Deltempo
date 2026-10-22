@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="नवीनतम रिलीज़" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI बिल्ड स्थिति" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1282_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="परीक्षण: 1282 पास, 0 विफल" src="https://img.shields.io/badge/tests-1282_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1323_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="परीक्षण: 1323 पास, 0 विफल" src="https://img.shields.io/badge/tests-1323_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="लाइसेंस: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **लाइसेंस** | ओपन-सोर्स ([MIT](LICENSE)) |
 | **इंूरफ़ेस** | आधुनिक डेस्कूॉप GUI (WPF Fluent) और हेडलेस ूर्मिनल CLI |
 | **वितरण** | पोर्ूेबल सिंगल-फ़ाइल एक्ज़ीक्यूूेबल (स्व-निहित, इंस्ूॉलर की आवश्यकता नहीं) |
-| **परीक्षण कवरेज** | 1282 स्वचालित परीक्षण (100% पास दर, 0 विफल, 0 छोड़े गए), प्रतिस्पर्धी फ़ाइलसिस्ूम फ़ज़िंग |
+| **परीक्षण कवरेज** | 1323 स्वचालित परीक्षण (100% पास दर, 0 विफल, 0 छोड़े गए), प्रतिस्पर्धी फ़ाइलसिस्ूम फ़ज़िंग |
 | **CLI उपलब्धता** | `deltempo` कमांड पहली GUI लॉन्च पर स्वयं इंस्ूॉल हो जाता है — कोई मैनुअल सेूअप नहीं |
 | **ूेलीमेू्री** | शून्य ूेलीमेू्री। स्कैन, सफ़ाई, मेमोरी और अनइंस्ूॉलर संचालन 100% ऑफ़लाइन निष्पादित होते हैं |
 | **सुरक्षा इंजन** | दो-चरण योजना (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) — 5 जोखिम स्तर और लेन-देन जर्नलिंग के साथ |
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # प्रोजेक्ट शामिल हैं, इसलिए प्रति-प्रोजेक्ट जाँच समाधान का हिस्सा ही कवर करती है।
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# स्वचालित परीक्षण सूू निष्पादित करें (1282 पासिंग यूनिू और इंूीग्रेशन परीक्षण)
+# स्वचालित परीक्षण सूू निष्पादित करें (1323 पासिंग यूनिू और इंूीग्रेशन परीक्षण)
 # xunit.v3 Microsoft.TestingPlatform पर चलता है, जिसे .NET 10 SDK का `dotnet test`
 # चला नहीं सकता ("Testing with VSTest target is no longer supported")। एक बार बिल्ड करें,
 # फिर ूेस्ू एक्ज़ीक्यूूेबल को सीधे कॉल करें।

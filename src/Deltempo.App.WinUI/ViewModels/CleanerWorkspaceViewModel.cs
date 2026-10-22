@@ -43,6 +43,21 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     private readonly Func<string, string, Task<bool>> _confirmAsync;
 
     private List<TargetFolderInfo> _allTargets = [];
+
+    /// <summary>
+    /// Replaces the scanned set and re-applies the view.
+    ///
+    /// The selection helpers - which decide what a "select safe" or a "select all"
+    /// click would include - are pure presentation over the scanned set, and they
+    /// are the part most likely to drift from the WPF app this was ported from.
+    /// Exposing the seam lets them be exercised without a scan of every target
+    /// category on the machine.
+    /// </summary>
+    internal void LoadFrom(IReadOnlyList<TargetFolderInfo> targets)
+    {
+        _allTargets = [.. targets];
+        ApplyTargets();
+    }
     private bool _isBusy;
 
     // ScanFolderAsync / CleanFolderAsync are instance members on the shared

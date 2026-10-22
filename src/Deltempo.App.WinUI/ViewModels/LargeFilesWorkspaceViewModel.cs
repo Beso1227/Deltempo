@@ -55,6 +55,44 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
 
     private List<LargeFileInfo> _allFiles = [];
 
+    /// <summary>
+    /// Replaces the scanned set and recomputes everything derived from it.
+    ///
+    /// The split between safe and protected storage is the number a user reads
+    /// before deciding to recycle anything, and it is pure presentation over the
+    /// scanned set. Exposing the seam lets it be exercised without a full disk
+    /// scan.
+    /// </summary>
+    internal void LoadFrom(IReadOnlyList<LargeFileInfo> files)
+    {
+        _allFiles = [.. files];
+        ApplyViewMode();
+        UpdateStorageSummary();
+        UpdateSelectionSummary();
+    }
+
+    /// <summary>
+    /// Recomputes the storage headline and the safe/protected split from the
+    /// current set. Safe bytes are counted from the per-file verdict, and the
+    /// protected figure is the remainder - so the two always add up to the
+    /// total, which is what makes the split readable.
+    /// </summary>
+    private void UpdateStorageSummary()
+    {
+        long totalBytes = _allFiles.Sum(f => f.SizeBytes);
+        long safeBytes = _allFiles.Where(f => f.IsSafe).Sum(f => f.SizeBytes);
+        long protectedBytes = Math.Max(0, totalBytes - safeBytes);
+
+        TotalStorageText = $"{TargetFolderInfo.FormatBytes(totalBytes)} ({_allFiles.Count} files)";
+        SafeStorageText = $"{TargetFolderInfo.FormatBytes(safeBytes)} ({_allFiles.Count(f => f.IsSafe)} safe)";
+        ProtectedStorageText = $"{TargetFolderInfo.FormatBytes(protectedBytes)} ({_allFiles.Count(f => !f.IsSafe)} protected)";
+
+        StatusText = _allFiles.Count == 0
+            ? "No large files found. Try a different scope or lower the minimum file size."
+            : $"Discovered {_allFiles.Count} files ({TargetFolderInfo.FormatBytes(totalBytes)}). " +
+              $"{_allFiles.Count(f => f.IsSafe)} verified safe to clean.";
+    }
+
     public LargeFilesWorkspaceViewModel(
         Func<string, string, Task<bool>>? confirmAsync = null,
         Action<string>? openFolder = null)
@@ -141,20 +179,7 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
 
             _allFiles = result.Files;
             ApplyViewMode();
-
-            long totalBytes = _allFiles.Sum(f => f.SizeBytes);
-            long safeBytes = _allFiles.Where(f => f.IsSafe).Sum(f => f.SizeBytes);
-            long protectedBytes = Math.Max(0, totalBytes - safeBytes);
-
-            TotalStorageText = $"{TargetFolderInfo.FormatBytes(totalBytes)} ({_allFiles.Count} files)";
-            SafeStorageText = $"{TargetFolderInfo.FormatBytes(safeBytes)} ({_allFiles.Count(f => f.IsSafe)} safe)";
-            ProtectedStorageText = $"{TargetFolderInfo.FormatBytes(protectedBytes)} ({_allFiles.Count(f => !f.IsSafe)} protected)";
-
-            StatusText = _allFiles.Count == 0
-                ? "No large files found. Try a different scope or lower the minimum file size."
-                : $"Discovered {_allFiles.Count} files ({TargetFolderInfo.FormatBytes(totalBytes)}). " +
-                  $"{_allFiles.Count(f => f.IsSafe)} verified safe to clean.";
-
+            UpdateStorageSummary();
             UpdateSelectionSummary();
         }
         catch (OperationCanceledException)

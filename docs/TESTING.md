@@ -114,9 +114,21 @@ dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
 This replaces the VSTest-only `--collect:"XPlat Code Coverage"` flag and the retired
 `dotnet-coverage` global tool, which is no longer what CI runs.
 
-Enforced minimum line coverage threshold in CI: **65%**, applied to `WinTempCleaner.Core*`
-classes only. The WPF UI head is excluded because a headless CI run cannot exercise
-views, and including it would make the number meaningless.
+Two enforced minimum line coverage thresholds run in CI:
+
+- **65%** on `WinTempCleaner.Core*` classes - the safety, cleaning, update and
+  scanning pipelines. The WPF UI head is excluded because a headless CI run cannot
+  exercise views, and including it would make the number meaningless.
+- **25%** on `Deltempo.App.WinUI*` classes - the WinUI 3 shell's ViewModels. That
+  shell was outside every gate until 2026-10-22: its ViewModels were not compiled
+  into the test project at all, so thousands of lines of the shipping UI had no
+  tests and no coverage measurement. They now live in their own assembly
+  (`Deltempo.App.WinUI.ViewModels`) so the coverage collector can see them -
+  linking them into the test project would have executed them while excluding them
+  from the report, because the collector excludes the test assembly. The 25% is a
+  FLOOR, not a target: it sits below the measured value with headroom, so that
+  deleting a test file is caught while ordinary churn is not. Raise it as more
+  seams appear.
 
 ### 3.5 Documentation Is Part of the Suite
 
