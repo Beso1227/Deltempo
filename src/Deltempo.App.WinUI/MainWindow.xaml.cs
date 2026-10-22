@@ -5,6 +5,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using WinRT.Interop;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
@@ -75,6 +76,19 @@ public sealed partial class MainWindow : Window
     /// section label. See <see cref="UpdateNavSelection"/>.
     /// </summary>
     private readonly Dictionary<string, NavEntry> _navEntries = [];
+
+    /// <summary>
+    /// The rail's item containers, keyed by section label. The selection pill has to know
+    /// where the active row is, and only the container can answer that.
+    /// </summary>
+    private readonly Dictionary<string, ListViewItem> _railItems = [];
+
+    /// <summary>
+    /// Every rail item in build order, used for the one-time entrance stagger. A list
+    /// rather than a dictionary because that animation cares about the order the rail is
+    /// read in, not about lookup.
+    /// </summary>
+    private readonly List<ListViewItem> _railItemOrder = [];
 
     /// <summary>The section the rail currently has selected. Kept so a theme switch
     /// can repaint the active glyph, which caches a brush rather than inheriting one.</summary>
@@ -813,6 +827,10 @@ public sealed partial class MainWindow : Window
         {
             ShowWorkspace(initialLabel, playSound: false);
         }
+
+        PlayRailEntrance();
+
+
     }
 
     /// <summary>
@@ -821,7 +839,7 @@ public sealed partial class MainWindow : Window
     /// </summary>
     private void AddNavItem(ListView list, string label, string glyph, string help, bool danger)
     {
-        (UIElement content, FontIcon icon, Border indicator) = BuildNavContent(glyph);
+        (UIElement content, FontIcon icon) = BuildNavContent(glyph);
 
         var item = new ListViewItem
         {
@@ -829,7 +847,9 @@ public sealed partial class MainWindow : Window
             Content = content,
         };
 
-        _navEntries[label] = new NavEntry(icon, indicator, danger);
+        _navEntries[label] = new NavEntry(icon, danger);
+        _railItems[label] = item;
+        _railItemOrder.Add(item);
 
         // Without this the item announces as an empty list item. The WPF nav
         // set AutomationProperties.Name on each workspace, and dropping it
@@ -845,7 +865,7 @@ public sealed partial class MainWindow : Window
         ToolTipService.SetToolTip(item, label);
         ToolTipService.SetPlacement(item, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Right);
 
-        WireNavHover(item, label, danger);
+        WireNavPointerFeedback(item, label, danger);
 
         list.Items.Add(item);
     }
@@ -995,83 +1015,209 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Builds one rail item's visual: the selection bar pinned to the pane edge and the
-    /// section glyph centred in what is left. The section name is deliberately not in
-    /// the content - the strip is icon-only and the name arrives as the item's tooltip -
-    /// so this must stay a centred icon, not a label with its text removed.
+    /// Builds one rail item's visual: the section glyph, and nothing else. The name is
+    /// deliberately not in the content - the strip is icon-only and the name arrives as
+    /// the item's tooltip - and neither is the selection bar: one pill serves the whole
+    /// rail, so switching sections slides a single bar instead of blinking two.
     /// </summary>
-    private static (UIElement Content, FontIcon Icon, Border Indicator) BuildNavContent(string glyph)
+    private (UIElement Content, FontIcon Icon) BuildNavContent(string glyph)
     {
-        var indicator = new Border
-        {
-            Width = 3,
-            Height = 20,
-            CornerRadius = new CornerRadius(2),
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Center,
-            Opacity = 0,
-        };
+        // The glyph owns its brush rather than reading a theme brush. The hover and
+        // selection fades animate that instance's Color, and animating a shared brush
+        // would recolour every row that reads it at the same time.
+        var brush = new SolidColorBrush(ResolveColor("NavIconMutedBrush"));
 
         var icon = new FontIcon
         {
             Glyph = glyph,
             FontFamily = new FontFamily("Segoe Fluent Icons"),
-            FontSize = 18,
+            FontSize = 19,
+            Foreground = brush,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
         };
 
-        var grid = new Grid();
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-        Grid.SetColumn(indicator, 0);
-        Grid.SetColumn(icon, 1);
-        grid.Children.Add(indicator);
-        grid.Children.Add(icon);
-
-        return (grid, icon, indicator);
+        return (icon, icon);
     }
 
     /// <summary>
-    /// Paints the active section's glyph and selection bar with the accent and leaves
-    /// the others muted, which is what a WinUI NavigationViewItem does when selected.
-    /// Neither can be done in the item template: the glyph carries an explicit
-    /// Foreground, so the presenter's SelectedForeground never reaches it, and this
-    /// WinUI version's ListViewItemPresenter has no selection-indicator members.
+    /// Reads a colour out of the palette the window is actually rendering with.
+    ///
+    /// Two traps meet here. First, the token dictionaries are *merged* into the app's
+    /// resources, so their ThemeDictionaries are not on Application.Current.Resources:
+    /// asking it directly resolves the brush through the application's requested theme
+    /// instead, which is the theme the window was not switched to. Second, ApplyTheme
+    /// switches the palette on the window root, so even a correct global lookup answers
+    /// for the wrong theme. Dark mode hides both - light mode painted dark grey glyphs
+    /// onto a pale pane, at roughly half the contrast the tokens intend.
+    ///
+    /// So the dictionary is chosen from the shell's own theme flag and looked up in the
+    /// merged dictionaries by hand.
+    /// </summary>
+    private Windows.UI.Color ResolveColor(string key) =>
+        ResolveBrush(key) is SolidColorBrush brush ? brush.Color : Colors.Gray;
+
+    /// <summary>
+    /// The brush behind <see cref="ResolveColor"/>, for the places that need the brush
+    /// itself (the selection pill paints with it) rather than just its colour.
+    /// </summary>
+    private Brush? ResolveBrush(string key)
+    {
+        string themeKey = _isDarkTheme ? "Dark" : "Light";
+
+        return FindThemeBrush(Application.Current.Resources, themeKey, key)
+            ?? FindThemeBrush(Application.Current.Resources, "Default", key)
+            ?? (Application.Current.Resources.TryGetValue(key, out object? value) ? value as Brush : null);
+    }
+
+    /// <summary>
+    /// Searches one resource dictionary, and everything merged into it, for a themed
+    /// brush. Depth is capped because a resource graph may legitimately cycle.
+    /// </summary>
+    private static Brush? FindThemeBrush(
+        ResourceDictionary dictionary,
+        string themeKey,
+        string brushKey,
+        int depth = 0)
+    {
+        if (depth > 4)
+        {
+            return null;
+        }
+
+        if (dictionary.ThemeDictionaries.TryGetValue(themeKey, out object? theme) &&
+            theme is ResourceDictionary themed &&
+            themed.TryGetValue(brushKey, out object? entry) &&
+            entry is Brush brush)
+        {
+            return brush;
+        }
+
+        foreach (ResourceDictionary merged in dictionary.MergedDictionaries)
+        {
+            if (FindThemeBrush(merged, themeKey, brushKey, depth + 1) is Brush nested)
+            {
+                return nested;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Repaints the rail for a new active section and moves the selection pill to it.
+    /// Glyphs fade between colours rather than switching, so a fast click sequence reads
+    /// as one highlight travelling down the strip instead of a row of small flashes.
     ///
     /// Dangerous sections (Force Delete) keep their danger tint in both states - WPF
-    /// styled that pill with its danger brushes rather than the accent.
+    /// styled that pill with its danger brushes rather than the accent - and the pill
+    /// takes the danger colour with it.
     /// </summary>
     private void UpdateNavSelection(string activeLabel)
     {
         foreach ((string label, NavEntry entry) in _navEntries)
         {
             bool isActive = label == activeLabel;
+            AnimateIconColor(entry.Icon, ResolveColor(IconKey(entry.Danger, isActive, hovered: false)), 160);
+        }
 
-            string iconKey = IconKey(entry.Danger, isActive, hovered: false);
-            string indicatorKey = entry.Danger ? "DestructiveRedBrush" : "ElectricCyanBrush";
+        MoveSelectionPill(activeLabel);
+    }
 
-            if (Application.Current.Resources[iconKey] is Brush iconBrush)
+    /// <summary>
+    /// Puts the selection pill beside the active row, sliding it there when it is already
+    /// on screen. One pill for the whole rail means a switch is a movement, and the bar
+    /// can travel across the rule into the preference cluster without a second element.
+    /// </summary>
+    private void MoveSelectionPill(string activeLabel)
+    {
+        if (!_railItems.TryGetValue(activeLabel, out ListViewItem? item) ||
+            !_navEntries.TryGetValue(activeLabel, out NavEntry? entry))
+        {
+            return;
+        }
+
+        if (item is null || entry is null)
+        {
+            return;
+        }
+
+        string indicatorKey = entry.Danger ? "DestructiveRedBrush" : "ElectricCyanBrush";
+        if (Application.Current.Resources.TryGetValue(indicatorKey, out object? value) && value is Brush brush)
+        {
+            NavSelectionPill.Background = brush;
+        }
+
+        // On the first selection the row may not be measured yet. Wait for layout rather
+        // than leaving the pill parked at the top of the rail.
+        if (item.ActualHeight <= 0)
+        {
+            void Retry(object? sender, object args)
             {
-                entry.Icon.Foreground = iconBrush;
+                RailHost.LayoutUpdated -= Retry;
+                MoveSelectionPill(activeLabel);
             }
 
-            if (Application.Current.Resources[indicatorKey] is Brush indicatorBrush)
-            {
-                entry.Indicator.Background = indicatorBrush;
-            }
+            RailHost.LayoutUpdated += Retry;
+            return;
+        }
 
-            if (isActive)
-            {
-                entry.Indicator.Opacity = 1;
+        double rowTop = item.TransformToVisual(RailHost).TransformPoint(new Windows.Foundation.Point(0, 0)).Y;
+        float centre = (float)(rowTop + ((item.ActualHeight - NavSelectionPill.Height) / 2d));
 
-                // The bar arrives rather than appears. 120ms of opacity only - a bar
-                // that slides on every click would make the rail feel loose.
-                ShellMotion.Enter(entry.Indicator, riseDip: 0, milliseconds: 120);
-            }
-            else
+        if (NavSelectionPill.Opacity <= 0)
+        {
+            // Fade up to the resting value: Enter animates toward the element's current
+            // opacity, and the pill starts life (and every theme rebuild) at zero.
+            NavSelectionPill.Opacity = 1;
+            ShellMotion.Enter(NavSelectionPill, riseDip: 0, milliseconds: 180);
+        }
+
+        ShellMotion.SlideTo(NavSelectionPill, centre, 300);
+    }
+
+    /// <summary>
+    /// Fades a rail glyph to a colour. The animation runs through the element's
+    /// Foreground path because a brush is not a visual and cannot be targeted directly;
+    /// the brush it writes to is the row's own instance, never a shared theme brush.
+    /// </summary>
+    private static void AnimateIconColor(FontIcon icon, Windows.UI.Color to, double milliseconds)
+    {
+        if (icon.Foreground is not SolidColorBrush brush || brush.Color == to)
+        {
+            return;
+        }
+
+        if (!ShellMotion.MotionEnabled)
+        {
+            brush.Color = to;
+            return;
+        }
+
+        try
+        {
+            var animation = new ColorAnimation
             {
-                entry.Indicator.Opacity = 0;
-            }
+                To = to,
+                Duration = new Duration(TimeSpan.FromMilliseconds(milliseconds)),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+                EnableDependentAnimation = true,
+            };
+
+            Storyboard.SetTarget(animation, icon);
+            Storyboard.SetTargetProperty(
+                animation,
+                "(Microsoft.UI.Xaml.Controls.IconElement.Foreground).(Microsoft.UI.Xaml.Media.SolidColorBrush.Color)");
+
+            var storyboard = new Storyboard();
+            storyboard.Children.Add(animation);
+            storyboard.Begin();
+        }
+        catch (Exception)
+        {
+            // A correct colour that lands in one step still tells the truth about the
+            // state; only the fade is lost, so this is not worth failing a navigation for.
+            brush.Color = to;
         }
     }
 
@@ -1087,34 +1233,82 @@ public sealed partial class MainWindow : Window
     };
 
     /// <summary>
-    /// Hover feedback for an icon-only rail item: the glyph brightens while the pointer
-    /// is on the row and returns to its selection colour on exit. The brushes are read
-    /// per event rather than captured once, so a theme switch is picked up by the very
+    /// Pointer feedback for a rail row: the glyph brightens, lifts about six percent and
+    /// settles back on exit, and dips while pressed. All of it is compositor animation,
+    /// so sweeping the pointer down the strip never queues a layout pass. Colours are
+    /// read per event rather than captured once, so a theme switch is picked up by the
     /// next hover instead of needing the rail rebuilt.
     /// </summary>
-    private void WireNavHover(ListViewItem item, string label, bool danger)
+    private void WireNavPointerFeedback(ListViewItem item, string label, bool danger)
     {
-        void Paint(bool hovered)
+        if (!_navEntries.TryGetValue(label, out NavEntry? entry) || entry is null)
         {
-            if (!_navEntries.TryGetValue(label, out NavEntry? entry) || entry is null)
-            {
-                return;
-            }
-
-            bool isActive = ReferenceEquals(NavList.SelectedItem, item);
-
-            if (Application.Current.Resources[IconKey(danger, isActive, hovered)] is Brush brush)
-            {
-                entry.Icon.Foreground = brush;
-            }
+            return;
         }
 
-        item.PointerEntered += (_, _) => Paint(hovered: true);
-        item.PointerExited += (_, _) => Paint(hovered: false);
+        FontIcon icon = entry.Icon;
+
+        void Paint(bool hovered)
+        {
+            bool isActive = _activeSectionLabel == label;
+            AnimateIconColor(icon, ResolveColor(IconKey(danger, isActive, hovered)), 150);
+        }
+
+        item.PointerEntered += (_, _) =>
+        {
+            Paint(hovered: true);
+            ShellMotion.ScaleTo(icon, 1.08f, 150);
+        };
+
+        item.PointerExited += (_, _) =>
+        {
+            Paint(hovered: false);
+            ShellMotion.ScaleTo(icon, 1f, 180);
+        };
+
+        item.PointerPressed += (_, _) => ShellMotion.ScaleTo(icon, 0.92f, 90);
+
+        item.PointerReleased += (_, _) => ShellMotion.ScaleTo(icon, 1.08f, 140);
+    }
+
+    /// <summary>
+    /// The rail arrives once, top to bottom, twelve milliseconds apart. A pane that
+    /// appears in a single frame reads as a screenshot; the stagger is what says the
+    /// strip is a list of destinations. Builds once, on the first window, and never on
+    /// navigation - a strip that re-staggers on every click would be noise.
+    /// </summary>
+    private void PlayRailEntrance()
+    {
+        if (!ShellMotion.MotionEnabled || _railItemOrder.Count == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < _railItemOrder.Count; i++)
+        {
+            ListViewItem item = _railItemOrder[i];
+            int delay = 12 * i;
+
+            if (delay == 0)
+            {
+                ShellMotion.Enter(item, riseDip: 8f, milliseconds: 220);
+                continue;
+            }
+
+            item.Opacity = 0;
+            var queue = item.DispatcherQueue;
+            _ = Task.Delay(delay).ContinueWith(
+                _ => queue.TryEnqueue(() =>
+                {
+                    item.Opacity = 1;
+                    ShellMotion.Enter(item, riseDip: 8f, milliseconds: 220);
+                }),
+                TaskScheduler.Default);
+        }
     }
 
     /// <summary>One navigation entry's parts that change with the selection.</summary>
-    private sealed record NavEntry(FontIcon Icon, Border Indicator, bool Danger);
+    private sealed record NavEntry(FontIcon Icon, bool Danger);
 
     /// <summary>
     /// Proves the WinUI 3 app can consume the existing Core assembly. Uses only
