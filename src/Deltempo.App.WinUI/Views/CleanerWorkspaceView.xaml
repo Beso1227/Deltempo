@@ -156,41 +156,54 @@
                 </Border>
             </StackPanel>
 
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="2">
                 <Button
-                    Content="AppData Report"
+                    Style="{StaticResource CommandBarButton}"
                     ToolTipService.ToolTip="Read-only report: show where your AppData space goes. Nothing is selected and nothing is deleted."
                     AutomationProperties.Name="AppData Footprint Report (read only)"
-                    Background="{ThemeResource PillButtonBgBrush}"
-                    BorderBrush="{ThemeResource PillButtonBorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="14"
-                    Padding="14,6"
-                    FontSize="11.5"
-                    Margin="0,0,8,0"
-                    Click="OnFootprintRequested" />
+                    Click="OnFootprintRequested">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE9D2;"
+                                  FontFamily="{StaticResource IconFont}"
+                                  FontSize="11"
+                                  Foreground="{ThemeResource TextMediumBrush}" />
+                        <TextBlock Text="AppData Report" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Border Style="{StaticResource CommandBarDivider}" />
 
                 <Button
-                    Content="Scan Now"
-                    Background="{ThemeResource PillButtonBgBrush}"
-                    BorderBrush="{ThemeResource PillButtonBorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="14"
-                    Padding="14,6"
-                    FontSize="11.5"
-                    Margin="0,0,8,0"
+                    Style="{StaticResource CommandBarButton}"
                     IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource NotBool}}"
-                    Command="{x:Bind ViewModel.ScanCommand, Mode=OneTime}" />
+                    Command="{x:Bind ViewModel.ScanCommand, Mode=OneTime}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE72C;"
+                                  FontFamily="{StaticResource IconFont}"
+                                  FontSize="11"
+                                  Foreground="{ThemeResource TextMediumBrush}" />
+                        <TextBlock Text="Scan Now" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Border Style="{StaticResource CommandBarDivider}" />
 
                 <Button
-                    Content="Clean Selected"
                     Background="{StaticResource DestructiveRedBrush}"
                     BorderThickness="0"
                     CornerRadius="14"
-                    Padding="14,6"
+                    Padding="12,6"
                     FontSize="11.5"
                     IsEnabled="{x:Bind ViewModel.HasSelection, Mode=OneWay}"
-                    Command="{x:Bind ViewModel.CleanSelectedCommand, Mode=OneTime}" />
+                    Command="{x:Bind ViewModel.CleanSelectedCommand, Mode=OneTime}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE74D;"
+                                  FontFamily="{StaticResource IconFont}"
+                                  FontSize="11"
+                                  Foreground="{ThemeResource HeroActionBtnTextBrush}" />
+                        <TextBlock Text="Clean Selected" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </Grid>
 

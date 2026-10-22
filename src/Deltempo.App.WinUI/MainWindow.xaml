@@ -57,28 +57,20 @@
                            Text="" />
             </StackPanel>
 
-            <!-- Theme toggle. Right-aligned in the free column so it sits at the far
-                 end of the title bar, clear of the caption buttons, and out of the
-                 drag region's way of anything else. The glyph shows the theme the
-                 button SWITCHES TO, and the tooltip says so in words. -->
-            <Button x:Name="ThemeToggleButton"
-                    Grid.Column="1"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    Width="40"
-                    Height="32"
-                    Margin="0,0,8,0"
-                    Padding="0"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Click="OnThemeToggleClick"
-                    ToolTipService.ToolTip="Switch to light theme"
-                    AutomationProperties.Name="Switch between light and dark theme">
-                <FontIcon x:Name="ThemeToggleIcon"
-                          Glyph="&#xE706;"
-                          FontFamily="{StaticResource IconFont}"
-                          FontSize="14" />
-            </Button>
+            <!-- Section search, centred in the title bar. The rail is icon-only, so
+                 the fastest way to reach a tool is to type its name. The suggestion
+                 list is filled from the same section table the rail is built from,
+                 so it can never offer a destination the rail does not have. -->
+            <AutoSuggestBox x:Name="SectionSearchBox"
+                            Grid.Column="1"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Width="320"
+                            Height="28"
+                            PlaceholderText="Jump to a tool"
+                            QueryIcon="Find"
+                            SuggestionChosen="OnSectionSearchChosen"
+                            AutomationProperties.Name="Jump to a tool" />
         </Grid>
 
         <!-- Body: navigation rail + content -->
@@ -95,20 +87,32 @@
 
             <!-- Navigation pane. Acrylic rather than a flat fill, which is what a WinUI
                  NavigationView pane uses and what lets the Mica backdrop read through
-                 the rail as well as the content. -->
+                 the rail as well as the content.
+
+                 The tools sit at the top and the preferences at the bottom, with a
+                 rule between them: a tool is something you go and do, a preference
+                 is something you set once and forget. -->
             <Border Grid.Column="0"
                     Background="{ThemeResource PaneAcrylicBrush}"
                     BorderBrush="{ThemeResource HairlineBorderBrush}"
                     BorderThickness="0,0,1,0">
-                <ListView x:Name="NavList"
-                          Background="Transparent"
-                          BorderThickness="0"
-                          SelectionMode="Single"
-                          IsItemClickEnabled="False"
-                          Padding="6,10,6,10"
-                          VerticalAlignment="Stretch"
-                          ScrollViewer.HorizontalScrollMode="Disabled"
-                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <ListView x:Name="NavList"
+                              Grid.Row="0"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              SelectionMode="Single"
+                              IsItemClickEnabled="False"
+                              Padding="6,10,6,6"
+                              VerticalAlignment="Stretch"
+                              ScrollViewer.HorizontalScrollMode="Disabled"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <!-- Retemplated from ListViewItemPresenter for the translucent
                          selected fill and hover. The stock presenter in this WinUI
                          version has no SelectionIndicator* members, so the 3px accent
@@ -152,6 +156,57 @@
                         </Style>
                     </ListView.ItemContainerStyle>
                 </ListView>
+
+                    <!-- The rule between the tools and the preferences. -->
+                    <Border Grid.Row="1"
+                            Height="1"
+                            Margin="10,6,10,6"
+                            Background="{ThemeResource HairlineBorderBrush}" />
+
+                    <ListView x:Name="NavFooterList"
+                              Grid.Row="2"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              SelectionMode="Single"
+                              IsItemClickEnabled="False"
+                              Padding="6,0,6,10"
+                              ScrollViewer.HorizontalScrollMode="Disabled"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="MinHeight" Value="44" />
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="CornerRadius" Value="8" />
+                                <Setter Property="Margin" Value="0,1" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="VerticalContentAlignment" Value="Center" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListViewItem">
+                                            <ListViewItemPresenter
+                                                Content="{TemplateBinding Content}"
+                                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                Padding="{TemplateBinding Padding}"
+                                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                CornerRadius="{TemplateBinding CornerRadius}"
+                                                Foreground="{TemplateBinding Foreground}"
+                                                Background="{TemplateBinding Background}"
+                                                PointerOverBackground="{ThemeResource SurfaceCardHoverBrush}"
+                                                PointerOverForeground="{ThemeResource TextHighBrush}"
+                                                PressedBackground="{ThemeResource SurfaceCardHoverBrush}"
+                                                SelectedBackground="{ThemeResource SurfaceCardSelectedBrush}"
+                                                SelectedForeground="{ThemeResource TextHighBrush}"
+                                                SelectedPointerOverBackground="{ThemeResource SurfaceCardSelectedBrush}"
+                                                SelectedPressedBackground="{ThemeResource SurfaceCardSelectedBrush}"
+                                                SelectionCheckMarkVisualEnabled="False" />
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                    </ListView>
+                </Grid>
             </Border>
 
             <!-- Content column: a shell-owned page header, then the workspace host.
@@ -165,21 +220,57 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0"
-                            Margin="20,16,20,12"
-                            Spacing="3">
-                    <TextBlock x:Name="PageEyebrow"
-                               Style="{StaticResource EyebrowText}"
-                               Text="WORKSPACE" />
-                    <TextBlock x:Name="PageTitle"
-                               Style="{StaticResource PageTitleText}"
-                               Text="Cleaner Workspace" />
-                    <TextBlock x:Name="PageDescription"
-                               Style="{StaticResource PageDescriptionText}"
-                               MaxWidth="760"
-                               HorizontalAlignment="Left"
-                               Text="Finds temp files and caches. Nothing is deleted until you press Clean." />
-                </StackPanel>
+                <!-- Page header. A leading tile carries the section's glyph, the title
+                     names the screen and the line under it says what the screen will
+                     and will not do - the same information the WPF header carried, in
+                     the arrangement the rest of the world uses for an app's top
+                     screen. -->
+                <Grid Grid.Row="0"
+                      Margin="20,14,20,12"
+                      ColumnSpacing="14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0"
+                            Width="46"
+                            Height="46"
+                            CornerRadius="13"
+                            Background="{ThemeResource SurfaceCardBrush}"
+                            BorderBrush="{ThemeResource HairlineBorderBrush}"
+                            BorderThickness="1"
+                            VerticalAlignment="Top">
+                        <FontIcon x:Name="PageHeaderIcon"
+                                  Glyph="&#xE856;"
+                                  FontFamily="{StaticResource IconFont}"
+                                  FontSize="20"
+                                  Foreground="{ThemeResource ElectricCyanBrush}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock x:Name="PageTitle"
+                                       Style="{StaticResource PageTitleText}"
+                                       Text="Cleaner Workspace" />
+                            <Border Background="{ThemeResource SurfaceSubCardBrush}"
+                                    CornerRadius="6"
+                                    Padding="7,2,7,2"
+                                    VerticalAlignment="Center">
+                                <TextBlock x:Name="PageEyebrow"
+                                           Style="{StaticResource EyebrowText}"
+                                           Text="WORKSPACE" />
+                            </Border>
+                        </StackPanel>
+                        <TextBlock x:Name="PageDescription"
+                                   Style="{StaticResource PageDescriptionText}"
+                                   MaxWidth="760"
+                                   HorizontalAlignment="Left"
+                                   Text="Finds temp files and caches. Nothing is deleted until you press Clean." />
+                    </StackPanel>
+                </Grid>
 
                 <Grid Grid.Row="1">
                     <Grid.RowDefinitions>
@@ -275,6 +366,21 @@
                                            Grid.Row="0"
                                            Grid.RowSpan="2"
                                            Visibility="Collapsed" />
+
+                    <views:ProcessWorkspaceView x:Name="ProcessWorkspacePanel"
+                                                Grid.Row="0"
+                                                Grid.RowSpan="2"
+                                                Visibility="Collapsed" />
+
+                    <views:SettingsWorkspaceView x:Name="SettingsWorkspacePanel"
+                                                 Grid.Row="0"
+                                                 Grid.RowSpan="2"
+                                                 Visibility="Collapsed" />
+
+                    <views:AboutWorkspaceView x:Name="AboutWorkspacePanel"
+                                              Grid.Row="0"
+                                              Grid.RowSpan="2"
+                                              Visibility="Collapsed" />
                 </Grid>
             </Grid>
         </Grid>
@@ -305,11 +411,33 @@
                            Text="Ready"
                            TextTrimming="CharacterEllipsis" />
 
-                <TextBlock x:Name="FooterVersion"
-                           Grid.Column="2"
-                           VerticalAlignment="Center"
-                           Style="{StaticResource CaptionText}"
-                           Text="WinUI 3" />
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            VerticalAlignment="Center">
+                    <!-- Theme toggle. It lives in the status bar rather than the title
+                         bar because the title bar is now the section search, and the
+                         status bar is where the window's other state already is. -->
+                    <Button x:Name="ThemeToggleButton"
+                            Width="32"
+                            Height="24"
+                            Padding="0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="OnThemeToggleClick"
+                            ToolTipService.ToolTip="Switch to light theme"
+                            AutomationProperties.Name="Switch between light and dark theme">
+                        <FontIcon x:Name="ThemeToggleIcon"
+                                  Glyph="&#xE706;"
+                                  FontFamily="{StaticResource IconFont}"
+                                  FontSize="13" />
+                    </Button>
+
+                    <TextBlock x:Name="FooterVersion"
+                               VerticalAlignment="Center"
+                               Style="{StaticResource CaptionText}"
+                               Text="WinUI 3" />
+                </StackPanel>
             </Grid>
         </Border>
 

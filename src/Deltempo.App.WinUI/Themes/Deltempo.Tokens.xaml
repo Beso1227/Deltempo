@@ -108,7 +108,30 @@
             <SolidColorBrush x:Key="NavIconDangerMutedBrush" Color="#8C4B58" />
             <SolidColorBrush x:Key="NavIconDangerHoverBrush" Color="#F87171" />
 
-            <!-- Active filter-chip fill, copied from the WPF GlassSurfaceActiveBrush. -->
+            <!--
+        Command bar. A row of actions that belong to the screen above them, set
+        apart by thin rules so the eye can find the groups. The rule is the point:
+        three pill buttons in a row read as one pile, three divided by rules read
+        as three commands.
+    -->
+    <Style x:Key="CommandBarDivider" TargetType="Border">
+        <Setter Property="Width" Value="1" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Margin" Value="3,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Background" Value="{ThemeResource HairlineStrongBrush}" />
+    </Style>
+
+    <Style x:Key="CommandBarButton" TargetType="Button">
+        <Setter Property="Background" Value="{ThemeResource PillButtonBgBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource PillButtonBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="FontSize" Value="11.5" />
+    </Style>
+
+    <!-- Active filter-chip fill, copied from the WPF GlassSurfaceActiveBrush. -->
             <LinearGradientBrush x:Key="GlassSurfaceActiveBrush" StartPoint="0,0" EndPoint="1,1">
                 <GradientStop Color="#2000F2B0" Offset="0.0" />
                 <GradientStop Color="#100DD3BA" Offset="0.6" />

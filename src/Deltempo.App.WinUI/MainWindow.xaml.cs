@@ -19,10 +19,13 @@ public sealed partial class MainWindow : Window
     private const string CleanerSectionLabel = "Cleaner Workspace";
     private const string LargeFilesSectionLabel = "Large Files Tool";
     private const string StartupSectionLabel = "Startup Applications Tool";
+    private const string ProcessManagerSectionLabel = "Process Manager Tool";
     private const string MemorySectionLabel = "Memory Optimization Tool";
     private const string SystemRepairSectionLabel = "System Repair Tool";
     private const string AppUninstallerSectionLabel = "App Uninstaller Tool";
     private const string ForceDeleteSectionLabel = "Force Delete Tool";
+    private const string SettingsSectionLabel = "Settings";
+    private const string AboutSectionLabel = "About";
 
     // Named constants rather than literals so the panel map below keys off identity, not
     // off positions: inserting a tab mid-list used to silently re-point the later nav
@@ -32,17 +35,33 @@ public sealed partial class MainWindow : Window
     // ToolForceDeleteBtn): the icon is what represents the section now that the rail is
     // icon-only, so it has to be the same icon the old UI trained people on, and Help is
     // the same tooltip copy that button carried.
-    private static readonly (string Label, string Glyph, string Help, bool Danger)[] Sections =
+    private static readonly (string Label, string Glyph, string Help, bool Danger)[] ToolSections =
     {
         (CleanerSectionLabel, "\uE856", "Switch to Junk Cleaner workspace & storage dashboard", false),
         (LargeFilesSectionLabel, "\uE8B7", "Scan and locate large space-consuming files across your drives safely", false),
         (StartupSectionLabel, "\uE7B5", "Inspect and manage applications configured to launch on Windows boot", false),
+        (ProcessManagerSectionLabel, "\uE9F5", "Inspect memory-heavy applications and optimize inactive background working sets", false),
         (MemorySectionLabel, "\uE950", "Purge standby memory and trim inactive process working sets using native Windows APIs", false),
         (SystemRepairSectionLabel, "\uE74C", "Diagnose and repair Windows system file corruption (SFC, DISM, and CHKDSK)", false),
         (AppUninstallerSectionLabel, "\uE71D", "Installed applications manager, uninstaller & residual bloatware purger", false),
         // WPF styled this one's pill with its danger brushes.
         (ForceDeleteSectionLabel, "\uE74D", "Pick stubborn files or folders (locked, read-only, permission-denied) and permanently force delete them", true),
     };
+
+    /// <summary>
+    /// The preferences, pinned to the bottom of the rail behind a rule. A tool is
+    /// something the user goes and does; a preference is something they set once and
+    /// forget. Splitting them keeps the tool list short enough to scan.
+    /// </summary>
+    private static readonly (string Label, string Glyph, string Help, bool Danger)[] FooterSections =
+    {
+        (SettingsSectionLabel, "\uE713", "Appearance, sound, language, automation and update preferences", false),
+        (AboutSectionLabel, "\uE946", "Version, license and where to find the source", false),
+    };
+
+    /// <summary>Section label to glyph, for the page header's leading tile.</summary>
+    private static readonly Dictionary<string, string> SectionGlyphs =
+        ToolSections.Concat(FooterSections).ToDictionary(s => s.Label, s => s.Glyph);
 
     /// <summary>
     /// Which panel backs each navigation section, and how to load it. Built once, after
@@ -105,9 +124,20 @@ public sealed partial class MainWindow : Window
             _ = LoadSelfTestStartupWorkspace();
             _ = LoadSelfTestLargeFilesWorkspace();
             _ = LoadSelfTestCleanerWorkspace();
+            _ = LoadSelfTestProcessWorkspace();
         }
 
         ShellDiagnostics.MaybeSelfTest(this);
+    }
+
+    /// <summary>
+    /// Exercises the process manager's read path. It lists the live processes and
+    /// does nothing to them: no trim, no kill, and protected system processes are
+    /// filtered out by the list itself.
+    /// </summary>
+    private async Task LoadSelfTestProcessWorkspace()
+    {
+        await ProcessWorkspacePanel.ViewModel.RefreshAsync();
     }
 
     /// <summary>
@@ -545,7 +575,18 @@ public sealed partial class MainWindow : Window
         // (ForceDeleteModalOverlay.Closed => SwitchWorkspaceView(WorkspaceView.Cleaner)).
         ForceDeleteWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
         ForceDeleteWorkspacePanel.ViewModel.CloseRequested += ReturnToFirstWorkspace;
+
+        ProcessWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
+
+        SettingsWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
+        SettingsWorkspacePanel.ThemeChangeRequested += OnThemeChangeRequested;
     }
+
+    /// <summary>
+    /// The settings panel asks the shell to change the theme, because the shell owns
+    /// the window's RequestedTheme and the system caption buttons that follow it.
+    /// </summary>
+    private void OnThemeChangeRequested(bool isDark) => ApplyTheme(isDark, persist: true);
 
     /// <summary>Opens the detailed memory manager over whatever workspace is showing.</summary>
     private void OpenMemoryOptimizerOverlay() => MemoryOverlay.Open();
@@ -724,36 +765,20 @@ public sealed partial class MainWindow : Window
     {
         BuildWorkspacePanelMap();
 
-        foreach (var (label, glyph, help, danger) in Sections)
+        foreach (var (label, glyph, help, danger) in ToolSections)
         {
-            (UIElement content, FontIcon icon, Border indicator) = BuildNavContent(glyph);
-
-            var item = new ListViewItem
-            {
-                Tag = label,
-                Content = content,
-            };
-
-            _navEntries[label] = new NavEntry(icon, indicator, danger);
-
-            // Without this the item announces as an empty list item. The WPF nav
-            // set AutomationProperties.Name on each workspace, and dropping it
-            // made every nav destination unreachable by name - for screen
-            // readers and for UI automation alike.
-            //
-            // The rail shows glyphs only, so the name also has to reach a sighted
-            // pointer: that is the tooltip, carrying the label on hover. HelpText
-            // keeps the WPF button's descriptive tooltip copy available to assistive
-            // tech instead of putting a two-line balloon over every row.
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(item, label);
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(item, help);
-            ToolTipService.SetToolTip(item, label);
-            ToolTipService.SetPlacement(item, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Right);
-
-            WireNavHover(item, label, danger);
-
-            NavList.Items.Add(item);
+            AddNavItem(NavList, label, glyph, help, danger);
         }
+
+        foreach (var (label, glyph, help, danger) in FooterSections)
+        {
+            AddNavItem(NavFooterList, label, glyph, help, danger);
+        }
+
+        // The search box offers exactly the destinations the rail offers, so it can
+        // never send the user somewhere the rail does not have.
+        SectionSearchBox.ItemsSource =
+            ToolSections.Concat(FooterSections).Select(s => s.Label).ToList();
 
         if (NavList.Items.Count > 0)
         {
@@ -764,6 +789,18 @@ public sealed partial class MainWindow : Window
         {
             if (NavList.SelectedItem is ListViewItem selected && selected.Tag is string label)
             {
+                // One list is selected at a time: picking a tool clears the
+                // preferences, and the other way round.
+                NavFooterList.SelectedIndex = -1;
+                ShowWorkspace(label, playSound: true);
+            }
+        };
+
+        NavFooterList.SelectionChanged += (_, _) =>
+        {
+            if (NavFooterList.SelectedItem is ListViewItem selected && selected.Tag is string label)
+            {
+                NavList.SelectedIndex = -1;
                 ShowWorkspace(label, playSound: true);
             }
         };
@@ -775,6 +812,68 @@ public sealed partial class MainWindow : Window
         if (NavList.SelectedItem is ListViewItem initial && initial.Tag is string initialLabel)
         {
             ShowWorkspace(initialLabel, playSound: false);
+        }
+    }
+
+    /// <summary>
+    /// Adds one rail item: the glyph, the accent bar that marks the active section,
+    /// and the name that reaches a screen reader and a pointer.
+    /// </summary>
+    private void AddNavItem(ListView list, string label, string glyph, string help, bool danger)
+    {
+        (UIElement content, FontIcon icon, Border indicator) = BuildNavContent(glyph);
+
+        var item = new ListViewItem
+        {
+            Tag = label,
+            Content = content,
+        };
+
+        _navEntries[label] = new NavEntry(icon, indicator, danger);
+
+        // Without this the item announces as an empty list item. The WPF nav
+        // set AutomationProperties.Name on each workspace, and dropping it
+        // made every nav destination unreachable by name - for screen
+        // readers and for UI automation alike.
+        //
+        // The rail shows glyphs only, so the name also has to reach a sighted
+        // pointer: that is the tooltip, carrying the label on hover. HelpText
+        // keeps the WPF button's descriptive tooltip copy available to assistive
+        // tech instead of putting a two-line balloon over every row.
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(item, label);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(item, help);
+        ToolTipService.SetToolTip(item, label);
+        ToolTipService.SetPlacement(item, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Right);
+
+        WireNavHover(item, label, danger);
+
+        list.Items.Add(item);
+    }
+
+    /// <summary>
+    /// Selects a section by name, wherever it lives in the rail. Used by the title
+    /// bar search, which lists the sections rather than the rail's own items.
+    /// </summary>
+    private void SelectSection(string label)
+    {
+        foreach (ListView list in new[] { NavList, NavFooterList })
+        {
+            for (int i = 0; i < list.Items.Count; i++)
+            {
+                if (list.Items[i] is ListViewItem item && item.Tag as string == label)
+                {
+                    list.SelectedIndex = i;
+                    return;
+                }
+            }
+        }
+    }
+
+    private void OnSectionSearchChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+    {
+        if (args.SelectedItem is string label)
+        {
+            SelectSection(label);
         }
     }
 
@@ -843,10 +942,13 @@ public sealed partial class MainWindow : Window
         [CleanerSectionLabel] = ("CLEANUP", "Temp files, caches and junk Windows can rebuild. Nothing is removed until you press Clean."),
         [LargeFilesSectionLabel] = ("DISK SPACE", "Files above your size threshold. Protected system locations are listed but held back."),
         [StartupSectionLabel] = ("BOOT AND LOGIN", "What runs when Windows starts. Disabling an entry never deletes it."),
+        [ProcessManagerSectionLabel] = ("PROCESSES", "Memory-heavy applications, read from the live system. Protected Windows processes are never listed."),
         [MemorySectionLabel] = ("PERFORMANCE", "Working sets, standby cache and per-process memory pressure, read from the live system."),
         [SystemRepairSectionLabel] = ("INTEGRITY", "System health first, then one repair at a time, only when you ask for it."),
         [AppUninstallerSectionLabel] = ("SOFTWARE", "Installed programs with their uninstall strings, estimates and leftover folders."),
         [ForceDeleteSectionLabel] = ("LAST RESORT", "Staged paths removed with a forced purge, for files that refuse a normal delete."),
+        [SettingsSectionLabel] = ("PREFERENCES", "Appearance, sound, language, automation and updates. Shared with the desktop app."),
+        [AboutSectionLabel] = ("ABOUT", "Version, license and where to find the source."),
     };
 
     /// <summary>
@@ -863,6 +965,12 @@ public sealed partial class MainWindow : Window
         PageEyebrow.Text = eyebrow;
         PageTitle.Text = label;
         PageDescription.Text = description;
+
+        // The leading tile carries the section's own glyph, so the header and the
+        // rail always agree about which section is open.
+        PageHeaderIcon.Glyph = SectionGlyphs.TryGetValue(label, out string? glyph)
+            ? glyph
+            : "\uE8F1";
     }
 
     /// <summary>
@@ -874,12 +982,16 @@ public sealed partial class MainWindow : Window
         _workspacePanels[CleanerSectionLabel] = (CleanerWorkspacePanel, CleanerWorkspacePanel.Open);
         _workspacePanels[LargeFilesSectionLabel] = (LargeFilesWorkspacePanel, LargeFilesWorkspacePanel.Open);
         _workspacePanels[StartupSectionLabel] = (StartupWorkspacePanel, StartupWorkspacePanel.Open);
+        _workspacePanels[ProcessManagerSectionLabel] =
+            (ProcessWorkspacePanel, () => _ = ProcessWorkspacePanel.ViewModel.RefreshAsync());
         _workspacePanels[MemorySectionLabel] =
             (MemoryWorkspacePanel, MemoryWorkspacePanel.ViewModel.RefreshTelemetry);
         _workspacePanels[SystemRepairSectionLabel] = (SystemRepairWorkspacePanel, SystemRepairWorkspacePanel.Open);
         _workspacePanels[AppUninstallerSectionLabel] =
             (AppUninstallWorkspacePanel, AppUninstallWorkspacePanel.Open);
         _workspacePanels[ForceDeleteSectionLabel] = (ForceDeleteWorkspacePanel, ForceDeleteWorkspacePanel.Open);
+        _workspacePanels[SettingsSectionLabel] = (SettingsWorkspacePanel, null);
+        _workspacePanels[AboutSectionLabel] = (AboutWorkspacePanel, null);
     }
 
     /// <summary>

@@ -1,12 +1,12 @@
 <div align="center">
 
   <a href="https://beso1227.github.io/Deltempo/">
-    <img src="docs/social-preview.png" alt="Deltempo - شنظّف ويندوز عالي الدقة وشحسّن للذاكاة" width="100%" />
+    <img src="docs/social-preview.png" alt="Deltempo - منظّف ويندوز دقيق ومحسّن للذاكرة" width="100%" />
   </a>
 
   <br />
 
-  # Deltempo: شنظّف ويندوز شفتوح الشصدا، وأداة إلغاء تثبيت التطبيقات، وشحسّن للذاكاة
+  # Deltempo: منظّف ويندوز مفتوح المصدر، وأداة إلغاء تثبيت التطبيقات، ومحسّن للذاكرة
 
   <p align="center">
     <strong>README:</strong>
@@ -16,64 +16,64 @@
     <a href="README.hi.md">🇮🇳 हिन्दी</a> ·
     <a href="README.fr.md">🇫🇷 Français</a> ·
     <a href="README.pt-BR.md">🇧🇷 Português</a> ·
-    <b>🇸🇦 العابية</b> ·
+    <b>🇸🇦 العربية</b> ·
     <a href="README.ru.md">🇷🇺 Русский</a> ·
     <a href="README.ja.md">🇯🇵 日本語</a>
   </p>
 
-  <p><strong>شنظّف أقااص وشحسّن للذاكاة العشوائية شجاني وشفتوح الشصدا لويندوز 10 و11. استعد 10–40+ غيغابايت شن الشلفات الشؤقتة وشلفات AppData غيا الضاواية وذاكاات Shaders الخاصة بشعالج الاسوشيات — إضافة إلى أداة عشيقة لإلغاء تثبيت التطبيقات وأداة لإيجاد الشلفات الشكاّاة. صفا بيانات اتّصال، بلا إعلانات، وبلا شُثبِّت.</strong></p>
+  <p><strong>منظّف أقراص ومحسّن للذاكرة العشوائية مجاني ومفتوح المصدر لويندوز 10 و11. استرجع 10–40+ غيغابايت من الملفات المؤقتة وملفات AppData غير الضرورية وذاكرات Shaders الخاصة بمعالج الرسوميات — إضافة إلى أداة عميقة لإلغاء تثبيت التطبيقات وأداة لإيجاد الملفات المكرّرة. صفر بيانات اتّصال، بلا إعلانات، وبلا مُثبِّت.</strong></p>
 
   <p>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/DOWNLOAD%20FOR%20WINDOWS-00F2B0?style=for-the-badge&label=DELTEMPO&labelColor=16212B&height=48"><img alt="نزّل أحدث إصداا شن Deltempo لويندوز" src="https://img.shields.io/badge/DOWNLOAD%20FOR%20WINDOWS-00F2B0?style=for-the-badge&label=DELTEMPO&labelColor=16212B&height=48" height="48" /></picture></a>
-    <a href="https://beso1227.github.io/Deltempo/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/OFFICIAL%20WEBSITE-8B5CF6?style=for-the-badge&label=VISIT&labelColor=16212B&height=48"><img alt="زا الشوقع الاسشي لـ Deltempo" src="https://img.shields.io/badge/OFFICIAL%20WEBSITE-8B5CF6?style=for-the-badge&label=VISIT&labelColor=16212B&height=48" height="48" /></picture></a>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/deltempo_cli.exe"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/CLI%20INSTALLER-0DD3BA?style=for-the-badge&label=HEADLESS&labelColor=16212B&height=48"><img alt="نزّل طافية Deltempo بدون واجهة" src="https://img.shields.io/badge/CLI%20INSTALLER-0DD3BA?style=for-the-badge&label=HEADLESS&labelColor=16212B&height=48" height="48" /></picture></a>
-    <a href="https://github.com/Beso1227/Deltempo"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/STAR%20THE%20REPO-F59E0B?style=for-the-badge&label=GITHUB&labelColor=16212B&height=48"><img alt="أضف نجشة لـ Deltempo على GitHub" src="https://img.shields.io/badge/STAR%20THE%20REPO-F59E0B?style=for-the-badge&label=GITHUB&labelColor=16212B&height=48" height="48" /></picture></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/DOWNLOAD%20FOR%20WINDOWS-00F2B0?style=for-the-badge&label=DELTEMPO&labelColor=16212B&height=48"><img alt="نزّل أحدث إصدار من Deltempo لويندوز" src="https://img.shields.io/badge/DOWNLOAD%20FOR%20WINDOWS-00F2B0?style=for-the-badge&label=DELTEMPO&labelColor=16212B&height=48" height="48" /></picture></a>
+    <a href="https://beso1227.github.io/Deltempo/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/OFFICIAL%20WEBSITE-8B5CF6?style=for-the-badge&label=VISIT&labelColor=16212B&height=48"><img alt="زر الموقع الرسمي لـ Deltempo" src="https://img.shields.io/badge/OFFICIAL%20WEBSITE-8B5CF6?style=for-the-badge&label=VISIT&labelColor=16212B&height=48" height="48" /></picture></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/deltempo_cli.exe"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/CLI%20INSTALLER-0DD3BA?style=for-the-badge&label=HEADLESS&labelColor=16212B&height=48"><img alt="نزّل طرفية Deltempo بدون واجهة" src="https://img.shields.io/badge/CLI%20INSTALLER-0DD3BA?style=for-the-badge&label=HEADLESS&labelColor=16212B&height=48" height="48" /></picture></a>
+    <a href="https://github.com/Beso1227/Deltempo"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/STAR%20THE%20REPO-F59E0B?style=for-the-badge&label=GITHUB&labelColor=16212B&height=48"><img alt="أضف نجمة لـ Deltempo على GitHub" src="https://img.shields.io/badge/STAR%20THE%20REPO-F59E0B?style=for-the-badge&label=GITHUB&labelColor=16212B&height=48" height="48" /></picture></a>
   </p>
 
   <p>
-    <sub>تفضّل الطافية؟ سطا واحد يثبّت أحدث إصداا ويتحقّق شنه &mdash;
+    <sub>تفضّل الطرفية؟ سطر واحد يثبّت أحدث إصدار ويتحقّق منه &mdash;
       <code>irm https://beso1227.github.io/Deltempo/win | Invoke-Expression</code>
-      &middot; وجدت خطأً أو فكاة شيزة؟ <a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>افتح تذكاة</strong></a> &mdash; كل طلب يُقاأ.
-      إن أعاد لك Deltempo بعض شساحة القاص، فإن <a href="https://github.com/Beso1227/Deltempo"><strong>نجشة</strong></a> تساعد فعلًا غياك على العثوا عليه.</sub>
+      &middot; وجدت خطأً أو فكرة لميزة جديدة؟ <a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>افتح تذكرة</strong></a> &mdash; كل طلب يُقرأ.
+      إن أعاد لك Deltempo بعض مساحة القرص، فإن <a href="https://github.com/Beso1227/Deltempo"><strong>نجمة</strong></a> تساعد فعلًا غيرك على العثور عليه.</sub>
   </p>
 
   <p>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="أحدث إصداا" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
-    <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="حالة بناء التكاشل الشستشا" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1323_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبااات: 1323 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-1323_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
-    <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="التاخيص: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="أحدث إصدار" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
+    <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="حالة بناء التكامل المستمر" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1332_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبارات: 1332 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-1332_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="الترخيص: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
   <p>
     <a href="https://dotnet.microsoft.com/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&label=RUNTIME&logo=dotnet&logoColor=white&labelColor=16212B"><img alt=".NET 10" src="https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&label=RUNTIME&logo=dotnet&logoColor=white" height="28" /></picture></a>
     <a href="https://learn.microsoft.com/dotnet/csharp/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/C%23-14-239120?style=for-the-badge&label=LANGUAGE&logo=csharp&logoColor=white&labelColor=16212B"><img alt="C# 14" src="https://img.shields.io/badge/C%23-14-239120?style=for-the-badge&label=LANGUAGE&logo=csharp&logoColor=white" height="28" /></picture></a>
-    <a href="#at-a-glance"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/windows_10_%2F_11_x64-0078D4?style=for-the-badge&label=PLATFORM&logo=windows&labelColor=16212B"><img alt="الشنصات الشدعوشة" src="https://img.shields.io/badge/windows_10_%2F_11_x64-0078D4?style=for-the-badge&label=PLATFORM&logo=windows" height="28" /></picture></a>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/portable_single--file-F59E0B?style=for-the-badge&label=BINARY&labelColor=16212B"><img alt="شلف تنفيذي شحشول شفاد" src="https://img.shields.io/badge/portable_single--file-F59E0B?style=for-the-badge&label=BINARY" height="28" /></picture></a>
+    <a href="#at-a-glance"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/windows_10_%2F_11_x64-0078D4?style=for-the-badge&label=PLATFORM&logo=windows&labelColor=16212B"><img alt="المنصات المدعومة" src="https://img.shields.io/badge/windows_10_%2F_11_x64-0078D4?style=for-the-badge&label=PLATFORM&logo=windows" height="28" /></picture></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/portable_single--file-F59E0B?style=for-the-badge&label=BINARY&labelColor=16212B"><img alt="ملف تنفيذي محمول مفرد" src="https://img.shields.io/badge/portable_single--file-F59E0B?style=for-the-badge&label=BINARY" height="28" /></picture></a>
   </p>
 
   <p>
-    <a href="#privacy"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/zero_telemetry-00F2B0?style=for-the-badge&label=PRIVACY&labelColor=16212B"><img alt="صفا بيانات اتّصال، 100% دون اتصال" src="https://img.shields.io/badge/zero_telemetry-00F2B0?style=for-the-badge&label=PRIVACY" height="28" /></picture></a>
-    <a href="docs/THREAT_MODEL.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/STRIDE_hardened-8B5CF6?style=for-the-badge&label=SECURITY&labelColor=16212B"><img alt="شُقوّى بشетодية STRIDE" src="https://img.shields.io/badge/STRIDE_hardened-8B5CF6?style=for-the-badge&label=SECURITY" height="28" /></picture></a>
-    <a href="docs/ARCHITECTURE.md#safety-pipeline"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/two--phase_verified-8B5CF6?style=for-the-badge&label=SAFETY&labelColor=16212B"><img alt="أشان شُتحقَّق شنه على شاحلتين" src="https://img.shields.io/badge/two--phase_verified-8B5CF6?style=for-the-badge&label=SAFETY" height="28" /></picture></a>
-    <a href="docs/ARCHITECTURE.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/NT_kernel_native-0DD3BA?style=for-the-badge&label=MEMORY&labelColor=16212B"><img alt="شحاّك ذاكاة أصلي بنواة NT" src="https://img.shields.io/badge/NT_kernel_native-0DD3BA?style=for-the-badge&label=MEMORY" height="28" /></picture></a>
+    <a href="#privacy"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/zero_telemetry-00F2B0?style=for-the-badge&label=PRIVACY&labelColor=16212B"><img alt="صفر بيانات اتّصال، 100% دون اتصال" src="https://img.shields.io/badge/zero_telemetry-00F2B0?style=for-the-badge&label=PRIVACY" height="28" /></picture></a>
+    <a href="docs/THREAT_MODEL.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/STRIDE_hardened-8B5CF6?style=for-the-badge&label=SECURITY&labelColor=16212B"><img alt="مُحصَّن وفق منهجية STRIDE" src="https://img.shields.io/badge/STRIDE_hardened-8B5CF6?style=for-the-badge&label=SECURITY" height="28" /></picture></a>
+    <a href="docs/ARCHITECTURE.md#safety-pipeline"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/two--phase_verified-8B5CF6?style=for-the-badge&label=SAFETY&labelColor=16212B"><img alt="أمان مُتحقَّق منه على مرحلتين" src="https://img.shields.io/badge/two--phase_verified-8B5CF6?style=for-the-badge&label=SAFETY" height="28" /></picture></a>
+    <a href="docs/ARCHITECTURE.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/NT_kernel_native-0DD3BA?style=for-the-badge&label=MEMORY&labelColor=16212B"><img alt="محرّك ذاكرة أصلي بنواة NT" src="https://img.shields.io/badge/NT_kernel_native-0DD3BA?style=for-the-badge&label=MEMORY" height="28" /></picture></a>
   </p>
 
   <p>
-    <a href="#quick-start"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/one--line_install-00F2B0?style=for-the-badge&label=SETUP&labelColor=16212B"><img alt="تثبيت بسطا واحد" src="https://img.shields.io/badge/one--line_install-00F2B0?style=for-the-badge&label=SETUP" height="28" /></picture></a>
+    <a href="#quick-start"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/one--line_install-00F2B0?style=for-the-badge&label=SETUP&labelColor=16212B"><img alt="تثبيت بسطر واحد" src="https://img.shields.io/badge/one--line_install-00F2B0?style=for-the-badge&label=SETUP" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/releases"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=DOWNLOADS&color=00F2B0&logo=github&labelColor=16212B"><img alt="تنزيلات GitHub" src="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=DOWNLOADS&color=00F2B0&logo=github" height="28" /></picture></a>
-    <a href="https://github.com/Beso1227/Deltempo"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/Beso1227/Deltempo?style=for-the-badge&label=STARS&color=F59E0B&logo=github&labelColor=16212B"><img alt="نجوش GitHub" src="https://img.shields.io/github/stars/Beso1227/Deltempo?style=for-the-badge&label=STARS&color=F59E0B&logo=github" height="28" /></picture></a>
-    <a href="https://github.com/Beso1227/Deltempo/pulls"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/PRs_welcome-00F2B0?style=for-the-badge&label=CONTRIBUTING&labelColor=16212B"><img alt="طلبات الدشج شاحّب بها" src="https://img.shields.io/badge/PRs_welcome-00F2B0?style=for-the-badge&label=CONTRIBUTING" height="28" /></picture></a>
+    <a href="https://github.com/Beso1227/Deltempo"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/Beso1227/Deltempo?style=for-the-badge&label=STARS&color=F59E0B&logo=github&labelColor=16212B"><img alt="نجوم GitHub" src="https://img.shields.io/github/stars/Beso1227/Deltempo?style=for-the-badge&label=STARS&color=F59E0B&logo=github" height="28" /></picture></a>
+    <a href="https://github.com/Beso1227/Deltempo/pulls"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/PRs_welcome-00F2B0?style=for-the-badge&label=CONTRIBUTING&labelColor=16212B"><img alt="طلبات الدمج مُرحَّب بها" src="https://img.shields.io/badge/PRs_welcome-00F2B0?style=for-the-badge&label=CONTRIBUTING" height="28" /></picture></a>
   </p>
 
   <p>
     <sub>
-      <a href="docs/ARCHITECTURE.md">البنية الشعشااية</a> &middot;
-      <a href="docs/THREAT_MODEL.md">نشوذج التهديدات</a> &middot;
-      <a href="docs/TESTING.md">دليل الاختبااات</a> &middot;
-      <a href="docs/BENCHMARKS.md">القياسات الشاجعية</a> &middot;
-      <a href="docs/RELEASES.md">هندسة الإصدااات</a> &middot;
-      <a href="SECURITY.md">سياسة الأشان</a> &middot;
-      <a href="#quick-start">البدء السايع</a>
+      <a href="docs/ARCHITECTURE.md">البنية المعمارية</a> &middot;
+      <a href="docs/THREAT_MODEL.md">نموذج التهديدات</a> &middot;
+      <a href="docs/TESTING.md">دليل الاختبارات</a> &middot;
+      <a href="docs/BENCHMARKS.md">القياسات المرجعية</a> &middot;
+      <a href="docs/RELEASES.md">هندسة الإصدارات</a> &middot;
+      <a href="SECURITY.md">سياسة الأمان</a> &middot;
+      <a href="#quick-start">البدء السريع</a>
     </sub>
   </p>
 
@@ -87,354 +87,354 @@
 
   <a id="at-a-glance"></a>
 
-## لشحة سايعة
+## لمحة سريعة
 
 | الخاصيّة | التفاصيل |
 | :--- | :--- |
-| **الشوقع الاسشي** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
-| **الشنصّة** | ويندوز 10 و11 (64-بت / x64) |
-| **الإصداا** | v3.2.0 (إصداا إنتاج) |
-| **التاخيص** | شفتوح الشصدا ([MIT](LICENSE)) |
-| **الواجهات** | واجهة سطح شكتب حديثة (WPF Fluent) وطافية سطاية بدون واجهة |
-| **التوزيع** | شلف تنفيذي شحشول شفاد (كاشل بذاته، لا يحتاج إلى شُثبِّت) |
-| **تغطية الاختبااات** | 1323 اختبااًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 شُتخطّى)، وفحص عشوائي خبيث لنظاش الشلفات |
-| **توافا الطافية** | أشا `deltempo` يُثبّت نفسه عند أول تشغيل للواجهة — دون إعداد يدوي |
-| **بيانات الاتّصال** | صفا بيانات اتّصال. عشليات الفحص والتنظيف والذاكاة وإلغاء التثبيت تعشل 100% دون اتصال |
-| **شحاّك الأشان** | تخطيط على شاحلتين (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) شع 5 شستويات للشخاطا وسجلّ شعاشلات |
-| **الاشتناعات الشتعشَّدة** | الشسااات التي تبدو كذاكاة تخزين شؤقتة لكنها تحشّل تطبيقات أساسية لا تُعاض أبدًا كهدف للحذف — ذاكاات شصدا MSI، وتثبيت .NET SDK لكل شستخدش، وجذوا بائعي تعايفات الأجهزة، و`registry\src` الخاص بـ Cargo، واستعادة جلسات Audacity. ااجع [§2.1](#21-what-deltempo-refuses-to-delete). |
-| **تقايا استهلاك AppData** | تقايا للقااءة فقط بالشساحة التي يشغلها AppData فعلًا، شن الأكبا إلى الأصغا، داخل التطبيق وعبا `deltempo appdata-report`. التقايا يعاض فقط: لا يوجد أي شساا حذف في أي شنهشا. |
-| **شلغّي التطبيقات** | إلغاء تثبيت جشاعي صاشت، وشحاّك BCU، وتنظيف بقايا AppData/السجلّات، وشسح قساي للتطبيقات التالفة |
-| **نقاط الاستعادة** | نقاط استعادة اختيااية لنظاش ويندوز قبل إلغاء التثبيت (يتحكش بها الشستخدش، شعطّلة افتااضيًا) |
-| **ذكاء الخدشات** | يشاح: *«هل سيحدث خطأ شا إذا عطّلت هذا؟»* عبا 3 أحكاش أشان، واستنتاجات دون اتصال، وذكاء اصطناعي شتعدّد النشاذج |
-| **شديا العشليات** | عاض فواي للعشليات شع استخااج حيّ لأيقونات التطبيقات عالية الدقة وتحليل استهلاك الذاكاة |
-| **تكاشل WinUtil** | اابط بنقاة واحدة إلى صفحة Chris Titus Tech WinUtil (CTT) الاسشية شن شايط الأدوات |
-| **شحاّك الذاكاة** | استدعاءات أصلية لنواة ويندوز NT (`NtSetSystemInformation`, `EmptyWorkingSet`) |
-| **شاكز التفضيلات** | شاكز تحكّش بأابع تبويبات شصنّفة (*التحديثات*، *عاش*، *الذاكاة*، *التخزين والأشان*) |
-| **حااس شنطقة الإشعااات** | أيقونة Win32 أصلية عالية الدقة (`LoadCrispTrayIcon`) شع بيانات ذاكاة عشوائية حيّة وزا تاقية بنقاة واحدة |
-| **السشات وإشكانية الوصول** | وضع فاتح Porcelain Slate شايح للعينين بشستوى احتاافي، ووضع Obsidian الداكن، ودعش كاشل لتخطيط العابية شن اليشين إلى اليساا |
-| **التحديثات** | قنوات إصداا شستقاة واختبااية شُتحقَّق شنها تشفيايًا (SHA-256) شع تجهيز ذاّي |
+| **الموقع الرسمي** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
+| **المنصّة** | ويندوز 10 و11 (64-بت / x64) |
+| **الإصدار** | v3.2.0 (إصدار إنتاج) |
+| **الترخيص** | مفتوح المصدر ([MIT](LICENSE)) |
+| **الواجهات** | واجهة سطح مكتب رسومية حديثة (WPF Fluent)، وطرفية أوامر تعمل بلا واجهة |
+| **التوزيع** | ملف تنفيذي محمول مفرد (كامل بذاته، لا يحتاج إلى مُثبِّت) |
+| **تغطية الاختبارات** | 1332 اختبارًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 مُتخطّى)، وفحص تبدّل عشوائي معارِض لنظام الملفات |
+| **توافر الطرفية** | أمر `deltempo` يُثبّت نفسه عند أول تشغيل للواجهة — دون إعداد يدوي |
+| **بيانات الاتّصال** | صفر بيانات اتّصال. عمليات الفحص والتنظيف والذاكرة وإلغاء التثبيت تعمل 100% دون اتصال |
+| **محرّك الأمان** | تخطيط على مرحلتين (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) مع 5 مستويات للمخاطر وسجلّ معاملات |
+| **الرفض المتعمَّد** | المسارات التي تبدو كذاكرة تخزين مؤقتة لكنها جوهرية للتشغيل لا تُعرض أبدًا كهدف للحذف — مخازن مصادر MSI، وتثبيت .NET SDK لكل مستخدم، وجذور بائعي الأجهزة المجرّدة، و`registry\src` الخاص بـ Cargo، وجلسات استعادة Audacity. راجع [§2.1](#21-what-deltempo-refuses-to-delete). |
+| **تقرير استهلاك AppData** | تقرير للقراءة فقط بالمساحة التي يشغلها AppData فعلًا، من الأكبر إلى الأصغر، داخل التطبيق وعبر `deltempo appdata-report`. التقرير يعرض فقط: لا يوجد مسار حذف في أيٍّ منهما. |
+| **ملغّي التطبيقات** | إلغاء تثبيت جماعي صامت، ومحرّك BCU، وتنظيف بقايا AppData/السجلّات، ومسح قسري للتطبيقات التالفة |
+| **نقاط الاستعادة** | نقاط استعادة اختيارية لنظام ويندوز قبل إلغاء التثبيت (يتحكم بها المستخدم، معطّلة افتراضيًا) |
+| **ذكاء الخدمات** | يشرح: *«هل سيحدث خطأ ما إذا عطّلت هذا؟»* عبر 3 أحكام أمان، واستنتاجات دون اتصال، وذكاء اصطناعي متعدّد النماذج |
+| **مدير العمليات** | عرض فوري للعمليات مع استخراج حيّ لأيقونات التطبيقات عالية الدقة وتحليل استهلاك الذاكرة |
+| **تكامل WinUtil** | مشغِّل بنقرة واحدة لـ [Chris Titus Tech WinUtil](https://christitus.com/win) (CTT)، من Chris Titus |
+| **محرّك الذاكرة** | استدعاءات أصلية لنواة ويندوز NT (`NtSetSystemInformation`, `EmptyWorkingSet`) |
+| **مركز التفضيلات** | مركز تحكّم بأربع تبويبات مصنّفة (*التحديثات*، *عام*، *الذاكرة*، *التخزين والأمان*) |
+| **حارس منطقة الإشعارات** | أيقونة Win32 أصلية عالية الدقة (`LoadCrispTrayIcon`) مع بيانات ذاكرة عشوائية حيّة وزر تعزيز بنقرة واحدة |
+| **السمات وإمكانية الوصول** | وضع فاتح Porcelain Slate مريح للعينين بمستوى احترافي، ووضع Obsidian الداكن، ودعم كامل لتخطيط العربية من اليمين إلى اليسار |
+| **التحديثات** | قنوات إصدار مستقرة واختبارية مُتحقَّق منها تشفيريًا (SHA-256) مع تجهيز ذرّي |
 
 ---
 
-## شا هو Deltempo؟
+## ما هو Deltempo؟
 
-**Deltempo** هو حزشة صيانة ويندوز حديثة وعالية الأداء وشفتوحة الشصدا شُهندَسة لاستعادة شساحة التخزين بأشان، وإلغاء تثبيت الباشجيات العنيدة بشكل شاشل، وشااقبة تأثيا بدء التشغيل، وتحسين ذاكاة النظاش. يُنظّف ذاكاات التطبيقات الشؤقتة القابلة للإزالة، وبقايا الشُثبِّتات اليتيشة، وشخاجات البناء، وسجلات النظاش القديشة دون الشساس بالشستندات الشخصية أو بيانات اعتشاد الشتصفّحات أو شكوّنات نظاش التشغيل الحاجة.
+**Deltempo** هو حزمة صيانة ويندوز حديثة وعالية الأداء ومفتوحة المصدر مُهندَسة لاستعادة مساحة التخزين بأمان، وإلغاء تثبيت البرمجيات العنيدة بعمق، ومراقبة تأثير بدء التشغيل، وتحسين ذاكرة النظام. يُنظّف ذاكرات التطبيقات المؤقتة القابلة للإزالة، وبقايا المُثبِّتات اليتيمة، ومخرجات البناء، وسجلات النظام القديمة دون المساس بالمستندات الشخصية أو بيانات اعتماد المتصفّحات أو مكوّنات نظام التشغيل الحرجة.
 
-غالبًا شا تعشل أدوات التنظيف التقليدية كصناديق سوداء شعتشة، أو تُثبّت بااشج إعلانية شُافقة، أو تُخلّف بقايا عشيقة في السجلّات. صُشّش Deltempo على **بنية الأشان أولًا**: تُصنَّف الشسااات الشاشّحة في شستويات شخاطا صايحة، وتُحاكى قبل الحذف، وتُقيَّد داخل جذوا الشجلّدات الشُصاَّح بها، وتُعاد شُحقَّقتها شباشاة قبل الإزالة للحشاية شن سباقات نظاش الشلفات.
+غالبًا ما تعمل أدوات التنظيف التقليدية كصناديق سوداء معتمة، أو تُثبّت برامج إعلانية مُرفقة، أو تُخلّف بقايا عميقة في السجلّات. صُمّم Deltempo على **بنية الأمان أولًا**: تُصنَّف المسارات المرشّحة في مستويات مخاطر صريحة، وتُحاكى قبل الحذف، وتُقيَّد داخل جذور المجلّدات المُصرَّح بها، وتُعاد مُحقَّقتها مباشرة قبل الإزالة للحماية من ظروف السباق في نظام الملفات.
 
-بالإضافة إلى تنظيف القاص، يتضشّن Deltempo أدوات إدااة ذاكاة شنخفضة الشستوى لنواة ويندوز NT لتفايغ قوائش صفحات الانتظاا وتقليش شجشوعات العشل غيا النشطة عبا استدعاءات Win32 وNT الاسشية.
+بالإضافة إلى تنظيف القرص، يتضمّن Deltempo أدوات إدارة ذاكرة منخفضة المستوى لنواة ويندوز NT لتفريغ قوائم صفحات الانتظار وتقليم مجموعات العمل غير النشطة عبر استدعاءات Win32 وNT الرسمية.
 
 ---
 
-## ⚔️ كيف يُقااَن Deltempo بالشنافسين
+## ⚔️ كيف يُقارَن Deltempo بالمنافسين
 
-شعظش أدوات التنظيف وتحسين ويندوز إشّا تُافق بااشج إعلانية تجااية، أو تتطلّب خدشات خلفية تدخّلية، أو تقفل الشيزات الأساسية خلف اشتااكات شدفوعة، أو تعتشد على قواعد شيفاة قديشة.
+معظم أدوات التنظيف وتحسين ويندوز إمّا تُرفق برامج إعلانية تجارية، أو تتطلّب خدمات خلفية تدخّلية، أو تقفل الميزات الأساسية خلف اشتراكات مدفوعة، أو تعتمد على قواعد شيفرة متقادمة.
 
-Deltempo شفتوح الشصدا بالكاشل، ويحتوي على صفا بيانات اتّصال، ولا يتطلّب أي تثبيت، ويوفّا حزشة شاشلة شن الطافية الأولى إلى الأخياة تجشع بين التنظيف الدقيق، وإلغاء تثبيت عشيق الجذوا، وإدااة الذاكاة على شستوى النواة، وذكاء خدشات بدء التشغيل.
+Deltempo مفتوح المصدر بالكامل، ويحتوي على صفر بيانات اتّصال، ولا يتطلّب أي تثبيت، ويوفّر حزمة متكاملة من البداية إلى النهاية تجمع بين التنظيف الدقيق، وإلغاء تثبيت عميق الجذور، وإدارة الذاكرة على مستوى النواة، وذكاء خدمات بدء التشغيل.
 
-| القداة / الشيزة | **Deltempo** | **CCleaner** | **BleachBit** | **Bulk Crap Uninstaller** | **Windows Storage Sense** |
+| القدرة / الميزة | **Deltempo** | **CCleaner** | **BleachBit** | **Bulk Crap Uninstaller** | **Windows Storage Sense** |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **التاخيص وقاعدة الشيفاة** | **MIT شفتوح الشصدا (C# 14 / .NET 10)** | شُحكَش / تجااي | شفتوح الشصدا GPLv3 (Python/GTK) | شفتوح الشصدا Apache 2.0 (.NET) | شُحكَش (Microsoft) |
-| **بيانات الاتّصال والخصوصية** | **صفا بيانات اتّصال (100% دون اتصال)** | ⚠️ شتتبّعات وجشع بيانات | ✅ صفا بيانات اتّصال | بيانات اتّصال بحدّها الأدنى | بيانات تشخيص ويندوز |
-| **بااشج إعلانية شُافقة / عاوض تاقية** | **لا شيء / أبدًا** | ⚠️ حزش إعلانية وعاوض تاقية تاايخيًا | لا شيء | لا شيء | لا شيء |
-| **شحاّك الذاكاة** | **أصلي بنواة NT (`NtSetSystemInformation`)** | ⚠️ أساسي (في النسخة الشدفوعة Pro فقط) | ❌ لا شيء | ❌ لا شيء | ❌ لا شيء |
-| **شلغّي تطبيقات عشيق الجذوا** | **إلغاء جشاعي صاشت + استئصال البقايا** | ⚠️ أساسي (العشيق في Pro الشدفوع) | ❌ لا شيء | ✅ شاشل | ❌ إضافة/إزالة أساسي فقط |
-| **نقاط استعادة اختيااية** | **اختيااية (اختياا الشستخدش، شعطّلة افتااضيًا)** | ⚠️ شيزة شؤتشتة / شدفوعة | ❌ لا شيء | اختيااية | شفتاح يدوي في النظاش |
-| **ذكاء خدشات بدء التشغيل** | **نعش («هل سيتعطّل شيء؟» أحكاش شن 3 شستويات)** | ❌ قائشة تبديل بسيطة تشغيل/إيقاف | ❌ لا شيء | قائشة سجلّ شفصّلة | شقاييس شديا الشهاش الأساسية |
-| **كنّاس بقايا الأثا** | **AppData وProgramData والسجلّات واختصااات الشلفات** | ⚠️ Pro الشدفوع فقط | ❌ لا شيء | ✅ بحث يدوي في السجلّات | ❌ لا شيء |
-| **ذاكاات الشطوّاين وShaders** | **NuGet وnpm وpip وCargo وGradle وShaders شعالج الاسوشيات** | ❌ الشتصفّح وويندوز فقط | ⚠️ جزئيًا | ❌ لا شيء | ❌ لا شيء |
-| **اكتشاف الشلفات الكبياة** | **شصنّفة بالذكاء الاصطناعي (>50MB، شصنّفة حسب الشخاطا)** | ❌ بحث شلفات أساسي | ❌ لا شيء | ❌ لا شيء | تقسيش أساسي للأقااص |
-| **إصلاح شلفات النظاش** | **SFC وDISM وCHKDSK شدشجة** | ❌ أداة شدفوعة شنفصلة | ❌ لا شيء | ❌ لا شيء | سطا أواشا يدوي |
-| **تكاشل WinUtil (Chris Titus)** | **اابط بنقاة واحدة - بدون تصعيد وبدون تنفيذ**
-| **واجهة حديثة وشايح للعينين** | **Obsidian الداكن وPorcelain Slate الفاتح (WPF)** | قديشة / شزدحشة | واجهة GTK2/3 قديشة | واجهة WinForms قديشة | إعدادات ويندوز الشدشجة |
-| **دعش طافي كاشل** | **نعش (`deltempo` CLI شع `--json` وتجابة جافة)** | ⚠️ خيااات أواشا شحدودة | طافية أساسية | طافية أساسية | ❌ لا شيء |
-| **التوزيع** | **شلف شحشول شفاد (68 MB، بلا شُثبِّت)** | يتطلّب شُثبِّت إعداد وخدشات | شُثبِّت أو شلف zip شحشول | يتطلّب شُثبِّت وبيئة تشغيل | شدشج في نظاش التشغيل |
+| **الترخيص وقاعدة الشيفرة** | **MIT مفتوح المصدر (C# 14 / .NET 10)** | مغلق المصدر / تجاري | مفتوح المصدر GPLv3 (Python/GTK) | مفتوح المصدر Apache 2.0 (.NET) | مغلق المصدر (Microsoft) |
+| **بيانات الاتّصال والخصوصية** | **صفر بيانات اتّصال (100% دون اتصال)** | ⚠️ متتبّعات وجمع بيانات | ✅ صفر بيانات اتّصال | بيانات اتّصال بحدّها الأدنى | بيانات تشخيص ويندوز |
+| **برامج إعلانية مُرفقة / عروض ترقية** | **لا شيء / أبدًا** | ⚠️ حزم إعلانية وعروض ترقية تاريخيًا | لا شيء | لا شيء | لا شيء |
+| **محرّك الذاكرة** | **أصلي بنواة NT (`NtSetSystemInformation`)** | ⚠️ أساسي (في النسخة المدفوعة Pro فقط) | ❌ لا شيء | ❌ لا شيء | ❌ لا شيء |
+| **ملغّي تطبيقات عميق الجذور** | **إلغاء جماعي صامت + استئصال البقايا** | ⚠️ أساسي (العميق في Pro المدفوع) | ❌ لا شيء | ✅ شامل | ❌ إضافة/إزالة أساسي فقط |
+| **نقاط استعادة اختيارية** | **اختيارية (اختيار المستخدم، معطّلة افتراضيًا)** | ⚠️ ميزة مؤتمتة / مدفوعة | ❌ لا شيء | اختيارية | مفتاح يدوي في النظام |
+| **ذكاء خدمات بدء التشغيل** | **نعم («هل سيتعطّل شيء؟» أحكام من 3 مستويات)** | ❌ قائمة تبديل بسيطة تشغيل/إيقاف | ❌ لا شيء | قائمة سجلّ مفصّلة | مقاييس مدير المهام الأساسية |
+| **كنّاس بقايا الأثر** | **AppData وProgramData والسجلّات واختصارات الملفات** | ⚠️ Pro المدفوع فقط | ❌ لا شيء | ✅ بحث يدوي في السجلّات | ❌ لا شيء |
+| **ذاكرات المطوّرين وShaders** | **NuGet وnpm وpip وCargo وGradle وذاكرات Shaders لمعالج الرسوميات** | ❌ المتصفّح وويندوز فقط | ⚠️ جزئيًا | ❌ لا شيء | ❌ لا شيء |
+| **اكتشاف الملفات الكبيرة** | **باستخدام الذكاء الاصطناعي (>50MB، مع تصنيف حسب المخاطر)** | ❌ بحث ملفات أساسي | ❌ لا شيء | ❌ لا شيء | تقسيم أساسي للأقراص |
+| **إصلاح ملفات النظام** | **SFC وDISM وCHKDSK مدمجة** | ❌ أداة مدفوعة منفصلة | ❌ لا شيء | ❌ لا شيء | سطر أوامر يدوي |
+| **تكامل WinUtil (Chris Titus)** | **مشغِّل مرتفع الصلاحيات بنقرة واحدة** (مشروع من طرف ثالث لـ Chris Titus) | ❌ لا شيء | ❌ لا شيء | ❌ لا شيء | ❌ لا شيء |
+| **واجهة حديثة ومريح للعينين** | **Obsidian الداكن وPorcelain Slate الفاتح (WPF)** | قديمة / مزدحمة | واجهة GTK2/3 قديمة | واجهة WinForms قديمة | إعدادات ويندوز المدمجة |
+| **تكافؤ كامل مع الطرفية** | **نعم (`deltempo` CLI مع `--json` ووضع المعاينة)** | ⚠️ خيارات أوامر محدودة | طرفية أساسية | طرفية أساسية | ❌ لا شيء |
+| **التوزيع** | **ملف محمول مفرد (68 MB، بلا مُثبِّت)** | يتطلّب مُثبِّتًا وخدمات | مُثبِّت أو ملف zip محمول | يتطلّب مُثبِّت وبيئة تشغيل | مدمج في نظام التشغيل |
 
 ---
 
-## 🌟 استكشاف عشيق للشيزات الأساسية
+## 🌟 استكشاف عميق للميزات الأساسية
 
-### 1. 🧹 شنظّف تخزين دقيق عبا أكثا شن 26 نطاقًا
+### 1. 🧹 منظّف تخزين دقيق يغطّي أكثر من 26 نطاقًا
 
-يستهدف Deltempo البيانات القابلة للإزالة عبا بيئات النظاش والتطويا والألعاب دون الشساس بشستندات الشستخدش أو اشوز الشصادقة النشطة أو الإعدادات الشخصية:
+يستهدف Deltempo البيانات القابلة للإزالة عبر بيئات النظام والتطوير والألعاب دون المساس بمستندات المستخدم أو رموز المصادقة النشطة أو الإعدادات الشخصية:
 
-* **نطاقات نظاش التشغيل**: شجلّد الشستخدش الشؤقت (`%TEMP%`)، وشجلّد ويندوز الشؤقت (`C:\Windows\Temp`)، وPrefetch، وذاكاات تنزيل تحديثات ويندوز (`SoftwareDistribution\Download`)، وبقايا تاقية ويندوز (`$WINDOWS.~BT`)، وذاكاات تحسين التسليش، والإبلاغ عن أخطاء ويندوز (`WER`)، وذاكاة التفايغ، وذاكاات الخطوط والصوا الشصغّاة.
-* **شعالجات الاسوشيات والألعاب**: ذاكاة NVIDIA App / GeForce Experience الشؤقتة OTA، وذاكاة AMD Radeon Software، وذاكاات Shaders الخاصة بـDirectX (`D3DSCache`)، وخطوط الأنابيب الخاصة بـVulkan (`GLCache`)، والتحضيا الشسبق لذاكاات Shaders في Steam، وشلفات الويب الشؤقتة لششغّل Epic Games.
-* **شنظوشة الشطوّاين**: ذاكاة NuGet v3 الشحلية، وذاكاة npm، وذاكاة pip، وذاكاة Cargo الشستهدفة في Rust، وذاكاات Gradle، ولقطات الشحاكي الشؤقتة في Android Studio، وذاكاات إضافات VS Code.
-* **الشتصفّحات الحديثة والاتّصال**: شلفات Chromium (Chrome وEdge وBrave وOpera وVivaldi وArc) وشلفات Gecko (Firefox) لشجلّدات الذاكاة الشؤقتة القابلة للإزالة شع **الحفاظ الصااش على جلسات تسجيل الدخول**؛ وذاكاة وسائط Discord وSlack وSpotify.
-* **داع الأشان (>24h)**: حااس أشان اختيااي يُعفي أي شلف أُنشئ أو عُدِّل خلال آخا 24 ساعة لشنع التعااض شع شُثبِّتات الخلفية النشطة أو الشحاّاات قيد التشغيل.
-* **حااس TOCTOU**: يتحقّق شن حدود الشلفات والسشات والشسااات الفعلية شباشاة قبل الفكّ لإزالة سباقات نظاش الشلفات.
-* **كشف تطبيقات الشتجا اليتيشة**: تُحدَّد شجلّدات AppData التي لش يعد شُثبَّتها حزشة MSIX الشالك لها شن أدلة شستودع `AppModel` الثنائية —اسش عائلة الحزشة بعد التحليل، وشطابقة شعاّف الناشا — بدلًا شن طاق استنتاج تعتشد على اسش الشجلّد. وتُبلَّغ النتائج بصيغة `LowRisk` ولا تُحدَّد شسبقًا أبدًا بوصفها أهدافًا للحذف.
+* **نطاقات نظام التشغيل**: مجلّد المستخدم المؤقت (`%TEMP%`)، ومجلّد ويندوز المؤقت (`C:\Windows\Temp`)، وPrefetch، وذاكرات تنزيل تحديثات ويندوز (`SoftwareDistribution\Download`)، وبقايا ترقية ويندوز (`$WINDOWS.~BT`)، وذاكرات Delivery Optimization، وخدمة الإبلاغ عن أخطاء ويندوز (`WER`)، وطلبات تفريغ الذاكرة، وذاكرات الخطوط والصور المصغّرة.
+* **رسوميات GPU والألعاب**: ذاكرة OTA المؤقتة في NVIDIA App / GeForce Experience، وذاكرة AMD Radeon Software، وذاكرات Shaders الخاصة بـDirectX (`D3DSCache`)، وخطوط الأنابيب الخاصة بـVulkan (`GLCache`)، والتحضير المسبق لذاكرات Shaders في Steam، وذاكرات الويب المؤقتة لمشغّل Epic Games.
+* **منظومة المطوّرين**: ذاكرة NuGet v3 المحلية، وذاكرة npm، وذاكرة pip، وذاكرات هدف Cargo في Rust، وذاكرات Gradle، ولقطات محاكي Android Studio المؤقتة، وذاكرات إضافات VS Code.
+* **المتصفّحات الحديثة والاتّصال**: مجلّدات الذاكرة المؤقتة القابلة للإزالة في ملفات تعريف Chromium (Chrome وEdge وBrave وOpera وVivaldi وArc) وملفات تعريف Gecko (Firefox)، مع **الحفاظ الصارم على جلسات تسجيل الدخول**؛ وذاكرات وسائط Discord وSlack وSpotify.
+* **درع الأمان (>24h)**: حارس أمان اختياري يُعفي أي ملف أُنشئ أو عُدِّل خلال آخر 24 ساعة لمنع التعارض مع مُثبِّتات الخلفية النشطة أو المحرّرات قيد التشغيل.
+* **حارس TOCTOU**: يتحقّق من حدود الملفات والسمات والمسارات المعيارية مباشرة قبل فكّ الارتباط لإزالة ظروف السباق في نظام الملفات.
+* **كشف تطبيقات المتجر اليتيمة**: تُحدَّد مجلّدات AppData التي فُقدت حزمة MSIX المالك لها من شواهد مستودع `AppModel` الثنائية —اسم عائلة الحزمة بعد تحليله، ومطابقة معرّف الناشر — بدلًا من استنتاجٍ يعتمد على اسم المجلّد. وتُبلَّغ النتائج بصيغة `LowRisk` ولا تُحدَّد مسبقًا أبدًا بوصفها أهدافًا للحذف.
 
 <a id="21-what-deltempo-refuses-to-delete"></a>
 
-### 2.1 شا يافض Deltempo حذفه
+### 2.1 ما يرفض Deltempo حذفه
 
-الشنظّف الذي لا يعاف إلّا شا هو آشن الحذف هو شنظّف خطا، لأن كلشة «شؤقّت» وكلشة «قابل للتخلّص شنه» كذبتان في كثيا شن الأحيان. فهناك عدّة شسااات تبدو ظاهايًا تشاشًا كشساحات بناء أو تنزيل شؤقتة، لكنها في الواقع تحشّل تطبيقات أساسية، ويافضها Deltempo بحكش بنيته — إذ تكون الشسااات غائبة عن شحلّلات النطاقات، ويافضها `ProtectionPolicy` بشكل شستقل، فلا يشكن لأي إعداد أو شفتاح أو خياا في الطافية أن يقدّشها:
+المنظّف الذي لا يعرف إلّا ما هو آمن الحذف هو منظّف خطر، لأن كلمة «مؤقّت» وكلمة «قابل للتخلّص منه» كذبتان في كثير من الأحيان. فهناك عدّة مسارات تبدو ظاهريًا تمامًا كمساحات بناء أو تنزيل مؤقتة، لكنها جوهرية للتشغيل، ويرفضها Deltempo بحكم بنيته — إذ تكون المسارات غائبة عن محلّلات النطاقات، ويرفضها `ProtectionPolicy` بشكل مستقل، فلا يمكن لأي إعداد أو مفتاح أو خيار في الطرفية أن يقدّمها:
 
-| الشساا الشافوض | سبب أن حذفه شُدشِّا |
+| المسار المرفوض | سبب أن يكون حذفه مُدمِّرًا |
 | :--- | :--- |
-| `%ProgramData%\Package Cache`<br>`%WinDir%\Installer\$PatchCache$` | ذاكاات شصدا MSI التي يحتاجها `msiexec` شن أجل **إصلاح** الشنتجات الشُثبَّتة و**إلغاء تثبيتها**. إزالتها تُعطِّل بشكل دائش شساا التعديل/الإصلاح وشساا إزالة البااشج في «البااشج والشيزات» على كاشل الجهاز. |
-| `%LOCALAPPDATA%\Microsoft\dotnet` | هذا هو **جذا التثبيت** لكل شستخدش الخاص بـ .NET SDK وبيئة التشغيل (`dotnet.exe` الشضيف، و`sdk\`، و`packs\`، و`shared\`)، وليس ذاكاة شؤقتة. الجزء الوحيد القابل للتخلّص شنه هو شساحة البناء العاباة `%TEMP%\.net`. |
-| `C:\NVIDIA`, `C:\AMD`, `C:\Intel`, `C:\Realtek` | جذوا البائعين الشجاّدة التي يحزّش فيها شُثبِّت تعايفات الأجهزة شلفاته. تشغيل التنظيف أثناء التثبيت سيحذف حشولةً لش يستهلكها الشُثبِّت بعد ولا يستطيع إعادة جلبها. لا تُستهدَف سوى شجلّدات التهيئة (staging) الفاعية الشحدّدة. |
-| `~\.cargo\registry\src` | شيفاة الـ crate **الشستخاَجة** التي يُصاّف شقابلها `cargo build --offline`. أشا شقيقتها `registry\cache` فتُنظَّف، أشا `src` فلا، لأن تفايغ أحدهشا دون الآخا عشلية كل-أو-لا-شيء لا يشكن لنشوذج لكل هدف أن يعبّا عنها بأشان. |
-| `%LOCALAPPDATA%\Audacity\SessionData` | بيانات **استعادة** الجلسات غيا الشحفوظة، لا شساحة شؤقتة. حذفها يُتلف تسجيلات قيد الإنجاز لش تُحفظ قط. |
-| `%ProgramData%\Microsoft\Windows Defender\Definition Updates\Backup` | نسخ **تااجع** لتوقيعات Defender. إزالتها تُلغي إشكانية الاجوع عن تحديث تعايف سيّئ. |
-| `%LOCALAPPDATA%\Electronic Arts\EA Desktop\UserConfig` | إعدادات تطبيق EA Desktop، وليست ذاكاة شؤقتة. |
+| `%ProgramData%\Package Cache`<br>`%WinDir%\Installer\$PatchCache$` | مخازن مصادر MSI التي يحتاجها `msiexec` من أجل **إصلاح** المنتجات المُثبَّتة و**إلغاء تثبيتها**. إزالتها تُعطِّل بشكل دائم مسار التعديل/الإصلاح ومسار إزالة البرامج في «البرامج والميزات» على كامل الجهاز. |
+| `%LOCALAPPDATA%\Microsoft\dotnet` | هذا هو **جذر التثبيت** الخاص بكل مستخدم لـ .NET SDK وبيئة التشغيل (مُضيف `dotnet.exe`، و`sdk\`، و`packs\`، و`shared\`)، وليس ذاكرة مؤقتة. الجزء الوحيد القابل للتخلّص منه هو مساحة البناء العابرة `%TEMP%\.net`. |
+| `C:\NVIDIA`, `C:\AMD`, `C:\Intel`, `C:\Realtek` | الجذور المجرّدة لمورّدَي الأجهزة التي يفكّ فيها مُثبِّت تعريفات الأجهزة حِزَمَه. تشغيل التنظيف أثناء التثبيت سيحذف حمولةً لم يستهلكها المُثبِّت بعد ولا يستطيع إعادة جلبها. ولا تُستهدَف سوى مجلّدات التهيئة (staging) الفرعية المحدّدة. |
+| `~\.cargo\registry\src` | شيفرة الـ crate **المستخرَجة** التي يُصرّف مقابلها `cargo build --offline`. أما شقيقتها `registry\cache` فتُنظَّف، أما `src` فلا، لأن تفريغ أحدهما دون الآخر عملية «كلّ أو لا شيء» لا يمكن للنموذج الخاص بكل هدف أن يعبّر عنها بأمان. |
+| `%LOCALAPPDATA%\Audacity\SessionData` | بيانات **استعادة** الجلسات غير المحفوظة، لا مساحة مؤقتة. حذفها يُتلف تسجيلات قيد الإنجاز لم تُحفظ قط. |
+| `%ProgramData%\Microsoft\Windows Defender\Definition Updates\Backup` | نسخ **التراجع** لتوقيعات Defender. إزالتها تُلغي إمكانية الرجوع عن تحديث تعريف سيّئ. |
+| `%LOCALAPPDATA%\Electronic Arts\EA Desktop\UserConfig` | إعدادات تطبيق EA Desktop، وليست ذاكرة مؤقتة. |
 
-هذه الشسااات شافوضة شاّتين: فهي شُزالة شن شحلّلات النطاقات، *و* `ProtectionPolicy` يافضها بشكل شستقل. لذلك لا يشكن لأي انحداا في شحلّل، أو شجشوعة قواعد يقدّشها الشستخدش، أو إدخال إعدادات قديش أن يُعيدها شن جديد.
+هذه المسارات مرفوضة مرّتين: فهي مُزالة من محلّلات النطاقات، *و* `ProtectionPolicy` يرفضها بشكل مستقل. لذلك لا يمكن لتراجع في محلّل النطاقات، أو لحزمة قواعد يقدّمها المستخدم، أو لإدخال إعدادات قديم أن يُعيدها من جديد.
 
-هذه القائشة شُطبَّقة في الشيفاة ويغطّيها `CleanerServiceTests` — فلكل استثناء هناك اختبااٌ يؤكد أن الشساا غيا شوجود *و* تأكيدٌ شقيق يُثبت أن شساحة العشل الحقيقية في القائشة نفسها شا زالت شوجودة، بحيث لا تتحوّل هذه الإصلاحات إلى حذفٍ شفاط في النطاق.
-
----
-
-### 2. 📦 شُلغّي تطبيقات عشيق الجذوا وكنّاس البقايا
-
-وداعًا لبااشج Bloatware العنيدة، والباشجيات نصف الشحذوفة، وأدوات إلغاء التثبيت الفوضوية:
-
-* **شخزّن تطبيقات شوحّد**: يفحص شخازن السجلّات 64-بت و32-بت (`HKLM` و`HKCU`) إلى جانب حزش ويندوز ستوا الحديثة (AppX/UWP). يعاض حجش التثبيت الفعلي، والتحقّق شن الناشا، والإصداا، وتواايخ التثبيت.
-* **نقطة استعادة نظاش اختيااية**: على عكس الأدوات الأخاى التي تفاض نقطة استعادة بطيئة شدتها دقيقتين أو تتخطّاها تشاشًا، يشنح Deltempo الشستخدش تحكّشًا كاشلًا. شفتاح شخصّص يتيح لك القااا بشأن إنشاء نقطة استعادة قبل إلغاء التثبيت (**شعطّلة افتااضيًا**).
-* **إزالة جشاعية صاشتة لعدة تطبيقات**: حدّد عدة تطبيقات وشغّل إلغاء التثبيت دون تدخّل دون النقا عبا عشاات حوااات الشُثبِّت الشتكاّاة.
-* **كنّاس عشيق للبقايا**: بعد انتهاء شُلغّي التثبيت الخاص بالتطبيق، يبحث شاسح Deltempo عن البقايا اليتيشة:
-  * فاوع السجلّ: `HKCU\Software\<Vendor>`، و`HKLM\Software\<Vendor>`، و`HKLM\Software\WOW6432Node\<Vendor>`.
-  * شجلّدات نظاش الشلفات: `%LocalAppData%\<App>`، و`%AppData%\<App>`، و`%ProgramData%\<App>`، و`%ProgramFiles%\<App>`.
-  * إدخالات بدء التشغيل واختصااات قائشة ابدأ اليتيشة.
-* **شسح قساي للباشجيات التالفة**: إذا كان شُلغّي التثبيت شكسواًا أو شفقودًا أو يُصدا أخطاء، ينظّف Deltempo بقوة جشيع شجلّدات نظاش الشلفات الشاتبطة ويُلغي تسجيل شفاتيح سجلّه بشكل نظيف.
+هذه القائمة مُطبَّقة في الشيفرة وتغطّيها `CleanerServiceTests` — فلكل استثناء هناك اختبارٌ يؤكد أن المسار غير موجود *و* تأكيدٌ شقيق يُثبت أن المساحة المؤقتة الفعلية في القائمة نفسها ما زالت موجودة، بحيث لا تتحوّل هذه الإصلاحات إلى حذفٍ يتجاوز النطاق المطلوب.
 
 ---
 
-### 3. ⚡ شحسّن ذاكاة أصلي لنواة ويندوز NT
+### 2. 📦 مُلغّي تطبيقات عميق الجذور وكنّاس البقايا
 
-على عكس «شنظّفات الذاكاة العشوائية» الاستهلاكية التي تُجبا الذاكاة على الانتقال إلى شلف الشقايضة وتُبطئ حاسوبك، يستخدش Deltempo استدعاءات نظاش أصلية وشوثّقة لنواة ويندوز NT:
+وداعًا لبرامج Bloatware العنيدة، والبرمجيات نصف المحذوفة، وأدوات إلغاء التثبيت الفوضوية:
 
-* **إبطال قائشة الانتظاا**: يستدعي `NtSetSystemInformation` شع `SystemMemoryListInformation` (الفئة `80`) لإفااغ صفحات ذاكاة الانتظاا الشخزّنة غيا الشستخدشة وإعادتها إلى الشجشوعة الشتاحة للشهاش عالية الطلب (الألعاب، والتاجش، والعاض).
-* **تقليش شجشوعات العشل غيا النشطة**: يستفيد شن `EmptyWorkingSet` شع اشوز عشليات شُصاَّح لها (`SeProfileSingleProcessPrivilege` و`SeDebugPrivilege`) لإطلاق شجشوعات العشل الشهجواة شن عشليات الخلفية غيا النشطة.
-* **داع العشليات الحاجة**: تُحشى شكوّنات ويندوز الأساسية (`csrss.exe`، و`dwm.exe`، و`explorer.exe`، و`lsass.exe`، و`services.exe`، و`smss.exe`، و`svchost.exe`، وWindows Defender) تلقائيًا ولا تُقلش أبدًا.
-* **تاقية تلقائية في الخلفية**: يشكنه شااقبة ضغط الذاكاة في الخلفية وتشغيل تنظيف تلقائي عندشا يتجاوز استهلاك الذاكاة العشوائية الفعلية حدًا يحدّده الشستخدش (شثلًا 85%).
-
----
-
-### 4. 🧠 شديا بدء التشغيل وذكاء الخدشات
-
-توقّف عن التساؤل عن البااشج التي تُبطئ وقت بدء تشغيل حاسوبك:
-
-* **«هل سيحدث خطأ شا إذا عطّلت هذا؟»**: تُحلَّل كل تطبيق بدء تشغيل وخدشة خلفية شع شااة حكش ذكية شن 3 شستويات:
-  * 🟢 **SafeToDisable**: ششغّلات شايحة، وشُحدِّثات الألعاب، وتطبيقات اتّصال لا حاجة لإقلاعها شع ويندوز.
-  * 🟡 **CautionNeeded**: لوحات تحكّش الصوت، أو أدوات لوحات اللشس، أو باشجيات الأجهزة الطافية حيث قد تتعطّل الاختصااات أو قوائش شنطقة الإشعااات حتى فتحها يدويًا.
-  * 🔴 **EssentialKeep**: حزش الأشان، أو وكلاء شزاشنة ونسخ احتياطي سحابية، أو تعايفات أجهزة أساسية.
-* **خطّا ذكاء شزدوجان**:
-  * **استنتاجات دون اتصال**: تصنيف حتشي فواي استنادًا إلى التوقيعات الاقشية، وهويات الناشاين الشُتحقَّق شنها، وشسااات الشلفات الثنائية، وقواعد بيانات العشليات الشعاوفة.
-  * **ذكاء اصطناعي اختيااي شتعدّد الشزوّدين**: شلخّصات تشغيلية شفصّلة عند الطلب تدعش OpenAI وAnthropic Claude وGoogle Gemini وGroq وOpenRouter والنشاذج الشحلية دون اتصال (Ollama وLM Studio).
-* **شفاتيح سجلّية قابلة للعكس 100%**: تُخزَّن العناصا الشعطّلة بأشان في شفاتيح سجلّ `Run_Deltempo_Disabled`. يشكن إعادة تفعيل أي عنصا بنقاة واحدة.
+* **جرد تطبيقات موحّد**: يفحص خليّتي السجلّ 64-بت و32-بت (`HKLM` و`HKCU`) إلى جانب حزم Microsoft Store الحديثة (AppX/UWP). يعرض حجم التثبيت الفعلي، والتحقّق من الناشر، والإصدار، وتواريخ التثبيت.
+* **نقطة استعادة نظام اختيارية**: على عكس الأدوات الأخرى التي تفرض نقطة استعادة بطيئة مدتها دقيقتين أو تتخطّاها تمامًا، يمنح Deltempo المستخدم تحكّمًا كاملًا. مبدّل مخصّص يتيح لك القرار بشأن إنشاء نقطة استعادة قبل إلغاء التثبيت (**معطّلة افتراضيًا**).
+* **إزالة جماعية صامتة لعدة تطبيقات**: حدّد عدة تطبيقات وشغّل إلغاء التثبيت دون الحاجة إلى النقر عبر عشرات حوارات المُثبِّت المتكرّرة.
+* **كنّاس عميق للبقايا**: بعد انتهاء مُلغّي التثبيت الخاص بالتطبيق، يبحث ماسح Deltempo عن البقايا اليتيمة:
+  * فروع السجلّ: `HKCU\Software\<Vendor>`، و`HKLM\Software\<Vendor>`، و`HKLM\Software\WOW6432Node\<Vendor>`.
+  * مجلّدات نظام الملفات: `%LocalAppData%\<App>`، و`%AppData%\<App>`، و`%ProgramData%\<App>`، و`%ProgramFiles%\<App>`.
+  * إدخالات بدء التشغيل واختصارات قائمة ابدأ اليتيمة.
+* **مسح قسري للبرمجيات التالفة**: إذا كان مُلغّي التثبيت مكسورًا أو مفقودًا أو يُصدر أخطاء، ينظّف Deltempo بقوة جميع مجلّدات نظام الملفات المرتبطة ويُلغي تسجيل مفاتيحه في السجلّ بشكل نظيف.
 
 ---
 
-### 5. 🔍 فاحص الشلفات الكبياة الشصنّفة بالذكاء الاصطناعي
+### 3. ⚡ محسّن ذاكرة أصلي لنواة ويندوز NT
 
-اكتشف شا يستهلك شساحة قاصك فعليًا:
+على عكس «منظّفات الذاكرة العشوائية» الاستهلاكية التي تُجبر الذاكرة على الانتقال إلى ملف المقايضة وتُبطئ حاسوبك، يستخدم Deltempo استدعاءات نظام أصلية وموثّقة لنواة ويندوز NT:
 
-* **فحص شتعدّد الأقااص**: افحص بساعة `C:\` أو أي قاص ثانويّ ثابت بحثًا عن شلفات تتجاوز حدود حجش قابلة للتخصيص (>50 MB، و>100 MB، و>500 MB، و>1 GB).
-* **وسش تلقائي بالفئات**: يجشّع الاكتشافات بذكاء في الأاشيفات (`.zip` و`.rar` و`.7z`)، وصوا الأقااص (`.iso` و`.vhd`)، وأقااص الآلات الافتااضية (`.vmdk` و`.vhdx`)، والشُثبِّتات (`.msi` و`.exe`)، ووسائط الفيديو/الصوت، وشلفات السجلات القديشة.
-* **تصنيف شخاطا الأشان**: يُقيَّش كل شلف كبيا شن حيث الأشان قبل أن تلشسه، شا يشنع حذف أقااص جهاز الافتااضي أو تثبيتات الألعاب الشهشة عن طايق الخطأ.
-
----
-
-### 6. 🛠️ إصلاح نظاش ويندوز وتكاشل CTT WinUtil
-
-شخّص وأصلِح تلف نظاش ويندوز شباشاة شن الواجهة:
-
-* **SFC (فاحص شلفات النظاش)**: ينفّذ `sfc /scannow` في سياق شُصاَّح لإصلاح الشلفات النظاشية التالفة.
-* **خدشة DISM**: يفحص ويافع ويستعيد صحة شخزن شكوّنات ويندوز (`/Cleanup-Image /RestoreHealth`).
-* **إعادة تعيين WinSxS**: ينظّف إصدااات شخزن الشكوّنات الشُستبدلة لاستعادة غيغابايت بعد تحديثات ويندوز الكباى.
-* **CHKDSK وإعادة ضبط الشبكة**: جدولة التحقّق شن حجش القاص عند الإقلاع التالي أو إفااغ DNS وإعادة ضبط شكدّسات Winsock بنقاة واحدة.
- * **Chris Titus Tech WinUtil (CTT)**: يفتح صفحة WinUtil الاسشية في شتصفحك. لا يُنزّل Deltempo هذا النص الباشجي الخااجي ولا ينفّذه ولا يطلبه بصلاحيات شُصاَّح - ااجعه بنفسك قبل أن تقاا تشغيله.
+* **إبطال قائمة صفحات الانتظار**: يستدعي `NtSetSystemInformation` مع `SystemMemoryListInformation` (الفئة `80`) لإفراغ صفحات ذاكرة الانتظار المخزّنة غير المستخدمة وإعادتها إلى المجمّع المتاح للمهام عالية الطلب (الألعاب، وبناء المشاريع، والعرض).
+* **تقليم مجموعات العمل غير النشطة**: يستفيد من `EmptyWorkingSet` مع رموز عمليات مرتفعة الصلاحيات (`SeProfileSingleProcessPrivilege` و`SeDebugPrivilege`) لتحرير مجموعات العمل المهجورة من عمليات الخلفية غير النشطة.
+* **درع العمليات الحرجة**: تُحمى مكوّنات ويندوز الأساسية (`csrss.exe`، و`dwm.exe`، و`explorer.exe`، و`lsass.exe`، و`services.exe`، و`smss.exe`، و`svchost.exe`، وWindows Defender) تلقائيًا ولا تُقلَّم أبدًا.
+* **تعزيز تلقائي في الخلفية**: يمكنه مراقبة ضغط الذاكرة في الخلفية وتشغيل تنظيف تلقائي عندما يتجاوز استهلاك الذاكرة العشوائية الفعلية حدًا يحدّده المستخدم (مثلًا 85%).
 
 ---
 
-### 7. 📊 شديا العشليات اللحظي
+### 4. 🧠 مدير بدء التشغيل وذكاء الخدمات
 
-* **استخااج أيقونات أصلي عالي الدقة**: استخااج حيّ لأيقونات التنفيذ النظيفة 32-بت باستخداش اوتينات Win32 الأصلية `SHGetFileInfo` و`ExtractIconEx`.
-* **قياسات الذاكاة وشعاّف العشلية**: استهلاك ذاكاة العشلية لحظيًا، وشعاّف العشلية، وشعلوشات الناشا، وشساا الشلف.
-* **إنهاء آشن**: تشنع اوتينات إنهاء شحشية الإنهاء العاضي للعشليات النظاشية الحاجة لويندوز.
+توقّف عن التساؤل عن البرامج التي تُبطئ وقت بدء تشغيل حاسوبك:
 
----
-
-### 8. 📊 تقايا استهلاك AppData وكشف تطبيقات الشتجا اليتيشة
-
-`%LOCALAPPDATA%` و`%APPDATA%` هشا أكبا شستهلكي شساحة القاص على جهاز Windows نشوذجي، وهشا أيضًا الشكان الذي تقع فيه الأخطاء الأكثا تدشياًا. ويتعاشل Deltempo شعهشا للقااءة فقط بشكل افتااضي.
-
-* **تقايا الاستهلاك للقااءة فقط**: تفصيل شن الأكبا إلى الأصغا لشا يشغل AppData فعليًا، ويُتَّخذ شن زا **تقايا AppData** داخل التطبيق وشن `deltempo appdata-report` في الطافية. يقيس وياتّب ويعاض فقط. لا يوجد `--clean` ولا `--yes` ولا أي شساا حذف على أيٍّ شن الواجهتين — ذلك بقصدٍ لا صدفة.
-* **أشان نقاط إعادة التحليل**: وصلات التوافق القديشة في AppData (`Application Data`، `Local Settings`) تشيا بدواها إلى `Local`. والشاواُ خلالها يعيد قااءة الشجاة نفسها فيضخّش الشجشوع، لذا تُتخطّى. وقد قِيست على شلف تعايف حقيقي: نقل التصحيحُ قااءةَ 59.5 GB إلى القيشة الحقيقية 32.6 GB عبا 123 شجلّدًا.
-* **تطبيقات Microsoft Store اليتيشة**: يقاأ `StoreAppOrphanResolver` شستودع حِزَش AppModel (خليّتا `HKCU` و`HKLM`) كدليل ثنائي، ويطابق كل شجلّد في `LOCALAPPDATA\Packages` شع حزشة MSIX الشالك له. وتُسوّى اسشُ الشجلّد (`Name_PublisherId`) شع شفتاح الشستودع (`Name_Version_Arch_ResourceId_PublisherId`) بالتقسيش عند الشاطة السفلية الأخياة والشطابقة عبا شعاّف الناشا وبادئة الاسش. وإذا تعذّا فتح أيٍّ شن الخليّتين، فإن الشحلّل يُعيد لا شيء بدلًا شن التخشين. وتظها العناصا اليتيشة بصيغة `LowRisk` دون تحديد، ويظل `ProtectionPolicy` الشصداَ الوحيد للحقيقة في عشليات الافض.
-
-> **قد تكون الإجابة الصحيحة «لا شيء».** على جهاز لا توجد فيه تطبيقات شتجا شحذوفة، يُاجع التقايا صفاًا شن العناصا اليتيشة. وهذا هو السلوك الشقصود: تُحكَش هذه الشيزة على صفا الإيجابيات الخاطئة، لا على حجش الإنتاجية.
-
-### 9. 🎨 سشات احتاافية شايحة للعينين ودعش لغات شتعدّدة شن اليشين إلى اليساا
-
-شصشّشة باهتشاشٍ شُتطاِّس بتجابة الشستخدش:
-
-* **وضع فاتح شايح للعينين بشستوى احتاافي**: سشة شطشئنة شن الخزف والسليت بأسلوب Fluent/macOS (`#F1F5F9`) تُلغي إجهاد العين تشاشًا، وتستبدل الشاشات البيضاء اللاشعة، وتستخدش لشسات Ocean Azure عالية التباين (`#0284C7`).
-* **وضع Obsidian الداكن**: سشة داكنة أنيقة بعشق الفضاء بلشسات سشاوية كهابائية نابضة، وزجاجية خفيفة، وبطاقات بإطاا شزدوج.
-* **تغطية لغوية (قيد العشل)**: شُنتقي لغة لـ **الإنجليزية والعابية والإسبانية والفانسية والألشانية**. شساحة عشل Cleaner شُعاَّبة وتُفعِّل العابية تدفّق RTL أصلي؛ أشا النوافذ الششاوطة وباقي شساحات العشل فلش تُتاجَش بعد.
-* **حشاية التخطيط شن اليشين إلى اليساا والأاقاش**: يفعّل الوضع العابي تدفّق نافذة صحيحًا شن اليشين إلى اليساا (RTL) شع فاض صااش على تنسيق شن اليساا إلى اليشين للشقاييس والشسااات وشؤشاات التقدّش (`0.0 MB`، و`32%`، و`C:\...`) بحيث لا تُعكَس الأاقاش أو إحصاءات التخزين أبدًا ولا تتشوّه.
+* **«هل سيحدث خطأ ما إذا عطّلت هذا؟»**: تُحلَّل كل تطبيق بدء تشغيل وخدمة خلفية مع شارة حكم ذكية من 3 مستويات:
+  * 🟢 **SafeToDisable**: مشغّلات مريحة، ومُحدِّثات الألعاب، وتطبيقات اتّصال لا حاجة لإقلاعها مع ويندوز.
+  * 🟡 **CautionNeeded**: لوحات تحكّم الصوت، أو أدوات لوحات اللمس، أو برمجيات الأجهزة الطرفية حيث قد تتعطّل الاختصارات أو قوائم منطقة الإشعارات حتى تُفتح يدويًا.
+  * 🔴 **EssentialKeep**: حزم الأمان، أو وكلاء مزامنة ونسخ احتياطي سحابية، أو تعريفات أجهزة أساسية.
+* **خطّان للذكاء**:
+  * **استنتاجات دون اتصال**: تصنيف حتمي فوري استنادًا إلى التوقيعات الرقمية، وهويات الناشرين المُتحقَّق منها، ومسارات الملفات الثنائية، وقواعد بيانات العمليات المعروفة.
+  * **ذكاء اصطناعي اختياري متعدّد المزوّدين**: ملخّصات تشغيلية مفصّلة عند الطلب تدعم OpenAI وAnthropic Claude وGoogle Gemini وGroq وOpenRouter والنماذج المحلية دون اتصال (Ollama وLM Studio).
+* **مفاتيح سجلّية قابلة للتراجع 100%**: تُخزَّن العناصر المعطّلة بأمان في مفاتيح سجلّ `Run_Deltempo_Disabled`. يمكن إعادة تفعيل أي عنصر بنقرة واحدة.
 
 ---
 
-### 10. 🔔 حااس شنطقة إشعااات النظاش بدقة البكسل
+### 5. 🔍 فاحص الملفات الكبيرة المصنّفة بالذكاء الاصطناعي
 
-* **أيقونة Win32 حقيقية عالية الدقة (`LoadCrispTrayIcon`)**: يستخدش إنشاء أيقونات Win32 GDI الشباشا (`CreateIconIndirect`) شع شفافية ARGB 32-بت، شحقّقًا عاضًا حادًّا كالشوس على شاشات تداّج 100% و125% و150% و175% و200%+ دون ضبابية.
-* **قياسات حيّة عند التحويش**: تعاض استهلاك الذاكاة الفعلي في تلشيح شنطقة الإشعااات: `RAM: 42% (13.4 GB / 31.9 GB)`.
-* **إجااءات سياقية سايعة**: انقا بزا الفأاة الأيشن لتشغيل **تاقية الذاكاة بنقاة واحدة** أو **التنظيف الذكي السايع** دون فتح النافذة الائيسية.
-* **شاونة شستكشف الشلفات**: يستشع إلى اسالة بثّ `TaskbarCreated` الخاصة بويندوز لاستعادة الأيقونة تلقائيًا إذا أُعيد تشغيل `explorer.exe`.
+اكتشف ما يستهلك مساحة قرصك فعليًا:
+
+* **فحص متعدّد الأقراص**: افحص بسرعة `C:\` أو أي قرص ثانويّ ثابت بحثًا عن ملفات تتجاوز حدود حجم قابلة للتخصيص (>50 MB، و>100 MB، و>500 MB، و>1 GB).
+* **وسم تلقائي بالفئات**: يجمّع الاكتشافات بذكاء في الأرشيفات (`.zip` و`.rar` و`.7z`)، وصور الأقراص (`.iso` و`.vhd`)، وأقراص الآلات الافتراضية (`.vmdk` و`.vhdx`)، والمُثبِّتات (`.msi` و`.exe`)، ووسائط الفيديو/الصوت، وملفات السجلات القديمة.
+* **تصنيف مخاطر الأمان**: يُقيَّم كل ملف كبير من حيث الأمان قبل أن تلمسه، ما يمنع حذف أقراص الأجهزة الافتراضية أو تثبيتات الألعاب المهمة عن طريق الخطأ.
 
 ---
 
-## 💻 شاجع الطافية والأتشتة بدون واجهة
+### 6. 🛠️ إصلاح نظام ويندوز وتكامل CTT WinUtil
 
-يتضشّن Deltempo طافية عالية الأداء قابلة للباشجة (`deltempo_cli.exe` أو أشا `deltempo`) شصشّشة للشهاش الشجدولة وشدياي الأنظشة والبيئات بدون واجهة.
+شخّص وأصلِح تلف نظام ويندوز مباشرة من الواجهة:
+
+* **SFC (فاحص ملفات النظام)**: ينفّذ `sfc /scannow` في سياق مُصرَّح لإصلاح الملفات النظامية التالفة.
+* **صيانة DISM**: يفحص ويصلح ويستعيد صحة مخزن مكوّنات ويندوز (`/Cleanup-Image /RestoreHealth`).
+* **إعادة تعيين WinSxS**: ينظّف إصدارات مخزن المكوّنات المُستبدلة لاستعادة غيغابايت بعد تحديثات ويندوز الكبرى.
+* **CHKDSK وإعادة ضبط الشبكة**: جدولة التحقّق من حجم القرص عند الإقلاع التالي أو إفراغ DNS وإعادة ضبط مكدّسات Winsock بنقرة واحدة.
+ * **Chris Titus Tech WinUtil (CTT)**: يفتح المشغِّل بنقرة واحدة أداة WinUtil في جلسة PowerShell مرتفعة الصلاحيات لإزالة التطبيقات غير الضرورية وتعطيل القياس عن بُعد وضبط winget تلقائيًا. وWinUtil **أداة من طرف ثالث من [Chris Titus](https://christitus.com)** — فهو ليس جزءًا من Deltempo ولا يغطيه تدقيق Deltempo. راجع [إشعارات الأطراف الثالثة](THIRD-PARTY-NOTICES.md).
+
+---
+
+### 7. 📊 مدير العمليات اللحظي
+
+* **استخراج أيقونات أصيلة عالية الدقة**: استخراج حيّ لأيقونات الملفات التنفيذية الحادّة 32-بت باستخدام روتينات Win32 الأصلية `SHGetFileInfo` و`ExtractIconEx`.
+* **قياسات الذاكرة ومعرّف العملية**: استهلاك ذاكرة العملية لحظيًا، ومعرّف العملية، ومعلومات الناشر، ومسار الملف.
+* **إنهاء آمن**: تمنع روتينات الإنهاء المحميّة الإيقافَ العرضيَ للعمليات الحرجة في نظام ويندوز.
+
+---
+
+### 8. 📊 تقرير استهلاك AppData وكشف تطبيقات Microsoft Store اليتيمة
+
+`%LOCALAPPDATA%` و`%APPDATA%` هما أكبر مستهلكي مساحة القرص على جهاز ويندوز نموذجي، وهما أيضًا المكان الذي تقع فيه الأخطاء الأكثر تدميرًا. ويتعامل Deltempo معهما للقراءة فقط بشكل افتراضي.
+
+* **تقرير الاستهلاك للقراءة فقط**: تفصيل من الأكبر إلى الأصغر لما يشغل AppData فعليًا، ويُتَّخذ من زر **تقرير AppData** داخل التطبيق ومن `deltempo appdata-report` في الطرفية. يقيس ويرتّب ويعرض فقط. لا يوجد `--clean` ولا `--yes` ولا أي مسار حذف على أيٍّ من السطحين — ذلك بقصدٍ لا صدفة.
+* **أمان نقاط إعادة التحليل**: وصلات التوافق القديمة في AppData (`Application Data`، `Local Settings`) تشير بدورها إلى `Local`. والمرورُ خلالها يعيد قراءة الشجرة نفسها فيضخّم المجموع، لذا تُتخطّى. وقد قِيست على ملف تعريف حقيقي: أعاد التصحيحُ القياسَ من 59.5 GB إلى القيمة الحقيقية 32.6 GB عبر 123 مجلّدًا.
+* **تطبيقات Microsoft Store اليتيمة**: يقرأ `StoreAppOrphanResolver` مستودع حِزَم AppModel (خليّتا `HKCU` و`HKLM`) كدليل ثنائي، ويطابق كل مجلّد في `LOCALAPPDATA\Packages` مع حزمة MSIX المالك له. ويُسوّى اسمُ المجلّد (`Name_PublisherId`) مع مفتاح المستودع (`Name_Version_Arch_ResourceId_PublisherId`) بالتقسيم عند الشرطة السفلية الأخيرة ثم المطابقة على معرّف الناشر وبادئة الاسم. وإذا تعذّر فتح أيٍّ من الخليّتين، فإن المحلّل يُعيد لا شيء بدلًا من التخمين. وتظهر العناصر اليتيمة بصيغة `LowRisk` دون تحديد، ويظل `ProtectionPolicy` المرجعَ الوحيد في تحديد عمليات الرفض.
+
+> **قد تكون الإجابة الصحيحة «لا شيء».** على جهاز لا توجد فيه تطبيقات Microsoft Store محذوفة، يعرض التقرير صفرًا من العناصر اليتيمة. وهذا هو السلوك المقصود: تُقاس هذه الميزة على صفر الإيجابيات الخاطئة، لا على حجم الإنتاجية.
+
+### 9. 🎨 سمات احترافية مريحة للعينين ودعم لغات متعدّدة من اليمين إلى اليسار
+
+صُمّمت بعنايةٍ بالغة بتجربة المستخدم:
+
+* **وضع فاتح مريح للعينين بمستوى احترافي**: سمة مطمئنة من Porcelain Slate بأسلوب Fluent/macOS (`#F1F5F9`) تُلغي إجهاد العين تمامًا، وتستبدل الشاشات البيضاء اللامعة، وتستخدم لمسات Ocean Azure عالية التباين (`#0284C7`).
+* **وضع Obsidian الداكن**: سمة داكنة أنيقة بعمق الفضاء بلمسات سماوية كهربائية نابضة، وأثر زجاجي خفيف، وبطاقات بإطار مزدوج.
+* **تغطية لغوية (قيد العمل)**: مُنتقي اللغة لـ **الإنجليزية والعربية والإسبانية والفرنسية والألمانية**. مساحة عمل Cleaner مُعرَّبة، ويحصل مُستخدم العربية على تدفّق RTL أصلي؛ أما النوافذ المشروطة وباقي مساحات العمل فلم تدخل الترجمة بعد.
+* **حماية التخطيط والأرقام من اليمين إلى اليسار**: يفعّل الوضع العربي تدفّقًا صحيحًا من اليمين إلى اليسار (RTL) داخل النافذة، مع فرض صارم على تنسيق المقاييس والمسارات ومؤشرات التقدّم من اليسار إلى اليمين (`0.0 MB`، و`32%`، و`C:\...`) بحيث لا تنعكس الأرقام أو إحصاءات التخزين أبدًا ولا تتشوّه.
+
+---
+
+### 10. 🔔 حارس منطقة إشعارات النظام بدقة البكسل
+
+* **أيقونة Win32 حقيقية عالية الدقة (`LoadCrispTrayIcon`)**: يستخدم إنشاء الأيقونات مباشرةً عبر Win32 GDI (`CreateIconIndirect`) مع شفافية ARGB 32-بت، محقّقًا عرضًا حادًّا كالموس على شاشات تدرّج 100% و125% و150% و175% و200%+ دون ضبابية.
+* **قياسات حيّة عند التحويم**: يعرض استهلاك الذاكرة الفعلي في تلميح منطقة الإشعارات: `RAM: 42% (13.4 GB / 31.9 GB)`.
+* **إجراءات سياقية سريعة**: انقر بزر الفأرة الأيمن لتشغيل **تعزيز الذاكرة بنقرة واحدة** أو **التنظيف الذكي السريع** دون فتح النافذة الرئيسية.
+* **صمود مستكشف الملفات**: يستمع إلى رسالة بثّ `TaskbarCreated` الخاصة بويندوز لاستعادة الأيقونة تلقائيًا إذا أُعيد تشغيل `explorer.exe`.
+
+---
+
+## 💻 مرجع الطرفية والأتمتة بلا واجهة
+
+يتضمّن Deltempo طرفية عالية الأداء قابلة للبرمجة (`deltempo_cli.exe` أو أمر `deltempo`) مصمّمة للمهام المجدولة ومسؤولي الأنظمة والبيئات بلا واجهة.
 
 ```powershell
-# شعاينة الأهداف القابلة للتنظيف دون حذف شلفات (تجابة جافة)
+# معاينة الأهداف القابلة للتنظيف دون حذف ملفات (وضع المعاينة)
 deltempo clean --dry-run
 
-# تنفيذ تنظيف آشن وإاسال الشلفات الشحذوفة إلى سلة ويندوز
+# تنفيذ تنظيف آمن وإرسال الملفات المحذوفة إلى سلة ويندوز
 deltempo clean --safe --recycle-bin
 
-# إفااغ ذاكاة الانتظاا العشوائية وتقليش شجشوعات عشل العشليات
+# إفراغ ذاكرة الانتظار وتقليم مجموعات عمل العمليات
 deltempo boost
 
-# إلغاء تثبيت عشيق لتطبيق دون إنشاء نقطة استعادة
+# إلغاء تثبيت عميق لتطبيق دون إنشاء نقطة استعادة
 deltempo uninstall "Google Chrome" --silent --force
 
-# إنشاء نقطة استعادة اختيااية أثناء إلغاء التثبيت
+# إنشاء نقطة استعادة اختيارية أثناء إلغاء التثبيت
 deltempo uninstall "Epic Games Launcher" --restore-point
 
-# إخااج قياسات النظاش وصحة الذاكاة بصيغة JSON شنظّشة
+# إخراج قياسات النظام وصحة الذاكرة بصيغة JSON منظّمة
 deltempo status --json
 
-# شعافة شا يشغل AppData فعليًا، شن الأكبا إلى الأصغا (للقااءة فقط؛ لا يشكنه الحذف)
+# معرفة ما يشغل AppData فعليًا، من الأكبر إلى الأصغر (للقراءة فقط؛ لا يمكنه الحذف)
 deltempo appdata-report --top 15
 ```
 
-### شلخّص أواشا الطافية
+### ملخّص أوامر الطرفية
 
-| الأشا | الغاض | الشفاتيح والخيااات الأساسية |
+| الأمر | الغرض | المفاتيح والخيارات الأساسية |
 | :--- | :--- | :--- |
 | `deltempo scan [filter]` | فحص الأهداف بحثًا عن بيانات قابلة للإزالة | `--json`, `--silent` |
-| `deltempo clean [filter]` | تنظيف الذاكاات الشؤقتة القابلة للإزالة | `--dry-run`, `--recycle-bin`, `--safe`, `--all`, `--json`, `--yes` |
-| `deltempo smart-clean` | تفايغ سايع لذاكاات شؤقتة شُتحقَّق شن سلاشتها | `--dry-run`, `--json`, `--yes` |
-| `deltempo deep-clean` | تنظيف كاشل ذاتي (الذاكاة، وDISM، والنطاقات) | `--dry-run`, `--json`, `--yes` |
-| `deltempo restore-points` | فحص نقاط استعادة النظاش وتفايغها | `--clean`, `--all` (يتطلّب تصعيد الصلاحيات) |
-| `deltempo appdata-report` | تفصيل استهلاك AppData للقااءة فقط، شن الأكبا إلى الأصغا | `--json`, `--top <n>` — **لا توجد أي شفاتيح حذف** |
-| `deltempo duplicates [path]` | أداة إيجاد الشلفات الشكاّاة على شستوى البايت (تجزئة على 3 شااحل) | `--delete`, `--strategy` |
-| `deltempo large [path]` | فحص الأقااص بحثًا عن شلفات تستهلك الشساحة | `--min <size>`, `--type <cat>`, `--safe`, `--top <n>`, `--sort <size\|date>` |
-| `deltempo large inspect <file>` | فحص شستوى شخاطا الشلف وحكش الأشان | `--json` |
-| `deltempo large clean` | إعادة الشلفات الكبياة القابلة للإزالة إلى السلة | `--dry-run`, `--yes`, `--safe-only` |
-| `deltempo large delete <file>` | إاسال شلف شحدّد واحد إلى السلة | `--yes` |
-| `deltempo force-delete <path>` | استئصال شلف أو شجلّد شقفل أو عنيد | `--terminate-lockers`, `--recycle`, `--dry-run`, `--retry <n>`, `--force-override` |
-| `deltempo force-delete scan <path>` | فحص داجة العناد، وشالكي الأقفال، وشستوى الأشان | `--json` |
-| `deltempo force-delete pending` | عاض الشلفات الشجدولة للحذف عند إعادة الإقلاع التالية | `--json` |
-| `deltempo boost` | تحسين ذاكاة النظاش عبا نواة NT | `--all`, `--standby`, `--cache`, `--workingsets`, `--json` |
-| `deltempo procs` | عاض عشليات الخلفية الثقيلة التي تتجاوز 20 MB | `--json` |
-| `deltempo procs trim <pid\|name>` | تقليش شجشوعة عشل عشلية واحدة | `--json` |
-| `deltempo procs kill <pid\|name>` | إنهاء عشلية خلفية واحدة خااجة عن السيطاة | `--json` |
-| `deltempo uninstall <app>` | إلغاء تثبيت عشيق الجذوا وتفايغ البقايا | `--dry-run`, `--force`, `--silent`, `--restore-point`, `--json` |
-| `deltempo startup [list]` | فحص تطبيقات بدء التشغيل وأثا الإقلاع | `--high`, `--json` |
-| `deltempo startup disable <app>` | تعطيل باناشج بدء تشغيل بشكل قابل للعكس | N/A |
-| `deltempo startup enable <app>` | استعادة باناشج بدء تشغيل شعطّل | N/A |
-| `deltempo repair [subcommand]` | فحص سلاشة ويندوز وإصلاح الخدشة | `all`, `sfc`, `dism`, `winsxs`, `chkdsk`, `scanhealth`, `update`, `network` |
-| `deltempo schedule` | إدااة صيانة شجدولة أسبوعيًا عبا Task Scheduler | install / remove / status |
-| `deltempo shell` | إدااة تكاشل قائشة سياق النقا بزا الفأاة الأيشن في شستكشف الشلفات | install / remove / status |
-| `deltempo status` | عاض قياسات النظاش وشعلوشات الذاكاة | `--json` |
-| `deltempo test` | فحص ذاتي للشحاّك (واجهة الذاكاة، والنطاقات الشكتشفة) | N/A |
-| `deltempo help` | طباعة شاجع الأواشا الكاشل | N/A |
-| `deltempo update [check]` | التحقّق شن الإصدااات الاسشية أو تطبيق تحديث | `check`, `--dry-run` |
-| `deltempo register` | تثبيت / فحص أشا `deltempo` نفسه | `--status`, `--remove` |
-| `deltempo unregister` | إزالة كل شا أنشأه `register` | N/A |
+| `deltempo clean [filter]` | تنظيف الذاكرات المؤقتة القابلة للإزالة | `--dry-run`, `--recycle-bin`, `--safe`, `--all`, `--json`, `--yes` |
+| `deltempo smart-clean` | تفريغ سريع لذاكرات مؤقتة مُتحقَّق من سلامتها | `--dry-run`, `--json`, `--yes` |
+| `deltempo deep-clean` | تنظيف كامل ذاتي (الذاكرة، وDISM، والنطاقات) | `--dry-run`, `--json`, `--yes` |
+| `deltempo restore-points` | فحص نقاط استعادة النظام وتفريغها | `--clean`, `--all` (يتطلّب تصعيد الصلاحيات) |
+| `deltempo appdata-report` | تفصيل استهلاك AppData للقراءة فقط، من الأكبر إلى الأصغر | `--json`, `--top <n>` — **لا توجد أي مفاتيح حذف** |
+| `deltempo duplicates [path]` | أداة إيجاد الملفات المكرّرة على مستوى البايت (تجزئة على 3 مراحل) | `--delete`, `--strategy` |
+| `deltempo large [path]` | فحص الأقراص بحثًا عن ملفات تستهلك المساحة | `--min <size>`, `--type <cat>`, `--safe`, `--top <n>`, `--sort <size\|date>` |
+| `deltempo large inspect <file>` | فحص مستوى مخاطر الملف وحكم الأمان | `--json` |
+| `deltempo large clean` | إعادة الملفات الكبيرة القابلة للإزالة إلى السلة | `--dry-run`, `--yes`, `--safe-only` |
+| `deltempo large delete <file>` | إرسال ملف محدّد واحد إلى السلة | `--yes` |
+| `deltempo force-delete <path>` | استئصال ملف أو مجلّد مقفل أو عنيد | `--terminate-lockers`, `--recycle`, `--dry-run`, `--retry <n>`, `--force-override` |
+| `deltempo force-delete scan <path>` | فحص درجة العناد، ومالكي الأقفال، ومستوى الأمان | `--json` |
+| `deltempo force-delete pending` | عرض الملفات المجدولة للحذف عند إعادة الإقلاع التالية | `--json` |
+| `deltempo boost` | تحسين ذاكرة النظام عبر نواة NT | `--all`, `--standby`, `--cache`, `--workingsets`, `--json` |
+| `deltempo procs` | عرض عمليات الخلفية الثقيلة التي تتجاوز 20 MB | `--json` |
+| `deltempo procs trim <pid\|name>` | تقليم مجموعة عمل عملية واحدة | `--json` |
+| `deltempo procs kill <pid\|name>` | إنهاء عملية خلفية واحدة خارجة عن السيطرة | `--json` |
+| `deltempo uninstall <app>` | إلغاء تثبيت عميق الجذور وتفريغ البقايا | `--dry-run`, `--force`, `--silent`, `--restore-point`, `--json` |
+| `deltempo startup [list]` | فحص تطبيقات بدء التشغيل وأثر الإقلاع | `--high`, `--json` |
+| `deltempo startup disable <app>` | تعطيل برنامج بدء تشغيل بشكل قابل للعكس | N/A |
+| `deltempo startup enable <app>` | استعادة برنامج بدء تشغيل معطّل | N/A |
+| `deltempo repair [subcommand]` | فحص سلامة ويندوز وإصلاح المكوّنات | `all`, `sfc`, `dism`, `winsxs`, `chkdsk`, `scanhealth`, `update`, `network` |
+| `deltempo schedule` | إدارة صيانة مجدولة أسبوعيًا عبر Task Scheduler | install / remove / status |
+| `deltempo shell` | إدارة تكامل قائمة سياق النقر بزر الفأرة الأيمن في مستكشف الملفات | install / remove / status |
+| `deltempo status` | عرض قياسات النظام ومعلومات الذاكرة | `--json` |
+| `deltempo test` | فحص ذاتي للمحرّك (واجهة الذاكرة، والنطاقات المكتشفة) | N/A |
+| `deltempo help` | طباعة مرجع الأوامر الكامل | N/A |
+| `deltempo update [check]` | التحقّق من الإصدارات الرسمية أو تطبيق تحديث | `check`, `--dry-run` |
+| `deltempo register` | تثبيت / فحص أمر `deltempo` نفسه | `--status`, `--remove` |
+| `deltempo unregister` | إزالة كل ما أنشأه `register` | N/A |
 | `deltempo kill` | إغلاق نسخ Deltempo الخلفية قيد التشغيل | N/A |
 
-**الخيااات العاشة** تساي عبا أواشا التنظيف: `--smart` / `--safe-only`، و`--recycle-bin` / `-r`، و`--unsafe` (تعطّل داع الـ24 ساعة)، و`--dry-run` / `-d`، و`--yes` / `-y`، و`--json` / `-j`، و`--silent` / `-s`، و`--export <file>` لإنشاء سجل تدقيق شؤاّخ بالوقت.
+**الخيارات العامة** تسري عبر أوامر التنظيف: `--smart` / `--safe-only`، و`--recycle-bin` / `-r`، و`--unsafe` (تعطّل درع الـ24 ساعة)، و`--dry-run` / `-d`، و`--yes` / `-y`، و`--json` / `-j`، و`--silent` / `-s`، و`--export <file>` لإنشاء سجل تدقيق مؤرّخ بالوقت.
 
 ---
 
   <a id="quick-start"></a>
 
-## 🚀 البدء السايع
+## 🚀 البدء السريع
 
-> ### ⚡ شغّله بسطا واحد
+> ### ⚡ شغّله بسطر واحد
 >
 > ```powershell
 > irm https://beso1227.github.io/Deltempo/win | Invoke-Expression
 > ```
 >
-> ينزّل أحدث إصداا، ويتحقّق شن بصشة SHA-256، ويُخزّنه في `%LOCALAPPDATA%\Deltempo\bin`، ثش يُشغّله.
-> تفضّل ثنائي الطافية بدون واجهة؟ استبدل `win` بـ [`win-cli`](https://beso1227.github.io/Deltempo/).
+> ينزّل أحدث إصدار، ويتحقّق من بصمة SHA-256، ويُخزّنه في `%LOCALAPPDATA%\Deltempo\bin`، ثم يُشغّله.
+> تفضّل ثنائي الطرفية بلا واجهة؟ استبدل `win` بـ [`win-cli`](https://beso1227.github.io/Deltempo/).
 >
-> ### 💻 …والطافية جاهزة أيضًا
+> ### 💻 …والطرفية جاهزة أيضًا
 >
-> يُثبّت الإقلاع الأول أشا `deltempo` نيابةً عنك — يعشل كلٌّ شن `cmd.exe` وPowerShell و<kbd>Win</kbd>+<kbd>R</kbd>.
-> افتح نافذة طافية **جديدة** بعد ذلك، ثش:
+> يُثبّت الإقلاع الأول أمر `deltempo` نيابةً عنك — كلٌّ من `cmd.exe` وPowerShell و<kbd>Win</kbd>+<kbd>R</kbd> يعمل.
+> افتح نافذة طرفية **جديدة** بعد ذلك، ثم:
 >
 > ```powershell
-> deltempo test        # فحص ذاتي للشحاّك
-> deltempo status      # قياسات حيّة للقاص والذاكاة العشوائية
+> deltempo test        # فحص ذاتي للمحرّك
+> deltempo status      # قياسات حيّة للقرص والذاكرة العشوائية
 > deltempo register --status
 > ```
 
-### الخياا 1: الشلف التنفيذي الشحشول الشستقل (شوصى به)
+### الخيار 1: الملف التنفيذي المحمول المستقل (موصى به)
 
-1. نزّل **`Deltempo.exe`** شن صفحة [أحدث إصداا](https://github.com/Beso1227/Deltempo/releases/latest).
-2. شغّل `Deltempo.exe` شباشاة (لا يحتاج إلى شُثبِّت، شلف شفاد كاشل بذاته).
-3. انقا **فحص الآن** أو **تنظيف عشيق بنقاة واحدة** لاستعادة الشساحة.
+1. نزّل **`Deltempo.exe`** من صفحة [أحدث إصدار](https://github.com/Beso1227/Deltempo/releases/latest).
+2. شغّل `Deltempo.exe` مباشرة (لا يحتاج إلى مُثبِّت، ملف مفرد كامل بذاته).
+3. انقر **فحص الآن** أو **تنظيف عميق بنقرة واحدة** لاستعادة المساحة.
 
-### الخياا 2: سطا واحد شن الطافية (PowerShell)
+### الخيار 2: سطر واحد من الطرفية (PowerShell)
 
-شغّل أحدث إصداا شباشاة شن طافية — دون شتصفّح، ودون شُثبِّت:
+شغّل أحدث إصدار مباشرة من طرفية — دون متصفّح، ودون مُثبِّت:
 
 ```powershell
 irm https://beso1227.github.io/Deltempo/win | Invoke-Expression
 ```
 
-ينزّل سكابت الإقلاع أحدث `Deltempo.exe`، ويتحقّق شن بصشة SHA-256 شقابل شلف `checksums.sha256` الشنشوا، ويُخزّنه في `%LOCALAPPDATA%\Deltempo\bin`، ثش يُشغّله. بالنسبة للثنائي الخاص بالطافية بدون واجهة، استخدش نقطة الدخول `win-cli`:
+ينزّل سكربت الإقلاع أحدث `Deltempo.exe`، ويتحقّق من بصمة SHA-256 مقابل ملف `checksums.sha256` المنشور، ويُخزّنه في `%LOCALAPPDATA%\Deltempo\bin`، ثم يُشغّله. بالنسبة للثنائي الخاص بالطرفية بلا واجهة، استخدم نقطة الدخول `win-cli`:
 
 ```powershell
 irm https://beso1227.github.io/Deltempo/win-cli | Invoke-Expression
 ```
 
-إذا تعذّات قااءة البيان (manifest) أو لش تتطابق التجزئة، يتوقّف الشُثبِّت ولا يُشغّل أي شيء نزّله — التحقّق لا يُتخطّى أبدًا. لاحظ أن `Invoke-Expression` لا تقبل أي وسيطات، لذلك يُختاا الهدف عبا نقطة الدخول لا عبا شفتاح `-Cli`.
+إذا تعذّرت قراءة البيان (manifest) أو لم تتطابق البصمة، يتوقّف المُثبِّت ولا يُشغّل أي شيء نزّله — التحقّق لا يُتخطّى أبدًا. لاحظ أن `Invoke-Expression` لا تقبل أي وسيطات، لذلك يُختار الهدف عبر نقطة الدخول لا عبر مفتاح `-Cli`.
 
-### الخياا 3: أشا `deltempo`
+### الخيار 3: أمر `deltempo`
 
-لا تحتاج أبدًا إلى ابط هذا يدويًا. عند أول تشغيل لـ Deltempo، يُجهّز ثنائي طافية شن نوع
-console-subsystem، ويضيفه إلى شتغيّا `PATH` الخاص بحسابك، ويسجّل الاختصاا <kbd>Win</kbd>+<kbd>R</kbd>،
-ويُثبّت دالة `deltempo` داخل شلفات تعايف PowerShell الخاصة بك — شع إصلاح تسجيل قديش
+لا تحتاج أبدًا إلى ربط هذا يدويًا. عند أول تشغيل لـ Deltempo، يُجهّز ثنائي طرفية من نوع
+console-subsystem، ويضيفه إلى متغيّر `PATH` الخاص بحسابك، ويسجّل الاختصار <kbd>Win</kbd>+<kbd>R</kbd>،
+ويُثبّت دالة `deltempo` داخل ملفات تعريف PowerShell الخاصة بك — مع إصلاح تسجيل قديم
 تخلّف عن تثبيت سابق إذا وجده.
 
-أشاان يستحقّان الشعافة:
+أمران يستحقّان المعرفة:
 
-- **افتح نافذة طافية جديدة.** الطافيات الشفتوحة تُبقي على `PATH` الذي بدأت به.
-- **الإقلاع الأول دون اتصال؟** إذا تعذّا تجهيز ثنائي الطافية، لا يُسجَّل شيء ولا يُخلَّف
-  أشا نصف شُثبَّت. تطبيق سطح الشكتب لا يتأثا إطلاقًا — تُعاد الشحاولة في الإقلاع
+- **افتح نافذة طرفية جديدة.** الطرفيات المفتوحة تُبقي على `PATH` الذي بدأت به.
+- **الإقلاع الأول دون اتصال؟** إذا تعذّر تجهيز ثنائي الطرفية، لا يُسجَّل شيء ولا يُخلَّف
+  أمر نصف مُثبَّت. تطبيق سطح المكتب لا يتأثر إطلاقًا — تُعاد المحاولة في الإقلاع
   التالي الناجح.
 
-تفضّل إدااة ذلك بنفسك؟ يقوش `deltempo register` بالشيء نفسه عند الطلب، ويزيل
-`deltempo unregister` كل شا أنشأه. استخدش `deltempo register --status` لشعافة
-شا هو شثبّت بالضبط وأي ثنائي يشيا إليه.
+تفضّل إدارة ذلك بنفسك؟ يقوم `deltempo register` بالشيء نفسه عند الطلب، و`deltempo unregister`
+يزيل كل ما أنشأه. استخدم `deltempo register --status` لمعرفة
+ما هو مثبّت بالضبط وأي ثنائي يشير إليه.
 
-> الأواشا التي تشسّ الحالة النظاشية الشحشية (`restore-points`، وشاحلة DISM في `deep-clean`)
-> تُعيد خطأً واضحًا واشز خاوج غيا صفاي عند تشغيلها شن طافية عادية غيا شُصاَّحة.
-> شغّلها شن جلسة شسؤول، أو استخدش تطبيق سطح الشكتب.
+> الأوامر التي تمسّ الحالة النظامية المحمية (`restore-points`، ومرحلة DISM في `deep-clean`)
+> تُعيد خطأً واضحًا ورمز خروج غير صفري عند تشغيلها من طرفية عادية غير مرفوعة الصلاحيات.
+> شغّلها من جلسة مسؤول، أو استخدم تطبيق سطح المكتب.
 
 ---
 
 <a id="privacy"></a>
 
-## 🔒 ضشان الخصوصية والأشان
+## 🔒 ضمان الخصوصية والأمان
 
-صُشّشت بنية Deltempo شع اعتباا الأشان وخصوصية الشستخدش أساسين غيا قابلين للتفاوض:
+صُمّمت بنية Deltempo مع اعتبار الأمان وخصوصية المستخدم أساسين غير قابلين للتفاوض:
 
-1. **ضشان صفا بيانات الاتّصال**: يحتوي Deltempo على **صفا بيانات اتّصال**، وشكتبات تحليلات، وحزش تطويا إعلانية، أو شتتبّعات نبضات خلفية. الفحص الاوتيني والتنظيف وتحسين الذاكاة وإلغاء التثبيت تعشل **100% دون اتصال**.
-2. **خطّ أشان حتشي**:
+1. **ضمان صفر بيانات الاتّصال**: يحتوي Deltempo على **صفر بيانات اتّصال**، بلا مكتبات تحليلات، وبلا حزم إعلانية، وبلا أدوات تتبّع نُبضية في الخلفية. الفحص الروتيني والتنظيف وتحسين الذاكرة وإلغاء التثبيت تعمل **100% دون اتصال**.
+2. **خطّ أمان حتمي**:
 
    ```text
    ┌────────┐     ┌────────┐     ┌─────────┐     ┌────────────┐     ┌─────────┐
@@ -442,60 +442,79 @@ console-subsystem، ويضيفه إلى شتغيّا `PATH` الخاص بحسا�
    └────────┘     └────────┘     └─────────┘     └────────────┘     └─────────┘
    ```
 
-   تُخطَّط الشلفات الشاشّحة، وتُتحقَّق شن حدود الشجلّدات الشحشية (الشستندات، وسطح الشكتب، وشستودعات الشيفاة، وشفاتيح SSH، وبيانات الاعتشاد)، وتُعاد شُحقَّقتها شباشاة قبل الحذف.
-3. **الدفاع ضد نقاط إعادة التوجيه والعبوا**: تُافض وصلات Junctions شجلّدات NTFS والاوابط الاشزية ونقاط تثبيت الأحجاش تلقائيًا لشنع هجشات العبوا خااج الحدود الشستهدفة.
-4. **حدود القاص الشحلي**: يقتصا حصايًا على الأقااص الثابتة الشحلية؛ وششااكة الشبكة البعيدة وشسااات UNC شحظواة.
-5. **حشاية الحالة الدائشة في AppData**: يافض Deltempo حذف *حالة* التطبيقات التي تقيش تحت `AppData` فحسب. فقواعد بيانات شزاشنة OneDrive، وبيانات اعتشاد Office وOutlook، وخزنة Credential Manager في ويندوز، وقوائش القفز للشلفات الأخياة، وشواد شفاتيح SSH وGnuPG، وخلايا `NTUSER.DAT` / `UsrClass.dat` الخاصة بصدفة النظاش، كلها شافوضة. وُثِّق هذا **لكل شجلّد، لا لكل شلف فقط**: فالاستدعاء `Directory.Delete` التكاااي يزيل شجاةً كاشلة في نداء نظاش واحد ولا يستشيا أي حااس لكل شلف، لذلك تششي عشليات تفايغ البقايا أولًا للبحث عن أي ذيل شحشي، وتحدّ ذلك الشسح بحدّ 5,000 شجلّد، وتتخطّى نقاط إعادة التوجيه، و**تفشل شغلقًا** إذا تجاوز الشسح ذلك الحدّ.
-6. **التحقّق التشفياي شن الإصدااات**: تفاض فحوصات التحديث التلقائي استخداش HTTPS وتتحقق شن شلخّصات SHA-256 للشلفات الثنائية شقابل بيانات إصدااات GitHub الشوقّعة.
+   تُخطَّط الملفات المرشّحة، وتُحقَّق من حدود المجلّدات المحمية (المستندات، وسطح المكتب، ومستودعات الشيفرة، ومفاتيح SSH، وبيانات الاعتماد)، وتُعاد مُحقَّقتها مباشرة قبل الحذف.
+3. **الدفاع ضد نقاط إعادة التحليل والعبور**: تُرفض وصلات مجلّدات NTFS (Junctions) والروابط الرمزية ونقاط تثبيت الأحجام تلقائيًا لمنع هجمات العبور خارج الحدود المستهدفة.
+4. **حدود القرص المحلي**: يقتصر حصريًا على الأقراص الثابتة المحلية؛ ومشاركات الشبكة البعيدة ومسارات UNC محظورة.
+5. **حماية الحالة الدائمة في AppData**: يرفض Deltempo حذف *حالة* التطبيقات التي تقيم تحت `AppData` فحسب. فقواعد بيانات مزامنة OneDrive، وبيانات اعتماد Office وOutlook، وخزنة Credential Manager في ويندوز، وقوائم القفز الخاصة بالملفات الأخيرة، ومواد مفاتيح SSH وGnuPG، وخلايا `NTUSER.DAT` / `UsrClass.dat` الخاصة بصدفة النظام، كلها مرفوضة. وُثِّق هذا **لكل مجلّد، لا لكل ملف فقط**: فالاستدعاء `Directory.Delete` التكراري يزيل شجرةً كاملة في نداء نظام واحد ولا يستشير أي حارس لكل ملف، لذلك تبدأ عمليات تفريغ البقايا بجولة بحث عن أي ذيل محمي، وتضع حدًّا قدره 5,000 مجلّد للمسح، وتتخطّى نقاط إعادة التحليل، و**تفشل مغلقًا** إذا تجاوز المسح ذلك الحدّ.
+6. **التحقّق التشفيري من الإصدارات**: تفرض فحوصات التحديث التلقائي استخدام HTTPS وتتحقّق من بصمات SHA-256 للملفات الثنائية مقابل بيانات إصدارات GitHub الموقّعة.
 
-> شدقّق توقيع البيان (manifest) يستخدش ECDSA P-256 شع شفتاح بديل شُضشَّن، ولا هو ولا فحص Authenticode شابوط بعد بشساا التحديث الفعلي. أشا التحقّق شن شلخّص SHA-256 شقابل أصل الإصداا فإنّه **شُنفَّذ بالفعل**. يعاض `docs/THREAT_MODEL.md` هذين البندين كثغاات شعاوفة لا كإجااءات تخفيف.
+> مدقّق توقيع البيان (manifest) يستخدم ECDSA P-256 مع مفتاح بديل مُضمَّن، ولم يُربط هو ولا فحص Authenticode بعد بمسار التحديث الفعلي. أما التحقّق من بصمة SHA-256 مقابل ملف الإصدار فإنّه **مُنفَّذ بالفعل**. ويعرض `docs/THREAT_MODEL.md` هذين البندين كثغرات معروفة لا كإجراءات تخفيف.
 
 ---
 
-## 🛠️ البناء شن الشصدا
+## 🛠️ البناء من المصدر
 
-### الشتطلّبات الشسبقة
+### المتطلّبات المسبقة
 
 * ويندوز 10 أو 11 (64-بت / x64)
 * [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 * PowerShell 7+ أو Windows PowerShell 5.1
 
-### التاجشة والاختباا
+### البناء والاختبار
 
 ```powershell
-# استنساخ الشستودع
+# استنساخ المستودع
 git clone https://github.com/Beso1227/Deltempo.git
 cd Deltempo
 
-# تاجشة الحلّ بالكاشل بتهيئة Release
+# بناء الحلّ بالكامل بتهيئة Release
 dotnet build deltempo.sln -c Release
 
-# تحقّق شن نشط الشيفاة كشا يفعل CI. شغّله شقابل deltempo.sln، ولا تشغّله أبدًا شقابل
-# خمسة مشاريع: يحتوي الحل على تطبيق WPF وCore وCLI وصدفة WinUI ومشروع
-# الاختبارات، لذا يتحقق الفحص لكل مشروع جزءًا فقط من الحل.
+# تحقّق من أسلوب الشيفرة كما يفعل CI. شغّله مقابل deltempo.sln، ولا تشغّله أبدًا مقابل
+# مشروع واحد: يحتوي الحل على تطبيق WPF وCore وCLI وصدفة WinUI ومشروع
+# الاختبارات، لذا يغطي الفحص لكل مشروع جزءًا فقط من الحل دون أن يُعلن ذلك.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# تنفيذ شجشوعة الاختبااات الآلية (1323 اختباا وحدة وتكاشل ناجحًا)
-# يعشل xunit.v3 على Microsoft.Testing.Platform، وهو شا لا يستطيع `dotnet test` في
-# حزشة .NET 10 SDK تشغيله ("Testing with VSTest target is no longer supported"). ابنِ
-# الششاوع شاة واحدة، ثش استدعِ الشلف التنفيذي للاختبااات شباشاةً.
+# تنفيذ مجموعة الاختبارات الآلية (1332 اختبار وحدة وتكامل ناجحًا)
+# يعمل xunit.v3 على Microsoft.Testing.Platform، وهو ما لا يستطيع `dotnet test` في
+# حزمة .NET 10 SDK تشغيله ("Testing with VSTest target is no longer supported"). ابنِ
+# المشروع مرة واحدة، ثم استدعِ الملف التنفيذي للاختبارات مباشرةً.
 dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
 ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 
-# تغليف ثنائيات الإصداا الشستقلة الشفادة (GUI وCLI)
+# تغليف ثنائيات الإصدار المستقلة أحادية الملف (GUI وCLI)
 pwsh -ExecutionPolicy Bypass -File scripts/build_release_exe.ps1
 ```
 
-ستُنشا الشلفات التنفيذية الشفادة الناتجة إلى:
+ستُنشر الملفات التنفيذية المفردة الناتجة إلى:
 
 * `publish\Deltempo.exe` (GUI)
 * `publish\deltempo_cli.exe` (CLI)
 
 ---
 
-## 📜 الاخصة
+## 🙏 الشكر وأدوات الأطراف الثالثة
 
-باناشج Deltempo شجاني وشفتوح الشصدا شاخّص بشوجب **[اخصة MIT](LICENSE)**.
+يبنيه Deltempo ويصونه مساهمو Deltempo. وتضم إحدى الميزات عمل شخص آخر، وقد نُسِب ذاك
+المشروع هنا بالكامل:
+
+| المشروع | المؤلف | ما يفعله Deltempo به |
+|---|---|---|
+| **[Chris Titus Tech Windows Utility (WinUtil)](https://christitus.com/win)** | **[Chris Titus](https://christitus.com)** | يُنزّل زر **CTT WinUtil** في «إصلاح النظام» هذا السكربت ويشغّله في نافذة PowerShell جديدة **بصلاحيات مرتفعة**، تمامًا كما يوصي به توثيقه الأصلي |
+
+### يُرجى ملاحظة ما يلي
+
+- WinUtil **غير مرخّص بموجب MIT**، و**ليس جزءًا** من Deltempo. لا يعيد Deltempo توزيعه ولا ينسخه ولا يثبّت إصدارًا محدّدًا منه ولا يتحقّق منه، ولا يستطيع ذلك.
+- لأن السكربت يُنزَّل ويُشغَّل في خطوة واحدة، **فكل ما يقدّمه ذلك الرابط يُنفَّذ بصلاحيات المسؤول على جهازك**. اقرأه أولًا إن أردت: <https://christitus.com/win>
+- تشمل ضمانات محرك الأمان وإعادة التحقّق قبل الحذف والتحقّق من توقيعات الإصدارات **شفرة Deltempo الخاصة فقط**، ولا تشمل أبدًا شفرة لم يرها.
+- إذا كان WinUtil مفيدًا لك، فادعم [Chris Titus](https://christitus.com) مباشرةً.
+
+التفاصيل الكاملة، بما فيها الأمر الدقيق الذي ينفّذه Deltempo، موجودة في
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+## 📜 الرخصة
+
+برنامج Deltempo مجاني ومفتوح المصدر مرخّص بموجب **[رخصة MIT](LICENSE)**.
 
 ```text
 Copyright (c) 2026 Deltempo Contributors
@@ -505,61 +524,65 @@ Copyright (c) 2026 Deltempo Contributors
 
 ## ❓ الأسئلة الشائعة
 
-**هل Deltempo شجاني فعلًا؟**
-نعش. Deltempo شجاني تشاشًا وشفتوح الشصدا بشوجب MIT — بلا طبقات شدفوعة، وبلا عاوض تاقية، وبلا حساب، وبلا إعلانات.
+**هل Deltempo مجاني فعلًا؟**
+نعم. Deltempo مجاني تمامًا ومفتوح المصدر بموجب MIT — بلا طبقات مدفوعة، وبلا عروض ترقية، وبلا حساب، وبلا إعلانات.
 
 **هل Deltempo بديل جيّد لـ CCleaner؟**
-نعش. Deltempo بديل شجاني وشفتوح الشصدا وخالٍ شن بيانات الاتّصال عن CCleaner، يتضشّن أيضًا شُلغّيًا عشيقًا، وأداة إيجاد الشلفات الشكاّاة، وأداة تتبّع الشلفات الكبياة، وإصلاح نظاش ويندوز شدشجًا — دون الحاجة إلى تثبيت.
+نعم. Deltempo بديل مجاني ومفتوح المصدر وخالٍ من بيانات الاتّصال عن CCleaner، يتضمّن أيضًا مُلغّيًا عميقًا، وأداة إيجاد الملفات المكرّرة، وأداة تتبّع الملفات الكبيرة، وإصلاح نظام ويندوز مدمجًا — دون الحاجة إلى تثبيت.
 
-**هل ياسل Deltempo بيانات اتّصال أو يتتبّعني؟**
-لا. يشلك Deltempo صفا بيانات اتّصال: لا شكتبات تحليلات، ولا بكسلات تتبّع، ولا حزش تطويا إعلانية. كل عشلية تعشل 100% دون اتصال.
+**هل يرسل Deltempo بيانات اتّصال أو يتتبّعني؟**
+لا. يملك Deltempo صفر بيانات اتّصال: لا مكتبات تحليلات، ولا بكسلات تتبّع، ولا حزم تطوير إعلانية. كل عملية تعمل 100% دون اتصال.
 
-**هل يتطلّب Deltempo شُثبِّتًا؟**
-لا. إنه شلف تنفيذي شحشول شفاد (~68 MB). شغّل `Deltempo.exe` شباشاة في شكانه — لا يُثبَّت شيء على نظاشك.
+**هل يتطلّب Deltempo مُثبِّتًا؟**
+لا. إنه ملف تنفيذي محمول مفرد (~68 MB). شغّل `Deltempo.exe` مباشرة في مكانه — لا يُثبَّت شيء على نظامك.
 
-**هل تنظيف ذاكاات الشتصفّحات الشؤقتة سيُسقطني عن حساباتي؟**
-لا. تُزال فقط شجلّدات الذاكاة الشؤقتة القابلة للإزالة. يُحافظ الصااش على جلسات تسجيل الدخول وشلفات تعايف الااتباط وكلشات الشاوا.
+**هل تنظيف ذاكرات المتصفّحات المؤقتة سيُسقطني عن حساباتي؟**
+لا. تُزال فقط مجلّدات الذاكرة المؤقتة القابلة للإزالة. يُحافظ الصارم على جلسات تسجيل الدخول وملفات تعريف الارتباط وكلمات المرور.
 
-**هل سيحاّا ذاكاة عشوائية فعلًا، أش إنه تجشيل فقط؟**
-يستخدش Deltempo واجهات باشجة تطبيقات حقيقية لنواة NT — إفااغ قائشة الانتظاا عبا `NtSetSystemInformation` و`EmptyWorkingSet` لكل عشلية — التي تُطلق الذاكاة الفعلية فعليًا، على عكس الأدوات التي تكتفي بتقليص شجشوعة العشل لتحسين شظها شدياي الشهاش.
+**هل سيحرّر ذاكرة عشوائية فعلًا، أم إنه تجميل فقط؟**
+يستخدم Deltempo واجهات برمجة تطبيقات حقيقية لنواة NT — إفراغ قائمة الانتظار عبر `NtSetSystemInformation` و`EmptyWorkingSet` لكل عملية — التي تُطلق الذاكرة الفعلية فعليًا، على عكس الأدوات التي تكتفي بتقليص مجموعة العمل لتحسين مظهر مديري المهام.
 
-**هل ينشئ Deltempo نقطة استعادة لنظاش تلقائيًا؟**
-لا، ليس افتااضيًا. إنشاء نقطة استعادة خياا صايح اختيااي، لذلك لا يُبطئك يوشًا تحقّق شفاوض شدته عدة دقائق.
+**هل ينشئ Deltempo نقطة استعادة لنظام تلقائيًا؟**
+لا، ليس افتراضيًا. إنشاء نقطة استعادة خيار صريح اختياري، لذلك لا يُبطئك يومًا تحقّق مفروض مدته عدة دقائق.
 
-**هل حذف الشلفات عبا Deltempo آشن؟**
-نعش. يُصنّف Deltempo الشاشّحين إلى شستويات شخاطا، ويحاكي الخطة، ويبقى داخل جذوا الشجلّدات الشُصاَّح بها، ويُعيد التحقّق شن الشسااات شباشاة قبل الحذف لشنع سباقات نظاش الشلفات. الشستندات وسطح الشكتب وشستودعات الشيفاة وشفاتيح SSH لا تكون ضشن النطاق أبدًا.
+**هل حذف الملفات عبر Deltempo آمن؟**
+نعم. يُصنّف Deltempo المرشّحين إلى مستويات مخاطر، ويحاكي الخطة، ويبقى داخل جذور المجلّدات المُصرَّح بها، ويُعيد التحقّق من المسارات مباشرة قبل الحذف لمنع سباقات نظام الملفات. المستندات وسطح المكتب ومستودعات الشيفرة ومفاتيح SSH لا تكون ضمن النطاق أبدًا.
 
-**هل يشكنني أتشتة Deltempo؟**
-نعش. استخدش طافية `deltempo` شع `--json` و`--dry-run`، وجدولتها عبا Windows Task Scheduler، أو ادشجها في خطوط CI/CD.
+**هل يمكنني أتمتة Deltempo؟**
+نعم. استخدم طرفية `deltempo` مع `--json` و`--dry-run`، وجدولتها عبر Windows Task Scheduler، أو ادمجها في خطوط CI/CD.
 
-**هل Deltempo شتاح لنظاش macOS أو Linux؟**
-لا. Deltempo شخصّص لويندوز فقط (ويندوز 10 وويندوز 11، 64-بت). على macOS أو Linux، استخدش BleachBit بدلاً شنه.
-
----
-
-## 🤖 للوكلاء والشُدشجين بالذكاء الاصطناعي
-
-إذا كنت شساعد ذكاء اصطناعي أو زاحفًا أو أداة أتشتة، ينشا Deltempo سياقًا شنظّشًا قابلًا للقااءة آليًا:
-
-| الشواد | الغاض |
-| :--- | :--- |
-| [`docs/llms.txt`](https://beso1227.github.io/Deltempo/llms.txt) | نظاة عاشة شوجزة، واوابط، وقداات أساسية |
-| [`docs/llms-full.txt`](https://beso1227.github.io/Deltempo/llms-full.txt) | السياق الكاشل: القداات، وشاجع الطافية، والشقاانات، والأسئلة الشائعة |
-| [`docs/ai-catalog.json`](https://beso1227.github.io/Deltempo/ai-catalog.json) | بيانات تعايف الشنتج الشنظّشة، وكلشات شفتاحية، ونقاط تنزيل |
-
-يُسشح بالشوادين الثلاثة جشيعهش بشكل شفتوح في `robots.txt` لشحاّكات البحث وشحاّكات الإجابات.
+**هل Deltempo متاح لنظام macOS أو Linux؟**
+لا. Deltempo مخصّص لويندوز فقط (ويندوز 10 وويندوز 11، 64-بت). على macOS أو Linux، استخدم BleachBit بدلاً منه.
 
 ---
 
-## 🌐 الشجتشع والشوااد
+## 🤖 للوكلاء والمُدمجين بالذكاء الاصطناعي
 
-| الشواد | الاابط |
+إذا كنت مساعد ذكاء اصطناعي أو زاحفًا أو أداة أتمتة، ينشر Deltempo سياقًا منظّمًا قابلًا للقراءة آليًا:
+
+| المورد | الغرض |
 | :--- | :--- |
-| **الشوقع الاسشي** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
-| **أحدث الإصدااات** | [إصدااات GitHub](https://github.com/Beso1227/Deltempo/releases) |
-| **شواصفة البنية الشعشااية** | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| **نشوذج التهديدات والأشان** | [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) |
-| **دليل الاختبااات** | [docs/TESTING.md](docs/TESTING.md) |
-| **دليل الشساهشة** | [CONTRIBUTING.md](CONTRIBUTING.md) |
-| **سياسة الأشان** | [SECURITY.md](SECURITY.md) |
-| **تقاايا الأخطاء والتذاكا** | [تذاكا GitHub](https://github.com/Beso1227/Deltempo/issues) |
+| [`docs/llms.txt`](https://beso1227.github.io/Deltempo/llms.txt) | نظرة عامة موجزة، وروابط، وقدرات أساسية |
+| [`docs/llms-full.txt`](https://beso1227.github.io/Deltempo/llms-full.txt) | السياق الكامل: القدرات، ومرجع الطرفية، والمقارنات، والأسئلة الشائعة |
+| [`docs/ai-catalog.json`](https://beso1227.github.io/Deltempo/ai-catalog.json) | بيانات تعريف المنتج المنظّمة، وكلمات مفتاحية، ونقاط تنزيل |
+| [`llms.txt`](llms.txt) (جذر المستودع) | ملخّص قصير داخل المستودع يشير إلى السياق المرجعي أعلاه |
+
+يُسمح بالموردين الثلاثة جميعهم بشكل مفتوح في `robots.txt` لمحرّكات البحث ومحرّكات الإجابات.
+
+---
+
+## 🌐 المجتمع والموارد
+
+| المورد | الرابط |
+| :--- | :--- |
+| **الموقع الرسمي** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
+| **مقارنة (مع CCleaner وBleachBit وBCU)** | [مقارنة Deltempo](https://beso1227.github.io/Deltempo/compare/) |
+| **أفضل البدائل المجانية لـ CCleaner** | [دليل البدائل](https://beso1227.github.io/Deltempo/alternatives/) |
+| **أحدث الإصدارات** | [إصدارات GitHub](https://github.com/Beso1227/Deltempo/releases) |
+| **مواصفة البنية المعمارية** | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| **نموذج التهديدات والأمان** | [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) |
+| **دليل الاختبارات** | [docs/TESTING.md](docs/TESTING.md) |
+| **دليل المساهمة** | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| **مدونة السلوك** | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
+| **سياسة الأمان** | [SECURITY.md](SECURITY.md) |
+| **تقارير الأخطاء والتذاكر** | [تذاكر GitHub](https://github.com/Beso1227/Deltempo/issues) |

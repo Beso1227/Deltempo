@@ -185,6 +185,29 @@ jobs:
           Move-Item ./dist_arm64/Deltempo.exe ./dist/Deltempo-arm64.exe -Force
           Move-Item ./dist_cli_arm64/deltempo_cli.exe ./dist/deltempo_cli-arm64.exe -Force
 
+      # The WinUI 3 shell is a Preview surface. It ships as one archive per
+      # architecture - never as one binary carrying both payloads, because the
+      # self-contained Windows App SDK runtime is ~300 MB per architecture and a
+      # combined archive would be unusable to download. The WPF app above stays
+      # the default download.
+      - name: Build & Publish the WinUI 3 Shell (Preview)
+        shell: pwsh
+        run: |
+          $version = (Get-Content Directory.Build.props | Select-String '<Version>([^<]+)</Version>').Matches[0].Groups[1].Value
+          $rids = @('win-x64', 'win-arm64')
+          $winuiOut = @{ 'win-x64' = './dist_winui'; 'win-arm64' = './dist_winui_arm64' }
+
+          foreach ($rid in $rids) {
+            $arch = $rid -replace 'win-', ''
+            dotnet publish src/Deltempo.App.WinUI/Deltempo.App.WinUI.csproj -c Release -r $rid -p:Platform=$arch --self-contained true -o $winuiOut[$rid]
+            if ($LASTEXITCODE -ne 0) { Write-Error "::error::WinUI shell publish failed for $rid"; exit 1 }
+
+            $zip = "./dist/Deltempo.WinUI-$version-$arch.zip"
+            if (Test-Path $zip) { Remove-Item $zip -Force }
+            Compress-Archive -Path "$($winuiOut[$rid])/*" -DestinationPath $zip -Force
+            Write-Host "Packaged $zip"
+          }
+
       # Signing is skipped only when a maintainer explicitly opts out via
       # REQUIRE_SIGNING == 'false'. Otherwise a missing certificate is a hard
       # failure, so an unsigned release can never ship by accident again.
@@ -253,6 +276,12 @@ jobs:
         shell: pwsh
         run: |
           $files = @("./dist/Deltempo.exe", "./dist/deltempo_cli.exe", "./dist/Deltempo-arm64.exe", "./dist/deltempo_cli-arm64.exe")
+          # The WinUI 3 shell archives are Preview artefacts. They are listed here
+          # so the manifest describes every file the release carries, but the
+          # installer and the winget channel only ever look up the WPF binaries
+          # by name, so an extra entry cannot change what they install.
+          $version = (Get-Content Directory.Build.props | Select-String '<Version>([^<]+)</Version>').Matches[0].Groups[1].Value
+          $files += @("./dist/Deltempo.WinUI-$version-x64.zip", "./dist/Deltempo.WinUI-$version-arm64.zip")
           $lines = @()
           foreach ($f in $files) {
             if (-not (Test-Path $f)) {
@@ -419,10 +448,15 @@ jobs:
             | `deltempo_cli-arm64.exe` | Headless CLI - native Windows-on-ARM build |
             | `Deltempo-<version>-x64.msix` | Optional installable GUI package (x64) |
             | `Deltempo-<version>-arm64.msix` | Optional installable GUI package (arm64) |
+            | `Deltempo.WinUI-<version>-x64.zip` | **Preview** - the WinUI 3 shell (x64) |
+            | `Deltempo.WinUI-<version>-arm64.zip` | **Preview** - the WinUI 3 shell (native Windows-on-ARM) |
             | `checksums.sha256` | SHA-256 verification hashes for the portable executables |
 
             The portable executables need no installer and are the primary artefacts.
             The `.msix` packages add a Start-menu entry and store-managed updates.
+            The two `Deltempo.WinUI-*.zip` archives are the **Preview** WinUI 3
+            shell, one archive per architecture. It is not the default download:
+            `Deltempo.exe` is.
 
             ### Requirements
             - Windows 10 version 1809 (build 17763) or newer - x64 or ARM64
@@ -465,6 +499,32 @@ jobs:
 
       # Same fail-closed treatment for the MSIX packages: softprops has been
       # observed to drop assets, and the winget/store channel depends on them.
+      - name: Upload the WinUI 3 Shell (Preview)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.value }}
+        run: |
+          # Preview surface: attached so people can try it, and clearly labelled
+          # in the release notes so nobody mistakes it for the shipping app.
+          $tag = $env:TAG
+          $version = (Get-Content Directory.Build.props | Select-String '<Version>([^<]+)</Version>').Matches[0].Groups[1].Value
+
+          foreach ($arch in @('x64', 'arm64')) {
+            $zip = "./dist/Deltempo.WinUI-$version-$arch.zip"
+            if (-not (Test-Path $zip)) {
+              Write-Error "::error::The WinUI shell archive $zip is missing; the Preview build did not run."
+              exit 1
+            }
+
+            gh release upload $tag $zip --clobber
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "::error::$zip could not be attached to $tag."
+              exit 1
+            }
+            Write-Host "$zip attached to $tag."
+          }
+
       - name: Upload MSIX Packages
         if: steps.signing.outputs.enabled == 'true'
         shell: pwsh

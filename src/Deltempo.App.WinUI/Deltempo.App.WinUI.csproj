@@ -17,12 +17,17 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>Deltempo.App.WinUI</RootNamespace>
     <AssemblyName>Deltempo.WinUI</AssemblyName>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- The runtime identifier is chosen per publish (-r win-x64 / -r win-arm64), so
+         the shell ships one archive per architecture instead of one fat binary that
+         carries both. The value here is only the default for a plain local build,
+         and a command-line -r overrides it because MSBuild global properties cannot
+         be redefined by the project. Without any default, SelfContained=true has no
+         runtime to build against and the solution build fails with NETSDK1031. -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
     <UseWinUI>true</UseWinUI>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Platforms>x64</Platforms>
-    <PlatformTarget>x64</PlatformTarget>
+    <Platforms>x64;arm64</Platforms>
     <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
 
     <!-- PerMonitorV2 DPI awareness, so a scaled display gets device-independent units and
