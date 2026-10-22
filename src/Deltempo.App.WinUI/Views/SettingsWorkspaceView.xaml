@@ -155,6 +155,23 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0"
+                                       Text="Alert when free disk space gets low"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextMediumBrush}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left" />
+                            <ToggleSwitch Grid.Column="1"
+                                          IsOn="{x:Bind ViewModel.LowDiskAlertEnabled, Mode=TwoWay}"
+                                          AutomationProperties.Name="Alert when free disk space gets low"
+                                          VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
                                        Text="Warn when free disk space drops below"
                                        FontSize="12"
                                        Foreground="{ThemeResource TextMediumBrush}"
