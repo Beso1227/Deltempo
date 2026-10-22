@@ -52,36 +52,43 @@ repository:
 # Branch protection configuration for main branch
 #
 # KNOWN DIVERGENCE - read before trusting this block.
-# The live repository currently has NO required_pull_request_reviews at all, and
-# CodeQL is NOT among the required status checks. The intent recorded here has not
-# been applied, which has two consequences worth stating plainly:
+#
+# Two declarations are still NOT applied live:
 #
 #   1. Nobody is required to review any PR. CODEOWNERS is INERT - it only has effect
 #      when branch protection requires a code-owner review. It is currently advisory.
 #   2. "CodeQL" is not a required check, so a PR can merge with CodeQL red.
-#   3. enforce_admins is now TRUE and has been APPLIED to the live repository
-#      (2026-10-22). It was FALSE until then, which is what ALLOWED a broken
-#      main: on 2026-10-17 PR #19 (11,381 additions across 73 files) merged
-#      with "Build, Test & Quality Gate" RED, and the push that landed it was
-#      also red - run 39035500169 on 30a77aa. The check did its job; it was
-#      simply not applied to the account that pushed.
 #
-#      Consequence, deliberately accepted: the single maintainer can no longer
-#      push an untested commit straight to main. Status checks are recorded per
-#      commit SHA, so the workflow becomes: push a branch, let CI run on it, then
-#      merge the PR - or push that already-green SHA. The gate is real for
-#      everyone now, which is the intended trade.
+# Both are listed in known_divergences below, so the verifier reports them as
+# recorded gaps instead of failing on them. Applying the review requirement is not
+# currently possible in practice either: this project has exactly one maintainer and
+# GitHub does not let you approve your own PR, so require_code_owner_reviews would
+# block the maintainer from merging. The realistic options are to require the CodeQL
+# status check only, or to find a second maintainer. Do not flip the review block on
+# without deciding that.
 #
-# This is left declared-but-unapplied deliberately rather than silently deleted,
-# because the gap is the thing that needs fixing, not forgetting.
+# CLOSED on 2026-10-22: enforce_admins.
+# It was FALSE, which is what ALLOWED a broken main: on 2026-10-17 PR #19 (11,381
+# additions across 73 files) merged with "Build, Test & Quality Gate" RED, and the
+# push that landed it was also red - run 39035500169 on 30a77aa. The check did its
+# job; it was simply not applied to the account that pushed.
 #
-# Applying the review requirement as written is NOT currently possible in practice:
-# this project has exactly one maintainer, and GitHub does not let you approve your
-# own PR. Turning on require_code_owner_reviews would block the maintainer from
-# merging. The realistic options are to require the CodeQL status check only, or to
-# find a second maintainer. Do not flip the review block on without deciding that.
+# Evidence that this was the actual hole, from pushing 7ea0461 to main while the
+# setting was still false:
+#   remote: Bypassed rule violations for refs/heads/main:
+#   remote: - Required status check "Build, Test & Quality Gate" is expected.
+# The rule existed and was enforceable for everyone except the administrator.
 #
-# Verify live state with:
+# Consequence, deliberately accepted: the maintainer can no longer push an untested
+# commit straight to main. Status checks are recorded per commit SHA, so the
+# workflow becomes: push a branch, let CI run on it, then merge the PR - or push
+# that already-green SHA.
+#
+# Branch protection is NOT verifiable from CI. The workflow token has no
+# Administration scope on github.com, so the Apply Repository Settings job can read
+# the repository and the labels but not the protection block. It reports those
+# fields as unverified rather than comparing them against a live state it never saw.
+# Check them by hand after changing this block:
 #   gh api repos/Beso1227/Deltempo/branches/main/protection
 branches:
   - name: main

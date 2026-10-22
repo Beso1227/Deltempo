@@ -36,6 +36,13 @@ def main():
         repo = json.load(handle)
     with open("live-protection.json", encoding="utf-8-sig") as handle:
         protection = json.load(handle)
+
+    # `null` means the live branch-protection payload could not be read. On
+    # github.com the GITHUB_TOKEN has no Administration scope, so this is what CI
+    # always gets - not an accident, and not evidence of drift. Say "unverified"
+    # rather than comparing the declaration against a state nobody observed.
+    protection_readable = protection is not None
+    protection = protection or {}
     with open("live-labels.json", encoding="utf-8-sig") as handle:
         labels = json.load(handle)
 
@@ -84,6 +91,17 @@ def main():
     for branch in settings.get("branches") or []:
         name = branch.get("name", "main")
         declared_protection = branch.get("protection") or {}
+
+        if not protection_readable:
+            warnings.append(
+                "{}.protection: NOT VERIFIED - the token running this check cannot "
+                "read branch protection, so the declaration was not compared against "
+                "anything. Check it out-of-band: gh api "
+                "repos/{}/branches/{}/protection".format(
+                    name, repo.get("full_name") or "<owner>/<repo>", name
+                )
+            )
+            continue
 
         contexts = (protection.get("required_status_checks") or {}).get("contexts") or []
         compare(
