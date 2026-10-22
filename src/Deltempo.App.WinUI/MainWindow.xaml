@@ -275,6 +275,21 @@
                                            Grid.Row="0"
                                            Grid.RowSpan="2"
                                            Visibility="Collapsed" />
+
+                    <views:ProcessWorkspaceView x:Name="ProcessWorkspacePanel"
+                                                Grid.Row="0"
+                                                Grid.RowSpan="2"
+                                                Visibility="Collapsed" />
+
+                    <views:SettingsWorkspaceView x:Name="SettingsWorkspacePanel"
+                                                 Grid.Row="0"
+                                                 Grid.RowSpan="2"
+                                                 Visibility="Collapsed" />
+
+                    <views:AboutWorkspaceView x:Name="AboutWorkspacePanel"
+                                              Grid.Row="0"
+                                              Grid.RowSpan="2"
+                                              Visibility="Collapsed" />
                 </Grid>
             </Grid>
         </Grid>

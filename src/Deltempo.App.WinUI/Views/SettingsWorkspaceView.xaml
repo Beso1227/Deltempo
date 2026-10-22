@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    WinUI 3 port of the WPF settings surface (MainWindow.Settings.cs and the
+    settings modal in MainWindow.xaml).
+
+    Every control here writes to a shared Core setting, so the WPF app and this
+    shell cannot drift apart. The theme switch is the exception: the panel asks the
+    shell to apply it, because the shell owns the window's RequestedTheme.
+-->
+<UserControl
+    x:Class="Deltempo.App.WinUI.Views.SettingsWorkspaceView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:Deltempo.App.WinUI.ViewModels"
+    mc:Ignorable="d"
+    x:DataType="vm:SettingsWorkspaceViewModel"
+    d:DesignWidth="900"
+    d:DesignHeight="560">
+
+    <Grid Padding="18,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="10">
+
+                <!-- Appearance -->
+                <Border Background="{ThemeResource SurfaceCardBrush}"
+                        BorderBrush="{ThemeResource HairlineBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="13"
+                        Padding="14,12"
+                        AutomationProperties.Name="Appearance settings">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Appearance"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextHighBrush}"
+                                   HorizontalAlignment="Left" />
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Dark theme"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextMediumBrush}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left" />
+                            <ToggleSwitch Grid.Column="1"
+                                          IsOn="{x:Bind ViewModel.IsDarkTheme, Mode=TwoWay}"
+                                          AutomationProperties.Name="Dark theme"
+                                          VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Interface sounds"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextMediumBrush}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left" />
+                            <ToggleSwitch Grid.Column="1"
+                                          IsOn="{x:Bind ViewModel.SoundEnabled, Mode=TwoWay}"
+                                          AutomationProperties.Name="Interface sounds"
+                                          VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Language"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextMediumBrush}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left" />
+                            <ComboBox Grid.Column="1"
+                                      x:Name="LanguageCombo"
+                                      SelectionChanged="OnLanguageSelectionChanged"
+                                      AutomationProperties.Name="Language"
+                                      MinWidth="180"
+                                      VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Automation -->
+                <Border Background="{ThemeResource SurfaceCardBrush}"
+                        BorderBrush="{ThemeResource HairlineBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="13"
+                        Padding="14,12"
+                        AutomationProperties.Name="Automation settings">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Automation"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextHighBrush}"
+                                   HorizontalAlignment="Left" />
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Clean up while the machine is idle"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextMediumBrush}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left" />
+                            <ToggleSwitch Grid.Column="1"
+                                          IsOn="{x:Bind ViewModel.AutoCleanOnIdle, Mode=TwoWay}"
+                                          AutomationProperties.Name="Clean up while the machine is idle"
+                                          VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Idle minutes before the clean runs"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextMediumBrush}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left" />
+                            <NumberBox Grid.Column="1"
+                                       Value="{x:Bind ViewModel.AutoCleanIdleMinutesValue, Mode=TwoWay}"
+                                       Minimum="1"
+                                       Maximum="600"
+                                       SmallChange="5"
+                                       SpinButtonPlacementMode="Compact"
+                                       AutomationProperties.Name="Idle minutes before the clean runs"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Warn when free disk space drops below"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextMediumBrush}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left" />
+                            <NumberBox Grid.Column="1"
+                                       Value="{x:Bind ViewModel.LowDiskThresholdValue, Mode=TwoWay}"
+                                       Minimum="1"
+                                       Maximum="500"
+                                       SmallChange="5"
+                                       SpinButtonPlacementMode="Compact"
+                                       AutomationProperties.Name="Low disk alert threshold in gigabytes"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Updates -->
+                <Border Background="{ThemeResource SurfaceCardBrush}"
+                        BorderBrush="{ThemeResource HairlineBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="13"
+                        Padding="14,12"
+                        AutomationProperties.Name="Update settings">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Updates"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextHighBrush}"
+                                   HorizontalAlignment="Left" />
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Check for updates when the app starts"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextMediumBrush}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left" />
+                            <ToggleSwitch Grid.Column="1"
+                                          IsOn="{x:Bind ViewModel.CheckUpdatesOnStartup, Mode=TwoWay}"
+                                          AutomationProperties.Name="Check for updates on startup"
+                                          VerticalAlignment="Center" />
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Content="Check now"
+                                    Click="OnCheckForUpdatesClick"
+                                    AutomationProperties.Name="Check for updates now"
+                                    Style="{StaticResource AccentButtonStyle}" />
+                            <Button Content="Open releases page"
+                                    Click="OnOpenReleasesClick"
+                                    AutomationProperties.Name="Open the releases page" />
+                            <TextBlock Text="{x:Bind ViewModel.CurrentVersionText}"
+                                       FontSize="11"
+                                       Foreground="{ThemeResource TextMutedBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <TextBlock Text="{x:Bind ViewModel.UpdateStatusText, Mode=OneWay}"
+                                   FontSize="11"
+                                   Foreground="{ThemeResource TextMutedBrush}"
+                                   TextWrapping="Wrap"
+                                   HorizontalAlignment="Left" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <TextBlock Grid.Row="1"
+                   Margin="2,8,0,0"
+                   Text="Settings are shared with the desktop app and are stored on this machine only."
+                   FontSize="11"
+                   Foreground="{ThemeResource TextMutedBrush}"
+                   HorizontalAlignment="Left" />
+    </Grid>
+</UserControl>
