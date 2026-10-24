@@ -170,9 +170,34 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     [ObservableProperty]
     public partial string SearchText { get; set; } = string.Empty;
 
+    /// <summary>
+    /// The Safety Shield: when on, files written in the last 24 hours inside a
+    /// shield-eligible category are neither measured nor deleted.
+    ///
+    /// It is off by default, which is what WPF's SafeModeCheckBox declared
+    /// (IsChecked="False"). The port hardcoded false in both the scan and the clean,
+    /// so the shield existed in the service and had no way to be turned on.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool SafeMode { get; set; }
+
     partial void OnFilterTagChanged(string value) => ApplyTargets();
 
     partial void OnSearchTextChanged(string value) => ApplyTargets();
+
+    /// <summary>
+    /// WPF logged the shield state on every toggle - "Safety Shield ENABLED: Files
+    /// created/modified within last 24 hours will be preserved." - and did not rescan,
+    /// because the shield changes what a clean may delete, not what exists on disk.
+    /// </summary>
+    partial void OnSafeModeChanged(bool value)
+    {
+        LogRequested?.Invoke(
+            value
+                ? "Safety Shield ENABLED: Files created/modified within last 24 hours will be preserved."
+                : "Safety Shield DISABLED: All files in selected categories will be removed.",
+            WinTempCleaner.Models.LogLevel.Info);
+    }
 
     partial void OnIsBusyChanged(bool value)
     {
@@ -249,7 +274,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
 
         try
         {
-            bool safeMode = false; // read-only scan, safe mode is a UI preference
+            bool safeMode = SafeMode; // the shield also changes what the scan measures
             var targets = CleanerService.GetDefaultTargets();
 
             _allTargets = targets;
@@ -619,7 +644,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
             return;
         }
 
-        bool safeMode = false; // UI preference, kept false for the port
+        bool safeMode = SafeMode;
         bool recycleBin = true; // default to Recycle Bin (safer)
 
         var preview = CleaningPipelineViewModel.BuildConfirmationPreview(selected, safeMode, recycleBin);
@@ -829,7 +854,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         target.StatusMessage = "Retrying...";
         target.IsScanning = true;
 
-        await _cleanerService.ScanFolderAsync(target, Log, CancellationToken.None, false);
+        await _cleanerService.ScanFolderAsync(target, Log, CancellationToken.None, SafeMode);
         RecalculateTotals();
     }
 
@@ -853,7 +878,15 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
                 TotalFreedBytes = _sessionFreedBytes,
             };
 
-            string report = CleanerService.GenerateAuditReport(_allTargets, summary, LastRunUsedSafeMode);
+            // The shield line describes the categories the report lists. After a
+            // selected-category run that is the shield the deletion actually used;
+            // otherwise it is the toggle as it stands now. A deep clean never applies
+            // the shield, so its recorded value would misdescribe a later report.
+            bool shieldForReport = LastSummary is { IsDeepClean: false }
+                ? LastRunUsedSafeMode
+                : SafeMode;
+
+            string report = CleanerService.GenerateAuditReport(_allTargets, summary, shieldForReport);
             string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string path = Path.Combine(desktop, $"Deltempo_Audit_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
 

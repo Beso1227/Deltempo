@@ -100,6 +100,29 @@ public sealed partial class MainWindow : Window
     /// <summary>True while the shell is in the dark theme.</summary>
     private bool _isDarkTheme = true;
 
+    // ---------------------------------------------------------------------
+    // Activity log stream
+    // ---------------------------------------------------------------------
+
+    /// <summary>
+    /// The session's log entries, in the order they happened. Every workspace writes
+    /// here through <see cref="OnFootprintLog"/>, which is why the collection lives in
+    /// the shell and the drawer is a shell row rather than a piece of the cleaner.
+    ///
+    /// Bounded to the same 2000 entries as WPF's _logs: a long scan or a churn-heavy
+    /// clean can otherwise grow the collection and its visual tree without limit.
+    /// </summary>
+    private readonly System.Collections.ObjectModel.ObservableCollection<LogEntry> _logs = [];
+
+    private const int MaxLogEntries = 2000;
+
+    /// <summary>Timestamp of the last auto-scroll, so appends do not force a layout pass
+    /// per line. 120 ms is WPF's throttle.</summary>
+    private long _lastLogScrollTicks;
+
+    /// <summary>True while the drawer is showing; drives the unseen badge.</summary>
+    private bool _isActivityLogOpen;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -126,6 +149,7 @@ public sealed partial class MainWindow : Window
         BuildNavigation();
         VerifyCoreLink();
         WireWorkspaceSurfaces();
+        WireActivityLog();
 
         // The shell paints only the selected workspace, so the self-test drives every
         // other surface's load path directly. SelectionChanged cannot do it: the
@@ -600,6 +624,26 @@ public sealed partial class MainWindow : Window
             $"cleaner header fit (self-test, layout only): stats {statsWidth:N0}px + " +
             $"actions {actionsWidth:N0}px = {statsWidth + actionsWidth:N0}px in 700px");
 
+        // The shield is a toggle the port had hardcoded to false, so the only thing worth
+        // proving here is that the value the user sets reaches the copy they read before a
+        // clean - display only, no clean is started.
+        var preview = WinTempCleaner.ViewModels.CleaningPipelineViewModel
+            .BuildConfirmationPreview(probe.AllTargets, safeMode: true, recycleBin: true);
+        ShellDiagnostics.Write(
+            $"cleaner safety shield wiring (self-test, display only): toggle={probe.SafeMode}, " +
+            $"preview=\"{preview.ShieldText}\"");
+
+        // The drawer is display-only: open it, append one synthetic line, and report the
+        // state the dock button now shows. No clean, no scan, no file touched.
+        ToggleActivityLog();
+        AppendActivityLog(new LogEntry
+        {
+            Message = "Self-test: activity log drawer rendered from the shared LogEntry model.",
+        });
+        ShellDiagnostics.Write(
+            $"activity log drawer loaded (self-test, display only): entries={_logs.Count}, " +
+            $"open={_isActivityLogOpen}, badge={(_logs.Count > 0 && !_isActivityLogOpen ? "visible" : "hidden")}");
+
         // The completion surface is display-only, so it is safe to fill from synthetic
         // numbers: Show() writes text and nothing else. Export stays behind a click, and
         // the self-test never clicks.
@@ -691,6 +735,121 @@ public sealed partial class MainWindow : Window
 
         SettingsWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
         SettingsWorkspacePanel.ThemeChangeRequested += OnThemeChangeRequested;
+    }
+
+    /// <summary>
+    /// Connects the drawer to the shell's stream.
+    ///
+    /// WPF kept the log inside the cleaner: one ObservableCollection on MainWindow,
+    /// an ItemsControl under the dock, and AddLog appending from every scan and clean.
+    /// The port had the collection writer and the panel missing, so every workspace's
+    /// log line went to shell-startup.log and nowhere the user could read it.
+    /// </summary>
+    private void WireActivityLog()
+    {
+        ActivityLogPanel.Bind(_logs);
+        ActivityLogPanel.CopyRequested += CopyActivityLog;
+        ActivityLogPanel.ClearRequested += ClearActivityLog;
+        CleanerWorkspacePanel.ActivityLogToggleRequested += ToggleActivityLog;
+        UpdateActivityLogChrome();
+    }
+
+    /// <summary>
+    /// Opens or closes the drawer. WPF's ToggleLogBtn_Click did the same and also moved
+    /// the bottom corner radius from the dock to the drawer so the open pair still read
+    /// as one rounded stack; here the drawer is a shell row, so the only state is
+    /// visibility plus the button's own label, glyph and badge.
+    /// </summary>
+    private void ToggleActivityLog()
+    {
+        if (_isActivityLogOpen)
+        {
+            CloseActivityLog();
+            return;
+        }
+
+        _isActivityLogOpen = true;
+        ActivityLogPanel.Visibility = Visibility.Visible;
+        UpdateActivityLogChrome();
+        ActivityLogPanel.ScrollToEnd();
+    }
+
+    private void CloseActivityLog()
+    {
+        _isActivityLogOpen = false;
+        ActivityLogPanel.Visibility = Visibility.Collapsed;
+        UpdateActivityLogChrome();
+    }
+
+    /// <summary>
+    /// Pushes visibility and the unseen dot onto the cleaner's dock button. WPF showed
+    /// the dot whenever the drawer was closed and the stream was not empty, which is what
+    /// "you have output you are not looking at" means there.
+    /// </summary>
+    private void UpdateActivityLogChrome()
+        => CleanerWorkspacePanel.SetLogState(_isActivityLogOpen, _logs.Count > 0);
+
+    /// <summary>
+    /// Appends one line to the stream. Must run on the UI thread - the drawer's
+    /// collection is bound to a visual tree.
+    /// </summary>
+    private void AppendActivityLog(LogEntry entry)
+    {
+        _logs.Add(entry);
+
+        // Bounded stream: drop the oldest entries so a long scan cannot grow the
+        // collection and its visual tree without limit.
+        int overflow = _logs.Count - MaxLogEntries;
+        for (int i = 0; i < overflow; i++)
+        {
+            _logs.RemoveAt(0);
+        }
+
+        // Throttled auto-scroll: forcing a layout pass per entry is what made the WPF
+        // drawer stall under a fast scan.
+        if (_isActivityLogOpen &&
+            System.Diagnostics.Stopwatch.GetElapsedTime(_lastLogScrollTicks).TotalMilliseconds >= 120)
+        {
+            _lastLogScrollTicks = System.Diagnostics.Stopwatch.GetTimestamp();
+            ActivityLogPanel.ScrollToEnd();
+        }
+
+        // The badge only changes when the stream goes from empty to not empty (or back),
+        // so there is no reason to touch the dock on every line.
+        if (!_isActivityLogOpen && _logs.Count == 1)
+        {
+            UpdateActivityLogChrome();
+        }
+    }
+
+    private void CopyActivityLog()
+    {
+        var text = new System.Text.StringBuilder();
+        foreach (var entry in _logs)
+        {
+            text.AppendLine($"[{entry.FormattedTime}] [{entry.Level}] {entry.Message}");
+        }
+
+        try
+        {
+            var package = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            package.SetText(text.ToString());
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(package);
+        }
+        catch (Exception ex)
+        {
+            // The clipboard is a shared OS resource; another process can hold it.
+            ShellDiagnostics.Write($"activity log copy failed: {ex.Message}");
+            return;
+        }
+
+        AppendActivityLog(new LogEntry { Message = "Activity log copied to clipboard." });
+    }
+
+    private void ClearActivityLog()
+    {
+        _logs.Clear();
+        UpdateActivityLogChrome();
     }
 
     /// <summary>
@@ -863,8 +1022,27 @@ public sealed partial class MainWindow : Window
             () => FootprintView.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed);
     }
 
+    /// <summary>
+    /// Every workspace reports through this one handler: to the diagnostic file always,
+    /// and to the on-screen drawer when the shell is running normally.
+    ///
+    /// The dispatch is asynchronous because scan and clean run off the UI thread and must
+    /// never stall waiting for the log to paint - the same reason WPF switched from
+    /// Dispatcher.Invoke to BeginInvoke.
+    /// </summary>
     private void OnFootprintLog(string message, WinTempCleaner.Models.LogLevel level)
-        => ShellDiagnostics.Write($"[{level}] {message}");
+    {
+        ShellDiagnostics.Write($"[{level}] {message}");
+
+        var entry = new LogEntry
+        {
+            Timestamp = DateTime.Now,
+            Level = level,
+            Message = message,
+        };
+
+        DispatcherQueue.TryEnqueue(() => AppendActivityLog(entry));
+    }
 
     // ---------------------------------------------------------------------
     // Tray
@@ -1361,12 +1539,19 @@ public sealed partial class MainWindow : Window
         }
 
         bool hasPanel = activePanel is not null;
-        PlaceholderPanel.Visibility = hasPanel ? Visibility.Collapsed : Visibility.Visible;
-
-        // Every panel paints the window brush, but the Core link card sits in the same
+        PlaceholderPanel.Visibility = hasPanel ? Visibility.Collapsed : Visibility.Visible;        // Every panel paints the window brush, but the Core link card sits in the same
         // content column and would otherwise show through the promoted panels, whose
         // own surface is deliberately transparent.
         CoreLinkCard.Visibility = hasPanel ? Visibility.Collapsed : Visibility.Visible;
+
+        // WPF's drawer lived inside the cleaner workspace, so leaving that screen took it
+        // with it. The toggle lives in the cleaner dock here, so a log left open over an
+        // unrelated screen would be a panel with no control able to close it.
+        if (_isActivityLogOpen && label != CleanerSectionLabel)
+        {
+            CloseActivityLog();
+        }
+
 
         active.Open?.Invoke();
 

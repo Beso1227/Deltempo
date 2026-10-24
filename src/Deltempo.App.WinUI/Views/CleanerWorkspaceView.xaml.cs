@@ -40,10 +40,38 @@ public sealed partial class CleanerWorkspaceView : UserControl
     /// </summary>
     public event Action? FootprintRequested;
 
+    /// <summary>
+    /// Raised when the dock's Activity Log button is pressed. The stream itself lives
+    /// in the shell, because every workspace writes to it - this view only owns the
+    /// control that opens it.
+    /// </summary>
+    public event Action? ActivityLogToggleRequested;
+
     /// <summary>Read-only scan of all target categories. Safe to call from the self-test.</summary>
     public async void Open()
     {
         await ViewModel.ScanAllAsync();
+    }
+
+    /// <summary>
+    /// Mirrors the drawer's state onto the dock button: label, chevron and the unseen
+    /// dot. WPF's ToggleLogBtn_Click did the same three things by hand
+    /// (E70D/chevron-up + "Hide Log" while open, E756 + "Activity Log" while closed,
+    /// badge collapsed on open).
+    /// </summary>
+    public void SetLogState(bool visible, bool unseen)
+    {
+        LogToggleIcon.Glyph = visible ? "\uE70D" : "\uE756";
+        LogToggleText.Text = visible ? "Hide Log" : "Activity Log";
+        LogToggleBadge.Visibility = visible || !unseen
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+    }
+
+    private void OnToggleActivityLogClick(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        ActivityLogToggleRequested?.Invoke();
     }
 
     /// <summary>

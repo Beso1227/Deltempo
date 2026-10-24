@@ -66,6 +66,30 @@
                             TextTrimming="CharacterEllipsis"
                             HorizontalAlignment="Left"
                             MaxWidth="320" />
+
+                        <!-- Why Clean reclaimed less than the scan total: bytes the
+                             safety engine will not delete. Same line and wording as the
+                             WPF card, and it is the only explanation a 0 B result has. -->
+                        <TextBlock
+                            Text="{Binding RetentionInfo}"
+                            FontSize="10"
+                            Foreground="{ThemeResource AmberWarningBrush}"
+                            Margin="0,2,0,0"
+                            TextTrimming="CharacterEllipsis"
+                            HorizontalAlignment="Left"
+                            MaxWidth="420"
+                            ToolTipService.ToolTip="Bytes the safety engine will not delete: protected items, and executables or recent files held for manual review."
+                            Visibility="{Binding HasRetentionInfo, Converter={StaticResource BoolToVis}}" />
+
+                        <TextBlock
+                            Text="{Binding ErrorMessage}"
+                            FontSize="10"
+                            Foreground="{ThemeResource RoseErrorBrush}"
+                            Margin="0,3,0,0"
+                            TextWrapping="Wrap"
+                            HorizontalAlignment="Left"
+                            MaxWidth="420"
+                            Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}" />
                     </StackPanel>
 
                     <Border
@@ -83,13 +107,22 @@
                             VerticalAlignment="Center" />
                     </Border>
 
-                    <TextBlock
-                        Grid.Column="3"
-                        Text="{Binding FormattedSize}"
-                        FontSize="11"
-                        FontWeight="SemiBold"
-                        Foreground="{ThemeResource TextMutedBrush}"
-                        VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="3" VerticalAlignment="Center" MinWidth="88">
+                        <TextBlock
+                            Text="{Binding FormattedSize}"
+                            FontSize="11"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource TextHighBrush}"
+                            HorizontalAlignment="Right" />
+                        <!-- WPF printed "1,204 files - 38 folders" under the size, which is
+                             the difference between a big cache and a thousand tiny files. -->
+                        <TextBlock
+                            Text="{Binding FormattedStats}"
+                            FontSize="9.5"
+                            Foreground="{ThemeResource TextMutedBrush}"
+                            HorizontalAlignment="Right"
+                            Margin="0,1,0,0" />
+                    </StackPanel>
 
                     <Border
                         Grid.Column="4"
@@ -107,18 +140,33 @@
                             VerticalAlignment="Center" />
                     </Border>
 
-                    <Button
-                        Grid.Column="5"
-                        Content="Retry"
-                        Background="{ThemeResource PillButtonBgBrush}"
-                        BorderBrush="{ThemeResource PillButtonBorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="10"
-                        Padding="8,3"
-                        FontSize="10"
-                        Margin="8,0,0,0"
-                        Command="{Binding ViewModel.RetryTargetCommand, ElementName=Root}"
-                        CommandParameter="{Binding}" />
+                    <!-- The per-category state ("Scanned", "Cleaned", "Retrying...") and
+                         the Retry affordance. WPF showed the status line on every row and
+                         the Repair button only when that row had actually failed; the port
+                         showed a Retry button on rows that had never errored. -->
+                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                        <TextBlock
+                            Text="{Binding StatusMessage}"
+                            FontSize="9.5"
+                            Foreground="{ThemeResource TextMutedBrush}"
+                            MaxWidth="140"
+                            TextTrimming="CharacterEllipsis"
+                            VerticalAlignment="Center" />
+
+                        <Button
+                            Content="Retry"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{StaticResource DestructiveRedBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="8,3"
+                            FontSize="10"
+                            Margin="6,0,0,0"
+                            AutomationProperties.Name="Retry this category"
+                            Command="{Binding ViewModel.RetryTargetCommand, ElementName=Root}"
+                            CommandParameter="{Binding}"
+                            Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}" />
+                    </StackPanel>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -327,82 +375,150 @@
             </StackPanel>
         </Border>
 
-        <!-- Progress / status dock. WPF kept the same strip at the bottom of the window:
-             status text, percentage, bar, and a Cancel button for the run in flight.
-             It stays visible after a run so the result line is still readable.
-             The audit export lives here rather than in the header because that is
-             where WPF put it - beside the log toggle and Cancel - and because five
-             buttons plus the stats overflowed the content column at the 800px
-             minimum window width. -->
+        <!-- Action + progress dock. WPF kept one strip at the bottom of the window with
+             the Safety Shield, the activity-log toggle, the audit export and Cancel, and
+             the status line under them. Same order here, split across two rows so nothing
+             clips at the 800px minimum window width: shield + log + audit + Cancel want
+             more than the 700px of content once the status text is beside them.
+
+             The audit export lives here rather than in the header because this is where
+             WPF put it, and because five buttons plus the stats overflowed the header. -->
         <Border Grid.Row="3"
                 Background="{ThemeResource SurfaceCardBrush}"
                 BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="12,7">
-            <Grid ColumnSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+            <Grid RowSpacing="6">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-                <Button Grid.Column="0"
-                        ToolTipService.ToolTip="Write a cleanup audit report for the categories on screen to the Desktop"
-                        AutomationProperties.Name="Export Cleanup Audit Report"
-                        Background="{ThemeResource PillButtonBgBrush}"
-                        BorderBrush="{ThemeResource PillButtonBorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="12"
-                        Padding="10,4"
-                        FontSize="10.5"
-                        VerticalAlignment="Center"
-                        Command="{x:Bind ViewModel.ExportAuditCommand, Mode=OneTime}">
-                    <StackPanel Orientation="Horizontal" Spacing="5">
-                        <FontIcon Glyph="&#xE8A5;"
-                                  FontFamily="{StaticResource IconFont}"
-                                  FontSize="10"
-                                  Foreground="{ThemeResource TextMediumBrush}" />
-                        <TextBlock Text="Audit Report" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
+                <!-- Row A: the switches and actions -->
+                <Grid Grid.Row="0" ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="1"
-                           Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
-                           FontSize="11"
-                           Foreground="{ThemeResource TextMediumBrush}"
-                           VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis" />
+                    <CheckBox Grid.Column="0"
+                              Content="Safety Shield (&gt;24h)"
+                              IsChecked="{x:Bind ViewModel.SafeMode, Mode=TwoWay}"
+                              FontSize="10.5"
+                              MinWidth="0"
+                              Padding="4,0"
+                              VerticalAlignment="Center"
+                              AutomationProperties.Name="Safety Shield Filter"
+                              AutomationProperties.HelpText="Protects files created or modified within the last 24 hours"
+                              ToolTipService.ToolTip="Preserve anything written in the last 24 hours, in both the measurement and the clean" />
 
-                <ProgressBar Grid.Column="2"
-                             Width="160"
-                             Maximum="100"
-                             Value="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
-                             VerticalAlignment="Center"
-                             Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                    <!-- Shell-owned drawer: this raises, and MainWindow shows the panel.
+                         Unseen lines leave a dot on the top-right, exactly like WPF's
+                         LogNotificationBadge. -->
+                    <Button Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource PillButtonBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="10,4"
+                            AutomationProperties.Name="Toggle Activity Log Stream"
+                            ToolTipService.ToolTip="Show every scan, clean and refusal this session logged"
+                            Click="OnToggleActivityLogClick">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <FontIcon x:Name="LogToggleIcon"
+                                          Glyph="&#xE756;"
+                                          FontFamily="{StaticResource IconFont}"
+                                          FontSize="10"
+                                          Foreground="{ThemeResource ElectricCyanBrush}" />
+                                <TextBlock x:Name="LogToggleText"
+                                           Text="Activity Log"
+                                           FontSize="10.5"
+                                           FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextMediumBrush}"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                            <Border x:Name="LogToggleBadge"
+                                    Width="6"
+                                    Height="6"
+                                    CornerRadius="3"
+                                    Background="{StaticResource DestructiveRedBrush}"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Margin="0,-3,-3,0"
+                                    Visibility="Collapsed" />
+                        </Grid>
+                    </Button>
 
-                <TextBlock Grid.Column="3"
-                           Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}"
-                           FontSize="11"
-                           FontWeight="SemiBold"
-                           Width="40"
-                           TextAlignment="Right"
-                           Foreground="{ThemeResource TextHighBrush}"
-                           VerticalAlignment="Center" />
+                    <Button Grid.Column="2"
+                            ToolTipService.ToolTip="Write a cleanup audit report for the categories on screen to the Desktop"
+                            AutomationProperties.Name="Export Cleanup Audit Report"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource PillButtonBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="10,4"
+                            FontSize="10.5"
+                            VerticalAlignment="Center"
+                            Command="{x:Bind ViewModel.ExportAuditCommand, Mode=OneTime}">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <FontIcon Glyph="&#xE8A5;"
+                                      FontFamily="{StaticResource IconFont}"
+                                      FontSize="10"
+                                      Foreground="{ThemeResource ElectricCyanBrush}" />
+                            <TextBlock Text="Audit Report" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
 
-                <Button Grid.Column="4"
-                        Content="Cancel"
-                        FontSize="11"
-                        Padding="12,4"
-                        CornerRadius="12"
-                        Background="{ThemeResource PillButtonBgBrush}"
-                        BorderBrush="{StaticResource DestructiveRedBrush}"
-                        BorderThickness="1"
-                        AutomationProperties.Name="Stop the running scan or clean"
-                        VerticalAlignment="Center"
-                        Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                        Command="{x:Bind ViewModel.CancelCommand, Mode=OneTime}" />
+                    <Button Grid.Column="4"
+                            Content="Cancel"
+                            FontSize="11"
+                            Padding="12,4"
+                            CornerRadius="12"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{StaticResource DestructiveRedBrush}"
+                            BorderThickness="1"
+                            AutomationProperties.Name="Stop the running scan or clean"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                            Command="{x:Bind ViewModel.CancelCommand, Mode=OneTime}" />
+                </Grid>
+
+                <!-- Row B: what the run is doing -->
+                <Grid Grid.Row="1" ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
+                               FontSize="11"
+                               Foreground="{ThemeResource TextMediumBrush}"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" />
+
+                    <ProgressBar Grid.Column="1"
+                                 Width="160"
+                                 Maximum="100"
+                                 Value="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
+                                 VerticalAlignment="Center"
+                                 Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+                    <TextBlock Grid.Column="2"
+                               Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Width="40"
+                               TextAlignment="Right"
+                               Foreground="{ThemeResource TextHighBrush}"
+                               VerticalAlignment="Center" />
+                </Grid>
             </Grid>
         </Border>
 

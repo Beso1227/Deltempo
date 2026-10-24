@@ -175,6 +175,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!-- Page header. A leading tile carries the section's glyph, the title
@@ -339,6 +340,15 @@
                                               Grid.RowSpan="2"
                                               Visibility="Collapsed" />
                 </Grid>
+
+                <!-- The activity log drawer. WPF kept it under the cleaner's bottom dock
+                     and above the window edge, which is this position: the last row of
+                     the content column, so opening it shrinks the workspace above it
+                     instead of covering the status bar. It is a shell row rather than
+                     part of the cleaner because every workspace writes to the stream. -->
+                <views:ActivityLogView x:Name="ActivityLogPanel"
+                                       Grid.Row="2"
+                                       Visibility="Collapsed" />
             </Grid>
         </Grid>
 
