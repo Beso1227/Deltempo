@@ -47,6 +47,13 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
 
     private List<TargetFolderInfo> _allTargets = [];
 
+    // The visible scan owns the first 70% of the progress bar, and each discovery
+    // pass that follows gets its own slice. Without this the bar would sit at 100%
+    // while three directory walks were still running.
+    private const double DefaultScanShare = 70;
+    private const double OrphanDiscoveryPercent = 80;
+    private const double StoreOrphanDiscoveryPercent = 90;
+
     /// <summary>
     /// Replaces the scanned set and re-applies the view.
     ///
@@ -244,9 +251,32 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
                 await _cleanerService.ScanFolderAsync(target, Log, token, safeMode);
 
                 done++;
-                ProgressPercent = (double)done / targets.Count * 100;
+                ProgressPercent = (double)done / targets.Count * DefaultScanShare;
                 ProgressText = $"{(int)ProgressPercent}%";
             }
+
+            // Three more sets exist that the default categories cannot express, and
+            // each costs a walk before it can report anything: app leftovers whose
+            // program is gone, MSIX package data whose app was uninstalled, and the
+            // built-in plus user rulepacks. WPF loaded them after its visible scan
+            // completed rather than holding the list back, and so does this.
+            await AddDiscoveredTargetsAsync(
+                "Looking for orphaned app leftovers...",
+                OrphanDiscoveryPercent,
+                () => CleanerService.LoadOrphanedTargetsAsync(token),
+                token);
+
+            await AddDiscoveredTargetsAsync(
+                "Looking for orphaned Microsoft Store data...",
+                StoreOrphanDiscoveryPercent,
+                () => CleanerService.LoadStoreOrphanTargetsAsync(token),
+                token);
+
+            await AddDiscoveredTargetsAsync(
+                "Applying cache rulepacks...",
+                100,
+                () => CleanerService.LoadDynamicRulepackTargetsAsync(token),
+                token);
 
             RecalculateTotals();
 
@@ -283,6 +313,49 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
             IsBusy = false;
             IsLoading = false;
         }
+    }
+
+    /// <summary>
+    /// Runs one discovery pass and appends what it found.
+    ///
+    /// A duplicate id is skipped rather than added: a user rulepack that describes a
+    /// folder the default categories already cover would otherwise become a second,
+    /// independently tickable row for the same bytes, and the hero total would count
+    /// them twice.
+    /// </summary>
+    private async Task AddDiscoveredTargetsAsync(
+        string status,
+        double progressPercent,
+        Func<Task<List<TargetFolderInfo>>> load,
+        CancellationToken token)
+    {
+        StatusText = status;
+
+        List<TargetFolderInfo> discovered = await load();
+        token.ThrowIfCancellationRequested();
+
+        int added = 0;
+        foreach (var target in discovered)
+        {
+            if (_allTargets.Any(existing => existing.Id == target.Id))
+            {
+                continue;
+            }
+
+            _allTargets.Add(target);
+            TrackSelection([target]);
+            added++;
+        }
+
+        ProgressPercent = progressPercent;
+        ProgressText = $"{(int)progressPercent}%";
+        ApplyTargets();
+
+        // Always logged, including "0 new": a discovery pass that silently finds
+        // nothing is indistinguishable from one that never ran.
+        LogRequested?.Invoke(
+            $"[Cleaner] {status.TrimEnd('.')}: {discovered.Count} found, {added} new",
+            WinTempCleaner.Models.LogLevel.Info);
     }
 
     private void ApplyTargets()
