@@ -129,7 +129,7 @@
          scrim and make the content column darker than the navigation pane. What this
          panel has to hide - the Stage 1 placeholder and the Core link card - is collapsed
          by ShowWorkspace instead. -->
-    <Grid Padding="18,16" RowDefinitions="Auto,Auto,*,Auto">
+    <Grid Padding="18,16" RowDefinitions="Auto,Auto,*,Auto,Auto">
 
         <!-- Hero stats + actions -->
         <Grid Grid.Row="0">
@@ -194,7 +194,7 @@
                     CornerRadius="14"
                     Padding="12,6"
                     FontSize="11.5"
-                    IsEnabled="{x:Bind ViewModel.HasSelection, Mode=OneWay}"
+                    IsEnabled="{x:Bind ViewModel.CanClean, Mode=OneWay}"
                     Command="{x:Bind ViewModel.CleanSelectedCommand, Mode=OneTime}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon Glyph="&#xE74D;"
@@ -293,8 +293,62 @@
             </StackPanel>
         </Border>
 
-        <!-- Selection summary -->
+        <!-- Progress / status dock. WPF kept the same strip at the bottom of the window:
+             status text, percentage, bar, and a Cancel button for the run in flight.
+             It stays visible after a run so the result line is still readable. -->
         <Border Grid.Row="3"
+                Background="{ThemeResource SurfaceCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="12,7">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
+                           FontSize="11"
+                           Foreground="{ThemeResource TextMediumBrush}"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" />
+
+                <ProgressBar Grid.Column="1"
+                             Width="160"
+                             Maximum="100"
+                             Value="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
+                             VerticalAlignment="Center"
+                             Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+                <TextBlock Grid.Column="2"
+                           Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}"
+                           FontSize="11"
+                           FontWeight="SemiBold"
+                           Width="40"
+                           TextAlignment="Right"
+                           Foreground="{ThemeResource TextHighBrush}"
+                           VerticalAlignment="Center" />
+
+                <Button Grid.Column="3"
+                        Content="Cancel"
+                        FontSize="11"
+                        Padding="12,4"
+                        CornerRadius="12"
+                        Background="{ThemeResource PillButtonBgBrush}"
+                        BorderBrush="{StaticResource DestructiveRedBrush}"
+                        BorderThickness="1"
+                        AutomationProperties.Name="Stop the running scan or clean"
+                        VerticalAlignment="Center"
+                        Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                        Command="{x:Bind ViewModel.CancelCommand, Mode=OneTime}" />
+            </Grid>
+        </Border>
+
+        <!-- Selection summary -->
+        <Border Grid.Row="4"
                 Background="{ThemeResource SurfaceCardBrush}"
                 BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="0,1,0,0"

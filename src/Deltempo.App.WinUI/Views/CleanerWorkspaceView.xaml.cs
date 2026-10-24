@@ -22,7 +22,9 @@ public sealed partial class CleanerWorkspaceView : UserControl
 {
     public CleanerWorkspaceView()
     {
-        ViewModel = new CleanerWorkspaceViewModel(confirmAsync: AskForConfirmationAsync);
+        ViewModel = new CleanerWorkspaceViewModel(
+            confirmAsync: AskForConfirmationAsync,
+            post: action => DispatcherQueue.TryEnqueue(() => action()));
         ViewModel.LogRequested += OnLogRequested;
         InitializeComponent();
     }

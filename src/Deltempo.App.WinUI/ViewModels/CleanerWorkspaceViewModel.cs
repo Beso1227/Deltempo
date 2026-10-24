@@ -42,6 +42,9 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     /// <summary>Shown before a mutating clean. Defaults to refusing.</summary>
     private readonly Func<string, string, Task<bool>> _confirmAsync;
 
+    /// <summary>Marshals worker-thread progress onto the UI thread.</summary>
+    private readonly Action<Action> _post;
+
     private List<TargetFolderInfo> _allTargets = [];
 
     /// <summary>
@@ -61,16 +64,24 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     }
     private bool _isBusy;
 
+    /// <summary>The run that the Cancel button can stop. Null between runs.</summary>
+    private CancellationTokenSource? _cts;
+
     // ScanFolderAsync / CleanFolderAsync are instance members on the shared
     // CleanerService (the WPF code-behind kept a _cleanerService field too), so
     // the ViewModel owns one rather than calling them statically.
     private readonly CleanerService _cleanerService = new();
 
     public CleanerWorkspaceViewModel(
-        Func<string, string, Task<bool>>? confirmAsync = null)
+        Func<string, string, Task<bool>>? confirmAsync = null,
+        Action<Action>? post = null)
     {
         // Fail closed: no confirmation host means no destructive clean.
         _confirmAsync = confirmAsync ?? ((_, _) => Task.FromResult(false));
+
+        // The cleaner reports progress from a worker thread. A shell that has a UI thread
+        // passes a marshaler; a test passes nothing and the callback runs inline.
+        _post = post ?? (action => action());
 
         ScanCommand = new AsyncRelayCommand(ScanAllAsync);
         SelectSafeCommand = new RelayCommand(SelectSafeOnly);
@@ -78,6 +89,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         DeselectAllCommand = new RelayCommand(DeselectAll);
         CleanSelectedCommand = new AsyncRelayCommand(CleanSelectedAsync);
         RetryTargetCommand = new AsyncRelayCommand<TargetFolderInfo>(RetryTargetAsync);
+        CancelCommand = new RelayCommand(CancelRun, () => IsBusy);
 
         Targets.CollectionChanged += OnTargetsCollectionChanged;
     }
@@ -109,6 +121,36 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsLoading { get; set; }
 
+    /// <summary>
+    /// True for the whole of a scan or a clean, including the confirmation dialog-free
+    /// part of it. Drives the progress strip and the Cancel button.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsBusy { get; set; }
+
+    /// <summary>0-100. WPF drove its dock bar from the same number.</summary>
+    [ObservableProperty]
+    public partial double ProgressPercent { get; set; }
+
+    /// <summary>The percentage shown next to the bar, e.g. "63%".</summary>
+    [ObservableProperty]
+    public partial string ProgressText { get; set; } = "0%";
+
+    /// <summary>Summary of the last clean, for the completion surface.</summary>
+    public WinTempCleaner.Models.CleanSummary? LastSummary { get; private set; }
+
+    /// <summary>The scanned set, in the order the list shows it. The audit report needs it.</summary>
+    public IReadOnlyList<TargetFolderInfo> AllTargets => _allTargets;
+
+    /// <summary>
+    /// Whether the last run applied the Safety Shield. Recorded rather than assumed,
+    /// because the audit report states it.
+    /// </summary>
+    public bool LastRunUsedSafeMode { get; private set; }
+
+    /// <summary>Raised when a clean finishes, so the shell can celebrate it.</summary>
+    public event Action<WinTempCleaner.Models.CleanSummary>? CleanCompleted;
+
     /// <summary>Category chip selection: ALL, SAFE, SYSTEM, GAMING, MEDIA, DEV or RULEPACK.</summary>
     [ObservableProperty]
     public partial string FilterTag { get; set; } = "ALL";
@@ -121,7 +163,41 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
 
     partial void OnSearchTextChanged(string value) => ApplyTargets();
 
+    partial void OnIsBusyChanged(bool value)
+    {
+        // WPF disabled Scan and Clean for the whole run (SetControlsEnabled(false)); the
+        // scan button's IsLoading binding and this property carry the same rule here.
+        CancelCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(CanClean));
+    }
+
+    /// <summary>
+    /// Stops the scan or clean that is running.
+    ///
+    /// WPF showed the same Cancel button on its dock for the whole run. Cancelling is a
+    /// request: targets already started finish what they are doing, and the loop checks
+    /// the token between targets, which is why the post-run accounting below only claims
+    /// the targets that were actually reached.
+    /// </summary>
+    private void CancelRun()
+    {
+        if (_cts is not { IsCancellationRequested: false } cts)
+        {
+            return;
+        }
+
+        cts.Cancel();
+        StatusText = "Cancelling...";
+        LogRequested?.Invoke("[Cleaner] Cancel requested", WinTempCleaner.Models.LogLevel.Warning);
+    }
+
     public int SelectedCount => Targets.Count(t => t.IsSelected);
+
+    /// <summary>
+    /// The Clean button's enabled state: something is selected and no run is in flight.
+    /// WPF expressed the same rule by disabling its controls around a run.
+    /// </summary>
+    public bool CanClean => HasSelection && !IsBusy;
     public long SelectedBytes => Targets.Where(t => t.IsSelected).Sum(t => t.SizeBytes);
 
     public IAsyncRelayCommand ScanCommand { get; }
@@ -131,14 +207,24 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     public IAsyncRelayCommand CleanSelectedCommand { get; }
     public IAsyncRelayCommand<TargetFolderInfo> RetryTargetCommand { get; }
 
+    /// <summary>Stops the run in flight. WPF had the same button on its dock.</summary>
+    public IRelayCommand CancelCommand { get; }
+
     /// <summary>Read-only scan of all target categories. Deletes nothing.</summary>
     public async Task ScanAllAsync()
     {
         if (_isBusy) return;
 
         _isBusy = true;
+        IsBusy = true;
         IsLoading = true;
+        ProgressPercent = 0;
+        ProgressText = "0%";
         StatusText = "Scanning all target categories...";
+
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+        CancellationToken token = _cts.Token;
 
         try
         {
@@ -149,9 +235,17 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
             TrackSelection(targets);
             ApplyTargets();
 
+            int done = 0;
             foreach (var target in targets)
             {
-                await _cleanerService.ScanFolderAsync(target, Log, CancellationToken.None, safeMode);
+                token.ThrowIfCancellationRequested();
+                StatusText = $"Scanning ({done + 1}/{targets.Count}) {target.Name}...";
+
+                await _cleanerService.ScanFolderAsync(target, Log, token, safeMode);
+
+                done++;
+                ProgressPercent = (double)done / targets.Count * 100;
+                ProgressText = $"{(int)ProgressPercent}%";
             }
 
             RecalculateTotals();
@@ -183,7 +277,10 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         }
         finally
         {
+            _cts?.Dispose();
+            _cts = null;
             _isBusy = false;
+            IsBusy = false;
             IsLoading = false;
         }
     }
@@ -237,6 +334,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         HasItems = Targets.Count > 0;
         OnPropertyChanged(nameof(SelectedCount));
         OnPropertyChanged(nameof(SelectedBytes));
+        OnPropertyChanged(nameof(CanClean));
     }
 
     private void SelectSafeOnly()
@@ -264,6 +362,8 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     /// <summary>Destructive clean of selected categories. Gated on confirmation.</summary>
     public async Task CleanSelectedAsync()
     {
+        if (_isBusy) return;
+
         var selected = _allTargets.Where(t => t.IsSelected).ToList();
         if (selected.Count == 0) return;
 
@@ -306,38 +406,153 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         if (!confirmed) return;
 
         _isBusy = true;
+        IsBusy = true;
         IsLoading = true;
+        LastRunUsedSafeMode = safeMode;
+        ProgressPercent = 0;
+        ProgressText = "0%";
         StatusText = "Cleaning selected categories...";
+
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+        CancellationToken token = _cts.Token;
+
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        long totalFreed = 0;
+        int totalDeleted = 0;
+        int totalFoldersDeleted = 0;
+        int totalFilesSkipped = 0;
+        int totalFilesInUse = 0;
+        int totalFilesShielded = 0;
+        int totalFilesPolicy = 0;
+        int totalFilesFailed = 0;
+
+        // Targets this run actually reached, so the post-run accounting does not claim
+        // success for work the loop broke out of before doing.
+        var completedTargets = new HashSet<TargetFolderInfo>();
 
         try
         {
-            long totalFreed = 0;
-            int totalDeleted = 0;
-            var completedTargets = new HashSet<TargetFolderInfo>();
-
             for (int i = 0; i < selected.Count; i++)
             {
+                // WPF broke out of the loop between targets rather than throwing, so a
+                // cancelled run still reported the partial totals it had actually achieved.
+                if (token.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 var target = selected[i];
+                // Recorded as reached BEFORE the await, so a cancelled run can tell which
+                // targets were attempted from the ones it never got to.
                 completedTargets.Add(target);
 
-                var result = await _cleanerService.CleanFolderAsync(
-                    target, safeMode, Log,
-                    _ => { }, // progress reported via StatusText
-                    CancellationToken.None);
+                double targetBaseProgress = (double)i / selected.Count * 100;
+                double targetSpan = 100.0 / selected.Count;
 
-                totalFreed += result.freedBytes;
-                totalDeleted += result.filesDeleted;
+                StatusText = $"Cleaning {target.Name}...";
+
+                // The service reports progress from a worker thread. WPF marshalled through
+                // Dispatcher.BeginInvoke; here the injected marshaler does the same, and the
+                // 50 ms gate keeps the dispatcher from being flooded by the file loop.
+                long lastDispatchTicks = 0;
+                void OnProgress(double value)
+                {
+                    long now = System.Diagnostics.Stopwatch.GetTimestamp();
+                    if (value < 1.0 &&
+                        System.Diagnostics.Stopwatch.GetElapsedTime(Interlocked.Read(ref lastDispatchTicks))
+                            .TotalMilliseconds < 50)
+                    {
+                        return;
+                    }
+
+                    Interlocked.Exchange(ref lastDispatchTicks, now);
+                    _post(() =>
+                    {
+                        ProgressPercent = Math.Min(100, targetBaseProgress + (value * targetSpan));
+                        ProgressText = $"{(int)ProgressPercent}%";
+                    });
+                }
+
+                var (freed, filesDel, foldersDel, filesSkip, filesFailed) =
+                    await _cleanerService.CleanFolderAsync(target, safeMode, Log, OnProgress, token);
+
+                totalFreed += freed;
+                totalDeleted += filesDel;
+                totalFoldersDeleted += foldersDel;
+                totalFilesSkipped += filesSkip;
+
+                if (target.LastTransactionResult != null)
+                {
+                    totalFilesInUse += target.LastTransactionResult.InUseLockedCount;
+                    totalFilesShielded += target.LastTransactionResult.RecentShieldedCount;
+                    totalFilesPolicy += target.LastTransactionResult.PolicyProtectedCount;
+                    totalFilesFailed += target.LastTransactionResult.FailedExecutionCount;
+                }
+            }
+
+            stopwatch.Stop();
+            ProgressPercent = 100;
+            ProgressText = "100%";
+
+            // Zero out the targets that actually completed, so the hero reflects reality
+            // right now. Targets the cancelled loop never reached keep their numbers; the
+            // rescan below is what corrects them.
+            bool runWasCancelled = token.IsCancellationRequested;
+            foreach (var target in selected)
+            {
+                if (runWasCancelled && !completedTargets.Contains(target))
+                {
+                    continue;
+                }
+
+                target.SizeBytes = 0;
+                target.FileCount = 0;
             }
 
             RecalculateTotals();
-            StatusText = $"Cleanup complete! Freed {WinTempCleaner.Models.TargetFolderInfo.FormatBytes(totalFreed)} ({totalDeleted:N0} files deleted).";
+
+            // Background rescan: re-measures whatever is left and corrects the hero.
+            _ = RescanAfterCleanAsync();
+
+            var summary = new WinTempCleaner.Models.CleanSummary
+            {
+                TotalFreedBytes = totalFreed,
+                TotalFilesDeleted = totalDeleted,
+                TotalFoldersDeleted = totalFoldersDeleted,
+                TotalFilesSkipped = totalFilesSkipped,
+                TotalFilesInUse = totalFilesInUse,
+                TotalFilesRecentShielded = totalFilesShielded,
+                TotalFilesPolicyProtected = totalFilesPolicy,
+                TotalFilesFailed = totalFilesFailed,
+                ElapsedTime = stopwatch.Elapsed,
+            };
+            LastSummary = summary;
+
+            // The skip breakdown is the difference between "it worked" and "it worked but
+            // 400 files were held open" - WPF printed the same list on its dock.
+            var skipDetails = new List<string>();
+            if (totalFilesInUse > 0) skipDetails.Add($"{totalFilesInUse:N0} in use");
+            if (totalFilesShielded > 0) skipDetails.Add($"{totalFilesShielded:N0} shielded <24h");
+            if (totalFilesPolicy > 0) skipDetails.Add($"{totalFilesPolicy:N0} protected");
+            if (totalFilesFailed > 0) skipDetails.Add($"{totalFilesFailed:N0} failed");
+            string skipDetailText = skipDetails.Count > 0 ? $" ({string.Join(", ", skipDetails)})" : string.Empty;
+
+            StatusText = runWasCancelled
+                ? $"Cleanup cancelled. Freed {summary.FormattedFreedSize} before stopping."
+                : $"Cleanup complete. Freed {summary.FormattedFreedSize} ({totalDeleted:N0} files deleted{skipDetailText}).";
+
             LogRequested?.Invoke(
-                $"[Cleaner] Cleanup finished: freed {WinTempCleaner.Models.TargetFolderInfo.FormatBytes(totalFreed)} " +
-                $"({totalDeleted:N0} files deleted)", WinTempCleaner.Models.LogLevel.Success);
+                $"[Cleaner] Cleanup finished: freed {summary.FormattedFreedSize} " +
+                $"({totalDeleted:N0} deleted{skipDetailText}) in {stopwatch.Elapsed.TotalSeconds:N1}s",
+                WinTempCleaner.Models.LogLevel.Success);
+
+            CleanCompleted?.Invoke(summary);
         }
         catch (OperationCanceledException)
         {
             StatusText = "Cleanup cancelled.";
+            LogRequested?.Invoke("[Cleaner] Cleanup cancelled by user", WinTempCleaner.Models.LogLevel.Warning);
         }
         catch (Exception ex)
         {
@@ -346,8 +561,32 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         }
         finally
         {
+            _cts?.Dispose();
+            _cts = null;
             _isBusy = false;
+            IsBusy = false;
             IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Re-measures after a clean so the list shows what is actually left.
+    ///
+    /// The delay gives the filesystem a moment to settle - WPF waited 600 ms before
+    /// re-running its scan for the same reason.
+    /// </summary>
+    private async Task RescanAfterCleanAsync()
+    {
+        try
+        {
+            await Task.Delay(600);
+            await ScanAllAsync();
+        }
+        catch (Exception ex)
+        {
+            LogRequested?.Invoke(
+                $"[Cleaner] Post-clean rescan failed: {ex.Message}",
+                WinTempCleaner.Models.LogLevel.Warning);
         }
     }
 

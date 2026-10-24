@@ -563,6 +563,36 @@ public sealed partial class MainWindow : Window
             $"cleaner workspace loaded (self-test, read only): " +
             $"{probe.Targets.Count} targets, {cleanable} with reclaimable space, " +
             $"status=\"{probe.StatusText}\"");
+
+        // The completion surface is display-only, so it is safe to fill from synthetic
+        // numbers: Show() writes text and nothing else. Export stays behind a click, and
+        // the self-test never clicks.
+        LoadSelfTestCleanSummary(probe);
+    }
+
+    /// <summary>
+    /// Fills the cleanup summary with a synthetic run so the self-test proves the overlay
+    /// loads and formats, without deleting anything.
+    /// </summary>
+    private void LoadSelfTestCleanSummary(Deltempo.App.WinUI.ViewModels.CleanerWorkspaceViewModel probe)
+    {
+        var summary = new WinTempCleaner.Models.CleanSummary
+        {
+            TotalFreedBytes = 1_928_734_720,
+            TotalFilesDeleted = 12_480,
+            TotalFoldersDeleted = 214,
+            TotalFilesSkipped = 9,
+            TotalFilesInUse = 6,
+            TotalFilesRecentShielded = 2,
+            TotalFilesPolicyProtected = 1,
+            ElapsedTime = TimeSpan.FromSeconds(4.7),
+        };
+
+        CleanSummaryOverlay.Show(summary, probe.AllTargets, safeMode: false);
+        ShellDiagnostics.Write(
+            $"clean summary loaded (self-test, display only): " +
+            $"{summary.FormattedFreedSize}, {summary.TotalFilesDeleted:N0} files, " +
+            $"{summary.TotalFilesSkipped} kept");
     }
 
     /// <summary>
@@ -588,6 +618,7 @@ public sealed partial class MainWindow : Window
         StartupWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
 
         CleanerWorkspacePanel.FootprintRequested += OpenAppDataFootprint;
+        CleanerWorkspacePanel.ViewModel.CleanCompleted += OnCleanCompleted;
 
         SystemRepairWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
         SystemRepairWorkspacePanel.ViewModel.CloseRequested += ReturnToFirstWorkspace;
@@ -626,6 +657,33 @@ public sealed partial class MainWindow : Window
             () => LockedFilesOverlay.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed);
 
     /// <summary>
+    /// Shows the post-clean summary over whatever is on screen.
+    ///
+    /// WPF opened CelebrationModalOverlay from ExecuteCleanupAsync. The run itself lives
+    /// in the ViewModel, which reports the numbers it actually produced; the shell only
+    /// decides where they appear.
+    /// </summary>
+    private void OnCleanCompleted(WinTempCleaner.Models.CleanSummary summary)
+    {
+        CleanSummaryOverlay.Show(
+            summary,
+            CleanerWorkspacePanel.ViewModel.AllTargets,
+            CleanerWorkspacePanel.ViewModel.LastRunUsedSafeMode);
+        CleanSummaryOverlay.CloseRequested -= CloseCleanSummary;
+        CleanSummaryOverlay.CloseRequested += CloseCleanSummary;
+        CleanSummaryOverlay.Visibility = Visibility.Visible;
+        ShellMotion.Enter(CleanSummaryOverlay, riseDip: 16);
+    }
+
+    private void CloseCleanSummary()
+    {
+        CleanSummaryOverlay.CloseRequested -= CloseCleanSummary;
+        ShellMotion.Exit(
+            CleanSummaryOverlay,
+            () => CleanSummaryOverlay.Visibility = Visibility.Collapsed);
+    }
+
+    /// <summary>
     /// Escape closes whichever overlay is on top.
     ///
     /// The WPF window listed every modal in Window_KeyDown, because an overlay that
@@ -635,7 +693,12 @@ public sealed partial class MainWindow : Window
     /// </summary>
     private void OnEscapeInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
-        if (MemoryOverlay.Visibility == Visibility.Visible)
+        if (CleanSummaryOverlay.Visibility == Visibility.Visible)
+        {
+            CloseCleanSummary();
+            args.Handled = true;
+        }
+        else if (MemoryOverlay.Visibility == Visibility.Visible)
         {
             CloseMemoryOptimizerOverlay();
             args.Handled = true;
@@ -699,6 +762,13 @@ public sealed partial class MainWindow : Window
     private void OnCleanSelectedInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
         if (CleanerWorkspacePanel.Visibility != Visibility.Visible)
+        {
+            return;
+        }
+
+        // A summary is on top of the cleaner; a stray chord must not start another run
+        // behind it.
+        if (CleanSummaryOverlay.Visibility == Visibility.Visible)
         {
             return;
         }

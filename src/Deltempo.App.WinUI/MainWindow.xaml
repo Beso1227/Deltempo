@@ -420,5 +420,9 @@
         <views:MemoryOptimizerView x:Name="MemoryOverlay"
                                    Grid.Row="1"
                                    Visibility="Collapsed" />
+
+        <views:CleanSummaryView x:Name="CleanSummaryOverlay"
+                                Grid.Row="1"
+                                Visibility="Collapsed" />
     </Grid>
 </Window>
