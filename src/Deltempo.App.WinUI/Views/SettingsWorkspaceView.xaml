@@ -6,6 +6,13 @@
     Every control here writes to a shared Core setting, so the WPF app and this
     shell cannot drift apart. The theme switch is the exception: the panel asks the
     shell to apply it, because the shell owns the window's RequestedTheme.
+
+    WPF's four tabs are the four chip categories below, in its order (UPDATES,
+    GENERAL, MEMORY, SAFETY became General, Updates, Memory, Safety), carrying the
+    same controls in the same order with the same wording. There is no Save or
+    Cancel: each control writes its setting as it changes, which is how the rest of
+    this shell already behaves and removes the way a change could look applied
+    because the modal closed.
 -->
 <UserControl
     x:Class="Deltempo.App.WinUI.Views.SettingsWorkspaceView"
@@ -13,242 +20,821 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:Deltempo.App.WinUI.Converters"
     xmlns:vm="using:Deltempo.App.WinUI.ViewModels"
     mc:Ignorable="d"
     x:DataType="vm:SettingsWorkspaceViewModel"
     d:DesignWidth="900"
     d:DesignHeight="560">
 
-    <Grid Padding="18,16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <!-- IsEnabled needs a bool; a Visibility converter throws in WinUI 3. -->
+        <converters:BoolNegationConverter x:Key="NotBool" />
 
-        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Spacing="10">
+        <Style x:Key="SettingsCard" TargetType="Border">
+            <Setter Property="Background" Value="{ThemeResource SurfaceSubCardBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource HairlineBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="16,12" />
+        </Style>
 
-                <!-- Appearance -->
-                <Border Background="{ThemeResource SurfaceCardBrush}"
-                        BorderBrush="{ThemeResource HairlineBorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="13"
-                        Padding="14,12"
-                        AutomationProperties.Name="Appearance settings">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Appearance"
-                                   FontSize="12"
-                                   FontWeight="SemiBold"
-                                   Foreground="{ThemeResource TextHighBrush}"
-                                   HorizontalAlignment="Left" />
+        <Style x:Key="CardTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{ThemeResource ElectricCyanBrush}" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
 
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0"
-                                       Text="Dark theme"
-                                       FontSize="12"
-                                       Foreground="{ThemeResource TextMediumBrush}"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Left" />
-                            <ToggleSwitch Grid.Column="1"
-                                          IsOn="{x:Bind ViewModel.IsDarkTheme, Mode=TwoWay}"
-                                          AutomationProperties.Name="Dark theme"
-                                          VerticalAlignment="Center" />
-                        </Grid>
+        <Style x:Key="RowTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{ThemeResource TextHighBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
 
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0"
-                                       Text="Interface sounds"
-                                       FontSize="12"
-                                       Foreground="{ThemeResource TextMediumBrush}"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Left" />
-                            <ToggleSwitch Grid.Column="1"
-                                          IsOn="{x:Bind ViewModel.SoundEnabled, Mode=TwoWay}"
-                                          AutomationProperties.Name="Interface sounds"
-                                          VerticalAlignment="Center" />
-                        </Grid>
+        <Style x:Key="RowHint" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="Foreground" Value="{ThemeResource TextMutedBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
 
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0"
-                                       Text="Language"
-                                       FontSize="12"
-                                       Foreground="{ThemeResource TextMediumBrush}"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Left" />
-                            <ComboBox Grid.Column="1"
-                                      x:Name="LanguageCombo"
-                                      SelectionChanged="OnLanguageSelectionChanged"
-                                      AutomationProperties.Name="Language"
-                                      MinWidth="180"
-                                      VerticalAlignment="Center" />
-                        </Grid>
-                    </StackPanel>
-                </Border>
+        <Style x:Key="RowLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Foreground" Value="{ThemeResource TextMediumBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
 
-                <!-- Automation -->
-                <Border Background="{ThemeResource SurfaceCardBrush}"
-                        BorderBrush="{ThemeResource HairlineBorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="13"
-                        Padding="14,12"
-                        AutomationProperties.Name="Automation settings">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Automation"
-                                   FontSize="12"
-                                   FontWeight="SemiBold"
-                                   Foreground="{ThemeResource TextHighBrush}"
-                                   HorizontalAlignment="Left" />
+        <Style x:Key="SettingSwitch" TargetType="ToggleSwitch">
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="OnContent" Value="" />
+            <Setter Property="OffContent" Value="" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
 
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0"
-                                       Text="Clean up while the machine is idle"
-                                       FontSize="12"
-                                       Foreground="{ThemeResource TextMediumBrush}"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Left" />
-                            <ToggleSwitch Grid.Column="1"
-                                          IsOn="{x:Bind ViewModel.AutoCleanOnIdle, Mode=TwoWay}"
-                                          AutomationProperties.Name="Clean up while the machine is idle"
-                                          VerticalAlignment="Center" />
-                        </Grid>
+        <Style x:Key="SettingRow" TargetType="Grid">
+            <Setter Property="ColumnSpacing" Value="12" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
 
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0"
-                                       Text="Idle minutes before the clean runs"
-                                       FontSize="12"
-                                       Foreground="{ThemeResource TextMediumBrush}"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Left" />
-                            <NumberBox Grid.Column="1"
-                                       Value="{x:Bind ViewModel.AutoCleanIdleMinutesValue, Mode=TwoWay}"
-                                       Minimum="1"
-                                       Maximum="600"
-                                       SmallChange="5"
-                                       SpinButtonPlacementMode="Compact"
-                                       AutomationProperties.Name="Idle minutes before the clean runs"
-                                       VerticalAlignment="Center" />
-                        </Grid>
+        <Style x:Key="SmallButton" TargetType="Button">
+            <Setter Property="Background" Value="{ThemeResource PillButtonBgBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource PillButtonBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="9,3" />
+            <Setter Property="FontSize" Value="10" />
+        </Style>
 
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0"
-                                       Text="Alert when free disk space gets low"
-                                       FontSize="12"
-                                       Foreground="{ThemeResource TextMediumBrush}"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Left" />
-                            <ToggleSwitch Grid.Column="1"
-                                          IsOn="{x:Bind ViewModel.LowDiskAlertEnabled, Mode=TwoWay}"
-                                          AutomationProperties.Name="Alert when free disk space gets low"
-                                          VerticalAlignment="Center" />
-                        </Grid>
+        <Style x:Key="SettingCombo" TargetType="ComboBox">
+            <Setter Property="Width" Value="180" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </UserControl.Resources>
 
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0"
-                                       Text="Warn when free disk space drops below"
-                                       FontSize="12"
-                                       Foreground="{ThemeResource TextMediumBrush}"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Left" />
-                            <NumberBox Grid.Column="1"
-                                       Value="{x:Bind ViewModel.LowDiskThresholdValue, Mode=TwoWay}"
-                                       Minimum="1"
-                                       Maximum="500"
-                                       SmallChange="5"
-                                       SpinButtonPlacementMode="Compact"
-                                       AutomationProperties.Name="Low disk alert threshold in gigabytes"
-                                       VerticalAlignment="Center" />
-                        </Grid>
-                    </StackPanel>
-                </Border>
+    <Grid Padding="18,16" RowDefinitions="Auto,*,Auto">
 
-                <!-- Updates -->
-                <Border Background="{ThemeResource SurfaceCardBrush}"
-                        BorderBrush="{ThemeResource HairlineBorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="13"
-                        Padding="14,12"
-                        AutomationProperties.Name="Update settings">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Updates"
-                                   FontSize="12"
-                                   FontWeight="SemiBold"
-                                   Foreground="{ThemeResource TextHighBrush}"
-                                   HorizontalAlignment="Left" />
+        <!-- WPF's four settings tabs. -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="6" Margin="0,0,0,10">
+            <RadioButton GroupName="SettingsCategory"
+                         Content="General"
+                         Style="{StaticResource FilterChipRadio}"
+                         IsChecked="{x:Bind ViewModel.IsGeneralCategory, Mode=TwoWay}" />
+            <RadioButton GroupName="SettingsCategory"
+                         Content="Updates"
+                         Style="{StaticResource FilterChipRadio}"
+                         IsChecked="{x:Bind ViewModel.IsUpdatesCategory, Mode=TwoWay}" />
+            <RadioButton GroupName="SettingsCategory"
+                         Content="Memory"
+                         Style="{StaticResource FilterChipRadio}"
+                         IsChecked="{x:Bind ViewModel.IsMemoryCategory, Mode=TwoWay}" />
+            <RadioButton GroupName="SettingsCategory"
+                         Content="Safety"
+                         Style="{StaticResource FilterChipRadio}"
+                         IsChecked="{x:Bind ViewModel.IsSafetyCategory, Mode=TwoWay}" />
+        </StackPanel>
 
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0"
-                                       Text="Check for updates when the app starts"
-                                       FontSize="12"
-                                       Foreground="{ThemeResource TextMediumBrush}"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Left" />
-                            <ToggleSwitch Grid.Column="1"
-                                          IsOn="{x:Bind ViewModel.CheckUpdatesOnStartup, Mode=TwoWay}"
-                                          AutomationProperties.Name="Check for updates on startup"
-                                          VerticalAlignment="Center" />
-                        </Grid>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Content="Check now"
-                                    Click="OnCheckForUpdatesClick"
-                                    AutomationProperties.Name="Check for updates now"
-                                    Style="{StaticResource AccentButtonStyle}" />
-                            <Button Content="Open releases page"
-                                    Click="OnOpenReleasesClick"
-                                    AutomationProperties.Name="Open the releases page" />
-                            <TextBlock Text="{x:Bind ViewModel.CurrentVersionText}"
-                                       FontSize="11"
-                                       Foreground="{ThemeResource TextMutedBrush}"
-                                       VerticalAlignment="Center" />
+                <!-- ================= GENERAL ================= -->
+                <StackPanel Spacing="10"
+                            Visibility="{x:Bind ViewModel.ShowGeneral, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+
+                    <Border Style="{StaticResource SettingsCard}">
+                        <StackPanel>
+                            <TextBlock Text="APPEARANCE &amp; FEEDBACK" Style="{StaticResource CardTitle}" />
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Dark theme" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Switch the whole window between the dark and light palette" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.IsDarkTheme, Mode=TwoWay}"
+                                              AutomationProperties.Name="Dark theme" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Sound Effects &amp; Audio Feedback" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Play subtle audio cues on click and upon cleanup completion" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.SoundEnabled, Mode=TwoWay}"
+                                              AutomationProperties.Name="Interface sounds" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}" Margin="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Language" Style="{StaticResource RowLabel}" />
+                                <ComboBox Grid.Column="1"
+                                          x:Name="LanguageCombo"
+                                          Style="{StaticResource SettingCombo}"
+                                          SelectionChanged="OnLanguageSelectionChanged"
+                                          AutomationProperties.Name="Language" />
+                            </Grid>
                         </StackPanel>
+                    </Border>
 
-                        <TextBlock Text="{x:Bind ViewModel.UpdateStatusText, Mode=OneWay}"
-                                   FontSize="11"
-                                   Foreground="{ThemeResource TextMutedBrush}"
-                                   TextWrapping="Wrap"
-                                   HorizontalAlignment="Left" />
-                    </StackPanel>
-                </Border>
-            </StackPanel>
+                    <Border Style="{StaticResource SettingsCard}">
+                        <StackPanel>
+                            <TextBlock Text="AUTO-PILOT GUARDIAN" Style="{StaticResource CardTitle}" />
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Background Auto-Pilot Guardian" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Periodically purges safe temporary caches silently in background" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.EnableAutoPilot, Mode=TwoWay}"
+                                              AutomationProperties.Name="Background Auto-Pilot Guardian" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Auto-Cleaning Interval" Style="{StaticResource RowLabel}" />
+                                <ComboBox Grid.Column="1"
+                                          x:Name="AutoCleanIntervalCombo"
+                                          Style="{StaticResource SettingCombo}"
+                                          SelectionChanged="OnAutoCleanIntervalChanged"
+                                          AutomationProperties.Name="Auto-cleaning interval" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Clean While System is Idle" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Silently reclaim background junk when computer is untouched" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.AutoCleanOnIdle, Mode=TwoWay}"
+                                              AutomationProperties.Name="Clean up while the machine is idle" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}" Margin="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Idle Wait Time" Style="{StaticResource RowLabel}" />
+                                <ComboBox Grid.Column="1"
+                                          x:Name="IdleMinutesCombo"
+                                          Style="{StaticResource SettingCombo}"
+                                          SelectionChanged="OnIdleMinutesChanged"
+                                          AutomationProperties.Name="Idle wait time" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource SettingsCard}">
+                        <StackPanel>
+                            <TextBlock Text="TRAY &amp; SYSTEM INTEGRATION" Style="{StaticResource CardTitle}" />
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Minimize to System Tray" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Keeps Deltempo active in the Windows notification area" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.MinimizeToTray, Mode=TwoWay}"
+                                              AutomationProperties.Name="Minimize to system tray" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Show Desktop Balloon Alerts" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Notify via Windows toast when storage is reclaimed automatically" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.AutoCleanNotify, Mode=TwoWay}"
+                                              AutomationProperties.Name="Show desktop balloon alerts" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Windows Explorer Context Menu" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Add 'Scan with Deltempo' and 'Inspect with Deltempo' to Explorer right-click menus (HKCU)" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.EnableShellContextMenu, Mode=TwoWay}"
+                                              AutomationProperties.Name="Windows Explorer context menu" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}" Margin="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Silent Weekly Maintenance (Task Scheduler)" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Register Windows Task Scheduler job to run silent background temp cleaning weekly" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.EnableWeeklyScheduledTask, Mode=TwoWay}"
+                                              AutomationProperties.Name="Silent weekly maintenance" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ================= UPDATES ================= -->
+                <StackPanel Spacing="10"
+                            Visibility="{x:Bind ViewModel.ShowUpdates, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+
+                    <Border Style="{StaticResource SettingsCard}">
+                        <StackPanel>
+                            <TextBlock Text="RELEASE STATUS" Style="{StaticResource CardTitle}" />
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="{x:Bind ViewModel.CurrentVersionText}"
+                                               FontSize="12.5"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource TextHighBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.LastCheckedText, Mode=OneWay}"
+                                               Style="{StaticResource RowHint}" />
+                                    <TextBlock Text="{x:Bind ViewModel.UpdateStatusText, Mode=OneWay}"
+                                               Style="{StaticResource RowHint}"
+                                               MaxWidth="420" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <Button Content="Check for Updates"
+                                            Click="OnCheckForUpdatesClick"
+                                            AutomationProperties.Name="Check for updates now"
+                                            Style="{StaticResource AccentButtonStyle}" />
+                                    <Button Content="Release Notes"
+                                            Click="OnOpenReleasesClick"
+                                            AutomationProperties.Name="Open the releases page"
+                                            Style="{StaticResource SmallButton}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="Checks are read-only: a newer release is reported, never downloaded or installed from this screen."
+                                       Style="{StaticResource RowHint}"
+                                       MaxWidth="560"
+                                       Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource SettingsCard}">
+                        <StackPanel>
+                            <TextBlock Text="AUTOMATIC UPDATE SCHEDULE &amp; TRIGGERS" Style="{StaticResource CardTitle}" />
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Check for Updates on Application Launch" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Silently check GitHub Releases when Deltempo starts up" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.CheckUpdatesOnStartup, Mode=TwoWay}"
+                                              AutomationProperties.Name="Check for updates on startup" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Periodic Background Check Frequency" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="How often Deltempo queries GitHub when standing guard in tray" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ComboBox Grid.Column="1"
+                                          x:Name="UpdateFrequencyCombo"
+                                          Style="{StaticResource SettingCombo}"
+                                          SelectionChanged="OnUpdateFrequencyChanged"
+                                          AutomationProperties.Name="Periodic background check frequency" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}" Margin="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Release Distribution Channel" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Choose between rock-solid milestone releases or experimental previews" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ComboBox Grid.Column="1"
+                                          x:Name="UpdateChannelCombo"
+                                          Style="{StaticResource SettingCombo}"
+                                          SelectionChanged="OnUpdateChannelChanged"
+                                          AutomationProperties.Name="Release distribution channel" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource SettingsCard}">
+                        <StackPanel>
+                            <TextBlock Text="DOWNLOAD &amp; INTEGRITY PREFERENCES" Style="{StaticResource CardTitle}" />
+
+                            <Grid Style="{StaticResource SettingRow}" Margin="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Silent Background Pre-fetch" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Pre-download update binary silently and prompt only when ready to restart" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.AutoDownloadUpdates, Mode=TwoWay}"
+                                              AutomationProperties.Name="Silent background pre-fetch" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ================= MEMORY ================= -->
+                <StackPanel Spacing="10"
+                            Visibility="{x:Bind ViewModel.ShowMemory, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+
+                    <Border Style="{StaticResource SettingsCard}">
+                        <StackPanel>
+                            <TextBlock Text="MEMORY OPTIMIZER ENGINE" Style="{StaticResource CardTitle}" />
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Automated Win32 RAM cleaning" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Working Set, Standby List &amp; System Cache" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.MemoryAutoOptimizeEnabled, Mode=TwoWay}"
+                                              AutomationProperties.Name="Memory optimizer engine" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Auto-Optimization Interval" Style="{StaticResource RowLabel}" />
+                                    <TextBlock Text="Run memory optimization automatically every N hours (0 = disabled)" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ComboBox Grid.Column="1"
+                                          x:Name="MemoryIntervalCombo"
+                                          Style="{StaticResource SettingCombo}"
+                                          SelectionChanged="OnMemoryIntervalChanged"
+                                          AutomationProperties.Name="Auto-optimization interval" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}" Margin="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Free RAM Threshold Trigger" Style="{StaticResource RowLabel}" />
+                                    <TextBlock Text="Also trigger optimization when free RAM drops below this %" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ComboBox Grid.Column="1"
+                                          x:Name="MemoryThresholdCombo"
+                                          Style="{StaticResource SettingCombo}"
+                                          SelectionChanged="OnMemoryThresholdChanged"
+                                          AutomationProperties.Name="Free RAM threshold trigger" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource SettingsCard}">
+                        <StackPanel>
+                            <TextBlock Text="WINDOW &amp; TRAY BEHAVIOUR" Style="{StaticResource CardTitle}" />
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Show Memory in System Tray" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Display live RAM % in tray tooltip" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.MemoryShowInTray, Mode=TwoWay}"
+                                              AutomationProperties.Name="Show memory in system tray" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Always on Top" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Pin the main window above all others" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.MemoryAlwaysOnTop, Mode=TwoWay}"
+                                              AutomationProperties.Name="Always on top" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Compact Mode" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Collapse to minimal RAM monitoring view" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.MemoryCompactMode, Mode=TwoWay}"
+                                              AutomationProperties.Name="Compact mode" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Close to Notification Area" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Minimize to tray instead of closing on X button" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.MemoryCloseToTray, Mode=TwoWay}"
+                                              AutomationProperties.Name="Close to notification area" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}" Margin="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Show Optimization Notifications" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Balloon alert after each memory optimization" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.MemoryShowNotifications, Mode=TwoWay}"
+                                              AutomationProperties.Name="Show optimization notifications" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ================= SAFETY ================= -->
+                <StackPanel Spacing="10"
+                            Visibility="{x:Bind ViewModel.ShowSafety, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+
+                    <Border Style="{StaticResource SettingsCard}">
+                        <StackPanel>
+                            <TextBlock Text="SAFE DELETION" Style="{StaticResource CardTitle}" />
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Recycle Bin Safe Delete (Undoable)" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Move deleted files to Windows Recycle Bin instead of permanent purge" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.SendToRecycleBin, Mode=TwoWay}"
+                                              AutomationProperties.Name="Recycle bin safe delete" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}" Margin="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Aggressive Empty Directory Pruning" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Recursively delete leftover empty subdirectories within cleanup targets" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.AggressiveEmptyFolderPrune, Mode=TwoWay}"
+                                              AutomationProperties.Name="Aggressive empty directory pruning" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource SettingsCard}">
+                        <StackPanel>
+                            <TextBlock Text="LOW DISK SPACE ALERTS" Style="{StaticResource CardTitle}" />
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Low Disk Space Proactive Alerts" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Alert via tray notification when free C: drive space falls below threshold" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.LowDiskAlertEnabled, Mode=TwoWay}"
+                                              AutomationProperties.Name="Alert when free disk space gets low" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}" Margin="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Free Space Alert Threshold" Style="{StaticResource RowLabel}" />
+                                <ComboBox Grid.Column="1"
+                                          x:Name="DiskThresholdCombo"
+                                          Style="{StaticResource SettingCombo}"
+                                          SelectionChanged="OnDiskThresholdChanged"
+                                          AutomationProperties.Name="Free space alert threshold" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource SettingsCard}">
+                        <StackPanel>
+                            <TextBlock Text="CUSTOM EXCLUSIONS &amp; WHITELIST" Style="{StaticResource CardTitle}" />
+                            <TextBlock Text="Permanently protect specific directories or file extensions from deletion"
+                                       Style="{StaticResource RowHint}"
+                                       Margin="0,0,0,8" />
+
+                            <TextBlock Text="Protected Folder Paths:"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextMediumBrush}"
+                                       Margin="0,0,0,3" />
+                            <ListView x:Name="ExcludedPathsList"
+                                      Height="76"
+                                      Background="{ThemeResource SurfaceCardBrush}"
+                                      BorderBrush="{ThemeResource HairlineBorderBrush}"
+                                      BorderThickness="1"
+                                      SelectionMode="Single"
+                                      SelectionChanged="OnExcludedPathSelected"
+                                      AutomationProperties.Name="Protected folder paths" />
+
+                            <Grid ColumnSpacing="5" Margin="0,5,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0"
+                                         PlaceholderText="C:\Folder\To\Protect"
+                                         Text="{x:Bind ViewModel.NewExcludedPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AutomationProperties.Name="Folder path to protect" />
+                                <Button Grid.Column="1" Content="Browse..." Style="{StaticResource SmallButton}" Click="OnBrowseExcludedFolder" />
+                                <Button Grid.Column="2" Content="Add" Style="{StaticResource SmallButton}" Command="{x:Bind ViewModel.AddExcludedPathCommand}" />
+                                <Button Grid.Column="3" Content="Remove" Style="{StaticResource SmallButton}" Command="{x:Bind ViewModel.RemoveExcludedPathCommand}" />
+                            </Grid>
+
+                            <TextBlock Text="Protected File Extensions (e.g. .log, .bak):"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextMediumBrush}"
+                                       Margin="0,0,0,3" />
+                            <ListView x:Name="ExcludedExtensionsList"
+                                      Height="60"
+                                      Background="{ThemeResource SurfaceCardBrush}"
+                                      BorderBrush="{ThemeResource HairlineBorderBrush}"
+                                      BorderThickness="1"
+                                      SelectionMode="Single"
+                                      SelectionChanged="OnExcludedExtensionSelected"
+                                      AutomationProperties.Name="Protected file extensions" />
+
+                            <Grid ColumnSpacing="5" Margin="0,5,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0"
+                                         PlaceholderText=".log"
+                                         Text="{x:Bind ViewModel.NewExcludedExtension, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AutomationProperties.Name="File extension to protect" />
+                                <Button Grid.Column="1" Content="Add" Style="{StaticResource SmallButton}" Command="{x:Bind ViewModel.AddExcludedExtensionCommand}" />
+                                <Button Grid.Column="2" Content="Remove" Style="{StaticResource SmallButton}" Command="{x:Bind ViewModel.RemoveExcludedExtensionCommand}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource SettingsCard}">
+                        <StackPanel>
+                            <TextBlock Text="AI &amp; ONLINE FILE INTELLIGENCE" Style="{StaticResource CardTitle}" />
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Online file intelligence" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Connect to internet / AI to fetch real-world info on large &amp; unknown files" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.EnableOnlineAiSafety, Mode=TwoWay}"
+                                              AutomationProperties.Name="Online file intelligence" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="AI Intelligence Provider" Style="{StaticResource RowLabel}" />
+                                <ComboBox Grid.Column="1"
+                                          x:Name="AiProviderCombo"
+                                          Width="240"
+                                          VerticalAlignment="Center"
+                                          SelectionChanged="OnAiProviderChanged"
+                                          AutomationProperties.Name="AI intelligence provider" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}"
+                                  Visibility="{x:Bind ViewModel.ShowAiApiKeyRow, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="API Key" Style="{StaticResource RowLabel}" />
+                                    <TextBlock Text="Encrypted with Windows DPAPI before it touches disk" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <PasswordBox Grid.Column="1"
+                                             x:Name="AiApiKeyBox"
+                                             Width="240"
+                                             PasswordRevealMode="Peek"
+                                             PasswordChanged="OnAiApiKeyChanged"
+                                             AutomationProperties.Name="AI provider API key" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}"
+                                  Visibility="{x:Bind ViewModel.ShowAiOllamaRow, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Ollama Endpoint" Style="{StaticResource RowLabel}" />
+                                <TextBox Grid.Column="1"
+                                         Width="240"
+                                         Text="{x:Bind ViewModel.AiOllamaEndpoint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AutomationProperties.Name="Ollama endpoint" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}"
+                                  Visibility="{x:Bind ViewModel.ShowAiModelRow, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Custom Model Name (Optional)" Style="{StaticResource RowLabel}" />
+                                <TextBox Grid.Column="1"
+                                         Width="240"
+                                         Text="{x:Bind ViewModel.AiModelName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AutomationProperties.Name="Custom model name" />
+                            </Grid>
+
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Analyze large files automatically" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="Ask the provider about unknown large files as soon as a scan finishes" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              Style="{StaticResource SettingSwitch}"
+                                              IsOn="{x:Bind ViewModel.AutoQueryAiForLargeFiles, Mode=TwoWay}"
+                                              AutomationProperties.Name="Analyze large files automatically" />
+                            </Grid>
+
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                                <Button Content="Test connection"
+                                        Style="{StaticResource SmallButton}"
+                                        IsEnabled="{x:Bind ViewModel.IsTestingAi, Mode=OneWay, Converter={StaticResource NotBool}}"
+                                        Command="{x:Bind ViewModel.TestAiConnectionCommand}" />
+                                <Button Content="Clear AI cache"
+                                        Style="{StaticResource SmallButton}"
+                                        Command="{x:Bind ViewModel.ClearAiCacheCommand}" />
+                                <TextBlock Text="{x:Bind ViewModel.AiTestStatusText, Mode=OneWay}"
+                                           Style="{StaticResource RowHint}"
+                                           VerticalAlignment="Center"
+                                           MaxWidth="420" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
         </ScrollViewer>
 
-        <TextBlock Grid.Row="1"
-                   Margin="2,8,0,0"
-                   Text="Settings are shared with the desktop app and are stored on this machine only."
-                   FontSize="11"
-                   Foreground="{ThemeResource TextMutedBrush}"
-                   HorizontalAlignment="Left" />
+        <!-- Footer: WPF had a Reset button next to Save. Saving is immediate here, so
+             Reset is the only action left, and it says so. -->
+        <Grid Grid.Row="2" Margin="2,10,2,0" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="Changes save immediately. Settings are shared with the desktop app and are stored on this machine only."
+                       FontSize="11"
+                       Foreground="{ThemeResource TextMutedBrush}"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Left" />
+
+            <Button Grid.Column="1"
+                    Content="Restore defaults"
+                    Style="{StaticResource SmallButton}"
+                    Click="OnResetDefaultsClick"
+                    AutomationProperties.Name="Restore settings to factory defaults" />
+        </Grid>
     </Grid>
 </UserControl>

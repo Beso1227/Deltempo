@@ -146,6 +146,7 @@ public sealed partial class MainWindow : Window
         ApplyWindowChrome();
         InitializeTray();
         ApplyTheme(SettingsService.Current.IsDarkMode, persist: false);
+        OnAlwaysOnTopRequested(SettingsService.Current.MemoryAlwaysOnTop);
         BuildNavigation();
         VerifyCoreLink();
         WireWorkspaceSurfaces();
@@ -167,6 +168,7 @@ public sealed partial class MainWindow : Window
             _ = LoadSelfTestLargeFilesWorkspace();
             _ = LoadSelfTestCleanerWorkspace();
             _ = LoadSelfTestProcessWorkspace();
+            LoadSelfTestSettings();
         }
 
         ShellDiagnostics.MaybeSelfTest(this);
@@ -180,6 +182,35 @@ public sealed partial class MainWindow : Window
     private async Task LoadSelfTestProcessWorkspace()
     {
         await ProcessWorkspacePanel.ViewModel.RefreshAsync();
+    }
+
+    /// <summary>
+    /// Exercises the settings surface without changing anything.
+    ///
+    /// Refresh() only reads SettingsService, so it cannot write a setting, register an
+    /// Explorer verb or create a scheduled task - the load path is guarded in the
+    /// ViewModel for exactly that reason. What is worth proving is that every list the
+    /// panel offers still matches the values the settings hold, because a drop-down that
+    /// selects nothing is how a stored choice silently becomes unedited.
+    /// </summary>
+    private void LoadSelfTestSettings()
+    {
+        SettingsWorkspacePanel.Refresh();
+
+        var vm = SettingsWorkspacePanel.ViewModel;
+        int selected =
+            (vm.Language is { Length: > 0 } ? 1 : 0) +
+            (vm.UpdateChannel is { Length: > 0 } ? 1 : 0) +
+            (vm.AiProvider is { Length: > 0 } ? 1 : 0);
+
+        ShellDiagnostics.Write(
+            $"settings surface loaded (self-test, display only): category={vm.Category}, " +
+            $"choices resolved={selected}/3, " +
+            $"shield-safe-delete={vm.SendToRecycleBin}, autopilot={vm.EnableAutoPilot}, " +
+            $"online-ai={vm.EnableOnlineAiSafety} (provider={vm.AiProvider}, " +
+            $"key-row={(vm.ShowAiApiKeyRow ? "shown" : "hidden")}), " +
+            $"{vm.ExcludedPaths.Count} protected path(s), " +
+            $"{vm.ExcludedExtensions.Count} protected extension(s)");
     }
 
     /// <summary>
@@ -735,6 +766,7 @@ public sealed partial class MainWindow : Window
 
         SettingsWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
         SettingsWorkspacePanel.ThemeChangeRequested += OnThemeChangeRequested;
+        SettingsWorkspacePanel.AlwaysOnTopRequested += OnAlwaysOnTopRequested;
     }
 
     /// <summary>
@@ -857,6 +889,19 @@ public sealed partial class MainWindow : Window
     /// the window's RequestedTheme and the system caption buttons that follow it.
     /// </summary>
     private void OnThemeChangeRequested(bool isDark) => ApplyTheme(isDark, persist: true);
+
+    /// <summary>
+    /// "Always on top" is a property of this window, so the panel reports it and the
+    /// shell applies it. WPF set Topmost on its window; the WinUI equivalent is the
+    /// overlay presenter, which does not need a P/Invoke.
+    /// </summary>
+    private void OnAlwaysOnTopRequested(bool alwaysOnTop)
+    {
+        if (AppWindow.Presenter is OverlappedPresenter presenter)
+        {
+            presenter.IsAlwaysOnTop = alwaysOnTop;
+        }
+    }
 
     /// <summary>Opens the detailed memory manager over whatever workspace is showing.</summary>
     private void OpenMemoryOptimizerOverlay() => MemoryOverlay.Open();
@@ -1620,7 +1665,7 @@ public sealed partial class MainWindow : Window
         _workspacePanels[AppUninstallerSectionLabel] =
             (AppUninstallWorkspacePanel, AppUninstallWorkspacePanel.Open);
         _workspacePanels[ForceDeleteSectionLabel] = (ForceDeleteWorkspacePanel, ForceDeleteWorkspacePanel.Open);
-        _workspacePanels[SettingsSectionLabel] = (SettingsWorkspacePanel, null);
+        _workspacePanels[SettingsSectionLabel] = (SettingsWorkspacePanel, SettingsWorkspacePanel.Refresh);
         _workspacePanels[AboutSectionLabel] = (AboutWorkspacePanel, null);
     }
 
