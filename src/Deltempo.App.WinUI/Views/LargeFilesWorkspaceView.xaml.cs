@@ -28,7 +28,8 @@ public sealed partial class LargeFilesWorkspaceView : UserControl
     {
         ViewModel = new LargeFilesWorkspaceViewModel(
             confirmAsync: AskForConfirmationAsync,
-            openFolder: OpenInFolder);
+            openFolder: OpenInFolder,
+            post: action => DispatcherQueue.TryEnqueue(() => action()));
         InitializeComponent();
 
         // Scope chips are data-driven: a fixed pair could not scan one drive.

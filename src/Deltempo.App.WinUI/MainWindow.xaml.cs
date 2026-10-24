@@ -525,19 +525,47 @@ public sealed partial class MainWindow : Window
     /// A bare ViewModel is used, with no confirmation host, so even an
     /// accidental mutating call would fail closed.
     /// </summary>
+    /// <summary>
+    /// Exercises the Large Files workspace.
+    ///
+    /// ScanAsync only enumerates and classifies files; it deletes nothing. The
+    /// confirmation host is not supplied, so the ViewModel's recycle commands fail
+    /// closed even if they were reached.
+    ///
+    /// The walk is bounded here on purpose. "ALL" walks every fixed drive to depth
+    /// 12 and never finishes inside the 20 s self-test window; the user profile is
+    /// unbounded too - its duration is whatever Defender and the file metadata
+    /// cache decide - which is how this line used to vanish from the log on a cold
+    /// run. The application's own folder is a real directory tree that finishes in
+    /// milliseconds, so the read-only path is actually observed.
+    /// </summary>
     private async Task LoadSelfTestLargeFilesWorkspace()
     {
-        var probe = new Deltempo.App.WinUI.ViewModels.LargeFilesWorkspaceViewModel();
+        var probe = new Deltempo.App.WinUI.ViewModels.LargeFilesWorkspaceViewModel
+        {
+            ScanScope = AppContext.BaseDirectory,
+            MinSizeBytes = 0,
+        };
 
         probe.LogRequested += OnFootprintLog;
-        await probe.ScanAsync();
+
+        Task scan = probe.ScanAsync();
+        Task bound = Task.Delay(TimeSpan.FromSeconds(10));
+
+        if (await Task.WhenAny(scan, bound) != scan)
+        {
+            ShellDiagnostics.Write(
+                "large files scan still running (self-test, read only): wait bound reached");
+            return;
+        }
 
         int safeCount = probe.Items.Count(f => f.IsSafe);
         int protectedCount = probe.Items.Count - safeCount;
 
         ShellDiagnostics.Write(
             $"large files workspace loaded (self-test, read only): " +
-            $"{probe.Items.Count} files, {safeCount} safe, {protectedCount} protected");
+            $"{probe.Items.Count} files, {safeCount} safe, {protectedCount} protected, " +
+            $"status=\"{probe.StatusText}\", empty=\"{probe.EmptyTitle}\"");
     }
 
     /// <summary>

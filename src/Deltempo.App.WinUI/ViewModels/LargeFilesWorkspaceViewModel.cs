@@ -55,6 +55,12 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
 
     private List<LargeFileInfo> _allFiles = [];
 
+    /// <summary>The scan the Cancel button can stop. Null between scans.</summary>
+    private CancellationTokenSource? _cts;
+
+    /// <summary>Marshals scan progress onto the UI thread.</summary>
+    private readonly Action<Action> _post;
+
     /// <summary>
     /// Replaces the scanned set and recomputes everything derived from it.
     ///
@@ -95,13 +101,19 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
 
     public LargeFilesWorkspaceViewModel(
         Func<string, string, Task<bool>>? confirmAsync = null,
-        Action<string>? openFolder = null)
+        Action<string>? openFolder = null,
+        Action<Action>? post = null)
     {
         // Fail closed: no confirmation host means no recycle.
         _confirmAsync = confirmAsync ?? ((_, _) => Task.FromResult(false));
         _openFolder = openFolder;
 
+        // The service reports progress from a worker thread. The view supplies
+        // DispatcherQueue.TryEnqueue; tests pass nothing and it runs inline.
+        _post = post ?? (action => action());
+
         ScanCommand = new AsyncRelayCommand(ScanAsync);
+        CancelScanCommand = new RelayCommand(CancelScan, () => IsLoading);
         SelectSafeCommand = new RelayCommand(SelectSafe);
         SelectAllCommand = new RelayCommand(SelectAll);
         ClearSelectionCommand = new RelayCommand(ClearSelection);
@@ -111,6 +123,7 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
         ToggleSelectionCommand = new RelayCommand<LargeFileInfo>(ToggleSelection);
         ViewModeCommand = new RelayCommand<LargeFileViewMode>(SetViewMode);
         AnalyzeItemCommand = new AsyncRelayCommand<LargeFileInfo>(AnalyzeItemAsync);
+        OpenRecycleBinCommand = new RelayCommand(OpenRecycleBin);
 
         Items.CollectionChanged += OnItemsCollectionChanged;
     }
@@ -144,6 +157,25 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsLoading { get; set; }
 
+    /// <summary>
+    /// Empty-state copy. WPF rewrote the two TextBlocks in place for the scanning,
+    /// cancelled and failed cases; the same three states are data here so the
+    /// panel never claims "No large files found" while it is still looking.
+    /// </summary>
+    [ObservableProperty]
+    public partial string EmptyTitle { get; set; } = "No large files found";
+
+    [ObservableProperty]
+    public partial string EmptyHint { get; set; } =
+        "Scan your drives to see large files. Safe-to-clean files are marked with a green badge.";
+
+    /// <summary>
+    /// Shows the empty panel while a scan runs even if a previous result set is
+    /// still in Items, which is what WPF did - and hides it again once the scan
+    /// produces rows.
+    /// </summary>
+    public bool ShowEmptyState => IsLoading || !HasItems;
+
     [ObservableProperty]
     public partial LargeFileViewMode ActiveViewMode { get; set; } = LargeFileViewMode.List;
 
@@ -160,7 +192,15 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
     public int SelectedCount => Items.Count(f => f.IsSelected);
     public long SelectedBytes => Items.Where(f => f.IsSelected).Sum(f => f.SizeBytes);
 
+    /// <summary>
+    /// WPF's primary action read "Recycle Selected (N B)" and updated with the
+    /// selection, so the size was visible before the confirmation opened.
+    /// </summary>
+    public string RecycleSelectedText =>
+        $"Recycle Selected ({TargetFolderInfo.FormatBytes(SelectedBytes)})";
+
     public IAsyncRelayCommand ScanCommand { get; }
+    public IRelayCommand CancelScanCommand { get; }
     public IRelayCommand SelectSafeCommand { get; }
     public IRelayCommand SelectAllCommand { get; }
     public IRelayCommand ClearSelectionCommand { get; }
@@ -170,6 +210,7 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
     public IRelayCommand<LargeFileInfo> ToggleSelectionCommand { get; }
     public IRelayCommand<LargeFileViewMode> ViewModeCommand { get; }
     public IAsyncRelayCommand<LargeFileInfo> AnalyzeItemCommand { get; }
+    public IRelayCommand OpenRecycleBinCommand { get; }
 
     /// <summary>Read-only file enumeration and safety classification. Deletes nothing.</summary>
     public async Task ScanAsync()
@@ -177,35 +218,99 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
         if (IsLoading) return;
 
         IsLoading = true;
-        StatusText = "Scanning for large files...";
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+        CancellationToken token = _cts.Token;
+
+        string readableScope = ScanScope == "ALL" ? "all drives"
+            : ScanScope == "USER" ? "user profile"
+            : ScanScope;
+
+        StatusText = $"Scanning {readableScope} for files > {TargetFolderInfo.FormatBytes(MinSizeBytes)}...";
+        EmptyTitle = $"Scanning {readableScope}...";
+        EmptyHint = "Analyzing drives for large files. This may take a moment.";
 
         try
         {
             // Read-only discovery. No deletion, no network, no registry writes.
+            // The percentage mirrors WPF's status line, which overwrote itself with
+            // "Scanning {scope}... ({pct}%)" on every service callback.
+            var progress = new Progress<int>(pct => _post(() =>
+                StatusText = $"Scanning {readableScope}... ({pct}%)"));
+
             var result = await LargeFileHunterService.ScanLargeFilesAsync(
                 minSizeBytes: MinSizeBytes,
                 targetScope: ScanScope,
-                maxResults: 250);
+                maxResults: 250,
+                progress: progress,
+                ct: token);
 
             _allFiles = result.Files;
             ApplyViewMode();
             UpdateStorageSummary();
             UpdateSelectionSummary();
+
+            // The service cancels cooperatively: it stops enumerating and returns
+            // whatever it had. It does not throw, so the partial result is the only
+            // signal that the user stopped it - WPF read neither and reported a
+            // cancelled scan as a complete one.
+            if (!result.ScanCompleted)
+            {
+                StatusText = _allFiles.Count == 0
+                    ? "Scan cancelled."
+                    : $"Scan cancelled. Showing the {_allFiles.Count} files found so far.";
+
+                if (_allFiles.Count == 0)
+                {
+                    EmptyTitle = "Scan cancelled";
+                    EmptyHint = "Click Scan Now to run a new scan.";
+                }
+
+                LogRequested?.Invoke("[LargeFiles] Scan cancelled", LogLevel.Warning);
+                return;
+            }
+
+            // Rows present means the panel is hidden (ShowEmptyState), so this copy is
+            // reset either way rather than left claiming "Scanning..." behind a list.
+            EmptyTitle = "No large files found";
+            EmptyHint = "Try a different scope or lower the minimum file size.";
         }
         catch (OperationCanceledException)
         {
             StatusText = "Scan cancelled.";
+            EmptyTitle = "Scan cancelled";
+            EmptyHint = "Click Scan Now to run a new scan.";
+            LogRequested?.Invoke("[LargeFiles] Scan cancelled", LogLevel.Warning);
         }
         catch (Exception ex)
         {
             StatusText = $"Scan completed with warnings: {ex.Message}";
-            LogRequested?.Invoke($"[LargeFiles] Scan failed: {ex.Message}", LogLevel.Warning);
+            EmptyTitle = "Scan encountered an issue";
+            EmptyHint = ex.Message;
+            // ex.ToString(): a scan failure has thrown with an empty Message before.
+            LogRequested?.Invoke($"[LargeFiles] Scan failed: {ex}", LogLevel.Warning);
         }
         finally
         {
+            _cts?.Dispose();
+            _cts = null;
             IsLoading = false;
         }
     }
+
+    /// <summary>
+    /// Stops the running scan at the service's next yield point and leaves the
+    /// rows it already produced in place. WPF had this path wired to a CTS that
+    /// its disabled Scan button could never reach.
+    /// </summary>
+    private void CancelScan() => _cts?.Cancel();
+
+    partial void OnIsLoadingChanged(bool value)
+    {
+        CancelScanCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(ShowEmptyState));
+    }
+
 
     private void ApplyViewMode()
     {
@@ -215,6 +320,7 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
             Items.Add(f);
         }
         HasItems = Items.Count > 0;
+        OnPropertyChanged(nameof(ShowEmptyState));
         UpdateSelectionSummary();
     }
 
@@ -251,6 +357,16 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
         SoundService.PlayClickSound();
         item.IsSelected = !item.IsSelected;
         UpdateSelectionSummary();
+    }
+
+    /// <summary>
+    /// Opens Explorer on the Windows Recycle Bin, where every recycle this
+    /// workspace performs can be undone.
+    /// </summary>
+    private void OpenRecycleBin()
+    {
+        SoundService.PlayClickSound();
+        LargeFileHunterService.OpenWindowsRecycleBin();
     }
 
     private async Task RecycleSelectedAsync()
@@ -341,6 +457,7 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
         HasSelection = count > 0;
         OnPropertyChanged(nameof(SelectedCount));
         OnPropertyChanged(nameof(SelectedBytes));
+        OnPropertyChanged(nameof(RecycleSelectedText));
     }
 
     private void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
