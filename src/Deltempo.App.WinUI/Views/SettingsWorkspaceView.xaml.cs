@@ -47,6 +47,12 @@ public sealed partial class SettingsWorkspaceView : UserControl
     public event Action<bool>? AlwaysOnTopRequested;
 
     /// <summary>
+    /// Raised when the user asks for an update check. The shell runs it because a
+    /// newer release opens the window-level offer, which this panel does not own.
+    /// </summary>
+    public event Action? CheckForUpdatesRequested;
+
+    /// <summary>
     /// Re-reads every setting into the panel. WPF's LoadSettingsIntoUI ran each time its
     /// modal opened; the shell calls this when this workspace is shown for the same
     /// reason - another surface (the tray menu, the WPF app) may have changed a value.
@@ -339,8 +345,8 @@ public sealed partial class SettingsWorkspaceView : UserControl
     // Actions
     // ---------------------------------------------------------------------
 
-    private async void OnCheckForUpdatesClick(object sender, RoutedEventArgs e)
-        => await ViewModel.CheckForUpdatesCommand.ExecuteAsync(null);
+    private void OnCheckForUpdatesClick(object sender, RoutedEventArgs e)
+        => CheckForUpdatesRequested?.Invoke();
 
     private void OnOpenReleasesClick(object sender, RoutedEventArgs e)
         => ViewModel.OpenReleasesPageCommand.Execute(null);

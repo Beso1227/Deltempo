@@ -169,9 +169,41 @@ public sealed partial class MainWindow : Window
             _ = LoadSelfTestCleanerWorkspace();
             _ = LoadSelfTestProcessWorkspace();
             LoadSelfTestSettings();
+            LoadSelfTestUpdateOffer();
+        }
+        else if (SettingsService.Current.CheckUpdatesOnStartup)
+        {
+            // WPF's startup check. Outside the self-test: it reaches the network.
+            _ = StartupUpdateCheckAsync();
         }
 
         ShellDiagnostics.MaybeSelfTest(this);
+    }
+
+    /// <summary>
+    /// Renders the update offer from a synthetic release and closes it again. Nothing
+    /// is fetched, nothing is opened: the self-test proves the card lays out and that
+    /// the version and changelog it shows come from the ReleaseInfo it was handed.
+    /// </summary>
+    private void LoadSelfTestUpdateOffer()
+    {
+        var probe = new ReleaseInfo
+        {
+            TagName = "v0.0.0-preview",
+            VersionString = "0.0.0",
+            ReleaseName = "Self-test release",
+            Body = "Self-test changelog line: the offer renders the release body verbatim.",
+            IsNewer = true,
+            CheckSucceeded = true,
+        };
+
+        ShowUpdateOffer(probe);
+
+        ShellDiagnostics.Write(
+            $"update offer loaded (self-test, display only): version={UpdateOfferOverlay.Release?.TagName}, " +
+            $"visible={UpdateOfferOverlay.Visibility}, build={CurrentVersionLabel}");
+
+        CloseUpdateOffer();
     }
 
     /// <summary>
@@ -767,6 +799,7 @@ public sealed partial class MainWindow : Window
         SettingsWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
         SettingsWorkspacePanel.ThemeChangeRequested += OnThemeChangeRequested;
         SettingsWorkspacePanel.AlwaysOnTopRequested += OnAlwaysOnTopRequested;
+        SettingsWorkspacePanel.CheckForUpdatesRequested += () => _ = CheckForUpdatesAsync(silent: false);
     }
 
     /// <summary>
@@ -884,6 +917,148 @@ public sealed partial class MainWindow : Window
         UpdateActivityLogChrome();
     }
 
+    // ---------------------------------------------------------------------
+    // Updates
+    // ---------------------------------------------------------------------
+
+    /// <summary>The release being offered, if the offer is open.</summary>
+    private ReleaseInfo? _pendingRelease;
+
+    /// <summary>This build's version, as the update surfaces name it.</summary>
+    private static string CurrentVersionLabel =>
+        $"v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0"}";
+
+    /// <summary>
+    /// Asks the release feed whether a newer build exists.
+    ///
+    /// Read-only in both directions: it queries GitHub and reports what it found. A
+    /// newer release opens the offer, which hands the download to the browser - this
+    /// shell never downloads or replaces itself. A silent check (startup, tray timer)
+    /// does not re-offer a version the user already dismissed, which is the rule WPF
+    /// applied through DismissedVersion.
+    /// </summary>
+    private async Task CheckForUpdatesAsync(bool silent)
+    {
+        SettingsWorkspacePanel.ViewModel.BeginUpdateCheck();
+
+        bool includePrereleases = string.Equals(
+            SettingsService.Current.UpdateChannel,
+            "PreRelease",
+            StringComparison.OrdinalIgnoreCase);
+
+        try
+        {
+            ReleaseInfo? release = await UpdateService.CheckForUpdatesAsync(includePrereleases);
+
+            SettingsService.Update(s => s.LastUpdateCheckTimestamp = DateTime.Now.ToString("g"));
+
+            if (release is null)
+            {
+                SettingsWorkspacePanel.ViewModel.ReportUpdateCheck(
+                    "Could not reach the release feed. Nothing was changed.",
+                    isError: !silent);
+                return;
+            }
+
+            if (release.IsNewer)
+            {
+                bool alreadyDismissed =
+                    !string.IsNullOrEmpty(release.VersionString) &&
+                    release.VersionString.Equals(
+                        SettingsService.Current.DismissedVersion,
+                        StringComparison.OrdinalIgnoreCase);
+
+                if (silent && alreadyDismissed)
+                {
+                    SettingsWorkspacePanel.ViewModel.ReportUpdateCheck(
+                        $"{release.TagName} is available; this version was dismissed, so it is not offered again.");
+                    return;
+                }
+
+                SettingsWorkspacePanel.ViewModel.ReportUpdateCheck(
+                    $"Version {release.VersionString} is available. This build is {CurrentVersionLabel}.");
+
+                _pendingRelease = release;
+                ShowUpdateOffer(release);
+                return;
+            }
+
+            // A feed that answered with a problem reports CheckSucceeded == false; that
+            // is a failed check, not "you are up to date".
+            if (!release.CheckSucceeded)
+            {
+                SettingsWorkspacePanel.ViewModel.ReportUpdateCheck(
+                    $"Update check failed: {release.StatusMessage}",
+                    isError: true);
+                return;
+            }
+
+            SettingsWorkspacePanel.ViewModel.ReportUpdateCheck(
+                $"This build is up to date ({CurrentVersionLabel}).");
+        }
+        catch (Exception ex)
+        {
+            SettingsWorkspacePanel.ViewModel.ReportUpdateCheck(
+                $"Update check failed: {ex.Message}",
+                isError: true);
+        }
+    }
+
+    /// <summary>Shows the offer over whatever workspace is open.</summary>
+    private void ShowUpdateOffer(ReleaseInfo release)
+    {
+        UpdateOfferOverlay.Show(release, CurrentVersionLabel);
+        UpdateOfferOverlay.Dismissed -= OnUpdateOfferDismissed;
+        UpdateOfferOverlay.Dismissed += OnUpdateOfferDismissed;
+        UpdateOfferOverlay.Visibility = Visibility.Visible;
+        ShellMotion.Enter(UpdateOfferOverlay, riseDip: 16);
+
+        OnFootprintLog($"New version available: {release.TagName}", WinTempCleaner.Models.LogLevel.Info);
+    }
+
+    /// <summary>
+    /// "Later". WPF persisted the version so a silent check would not offer it again;
+    /// that is the whole reason the setting exists.
+    /// </summary>
+    private void OnUpdateOfferDismissed(ReleaseInfo release)
+    {
+        if (!string.IsNullOrEmpty(release.VersionString))
+        {
+            SettingsService.Update(s => s.DismissedVersion = release.VersionString);
+        }
+
+        _pendingRelease = null;
+        CloseUpdateOffer();
+    }
+
+    private void CloseUpdateOffer()
+    {
+        UpdateOfferOverlay.Dismissed -= OnUpdateOfferDismissed;
+        ShellMotion.Exit(
+            UpdateOfferOverlay,
+            () => UpdateOfferOverlay.Visibility = Visibility.Collapsed);
+    }
+
+    /// <summary>
+    /// WPF's startup check: two and a half seconds after the window opens, and only
+    /// when the user left "check on launch" on. Silent, so a dismissed version stays
+    /// dismissed; never runs in the self-test, which must not touch the network.
+    /// </summary>
+    private async Task StartupUpdateCheckAsync()
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(2500));
+            await CheckForUpdatesAsync(silent: true);
+        }
+        catch (Exception ex)
+        {
+            OnFootprintLog(
+                $"Startup update check failed: {ex.Message}",
+                WinTempCleaner.Models.LogLevel.Warning);
+        }
+    }
+
     /// <summary>
     /// The settings panel asks the shell to change the theme, because the shell owns
     /// the window's RequestedTheme and the system caption buttons that follow it.
@@ -953,7 +1128,14 @@ public sealed partial class MainWindow : Window
     /// </summary>
     private void OnEscapeInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
-        if (CleanSummaryOverlay.Visibility == Visibility.Visible)
+        if (UpdateOfferOverlay.Visibility == Visibility.Visible && _pendingRelease is { } pending)
+        {
+            // Escape means "later", and later has always meant "do not offer this
+            // version again on a silent check".
+            OnUpdateOfferDismissed(pending);
+            args.Handled = true;
+        }
+        else if (CleanSummaryOverlay.Visibility == Visibility.Visible)
         {
             CloseCleanSummary();
             args.Handled = true;
@@ -1122,7 +1304,7 @@ public sealed partial class MainWindow : Window
             onOpenSettings: () => NavigateTo(SettingsSectionLabel),
             onOptimizeRam: OptimizeRamFromTrayAsync,
             onPurgeStandby: PurgeStandbyFromTrayAsync,
-            onCheckUpdates: () => SettingsWorkspacePanel.ViewModel.CheckForUpdatesCommand.Execute(null),
+            onCheckUpdates: () => _ = CheckForUpdatesAsync(silent: false),
             onExit: ExitFromTray);
 
         if (TrayService.IsVisible)
@@ -1209,7 +1391,7 @@ public sealed partial class MainWindow : Window
         AddTrayItem(flyout, "\uE945", "Optimize RAM", () => _ = OptimizeRamFromTrayAsync());
         AddTrayItem(flyout, "\uE9D9", "Purge Standby Memory", () => _ = PurgeStandbyFromTrayAsync());
         AddTrayItem(flyout, "\uE895", "Check for Updates", () =>
-            SettingsWorkspacePanel.ViewModel.CheckForUpdatesCommand.Execute(null));
+            _ = CheckForUpdatesAsync(silent: false));
         flyout.Items.Add(new MenuFlyoutSeparator());
         AddTrayItem(flyout, "\uE7E8", "Exit Deltempo", ExitFromTray);
 

@@ -123,7 +123,6 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
 
     public SettingsWorkspaceViewModel()
     {
-        CheckForUpdatesCommand = new AsyncRelayCommand(CheckForUpdatesAsync);
         OpenReleasesPageCommand = new RelayCommand(OpenReleasesPage);
         ResetToDefaultsCommand = new RelayCommand(ResetToDefaults);
         AddExcludedPathCommand = new RelayCommand(AddExcludedPath);
@@ -380,8 +379,6 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
     // Commands
     // ---------------------------------------------------------------------
 
-    public IAsyncRelayCommand CheckForUpdatesCommand { get; }
-
     public IRelayCommand OpenReleasesPageCommand { get; }
 
     public IRelayCommand ResetToDefaultsCommand { get; }
@@ -534,6 +531,7 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowAiApiKeyRow));
         OnPropertyChanged(nameof(ShowAiOllamaRow));
         OnPropertyChanged(nameof(ShowAiModelRow));
+        OnPropertyChanged(nameof(CachedAiReportsText));
     }
 
     /// <summary>
@@ -596,41 +594,23 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
     // ---------------------------------------------------------------------
 
     /// <summary>
-    /// Asks Core whether a newer release exists. Read-only: it queries the release
-    /// feed and reports what it finds, and never downloads or installs anything.
+    /// Marks the check as running. The check itself belongs to the shell, because a
+    /// newer release opens a window-level offer - so this panel only shows the state
+    /// the shell reports back.
     /// </summary>
-    private async Task CheckForUpdatesAsync()
+    public void BeginUpdateCheck()
     {
-        if (IsCheckingUpdates)
-        {
-            return;
-        }
-
         IsCheckingUpdates = true;
         UpdateStatusText = "Checking for updates...";
+    }
 
-        try
-        {
-            ReleaseInfo? info = await UpdateService.CheckForUpdatesAsync();
-
-            UpdateStatusText = info is null
-                ? "Could not reach the release feed. Nothing was changed."
-                : info.IsNewer
-                    ? $"Version {info.VersionString} is available. This build is {CurrentVersionText}."
-                    : $"This build is up to date ({CurrentVersionText}).";
-
-            OnPropertyChanged(nameof(LastCheckedText));
-            LogRequested?.Invoke(UpdateStatusText, LogLevel.Info);
-        }
-        catch (Exception ex)
-        {
-            UpdateStatusText = $"Update check failed: {ex.Message}";
-            LogRequested?.Invoke(UpdateStatusText, LogLevel.Error);
-        }
-        finally
-        {
-            IsCheckingUpdates = false;
-        }
+    /// <summary>Shows what the shell's check found.</summary>
+    public void ReportUpdateCheck(string status, bool isError = false)
+    {
+        IsCheckingUpdates = false;
+        UpdateStatusText = status;
+        OnPropertyChanged(nameof(LastCheckedText));
+        LogRequested?.Invoke(status, isError ? LogLevel.Error : LogLevel.Info);
     }
 
     private void OpenReleasesPage()
@@ -776,7 +756,16 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
     {
         OnlineFileIntelligenceService.ClearCache();
         AiTestStatusText = "AI reports cache cleared (0 items).";
+        OnPropertyChanged(nameof(CachedAiReportsText));
     }
+
+    /// <summary>
+    /// How many AI reports are cached on disk. WPF printed this under its test button
+    /// ("Ready. Cached local AI reports: N files."), so the number is visible before a
+    /// user asks the provider anything.
+    /// </summary>
+    public string CachedAiReportsText =>
+        $"Cached local AI reports: {OnlineFileIntelligenceService.GetCacheCount()} file(s).";
 
     // ---------------------------------------------------------------------
     // Write-through

@@ -332,6 +332,7 @@
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                     <Button Content="Check for Updates"
                                             Click="OnCheckForUpdatesClick"
+                                            IsEnabled="{x:Bind ViewModel.IsCheckingUpdates, Mode=OneWay, Converter={StaticResource NotBool}}"
                                             AutomationProperties.Name="Check for updates now"
                                             Style="{StaticResource AccentButtonStyle}" />
                                     <Button Content="Release Notes"
@@ -808,6 +809,10 @@
                                            VerticalAlignment="Center"
                                            MaxWidth="420" />
                             </StackPanel>
+
+                            <TextBlock Text="{x:Bind ViewModel.CachedAiReportsText, Mode=OneWay}"
+                                       Style="{StaticResource RowHint}"
+                                       Margin="0,6,0,0" />
                         </StackPanel>
                     </Border>
                 </StackPanel>

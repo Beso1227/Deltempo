@@ -434,5 +434,9 @@
         <views:CleanSummaryView x:Name="CleanSummaryOverlay"
                                 Grid.Row="1"
                                 Visibility="Collapsed" />
+
+        <views:UpdateOfferView x:Name="UpdateOfferOverlay"
+                               Grid.Row="1"
+                               Visibility="Collapsed" />
     </Grid>
 </Window>
