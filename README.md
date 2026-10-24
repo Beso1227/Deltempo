@@ -6,7 +6,7 @@
 
   <br />
 
-  # Deltempo: Open-Source Windows Cleaner, App Uninstaller & Memory Optimizer
+  # Deltempo
 
   <p align="center">
     <strong>README:</strong>
