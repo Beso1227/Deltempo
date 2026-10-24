@@ -592,6 +592,14 @@ public sealed partial class MainWindow : Window
             $"{probe.Targets.Count} targets, {cleanable} with reclaimable space, " +
             $"status=\"{probe.StatusText}\"");
 
+        // The header has to fit at the 800px minimum window width: 800 - 64px rail -
+        // 36px of view padding = 700px of content. An Auto column beside a starred one
+        // clips silently, with no scrollbar and no wrap, so this is measured.
+        var (statsWidth, actionsWidth) = CleanerWorkspacePanel.MeasureHeaderAt(700);
+        ShellDiagnostics.Write(
+            $"cleaner header fit (self-test, layout only): stats {statsWidth:N0}px + " +
+            $"actions {actionsWidth:N0}px = {statsWidth + actionsWidth:N0}px in 700px");
+
         // The completion surface is display-only, so it is safe to fill from synthetic
         // numbers: Show() writes text and nothing else. Export stays behind a click, and
         // the self-test never clicks.
@@ -621,6 +629,26 @@ public sealed partial class MainWindow : Window
             $"clean summary loaded (self-test, display only): " +
             $"{summary.FormattedFreedSize}, {summary.TotalFilesDeleted:N0} files, " +
             $"{summary.TotalFilesSkipped} kept");
+
+        // The deep-clean variant renders differently: its own title, the RAM figure the
+        // disk stat cannot carry, and no audit export - its per-category ledger would
+        // describe work the engine never did. Filling it here proves the branch loads.
+        var deep = new WinTempCleaner.Models.CleanSummary
+        {
+            IsDeepClean = true,
+            TotalFreedBytes = 3_650_722_201,
+            RamFreedBytes = 2_684_354_560,
+            TotalFilesDeleted = 21_906,
+            TotalFoldersDeleted = 431,
+            TotalFilesSkipped = 14,
+            ElapsedTime = TimeSpan.FromSeconds(38.2),
+        };
+
+        CleanSummaryOverlay.Show(deep, probe.AllTargets, safeMode: false);
+        ShellDiagnostics.Write(
+            $"deep clean summary loaded (self-test, display only): " +
+            $"{deep.FormattedFreedSize} disk, {deep.FormattedRamFreed} RAM, " +
+            $"{deep.TotalFilesDeleted:N0} files");
     }
 
     /// <summary>

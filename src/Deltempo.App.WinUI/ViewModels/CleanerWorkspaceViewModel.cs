@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WinTempCleaner.Models;
@@ -95,8 +96,11 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         SelectAllCommand = new RelayCommand(SelectAll);
         DeselectAllCommand = new RelayCommand(DeselectAll);
         CleanSelectedCommand = new AsyncRelayCommand(CleanSelectedAsync);
+        SmartCleanCommand = new AsyncRelayCommand(SmartCleanAsync, () => !IsBusy);
+        DeepCleanCommand = new AsyncRelayCommand(DeepCleanAsync, () => !IsBusy);
         RetryTargetCommand = new AsyncRelayCommand<TargetFolderInfo>(RetryTargetAsync);
         CancelCommand = new RelayCommand(CancelRun, () => IsBusy);
+        ExportAuditCommand = new RelayCommand(ExportAudit);
 
         Targets.CollectionChanged += OnTargetsCollectionChanged;
     }
@@ -175,6 +179,8 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         // WPF disabled Scan and Clean for the whole run (SetControlsEnabled(false)); the
         // scan button's IsLoading binding and this property carry the same rule here.
         CancelCommand.NotifyCanExecuteChanged();
+        SmartCleanCommand.NotifyCanExecuteChanged();
+        DeepCleanCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(CanClean));
     }
 
@@ -212,10 +218,18 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     public IRelayCommand SelectAllCommand { get; }
     public IRelayCommand DeselectAllCommand { get; }
     public IAsyncRelayCommand CleanSelectedCommand { get; }
+    public IAsyncRelayCommand SmartCleanCommand { get; }
+    public IAsyncRelayCommand DeepCleanCommand { get; }
     public IAsyncRelayCommand<TargetFolderInfo> RetryTargetCommand { get; }
 
     /// <summary>Stops the run in flight. WPF had the same button on its dock.</summary>
     public IRelayCommand CancelCommand { get; }
+
+    /// <summary>Writes the audit report from the cleaner header, as WPF did.</summary>
+    public IRelayCommand ExportAuditCommand { get; }
+
+    /// <summary>Bytes this shell has freed since launch, across runs.</summary>
+    private long _sessionFreedBytes;
 
     /// <summary>Read-only scan of all target categories. Deletes nothing.</summary>
     public async Task ScanAllAsync()
@@ -432,6 +446,148 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         RecalculateTotals();
     }
 
+    /// <summary>
+    /// WPF's Smart Clean: tick every 100% safe category and clean it in one press.
+    ///
+    /// Orphaned app leftovers are deliberately left out - they are the categories
+    /// that need a human to look at them - which is exactly what the WPF
+    /// SelectSafeOnlyButton_Click did before it called ExecuteCleanupAsync. The
+    /// confirmation still opens, because the clean it leads to is destructive.
+    /// </summary>
+    public async Task SmartCleanAsync()
+    {
+        if (_isBusy) return;
+
+        SelectSafeOnly();
+
+        if (!_allTargets.Any(t => t.IsSelected && t.SizeBytes > 0))
+        {
+            StatusText = "Nothing safe to clean. Scan now to measure the categories first.";
+            return;
+        }
+
+        await CleanSelectedAsync();
+    }
+
+    /// <summary>
+    /// WPF's 1-Click Deep Clean: DeepCleanEngine sweeps every safe cache, runs DISM
+    /// component cleanup, purges all but the newest restore point and flushes standby
+    /// memory.
+    ///
+    /// Two differences from WPF, both deliberate. WPF started this from a single
+    /// click with no confirmation at all, and its celebration modal reported only the
+    /// disk figure; here the run asks first, and the summary carries the RAM figure
+    /// too. The engine returns a partial result when cancelled rather than throwing,
+    /// so the cancellation check below is what tells the two apart.
+    /// </summary>
+    public async Task DeepCleanAsync()
+    {
+        if (_isBusy) return;
+
+        bool confirmed = await _confirmAsync(
+            "1-Click Deep Clean",
+            "Run the autonomous deep clean?\n\n" +
+            "It purges every safe cache category, runs DISM component cleanup " +
+            "(superseded Windows update payloads are removed and must be re-downloaded " +
+            "if they are ever needed), purges all but the newest System Restore point, " +
+            "and flushes standby memory.\n\n" +
+            "Cache files deleted this way do not go to the Recycle Bin.");
+
+        if (!confirmed) return;
+
+        _isBusy = true;
+        IsBusy = true;
+        IsLoading = true;
+        LastRunUsedSafeMode = false;
+        ProgressPercent = 0;
+        ProgressText = "0%";
+        StatusText = "Running 1-Click Deep Clean...";
+
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+        CancellationToken token = _cts.Token;
+
+        try
+        {
+            var progress = new Progress<DeepCleanProgress>(p => _post(() =>
+            {
+                // The engine reports 0-1; the bar is 0-100.
+                ProgressPercent = Math.Clamp(p.OverallPercent * 100, 0, 100);
+                ProgressText = $"{(int)ProgressPercent}%";
+                StatusText = $"[{p.CurrentStage}] {p.DetailMessage}";
+            }));
+
+            var result = await DeepCleanEngine.ExecuteDeepCleanAsync(
+                logAction: Log,
+                progress: progress,
+                purgeAllRestorePoints: false,
+                ct: token);
+
+            ProgressPercent = 100;
+            ProgressText = "100%";
+
+            if (token.IsCancellationRequested)
+            {
+                StatusText =
+                    $"Deep clean cancelled. Freed {result.FormattedDiskFreed} disk and " +
+                    $"{result.FormattedRamFreed} RAM before stopping.";
+                LogRequested?.Invoke(
+                    "[Cleaner] 1-Click Deep Clean cancelled by user",
+                    WinTempCleaner.Models.LogLevel.Warning);
+                return;
+            }
+
+            var summary = new WinTempCleaner.Models.CleanSummary
+            {
+                IsDeepClean = true,
+                TotalFreedBytes = result.DiskFreedBytes,
+                RamFreedBytes = result.RamFreedBytes,
+                TotalFilesDeleted = result.FilesDeleted,
+                TotalFoldersDeleted = result.FoldersDeleted,
+                TotalFilesSkipped = result.FilesSkipped,
+                ElapsedTime = result.Duration,
+            };
+            LastSummary = summary;
+            _sessionFreedBytes += result.DiskFreedBytes;
+
+            StatusText =
+                $"1-Click Deep Clean complete. Reclaimed {result.FormattedDiskFreed} disk, " +
+                $"{result.FormattedRamFreed} RAM ({result.FilesDeleted:N0} files deleted).";
+            LogRequested?.Invoke(
+                $"[Cleaner] 1-Click Deep Clean finished: {result.FormattedDiskFreed} disk, " +
+                $"{result.FormattedRamFreed} RAM ({result.FilesDeleted:N0} files, " +
+                $"{result.FoldersDeleted:N0} folders) in {result.Duration.TotalSeconds:N1}s",
+                WinTempCleaner.Models.LogLevel.Success);
+
+            // The caches it just emptied are stale in the list; re-measure them.
+            _ = RescanAfterCleanAsync();
+
+            CleanCompleted?.Invoke(summary);
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = "Deep clean cancelled.";
+            LogRequested?.Invoke(
+                "[Cleaner] 1-Click Deep Clean cancelled by user",
+                WinTempCleaner.Models.LogLevel.Warning);
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Error during deep clean: {ex.Message}";
+            LogRequested?.Invoke(
+                $"[Cleaner] 1-Click Deep Clean error: {ex}",
+                WinTempCleaner.Models.LogLevel.Error);
+        }
+        finally
+        {
+            _cts?.Dispose();
+            _cts = null;
+            _isBusy = false;
+            IsBusy = false;
+            IsLoading = false;
+        }
+    }
+
     /// <summary>Destructive clean of selected categories. Gated on confirmation.</summary>
     public async Task CleanSelectedAsync()
     {
@@ -601,6 +757,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
                 ElapsedTime = stopwatch.Elapsed,
             };
             LastSummary = summary;
+            _sessionFreedBytes += totalFreed;
 
             // The skip breakdown is the difference between "it worked" and "it worked but
             // 400 files were held open" - WPF printed the same list on its dock.
@@ -674,6 +831,43 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
 
         await _cleanerService.ScanFolderAsync(target, Log, CancellationToken.None, false);
         RecalculateTotals();
+    }
+
+    /// <summary>
+    /// Writes the audit report for the categories on screen.
+    ///
+    /// WPF's header button exported the same file - CleanerService.GenerateAuditReport
+    /// under Deltempo_Audit_&lt;timestamp&gt;.txt on the Desktop - and announced the
+    /// outcome in a MessageBox. The outcome lands on the status line here: the
+    /// ViewModel has no dialog host, and the summary overlay's own Export already
+    /// reports itself that way.
+    /// </summary>
+    private void ExportAudit()
+    {
+        try
+        {
+            // The last completed run's numbers when there is one, otherwise the session
+            // total - which is the report WPF wrote before any clean had happened.
+            var summary = LastSummary ?? new CleanSummary
+            {
+                TotalFreedBytes = _sessionFreedBytes,
+            };
+
+            string report = CleanerService.GenerateAuditReport(_allTargets, summary, LastRunUsedSafeMode);
+            string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string path = Path.Combine(desktop, $"Deltempo_Audit_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
+
+            File.WriteAllText(path, report);
+
+            StatusText = $"Audit report saved to {path}";
+            LogRequested?.Invoke($"[Cleaner] Audit report saved to {path}", LogLevel.Success);
+        }
+        catch (Exception ex)
+        {
+            // A read-only Desktop must not take the workspace down.
+            StatusText = $"Unable to export report: {ex.Message}";
+            LogRequested?.Invoke($"[Cleaner] Audit export failed: {ex.Message}", LogLevel.Warning);
+        }
     }
 
     private void OnTargetsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

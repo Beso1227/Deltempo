@@ -42,14 +42,27 @@ public sealed partial class CleanSummaryView : UserControl
         if (summary.TotalFilesFailed > 0) skipDetails.Add($"{summary.TotalFilesFailed:N0} failed");
 
         // WPF worded the title differently when something was held open, because
-        // "Completed!" next to a skip count reads as a contradiction.
-        TitleText.Text = skipDetails.Count > 0
-            ? "Cleanup Completed (Some Files Kept)"
-            : "Cleanup Completed!";
+        // "Completed!" next to a skip count reads as a contradiction. The deep clean
+        // had its own title ("1-Click Deep Clean Complete") on its celebration modal.
+        TitleText.Text = summary.IsDeepClean
+            ? "1-Click Deep Clean Complete"
+            : skipDetails.Count > 0
+                ? "Cleanup Completed (Some Files Kept)"
+                : "Cleanup Completed!";
 
         ReclaimedText.Text = skipDetails.Count > 0
             ? $"Reclaimed {summary.FormattedFreedSize}"
             : $"Successfully Reclaimed {summary.FormattedFreedSize}";
+
+        // A deep clean's RAM figure is the one number the disk stat cannot carry.
+        RamText.Text = $"RAM freed: {summary.FormattedRamFreed}";
+        RamText.Visibility = summary.IsDeepClean ? Visibility.Visible : Visibility.Collapsed;
+
+        // The audit report lists what each category did. A deep clean walks its own
+        // internal stages rather than the visible categories, so that report would be
+        // a ledger of work that never happened; the button is hidden instead of
+        // writing a false one.
+        ExportButton.Visibility = summary.IsDeepClean ? Visibility.Collapsed : Visibility.Visible;
 
         FilesText.Text = $"{summary.TotalFilesDeleted:N0}";
         FoldersText.Text = $"{summary.TotalFoldersDeleted:N0}";

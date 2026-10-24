@@ -132,13 +132,13 @@
     <Grid Padding="18,16" RowDefinitions="Auto,Auto,*,Auto,Auto">
 
         <!-- Hero stats + actions -->
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0" x:Name="CleanerHeader">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+            <StackPanel Grid.Column="0" x:Name="CleanerHeaderStats" Orientation="Horizontal" Spacing="10">
                 <Border Style="{StaticResource StatCard}">
                     <StackPanel>
                         <TextBlock Text="Reclaimable" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
@@ -156,7 +156,7 @@
                 </Border>
             </StackPanel>
 
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="2">
+            <StackPanel Grid.Column="1" x:Name="CleanerHeaderActions" Orientation="Horizontal" VerticalAlignment="Center" Spacing="2">
                 <Button
                     Style="{StaticResource CommandBarButton}"
                     ToolTipService.ToolTip="Read-only report: show where your AppData space goes. Nothing is selected and nothing is deleted."
@@ -188,6 +188,22 @@
 
                 <Border Style="{StaticResource CommandBarDivider}" />
 
+                <Button
+                    Style="{StaticResource CommandBarButton}"
+                    ToolTipService.ToolTip="Autonomous 1-Click Deep Clean: purges all safe disk caches, superseded Windows updates, old restore points and flushes RAM"
+                    AutomationProperties.Name="1-Click Deep Clean"
+                    IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource NotBool}}"
+                    Command="{x:Bind ViewModel.DeepCleanCommand, Mode=OneTime}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE74D;"
+                                  FontFamily="{StaticResource IconFont}"
+                                  FontSize="11"
+                                  Foreground="{ThemeResource ElectricCyanBrush}" />
+                        <TextBlock Text="Deep Clean" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Border Style="{StaticResource CommandBarDivider}" />
                 <Button
                     Background="{StaticResource DestructiveRedBrush}"
                     BorderThickness="0"
@@ -245,6 +261,24 @@
                 <RadioButton GroupName="CleanerFilter" Content="Media" Style="{StaticResource CleanerChip}" Tag="MEDIA" Checked="OnFilterChanged" />
                 <RadioButton GroupName="CleanerFilter" Content="Dev" Style="{StaticResource CleanerChip}" Tag="DEV" Checked="OnFilterChanged" />
                 <RadioButton GroupName="CleanerFilter" Content="Rulepacks" Style="{StaticResource CleanerChip}" Tag="RULEPACK" Checked="OnFilterChanged" />
+
+                <!-- WPF kept Smart Clean as a one-press pill in this action strip, next
+                     to the selection chips. It ticks the safe categories and starts the
+                     clean, which still asks for confirmation. -->
+                <Border Style="{StaticResource CommandBarDivider}" Margin="8,0" />
+
+                <Button
+                    Content="Smart Clean"
+                    ToolTipService.ToolTip="1-Click Smart Clean: select the 100% safe categories and clean them now. Orphaned app leftovers stay unticked for you to review."
+                    AutomationProperties.Name="1-Click Smart Clean"
+                    Background="{ThemeResource PillButtonBgBrush}"
+                    BorderBrush="{ThemeResource ElectricCyanBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="11,4"
+                    FontSize="10.5"
+                    IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource NotBool}}"
+                    Command="{x:Bind ViewModel.SmartCleanCommand, Mode=OneTime}" />
             </StackPanel>
         </StackPanel>
 
@@ -295,7 +329,11 @@
 
         <!-- Progress / status dock. WPF kept the same strip at the bottom of the window:
              status text, percentage, bar, and a Cancel button for the run in flight.
-             It stays visible after a run so the result line is still readable. -->
+             It stays visible after a run so the result line is still readable.
+             The audit export lives here rather than in the header because that is
+             where WPF put it - beside the log toggle and Cancel - and because five
+             buttons plus the stats overflowed the content column at the 800px
+             minimum window width. -->
         <Border Grid.Row="3"
                 Background="{ThemeResource SurfaceCardBrush}"
                 BorderBrush="{ThemeResource HairlineBorderBrush}"
@@ -303,27 +341,48 @@
                 Padding="12,7">
             <Grid ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0"
+                <Button Grid.Column="0"
+                        ToolTipService.ToolTip="Write a cleanup audit report for the categories on screen to the Desktop"
+                        AutomationProperties.Name="Export Cleanup Audit Report"
+                        Background="{ThemeResource PillButtonBgBrush}"
+                        BorderBrush="{ThemeResource PillButtonBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Padding="10,4"
+                        FontSize="10.5"
+                        VerticalAlignment="Center"
+                        Command="{x:Bind ViewModel.ExportAuditCommand, Mode=OneTime}">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <FontIcon Glyph="&#xE8A5;"
+                                  FontFamily="{StaticResource IconFont}"
+                                  FontSize="10"
+                                  Foreground="{ThemeResource TextMediumBrush}" />
+                        <TextBlock Text="Audit Report" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <TextBlock Grid.Column="1"
                            Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
                            FontSize="11"
                            Foreground="{ThemeResource TextMediumBrush}"
                            VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis" />
 
-                <ProgressBar Grid.Column="1"
+                <ProgressBar Grid.Column="2"
                              Width="160"
                              Maximum="100"
                              Value="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
                              VerticalAlignment="Center"
                              Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
 
-                <TextBlock Grid.Column="2"
+                <TextBlock Grid.Column="3"
                            Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}"
                            FontSize="11"
                            FontWeight="SemiBold"
@@ -332,7 +391,7 @@
                            Foreground="{ThemeResource TextHighBrush}"
                            VerticalAlignment="Center" />
 
-                <Button Grid.Column="3"
+                <Button Grid.Column="4"
                         Content="Cancel"
                         FontSize="11"
                         Padding="12,4"

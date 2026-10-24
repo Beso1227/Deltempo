@@ -46,6 +46,22 @@ public sealed partial class CleanerWorkspaceView : UserControl
         await ViewModel.ScanAllAsync();
     }
 
+    /// <summary>
+    /// Layout probe for the self-test: how wide the header's two halves want to be
+    /// at a given content width.
+    ///
+    /// The action strip is an Auto column beside a starred one, so when the two
+    /// together want more than the content column it is the buttons that get cut
+    /// off - silently, with no scrollbar and no wrap. Measuring here proves the
+    /// 800px minimum window width does or does not fit, instead of guessing from
+    /// font metrics. Measures only; nothing is arranged or displayed.
+    /// </summary>
+    internal (double Stats, double Actions) MeasureHeaderAt(double contentWidth)
+    {
+        CleanerHeader.Measure(new Windows.Foundation.Size(contentWidth, double.PositiveInfinity));
+        return (CleanerHeaderStats.DesiredSize.Width, CleanerHeaderActions.DesiredSize.Width);
+    }
+
     private void OnFootprintRequested(object sender, RoutedEventArgs e)
     {
         SoundService.PlayClickSound();

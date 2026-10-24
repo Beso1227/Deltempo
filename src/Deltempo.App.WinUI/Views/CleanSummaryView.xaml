@@ -73,6 +73,16 @@
                                HorizontalAlignment="Center"
                                TextAlignment="Center" />
 
+                    <!-- Deep clean also flushes standby memory, so it has a second
+                         number to report. Collapsed for a selected-category clean,
+                         where it would always read 0 B. -->
+                    <TextBlock x:Name="RamText"
+                               FontSize="11.5"
+                               Foreground="{ThemeResource TextMediumBrush}"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               Visibility="Collapsed" />
+
                     <!-- What was deliberately kept. WPF printed this on the same line as
                          the title; a separate line keeps a long breakdown readable. -->
                     <TextBlock x:Name="SkipText"
