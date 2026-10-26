@@ -22,9 +22,9 @@
     d:DesignWidth="840"
     d:DesignHeight="660">
 
-    <Grid Background="Transparent">
+    <Grid Background="{ThemeResource ModalBackdropBrush}">
         <Border Margin="18,8,18,6"
-                Background="{ThemeResource SurfaceSubCardBrush}"
+                Background="{ThemeResource ModalSurfaceBrush}"
                 BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="16"
@@ -33,7 +33,7 @@
             <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
 
                 <!-- 0. Header -->
-                <Grid Margin="0,0,0,14">
+                <Grid Grid.Row="0" Margin="0,0,0,14">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -85,7 +85,7 @@
                 </Grid>
 
                 <!-- 1. Telemetry strip -->
-                <Grid Margin="0,0,0,12" ColumnDefinitions="*,*,*">
+                <Grid Grid.Row="1" Margin="0,0,0,12" ColumnDefinitions="*,*,*">
                     <Border Grid.Column="0" Margin="0,0,6,0"
                             Background="{ThemeResource SurfaceCardBrush}"
                             BorderBrush="{ThemeResource HairlineBorderBrush}"
@@ -124,7 +124,7 @@
                 </Grid>
 
                 <!-- 2. Selection toolbar -->
-                <Grid Margin="0,0,0,8">
+                <Grid Grid.Row="2" Margin="0,0,0,8">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Content="Select All"
                                 Background="{ThemeResource PillButtonBgBrush}"
@@ -153,7 +153,8 @@
                 </Grid>
 
                 <!-- 3. Zone list -->
-                <Border Background="{ThemeResource SurfaceCardBrush}"
+                <Border Grid.Row="3"
+                        Background="{ThemeResource SurfaceCardBrush}"
                         BorderBrush="{ThemeResource HairlineBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="12"
@@ -268,7 +269,7 @@
                 </Border>
 
                 <!-- 4. Footer actions -->
-                <Grid>
+                <Grid Grid.Row="4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />

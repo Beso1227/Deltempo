@@ -21,12 +21,12 @@
     d:DesignWidth="860"
     d:DesignHeight="620">
 
-    <Grid Background="Transparent">
+    <Grid Background="{ThemeResource ModalBackdropBrush}">
 
         <Border MaxWidth="520"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Background="{ThemeResource SurfaceSubCardBrush}"
+                Background="{ThemeResource ModalSurfaceBrush}"
                 BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="18"

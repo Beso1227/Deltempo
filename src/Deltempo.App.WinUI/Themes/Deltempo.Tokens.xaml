@@ -42,6 +42,13 @@
         <ResourceDictionary x:Key="Dark">
             <SolidColorBrush x:Key="CanvasDarkBrush" Color="#5906080B" />
             <SolidColorBrush x:Key="HeaderDockBrush" Color="#400A0E13" />
+
+            <!-- Modal chrome, values taken from the WPF App.xaml (#77030608 and
+                 #0B0F14). The overlays had no scrim and a 4%-white card, so the
+                 workspace behind them read straight through the dialog. A modal is
+                 opaque on purpose: it is a separate plane, not another card. -->
+            <SolidColorBrush x:Key="ModalBackdropBrush" Color="#77030608" />
+            <SolidColorBrush x:Key="ModalSurfaceBrush" Color="#0B0F14" />
             <SolidColorBrush x:Key="SurfaceCardBrush" Color="#14FFFFFF" />
             <SolidColorBrush x:Key="SurfaceCardHoverBrush" Color="#1FFFFFFF" />
             <SolidColorBrush x:Key="SurfaceCardSelectedBrush" Color="#2BFFFFFF" />
@@ -242,6 +249,8 @@
                  tint instead of a darker one. -->
             <SolidColorBrush x:Key="CanvasDarkBrush" Color="#26000000" />
             <SolidColorBrush x:Key="HeaderDockBrush" Color="#99FFFFFF" />
+            <SolidColorBrush x:Key="ModalBackdropBrush" Color="#58000000" />
+            <SolidColorBrush x:Key="ModalSurfaceBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="SurfaceCardBrush" Color="#E6FFFFFF" />
             <SolidColorBrush x:Key="SurfaceCardHoverBrush" Color="#0F000000" />
             <SolidColorBrush x:Key="SurfaceCardSelectedBrush" Color="#1F000000" />

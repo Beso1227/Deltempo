@@ -159,7 +159,6 @@ public sealed partial class MainWindow : Window
         {
             OpenAppDataFootprint();
             LoadSelfTestLockedFiles();
-            OpenMemoryOptimizerForSelfTest();
             LoadSelfTestForceDelete();
             LoadSelfTestAppUninstall();
             LoadSelfTestSystemRepair();
@@ -170,6 +169,12 @@ public sealed partial class MainWindow : Window
             _ = LoadSelfTestProcessWorkspace();
             LoadSelfTestSettings();
             LoadSelfTestUpdateOffer();
+
+            // Last, and only now: the memory optimizer. Every overlay above closes the
+            // one before it, so the final frame of a manual self-test run shows one
+            // dialog over a real workspace instead of three stacked on each other.
+            OpenMemoryOptimizerForSelfTest();
+            LogSelfTestOverlays();
         }
         else if (SettingsService.Current.CheckUpdatesOnStartup)
         {
@@ -204,6 +209,37 @@ public sealed partial class MainWindow : Window
             $"visible={UpdateOfferOverlay.Visibility}, build={CurrentVersionLabel}");
 
         CloseUpdateOffer();
+    }
+
+    /// <summary>
+    /// Reports which overlays are on screen at the end of the load sequence.
+    ///
+    /// This is the regression guard for two dialogs stacking: the self-test opens the
+    /// footprint, the locked-files inspector and the memory optimizer in turn, and
+    /// each of them used to set its own Visibility, so all three stayed visible on top
+    /// of one another. Only the last one opened may remain.
+    /// </summary>
+    private void LogSelfTestOverlays()
+    {
+        var visible = new List<string>();
+
+        foreach ((string name, FrameworkElement overlay) in new (string Name, FrameworkElement View)[]
+                 {
+                     (nameof(FootprintView), FootprintView),
+                     (nameof(LockedFilesOverlay), LockedFilesOverlay),
+                     (nameof(MemoryOverlay), MemoryOverlay),
+                     (nameof(CleanSummaryOverlay), CleanSummaryOverlay),
+                     (nameof(UpdateOfferOverlay), UpdateOfferOverlay),
+                 })
+        {
+            if (overlay.Visibility == Visibility.Visible)
+            {
+                visible.Add(name);
+            }
+        }
+
+        ShellDiagnostics.Write(
+            $"overlays exclusive (self-test): {visible.Count} visible [{string.Join(", ", visible)}]");
     }
 
     /// <summary>
@@ -257,6 +293,7 @@ public sealed partial class MainWindow : Window
     {
         // LogRequested is subscribed once in WireWorkspaceSurfaces, so this only
         // opens the overlay. Subscribing here as well would double every log line.
+        HideOverlaysExcept(MemoryOverlay);
         MemoryOverlay.Open();
 
         ShellDiagnostics.Write(
@@ -282,6 +319,8 @@ public sealed partial class MainWindow : Window
         // by Escape.
         LockedFilesOverlay.CloseRequested -= CloseLockedFilesOverlay;
         LockedFilesOverlay.CloseRequested += CloseLockedFilesOverlay;
+
+        HideOverlaysExcept(LockedFilesOverlay);
 
         LockedFilesOverlay.Load(
         [
@@ -1007,6 +1046,7 @@ public sealed partial class MainWindow : Window
     /// <summary>Shows the offer over whatever workspace is open.</summary>
     private void ShowUpdateOffer(ReleaseInfo release)
     {
+        HideOverlaysExcept(UpdateOfferOverlay);
         UpdateOfferOverlay.Show(release, CurrentVersionLabel);
         UpdateOfferOverlay.Dismissed -= OnUpdateOfferDismissed;
         UpdateOfferOverlay.Dismissed += OnUpdateOfferDismissed;
@@ -1079,7 +1119,38 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>Opens the detailed memory manager over whatever workspace is showing.</summary>
-    private void OpenMemoryOptimizerOverlay() => MemoryOverlay.Open();
+    private void OpenMemoryOptimizerOverlay()
+    {
+        HideOverlaysExcept(MemoryOverlay);
+        MemoryOverlay.Open();
+    }
+
+    /// <summary>
+    /// Collapses every overlay except the one about to open.
+    ///
+    /// Each overlay set its own Visibility and knew nothing about the others, so opening
+    /// the Memory Optimizer while the Locked Files inspector was up stacked two dialogs,
+    /// each translucent enough to read the other through. WPF could not do that: every
+    /// modal was a child of one grid and opening one closed the last. This restores that
+    /// rule without moving a single view.
+    /// </summary>
+    private void HideOverlaysExcept(FrameworkElement keep)
+    {
+        foreach (FrameworkElement overlay in new FrameworkElement[]
+                 {
+                     LockedFilesOverlay,
+                     MemoryOverlay,
+                     FootprintView,
+                     CleanSummaryOverlay,
+                     UpdateOfferOverlay,
+                 })
+        {
+            if (!ReferenceEquals(overlay, keep) && overlay.Visibility == Visibility.Visible)
+            {
+                overlay.Visibility = Visibility.Collapsed;
+            }
+        }
+    }
 
     private void CloseMemoryOptimizerOverlay()
         => ShellMotion.Exit(
@@ -1100,6 +1171,7 @@ public sealed partial class MainWindow : Window
     /// </summary>
     private void OnCleanCompleted(WinTempCleaner.Models.CleanSummary summary)
     {
+        HideOverlaysExcept(CleanSummaryOverlay);
         CleanSummaryOverlay.Show(
             summary,
             CleanerWorkspacePanel.ViewModel.AllTargets,
@@ -1231,7 +1303,9 @@ public sealed partial class MainWindow : Window
 
     private void OpenAppDataFootprint()
     {
+        HideOverlaysExcept(FootprintView);
         FootprintView.LogRequested += OnFootprintLog;
+        FootprintView.CloseRequested -= CloseAppDataFootprint;
         FootprintView.CloseRequested += CloseAppDataFootprint;
         FootprintView.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
         FootprintView.PopulateAndOpen();

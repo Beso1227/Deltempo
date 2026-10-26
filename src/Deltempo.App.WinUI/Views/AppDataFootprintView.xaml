@@ -26,9 +26,9 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
     </UserControl.Resources>
 
-    <Grid Background="Transparent">
+    <Grid Background="{ThemeResource ModalBackdropBrush}">
         <Border Margin="24,14,24,14"
-                Background="{ThemeResource SurfaceSubCardBrush}"
+                Background="{ThemeResource ModalSurfaceBrush}"
                 BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="16"
