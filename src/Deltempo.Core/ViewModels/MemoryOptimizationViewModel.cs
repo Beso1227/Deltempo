@@ -100,6 +100,7 @@ public class MemoryOptimizationViewModel : ViewModelBase
             var res = await MemoryOptimizerService.OptimizeRamAsync();
             RefreshTelemetry();
             BoostButtonText = $"✓ -{res.FormattedMeasuredDelta}";
+            SoundService.PlaySuccessSound();
             LogRequested?.Invoke(
                 $"[RAM Engine] Boost Complete: {res.SucceededTargetCount}/{res.RequestedTargetCount} targets confirmed by the kernel, " +
                 $"available RAM moved {res.FormattedMeasuredDelta} ({res.ExecutionTimeMs}ms). " +
@@ -110,6 +111,7 @@ public class MemoryOptimizationViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            SoundService.PlayErrorSound();
             LogRequested?.Invoke($"RAM optimization error: {ex.Message}", LogLevel.Warning);
             return null;
         }

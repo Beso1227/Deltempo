@@ -84,13 +84,24 @@ public partial class MainWindow
 
     private void SoundToggleBtn_Click(object sender, RoutedEventArgs e)
     {
-        SoundService.IsSoundEnabled = !SoundService.IsSoundEnabled;
-        SoundToggleIcon.Text = SoundService.IsSoundEnabled ? "\uE767" : "\uE74F";
-        SoundToggleIcon.Foreground = SoundService.IsSoundEnabled
+        bool enabled = !SoundService.IsSoundEnabled;
+        SoundService.IsSoundEnabled = enabled;
+
+        // The header toggle is a real preference, not a session mute: it has to survive a
+        // restart and stay in step with the checkbox in Settings. Before this it changed
+        // only the runtime switch, so the two controls disagreed after one click.
+        SettingsService.Update(s => s.SoundEnabled = enabled);
+        if (SettingsSoundCheckBox != null)
+        {
+            SettingsSoundCheckBox.IsChecked = enabled;
+        }
+
+        SoundToggleIcon.Text = enabled ? "\uE767" : "\uE74F";
+        SoundToggleIcon.Foreground = enabled
             ? (Brush)FindResource("ElectricCyanBrush")
             : (Brush)FindResource("TextMutedBrush");
 
-        if (SoundService.IsSoundEnabled)
+        if (enabled)
         {
             SoundService.PlayClickSound();
             AddLog("Haptic sound effects enabled.", LogLevel.Info);

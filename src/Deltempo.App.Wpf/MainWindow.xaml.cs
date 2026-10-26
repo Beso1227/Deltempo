@@ -498,6 +498,11 @@ public partial class MainWindow : Window
         SettingsTrayCheckBox.IsChecked = SettingsService.Current.MinimizeToTray;
         SettingsNotifyCheckBox.IsChecked = SettingsService.Current.AutoCleanNotify;
         SettingsSoundCheckBox.IsChecked = SettingsService.Current.SoundEnabled;
+
+        // The runtime switch the cues actually read. It used to be written only by the
+        // header toggle, at its default true otherwise, so a muted app came back loud and
+        // the checkbox agreed with the setting while the audio did not.
+        SoundService.IsSoundEnabled = SettingsService.Current.SoundEnabled;
         if (SettingsShellContextMenuCheckBox != null)
         {
             SettingsShellContextMenuCheckBox.IsChecked = SettingsService.Current.EnableShellContextMenu || ShellExtensionService.IsRegistered();

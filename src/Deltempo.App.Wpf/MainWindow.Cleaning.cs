@@ -341,6 +341,7 @@ public partial class MainWindow
             };
 
             ProgressStatusText.Text = "Cleanup complete!";
+            SoundService.PlayCleanResultSound(_lastSummary);
 
             var skipDetails = new List<string>();
             if (totalFilesInUse > 0) skipDetails.Add($"{totalFilesInUse:N0} in use");
@@ -382,11 +383,13 @@ public partial class MainWindow
         catch (OperationCanceledException)
         {
             ProgressStatusText.Text = "Cleanup cancelled.";
+            SoundService.PlayWarningSound();
             AddLog("Cleanup was cancelled by user.", LogLevel.Warning);
         }
         catch (Exception ex)
         {
             ProgressStatusText.Text = "Error during cleanup.";
+            SoundService.PlayErrorSound();
             AddLog($"Cleanup Error: {ex.Message}", LogLevel.Error);
         }
         finally

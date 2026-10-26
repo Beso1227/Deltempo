@@ -147,6 +147,7 @@ public sealed partial class MemoryOptimizerViewModel : ObservableObject
             MemoryAreaResult res = await MemoryOptimizerService.OptimizeAreaAsync(MemoryTargetType.WorkingSet);
             if (res.Success)
             {
+                SoundService.PlaySuccessSound();
                 LogRequested?.Invoke(
                     $"✓ Process Working Sets Trimmed across {res.ProcessesOptimized ?? 0} tasks. " +
                     "Trimmed pages are re-faulted from disk on next access.",
@@ -156,6 +157,7 @@ public sealed partial class MemoryOptimizerViewModel : ObservableObject
             }
             else
             {
+                SoundService.PlayErrorSound();
                 LogRequested?.Invoke($"Working sets trim failed: {res.ErrorMessage}", LogLevel.Error);
             }
         });
@@ -170,6 +172,7 @@ public sealed partial class MemoryOptimizerViewModel : ObservableObject
 
         if (selected.Length == 0)
         {
+            SoundService.PlayWarningSound();
             LogRequested?.Invoke("No memory zones selected for purge.", LogLevel.Warning);
             return;
         }
@@ -179,6 +182,18 @@ public sealed partial class MemoryOptimizerViewModel : ObservableObject
         await RunBusyAsync(async () =>
         {
             MemoryOptimizationResult result = await MemoryOptimizerService.OptimizeRamAsync(selected);
+
+            // A purge that the kernel confirmed for no zone is not a success, whatever the
+            // log sentence says.
+            if (result.SucceededTargetCount > 0)
+            {
+                SoundService.PlaySuccessSound();
+            }
+            else
+            {
+                SoundService.PlayWarningSound();
+            }
+
             LogRequested?.Invoke(
                 $"[NT Kernel] Memory Clean Complete: {result.SucceededTargetCount}/{result.RequestedTargetCount} " +
                 $"zones confirmed by the kernel in {result.ExecutionTimeMs}ms. Available RAM moved " +
@@ -196,6 +211,7 @@ public sealed partial class MemoryOptimizerViewModel : ObservableObject
             MemoryAreaResult result = await MemoryOptimizerService.OptimizeAreaAsync(row.Snapshot.Target);
             if (result.Success)
             {
+                SoundService.PlaySuccessSound();
                 LogRequested?.Invoke(
                     $"Flushed {row.Snapshot.Target}: kernel confirmed the operation. " +
                     "Purged pages are re-read from disk on next access.",
@@ -205,6 +221,7 @@ public sealed partial class MemoryOptimizerViewModel : ObservableObject
             }
             else
             {
+                SoundService.PlayErrorSound();
                 LogRequested?.Invoke($"Failed to flush {row.Snapshot.Target}: {result.ErrorMessage}", LogLevel.Error);
             }
         });

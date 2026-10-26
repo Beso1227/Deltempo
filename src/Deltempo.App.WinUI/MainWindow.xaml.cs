@@ -1171,6 +1171,11 @@ public sealed partial class MainWindow : Window
     /// </summary>
     private void OnCleanCompleted(WinTempCleaner.Models.CleanSummary summary)
     {
+        // The result cue belongs to the run, not to a button: this fires for the selected
+        // clean and the deep clean alike, and the rule lives in SoundService so the WPF
+        // app answers a run with the same sound.
+        SoundService.PlayCleanResultSound(summary);
+
         HideOverlaysExcept(CleanSummaryOverlay);
         CleanSummaryOverlay.Show(
             summary,

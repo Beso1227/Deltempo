@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Media;
-using System.Threading.Tasks;
+using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
 
@@ -39,20 +39,50 @@ public enum SoundCue
 ///      vanish or dominate depending on which sample it happened to be.
 ///   2. A hard clamp below full scale, so no cue can clip on playback.
 ///
-/// The prepared bytes are cached, so an interaction replays a finished buffer
-/// instead of re-reading and re-scaling a resource.
+/// The prepared bytes are cached, and so is a loaded <see cref="SoundPlayer"/> per cue,
+/// so an interaction replays a finished buffer instead of re-reading, re-scaling and
+/// re-loading a resource.
+///
+/// Playback itself goes through one lane (<see cref="SoundLane"/>), because two sounds
+/// starting at the same moment do not layer into "richer audio", they layer into mush.
+/// A click never stacks on itself and never cuts a result cue short; a result cue always
+/// sounds and takes the lane from whatever tick was under it.
 /// </summary>
 public static class SoundService
 {
-    /// <summary>Master switch. When false every cue is a no-op.</summary>
-    public static bool IsSoundEnabled { get; set; } = true;
-
     /// <summary>Absolute ceiling as a fraction of full scale. Nothing may exceed it.</summary>
     internal const double PeakCeiling = 0.89;
 
     private const string ResourcePrefix = "WinTempCleaner.Assets.Sounds.";
 
     private static readonly ConcurrentDictionary<SoundCue, byte[]> CueCache = new();
+
+    /// <summary>
+    /// One loaded player per cue. <see cref="SoundPlayer.Load"/> reads the WAV once;
+    /// after that <see cref="SoundPlayer.Play"/> returns immediately and playback runs
+    /// inside winmm, so a click costs a hand-off instead of a thread and a reparse.
+    /// </summary>
+    private static readonly ConcurrentDictionary<SoundCue, SoundPlayer> Players = new();
+
+    private static readonly SoundLane Lane = new();
+
+    private static bool _isSoundEnabled = true;
+
+    /// <summary>
+    /// Master switch. When false every cue is a no-op, and a cue already sounding is
+    /// stopped - muting should be immediate, not "after this chime finishes".
+    /// </summary>
+    public static bool IsSoundEnabled
+    {
+        get => _isSoundEnabled;
+        set
+        {
+            if (_isSoundEnabled == value) return;
+
+            _isSoundEnabled = value;
+            if (!value) Silence();
+        }
+    }
 
     /// <summary>
     /// Target peak per cue. The click fires on nearly every interaction, so it is held
@@ -88,14 +118,56 @@ public static class SoundService
 
     public static void PlayWarningSound() => Play(SoundCue.Warning);
 
+    /// <summary>
+    /// The cue for a finished cleanup, decided in one place so the same run cannot sound
+    /// different depending on which shell is open.
+    ///
+    /// Freeing nothing because the selection was already clean is a warning, not a
+    /// success: the user pressed Clean and the answer is "there was nothing to do".
+    /// Failures with nothing freed is the only error - a partial success still succeeded.
+    /// </summary>
+    public static void PlayCleanResultSound(CleanSummary summary)
+    {
+        ArgumentNullException.ThrowIfNull(summary);
+        Play(CleanResultCue(summary));
+    }
+
+    /// <summary>
+    /// Which cue a finished cleanup has earned. Separate from playback so the mapping can
+    /// be tested without an audio device.
+    /// </summary>
+    internal static SoundCue CleanResultCue(CleanSummary summary)
+    {
+        ArgumentNullException.ThrowIfNull(summary);
+
+        int needsAttention = summary.TotalFilesSkipped
+            + summary.TotalFilesInUse
+            + summary.TotalFilesRecentShielded
+            + summary.TotalFilesPolicyProtected;
+
+        if (summary.TotalFilesFailed > 0 && summary.TotalFreedBytes <= 0)
+        {
+            return SoundCue.Error;
+        }
+
+        if (summary.TotalFilesFailed > 0 || needsAttention > 0 || summary.TotalFreedBytes <= 0)
+        {
+            return SoundCue.Warning;
+        }
+
+        return SoundCue.Success;
+    }
+
     private static void Play(SoundCue cue)
     {
-        if (!IsSoundEnabled) return;
+        if (!_isSoundEnabled) return;
 
-        byte[] wav;
+        SoundPlayer player;
+        int durationMs;
         try
         {
-            wav = CueCache.GetOrAdd(cue, Prepare);
+            player = Players.GetOrAdd(cue, CreatePlayer);
+            durationMs = CueDurationMs(cue);
         }
         catch (Exception ex)
         {
@@ -104,19 +176,62 @@ public static class SoundService
             return;
         }
 
-        Task.Run(() =>
+        lock (Lane)
         {
+            if (Lane.Admit(cue, durationMs, Environment.TickCount64, out SoundCue? interrupted)
+                == LaneDecision.Drop)
+            {
+                return;
+            }
+
+            if (interrupted is { } previous && Players.TryGetValue(previous, out SoundPlayer? playing))
+            {
+                Stop(playing);
+            }
+
             try
             {
-                using var stream = new MemoryStream(wav, writable: false);
-                using var player = new SoundPlayer(stream);
-                player.PlaySync();
+                player.Play();
             }
             catch (Exception ex)
             {
                 Trace.WriteLine($"[Deltempo] Sound playback suppressed for {cue}: {ex.Message}");
+                Lane.Release();
             }
-        });
+        }
+    }
+
+    /// <summary>Stops every cue, and forgets what was sounding.</summary>
+    private static void Silence()
+    {
+        lock (Lane)
+        {
+            foreach (SoundPlayer player in Players.Values)
+            {
+                Stop(player);
+            }
+
+            Lane.Release();
+        }
+    }
+
+    private static void Stop(SoundPlayer player)
+    {
+        // Stop() throws when the sound never started (no device, muted session). That is
+        // not worth reporting - the caller only wanted silence.
+        try { player.Stop(); }
+        catch (Exception ex) { Trace.WriteLine($"[Deltempo] Sound stop ignored: {ex.Message}"); }
+    }
+
+    private static SoundPlayer CreatePlayer(SoundCue cue)
+    {
+        var player = new SoundPlayer(new MemoryStream(CueCache.GetOrAdd(cue, Prepare), writable: false));
+
+        // Load() on this thread, once: it parses the header, copies the PCM into winmm's
+        // buffer and throws here if the asset is broken. Doing it at play time is what
+        // used to make the first click of a session late.
+        player.Load();
+        return player;
     }
 
     // ------------------------------------------------------------------
@@ -222,5 +337,79 @@ public static class SoundService
         }
 
         return false;
+    }
+}
+
+/// <summary>What the lane decided about a cue that asked to sound.</summary>
+internal enum LaneDecision
+{
+    /// <summary>The cue may play; if it is a result cue it also takes the lane.</summary>
+    Play,
+
+    /// <summary>The cue is a click and something is already sounding.</summary>
+    Drop,
+}
+
+/// <summary>
+/// One lane, because a desktop app has one pair of speakers and four cues that can be
+/// triggered from different places at the same moment.
+///
+/// The rules are deliberately asymmetric:
+///
+///   * A click is the tick of the interface. It is short and quiet, it fires on nearly
+///     every interaction, and it must never be the reason a result is missed. So while
+///     anything is sounding, a click is dropped rather than layered or queued - queuing
+///     would also play it late, detached from the action that caused it.
+///   * A result cue (success, error, warning) always sounds and interrupts the click
+///     underneath it. Two results in quick succession interrupt each other, which is
+///     correct: the second one is the answer to the newer operation.
+///
+/// Busy is measured from the cue's own duration plus a guard, because "is it still
+/// playing" cannot be asked of winmm. Everything is driven by the clock that is passed
+/// in, which is what makes the rule testable without an audio device.
+/// </summary>
+internal sealed class SoundLane
+{
+    /// <summary>
+    /// Silence after a cue before the tick is allowed back in. Without it the click lands
+    /// inside the tail of the cue that just finished, which reads as a smear.
+    /// </summary>
+    internal const int GuardMs = 30;
+
+    private long _freeAtMs;
+    private SoundCue? _current;
+
+    /// <summary>The cue holding the lane, or null when nothing was played recently.</summary>
+    public SoundCue? Current => _current;
+
+    public bool IsBusy(long nowMs) => _freeAtMs > nowMs;
+
+    /// <summary>
+    /// Asks the lane for permission to sound <paramref name="cue"/>. When this returns
+    /// <see cref="LaneDecision.Play"/>, <paramref name="interrupted"/> names the cue the
+    /// caller should stop first (it is no longer the lane's owner).
+    /// </summary>
+    public LaneDecision Admit(SoundCue cue, int durationMs, long nowMs, out SoundCue? interrupted)
+    {
+        interrupted = null;
+        bool busy = IsBusy(nowMs);
+
+        if (cue == SoundCue.Click && busy)
+        {
+            return LaneDecision.Drop;
+        }
+
+        if (busy) interrupted = _current;
+
+        _current = cue;
+        _freeAtMs = nowMs + Math.Max(0, durationMs) + GuardMs;
+        return LaneDecision.Play;
+    }
+
+    /// <summary>Frees the lane immediately, e.g. when sound is muted mid-cue.</summary>
+    public void Release()
+    {
+        _current = null;
+        _freeAtMs = 0;
     }
 }

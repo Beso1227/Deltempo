@@ -423,6 +423,21 @@ public partial class ForceDeleteModal : UserControl
                     $"Force delete finished: {result.FilesDeleted} file(s), {result.DirectoriesDeleted} folder(s) removed, {result.FormattedFreed} reclaimed.",
                     result.FailedCount > 0 ? LogLevel.Warning : LogLevel.Success);
 
+                // Same rule the WinUI manager applies: a run that removed nothing, or left
+                // failures and shielded paths behind, is a warning rather than a success.
+                bool removedNothing = result.FilesDeleted == 0
+                    && result.DirectoriesDeleted == 0
+                    && result.RebootScheduledCount == 0;
+
+                if (removedNothing || result.FailedCount > 0 || result.ShieldedCount > 0)
+                {
+                    SoundService.PlayWarningSound();
+                }
+                else
+                {
+                    SoundService.PlaySuccessSound();
+                }
+
                 if (result.RebootScheduledCount > 0)
                 {
                     LogRequested?.Invoke(
@@ -443,6 +458,7 @@ public partial class ForceDeleteModal : UserControl
         catch (Exception ex)
         {
             SetTargetsStatus("Failed", inProgress: false);
+            SoundService.PlayErrorSound();
             LogRequested?.Invoke($"Force delete operation aborted: {ex.Message}", LogLevel.Error);
             MessageBox.Show(
                 $"The force delete operation could not be completed.\n\n{ex.Message}",

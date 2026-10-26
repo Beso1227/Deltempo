@@ -811,6 +811,12 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         // WPF app pushes it on save; without this the toggle persisted a preference
         // that no sound ever consulted.
         SoundService.IsSoundEnabled = value;
+
+        // Turning it on is the one moment the user needs proof that it works.
+        if (value)
+        {
+            SoundService.PlayClickSound();
+        }
     }
 
     partial void OnLanguageChanged(string value)
