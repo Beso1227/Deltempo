@@ -170,6 +170,20 @@
                             Spacing="8"
                             Margin="0,20,0,0">
 
+                    <!-- WPF's celebration only offered this when the run actually held
+                         files open; the count is the argument, so it is composed in code. -->
+                    <Button x:Name="ViewLockedFilesButton"
+                            Content="View Locked Files"
+                            FontSize="11.5"
+                            Padding="16,6"
+                            CornerRadius="14"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource AmberWarningBrush}"
+                            BorderThickness="1"
+                            AutomationProperties.Name="Inspect the files that stayed locked during this clean"
+                            Visibility="Collapsed"
+                            Click="OnViewLockedFilesClicked" />
+
                     <Button x:Name="ExportButton"
                             loc:Loc.Key="ExportReport"
                             Content="Export Report"

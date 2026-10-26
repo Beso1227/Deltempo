@@ -404,45 +404,10 @@ public partial class MainWindow
     {
         CelebrationModalOverlay.Visibility = Visibility.Collapsed;
 
-        var lockedRecords = new List<LockedFileItem>();
-        if (_targets != null)
-        {
-            foreach (var target in _targets)
-            {
-                if (target.LastTransactionResult?.AuditRecords == null) continue;
-
-                foreach (var rec in target.LastTransactionResult.AuditRecords)
-                {
-                    if (rec.ErrorCategory == Core.Cleaning.CleanupErrorCategory.FileLocked)
-                    {
-                        string procName = string.Empty;
-                        int procId = 0;
-                        if (!string.IsNullOrEmpty(rec.ErrorOrSkipReason))
-                        {
-                            var match = System.Text.RegularExpressions.Regex.Match(
-                                rec.ErrorOrSkipReason,
-                                @"process:\s*([^\s(]+)(?:\s*\(PID:\s*(\d+)\))?",
-                                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                            if (match.Success)
-                            {
-                                procName = match.Groups[1].Value;
-                                if (int.TryParse(match.Groups[2].Value, out int pid)) procId = pid;
-                            }
-                        }
-
-                        lockedRecords.Add(new LockedFileItem
-                        {
-                            FilePath = rec.FilePath,
-                            FileName = System.IO.Path.GetFileName(rec.FilePath),
-                            SizeBytes = rec.SizeBytes,
-                            LockingProcessName = procName,
-                            LockingProcessId = procId,
-                            LockReason = rec.ErrorOrSkipReason ?? "File currently in use by active process."
-                        });
-                    }
-                }
-            }
-        }
+        // Same collector the WinUI preview uses, so both shells list exactly the same
+        // files for the same run.
+        List<LockedFileItem> lockedRecords =
+            Core.Cleaning.LockedFileCollector.FromTargets(_targets);
 
         LockedFilesModalOverlay.PopulateAndOpen(lockedRecords);
     }

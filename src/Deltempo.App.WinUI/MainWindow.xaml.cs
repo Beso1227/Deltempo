@@ -337,14 +337,8 @@ public sealed partial class MainWindow : Window
     /// </summary>
     private void LoadSelfTestLockedFiles()
     {
-        LockedFilesOverlay.LogRequested += OnFootprintLog;
-
-        // The overlay's OK button raises CloseRequested through the ViewModel. Nothing
-        // subscribed, so the overlay could not be dismissed - not by the button and not
-        // by Escape.
-        LockedFilesOverlay.CloseRequested -= CloseLockedFilesOverlay;
-        LockedFilesOverlay.CloseRequested += CloseLockedFilesOverlay;
-
+        // Close/log wiring lives in WireWorkspaceSurfaces so the inspector is dismissible
+        // in a real session too; re-subscribing here would double every log line.
         HideOverlaysExcept(LockedFilesOverlay);
 
         LockedFilesOverlay.Load(
@@ -847,6 +841,14 @@ public sealed partial class MainWindow : Window
         CleanerWorkspacePanel.FootprintRequested += OpenAppDataFootprint;
         CleanerWorkspacePanel.ViewModel.CleanCompleted += OnCleanCompleted;
 
+        // The locked-files inspector is a real surface, not a self-test prop. WPF opened
+        // it from the celebration any time a run kept files; wiring it here (once, in
+        // every entry path) is what gives its close button and log lines a subscriber
+        // outside the self-test.
+        LockedFilesOverlay.LogRequested += OnFootprintLog;
+        LockedFilesOverlay.CloseRequested += CloseLockedFilesOverlay;
+        CleanSummaryOverlay.ViewLockedFilesRequested += ShowLockedFilesFromCleanSummary;
+
         SystemRepairWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
         SystemRepairWorkspacePanel.ViewModel.CloseRequested += ReturnToFirstWorkspace;
 
@@ -1218,6 +1220,36 @@ public sealed partial class MainWindow : Window
         ShellMotion.Exit(
             CleanSummaryOverlay,
             () => CleanSummaryOverlay.Visibility = Visibility.Collapsed);
+    }
+
+    /// <summary>
+    /// Opens the in-use inspector for the run that just finished.
+    ///
+    /// WPF collapsed the celebration and populated the inspector in the same click, with
+    /// no transition between the two; keeping that here means the user never sees both
+    /// dialogs at once, which is also what HideOverlaysExcept enforces.
+    /// </summary>
+    private void ShowLockedFilesFromCleanSummary()
+    {
+        CleanSummaryOverlay.Visibility = Visibility.Collapsed;
+        OpenLockedFilesInspector();
+    }
+
+    /// <summary>
+    /// Builds the inspector's rows from the last run's audit trail.
+    ///
+    /// A file kept because a process held it open leaves exactly one trace: an audit
+    /// record whose category is FileLocked. The record also carries the locking process
+    /// and size, which is what the inspector shows and what the reboot-purge action
+    /// needs.
+    /// </summary>
+    private void OpenLockedFilesInspector()
+    {
+        List<LockedFileItem> locked = WinTempCleaner.Core.Cleaning.LockedFileCollector.FromTargets(
+            CleanerWorkspacePanel.ViewModel.AllTargets);
+
+        HideOverlaysExcept(LockedFilesOverlay);
+        LockedFilesOverlay.Load(locked);
     }
 
     /// <summary>

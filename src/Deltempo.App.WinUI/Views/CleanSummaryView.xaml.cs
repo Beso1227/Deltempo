@@ -28,6 +28,13 @@ public sealed partial class CleanSummaryView : UserControl
     /// <summary>Raised when the user dismisses the summary.</summary>
     public event Action? CloseRequested;
 
+    /// <summary>
+    /// Raised when the run kept files because a process held them open and the user
+    /// wants to inspect them. WPF did the same from its celebration modal; the shell
+    /// owns the inspector, so the view only asks for it.
+    /// </summary>
+    public event Action? ViewLockedFilesRequested;
+
     /// <summary>Fills the summary from a completed run.</summary>
     public void Show(CleanSummary summary, IReadOnlyList<TargetFolderInfo> targets, bool safeMode)
     {
@@ -63,6 +70,13 @@ public sealed partial class CleanSummaryView : UserControl
         // a ledger of work that never happened; the button is hidden instead of
         // writing a false one.
         ExportButton.Visibility = summary.IsDeepClean ? Visibility.Collapsed : Visibility.Visible;
+
+        // WPF showed "View Locked Files (N)" only when the run actually kept files. The
+        // button is the way back to the skipped files, so an in-use count without it is
+        // a dead end that also contradicts the inspector's own hint text.
+        ViewLockedFilesButton.Content = $"View Locked Files ({summary.TotalFilesInUse:N0})";
+        ViewLockedFilesButton.Visibility =
+            summary.TotalFilesInUse > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         FilesText.Text = $"{summary.TotalFilesDeleted:N0}";
         FoldersText.Text = $"{summary.TotalFoldersDeleted:N0}";
@@ -108,4 +122,7 @@ public sealed partial class CleanSummaryView : UserControl
     }
 
     private void OnDoneClicked(object sender, RoutedEventArgs e) => CloseRequested?.Invoke();
+
+    private void OnViewLockedFilesClicked(object sender, RoutedEventArgs e)
+        => ViewLockedFilesRequested?.Invoke();
 }
