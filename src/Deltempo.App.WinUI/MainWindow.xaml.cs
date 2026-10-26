@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Deltempo.App.WinUI.Localization;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -38,18 +39,20 @@ public sealed partial class MainWindow : Window
     // Glyph and Help are the WPF header's own values (MainWindow.xaml ToolCleanerBtn ..
     // ToolForceDeleteBtn): the icon is what represents the section now that the rail is
     // icon-only, so it has to be the same icon the old UI trained people on, and Help is
-    // the same tooltip copy that button carried.
-    private static readonly (string Label, string Glyph, string Help, bool Danger)[] ToolSections =
+    // the same tooltip copy that button carried. LocKey is the LocalizationService key
+    // for the visible name; Label stays the stable identity used by the panel map and
+    // the selection pill, so a language switch can never re-point a nav row.
+    private static readonly (string Label, string LocKey, string Glyph, string Help, bool Danger)[] ToolSections =
     {
-        (CleanerSectionLabel, "\uE856", "Switch to Junk Cleaner workspace & storage dashboard", false),
-        (LargeFilesSectionLabel, "\uE8B7", "Scan and locate large space-consuming files across your drives safely", false),
-        (StartupSectionLabel, "\uE7B5", "Inspect and manage applications configured to launch on Windows boot", false),
-        (ProcessManagerSectionLabel, "\uE9F5", "Inspect memory-heavy applications and optimize inactive background working sets", false),
-        (MemorySectionLabel, "\uE950", "Purge standby memory and trim inactive process working sets using native Windows APIs", false),
-        (SystemRepairSectionLabel, "\uE74C", "Diagnose and repair Windows system file corruption (SFC, DISM, and CHKDSK)", false),
-        (AppUninstallerSectionLabel, "\uE71D", "Installed applications manager, uninstaller & residual bloatware purger", false),
+        (CleanerSectionLabel, "NavCleaner", "\uE856", "Switch to Junk Cleaner workspace & storage dashboard", false),
+        (LargeFilesSectionLabel, "NavLargeFiles", "\uE8B7", "Scan and locate large space-consuming files across your drives safely", false),
+        (StartupSectionLabel, "NavStartup", "\uE7B5", "Inspect and manage applications configured to launch on Windows boot", false),
+        (ProcessManagerSectionLabel, "NavProcesses", "\uE9F5", "Inspect memory-heavy applications and optimize inactive background working sets", false),
+        (MemorySectionLabel, "NavMemory", "\uE950", "Purge standby memory and trim inactive process working sets using native Windows APIs", false),
+        (SystemRepairSectionLabel, "NavRepair", "\uE74C", "Diagnose and repair Windows system file corruption (SFC, DISM, and CHKDSK)", false),
+        (AppUninstallerSectionLabel, "NavApps", "\uE71D", "Installed applications manager, uninstaller & residual bloatware purger", false),
         // WPF styled this one's pill with its danger brushes.
-        (ForceDeleteSectionLabel, "\uE74D", "Pick stubborn files or folders (locked, read-only, permission-denied) and permanently force delete them", true),
+        (ForceDeleteSectionLabel, "NavForceDelete", "\uE74D", "Pick stubborn files or folders (locked, read-only, permission-denied) and permanently force delete them", true),
     };
 
     /// <summary>
@@ -57,15 +60,19 @@ public sealed partial class MainWindow : Window
     /// something the user goes and does; a preference is something they set once and
     /// forget. Splitting them keeps the tool list short enough to scan.
     /// </summary>
-    private static readonly (string Label, string Glyph, string Help, bool Danger)[] FooterSections =
+    private static readonly (string Label, string LocKey, string Glyph, string Help, bool Danger)[] FooterSections =
     {
-        (SettingsSectionLabel, "\uE713", "Appearance, sound, language, automation and update preferences", false),
-        (AboutSectionLabel, "\uE946", "Version, license and where to find the source", false),
+        (SettingsSectionLabel, "NavSettings", "\uE713", "Appearance, sound, language, automation and update preferences", false),
+        (AboutSectionLabel, "NavAbout", "\uE946", "Version, license and where to find the source", false),
     };
 
     /// <summary>Section label to glyph, for the page header's leading tile.</summary>
     private static readonly Dictionary<string, string> SectionGlyphs =
         ToolSections.Concat(FooterSections).ToDictionary(s => s.Label, s => s.Glyph);
+
+    /// <summary>Section label to its LocalizationService key. Label is identity, this is copy.</summary>
+    private static readonly Dictionary<string, string> SectionLocKeys =
+        ToolSections.Concat(FooterSections).ToDictionary(s => s.Label, s => s.LocKey);
 
     /// <summary>
     /// Which panel backs each navigation section, and how to load it. Built once, after
@@ -99,6 +106,10 @@ public sealed partial class MainWindow : Window
 
     /// <summary>True while the shell is in the dark theme.</summary>
     private bool _isDarkTheme = true;
+
+    /// <summary>True once the status bar is carrying a failure message, so a language
+    /// switch does not overwrite it with the localized "Ready".</summary>
+    private bool _footerHasError;
 
     // ---------------------------------------------------------------------
     // Activity log stream
@@ -143,11 +154,24 @@ public sealed partial class MainWindow : Window
 
         FooterVersion.Text = $"v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0"} · WinUI 3";
 
+        // Restore the language the user picked in Settings. Neither shell did this
+        // before, which is why a restart always came back in English even though the
+        // preference was saved. Set before BuildNavigation so the rail tooltips and
+        // the page header are built in the restored language, not re-painted after.
+        if (SettingsService.Current.Language is { Length: > 0 } startupLanguage)
+        {
+            LocalizationService.CurrentLanguage = startupLanguage;
+        }
+
+        LocalizationService.LanguageChanged += OnLanguageChanged;
+        Closed += (_, _) => LocalizationService.LanguageChanged -= OnLanguageChanged;
+
         ApplyWindowChrome();
         InitializeTray();
         ApplyTheme(SettingsService.Current.IsDarkMode, persist: false);
         OnAlwaysOnTopRequested(SettingsService.Current.MemoryAlwaysOnTop);
         BuildNavigation();
+        ApplyLanguage(logToActivity: false);
         VerifyCoreLink();
         WireWorkspaceSurfaces();
         WireActivityLog();
@@ -169,6 +193,7 @@ public sealed partial class MainWindow : Window
             _ = LoadSelfTestProcessWorkspace();
             LoadSelfTestSettings();
             LoadSelfTestUpdateOffer();
+            LogSelfTestLocalization();
 
             // Last, and only now: the memory optimizer. Every overlay above closes the
             // one before it, so the final frame of a manual self-test run shows one
@@ -1600,6 +1625,7 @@ public sealed partial class MainWindow : Window
         catch (Exception ex)
         {
             FooterText.Text = $"Window chrome failed: {ex.GetType().Name}";
+            _footerHasError = true;
             ShellDiagnostics.Write($"window chrome FAILED: {ex.GetType().Name}: {ex.Message}");
         }
     }
@@ -1688,20 +1714,23 @@ public sealed partial class MainWindow : Window
     {
         BuildWorkspacePanelMap();
 
-        foreach (var (label, glyph, help, danger) in ToolSections)
+        foreach (var (label, _, glyph, help, danger) in ToolSections)
         {
             AddNavItem(NavList, label, glyph, help, danger);
         }
 
-        foreach (var (label, glyph, help, danger) in FooterSections)
+        foreach (var (label, _, glyph, help, danger) in FooterSections)
         {
             AddNavItem(NavFooterList, label, glyph, help, danger);
         }
 
         // The search box offers exactly the destinations the rail offers, so it can
-        // never send the user somewhere the rail does not have.
-        SectionSearchBox.ItemsSource =
-            ToolSections.Concat(FooterSections).Select(s => s.Label).ToList();
+        // never send the user somewhere the rail does not have. It lists visible
+        // names; OnSectionSearchChosen maps the chosen name back to its Label.
+        SectionSearchBox.ItemsSource = ToolSections
+            .Concat(FooterSections)
+            .Select(section => SectionDisplayName(section.Label))
+            .ToList();
 
         if (NavList.Items.Count > 0)
         {
@@ -1769,9 +1798,9 @@ public sealed partial class MainWindow : Window
         // pointer: that is the tooltip, carrying the label on hover. HelpText
         // keeps the WPF button's descriptive tooltip copy available to assistive
         // tech instead of putting a two-line balloon over every row.
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(item, label);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(item, SectionDisplayName(label));
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(item, help);
-        ToolTipService.SetToolTip(item, label);
+        ToolTipService.SetToolTip(item, SectionDisplayName(label));
         ToolTipService.SetPlacement(item, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Right);
 
         WireNavPointerFeedback(item, label, danger);
@@ -1800,9 +1829,18 @@ public sealed partial class MainWindow : Window
 
     private void OnSectionSearchChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
     {
-        if (args.SelectedItem is string label)
+        if (args.SelectedItem is not string chosen)
         {
-            SelectSection(label);
+            return;
+        }
+
+        foreach (var section in ToolSections.Concat(FooterSections))
+        {
+            if (SectionDisplayName(section.Label) == chosen)
+            {
+                SelectSection(section.Label);
+                return;
+            }
         }
     }
 
@@ -1822,7 +1860,7 @@ public sealed partial class MainWindow : Window
     private void ShowWorkspace(string label, bool playSound)
     {
         SetPageHeader(label);
-        PlaceholderTitle.Text = label;
+        PlaceholderTitle.Text = SectionDisplayName(label);
         PlaceholderBody.Text =
             $"Stage 1 shell placeholder for '{label}'. No cleanup logic is wired up; nothing on this screen touches disk.";
 
@@ -1868,23 +1906,24 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Section copy for the shell-owned page header: the eyebrow names the area, the
-    /// title names the screen, and the description says what the screen will and will not
-    /// do to the machine. Every destructive screen says so in its own words, which is why
-    /// this is a table of prose rather than a format string over the label.
+    /// Section copy for the shell-owned page header, as LocalizationService keys. The
+    /// eyebrow names the area, the title names the screen, and the description says what
+    /// the screen will and will not do to the machine. Every destructive screen says so
+    /// in its own words, which is why this is a table of prose rather than a format
+    /// string over the label.
     /// </summary>
-    private static readonly Dictionary<string, (string Eyebrow, string Description)> SectionCopy = new()
+    private static readonly Dictionary<string, (string EyebrowKey, string DescriptionKey)> SectionCopy = new()
     {
-        [CleanerSectionLabel] = ("CLEANUP", "Temp files, caches and junk Windows can rebuild. Nothing is removed until you press Clean."),
-        [LargeFilesSectionLabel] = ("DISK SPACE", "Files above your size threshold. Protected system locations are listed but held back."),
-        [StartupSectionLabel] = ("BOOT AND LOGIN", "What runs when Windows starts. Disabling an entry never deletes it."),
-        [ProcessManagerSectionLabel] = ("PROCESSES", "Memory-heavy applications, read from the live system. Protected Windows processes are never listed."),
-        [MemorySectionLabel] = ("PERFORMANCE", "Working sets, standby cache and per-process memory pressure, read from the live system."),
-        [SystemRepairSectionLabel] = ("INTEGRITY", "System health first, then one repair at a time, only when you ask for it."),
-        [AppUninstallerSectionLabel] = ("SOFTWARE", "Installed programs with their uninstall strings, estimates and leftover folders."),
-        [ForceDeleteSectionLabel] = ("LAST RESORT", "Staged paths removed with a forced purge, for files that refuse a normal delete."),
-        [SettingsSectionLabel] = ("PREFERENCES", "Appearance, sound, language, automation and updates. Shared with the desktop app."),
-        [AboutSectionLabel] = ("ABOUT", "Version, license and where to find the source."),
+        [CleanerSectionLabel] = ("PageEyebrowCleanup", "PageDescCleaner"),
+        [LargeFilesSectionLabel] = ("PageEyebrowDisk", "PageDescLargeFiles"),
+        [StartupSectionLabel] = ("PageEyebrowBoot", "PageDescStartup"),
+        [ProcessManagerSectionLabel] = ("PageEyebrowProcesses", "PageDescProcesses"),
+        [MemorySectionLabel] = ("PageEyebrowPerformance", "PageDescMemory"),
+        [SystemRepairSectionLabel] = ("PageEyebrowIntegrity", "PageDescRepair"),
+        [AppUninstallerSectionLabel] = ("PageEyebrowSoftware", "PageDescApps"),
+        [ForceDeleteSectionLabel] = ("PageEyebrowLastResort", "PageDescForceDelete"),
+        [SettingsSectionLabel] = ("PageEyebrowPreferences", "PageDescSettings"),
+        [AboutSectionLabel] = ("PageEyebrowAbout", "PageDescAbout"),
     };
 
     /// <summary>
@@ -1894,19 +1933,123 @@ public sealed partial class MainWindow : Window
     /// </summary>
     private void SetPageHeader(string label)
     {
-        (string eyebrow, string description) = SectionCopy.TryGetValue(label, out var copy)
+        (string eyebrowKey, string descriptionKey) = SectionCopy.TryGetValue(label, out var copy)
             ? copy
-            : ("WORKSPACE", string.Empty);
+            : (string.Empty, string.Empty);
 
-        PageEyebrow.Text = eyebrow;
-        PageTitle.Text = label;
-        PageDescription.Text = description;
+        PageEyebrow.Text = eyebrowKey.Length > 0 ? LocalizationService.Get(eyebrowKey) : "WORKSPACE";
+        PageTitle.Text = SectionDisplayName(label);
+        PageDescription.Text = descriptionKey.Length > 0 ? LocalizationService.Get(descriptionKey) : string.Empty;
 
         // The leading tile carries the section's own glyph, so the header and the
         // rail always agree about which section is open.
         PageHeaderIcon.Glyph = SectionGlyphs.TryGetValue(label, out string? glyph)
             ? glyph
             : "\uE8F1";
+    }
+
+    /// <summary>The section's visible name in the active language; Label stays the key.</summary>
+    private static string SectionDisplayName(string label)
+        => SectionLocKeys.TryGetValue(label, out string? locKey)
+            ? LocalizationService.Get(locKey)
+            : label;
+
+    /// <summary>
+    /// Re-paints every piece of shell chrome after a language switch: the mirrored
+    /// layout for Arabic, the rail's tooltips and accessible names, the section search
+    /// list, the page header, and every attached key in the tree.
+    ///
+    /// WPF mirrored its whole window for Arabic (FlowDirection on the MainWindow). The
+    /// rail therefore moves to the right edge here too, because RootGrid carries the
+    /// flow direction. The title bar is pinned back to left-to-right: the min/max/close
+    /// buttons are drawn by the OS at the window's top-right, and mirroring that row
+    /// would move our reserved 144px column to the left and let the search box run
+    /// underneath the caption buttons.
+    /// </summary>
+    private void ApplyLanguage(bool logToActivity)
+    {
+        bool isRtl = LocalizationService.IsRightToLeft;
+
+        RootGrid.FlowDirection = isRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+        TitleBarHost.FlowDirection = FlowDirection.LeftToRight;
+
+        foreach ((string label, ListViewItem item) in _railItems)
+        {
+            string name = SectionDisplayName(label);
+            ToolTipService.SetToolTip(item, name);
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(item, name);
+        }
+
+        // The search box offers the same destinations in the new language; the chosen
+        // text is mapped back to a Label before the section is selected.
+        SectionSearchBox.ItemsSource = ToolSections
+            .Concat(FooterSections)
+            .Select(section => SectionDisplayName(section.Label))
+            .ToList();
+
+        if (_activeSectionLabel.Length > 0)
+        {
+            SetPageHeader(_activeSectionLabel);
+            PlaceholderTitle.Text = SectionDisplayName(_activeSectionLabel);
+        }
+
+        PrivilegeLabel.Text = ElevationService.IsAdministrator
+            ? LocalizationService.Get("AdminLabel")
+            : "Standard user";
+
+        if (!_footerHasError)
+        {
+            FooterText.Text = LocalizationService.Get("Ready");
+        }
+
+        // Everything declared with loc:Loc.Key / PlaceholderKey / ToolTipKey / NameKey.
+        // Declarative copy is re-applied here; dynamic text stays owned by its view model.
+        Loc.ApplyTree(RootGrid);
+
+        // The cleaner dock owns the Activity Log / Hide Log label, which is a state pair
+        // rather than a static label, so it cannot carry an attached key.
+        CleanerWorkspacePanel.RefreshLocalization(_isActivityLogOpen);
+
+        if (logToActivity)
+        {
+            ShellDiagnostics.Write($"language switched to {LocalizationService.CurrentLanguage.ToUpperInvariant()}");
+        }
+    }
+
+    private void OnLanguageChanged(object? sender, EventArgs e) => ApplyLanguage(logToActivity: true);
+
+    /// <summary>
+    /// Proves the attached-key layer is actually wired: counts the elements the tree walk
+    /// reaches, lists any key that resolves to itself (a missing dictionary entry would
+    /// otherwise surface as a bare English word in the UI), and round-trips the Arabic
+    /// mirror back to the language the run started in.
+    ///
+    /// Read-only apart from LocalizationService.CurrentLanguage, which is restored before
+    /// returning. No scan, no delete, no network.
+    /// </summary>
+    private void LogSelfTestLocalization()
+    {
+        IReadOnlyList<string> keys = Loc.CollectKeys(RootGrid);
+        int distinct = keys.Distinct(StringComparer.Ordinal).Count();
+
+        List<string> unknown = keys
+            .Where(key => !LocalizationService.ContainsKey(key))
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(key => key, StringComparer.Ordinal)
+            .ToList();
+
+        ShellDiagnostics.Write(
+            $"localization keys: {keys.Count} bound elements, {distinct} distinct, " +
+            $"{unknown.Count} unknown{(unknown.Count == 0 ? string.Empty : ": " + string.Join(", ", unknown))}");
+
+        string previous = LocalizationService.CurrentLanguage;
+        LocalizationService.CurrentLanguage = "ar";
+        string mirrored = RootGrid.FlowDirection.ToString();
+        LocalizationService.CurrentLanguage = previous;
+        string restored = RootGrid.FlowDirection.ToString();
+
+        ShellDiagnostics.Write(
+            $"localization mirror: arabic={mirrored}, restored={restored}, language={LocalizationService.CurrentLanguage}");
     }
 
     /// <summary>

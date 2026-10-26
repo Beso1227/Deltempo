@@ -14,6 +14,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:loc="using:Deltempo.App.WinUI.Localization"
     xmlns:viewmodels="using:Deltempo.App.WinUI.ViewModels"
     mc:Ignorable="d"
     d:DesignWidth="800"
@@ -53,11 +54,13 @@
                         </Border>
 
                         <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="In-Use &amp; Locked Files Inspector"
+                            <TextBlock loc:Loc.Key="InspectorTitle"
+                                       Text="In-Use &amp; Locked Files Inspector"
                                        FontSize="16"
                                        FontWeight="SemiBold"
                                        Foreground="{ThemeResource TextHighBrush}" />
-                            <TextBlock Text="Files held open by active running applications during cleanup"
+                            <TextBlock loc:Loc.Key="InspectorSubtitle"
+                                       Text="Files held open by active running applications during cleanup"
                                        FontSize="11.5"
                                        Foreground="{ThemeResource TextMediumBrush}" />
                         </StackPanel>
@@ -91,7 +94,8 @@
                                        FontSize="12"
                                        FontWeight="SemiBold"
                                        Foreground="{ThemeResource TextHighBrush}" />
-                            <TextBlock Text="You can close the locking application, or schedule files for automatic deletion on next reboot."
+                            <TextBlock loc:Loc.Key="LockedFilesHint"
+                                       Text="You can close the locking application, or schedule files for automatic deletion on next reboot."
                                        FontSize="10.5"
                                        Foreground="{ThemeResource TextMutedBrush}"
                                        Margin="0,2,0,0" />
@@ -112,7 +116,7 @@
                                           FontSize="11"
                                           Margin="0,0,5,0"
                                           Foreground="{ThemeResource ElectricCyanBrush}" />
-                                <TextBlock Text="Schedule All for Reboot Purge" FontWeight="SemiBold" FontSize="11" />
+                                <TextBlock loc:Loc.Key="ScheduleAllReboot" Text="Schedule All for Reboot Purge" FontWeight="SemiBold" FontSize="11" />
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -227,6 +231,7 @@
 
                                         <Button Grid.Column="4"
                                                 AutomationProperties.Name="Schedule this file for deletion on reboot"
+                                                loc:Loc.Key="ScheduleRebootDelete"
                                                 Content="Schedule Reboot Delete"
                                                 Background="{ThemeResource PillButtonBgBrush}"
                                                 BorderBrush="{ThemeResource PillButtonBorderBrush}"
@@ -259,6 +264,7 @@
 
                     <Button Grid.Column="1"
                             AutomationProperties.Name="Close locked files inspector"
+                            loc:Loc.Key="Close"
                             Content="Close"
                             Background="{ThemeResource ElectricCyanBrush}"
                             Foreground="{ThemeResource HeroActionBtnTextBrush}"

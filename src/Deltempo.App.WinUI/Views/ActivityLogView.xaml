@@ -17,6 +17,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:converters="using:Deltempo.App.WinUI.Converters"
+    xmlns:loc="using:Deltempo.App.WinUI.Localization"
     xmlns:models="using:WinTempCleaner.Models"
     mc:Ignorable="d"
     d:DesignWidth="1000"
@@ -40,6 +41,7 @@
                         FontSize="10.5"
                         Foreground="{ThemeResource ElectricCyanBrush}" />
                     <TextBlock
+                        loc:Loc.Key="ActivityLogStream"
                         Text="ACTIVITY LOG STREAM"
                         FontSize="10"
                         FontWeight="Bold"
@@ -49,6 +51,7 @@
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
                     <Button
+                        loc:Loc.Key="CopyLog"
                         Content="Copy"
                         AutomationProperties.Name="Copy log to the clipboard"
                         Background="{ThemeResource PillButtonBgBrush}"
@@ -59,6 +62,7 @@
                         FontSize="10"
                         Click="OnCopyClick" />
                     <Button
+                        loc:Loc.Key="ClearLog"
                         Content="Clear"
                         AutomationProperties.Name="Clear the activity log"
                         Background="{ThemeResource PillButtonBgBrush}"

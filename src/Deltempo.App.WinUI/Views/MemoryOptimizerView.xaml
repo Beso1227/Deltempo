@@ -17,6 +17,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:loc="using:Deltempo.App.WinUI.Localization"
     xmlns:viewmodels="using:Deltempo.App.WinUI.ViewModels"
     mc:Ignorable="d"
     d:DesignWidth="840"
@@ -56,11 +57,13 @@
                         </Border>
 
                         <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="Windows Memory Cleaner &amp; Standby Cache"
+                            <TextBlock loc:Loc.Key="MemoryOptimizerTitle"
+                                       Text="Windows Memory Cleaner &amp; Standby Cache"
                                        FontSize="16"
                                        FontWeight="SemiBold"
                                        Foreground="{ThemeResource TextHighBrush}" />
-                            <TextBlock Text="Kernel-level Standby List, System File Cache &amp; Working Set Optimizer"
+                            <TextBlock loc:Loc.Key="MemoryOptimizerSubtitle"
+                                       Text="Kernel-level Standby List, System File Cache &amp; Working Set Optimizer"
                                        FontSize="11.5"
                                        Foreground="{ThemeResource TextMediumBrush}" />
                             <TextBlock Text="Note: Windows automatically reclaims and reallocates cached memory as needed by active applications."
@@ -91,7 +94,7 @@
                             BorderBrush="{ThemeResource HairlineBorderBrush}"
                             BorderThickness="1" CornerRadius="10" Padding="12,10">
                         <StackPanel>
-                            <TextBlock Text="TOTAL PHYSICAL RAM" FontSize="10.5" FontWeight="SemiBold" Foreground="{ThemeResource TextMutedBrush}" />
+                            <TextBlock loc:Loc.Key="TotalPhysicalRam" Text="TOTAL PHYSICAL RAM" FontSize="10.5" FontWeight="SemiBold" Foreground="{ThemeResource TextMutedBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.TotalRamText, Mode=OneWay}"
                                        FontSize="18" FontWeight="SemiBold" Foreground="{ThemeResource TextHighBrush}" Margin="0,2,0,0" />
                             <TextBlock Text="{x:Bind ViewModel.UsedRamText, Mode=OneWay}"
@@ -104,7 +107,7 @@
                             BorderBrush="{ThemeResource HairlineBorderBrush}"
                             BorderThickness="1" CornerRadius="10" Padding="12,10">
                         <StackPanel>
-                            <TextBlock Text="RECLAIMABLE STANDBY CACHE" FontSize="10.5" FontWeight="SemiBold" Foreground="{ThemeResource TextMutedBrush}" />
+                            <TextBlock loc:Loc.Key="StandbyCacheLabel" Text="RECLAIMABLE STANDBY CACHE" FontSize="10.5" FontWeight="SemiBold" Foreground="{ThemeResource TextMutedBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.StandbyCacheText, Mode=OneWay}"
                                        FontSize="18" FontWeight="SemiBold" Foreground="{ThemeResource SuccessGlowBrush}" Margin="0,2,0,0" />
                             <TextBlock Text="Cached inactive pages" FontSize="10.5" Foreground="{ThemeResource SuccessGlowBrush}" Margin="0,1,0,0" />
@@ -116,7 +119,7 @@
                             BorderBrush="{ThemeResource HairlineBorderBrush}"
                             BorderThickness="1" CornerRadius="10" Padding="12,10">
                         <StackPanel>
-                            <TextBlock Text="KERNEL ISOLATION SHIELD" FontSize="10.5" FontWeight="SemiBold" Foreground="{ThemeResource TextMutedBrush}" />
+                            <TextBlock loc:Loc.Key="KernelShieldLabel" Text="KERNEL ISOLATION SHIELD" FontSize="10.5" FontWeight="SemiBold" Foreground="{ThemeResource TextMutedBrush}" />
                             <TextBlock Text="100% IMMUNE" FontSize="18" FontWeight="SemiBold" Foreground="{ThemeResource TextHighBrush}" Margin="0,2,0,0" />
                             <TextBlock Text="Windows, Explorer &amp; Security protected" FontSize="10.5" Foreground="{ThemeResource TextMutedBrush}" Margin="0,1,0,0" />
                         </StackPanel>
@@ -127,6 +130,7 @@
                 <Grid Grid.Row="2" Margin="0,0,0,8">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Content="Select All"
+                                loc:Loc.Key="SelectAll"
                                 Background="{ThemeResource PillButtonBgBrush}"
                                 BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                 BorderThickness="1"
@@ -136,6 +140,7 @@
                                 Margin="0,0,6,0"
                                 Command="{x:Bind ViewModel.SelectAllCommand, Mode=OneTime}" />
                         <Button Content="Deselect All"
+                                loc:Loc.Key="DeselectAll"
                                 Background="{ThemeResource PillButtonBgBrush}"
                                 BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                 BorderThickness="1"
@@ -250,6 +255,7 @@
                                         </Border>
 
                                         <Button Grid.Column="5"
+                                                loc:Loc.Key="Flush"
                                                 Content="Flush"
                                                 Background="{ThemeResource PillButtonBgBrush}"
                                                 BorderBrush="{ThemeResource PillButtonBorderBrush}"
@@ -276,6 +282,7 @@
                     </Grid.ColumnDefinitions>
 
                     <Button Grid.Column="0"
+                            loc:Loc.Key="QuickTrim"
                             Content="Quick Trim Working Sets"
                             Background="{ThemeResource PillButtonBgBrush}"
                             BorderBrush="{ThemeResource PillButtonBorderBrush}"
@@ -291,7 +298,8 @@
                                 Orientation="Horizontal"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center">
-                        <Button Content="Purge Selected Zones"
+                        <Button loc:Loc.Key="PurgeSelected"
+                                Content="Purge Selected Zones"
                                 Background="{ThemeResource ElectricCyanBrush}"
                                 Foreground="{ThemeResource HeroActionBtnTextBrush}"
                                 BorderThickness="0"
@@ -300,7 +308,8 @@
                                 FontSize="11.5"
                                 Margin="0,0,8,0"
                                 Command="{x:Bind ViewModel.PurgeSelectedCommand, Mode=OneTime}" />
-                        <Button Content="Close"
+                        <Button loc:Loc.Key="Close"
+                                Content="Close"
                                 Background="{ThemeResource PillButtonBgBrush}"
                                 BorderBrush="{ThemeResource PillButtonBorderBrush}"
                                 BorderThickness="1"

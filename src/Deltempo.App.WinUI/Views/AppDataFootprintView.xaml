@@ -17,6 +17,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewmodels="using:Deltempo.App.WinUI.ViewModels"
     xmlns:converters="using:Deltempo.App.WinUI.Converters"
+    xmlns:loc="using:Deltempo.App.WinUI.Localization"
     mc:Ignorable="d"
     d:DesignWidth="860"
     d:DesignHeight="620">
@@ -60,11 +61,13 @@
                         </Border>
 
                         <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="AppData Footprint"
+                            <TextBlock loc:Loc.Key="AppDataFootprintTitle"
+                                       Text="AppData Footprint"
                                        FontSize="16"
                                        FontWeight="SemiBold"
                                        Foreground="{ThemeResource TextHighBrush}" />
-                            <TextBlock Text="Where your application data is actually stored"
+                            <TextBlock loc:Loc.Key="AppDataFootprintSubtitle"
+                                       Text="Where your application data is actually stored"
                                        FontSize="11.5"
                                        Foreground="{ThemeResource TextMediumBrush}" />
                         </StackPanel>
@@ -99,7 +102,8 @@
                                    FontWeight="SemiBold"
                                    Foreground="{ThemeResource TextHighBrush}"
                                    TextWrapping="Wrap" />
-                        <TextBlock Text="Report only - nothing here is selected, and nothing is deleted. Rows marked 'covered by an existing scope' can be cleaned by the matching Deltempo scope in the Cleaner."
+                        <TextBlock loc:Loc.Key="AppDataFootprintNote"
+                                   Text="Report only - nothing here is selected, and nothing is deleted. Rows marked 'covered by an existing scope' can be cleaned by the matching Deltempo scope in the Cleaner."
                                    FontSize="11"
                                    TextWrapping="Wrap"
                                    Foreground="{ThemeResource TextMutedBrush}"
@@ -253,7 +257,7 @@
                                       FontSize="11"
                                       Margin="0,0,5,0"
                                       Foreground="{ThemeResource ElectricCyanBrush}" />
-                            <TextBlock Text="Re-measure" FontWeight="SemiBold" FontSize="11" />
+                            <TextBlock loc:Loc.Key="Remeasure" Text="Re-measure" FontWeight="SemiBold" FontSize="11" />
                         </StackPanel>
                     </Button>
                 </Grid>

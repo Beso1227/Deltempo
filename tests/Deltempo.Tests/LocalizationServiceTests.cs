@@ -96,6 +96,105 @@ public class LocalizationServiceTests
         LocalizationService.CurrentLanguage = "en";
     }
 
+    // ─── Dictionary completeness & change signal ──────────────────────
+
+    /// <summary>
+    /// Get() hides a missing translation by falling back to English, so a key that only
+    /// exists in "en" looks fine in the UI until the user switches language and sees one
+    /// English label between translated ones. This walks the raw dictionaries instead and
+    /// names every gap. It is the guard the WinUI shell's attached-key layer leans on:
+    /// that layer only proves a key resolves, not that it is translated.
+    /// </summary>
+    [Fact]
+    public void EveryEnglishKey_IsTranslatedInAllOtherLanguages()
+    {
+        string[] languages = { "ar", "es", "fr", "de" };
+        var missing = new List<string>();
+
+        foreach (string lang in languages)
+        {
+            foreach (string key in LocalizationService.TranslationsByLanguage["en"].Keys)
+            {
+                if (!LocalizationService.TranslationsByLanguage[lang].TryGetValue(key, out string? value) ||
+                    string.IsNullOrWhiteSpace(value))
+                {
+                    missing.Add($"{lang}:{key}");
+                }
+            }
+        }
+
+        Assert.True(
+            missing.Count == 0,
+            $"Untranslated keys ({missing.Count}): {string.Join(", ", missing)}");
+    }
+
+    [Fact]
+    public void Translations_CoverExactlyTheFiveSupportedLanguages()
+    {
+        Assert.Equal(
+            new[] { "ar", "de", "en", "es", "fr" },
+            LocalizationService.TranslationsByLanguage.Keys.OrderBy(k => k, StringComparer.Ordinal));
+    }
+
+    /// <summary>
+    /// Get() falls back to the key for anything it does not know, so it cannot be used to
+    /// prove a binding resolves - English values such as "Cancel" and "Close" are their own
+    /// key. ContainsKey is the honest answer, and the shell's self-test relies on it.
+    /// </summary>
+    [Theory]
+    [InlineData("Cancel", true)]
+    [InlineData("NavCleaner", true)]
+    [InlineData("CancelButton", false)]
+    [InlineData("", false)]
+    public void ContainsKey_AnswersFromTheEnglishDictionary(string key, bool expected)
+    {
+        Assert.Equal(expected, LocalizationService.ContainsKey(key));
+    }
+
+    /// <summary>
+    /// Shells subscribe once and re-paint on the event, so it must fire on a real change
+    /// and must NOT fire when a settings round-trip re-assigns the current value.
+    /// </summary>
+    [Fact]
+    public void CurrentLanguage_RaisesLanguageChangedOnlyOnRealChange()
+    {
+        LocalizationService.CurrentLanguage = "en";
+
+        int raised = 0;
+        EventHandler handler = (_, _) => raised++;
+        LocalizationService.LanguageChanged += handler;
+
+        try
+        {
+            LocalizationService.CurrentLanguage = "en";
+            Assert.Equal(0, raised);
+
+            LocalizationService.CurrentLanguage = "de";
+            Assert.Equal(1, raised);
+
+            LocalizationService.CurrentLanguage = "de";
+            Assert.Equal(1, raised);
+        }
+        finally
+        {
+            LocalizationService.LanguageChanged -= handler;
+            LocalizationService.CurrentLanguage = "en";
+        }
+    }
+
+    [Theory]
+    [InlineData("ar", true)]
+    [InlineData("en", false)]
+    [InlineData("es", false)]
+    [InlineData("fr", false)]
+    [InlineData("de", false)]
+    public void IsRightToLeft_IsTrueOnlyForArabic(string lang, bool expected)
+    {
+        LocalizationService.CurrentLanguage = lang;
+        Assert.Equal(expected, LocalizationService.IsRightToLeft);
+        LocalizationService.CurrentLanguage = "en";
+    }
+
     // ─── LocalizeTarget() ──────────────────────────────────────────────
 
     [Fact]

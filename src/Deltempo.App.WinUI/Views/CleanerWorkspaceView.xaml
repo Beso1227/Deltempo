@@ -15,6 +15,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:converters="using:Deltempo.App.WinUI.Converters"
+    xmlns:loc="using:Deltempo.App.WinUI.Localization"
     xmlns:models="using:WinTempCleaner.Models"
     mc:Ignorable="d"
     d:DesignWidth="1000"
@@ -189,7 +190,7 @@
             <StackPanel Grid.Column="0" x:Name="CleanerHeaderStats" Orientation="Horizontal" Spacing="10">
                 <Border Style="{StaticResource StatCard}">
                     <StackPanel>
-                        <TextBlock Text="Reclaimable" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
+                        <TextBlock loc:Loc.Key="StatReclaimable" Text="Reclaimable" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
                         <TextBlock Text="{x:Bind ViewModel.HeroSizeText, Mode=OneWay}"
                                    FontSize="12.5" FontWeight="SemiBold" Foreground="{ThemeResource ElectricCyanBrush}" />
                     </StackPanel>
@@ -197,7 +198,7 @@
 
                 <Border Style="{StaticResource StatCard}">
                     <StackPanel>
-                        <TextBlock Text="Categories" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
+                        <TextBlock loc:Loc.Key="StatCategories" Text="Categories" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
                         <TextBlock Text="{x:Bind ViewModel.Targets.Count, Mode=OneWay}"
                                    FontSize="12.5" FontWeight="SemiBold" Foreground="{ThemeResource TextHighBrush}" />
                     </StackPanel>
@@ -215,7 +216,7 @@
                                   FontFamily="{StaticResource IconFont}"
                                   FontSize="11"
                                   Foreground="{ThemeResource TextMediumBrush}" />
-                        <TextBlock Text="AppData Report" VerticalAlignment="Center" />
+                        <TextBlock loc:Loc.Key="AppDataReport" Text="AppData Report" VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
 
@@ -230,7 +231,7 @@
                                   FontFamily="{StaticResource IconFont}"
                                   FontSize="11"
                                   Foreground="{ThemeResource TextMediumBrush}" />
-                        <TextBlock Text="Scan Now" VerticalAlignment="Center" />
+                        <TextBlock loc:Loc.Key="HeroScanNow" Text="Scan Now" VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
 
@@ -247,7 +248,7 @@
                                   FontFamily="{StaticResource IconFont}"
                                   FontSize="11"
                                   Foreground="{ThemeResource ElectricCyanBrush}" />
-                        <TextBlock Text="Deep Clean" VerticalAlignment="Center" />
+                        <TextBlock loc:Loc.Key="HeroOneClick" Text="Deep Clean" VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
 
@@ -265,7 +266,7 @@
                                   FontFamily="{StaticResource IconFont}"
                                   FontSize="11"
                                   Foreground="{ThemeResource HeroActionBtnTextBrush}" />
-                        <TextBlock Text="Clean Selected" VerticalAlignment="Center" />
+                        <TextBlock loc:Loc.Key="CleanSelected" Text="Clean Selected" VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
             </StackPanel>
@@ -274,13 +275,14 @@
         <!-- Filter + selection chips -->
         <StackPanel Grid.Row="1" Spacing="8" Margin="0,12,0,10">
             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                <TextBlock Text="Selection:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                <RadioButton GroupName="CleanerScope" Content="Safe Only" Style="{StaticResource CleanerChip}" Tag="SAFE" Checked="OnSafeOnly" />
-                <RadioButton GroupName="CleanerScope" Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" IsChecked="True" Checked="OnSelectAll" />
-                <RadioButton GroupName="CleanerScope" Content="None" Style="{StaticResource CleanerChip}" Tag="NONE" Checked="OnDeselectAll" />
+                <TextBlock loc:Loc.Key="SelectionLabel" Text="Selection:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <RadioButton GroupName="CleanerScope" loc:Loc.Key="SelectSafe" Content="Safe Only" Style="{StaticResource CleanerChip}" Tag="SAFE" Checked="OnSafeOnly" />
+                <RadioButton GroupName="CleanerScope" loc:Loc.Key="SelectAll" Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" IsChecked="True" Checked="OnSelectAll" />
+                <RadioButton GroupName="CleanerScope" loc:Loc.Key="Clear" Content="None" Style="{StaticResource CleanerChip}" Tag="NONE" Checked="OnDeselectAll" />
 
                 <Grid Width="240" Margin="16,0,0,0">
-                    <TextBox PlaceholderText="Search targets..."
+                    <TextBox loc:Loc.PlaceholderKey="SearchTargets"
+                             PlaceholderText="Search targets..."
                              Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              FontSize="11.5"
                              Padding="26,5,8,5"
@@ -301,14 +303,14 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                <TextBlock Text="Filter:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                <RadioButton GroupName="CleanerFilter" Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" IsChecked="True" Checked="OnFilterChanged" />
-                <RadioButton GroupName="CleanerFilter" Content="Safe Mode" Style="{StaticResource CleanerChip}" Tag="SAFE" Checked="OnFilterChanged" />
-                <RadioButton GroupName="CleanerFilter" Content="System" Style="{StaticResource CleanerChip}" Tag="SYSTEM" Checked="OnFilterChanged" />
-                <RadioButton GroupName="CleanerFilter" Content="Gaming" Style="{StaticResource CleanerChip}" Tag="GAMING" Checked="OnFilterChanged" />
-                <RadioButton GroupName="CleanerFilter" Content="Media" Style="{StaticResource CleanerChip}" Tag="MEDIA" Checked="OnFilterChanged" />
-                <RadioButton GroupName="CleanerFilter" Content="Dev" Style="{StaticResource CleanerChip}" Tag="DEV" Checked="OnFilterChanged" />
-                <RadioButton GroupName="CleanerFilter" Content="Rulepacks" Style="{StaticResource CleanerChip}" Tag="RULEPACK" Checked="OnFilterChanged" />
+                <TextBlock loc:Loc.Key="FilterLabel" Text="Filter:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <RadioButton GroupName="CleanerFilter" loc:Loc.Key="FilterAll" Content="All" Style="{StaticResource CleanerChip}" Tag="ALL" IsChecked="True" Checked="OnFilterChanged" />
+                <RadioButton GroupName="CleanerFilter" loc:Loc.Key="FilterSafe" Content="Safe Mode" Style="{StaticResource CleanerChip}" Tag="SAFE" Checked="OnFilterChanged" />
+                <RadioButton GroupName="CleanerFilter" loc:Loc.Key="FilterSystem" Content="System" Style="{StaticResource CleanerChip}" Tag="SYSTEM" Checked="OnFilterChanged" />
+                <RadioButton GroupName="CleanerFilter" loc:Loc.Key="FilterGaming" Content="Gaming" Style="{StaticResource CleanerChip}" Tag="GAMING" Checked="OnFilterChanged" />
+                <RadioButton GroupName="CleanerFilter" loc:Loc.Key="FilterMedia" Content="Media" Style="{StaticResource CleanerChip}" Tag="MEDIA" Checked="OnFilterChanged" />
+                <RadioButton GroupName="CleanerFilter" loc:Loc.Key="FilterDev" Content="Dev" Style="{StaticResource CleanerChip}" Tag="DEV" Checked="OnFilterChanged" />
+                <RadioButton GroupName="CleanerFilter" loc:Loc.Key="FilterRulepack" Content="Rulepacks" Style="{StaticResource CleanerChip}" Tag="RULEPACK" Checked="OnFilterChanged" />
 
                 <!-- WPF kept Smart Clean as a one-press pill in this action strip, next
                      to the selection chips. It ticks the safe categories and starts the
@@ -316,6 +318,7 @@
                 <Border Style="{StaticResource CommandBarDivider}" Margin="8,0" />
 
                 <Button
+                    loc:Loc.Key="SmartClean"
                     Content="Smart Clean"
                     ToolTipService.ToolTip="1-Click Smart Clean: select the 100% safe categories and clean them now. Orphaned app leftovers stay unticked for you to review."
                     AutomationProperties.Name="1-Click Smart Clean"
@@ -367,10 +370,10 @@
             Visibility="{x:Bind ViewModel.HasItems, Mode=OneWay, Converter={StaticResource BoolToVisInv}}">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
                 <FontIcon Glyph="&#xE8B7;" FontFamily="{StaticResource IconFont}" FontSize="34" Foreground="{ThemeResource TextMutedBrush}" />
-                <TextBlock Text="No categories to scan"
+                <TextBlock loc:Loc.Key="NoCategoriesTitle" Text="No categories to scan"
                            FontSize="15" FontWeight="SemiBold" Foreground="{ThemeResource TextHighBrush}"
                            HorizontalAlignment="Center" />
-                <TextBlock Text="Click Scan Now to discover cleanable temporary locations."
+                <TextBlock loc:Loc.Key="NoCategoriesBody" Text="Click Scan Now to discover cleanable temporary locations."
                            FontSize="11.5" Foreground="{ThemeResource TextMutedBrush}" TextAlignment="Center" MaxWidth="460" />
             </StackPanel>
         </Border>
@@ -405,6 +408,7 @@
                     </Grid.ColumnDefinitions>
 
                     <CheckBox Grid.Column="0"
+                              loc:Loc.Key="SafetyShield"
                               Content="Safety Shield (&gt;24h)"
                               IsChecked="{x:Bind ViewModel.SafeMode, Mode=TwoWay}"
                               FontSize="10.5"
@@ -436,6 +440,7 @@
                                           FontSize="10"
                                           Foreground="{ThemeResource ElectricCyanBrush}" />
                                 <TextBlock x:Name="LogToggleText"
+                                           loc:Loc.Key="ActivityLog"
                                            Text="Activity Log"
                                            FontSize="10.5"
                                            FontWeight="SemiBold"
@@ -470,11 +475,12 @@
                                       FontFamily="{StaticResource IconFont}"
                                       FontSize="10"
                                       Foreground="{ThemeResource ElectricCyanBrush}" />
-                            <TextBlock Text="Audit Report" VerticalAlignment="Center" />
+                            <TextBlock loc:Loc.Key="ExportReport" Text="Audit Report" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
 
                     <Button Grid.Column="4"
+                            loc:Loc.Key="Cancel"
                             Content="Cancel"
                             FontSize="11"
                             Padding="12,4"

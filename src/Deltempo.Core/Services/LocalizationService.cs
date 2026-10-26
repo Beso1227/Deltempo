@@ -4,7 +4,39 @@ namespace WinTempCleaner.Services;
 
 public static class LocalizationService
 {
-    public static string CurrentLanguage { get; set; } = "en";
+    private static string _currentLanguage = "en";
+
+    /// <summary>
+    /// Raised after <see cref="CurrentLanguage"/> actually changed value. Shells
+    /// subscribe to re-apply their static copy; WPF still calls ApplyLocalization
+    /// directly because that pass also refreshes measured totals.
+    /// </summary>
+    public static event EventHandler? LanguageChanged;
+
+    /// <summary>
+    /// Active language code ("en", "ar", "es", "fr", "de"). Assigning the same
+    /// value is a no-op, so a settings round-trip cannot re-raise the event.
+    /// </summary>
+    public static string CurrentLanguage
+    {
+        get => _currentLanguage;
+        set
+        {
+            if (string.Equals(_currentLanguage, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _currentLanguage = value;
+            LanguageChanged?.Invoke(null, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>
+    /// True for the one language that reads right to left. Shells mirror their
+    /// layout on this rather than testing the language code themselves.
+    /// </summary>
+    public static bool IsRightToLeft => string.Equals(CurrentLanguage, "ar", StringComparison.OrdinalIgnoreCase);
 
     private static readonly Dictionary<string, Dictionary<string, string>> Translations = new()
     {
@@ -55,6 +87,8 @@ public static class LocalizationService
             ["NavRepair"] = "Repair",
             ["NavApps"] = "Apps",
             ["NavAbout"] = "About",
+            ["NavForceDelete"] = "Force Delete",
+            ["NavSettings"] = "Settings",
             ["HeroScanNow"] = "Scan Now",
             ["HeroOneClick"] = "1-Click Deep Clean",
             ["HeroGameBoost"] = "Game Boost",
@@ -70,7 +104,62 @@ public static class LocalizationService
             ["FilterMedia"] = "Media & Apps",
             ["FilterDev"] = "Dev Tools",
             ["FilterRulepack"] = "Rulepacks",
-            ["SearchPlaceholder"] = "Search 25+ scopes..."
+            ["SearchPlaceholder"] = "Search 25+ scopes...",
+            ["JumpToTool"] = "Jump to a tool",
+            ["PageEyebrowCleanup"] = "CLEANUP",
+            ["PageEyebrowDisk"] = "DISK SPACE",
+            ["PageEyebrowBoot"] = "BOOT AND LOGIN",
+            ["PageEyebrowProcesses"] = "PROCESSES",
+            ["PageEyebrowPerformance"] = "PERFORMANCE",
+            ["PageEyebrowIntegrity"] = "INTEGRITY",
+            ["PageEyebrowSoftware"] = "SOFTWARE",
+            ["PageEyebrowLastResort"] = "LAST RESORT",
+            ["PageEyebrowPreferences"] = "PREFERENCES",
+            ["PageEyebrowAbout"] = "ABOUT",
+            ["PageDescCleaner"] = "Temp files, caches and junk Windows can rebuild. Nothing is removed until you press Clean.",
+            ["PageDescLargeFiles"] = "Files above your size threshold. Protected system locations are listed but held back.",
+            ["PageDescStartup"] = "What runs when Windows starts. Disabling an entry never deletes it.",
+            ["PageDescProcesses"] = "Memory-heavy applications, read from the live system. Protected Windows processes are never listed.",
+            ["PageDescMemory"] = "Working sets, standby cache and per-process memory pressure, read from the live system.",
+            ["PageDescRepair"] = "System health first, then one repair at a time, only when you ask for it.",
+            ["PageDescApps"] = "Installed programs with their uninstall strings, estimates and leftover folders.",
+            ["PageDescForceDelete"] = "Staged paths removed with a forced purge, for files that refuse a normal delete.",
+            ["PageDescSettings"] = "Appearance, sound, language, automation and updates. Shared with the desktop app.",
+            ["PageDescAbout"] = "Version, license and where to find the source.",
+            ["StatReclaimable"] = "Reclaimable",
+            ["StatCategories"] = "Categories",
+            ["AppDataReport"] = "AppData Report",
+            ["SelectionLabel"] = "Selection:",
+            ["FilterLabel"] = "Filter:",
+            ["SearchTargets"] = "Search targets...",
+            ["NoCategoriesTitle"] = "No categories to scan",
+            ["NoCategoriesBody"] = "Click Scan Now to discover cleanable temporary locations.",
+            ["ActivityLogStream"] = "ACTIVITY LOG STREAM",
+            ["CopyLog"] = "Copy",
+            ["ClearLog"] = "Clear",
+            ["ScheduleAllReboot"] = "Schedule All for Reboot Purge",
+            ["LockedFilesHint"] = "You can close the locking application, or schedule files for automatic deletion on next reboot.",
+            ["ScheduleRebootDelete"] = "Schedule Reboot Delete",
+            ["MemoryOptimizerTitle"] = "Windows Memory Cleaner & Standby Cache",
+            ["MemoryOptimizerSubtitle"] = "Kernel-level Standby List, System File Cache & Working Set Optimizer",
+            ["TotalPhysicalRam"] = "TOTAL PHYSICAL RAM",
+            ["StandbyCacheLabel"] = "RECLAIMABLE STANDBY CACHE",
+            ["KernelShieldLabel"] = "KERNEL ISOLATION SHIELD",
+            ["DeselectAll"] = "Deselect All",
+            ["Flush"] = "Flush",
+            ["QuickTrim"] = "Quick Trim Working Sets",
+            ["PurgeSelected"] = "Purge Selected Zones",
+            ["Close"] = "Close",
+            ["AppDataFootprintTitle"] = "AppData Footprint",
+            ["AppDataFootprintSubtitle"] = "Where your application data is actually stored",
+            ["AppDataFootprintNote"] = "Report only - nothing here is selected, and nothing is deleted. Rows marked 'covered by an existing scope' can be cleaned by the matching Deltempo scope in the Cleaner.",
+            ["Remeasure"] = "Re-measure",
+            ["UpdateAvailable"] = "Update Available",
+            ["UpdateAvailableBody"] = "A new official release of Deltempo is available",
+            ["UpdatePreviewNote"] = "This preview build never downloads or replaces itself. The new version opens on GitHub Releases, where you download it yourself.",
+            ["Later"] = "Later",
+            ["DownloadOnGitHub"] = "Download on GitHub",
+            ["Ready"] = "Ready"
         },
         ["ar"] = new()
         {
@@ -119,6 +208,8 @@ public static class LocalizationService
             ["NavRepair"] = "إصلاح النظام",
             ["NavApps"] = "التطبيقات",
             ["NavAbout"] = "حول",
+            ["NavForceDelete"] = "حذف قسري",
+            ["NavSettings"] = "الإعدادات",
             ["HeroScanNow"] = "فحص الآن",
             ["HeroOneClick"] = "تنظيف عميق بنقرة",
             ["HeroGameBoost"] = "تسريع الألعاب",
@@ -134,7 +225,62 @@ public static class LocalizationService
             ["FilterMedia"] = "الوسائط والتطبيقات",
             ["FilterDev"] = "أدوات التطوير",
             ["FilterRulepack"] = "حزم القواعد",
-            ["SearchPlaceholder"] = "ابحث في أكثر من 25 نطاقاً..."
+            ["SearchPlaceholder"] = "ابحث في أكثر من 25 نطاقاً...",
+            ["JumpToTool"] = "الانتقال إلى أداة",
+            ["PageEyebrowCleanup"] = "التنظيف",
+            ["PageEyebrowDisk"] = "مساحة القرص",
+            ["PageEyebrowBoot"] = "بدء التشغيل والدخول",
+            ["PageEyebrowProcesses"] = "العمليات",
+            ["PageEyebrowPerformance"] = "الأداء",
+            ["PageEyebrowIntegrity"] = "سلامة النظام",
+            ["PageEyebrowSoftware"] = "البرامج",
+            ["PageEyebrowLastResort"] = "الخيار الأخير",
+            ["PageEyebrowPreferences"] = "التفضيلات",
+            ["PageEyebrowAbout"] = "حول",
+            ["PageDescCleaner"] = "ملفات مؤقتة وكاش ومهملات يستطيع ويندوز إعادة إنشائها. لا يُحذف شيء قبل الضغط على تنظيف.",
+            ["PageDescLargeFiles"] = "الملفات الأكبر من الحد الذي تحدده. مواقع النظام المحمية تُعرض لكنها تبقى محجوزة.",
+            ["PageDescStartup"] = "ما يعمل عند بدء ويندوز. تعطيل عنصر لا يحذفه أبداً.",
+            ["PageDescProcesses"] = "التطبيقات المستهلكة للذاكرة، تُقرأ من النظام المباشر. عمليات ويندوز المحمية لا تُعرض أبداً.",
+            ["PageDescMemory"] = "مجموعات العمل والكاش الاحتياطي وضغط الذاكرة لكل عملية، تُقرأ من النظام المباشر.",
+            ["PageDescRepair"] = "سلامة النظام أولاً، ثم إصلاح واحد في كل مرة، فقط عندما تطلبه.",
+            ["PageDescApps"] = "البرامج المثبتة مع أوامر إلغاء التثبيت والتقديرات والمجلدات المتبقية.",
+            ["PageDescForceDelete"] = "مسارات مجهّزة تُحذف بحذف قسري، للملفات التي ترفض الحذف العادي.",
+            ["PageDescSettings"] = "المظهر والصوت واللغة والأتمتة والتحديثات. مشتركة مع تطبيق سطح المكتب.",
+            ["PageDescAbout"] = "الإصدار والترخيص وأين تجد الشفرة المصدرية.",
+            ["StatReclaimable"] = "قابل للاسترداد",
+            ["StatCategories"] = "الفئات",
+            ["AppDataReport"] = "تقرير AppData",
+            ["SelectionLabel"] = "التحديد:",
+            ["FilterLabel"] = "التصفية:",
+            ["SearchTargets"] = "ابحث في الفئات...",
+            ["NoCategoriesTitle"] = "لا توجد فئات للفحص",
+            ["NoCategoriesBody"] = "اضغط فحص الآن لاكتشاف المواقع المؤقتة القابلة للتنظيف.",
+            ["ActivityLogStream"] = "سجل النشاط المباشر",
+            ["CopyLog"] = "نسخ",
+            ["ClearLog"] = "مسح",
+            ["ScheduleAllReboot"] = "جدولة الكل لإعادة التشغيل",
+            ["LockedFilesHint"] = "يمكنك إغلاق التطبيق الذي يحجز الملفات، أو جدولة حذفها تلقائياً عند إعادة التشغيل.",
+            ["ScheduleRebootDelete"] = "جدولة الحذف عند إعادة التشغيل",
+            ["MemoryOptimizerTitle"] = "منظف ذاكرة ويندوز والكاش الاحتياطي",
+            ["MemoryOptimizerSubtitle"] = "محسّن قائمة الانتظار وكاش ملفات النظام ومجموعات العمل على مستوى النواة",
+            ["TotalPhysicalRam"] = "إجمالي الذاكرة الفعلية",
+            ["StandbyCacheLabel"] = "الكاش الاحتياطي القابل للاسترداد",
+            ["KernelShieldLabel"] = "درع عزل النواة",
+            ["DeselectAll"] = "إلغاء تحديد الكل",
+            ["Flush"] = "تفريغ",
+            ["QuickTrim"] = "تقليم سريع لمجموعات العمل",
+            ["PurgeSelected"] = "تطهير المناطق المحددة",
+            ["Close"] = "إغلاق",
+            ["AppDataFootprintTitle"] = "بصمة AppData",
+            ["AppDataFootprintSubtitle"] = "أين تُخزَّن بيانات تطبيقاتك فعلياً",
+            ["AppDataFootprintNote"] = "تقرير فقط - لا شيء محدد هنا ولا يُحذف شيء. الصفوف المعلّمة بأنها مغطاة بنطاق قائم يمكن تنظيفها بالنطاق المقابل في المنظف.",
+            ["Remeasure"] = "إعادة القياس",
+            ["UpdateAvailable"] = "تحديث متاح",
+            ["UpdateAvailableBody"] = "يتوفر إصدار رسمي جديد من Deltempo",
+            ["UpdatePreviewNote"] = "هذا الإصدار التجريبي لا ينزّل نفسه ولا يستبدلها. تفتح النسخة الجديدة على GitHub Releases حيث تنزّلها بنفسك.",
+            ["Later"] = "لاحقاً",
+            ["DownloadOnGitHub"] = "التنزيل من GitHub",
+            ["Ready"] = "جاهز"
         },
         ["es"] = new()
         {
@@ -183,6 +329,8 @@ public static class LocalizationService
             ["NavRepair"] = "Reparación",
             ["NavApps"] = "Aplicaciones",
             ["NavAbout"] = "Acerca de",
+            ["NavForceDelete"] = "Borrado Forzado",
+            ["NavSettings"] = "Ajustes",
             ["HeroScanNow"] = "Escanear Ahora",
             ["HeroOneClick"] = "Limpieza 1-Clic",
             ["HeroGameBoost"] = "Acelerador Juegos",
@@ -198,7 +346,62 @@ public static class LocalizationService
             ["FilterMedia"] = "Multimedia y Apps",
             ["FilterDev"] = "Herramientas Dev",
             ["FilterRulepack"] = "Paquetes de Reglas",
-            ["SearchPlaceholder"] = "Buscar más de 25 ámbitos..."
+            ["SearchPlaceholder"] = "Buscar más de 25 ámbitos...",
+            ["JumpToTool"] = "Ir a una herramienta",
+            ["PageEyebrowCleanup"] = "LIMPIEZA",
+            ["PageEyebrowDisk"] = "ESPACIO EN DISCO",
+            ["PageEyebrowBoot"] = "INICIO Y SESIÓN",
+            ["PageEyebrowProcesses"] = "PROCESOS",
+            ["PageEyebrowPerformance"] = "RENDIMIENTO",
+            ["PageEyebrowIntegrity"] = "INTEGRIDAD",
+            ["PageEyebrowSoftware"] = "SOFTWARE",
+            ["PageEyebrowLastResort"] = "ÚLTIMO RECURSO",
+            ["PageEyebrowPreferences"] = "PREFERENCIAS",
+            ["PageEyebrowAbout"] = "ACERCA DE",
+            ["PageDescCleaner"] = "Archivos temporales, cachés y basura que Windows puede regenerar. Nada se elimina hasta que pulses Limpiar.",
+            ["PageDescLargeFiles"] = "Archivos por encima de tu umbral de tamaño. Las ubicaciones protegidas del sistema se listan pero quedan retenidas.",
+            ["PageDescStartup"] = "Lo que se ejecuta al iniciar Windows. Desactivar una entrada nunca la borra.",
+            ["PageDescProcesses"] = "Aplicaciones con alto consumo de memoria, leídas del sistema en vivo. Los procesos protegidos de Windows nunca se listan.",
+            ["PageDescMemory"] = "Conjuntos de trabajo, caché en espera y presión de memoria por proceso, leídos del sistema en vivo.",
+            ["PageDescRepair"] = "Primero la salud del sistema y luego una reparación a la vez, solo cuando la pidas.",
+            ["PageDescApps"] = "Programas instalados con sus cadenas de desinstalación, estimaciones y carpetas residuales.",
+            ["PageDescForceDelete"] = "Rutas preparadas que se eliminan con purga forzada, para archivos que rechazan un borrado normal.",
+            ["PageDescSettings"] = "Apariencia, sonido, idioma, automatización y actualizaciones. Compartido con la app de escritorio.",
+            ["PageDescAbout"] = "Versión, licencia y dónde encontrar el código fuente.",
+            ["StatReclaimable"] = "Recuperable",
+            ["StatCategories"] = "Categorías",
+            ["AppDataReport"] = "Informe AppData",
+            ["SelectionLabel"] = "Selección:",
+            ["FilterLabel"] = "Filtro:",
+            ["SearchTargets"] = "Buscar categorías...",
+            ["NoCategoriesTitle"] = "No hay categorías para escanear",
+            ["NoCategoriesBody"] = "Pulsa Escanear Ahora para descubrir ubicaciones temporales limpiables.",
+            ["ActivityLogStream"] = "FLUJO DE ACTIVIDAD",
+            ["CopyLog"] = "Copiar",
+            ["ClearLog"] = "Vaciar",
+            ["ScheduleAllReboot"] = "Programar todo para reinicio",
+            ["LockedFilesHint"] = "Puedes cerrar la aplicación que bloquea los archivos o programarlos para eliminación automática al reiniciar.",
+            ["ScheduleRebootDelete"] = "Eliminar al reiniciar",
+            ["MemoryOptimizerTitle"] = "Limpiador de memoria y caché en espera de Windows",
+            ["MemoryOptimizerSubtitle"] = "Optimizador de lista en espera, caché de archivos del sistema y conjuntos de trabajo",
+            ["TotalPhysicalRam"] = "RAM FÍSICA TOTAL",
+            ["StandbyCacheLabel"] = "CACHÉ EN ESPERA RECUPERABLE",
+            ["KernelShieldLabel"] = "ESCUDO DE AISLAMIENTO DEL KERNEL",
+            ["DeselectAll"] = "Deseleccionar todo",
+            ["Flush"] = "Vaciar",
+            ["QuickTrim"] = "Ajuste rápido de conjuntos",
+            ["PurgeSelected"] = "Purgar zonas seleccionadas",
+            ["Close"] = "Cerrar",
+            ["AppDataFootprintTitle"] = "Huella de AppData",
+            ["AppDataFootprintSubtitle"] = "Dónde se guardan realmente los datos de tus aplicaciones",
+            ["AppDataFootprintNote"] = "Solo informe: nada aquí está seleccionado y nada se elimina. Las filas marcadas como «cubiertas por un ámbito existente» se pueden limpiar con el ámbito correspondiente en el Limpiador.",
+            ["Remeasure"] = "Medir de nuevo",
+            ["UpdateAvailable"] = "Actualización disponible",
+            ["UpdateAvailableBody"] = "Hay una nueva versión oficial de Deltempo disponible",
+            ["UpdatePreviewNote"] = "Esta compilación de vista previa nunca se descarga ni se reemplaza a sí misma. La nueva versión se abre en GitHub Releases, donde la descargas tú.",
+            ["Later"] = "Más tarde",
+            ["DownloadOnGitHub"] = "Descargar en GitHub",
+            ["Ready"] = "Listo"
         },
         ["fr"] = new()
         {
@@ -247,6 +450,8 @@ public static class LocalizationService
             ["NavRepair"] = "Réparation",
             ["NavApps"] = "Applications",
             ["NavAbout"] = "À propos",
+            ["NavForceDelete"] = "Suppression Forcée",
+            ["NavSettings"] = "Paramètres",
             ["HeroScanNow"] = "Scanner",
             ["HeroOneClick"] = "Nettoyage 1-Clic",
             ["HeroGameBoost"] = "Mode Jeu",
@@ -262,7 +467,62 @@ public static class LocalizationService
             ["FilterMedia"] = "Médias & Apps",
             ["FilterDev"] = "Outils Développeur",
             ["FilterRulepack"] = "Packs de Règles",
-            ["SearchPlaceholder"] = "Rechercher parmi 25+ éléments..."
+            ["SearchPlaceholder"] = "Rechercher parmi 25+ éléments...",
+            ["JumpToTool"] = "Aller à un outil",
+            ["PageEyebrowCleanup"] = "NETTOYAGE",
+            ["PageEyebrowDisk"] = "ESPACE DISQUE",
+            ["PageEyebrowBoot"] = "DÉMARRAGE ET CONNEXION",
+            ["PageEyebrowProcesses"] = "PROCESSUS",
+            ["PageEyebrowPerformance"] = "PERFORMANCES",
+            ["PageEyebrowIntegrity"] = "INTÉGRITÉ",
+            ["PageEyebrowSoftware"] = "LOGICIELS",
+            ["PageEyebrowLastResort"] = "DERNIER RECOURS",
+            ["PageEyebrowPreferences"] = "PRÉFÉRENCES",
+            ["PageEyebrowAbout"] = "À PROPOS",
+            ["PageDescCleaner"] = "Fichiers temporaires, caches et déchets que Windows peut régénérer. Rien n'est supprimé avant que vous ne cliquiez sur Nettoyer.",
+            ["PageDescLargeFiles"] = "Fichiers dépassant votre seuil de taille. Les emplacements système protégés sont listés mais retenus.",
+            ["PageDescStartup"] = "Ce qui s'exécute au démarrage de Windows. Désactiver une entrée ne la supprime jamais.",
+            ["PageDescProcesses"] = "Applications gourmandes en mémoire, lues sur le système en direct. Les processus Windows protégés ne sont jamais listés.",
+            ["PageDescMemory"] = "Ensembles de travail, cache en veille et pression mémoire par processus, lus sur le système en direct.",
+            ["PageDescRepair"] = "La santé du système d'abord, puis une réparation à la fois, uniquement lorsque vous la demandez.",
+            ["PageDescApps"] = "Programmes installés avec leurs chaînes de désinstallation, estimations et dossiers résiduels.",
+            ["PageDescForceDelete"] = "Chemins préparés supprimés par purge forcée, pour les fichiers qui refusent une suppression normale.",
+            ["PageDescSettings"] = "Apparence, son, langue, automatisation et mises à jour. Partagé avec l'application de bureau.",
+            ["PageDescAbout"] = "Version, licence et où trouver le code source.",
+            ["StatReclaimable"] = "Récupérable",
+            ["StatCategories"] = "Catégories",
+            ["AppDataReport"] = "Rapport AppData",
+            ["SelectionLabel"] = "Sélection :",
+            ["FilterLabel"] = "Filtre :",
+            ["SearchTargets"] = "Rechercher des catégories...",
+            ["NoCategoriesTitle"] = "Aucune catégorie à analyser",
+            ["NoCategoriesBody"] = "Cliquez sur Scanner pour découvrir les emplacements temporaires nettoyables.",
+            ["ActivityLogStream"] = "FLUX D'ACTIVITÉ",
+            ["CopyLog"] = "Copier",
+            ["ClearLog"] = "Vider",
+            ["ScheduleAllReboot"] = "Tout planifier au redémarrage",
+            ["LockedFilesHint"] = "Vous pouvez fermer l'application qui verrouille les fichiers, ou les planifier pour une suppression automatique au prochain redémarrage.",
+            ["ScheduleRebootDelete"] = "Supprimer au redémarrage",
+            ["MemoryOptimizerTitle"] = "Nettoyeur de mémoire et de cache en veille Windows",
+            ["MemoryOptimizerSubtitle"] = "Optimiseur de liste en veille, cache de fichiers système et ensembles de travail",
+            ["TotalPhysicalRam"] = "RAM PHYSIQUE TOTALE",
+            ["StandbyCacheLabel"] = "CACHE EN VEILLE RÉCUPÉRABLE",
+            ["KernelShieldLabel"] = "BOUCLIER D'ISOLATION DU NOYAU",
+            ["DeselectAll"] = "Tout désélectionner",
+            ["Flush"] = "Vider",
+            ["QuickTrim"] = "Ajustement rapide des ensembles",
+            ["PurgeSelected"] = "Purger les zones sélectionnées",
+            ["Close"] = "Fermer",
+            ["AppDataFootprintTitle"] = "Empreinte AppData",
+            ["AppDataFootprintSubtitle"] = "Où vos données d'application sont réellement stockées",
+            ["AppDataFootprintNote"] = "Rapport uniquement : rien ici n'est sélectionné et rien n'est supprimé. Les lignes marquées « couvertes par une portée existante » peuvent être nettoyées par la portée correspondante dans le Nettoyeur.",
+            ["Remeasure"] = "Remesurer",
+            ["UpdateAvailable"] = "Mise à jour disponible",
+            ["UpdateAvailableBody"] = "Une nouvelle version officielle de Deltempo est disponible",
+            ["UpdatePreviewNote"] = "Cette version d'aperçu ne se télécharge ni ne se remplace jamais elle-même. La nouvelle version s'ouvre sur GitHub Releases, où vous la téléchargez vous-même.",
+            ["Later"] = "Plus tard",
+            ["DownloadOnGitHub"] = "Télécharger sur GitHub",
+            ["Ready"] = "Prêt"
         },
         ["de"] = new()
         {
@@ -311,6 +571,8 @@ public static class LocalizationService
             ["NavRepair"] = "Reparatur",
             ["NavApps"] = "Programme",
             ["NavAbout"] = "Über",
+            ["NavForceDelete"] = "Erzwungenes Löschen",
+            ["NavSettings"] = "Einstellungen",
             ["HeroScanNow"] = "Jetzt Scannen",
             ["HeroOneClick"] = "1-Klick Tiefenreinigung",
             ["HeroGameBoost"] = "Game-Boost",
@@ -326,7 +588,62 @@ public static class LocalizationService
             ["FilterMedia"] = "Medien & Apps",
             ["FilterDev"] = "Entwicklertools",
             ["FilterRulepack"] = "Regelpakete",
-            ["SearchPlaceholder"] = "25+ Bereiche durchsuchen..."
+            ["SearchPlaceholder"] = "25+ Bereiche durchsuchen...",
+            ["JumpToTool"] = "Zu einem Werkzeug springen",
+            ["PageEyebrowCleanup"] = "BEREINIGUNG",
+            ["PageEyebrowDisk"] = "FESTPLATTENPLATZ",
+            ["PageEyebrowBoot"] = "START UND ANMELDUNG",
+            ["PageEyebrowProcesses"] = "PROZESSE",
+            ["PageEyebrowPerformance"] = "LEISTUNG",
+            ["PageEyebrowIntegrity"] = "INTEGRITÄT",
+            ["PageEyebrowSoftware"] = "SOFTWARE",
+            ["PageEyebrowLastResort"] = "LETZTE OPTION",
+            ["PageEyebrowPreferences"] = "EINSTELLUNGEN",
+            ["PageEyebrowAbout"] = "ÜBER",
+            ["PageDescCleaner"] = "Temporäre Dateien, Caches und Müll, die Windows neu aufbauen kann. Nichts wird entfernt, bevor Sie auf Bereinigen klicken.",
+            ["PageDescLargeFiles"] = "Dateien über Ihrer Größenschwelle. Geschützte Systemorte werden aufgelistet, aber zurückgehalten.",
+            ["PageDescStartup"] = "Was beim Start von Windows läuft. Das Deaktivieren eines Eintrags löscht ihn nie.",
+            ["PageDescProcesses"] = "Speicherintensive Anwendungen, live aus dem System gelesen. Geschützte Windows-Prozesse werden nie aufgelistet.",
+            ["PageDescMemory"] = "Arbeitssätze, Standby-Cache und Speicherdruck pro Prozess, live aus dem System gelesen.",
+            ["PageDescRepair"] = "Zuerst die Systemintegrität, dann eine Reparatur nach der anderen, nur wenn Sie sie anfordern.",
+            ["PageDescApps"] = "Installierte Programme mit Deinstallationsbefehlen, Schätzungen und Restordnern.",
+            ["PageDescForceDelete"] = "Vorbereitete Pfade, die mit erzwungener Bereinigung entfernt werden, für Dateien, die ein normales Löschen verweigern.",
+            ["PageDescSettings"] = "Darstellung, Ton, Sprache, Automatisierung und Updates. Mit der Desktop-App geteilt.",
+            ["PageDescAbout"] = "Version, Lizenz und wo der Quellcode zu finden ist.",
+            ["StatReclaimable"] = "Rückgewinnbar",
+            ["StatCategories"] = "Kategorien",
+            ["AppDataReport"] = "AppData-Bericht",
+            ["SelectionLabel"] = "Auswahl:",
+            ["FilterLabel"] = "Filter:",
+            ["SearchTargets"] = "Kategorien durchsuchen...",
+            ["NoCategoriesTitle"] = "Keine Kategorien zum Scannen",
+            ["NoCategoriesBody"] = "Klicken Sie auf Jetzt scannen, um bereinigbare temporäre Orte zu finden.",
+            ["ActivityLogStream"] = "AKTIVITÄTSPROTOKOLL-STREAM",
+            ["CopyLog"] = "Kopieren",
+            ["ClearLog"] = "Leeren",
+            ["ScheduleAllReboot"] = "Alle für Neustart planen",
+            ["LockedFilesHint"] = "Sie können die Anwendung schließen, die die Dateien sperrt, oder sie für das automatische Löschen beim nächsten Neustart planen.",
+            ["ScheduleRebootDelete"] = "Beim Neustart löschen",
+            ["MemoryOptimizerTitle"] = "Windows Speicher- & Standby-Cache-Reiniger",
+            ["MemoryOptimizerSubtitle"] = "Optimierer für Standbyliste, Systemdateicache & Arbeitssätze",
+            ["TotalPhysicalRam"] = "GESAMTER PHYSIKALISCHER RAM",
+            ["StandbyCacheLabel"] = "RÜCKGEWINNBARER STANDBY-CACHE",
+            ["KernelShieldLabel"] = "KERNEL-ISOLATIONSSCHILD",
+            ["DeselectAll"] = "Auswahl aufheben",
+            ["Flush"] = "Leeren",
+            ["QuickTrim"] = "Arbeitssätze schnell trimmen",
+            ["PurgeSelected"] = "Ausgewählte Zonen bereinigen",
+            ["Close"] = "Schließen",
+            ["AppDataFootprintTitle"] = "AppData-Fußabdruck",
+            ["AppDataFootprintSubtitle"] = "Wo Ihre Anwendungsdaten tatsächlich liegen",
+            ["AppDataFootprintNote"] = "Nur Bericht: Hier ist nichts ausgewählt und nichts wird gelöscht. Zeilen, die als von einem vorhandenen Bereich abgedeckt markiert sind, kann der passende Bereich im Bereiniger säubern.",
+            ["Remeasure"] = "Neu messen",
+            ["UpdateAvailable"] = "Update verfügbar",
+            ["UpdateAvailableBody"] = "Eine neue offizielle Version von Deltempo ist verfügbar",
+            ["UpdatePreviewNote"] = "Dieser Vorschau-Build lädt sich niemals selbst herunter oder ersetzt sich. Die neue Version öffnet sich auf GitHub Releases, wo Sie sie selbst herunterladen.",
+            ["Later"] = "Später",
+            ["DownloadOnGitHub"] = "Auf GitHub herunterladen",
+            ["Ready"] = "Bereit"
         }
     };
 
@@ -342,6 +659,22 @@ public static class LocalizationService
         }
         return key;
     }
+
+    /// <summary>
+    /// True when the English dictionary defines <paramref name="key"/>. <see cref="Get"/>
+    /// cannot answer this: it returns the key itself for an unknown key, which is
+    /// indistinguishable from an English value that happens to equal its key ("Cancel",
+    /// "Close", "Later"). Callers that need to prove a binding resolves use this.
+    /// </summary>
+    public static bool ContainsKey(string key) => Translations["en"].ContainsKey(key);
+
+    /// <summary>
+    /// The raw dictionaries, for tests only: the suite proves every English key is
+    /// actually translated in the other four languages, which <see cref="Get"/> can
+    /// never show because it silently falls back to English. The UI never enumerates
+    /// translations - it asks for one key at a time.
+    /// </summary>
+    internal static IReadOnlyDictionary<string, Dictionary<string, string>> TranslationsByLanguage => Translations;
 
     public static void LocalizeTarget(TargetFolderInfo target)
     {

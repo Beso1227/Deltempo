@@ -54,6 +54,18 @@ public sealed partial class CleanerWorkspaceView : UserControl
     }
 
     /// <summary>
+    /// Re-labels everything this panel owns after a language switch: the scanned target
+    /// categories (LocalizationService.LocalizeTarget), the idle status line, and the
+    /// dock's state-dependent Activity Log / Hide Log pair. Static copy is handled by
+    /// the shell's attached-key walk; this is only what a key cannot express.
+    /// </summary>
+    public void RefreshLocalization(bool activityLogVisible)
+    {
+        ViewModel.ApplyLocalization();
+        SetLogState(activityLogVisible, LogToggleBadge.Visibility == Visibility.Visible);
+    }
+
+    /// <summary>
     /// Mirrors the drawer's state onto the dock button: label, chevron and the unseen
     /// dot. WPF's ToggleLogBtn_Click did the same three things by hand
     /// (E70D/chevron-up + "Hide Log" while open, E756 + "Activity Log" while closed,
@@ -62,7 +74,7 @@ public sealed partial class CleanerWorkspaceView : UserControl
     public void SetLogState(bool visible, bool unseen)
     {
         LogToggleIcon.Glyph = visible ? "\uE70D" : "\uE756";
-        LogToggleText.Text = visible ? "Hide Log" : "Activity Log";
+        LogToggleText.Text = LocalizationService.Get(visible ? "HideLog" : "ActivityLog");
         LogToggleBadge.Visibility = visible || !unseen
             ? Visibility.Collapsed
             : Visibility.Visible;

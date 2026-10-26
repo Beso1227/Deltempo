@@ -67,6 +67,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     internal void LoadFrom(IReadOnlyList<TargetFolderInfo> targets)
     {
         _allTargets = [.. targets];
+        LocalizeTargets(_allTargets);
         TrackSelection(targets);
         ApplyTargets();
     }
@@ -111,7 +112,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
 
     [ObservableProperty]
     public partial string StatusText { get; set; } =
-        "Ready to scan. Choose categories, then click Scan.";
+        LocalizationService.Get("ReadyStatus");
 
     [ObservableProperty]
     public partial string HeroSizeText { get; set; } = "0 B";
@@ -276,6 +277,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         {
             bool safeMode = SafeMode; // the shield also changes what the scan measures
             var targets = CleanerService.GetDefaultTargets();
+            LocalizeTargets(targets);
 
             _allTargets = targets;
             TrackSelection(targets);
@@ -381,6 +383,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
                 continue;
             }
 
+            LocalizationService.LocalizeTarget(target);
             _allTargets.Add(target);
             TrackSelection([target]);
             added++;
@@ -395,6 +398,33 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         LogRequested?.Invoke(
             $"[Cleaner] {status.TrimEnd('.')}: {discovered.Count} found, {added} new",
             WinTempCleaner.Models.LogLevel.Info);
+    }
+
+    /// <summary>
+    /// Re-labels every scanned category in the active language, then rebuilds the
+    /// visible rows. Port of WPF ApplyLocalization's "Localize All 12 Target Categories"
+    /// block: the rows bind to non-observed models, so the collection is rebuilt rather
+    /// than relying on a property-changed notification that never comes.
+    /// </summary>
+    public void ApplyLocalization()
+    {
+        LocalizeTargets(_allTargets);
+        ApplyTargets();
+
+        // WPF replaced the dock's status line only when a run was not in flight, so a
+        // language switch cannot make an in-progress scan look finished.
+        if (!_isBusy)
+        {
+            StatusText = LocalizationService.Get("ReadyStatus");
+        }
+    }
+
+    private static void LocalizeTargets(IEnumerable<TargetFolderInfo> targets)
+    {
+        foreach (var target in targets)
+        {
+            LocalizationService.LocalizeTarget(target);
+        }
     }
 
     private void ApplyTargets()

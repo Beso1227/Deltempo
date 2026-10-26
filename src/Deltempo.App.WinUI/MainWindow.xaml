@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:views="using:Deltempo.App.WinUI.Views"
+    xmlns:loc="using:Deltempo.App.WinUI.Localization"
     mc:Ignorable="d"
     Title="Deltempo">
 
@@ -77,6 +78,8 @@
                             VerticalAlignment="Center"
                             Width="320"
                             Height="28"
+                            loc:Loc.PlaceholderKey="JumpToTool"
+                            loc:Loc.NameKey="JumpToTool"
                             PlaceholderText="Jump to a tool"
                             QueryIcon="Find"
                             SuggestionChosen="OnSectionSearchChosen"
