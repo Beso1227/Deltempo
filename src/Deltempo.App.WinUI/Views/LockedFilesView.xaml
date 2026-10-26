@@ -54,12 +54,12 @@
                         </Border>
 
                         <StackPanel VerticalAlignment="Center">
-                            <TextBlock loc:Loc.Key="InspectorTitle"
+                            <TextBlock loc:Loc.Key="LockedFilesTitle"
                                        Text="In-Use &amp; Locked Files Inspector"
                                        FontSize="16"
                                        FontWeight="SemiBold"
                                        Foreground="{ThemeResource TextHighBrush}" />
-                            <TextBlock loc:Loc.Key="InspectorSubtitle"
+                            <TextBlock loc:Loc.Key="LockedFilesSubtitle"
                                        Text="Files held open by active running applications during cleanup"
                                        FontSize="11.5"
                                        Foreground="{ThemeResource TextMediumBrush}" />
