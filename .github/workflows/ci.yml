@@ -297,9 +297,15 @@ jobs:
           # The WinUI threshold is a FLOOR, not a target: it sits below the measured
           # value with headroom, so that deleting a test file is caught while
           # ordinary churn is not. Raise it as more seams appear.
+          #
+          # Measured locally twice with the same mechanism (2026-10-28):
+          #   Core       75.52% pre-Phase-C tests, 76.52% after - floor 0.76
+          #   WinUI      23.76% both runs - floor 0.23.
+          # The old WinUI floor of 0.25 sat ABOVE the measured rate and would have
+          # broken CI on any WinUI source growth.
           $scopes = @(
-            @{ Name = 'Core/';       Pattern = 'WinTempCleaner.Core*'; Threshold = 0.65 },
-            @{ Name = 'WinUI shell'; Pattern = 'Deltempo.App.WinUI*'; Threshold = 0.25 }
+            @{ Name = 'Core/';       Pattern = 'WinTempCleaner.Core*'; Threshold = 0.76 },
+            @{ Name = 'WinUI shell'; Pattern = 'Deltempo.App.WinUI*'; Threshold = 0.23 }
           )
 
           $failed = $false
