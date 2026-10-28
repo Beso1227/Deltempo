@@ -130,3 +130,43 @@ This document identifies potential attack vectors, adversarial edge cases, and t
   * Branch protection does not apply to administrators (`enforce_admins: false`), so the required status check can be bypassed by a direct push. This is not theoretical: on 2026-10-17 a red `Build, Test & Quality Gate` reached `main` this way.
   * The release job downloads the MSIX and portable artefacts it signs from the same runner that built them, with no independent attestation of the build environment. Reproducible-build verification is not performed.
   * There is no second maintainer, so a change to the release workflow is reviewed by the same person who authored it. GitHub's approval rule does not allow self-approval, which is why `required_pull_request_reviews` cannot simply be switched on.
+
+#### 2.8.1 Maintainer checklist (appended 2026-10-28 — human actions only; no agent will perform these)
+
+Ground truth today: `ManifestSignatureVerifier` is wired into the live update path
+(`UpdateService.cs`, `VerifySignature`) and fails closed without an operator-provisioned
+trusted key; Authenticode verification runs in the same path via
+`PatchIntegrityVerifier.TryVerifyAuthenticode` against the publisher allowlist; the no-manifest
+update branch now refuses a release that advertises `checksums.sha256` but serves no usable
+hash (`UpdateService.EnsurePublishedChecksumAvailable`, fail closed); release.yml re-generates
+`checksums.sha256` after signing with self-verification, and soak.yml guards the deep-fuzz
+campaign against a zero-matched filter.
+
+Items only the maintainer can close:
+
+- [ ] **Decide the manifest-signing posture (THREAT_MODEL §2.5, BLOCKED).** Either provision
+      a trusted key through the documented channels (`DELTEMPOMANIFEST_TRUSTED_KEY[_FILE]` or
+      `%ProgramData%\Deltempo\update-signing-key.pub`) to unblock signed updates, or record
+      via an ADR that Authenticode+HTTPS+checksums is the accepted, permanent replacement.
+      The code is complete either way; this is a policy decision, not a code change.
+- [ ] **Confirm the signing key storage requirement** (certificate hold on the machine or a
+      hardware token such as YubiKey for `SIGNING_CERTIFICATE_PFX` rotation) and that the
+      runner picks it up in release.yml; a key that exists but is not readable at sign time
+      currently fails the release job loudly — keep that property when rotating.
+- [ ] **Approve or reject the promotion of CA1062/CA2016/CA1816 into the blocking analyzer
+      set** (ci.yml, Advisory step, landed 2026-10-28). Their counts went 89/2/38 -> 0;
+      re-promotion was done in commit `acd92ff` and a rollback is a one-line change there.
+- [ ] **Re-verify the coverage floors** next time domain code lands: Core floor 0.76
+      (measured 76.52%), WinUI floor 0.23 (measured 23.76%). The old 0.25 WinUI floor sat
+      above reality; keep floors below measured rates.
+- [ ] **Keep the checksum-manifest self-verification alive.** release.yml's "prove the
+      manifest describes the bytes being uploaded" block (entry-count + per-line SHA check,
+      ~lines 280–320) is the only thing that prevents a signed-but-stale manifest. Do not
+      accept changes that weaken it without a maintainer review.
+- [ ] **Branch protection**: `enforce_admins: false` remains a real bypass (diagnosed
+      2026-10-17). Flip it once admin self-pushes are no longer operationally needed, or
+      document the exception window here each time it is used deliberately.
+- [ ] **Rotate any locally stored PAT** (`github.token` at the repo root, referenced by
+      SCRIPTS via `GITHUB_TOKEN`). It is git-ignored by pattern (`*.token` + explicit name),
+      but a PAT with repo write scope that was ever pasted into an issue/chat/support ticket
+      must be rotated on principle; this checklist records that reminder.
