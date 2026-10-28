@@ -259,10 +259,11 @@ public class UpdateTransactionCoordinator
             catch { }
 
             // Schedule backup cleanup (delayed to avoid locking)
+            // CA2016: intentional non-propagation - backup cleanup must run even when the operation is cancelled
             _ = Task.Run(async () =>
             {
-                await Task.Delay(TimeSpan.FromSeconds(5));
-                try
+                // CA2016: intentional non-propagation - backup cleanup must run even when the operation is cancelled
+                await Task.Delay(TimeSpan.FromSeconds(5), CancellationToken.None); try
                 {
                     if (File.Exists(localOldPath))
                         File.Delete(localOldPath);
@@ -274,7 +275,7 @@ public class UpdateTransactionCoordinator
                         File.Delete(_journal.BackupPath);
                 }
                 catch { }
-            });
+            }, CancellationToken.None);
 
             return true;
         }

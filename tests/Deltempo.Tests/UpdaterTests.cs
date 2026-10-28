@@ -270,6 +270,7 @@ public class TransactionJournalTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try { Directory.Delete(_testDir, true); } catch { }
     }
 
@@ -509,6 +510,7 @@ public class PatchIntegrityVerifierPeTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try { if (File.Exists(_tempFile)) File.Delete(_tempFile); } catch { }
     }
 
