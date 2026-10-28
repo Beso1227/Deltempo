@@ -549,4 +549,90 @@ public class UpdatePipelineSecurityTests
     }
 
     #endregion
+
+    #region Fail-closed: published checksum must never silently disappear
+
+    [Fact]
+    public void ChecksumGate_ReleaseListsChecksumAsset_AndHashParsed_Allows()
+    {
+        // The normal path: checksums.sha256 listed AND its hash parsed. Nothing to
+        // reject; the SHA-256 check runs as before.
+        UpdateService.EnsurePublishedChecksumAvailable(
+            "https://github.com/Beso1227/Deltempo/releases/download/v2.0.0/checksums.sha256",
+            "a".PadRight(64, '0'),
+            manifestUrl: null);
+    }
+
+    [Fact]
+    public void ChecksumGate_ReleaseListsChecksumAsset_ButFetchFailed_Rejects()
+    {
+        // checksums.sha256 is advertised but the fetch threw (represented here by
+        // no hash being supplied): the update must be refused, not verified by
+        // Authenticode alone.
+        var ex = Assert.Throws<SecurityException>(() =>
+            UpdateService.EnsurePublishedChecksumAvailable(
+                "https://github.com/Beso1227/Deltempo/releases/download/v2.0.0/checksums.sha256",
+                expectedSha256: null,
+                manifestUrl: null));
+
+        Assert.Contains("fail closed", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ChecksumGate_ReleaseListsChecksumAsset_ButRowUnparseable_Rejects()
+    {
+        // The parse pass ran but found no row matching the artifact: same refusal.
+        Assert.Throws<SecurityException>(() =>
+            UpdateService.EnsurePublishedChecksumAvailable(
+                "https://github.com/Beso1227/Deltempo/releases/download/v2.0.0/checksums.sha256",
+                expectedSha256: string.Empty,
+                manifestUrl: null));
+    }
+
+    [Fact]
+    public void ChecksumGate_ReleaseHasNoChecksumAsset_StandsAsBefore()
+    {
+        // No checksums.sha256 asset on the release: Authenticode + HTTPS + size
+        // remain the defense layers, and this accepted fallback is not an error.
+        UpdateService.EnsurePublishedChecksumAvailable(
+            releaseChecksumUrl: null,
+            expectedSha256: null,
+            manifestUrl: null);
+
+        UpdateService.EnsurePublishedChecksumAvailable(
+            releaseChecksumUrl: string.Empty,
+            expectedSha256: null,
+            manifestUrl: null);
+    }
+
+    [Fact]
+    public void ChecksumGate_ManifestBranch_IsExempt()
+    {
+        // The manifest branch binds its hash inside the signed payload; the gate
+        // must not reject it even when no separate checksum URL is known.
+        UpdateService.EnsurePublishedChecksumAvailable(
+            releaseChecksumUrl: "https://github.com/Beso1227/Deltempo/releases/download/v2.0.0/checksums.sha256",
+            expectedSha256: null,
+            manifestUrl: "https://github.com/Beso1227/Deltempo/releases/download/v2.0.0/manifest.json");
+    }
+
+    [Fact]
+    public async Task DownloadAndApplyUpdateAsync_RejectsAtEntry_WhenChecksumWasExpectedButMissing()
+    {
+        // Integration: the gate fires before any download, so no network is touched.
+        var progress = new Progress<double>();
+
+        var ex = await Assert.ThrowsAsync<SecurityException>(async () =>
+        {
+            await UpdateService.DownloadAndApplyUpdateAsync(
+                "https://github.com/Beso1227/Deltempo/releases/download/v2.0.0/Deltempo.exe",
+                progress,
+                expectedSha256: null,
+                releaseChecksumUrl: "https://github.com/Beso1227/Deltempo/releases/download/v2.0.0/checksums.sha256");
+        });
+
+        Assert.Contains("Checksum verification was expected but failed", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    #endregion
 }

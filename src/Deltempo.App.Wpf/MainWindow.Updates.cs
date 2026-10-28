@@ -200,7 +200,8 @@ public partial class MainWindow
                 _pendingRelease.DownloadUrl,
                 progress,
                 expectedSha256: !string.IsNullOrWhiteSpace(_pendingRelease.Sha256) ? _pendingRelease.Sha256 : null,
-                manifestUrl: _pendingRelease.ManifestUrl);
+                manifestUrl: _pendingRelease.ManifestUrl,
+                releaseChecksumUrl: string.IsNullOrWhiteSpace(_pendingRelease.ChecksumUrl) ? null : _pendingRelease.ChecksumUrl);
         }
         catch (Exception ex)
         {

@@ -129,6 +129,40 @@ public static class UpdateService
     }
 
     /// <summary>
+    /// The checksum gate of the no-manifest update branch (called from
+    /// DownloadAndApplyUpdateAsync before any download). Fail closed: when the release
+    /// declared a `checksums.sha256` asset but no hash could be obtained for the
+    /// artifact, refuse the update - the SHA-256 layer must never silently degrade to
+    /// Authenticode-only. A release that lists no checksum asset at all is allowed
+    /// through with its remaining defense layers (HTTPS allowlist, size, Authenticode).
+    /// Internal so the parity/security suite can prove all four branches without
+    /// touching the network.
+    /// </summary>
+    internal static void EnsurePublishedChecksumAvailable(
+        string? releaseChecksumUrl,
+        string? expectedSha256,
+        string? manifestUrl)
+    {
+        // The manifest branch binds its own SHA-256 inside the signed payload and is
+        // verified elsewhere; this gate does not apply to it.
+        if (!string.IsNullOrWhiteSpace(manifestUrl))
+        {
+            return;
+        }
+
+        bool checksumAsserted = !string.IsNullOrWhiteSpace(releaseChecksumUrl);
+        bool hashObtained = !string.IsNullOrWhiteSpace(expectedSha256);
+
+        if (checksumAsserted && !hashObtained)
+        {
+            throw new SecurityException(
+                "Checksum verification was expected but failed: the release lists a checksums.sha256 " +
+                "asset whose hash could not be fetched or parsed, so the SHA-256 integrity check cannot " +
+                "run and the update is rejected (fail closed) rather than verified by Authenticode alone.");
+        }
+    }
+
+    /// <summary>
     /// Checks for a new official release on GitHub Releases.
     /// Supports both Stable (releases/latest) and Pre-Release (releases) channels.
     /// </summary>
@@ -459,6 +493,7 @@ public static class UpdateService
         string? expectedSha256 = null,
         string? manifestUrl = null,
         string? manifestKeyId = null,
+        string? releaseChecksumUrl = null,
         CancellationToken ct = default)
     {
         // 0. Mutual Exclusion: Acquire cross-process update lock
@@ -473,6 +508,14 @@ public static class UpdateService
         {
             throw new SecurityException($"Security violation: {urlReason}");
         }
+
+        // 1.1 Fail closed on a missing published checksum. A release that ADVERTISES a
+        // `checksums.sha256` asset is promising an integrity digest; if it cannot be
+        // fetched or parsed (network error, malformed row), arriving here without a
+        // known good hash must REJECT the update rather than silently degrade to
+        // Authenticode-only. A release with NO checksum asset stands as before:
+        // Authenticode + HTTPS + size checks remain its defense layers.
+        EnsurePublishedChecksumAvailable(releaseChecksumUrl, expectedSha256, manifestUrl);
 
         // 2. If a manifest is provided, authenticate it before trusting any hash or URL.
         string? manifestExpectedSha256 = expectedSha256;

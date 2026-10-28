@@ -250,7 +250,8 @@ public static partial class CliRunner
                     release.DownloadUrl,
                     progress,
                     expectedSha256: !string.IsNullOrWhiteSpace(release.Sha256) ? release.Sha256 : null,
-                    manifestUrl: release.ManifestUrl);
+                    manifestUrl: release.ManifestUrl,
+                    releaseChecksumUrl: string.IsNullOrWhiteSpace(release.ChecksumUrl) ? null : release.ChecksumUrl);
 
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("\n  ✓ Update verified and staged successfully. Deltempo will now restart.");
