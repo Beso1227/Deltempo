@@ -743,6 +743,14 @@ public sealed partial class MainWindow : Window
             $"{probe.Targets.Count} targets, {cleanable} with reclaimable space, " +
             $"status=\"{probe.StatusText}\"");
 
+        // The per-category Inspect pills must be offered now that a scan populated
+        // the TopFiles ledgers: a target with files collected has to say so, or the
+        // pill would stay invisible and the inspector unreachable.
+        int inspectable = probe.Targets.Count(t => t.HasTopFiles);
+        ShellDiagnostics.Write(
+            $"top-files inspector (self-test, display only): {inspectable}/{probe.Targets.Count} " +
+            $"categories offer Inspect, largest=\"{(probe.Targets.Where(t => t.HasTopFiles).SelectMany(t => t.TopFiles).OrderByDescending(f => f.SizeBytes).FirstOrDefault()?.FormattedSize ?? "-")}\"");
+
         // The header has to fit at the 800px minimum window width: 800 - 64px rail -
         // 36px of view padding = 700px of content. The stats row is not scrollable, so
         // it must fit outright; the action strip scrolls by design, the way the WPF
@@ -858,6 +866,7 @@ public sealed partial class MainWindow : Window
         StartupWorkspacePanel.ViewModel.LogRequested += OnFootprintLog;
 
         CleanerWorkspacePanel.FootprintRequested += OpenAppDataFootprint;
+        CleanerWorkspacePanel.TopFilesRequested += OpenTopFilesInspector;
         CleanerWorkspacePanel.ViewModel.CleanCompleted += OnCleanCompleted;
 
         // The locked-files inspector is a real surface, not a self-test prop. WPF opened
@@ -1272,6 +1281,23 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
+    /// WPF's InspectTarget_Click was the same trade: the top files a category's scan
+    /// already collected get an inspector, without re-walking the disk and without
+    /// arming a delete. The rows carry TargetFolderInfo, so the shell receives the
+    /// target from the view and the overlay renders it.
+    /// </summary>
+    private void OpenTopFilesInspector(TargetFolderInfo target)
+    {
+        HideOverlaysExcept(TopFilesOverlay);
+        TopFilesOverlay.Open(target);
+        OnFootprintLog(
+            $"Opened the top-files inspector for {target.Name} (read only - nothing is deleted)",
+            LogLevel.Info);
+    }
+
+    private void CloseTopFilesOverlay() => TopFilesOverlay.Close();
+
+    /// <summary>
     /// Escape closes whichever overlay is on top.
     ///
     /// The WPF window listed every modal in Window_KeyDown, because an overlay that
@@ -1301,6 +1327,11 @@ public sealed partial class MainWindow : Window
         else if (FootprintView.Visibility == Visibility.Visible)
         {
             CloseAppDataFootprint();
+            args.Handled = true;
+        }
+        else if (TopFilesOverlay.Visibility == Visibility.Visible)
+        {
+            CloseTopFilesOverlay();
             args.Handled = true;
         }
         else if (LockedFilesOverlay.Visibility == Visibility.Visible)

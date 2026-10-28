@@ -18,6 +18,9 @@
     <Grid Padding="18,16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -56,12 +59,71 @@
             </StackPanel>
         </Border>
 
+        <!-- Trust & Safety card, the WPF About modal's own summary of the shell's
+             guarantees; kept in step with that modal so the two UIs promise the same
+             five things in the same words. -->
+        <Border Grid.Row="2"
+                Margin="0,10,0,0"
+                Background="{ThemeResource SurfaceCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Padding="12,10"
+                AutomationProperties.Name="Trust and safety summary">
+            <StackPanel Spacing="3">
+                <TextBlock Text="TRUST &amp; SAFETY"
+                           FontSize="10"
+                           FontWeight="Bold"
+                           Foreground="{ThemeResource TextMutedBrush}" />
+                <TextBlock Text="✓ 100% Open Source (MIT License)"
+                           FontSize="11" Foreground="{ThemeResource TextHighBrush}" />
+                <TextBlock Text="✓ Zero telemetry — no tracking, no analytics, no phone home"
+                           FontSize="11" Foreground="{ThemeResource TextHighBrush}" />
+                <TextBlock Text="✓ Safety Shield protects files modified in the last 24 hours"
+                           FontSize="11" Foreground="{ThemeResource TextHighBrush}" />
+                <TextBlock Text="✓ Recycle Bin mode available — deleted files can be restored"
+                           FontSize="11" Foreground="{ThemeResource TextHighBrush}" />
+                <TextBlock Text="✓ Deterministic rule-based safety engine — no heuristics guessing"
+                           FontSize="11" Foreground="{ThemeResource TextHighBrush}" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="3"
+                Margin="0,10,0,0"
+                Background="{ThemeResource SurfaceCardBrush}"
+                BorderBrush="{ThemeResource HairlineBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Padding="12,10"
+                AutomationProperties.Name="Publisher">
+            <StackPanel Spacing="3">
+                <TextBlock Text="PUBLISHER"
+                           FontSize="10"
+                           FontWeight="Bold"
+                           Foreground="{ThemeResource TextMutedBrush}" />
+                <TextBlock Text="Beso1227"
+                           FontSize="11" FontWeight="SemiBold" Foreground="{ThemeResource TextHighBrush}" />
+                <TextBlock Text="Deltempo Open Source Project"
+                           FontSize="11" Foreground="{ThemeResource TextMediumBrush}" />
+                <TextBlock Text="https://github.com/Beso1227/Deltempo"
+                           FontSize="10.5" Foreground="{ThemeResource ElectricCyanBrush}" />
+            </StackPanel>
+        </Border>
+
+        <TextBlock Grid.Row="4"
+                   Margin="0,10,0,0"
+                   Text="If you see a Windows SmartScreen warning, it is because this executable is not yet code-signed with a trusted publisher certificate. The app is open source — you can inspect, build, and verify the code yourself at the link above."
+                   FontSize="11"
+                   Foreground="{ThemeResource TextMediumBrush}"
+                   TextWrapping="Wrap"
+                   MaxWidth="720" />
+
         <Border Grid.Row="1"
                 Margin="0,10,0,0"
                 Background="{ThemeResource SurfaceCardBrush}"
                 BorderBrush="{ThemeResource HairlineBorderBrush}"
                 BorderThickness="1"
-                CornerRadius="13"
+                CornerRadius="10"
                 Padding="14,12"
                 AutomationProperties.Name="About links and license">
             <StackPanel Spacing="8">

@@ -108,6 +108,21 @@ public sealed partial class CleanerWorkspaceView : UserControl
         return (CleanerHeaderStats.DesiredSize.Width, CleanerHeaderActions.DesiredSize.Width);
     }
 
+    /// <summary>
+    /// Raised with the row whose "Inspect" pill was pressed. The shell owns the
+    /// overlay, the way it owns every other modal surface, and shows it.
+    /// </summary>
+    public event Action<TargetFolderInfo>? TopFilesRequested;
+
+    private void OnInspectTargetClick(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        if (sender is FrameworkElement { DataContext: TargetFolderInfo target })
+        {
+            TopFilesRequested?.Invoke(target);
+        }
+    }
+
     private void OnFootprintRequested(object sender, RoutedEventArgs e)
     {
         SoundService.PlayClickSound();

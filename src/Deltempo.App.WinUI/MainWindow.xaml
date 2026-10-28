@@ -430,6 +430,10 @@
                                Grid.Row="1"
                                Visibility="Collapsed" />
 
+        <views:TopFilesView x:Name="TopFilesOverlay"
+                            Grid.Row="1"
+                            Visibility="Collapsed" />
+
         <views:MemoryOptimizerView x:Name="MemoryOverlay"
                                    Grid.Row="1"
                                    Visibility="Collapsed" />

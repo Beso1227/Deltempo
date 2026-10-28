@@ -1,5 +1,6 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using System.IO;
 
 namespace Deltempo.App.WinUI;
 
@@ -13,6 +14,14 @@ public partial class App : Application
 
     private Window? _window;
 
+    /// <summary>
+    /// The preview writes its own rolled log instead of sharing
+    /// %LOCALAPPDATA%\Deltempo\logs\deltempo.log with the WPF app: both shells can
+    /// legitimately run at once (they own two different single-instance mutexes),
+    /// and two processes must not race the same listener's roll chain.
+    /// </summary>
+    private const string LogFileName = "deltempo-winui.log";
+
     public App()
     {
         InitializeComponent();
@@ -23,16 +32,36 @@ public partial class App : Application
         RequestedTheme = ApplicationTheme.Dark;
 
         // A WinUI unhandled exception kills the process with no console output.
-        // Log it before it goes so a crash is diagnosable after the fact.
+        // Log it before it goes so a crash is diagnosable after the fact. WPF wrote
+        // the crash line itself; here UnhandledException is the only hook WinUI has,
+        // and the rolling file log carries the core's Trace output in release builds.
         UnhandledException += (_, e) =>
         {
             ShellDiagnostics.Write($"FATAL unhandled: {e.Exception}");
-            e.Handled = false;
+            try
+            {
+                var crashLog = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Deltempo", "crash.log");
+                Directory.CreateDirectory(Path.GetDirectoryName(crashLog)!);
+                File.AppendAllText(crashLog, $"[{DateTime.Now}] WinUI crash: {e.Exception}\n");
+            }
+            catch
+            {
+                // The crash log cannot be reached; the shell-startup.log line above
+                // is the remaining record and must not be replaced by a throw.
+            }
         };
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        // Same order as the WPF App.OnStartup: diagnostics first, so core traces
+        // emitted during the rest of startup are already captured. Local file only,
+        // size-rolled (2 MB, three backups) - the RollingFileTraceListener in Core
+        // does the rolling; this shell just picks the file.
+        AttachDiagnosticLog();
+
         // Same contract as the shipped app: one instance owns the machine, a second
         // launch surfaces the first instead of opening a twin window. The preview
         // uses its own mutex name so it can run beside the WPF app while both are
@@ -92,5 +121,28 @@ public partial class App : Application
         _window = new MainWindow();
         _window.Closed += (_, _) => WinTempCleaner.Services.SingleInstanceManager.Release();
         _window.Activate();
+    }
+
+    /// <summary>
+    /// WPF's InitializeDiagnostics, verbatim except for the file name. Never throws:
+    /// an unwritable log location degrades to the shell-startup.log record only.
+    /// </summary>
+    private static void AttachDiagnosticLog()
+    {
+        try
+        {
+            string logDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Deltempo", "logs");
+
+            bool attached = WinTempCleaner.Services.DiagnosticLogFileService.TryAttach(
+                Path.Combine(logDir, LogFileName));
+
+            ShellDiagnostics.Write(
+                $"diagnostics file log: {(attached ? $"attached {LogFileName}" : "unavailable")}");
+        }
+        catch
+        {
+        }
     }
 }

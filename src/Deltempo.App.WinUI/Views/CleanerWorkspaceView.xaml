@@ -154,6 +154,30 @@
                             TextTrimming="CharacterEllipsis"
                             VerticalAlignment="Center" />
 
+                        <!-- WPF's row inspect pill (InspectLargeFiles): peek at the top
+                             files of a scanned category without cleaning anything. -->
+                        <Button
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource PillButtonBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="8,3"
+                            FontSize="10"
+                            Margin="6,0,0,0"
+                            AutomationProperties.Name="Inspect Large Files"
+                            ToolTipService.ToolTip="Show the largest files found in this category"
+                            Click="OnInspectTargetClick"
+                            Visibility="{Binding HasTopFiles, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <FontIcon Glyph="&#xE721;"
+                                          FontFamily="{StaticResource IconFont}"
+                                          FontSize="10"
+                                          Foreground="{ThemeResource ElectricCyanBrush}"
+                                          VerticalAlignment="Center" />
+                                <TextBlock loc:Loc.Key="Inspect" Text="Inspect" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
                         <Button
                             Content="Retry"
                             Background="{ThemeResource PillButtonBgBrush}"
