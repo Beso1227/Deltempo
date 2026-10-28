@@ -81,6 +81,7 @@ public sealed partial class StartupWorkspaceViewModel : ObservableObject
         ToggleCommand = new AsyncRelayCommand<StartupItem>(ToggleAsync);
         ToggleExpandCommand = new RelayCommand<StartupItem>(ToggleExpand);
         AnalyzeItemCommand = new AsyncRelayCommand<StartupItem>(AnalyzeItemAsync);
+        SearchOnlineCommand = new RelayCommand<StartupItem>(SearchOnline);
         BatchAnalyzeCommand = new AsyncRelayCommand(BatchAnalyzeAsync);
     }
 
@@ -125,6 +126,9 @@ public sealed partial class StartupWorkspaceViewModel : ObservableObject
     public IRelayCommand<StartupItem> ToggleExpandCommand { get; }
 
     public IAsyncRelayCommand<StartupItem> AnalyzeItemCommand { get; }
+
+    /// <summary>WPF's StartupSearchOnline_Click (MainWindow.SystemManagers.cs:159).</summary>
+    public IRelayCommand<StartupItem> SearchOnlineCommand { get; }
 
     public IAsyncRelayCommand BatchAnalyzeCommand { get; }
 
@@ -493,6 +497,33 @@ public sealed partial class StartupWorkspaceViewModel : ObservableObject
     /// <summary>Single funnel for log lines raised outside this class.</summary>
     public void Log(string message, LogLevel level = LogLevel.Info)
         => LogRequested?.Invoke(message, level);
+
+    /// <summary>
+    /// Port of WPF's StartupSearchOnline_Click (MainWindow.SystemManagers.cs:159-174):
+    /// opens the entry's name on Google so the user can research the process's
+    /// reputation and safety. Fire-and-forget like the WPF version - the click sound
+    /// plays, the launch failure stays silent.
+    /// </summary>
+    public void SearchOnline(StartupItem? item)
+    {
+        if (item is null) return;
+
+        SoundService.PlayClickSound();
+
+        string query = !string.IsNullOrWhiteSpace(item.Name) ? item.Name : item.DisplayTitle;
+        try
+        {
+            Process.Start(new ProcessStartInfo(
+                $"https://www.google.com/search?q={Uri.EscapeDataString(query + " process windows startup")}")
+            {
+                UseShellExecute = true,
+            });
+        }
+        catch
+        {
+            // The WPF handler swallowed launch failures the same way.
+        }
+    }
 
     /// <summary>
     /// Reveals a file in Explorer with it selected. Supplied by the view so the

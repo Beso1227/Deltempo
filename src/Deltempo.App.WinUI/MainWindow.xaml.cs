@@ -169,12 +169,14 @@ public sealed partial class MainWindow : Window
         {
             LocalizationService.LanguageChanged -= OnLanguageChanged;
             DisposeMemoryHotkey();
+            DisposeMinimizeToTrayHook();
         };
 
         ApplyWindowChrome();
         InitializeTray();
         InitializeMemoryHotkey();
         ApplyTheme(SettingsService.Current.IsDarkMode, persist: false);
+        RefreshSoundToggleGlyph(SoundService.IsSoundEnabled);
         OnAlwaysOnTopRequested(SettingsService.Current.MemoryAlwaysOnTop);
         BuildNavigation();
         ApplyLanguage(logToActivity: false);
@@ -1480,6 +1482,87 @@ public sealed partial class MainWindow : Window
     private bool _isMemoryHotkeyRegistered;
     private string _memoryHotkeyLabel = string.Empty;
 
+    // ------------------------------------------------------------------
+    // Minimize-to-tray. WPF's MinimizeButton_Click (MainWindow.xaml.cs:1130)
+    // routed the custom caption button through TrayService.MinimizeToTray when
+    // the persisted MinimizeToTray setting was on. The WinUI shell draws its
+    // caption buttons from the OS, so the same behaviour is reached by
+    // intercepting SC_MINIMIZE in this third subclass on the window HWND
+    // (tray 0xD317 and hotkey 0xD319 already share it). The SubclassId is
+    // Deltempo-unique like its siblings.
+    // ------------------------------------------------------------------
+    private const uint WM_SYSCOMMAND = 0x0112;
+    private const long SC_MINIMIZE = 0xF020;
+    private const nuint MinimizeTraySubclassId = 0xD31A;
+
+    private static readonly SUBCLASSPROC MinimizeTraySubclassProc = OnMinimizeTrayMessage;
+    private static MainWindow? _minimizeTrayOwner;
+
+    /// <summary>
+    /// Installs the SC_MINIMIZE interceptor. Depends on the tray (a hidden window
+    /// the tray cannot restore from would orphan the app), so it lives inside
+    /// the tray-visible branch of InitializeTray. Skipped in the self-test.
+    /// </summary>
+    private void InitializeMinimizeToTrayHook()
+    {
+        if (ShellDiagnostics.IsSelfTest) return;
+
+        try
+        {
+            IntPtr hwnd = WindowNative.GetWindowHandle(this);
+            if (!SetWindowSubclass(hwnd, MinimizeTraySubclassProc, MinimizeTraySubclassId, IntPtr.Zero))
+            {
+                ShellDiagnostics.Write("[Tray] minimize-to-tray subclass failed; the setting stays inert.");
+                return;
+            }
+
+            _minimizeTrayOwner = this;
+        }
+        catch (Exception ex)
+        {
+            ShellDiagnostics.Write($"[Tray] minimize-to-tray hook suppressed: {ex.Message}");
+        }
+    }
+
+    /// <summary>Unwinds the subclass. Safe to call twice.</summary>
+    private static void DisposeMinimizeToTrayHook()
+    {
+        if (_minimizeTrayOwner is not { } owner) return;
+
+        try
+        {
+            RemoveWindowSubclass(WindowNative.GetWindowHandle(owner), MinimizeTraySubclassProc, MinimizeTraySubclassId);
+        }
+        catch
+        {
+            // Window already gone: nothing to unwind.
+        }
+
+        _minimizeTrayOwner = null;
+    }
+
+    /// <summary>
+    /// SC_MINIMIZE handler: swallow the minimize and hide to tray, exactly what
+    /// WPF's MinimizeButton_Click did; otherwise fall through to the system.
+    /// Reads the live setting so toggling MinimizeToTray in Settings takes effect
+    /// on the next minimize without a restart.
+    /// </summary>
+    private static IntPtr OnMinimizeTrayMessage(
+        IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam, UIntPtr uIdSubclass, IntPtr dwRefData)
+    {
+        if (_minimizeTrayOwner is { } owner
+            && uMsg == WM_SYSCOMMAND
+            && (wParam.ToInt64() & 0xFFF0) == SC_MINIMIZE
+            && SettingsService.Current.MinimizeToTray
+            && TrayService.IsVisible)
+        {
+            owner.DispatcherQueue.TryEnqueue(owner.HideToTray);
+            return IntPtr.Zero;
+        }
+
+        return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+    }
+
     private delegate IntPtr SUBCLASSPROC(
         IntPtr hWnd,
         uint uMsg,
@@ -1664,6 +1747,7 @@ public sealed partial class MainWindow : Window
         if (TrayService.IsVisible)
         {
             AppWindow.Closing += OnAppWindowClosing;
+            InitializeMinimizeToTrayHook();
 
             // Same probe the WPF app ran from UpdateDriveTelemetry: a machine that is
             // already below the threshold hears about it once the guardian is up.
@@ -1678,11 +1762,24 @@ public sealed partial class MainWindow : Window
     /// <summary>
     /// Close-to-tray, with the two guards that keep the app from becoming unquittable:
     /// the user must have asked for it, and an icon must actually exist to restore from.
+    /// WPF additionally warned on close while a clean was in flight
+    /// (MainWindow.xaml.cs:1142-1149) - the busy guard below is that port.
     /// </summary>
     private void OnAppWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
     {
         if (_isExiting)
         {
+            return;
+        }
+
+        // WPF's MessageBox prompt on a busy close. Cancellation is the shell's only
+        /// synchronous option, so: cancel, ask, and exit for real only on consent.
+        // The dialog's default button is Close, so an unattended Enter refuses - the
+        // destructive-confirmation contract stays fail-closed.
+        if (IsAnyWorkspaceBusy())
+        {
+            args.Cancel = true;
+            _ = ConfirmBusyExitThenExitAsync();
             return;
         }
 
@@ -1700,6 +1797,46 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    /// <summary>True while a scan or a clean holds the cleaner's one-op-at-a-time lock.</summary>
+    private bool IsAnyWorkspaceBusy() => CleanerWorkspacePanel.ViewModel.IsBusy;
+
+    /// <summary>
+    /// The WinUI port of WPF's "A cleanup operation is currently in progress. Do you
+    /// really want to exit?" prompt. Returns without exiting when the user refuses.
+    /// </summary>
+    private async Task ConfirmBusyExitThenExitAsync()
+    {
+        bool exitConfirmed = await ConfirmExitWhileBusyAsync();
+
+        if (exitConfirmed)
+        {
+            ForceExit();
+        }
+    }
+
+    private async Task<bool> ConfirmExitWhileBusyAsync()
+    {
+        try
+        {
+            var dialog = new ContentDialog
+            {
+                XamlRoot = RootGrid.XamlRoot,
+                Title = "Operation in Progress",
+                Content = "A cleanup operation is currently in progress. Do you really want to exit?",
+                PrimaryButtonText = "Exit",
+                CloseButtonText = "Stay",
+                DefaultButton = ContentDialogButton.Close,
+            };
+
+            return await dialog.ShowAsync() == ContentDialogResult.Primary;
+        }
+        catch (Exception ex)
+        {
+            ShellDiagnostics.Write($"busy-exit dialog failed: {ex.GetType().Name}: {ex.Message}");
+            return false;
+        }
+    }
+
     private void HideToTray() => AppWindow.Hide();
 
     private void RestoreFromTray()
@@ -1709,8 +1846,23 @@ public sealed partial class MainWindow : Window
         SetForegroundWindow(WindowNative.GetWindowHandle(this));
     }
 
-    /// <summary>Real exit path: clears the close interception, drops the icon, closes.</summary>
+    /// <summary>Real exit path: clears the close interception, drops the icon, closes.
+    /// Honours WPF's busy prompt: an in-flight clean must be confirmed before exit.</summary>
     private void ExitFromTray()
+    {
+        if (IsAnyWorkspaceBusy())
+        {
+            _ = ConfirmBusyExitThenExitAsync();
+            return;
+        }
+
+        _isExiting = true;
+        TrayService.Dispose();
+        Close();
+    }
+
+    /// <summary>Unconditional exit used after a busy-exit prompt was consented to.</summary>
+    private void ForceExit()
     {
         _isExiting = true;
         TrayService.Dispose();
@@ -1738,8 +1890,12 @@ public sealed partial class MainWindow : Window
 
         AddTrayItem(flyout, "\uE74D", "Clean Safe Files…", () =>
         {
+            // WPF's CleanSafeFromTrayAsync (MainWindow.Settings.cs:126): select the
+            // safe categories and run the clean. SmartCleanAsync carries the same
+            // confirmation every in-app clean uses; a tray-initiated clean is not a
+            // licence to skip the confirm gate.
             NavigateTo(CleanerSectionLabel);
-            CleanerWorkspacePanel.ViewModel.SelectSafeCommand.Execute(null);
+            _ = CleanerWorkspacePanel.ViewModel.SmartCleanAsync();
         });
         AddTrayItem(flyout, "\uE713", "Open Settings", () => NavigateTo(SettingsSectionLabel));
         AddTrayItem(flyout, "\uE945", "Optimize RAM", () => _ = OptimizeRamFromTrayAsync());
@@ -1926,6 +2082,42 @@ public sealed partial class MainWindow : Window
 
     private void OnThemeToggleClick(object sender, RoutedEventArgs e)
         => ApplyTheme(!_isDarkTheme, persist: true);
+
+    /// <summary>
+    /// WPF's SoundToggleBtn_Click (MainWindow.Ui.cs:85): flip the sound preference
+    /// and keep everything else in step with it. The header toggle is a real
+    /// preference, not a session mute: it has to survive a restart and stay in step
+    /// with the toggle in Settings, so it writes through SettingsService.
+    /// </summary>
+    private void OnSoundToggleClick(object sender, RoutedEventArgs e)
+    {
+        bool enabled = !SoundService.IsSoundEnabled;
+        SoundService.IsSoundEnabled = enabled;
+        SettingsService.Update(s => s.SoundEnabled = enabled);
+        RefreshSoundToggleGlyph(enabled);
+
+        if (SettingsWorkspacePanel.ViewModel.SoundEnabled != enabled)
+        {
+            SettingsWorkspacePanel.ViewModel.SoundEnabled = enabled;
+        }
+
+        if (enabled)
+        {
+            SoundService.PlayClickSound();
+            OnFootprintLog("Haptic sound effects enabled.", LogLevel.Info);
+        }
+        else
+        {
+            OnFootprintLog("Haptic sound effects muted.", LogLevel.Info);
+        }
+    }
+
+    /// <summary>WPF's SoundToggleIcon paint: E767 speaker when audible, E74F when muted.</summary>
+    private void RefreshSoundToggleGlyph(bool enabled)
+    {
+        SoundToggleIcon.Glyph = enabled ? "\uE767" : "\uE74F";
+        SoundToggleIcon.Foreground = enabled ? ResolveBrush("ElectricCyanBrush") : ResolveBrush("TextMutedBrush");
+    }
 
     /// <summary>
     /// Caption buttons are drawn by the system, not by XAML, so they do not follow the

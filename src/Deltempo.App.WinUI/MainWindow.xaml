@@ -385,6 +385,27 @@
                             Orientation="Horizontal"
                             Spacing="8"
                             VerticalAlignment="Center">
+                    <!-- Sound FX toggle: WPF's SoundToggleBtn (MainWindow.xaml:452,
+                         MainWindow.Ui.cs:85). It is a real persisted preference, not a
+                         session mute, so it drives the same SoundEnabled setting the
+                         Settings toggle writes (ONE INTENTIONAL DEVIATION: it lives in
+                         the status bar beside the theme toggle rather than the title
+                         bar, for the same reason the theme toggle was re-homed). -->
+                    <Button x:Name="SoundToggleButton"
+                            Width="32"
+                            Height="24"
+                            Padding="0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="OnSoundToggleClick"
+                            ToolTipService.ToolTip="Toggle Haptic Audio Feedback"
+                            AutomationProperties.Name="Toggle haptic sound effects">
+                        <FontIcon x:Name="SoundToggleIcon"
+                                  Glyph="&#xE767;"
+                                  FontFamily="{StaticResource IconFont}"
+                                  FontSize="13" />
+                    </Button>
+
                     <!-- Theme toggle. It lives in the status bar rather than the title
                          bar because the title bar is now the section search, and the
                          status bar is where the window's other state already is. -->
