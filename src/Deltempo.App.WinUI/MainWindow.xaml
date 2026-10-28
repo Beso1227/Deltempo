@@ -48,6 +48,20 @@
                         Spacing="10"
                         VerticalAlignment="Center"
                         Padding="16,0,0,0">
+                <!-- WPF's 34px rounded logo chip (MainWindow.xaml "Brand Identity"):
+                     the top bar leads with the app icon, then the name. -->
+                <Border Width="34"
+                        Height="34"
+                        CornerRadius="9"
+                        VerticalAlignment="Center"
+                        Background="{ThemeResource SurfaceCardBrush}"
+                        BorderBrush="{ThemeResource HairlineBorderBrush}"
+                        BorderThickness="1">
+                    <Image x:Name="TitleBarLogo"
+                           Margin="2.5"
+                           Stretch="Uniform"
+                           AutomationProperties.Name="Deltempo Logo" />
+                </Border>
                 <Border Width="3"
                         Height="16"
                         CornerRadius="2"

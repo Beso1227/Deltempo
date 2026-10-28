@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Foundation;
 using WinRT.Interop;
 using WinTempCleaner.Core.Abstractions;
@@ -170,9 +171,23 @@ public sealed partial class MainWindow : Window
             LocalizationService.LanguageChanged -= OnLanguageChanged;
             DisposeMemoryHotkey();
             DisposeMinimizeToTrayHook();
+
+            // The window is gone; the icon handles we handed it via WM_SETICON
+            // (taskbar / Alt-Tab) are ours and must not leak.
+            if (_iconSmall != IntPtr.Zero)
+            {
+                DestroyIcon(_iconSmall);
+                _iconSmall = IntPtr.Zero;
+            }
+            if (_iconBig != IntPtr.Zero)
+            {
+                DestroyIcon(_iconBig);
+                _iconBig = IntPtr.Zero;
+            }
         };
 
         ApplyWindowChrome();
+        ApplyWindowIcon();
         InitializeTray();
         InitializeMemoryHotkey();
         ApplyTheme(SettingsService.Current.IsDarkMode, persist: false);
@@ -1979,6 +1994,80 @@ public sealed partial class MainWindow : Window
 
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    // --- App icon (WPF parity: Window.Icon + taskbar icon) --------------------
+    // WM_SETICON drives the taskbar and Alt-Tab (big) and, if the shell ever draws
+    // the system caption again, the small icon. The custom title bar hides the
+    // system caption, so the visible top-bar icon is the chip in TitleBarHost.
+    private const int WM_SETICON = 0x0080;
+    private const int ICON_SMALL = 0;
+    private const int ICON_BIG = 1;
+    private const int IMAGE_ICON = 1;
+    private const int LR_LOADFROMFILE = 0x00000010;
+    private const int SM_CXSMICON_WIN = 49;
+    private const int SM_CYSMICON_WIN = 50;
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern IntPtr LoadImage(IntPtr hInstance, string name, int type, int cx, int cy, int load);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int ExtractIconEx(string file, int index, out IntPtr large, out IntPtr small, int count);
+
+    [DllImport("user32.dll")]
+    private static extern bool DestroyIcon(IntPtr hIcon);
+
+    [DllImport("user32.dll")]
+    private static extern int GetSystemMetrics(int index);
+
+    private IntPtr _iconSmall = IntPtr.Zero;
+    private IntPtr _iconBig = IntPtr.Zero;
+
+    private static string IconPath => Path.Combine(AppContext.BaseDirectory, "app.ico");
+
+    private void ApplyWindowIcon()
+    {
+        try
+        {
+            if (File.Exists(IconPath))
+            {
+                int cx = GetSystemMetrics(SM_CXSMICON_WIN);
+                if (cx <= 0) cx = 16;
+                int cy = GetSystemMetrics(SM_CYSMICON_WIN);
+                if (cy <= 0) cy = 16;
+
+                _iconSmall = LoadImage(IntPtr.Zero, IconPath, IMAGE_ICON, cx, cy, LR_LOADFROMFILE);
+                _iconBig = LoadImage(IntPtr.Zero, IconPath, IMAGE_ICON, cx * 2, cy * 2, LR_LOADFROMFILE);
+            }
+            else
+            {
+                // No .ico beside the exe (its copy step was skipped): the icon
+                // ApplicationIcon embedded into the PE still carries the identity,
+                // which is exactly what WPF's pack resource resolved to.
+                ExtractIconEx(Environment.ProcessPath ?? "", 0, out _iconBig, out _iconSmall, 1);
+            }
+
+            IntPtr hwnd = WindowNative.GetWindowHandle(this);
+            if (_iconSmall != IntPtr.Zero)
+                SendMessage(hwnd, WM_SETICON, ICON_SMALL, _iconSmall);
+            if (_iconBig != IntPtr.Zero)
+                SendMessage(hwnd, WM_SETICON, ICON_BIG, _iconBig);
+
+            // The chip inside the 48px custom title bar. BitmapImage decodes the ICO
+            // itself; its largest frame is what the system scaler downsamples here,
+            // so no separate scale branch is needed for the 34px chip.
+            if (File.Exists(IconPath))
+            {
+                TitleBarLogo.Source = new BitmapImage(new Uri(IconPath));
+            }
+        }
+        catch
+        {
+            // Icon association is cosmetic; never let it break shell startup.
+        }
+    }
 
     private void ApplyWindowChrome()
     {

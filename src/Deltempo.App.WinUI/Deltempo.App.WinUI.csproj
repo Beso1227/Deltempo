@@ -34,6 +34,10 @@
          rasterised text instead of a physical-pixel layout. See app.manifest. -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
 
+    <!-- Same .ico as the shipped WPF head: the exe carries it into Explorer,
+         Task Manager, Alt-Tab and the taskbar before any window is shown. -->
+    <ApplicationIcon>..\Deltempo.App.Wpf\app.ico</ApplicationIcon>
+
     <!-- Unpackaged: no MSIX, no installer. See Stage 0 findings on payload size. -->
     <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
@@ -59,6 +63,13 @@
   <ItemGroup>
     <Compile Remove="ViewModels\**" />
     <None Remove="ViewModels\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- TrayService.LoadCrispTrayIcon and the title-bar chip both resolve
+         AppContext.BaseDirectory\app.ico at runtime; without this copy the tray
+         would fall back to the generic PE-extracted small icon. -->
+    <Content Include="..\Deltempo.App.Wpf\app.ico" Link="app.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
