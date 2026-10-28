@@ -87,18 +87,24 @@ public sealed partial class CleanerWorkspaceView : UserControl
     }
 
     /// <summary>
-    /// Layout probe for the self-test: how wide the header's two halves want to be
-    /// at a given content width.
+    /// Layout probe for the self-test: how wide the header's two rows want to be at a
+    /// given content width.
     ///
-    /// The action strip is an Auto column beside a starred one, so when the two
-    /// together want more than the content column it is the buttons that get cut
-    /// off - silently, with no scrollbar and no wrap. Measuring here proves the
-    /// 800px minimum window width does or does not fit, instead of guessing from
-    /// font metrics. Measures only; nothing is arranged or displayed.
+    /// The stats row cannot clip silently - if it wants more than the content column
+    /// the self-test has to say so. The action strip is scrollable by design (WPF's
+    /// hero strip scrolls too), so its number only states whether a user at the
+    /// minimum window width sees a scrollbar. Measures only; nothing is arranged.
     /// </summary>
     internal (double Stats, double Actions) MeasureHeaderAt(double contentWidth)
     {
         CleanerHeader.Measure(new Windows.Foundation.Size(contentWidth, double.PositiveInfinity));
+
+        // Direct unconstrained measures: a ScrollViewer feeds its content the viewport
+        // constraint, so the strip's DesiredSize from the header measure can be the
+        // clipped width, not the natural one the fit claim needs.
+        CleanerHeaderStats.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
+        CleanerHeaderActions.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
+
         return (CleanerHeaderStats.DesiredSize.Width, CleanerHeaderActions.DesiredSize.Width);
     }
 
@@ -108,6 +114,22 @@ public sealed partial class CleanerWorkspaceView : UserControl
         ViewModel.Log("Opened the AppData footprint report (read only - nothing is deleted)", LogLevel.Info);
         FootprintRequested?.Invoke();
     }
+
+    /// <summary>
+    /// Non-destructive read benchmark on the OS drive. The ViewModel serializes runs
+    /// through its IsBenchmarking latch; the button is also disabled for the duration.
+    /// </summary>
+    private void OnSpeedTestClick(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        _ = ViewModel.RunDriveBenchmarkAsync();
+    }
+
+    /// <summary>Engage / restore the Ultimate Performance plan. Mutating, never self-test.</summary>
+    private void OnGameBoostClick(object sender, RoutedEventArgs e) => _ = ViewModel.ToggleGameBoostAsync();
+
+    /// <summary>Launches the third-party CTT WinUtil. Mutating, never self-test.</summary>
+    private void OnWinUtilClick(object sender, RoutedEventArgs e) => ViewModel.LaunchWinUtil();
 
     private void OnSafeOnly(object sender, RoutedEventArgs e)
     {

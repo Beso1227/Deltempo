@@ -180,14 +180,13 @@
          by ShowWorkspace instead. -->
     <Grid Padding="18,16" RowDefinitions="Auto,Auto,*,Auto,Auto">
 
-        <!-- Hero stats + actions -->
-        <Grid Grid.Row="0" x:Name="CleanerHeader">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <!-- Hero stats + actions. Two stacked rows, mirroring the WPF hero's left
+             cluster: stat cards (now including the drive telemetry card) and the
+             scrollable action strip below them. WPF scrolls the same strip because
+             at the 800px minimum width the trailing actions would otherwise clip. -->
+        <StackPanel Grid.Row="0" x:Name="CleanerHeader" Spacing="10">
 
-            <StackPanel Grid.Column="0" x:Name="CleanerHeaderStats" Orientation="Horizontal" Spacing="10">
+            <StackPanel x:Name="CleanerHeaderStats" Orientation="Horizontal" Spacing="10">
                 <Border Style="{StaticResource StatCard}">
                     <StackPanel>
                         <TextBlock loc:Loc.Key="StatReclaimable" Text="Reclaimable" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
@@ -203,74 +202,209 @@
                                    FontSize="12.5" FontWeight="SemiBold" Foreground="{ThemeResource TextHighBrush}" />
                     </StackPanel>
                 </Border>
+
+                <!-- Bytes this shell has freed since launch. Hidden until a run
+                     actually freed something, like WPF's "Reclaimed X this session"
+                     subtext which only appeared after the first clean. -->
+                <Border Style="{StaticResource StatCard}"
+                        Visibility="{x:Bind ViewModel.HasSessionFreed, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <StackPanel>
+                        <TextBlock loc:Loc.Key="StatSession" Text="This Session" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" />
+                        <TextBlock Text="{x:Bind ViewModel.SessionFreedText, Mode=OneWay}"
+                                   FontSize="12.5" FontWeight="SemiBold" Foreground="{ThemeResource SuccessAccentBrush}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Drive telemetry card: free percentage, used bar, details, S.M.A.R.T.
+                     health pill and the read benchmark. Port of the WPF hero's drive
+                     card; Speed Test is the one interactive piece. -->
+                <Border Style="{StaticResource StatCard}" Width="252" Padding="12,8">
+                    <StackPanel Spacing="5">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE7F4;"
+                                          FontFamily="{StaticResource IconFont}"
+                                          FontSize="11"
+                                          Foreground="{ThemeResource AccentBlueBrush}" />
+                                <TextBlock Text="{x:Bind ViewModel.DriveLabel, Mode=OneWay}"
+                                           FontSize="11" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextHighBrush}"
+                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1"
+                                       Text="{x:Bind ViewModel.DriveFreeText, Mode=OneWay}"
+                                       FontSize="11" FontWeight="Bold"
+                                       Foreground="{ThemeResource ElectricCyanBrush}"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+
+                        <ProgressBar
+                            Minimum="0" Maximum="100"
+                            Value="{x:Bind ViewModel.DriveUsedPercent, Mode=OneWay}"
+                            Height="6"
+                            Foreground="{ThemeResource ElectricCyanBrush}"
+                            Background="{ThemeResource TrackBgBrush}"
+                            BorderThickness="0" />
+
+                        <Grid ColumnSpacing="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="{x:Bind ViewModel.DriveDetailsText, Mode=OneWay}"
+                                       FontSize="10"
+                                       Foreground="{ThemeResource TextMediumBrush}"
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" />
+                            <Border Grid.Column="1"
+                                    Background="{ThemeResource SuccessSurfaceBrush}"
+                                    BorderBrush="{ThemeResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="5"
+                                    Padding="5,1"
+                                    VerticalAlignment="Center"
+                                    ToolTipService.ToolTip="NVMe / SSD S.M.A.R.T. Health Status"
+                                    AutomationProperties.Name="Drive S.M.A.R.T. Health Status">
+                                <TextBlock Text="{x:Bind ViewModel.DriveHealthText, Mode=OneWay}"
+                                           FontSize="10" FontWeight="Bold"
+                                           Foreground="{x:Bind ViewModel.DriveHealthColor, Mode=OneWay, Converter={StaticResource HexToBrush}}" />
+                            </Border>
+                            <Button Grid.Column="2"
+                                    loc:Loc.Key="DriveSpeedTest"
+                                    Content="Speed Test"
+                                    FontSize="10"
+                                    FontWeight="SemiBold"
+                                    Padding="8,2.5"
+                                    CornerRadius="12"
+                                    Background="{ThemeResource PillButtonBgBrush}"
+                                    BorderBrush="{ThemeResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    Foreground="{ThemeResource TextHighBrush}"
+                                    IsEnabled="{x:Bind ViewModel.IsBenchmarking, Mode=OneWay, Converter={StaticResource NotBool}}"
+                                    ToolTipService.ToolTip="Run non-destructive sequential read speed test"
+                                    AutomationProperties.Name="Run non-destructive sequential read speed test"
+                                    Click="OnSpeedTestClick"
+                                    VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
             </StackPanel>
 
-            <StackPanel Grid.Column="1" x:Name="CleanerHeaderActions" Orientation="Horizontal" VerticalAlignment="Center" Spacing="2">
-                <Button
-                    Style="{StaticResource CommandBarButton}"
-                    ToolTipService.ToolTip="Read-only report: show where your AppData space goes. Nothing is selected and nothing is deleted."
-                    AutomationProperties.Name="AppData Footprint Report (read only)"
-                    Click="OnFootprintRequested">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE9D2;"
-                                  FontFamily="{StaticResource IconFont}"
-                                  FontSize="11"
-                                  Foreground="{ThemeResource TextMediumBrush}" />
-                        <TextBlock loc:Loc.Key="AppDataReport" Text="AppData Report" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
+            <ScrollViewer x:Name="CleanerHeaderActionScroller"
+                          HorizontalScrollBarVisibility="Auto"
+                          HorizontalScrollMode="Auto"
+                          VerticalScrollBarVisibility="Disabled"
+                          VerticalScrollMode="Disabled"
+                          Background="Transparent">
+                <StackPanel x:Name="CleanerHeaderActions" Orientation="Horizontal" VerticalAlignment="Center" Spacing="2">
+                    <Button
+                        Style="{StaticResource CommandBarButton}"
+                        IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource NotBool}}"
+                        ToolTipService.ToolTip="Scan all temporary scopes, caches, and storage locations (Shortcut: F5)"
+                        AutomationProperties.Name="Scan PC for Reclaimable Files"
+                        Command="{x:Bind ViewModel.ScanCommand, Mode=OneTime}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE721;"
+                                      FontFamily="{StaticResource IconFont}"
+                                      FontSize="11"
+                                      Foreground="{ThemeResource TextMediumBrush}" />
+                            <TextBlock loc:Loc.Key="HeroScanNow" Text="Scan Now" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
 
-                <Border Style="{StaticResource CommandBarDivider}" />
+                    <Border Style="{StaticResource CommandBarDivider}" />
 
-                <Button
-                    Style="{StaticResource CommandBarButton}"
-                    IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource NotBool}}"
-                    Command="{x:Bind ViewModel.ScanCommand, Mode=OneTime}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE72C;"
-                                  FontFamily="{StaticResource IconFont}"
-                                  FontSize="11"
-                                  Foreground="{ThemeResource TextMediumBrush}" />
-                        <TextBlock loc:Loc.Key="HeroScanNow" Text="Scan Now" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
+                    <Button
+                        Style="{StaticResource CommandBarButton}"
+                        ToolTipService.ToolTip="Autonomous 1-Click Deep Clean: purges all safe disk caches, superseded Windows updates, old restore points and flushes RAM"
+                        AutomationProperties.Name="1-Click Deep Clean"
+                        IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource NotBool}}"
+                        Command="{x:Bind ViewModel.DeepCleanCommand, Mode=OneTime}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE7E8;"
+                                      FontFamily="{StaticResource IconFont}"
+                                      FontSize="11"
+                                      Foreground="{ThemeResource ElectricCyanBrush}" />
+                            <TextBlock loc:Loc.Key="HeroOneClick" Text="Deep Clean" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
 
-                <Border Style="{StaticResource CommandBarDivider}" />
+                    <Border Style="{StaticResource CommandBarDivider}" />
 
-                <Button
-                    Style="{StaticResource CommandBarButton}"
-                    ToolTipService.ToolTip="Autonomous 1-Click Deep Clean: purges all safe disk caches, superseded Windows updates, old restore points and flushes RAM"
-                    AutomationProperties.Name="1-Click Deep Clean"
-                    IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource NotBool}}"
-                    Command="{x:Bind ViewModel.DeepCleanCommand, Mode=OneTime}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE74D;"
-                                  FontFamily="{StaticResource IconFont}"
-                                  FontSize="11"
-                                  Foreground="{ThemeResource ElectricCyanBrush}" />
-                        <TextBlock loc:Loc.Key="HeroOneClick" Text="Deep Clean" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
+                    <Button
+                        Style="{StaticResource CommandBarButton}"
+                        ToolTipService.ToolTip="Read-only report: show where your AppData space goes. Nothing is selected and nothing is deleted."
+                        AutomationProperties.Name="AppData Footprint Report (read only)"
+                        Click="OnFootprintRequested">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE9D2;"
+                                      FontFamily="{StaticResource IconFont}"
+                                      FontSize="11"
+                                      Foreground="{ThemeResource TextMediumBrush}" />
+                            <TextBlock loc:Loc.Key="AppDataReport" Text="AppData Report" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
 
-                <Border Style="{StaticResource CommandBarDivider}" />
-                <Button
-                    Background="{StaticResource DestructiveRedBrush}"
-                    BorderThickness="0"
-                    CornerRadius="14"
-                    Padding="12,6"
-                    FontSize="11.5"
-                    IsEnabled="{x:Bind ViewModel.CanClean, Mode=OneWay}"
-                    Command="{x:Bind ViewModel.CleanSelectedCommand, Mode=OneTime}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE74D;"
-                                  FontFamily="{StaticResource IconFont}"
-                                  FontSize="11"
-                                  Foreground="{ThemeResource HeroActionBtnTextBrush}" />
-                        <TextBlock loc:Loc.Key="CleanSelected" Text="Clean Selected" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
-            </StackPanel>
-        </Grid>
+                    <Border Style="{StaticResource CommandBarDivider}" />
+
+                    <Button
+                        Style="{StaticResource CommandBarButton}"
+                        ToolTipService.ToolTip="{x:Bind ViewModel.GameBoostToolTip, Mode=OneWay}"
+                        AutomationProperties.Name="1-Click Game Boost"
+                        IsEnabled="{x:Bind ViewModel.IsGameBoostBusy, Mode=OneWay, Converter={StaticResource NotBool}}"
+                        Click="OnGameBoostClick">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE7FC;"
+                                      FontFamily="{StaticResource IconFont}"
+                                      FontSize="11"
+                                      Foreground="{x:Bind ViewModel.GameBoostIconColor, Mode=OneWay, Converter={StaticResource HexToBrush}}" />
+                            <TextBlock Text="{x:Bind ViewModel.GameBoostText, Mode=OneWay}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Border Style="{StaticResource CommandBarDivider}" />
+
+                    <Button
+                        Style="{StaticResource CommandBarButton}"
+                        ToolTipService.ToolTip="Launch Chris Titus Tech Windows Utility (CTT WinUtil) for system debloating, tweaks &amp; winget installs"
+                        AutomationProperties.Name="Launch Chris Titus WinUtil"
+                        Click="OnWinUtilClick">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE756;"
+                                      FontFamily="{StaticResource IconFont}"
+                                      FontSize="11"
+                                      Foreground="{ThemeResource ElectricCyanBrush}" />
+                            <TextBlock loc:Loc.Key="HeroWinUtil" Text="CTT WinUtil" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Border Style="{StaticResource CommandBarDivider}" />
+
+                    <Button
+                        Background="{StaticResource DestructiveRedBrush}"
+                        BorderThickness="0"
+                        CornerRadius="14"
+                        Padding="12,6"
+                        FontSize="11.5"
+                        IsEnabled="{x:Bind ViewModel.CanClean, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.CleanSelectedCommand, Mode=OneTime}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE74D;"
+                                      FontFamily="{StaticResource IconFont}"
+                                      FontSize="11"
+                                      Foreground="{ThemeResource HeroActionBtnTextBrush}" />
+                            <TextBlock loc:Loc.Key="CleanSelected" Text="Clean Selected" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </ScrollViewer>
+        </StackPanel>
 
         <!-- Filter + selection chips -->
         <StackPanel Grid.Row="1" Spacing="8" Margin="0,12,0,10">

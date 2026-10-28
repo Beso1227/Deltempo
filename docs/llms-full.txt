@@ -20,7 +20,7 @@
 | Architectures | x64 |
 | Language | C# / .NET 10, WPF desktop UI |
 | Version | 3.2.0 |
-| Tests | 1368 automated tests, 0 failed |
+| Tests | 1372 automated tests, 0 failed |
 | UI languages | English, Arabic (RTL), Spanish, French, German |
 | Author | Beso1227 (Basem Hany) |
 | Website | https://beso1227.github.io/Deltempo/ |
@@ -181,7 +181,7 @@ SCAN -> PLAN -> PROTECT -> REVALIDATE -> CLEAN
 7. **Cryptographic release verification** - updates enforce HTTPS and verify SHA-256 against the `checksums.sha256` release asset. The manifest-signature verifier is ECDSA P-256 with an embedded placeholder key and is not yet wired into the live update path; see `docs/THREAT_MODEL.md`.
 8. **Deliberate refusals** - load-bearing paths that superficially look like scratch are never offered as targets: MSI source caches (`%ProgramData%\Package Cache`, `%WinDir%\Installer\$PatchCache$`), the per-user .NET SDK install root (`%LOCALAPPDATA%\Microsoft\dotnet`), bare driver vendor roots (`C:\NVIDIA`, `C:\AMD`, `C:\Intel`, `C:\Realtek`), `~\.cargo\registry\src`, and Audacity unsaved-session recovery. Each is removed from the scope resolvers *and* independently denied by `ProtectionPolicy`, so a resolver regression or user rulepack cannot reintroduce them.
 9. **AppData durable-state protection** - OneDrive sync databases, Office/Outlook credentials, the Credential Manager vault, recent-file jump lists, SSH and GnuPG key material, and the `NTUSER.DAT`/`UsrClass.dat` shell hives are refused **per directory**, not merely per file. A recursive `Directory.Delete` removes a whole subtree in one syscall and never consults a per-file guard, so purge operations first walk for a protected descendant, bound that walk at 5,000 directories, skip reparse points, and fail closed if the bound is exceeded.
-10. **Automated test suite** - 1368 unit and integration tests enforce zero regressions, including a 1M-case canonicalizer fuzz campaign.
+10. **Automated test suite** - 1372 unit and integration tests enforce zero regressions, including a 1M-case canonicalizer fuzz campaign.
 
 ## Frequently Asked Questions
 

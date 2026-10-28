@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Windows.Foundation;
 using WinRT.Interop;
+using WinTempCleaner.Core.Abstractions;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
 
@@ -164,10 +165,15 @@ public sealed partial class MainWindow : Window
         }
 
         LocalizationService.LanguageChanged += OnLanguageChanged;
-        Closed += (_, _) => LocalizationService.LanguageChanged -= OnLanguageChanged;
+        Closed += (_, _) =>
+        {
+            LocalizationService.LanguageChanged -= OnLanguageChanged;
+            DisposeMemoryHotkey();
+        };
 
         ApplyWindowChrome();
         InitializeTray();
+        InitializeMemoryHotkey();
         ApplyTheme(SettingsService.Current.IsDarkMode, persist: false);
         OnAlwaysOnTopRequested(SettingsService.Current.MemoryAlwaysOnTop);
         BuildNavigation();
@@ -738,12 +744,25 @@ public sealed partial class MainWindow : Window
             $"status=\"{probe.StatusText}\"");
 
         // The header has to fit at the 800px minimum window width: 800 - 64px rail -
-        // 36px of view padding = 700px of content. An Auto column beside a starred one
-        // clips silently, with no scrollbar and no wrap, so this is measured.
+        // 36px of view padding = 700px of content. The stats row is not scrollable, so
+        // it must fit outright; the action strip scrolls by design, the way the WPF
+        // hero strip does, so its number only decides whether a scrollbar shows.
         var (statsWidth, actionsWidth) = CleanerWorkspacePanel.MeasureHeaderAt(700);
         ShellDiagnostics.Write(
-            $"cleaner header fit (self-test, layout only): stats {statsWidth:N0}px + " +
-            $"actions {actionsWidth:N0}px = {statsWidth + actionsWidth:N0}px in 700px");
+            $"cleaner header fit (self-test, layout only): stats {statsWidth:N0}px " +
+            $"{(statsWidth > 700 ? "OVERFLOW" : "fit")}, actions {actionsWidth:N0}px " +
+            $"{(actionsWidth > 700 ? "scroll (WPF does the same)" : "fit")} in 700px");
+
+        // The drive card is rendered by the panel's own ViewModel at construction -
+        // DriveInfo reads only, no benchmark, no boost. Report what it painted.
+        var shellVm = CleanerWorkspacePanel.ViewModel;
+        ShellDiagnostics.Write(
+            $"drive telemetry card (self-test, display only): \"{shellVm.DriveLabel}\", " +
+            $"{shellVm.DriveFreeText}, {shellVm.DriveDetailsText}, {shellVm.DriveHealthText}, " +
+            $"session={shellVm.SessionFreedText}");
+        ShellDiagnostics.Write(
+            $"hero actions (self-test, display only): boost \"{shellVm.GameBoostText}\" " +
+            $"active={GameBoostService.IsBoostActive}, benchmark \"{shellVm.BenchmarkText}\"");
 
         // The shield is a toggle the port had hardcoded to false, so the only thing worth
         // proving here is that the value the user sets reaches the copy they read before a
@@ -1405,6 +1424,174 @@ public sealed partial class MainWindow : Window
         };
 
         DispatcherQueue.TryEnqueue(() => AppendActivityLog(entry));
+    }
+
+    // ---------------------------------------------------------------------
+    // Global memory hotkey
+    // ---------------------------------------------------------------------
+
+    /// <summary>Id passed to RegisterHotKey. Deltempo-only atom, unrelated to the tray.</summary>
+    private const int MemoryHotkeyId = 0xD319;
+
+    /// <summary>Subclass id on the window HWND. TrayService uses 0xD317 on the same
+    /// window; comctl32 supports any number of subclasses per HWND.</summary>
+    private const nuint MemoryHotkeySubclassId = 0xD319;
+
+    private const int WM_HOTKEY = 0x0312;
+
+    private static readonly SUBCLASSPROC MemoryHotkeySubclassProc = OnMemoryHotkeyMessage;
+
+    /// <summary>The shell that registered the hotkey. The window class is
+    /// single-instance by mutex, so one owner is the whole truth.</summary>
+    private static MainWindow? _memoryHotkeyOwner;
+
+    private IntPtr _memoryHotkeyHwnd;
+    private bool _isMemoryHotkeyRegistered;
+    private string _memoryHotkeyLabel = string.Empty;
+
+    private delegate IntPtr SUBCLASSPROC(
+        IntPtr hWnd,
+        uint uMsg,
+        IntPtr wParam,
+        IntPtr lParam,
+        UIntPtr uIdSubclass,
+        IntPtr dwRefData);
+
+    [DllImport("comctl32.dll", SetLastError = true)]
+    private static extern bool SetWindowSubclass(
+        IntPtr hWnd,
+        SUBCLASSPROC pfnSubclass,
+        UIntPtr uIdSubclass,
+        IntPtr dwRefData);
+
+    [DllImport("comctl32.dll", SetLastError = true)]
+    private static extern bool RemoveWindowSubclass(
+        IntPtr hWnd,
+        SUBCLASSPROC pfnSubclass,
+        UIntPtr uIdSubclass);
+
+    [DllImport("comctl32.dll")]
+    private static extern IntPtr DefSubclassProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+    /// <summary>
+    /// Registers the stored MemoryGlobalHotkey (default CTRL+SHIFT+M) as a system-wide
+    /// RAM optimization trigger - a port of WPF's OnSourceInitialized block, lines
+    /// 164-186 of src/Deltempo.App.Wpf/MainWindow.xaml.cs.
+    ///
+    /// Skipped in the self-test: a global hotkey is not a display surface, and
+    /// stealing the combination from whoever is typing would be a side effect.
+    /// Also skipped under MemoryCompactMode, exactly as WPF honours that setting.
+    /// </summary>
+    private void InitializeMemoryHotkey()
+    {
+        if (ShellDiagnostics.IsSelfTest) return;
+        if (SettingsService.Current.MemoryCompactMode) return;
+
+        try
+        {
+            if (!HotkeyParser.TryParse(
+                    SettingsService.Current.MemoryGlobalHotkey,
+                    out uint modifiers,
+                    out uint virtualKey))
+            {
+                return;
+            }
+
+            _memoryHotkeyLabel = SettingsService.Current.MemoryGlobalHotkey;
+            _memoryHotkeyHwnd = WindowNative.GetWindowHandle(this);
+
+            if (!RegisterHotKey(_memoryHotkeyHwnd, MemoryHotkeyId, modifiers, virtualKey))
+            {
+                int error = Marshal.GetLastWin32Error();
+                ShellDiagnostics.Write(
+                    $"[Hotkey] registration failed for '{_memoryHotkeyLabel}' (Win32 error {error}); the memory hotkey is off.");
+                return;
+            }
+
+            _isMemoryHotkeyRegistered = true;
+            _memoryHotkeyOwner = this;
+
+            if (!SetWindowSubclass(_memoryHotkeyHwnd, MemoryHotkeySubclassProc, MemoryHotkeySubclassId, IntPtr.Zero))
+            {
+                // Without the subclass the key fires but nobody hears it: worse than
+                // not registering at all, because the combination is then globally
+                // eaten. Undo the registration and leave the key to its usual owner.
+                UnregisterHotKey(_memoryHotkeyHwnd, MemoryHotkeyId);
+                _isMemoryHotkeyRegistered = false;
+                _memoryHotkeyOwner = null;
+                ShellDiagnostics.Write("[Hotkey] window subclass failed; the memory hotkey is off.");
+                return;
+            }
+
+            ShellDiagnostics.Write($"[Hotkey] '{_memoryHotkeyLabel}' registered for instant RAM optimization.");
+        }
+        catch (Exception ex)
+        {
+            ShellDiagnostics.Write($"[Hotkey] registration suppressed: {ex.Message}");
+        }
+    }
+
+    /// <summary>Unwinds registration and subclass. Safe to call twice.</summary>
+    private void DisposeMemoryHotkey()
+    {
+        if (_memoryHotkeyHwnd == IntPtr.Zero) return;
+
+        if (_isMemoryHotkeyRegistered)
+        {
+            UnregisterHotKey(_memoryHotkeyHwnd, MemoryHotkeyId);
+        }
+
+        RemoveWindowSubclass(_memoryHotkeyHwnd, MemoryHotkeySubclassProc, MemoryHotkeySubclassId);
+
+        _isMemoryHotkeyRegistered = false;
+        _memoryHotkeyOwner = null;
+        _memoryHotkeyHwnd = IntPtr.Zero;
+    }
+
+    /// <summary>
+    /// Static because comctl32 keeps the delegate alive for the window's lifetime;
+    /// the owner routes the message to the live shell's dispatcher.
+    /// </summary>
+    private static IntPtr OnMemoryHotkeyMessage(
+        IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam, UIntPtr uIdSubclass, IntPtr dwRefData)
+    {
+        if (uMsg == WM_HOTKEY && wParam.ToInt32() == MemoryHotkeyId && _memoryHotkeyOwner is not null)
+        {
+            var owner = _memoryHotkeyOwner;
+            owner.DispatcherQueue.TryEnqueue(() => _ = owner.RunMemoryHotkeyAsync());
+            return IntPtr.Zero;
+        }
+
+        return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+    }
+
+    /// <summary>
+    /// The optimize the hotkey promises. The wasted-Awaits trap WPF documented applies
+    /// identically here: a fire-and-forget Task whose exception nobody reads dies as an
+    /// UnobservedTaskException, so the catch keeps the failure in the Activity Log.
+    /// </summary>
+    private async Task RunMemoryHotkeyAsync()
+    {
+        try
+        {
+            var result = await MemoryOptimizerService.OptimizeRamAsync();
+            MemoryWorkspacePanel.ViewModel.RefreshTelemetry();
+            OnFootprintLog(
+                $"[Hotkey {_memoryHotkeyLabel}] Instant RAM optimization complete: " +
+                $"{result.SucceededTargetCount}/{result.RequestedTargetCount} targets confirmed in {result.ExecutionTimeMs}ms. " +
+                $"Available RAM moved {result.FormattedMeasuredDelta}; purged cache is re-read from disk on demand.",
+                LogLevel.Success);
+        }
+        catch (Exception ex)
+        {
+            OnFootprintLog($"[Hotkey {_memoryHotkeyLabel}] RAM optimization failed: {ex.Message}", LogLevel.Warning);
+        }
     }
 
     // ---------------------------------------------------------------------

@@ -104,6 +104,11 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         ExportAuditCommand = new RelayCommand(ExportAudit);
 
         Targets.CollectionChanged += OnTargetsCollectionChanged;
+
+        // Drive card reads disk metadata only - free space and health heuristics.
+        // WPF refreshed the same card from its load path; the WinUI panel is built in
+        // InitializeComponent, so this is the equivalent moment.
+        RefreshDriveTelemetry();
     }
 
     public event Action<string, WinTempCleaner.Models.LogLevel>? LogRequested;
@@ -129,6 +134,79 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool HasItems { get; set; }
+
+    // ---------------------------------------------------------------------
+    // Drive telemetry card (port of WPF's UpdateDriveTelemetry)
+    // ---------------------------------------------------------------------
+
+    /// <summary>The letter the drive card reports, e.g. "C:".</summary>
+    private string _driveLetter = "C:";
+
+    /// <summary>"OS Drive (C:)" in the active language. De-composed per refresh, so a
+    /// language switch re-renders it exactly as WPF's ApplyLocalization did.</summary>
+    [ObservableProperty]
+    public partial string DriveLabel { get; set; } = "OS Drive (C:)";
+
+    /// <summary>"42.3% Free".</summary>
+    [ObservableProperty]
+    public partial string DriveFreeText { get; set; } = "-- Free";
+
+    /// <summary>0-100, the used portion, matching WPF's DriveUsageBar.Value.</summary>
+    [ObservableProperty]
+    public partial double DriveUsedPercent { get; set; } = 50;
+
+    /// <summary>"120 GB free of 475 GB".</summary>
+    [ObservableProperty]
+    public partial string DriveDetailsText { get; set; } = "Calculating disk space...";
+
+    /// <summary>"SSD 99%".</summary>
+    [ObservableProperty]
+    public partial string DriveHealthText { get; set; } = "SSD --";
+
+    /// <summary>Hex colour from DriveHealthInfo.HealthColor, through the shared
+    /// HexToBrush converter in the view.</summary>
+    [ObservableProperty]
+    public partial string DriveHealthColor { get; set; } = "#10B981";
+
+    /// <summary>Speed Test button label; becomes the measured speed while idle.</summary>
+    [ObservableProperty]
+    public partial string BenchmarkText { get; set; } = "Speed Test";
+
+    [ObservableProperty]
+    public partial bool IsBenchmarking { get; set; }
+
+    // ---------------------------------------------------------------------
+    // Game Boost + CTT WinUtil hero actions (port of WPF's HeroGameBoostBtn /
+    // HeroWinUtilBtn handlers)
+    // ---------------------------------------------------------------------
+
+    [ObservableProperty]
+    public partial string GameBoostText { get; set; } = LocalizationService.Get("HeroGameBoost");
+
+    /// <summary>#10B981 while boosting, #94A3B8 idle - WPF's exact pair. Gray at rest,
+    /// unlike WPF's XAML which painted the icon green before any refresh did.</summary>
+    [ObservableProperty]
+    public partial string GameBoostIconColor { get; set; } = "#94A3B8";
+
+    [ObservableProperty]
+    public partial string GameBoostToolTip { get; set; } =
+        "1-Click Game Boost: sets Windows to Ultimate Performance, flushes standby RAM & throttles background updaters";
+
+    /// <summary>True while the toggle call is in flight.</summary>
+    private bool _isBoostBusy;
+
+    [ObservableProperty]
+    public partial bool IsGameBoostBusy { get; set; }
+
+    /// <summary>Bytes this shell has freed since launch, across runs.</summary>
+    private long _sessionFreedBytes;
+
+    /// <summary>The session stat card is hidden until a run actually freed something.</summary>
+    [ObservableProperty]
+    public partial bool HasSessionFreed { get; set; }
+
+    /// <summary>"1.2 GB" - the value the This Session card shows.</summary>
+    public string SessionFreedText => TargetFolderInfo.FormatBytes(_sessionFreedBytes);
 
     [ObservableProperty]
     public partial bool IsLoading { get; set; }
@@ -254,9 +332,6 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     /// <summary>Writes the audit report from the cleaner header, as WPF did.</summary>
     public IRelayCommand ExportAuditCommand { get; }
 
-    /// <summary>Bytes this shell has freed since launch, across runs.</summary>
-    private long _sessionFreedBytes;
-
     /// <summary>Read-only scan of all target categories. Deletes nothing.</summary>
     public async Task ScanAllAsync()
     {
@@ -320,6 +395,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
                 token);
 
             RecalculateTotals();
+            RefreshDriveTelemetry();
 
             int empty = targets.Count(t => t.SizeBytes == 0 && t.FileCount == 0);
             StatusText = targets.Count == 0 || empty == targets.Count
@@ -401,6 +477,179 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Port of WPF's UpdateDriveTelemetry: free percentage, used bar, details line and
+    /// the S.M.A.R.T. health pill on the drive card. Read-only (DriveInfo plus
+    /// heuristics), so it is safe anywhere including the self-test.
+    /// </summary>
+    /// <remarks>
+    /// WPF's overload also advanced <c>_sessionTotalFreed</c> and overwrote its hero
+    /// subtext with "Reclaimed X this session". Here the session figure lives on its
+    /// own stat card and the freed accounting happens next to
+    /// <c>_sessionFreedBytes</c>, so a rescan or a selection change cannot clobber it.
+    /// </remarks>
+    public void RefreshDriveTelemetry()
+    {
+        var telemetry = DriveTelemetryService.GetSystemDriveTelemetry();
+        _driveLetter = telemetry.DriveLetter;
+
+        string osLabel = LocalizationService.Get("DriveOsLabel");
+        DriveLabel = osLabel.Contains("C:")
+            ? osLabel.Replace("C:", telemetry.DriveLetter.TrimEnd('\\'))
+            : $"{osLabel} ({telemetry.DriveLetter})";
+        DriveFreeText = $"{telemetry.FreePercentage:F1}% {LocalizationService.Get("DriveFree")}";
+        DriveDetailsText = $"{telemetry.FormattedFree} {LocalizationService.Get("DriveOf")} {telemetry.FormattedTotal}";
+        DriveUsedPercent = telemetry.UsedPercentage;
+
+        HasSessionFreed = _sessionFreedBytes > 0;
+        OnPropertyChanged(nameof(SessionFreedText));
+
+        // WPF swallowed snapshot failures the same way: the card falls back to its
+        // last painted values rather than taking the workspace down.
+        try
+        {
+            var health = DriveHealthService.GetDriveHealthSnapshot(telemetry.DriveLetter);
+            DriveHealthText = $"SSD {health.HealthScore}%";
+            DriveHealthColor = health.HealthColor;
+        }
+        catch
+        {
+        }
+    }
+
+    /// <summary>
+    /// Port of WPF's DriveBenchmarkBtn_Click: non-destructive sequential read speed
+    /// test. Deletes nothing; it reads and reports. The button label doubles as last
+    /// result ("4,213 MB/s") or "Retry" after a failure, exactly as WPF did.
+    /// </summary>
+    public async Task RunDriveBenchmarkAsync()
+    {
+        if (IsBenchmarking) return;
+
+        IsBenchmarking = true;
+        BenchmarkText = "Testing...";
+        LogRequested?.Invoke(
+            "[Storage Benchmark] Running non-destructive sequential read speed test on OS drive...",
+            WinTempCleaner.Models.LogLevel.Info);
+
+        try
+        {
+            // WPF hardcoded "C:" here; the card it sits in always shows the system
+            // drive anyway, so passing the refreshed letter keeps the two honest.
+            var res = await DriveHealthService.RunQuickReadBenchmarkAsync(_driveLetter, null, CancellationToken.None);
+            BenchmarkText = res.FormattedSpeed;
+            LogRequested?.Invoke(
+                $"[Storage Benchmark] Complete: {res.FormattedSpeed} sustained read on {res.DriveLetter} ({res.ExecutionTimeMs}ms).",
+                WinTempCleaner.Models.LogLevel.Success);
+            SoundService.PlaySuccessSound();
+        }
+        catch (Exception ex)
+        {
+            BenchmarkText = "Retry";
+            LogRequested?.Invoke($"[Storage Benchmark Error] {ex.Message}", WinTempCleaner.Models.LogLevel.Warning);
+        }
+        finally
+        {
+            IsBenchmarking = false;
+        }
+    }
+
+    /// <summary>
+    /// Port of WPF's HeroGameBoostBtn_Click: engages or restores the Ultimate
+    /// Performance plan, standby purge and background throttling through the shared
+    /// GameBoostService.
+    /// </summary>
+    public async Task ToggleGameBoostAsync()
+    {
+        if (_isBoostBusy) return;
+
+        _isBoostBusy = true;
+        IsGameBoostBusy = true;
+        SoundService.PlayClickSound();
+
+        bool targetState = !GameBoostService.IsBoostActive;
+        GameBoostText = targetState ? "Engaging..." : "Restoring...";
+
+        try
+        {
+            var res = await GameBoostService.ToggleGameBoostAsync(targetState, CancellationToken.None);
+
+            if (res.IsActive)
+            {
+                GameBoostText = "Boost Active";
+                GameBoostIconColor = "#10B981";
+                GameBoostToolTip =
+                    "Game Boost Active: Ultimate Performance profile engaged, standby RAM purged, background tasks throttled. Click to disable.";
+                LogRequested?.Invoke($"[Game Boost] {res.Message}", WinTempCleaner.Models.LogLevel.Success);
+                SoundService.PlaySuccessSound();
+            }
+            else
+            {
+                GameBoostText = LocalizationService.Get("HeroGameBoost");
+                GameBoostIconColor = "#94A3B8";
+                GameBoostToolTip =
+                    "1-Click Game Boost: sets Windows to Ultimate Performance, flushes standby RAM & throttles background updaters";
+                LogRequested?.Invoke($"[Game Boost] {res.Message}", WinTempCleaner.Models.LogLevel.Info);
+                SoundService.PlayClickSound();
+            }
+
+            RefreshDriveTelemetry();
+        }
+        catch (Exception ex)
+        {
+            LogRequested?.Invoke(
+                $"[Game Boost Error] Failed to switch state: {ex.Message}",
+                WinTempCleaner.Models.LogLevel.Warning);
+            GameBoostText = LocalizationService.Get("HeroGameBoost");
+            GameBoostIconColor = "#94A3B8";
+        }
+        finally
+        {
+            _isBoostBusy = false;
+            IsGameBoostBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// Port of WPF's HeroWinUtilBtn_Click: launches the third-party CTT WinUtil in an
+    /// elevated PowerShell session. Nothing here is Deltempo's own code - the launch is
+    /// the upstream SystemRepairService call and the credit lines are logged either way.
+    /// Never invoked by the self-test: it opens an external elevated process.
+    /// </summary>
+    public void LaunchWinUtil()
+    {
+        SoundService.PlayClickSound();
+        LogRequested?.Invoke(
+            "[CTT WinUtil] Launching Chris Titus Tech Windows Utility in an elevated PowerShell session...",
+            WinTempCleaner.Models.LogLevel.Info);
+        LogRequested?.Invoke(
+            $"[CTT WinUtil] Third-party tool by {SystemRepairService.ChrisTitusAuthor} - {SystemRepairService.ChrisTitusWinUtilUrl}",
+            WinTempCleaner.Models.LogLevel.Info);
+
+        bool launched = SystemRepairService.LaunchChrisTitusWinUtil(out string error);
+        if (launched)
+        {
+            LogRequested?.Invoke($"[CTT WinUtil] {SystemRepairService.ChrisTitusCreditLine}", WinTempCleaner.Models.LogLevel.Success);
+        }
+        else if (!string.IsNullOrEmpty(error))
+        {
+            LogRequested?.Invoke($"[CTT WinUtil] {error}", WinTempCleaner.Models.LogLevel.Warning);
+        }
+    }
+
+    /// <summary>
+    /// Applies a completed run's freed bytes to the session card and refreshes the
+    /// drive telemetry. WPF called UpdateDriveTelemetry(additionalFreedBytes) at this
+    /// exact moment for the same reason.
+    /// </summary>
+    private void RecordSessionFreed(long bytesFreed)
+    {
+        if (bytesFreed <= 0) return;
+
+        _sessionFreedBytes += bytesFreed;
+        RefreshDriveTelemetry();
+    }
+
+    /// <summary>
     /// Re-labels every scanned category in the active language, then rebuilds the
     /// visible rows. Port of WPF ApplyLocalization's "Localize All 12 Target Categories"
     /// block: the rows bind to non-observed models, so the collection is rebuilt rather
@@ -417,6 +666,11 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         {
             StatusText = LocalizationService.Get("ReadyStatus");
         }
+
+        // The drive card's composed strings carry dictionary keys, so it has to be
+        // re-rendered by hand after a switch - the same UpdateDriveTelemetry() WPF's
+        // ApplyLocalization ended with.
+        RefreshDriveTelemetry();
     }
 
     private static void LocalizeTargets(IEnumerable<TargetFolderInfo> targets)
@@ -603,7 +857,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
                 ElapsedTime = result.Duration,
             };
             LastSummary = summary;
-            _sessionFreedBytes += result.DiskFreedBytes;
+            RecordSessionFreed(result.DiskFreedBytes);
 
             StatusText =
                 $"1-Click Deep Clean complete. Reclaimed {result.FormattedDiskFreed} disk, " +
@@ -812,7 +1066,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
                 ElapsedTime = stopwatch.Elapsed,
             };
             LastSummary = summary;
-            _sessionFreedBytes += totalFreed;
+            RecordSessionFreed(totalFreed);
 
             // The skip breakdown is the difference between "it worked" and "it worked but
             // 400 files were held open" - WPF printed the same list on its dock.
