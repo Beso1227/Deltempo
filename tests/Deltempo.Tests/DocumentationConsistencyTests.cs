@@ -739,6 +739,45 @@ public class DocumentationConsistencyTests
             ". llms.txt is the AI-facing entry point; every published page must be reachable from it.");
     }
 
+    /// <summary>
+    /// The manifest-signature verifier and the Authenticode verifier are both wired
+    /// into the live update path and both fail closed (THREAT_MODEL §2.5); signed
+    /// updates stay blocked only until an operator provisions a key. Several docs
+    /// still described the pre-hardening reality ("not wired", "not enforced",
+    /// "no positive-path test", "placeholder key"). This guard fires the moment any
+    /// of them is reintroduced, so the docs cannot drift back to a stale security
+    /// posture. Historical changelog/audit snapshots are exempt - they are dated
+    /// records, not current claims.
+    /// </summary>
+    [Theory]
+    [InlineData("docs/ARCHITECTURE.md")]
+    [InlineData("docs/TESTING.md")]
+    [InlineData("docs/RELEASES.md")]
+    [InlineData("docs/RELEASE_ENGINEERING.md")]
+    [InlineData("docs/llms-full.txt")]
+    public void UpdateVerificationDocs_DoNotReviveThePreHardeningClaims(string relativePath)
+    {
+        var root = RepoRoot();
+        var text = File.ReadAllText(Path.Combine(root, relativePath.Replace('/', Path.DirectorySeparatorChar)));
+
+        string[] stalePhrases =
+        [
+            "neither is wired into the live update path",
+            "not wired into the live update path",
+            "not yet enforced in-app",
+            "no positive-path test",
+            "no real signing key is installed yet",
+            "embedded placeholder key",
+            "embedded public key is still a placeholder",
+        ];
+
+        var found = stalePhrases.Where(p => text.Contains(p, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        Assert.True(found.Count == 0,
+            $"{relativePath} states the pre-hardening update-verification posture, which THREAT_MODEL §2.5 supersedes. " +
+            $"Remove or correct: {string.Join("; ", found)}.");
+    }
+
     private static IEnumerable<string> EnumerateInstructionFiles(string root)
     {
         var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".md", ".txt", ".yml", ".yaml", ".ps1", ".cmd" };

@@ -22,7 +22,7 @@ Because Deltempo is a Windows maintenance and deletion utility operating near se
 | **ProtectionPolicyTests.cs** | Non-negotiable blacklist | Windows OS, System32, User personal files, SSH/GPG keys, credentials |
 | **FileSafetyEngineTests.cs** | Multi-signal risk classification | Safe, LowRisk, ReviewRequired, Unknown categorization |
 | **SystemRepairServiceTests.cs** | Servicing stack orchestration | Command generation for SFC, DISM, WinSxS, and CHKDSK |
-| **UpdaterTests.cs** | Supply chain & release security | SHA-256 validation, corrupted payload rejection, and manifest-signature rejection (empty, null, malformed and tampered manifests must all fail closed — there is no positive-path test because no real signing key is installed yet) |
+| **UpdaterTests.cs** | Supply chain & release security | SHA-256 validation, corrupted payload rejection, and manifest-signature rejection (empty, null, malformed and tampered manifests must all fail closed). The positive path lives in `ManifestKeyProvisioningTests.cs`, which runs a full verify round-trip against a test-only ECDSA P-256 key pair; `ManifestSignatureBindingTests.cs` additionally proves an artifact-substitution attack is rejected. Live verification stays blocked until an operator provisions a real trusted key (`docs/THREAT_MODEL.md` §2.5) |
 | **ArchitectureAndViewModelTests.cs** | Layer separation & MVVM | Null safety, property change notifications, Core layer isolation from WPF |
 | **CliRunnerTests.cs** | Headless CLI automation | Exit codes, argument parsing, dry-run simulation, JSON formatting |
 | **CleanEngineBenchmarks.cs** | High-throughput stress testing | Parallel directory traversal and deletion throughput |

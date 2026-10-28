@@ -120,11 +120,12 @@ secret is never silently tolerated.
 
 To move to **Azure Trusted Signing** (no certificate file on the runner), replace the
 `Authenticode Sign Release Binaries` step with the Azure Artifact Signing action and
-delete the `SIGNING_CERTIFICATE_PFX` secret. Note that the in-app updater does not yet
-verify Authenticode itself, and the ECDSA P-256 manifest verifier in
-`Core/Update/ManifestSignatureVerifier.cs` is not wired into the live update path — it
-currently fails closed on every input because its embedded public key is still a
-placeholder. See `docs/THREAT_MODEL.md` §2.5 before relying on either as a trust anchor.
+delete the `SIGNING_CERTIFICATE_PFX` secret. The in-app updater already verifies
+Authenticode against a publisher allowlist in the live update path, and the ECDSA P-256
+manifest-signature verifier in `src/Deltempo.Core/Update/ManifestSignatureVerifier.cs`
+is wired into the same path and fails closed: with no operator-provisioned trusted key,
+every signed update is refused, not accepted. See `docs/THREAT_MODEL.md` §2.5 before
+relying on either as a trust anchor.
 
 ### 3.4 Architectures (x64 + ARM64)
 

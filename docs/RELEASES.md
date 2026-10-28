@@ -39,7 +39,7 @@ Every official release artifact is verified through automated pipelines:
 
 2. **Authenticode Signing**:
    Release artifacts are signed with the configured code-signing certificate (`signtool /fd sha256 /tr <timestamp>`), and the workflow runs `signtool verify /pa` on each artifact before it is uploaded. Set `REQUIRE_SIGNING=true` to make a missing certificate a hard failure instead of a warning.
-   A detached `.sig` manifest is **not** currently produced, and manifest signature verification is not yet enforced in-app — see `docs/THREAT_MODEL.md` §2.5.
+   A detached `.sig` manifest is **not** currently produced, and the in-app updater cannot yet *succeed* at manifest-signature verification: the ECDSA P-256 verifier is wired into the live update path and fails closed without mistakes, but it rejects every manifest until an operator provisions a trusted key - see `docs/THREAT_MODEL.md` §2.5.
 3. **Software Bill of Materials (SBOM)**:
    Generated during the CI pipeline via `dotnet list package --include-transitive --format json` to ensure full transparency of external dependencies.
 
