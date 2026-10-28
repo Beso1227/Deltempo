@@ -107,6 +107,19 @@
                         Margin="0,0,8,0"
                         Command="{x:Bind ViewModel.OptimizeBootCommand, Mode=OneTime}" />
 
+                <!-- WPF's StartupBatchAiBtn: walk not-yet-analyzed entries offline first. -->
+                <Button Content="AI Analyze All"
+                        ToolTipService.ToolTip="Analyze unknown startup entries with AI to assess boot and system disable consequences"
+                        AutomationProperties.Name="Batch analyze startup entries with AI"
+                        Background="{ThemeResource PillButtonBgBrush}"
+                        BorderBrush="{ThemeResource PillButtonBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="14"
+                        Padding="14,6"
+                        FontSize="11.5"
+                        Margin="0,0,8,0"
+                        Command="{x:Bind ViewModel.BatchAnalyzeCommand, Mode=OneTime}" />
+
                 <Button Content="Refresh"
                         Background="{ThemeResource PillButtonBgBrush}"
                         BorderBrush="{ThemeResource PillButtonBorderBrush}"
@@ -119,8 +132,36 @@
             </StackPanel>
         </Grid>
 
-        <!-- Filter chips -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,12,0,10">
+        <!-- Search + filter chips. The search box is WPF's StartupSearchBox: it
+             matches title, name, publisher, location or command. -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,12,0,10" Spacing="8">
+            <Border Background="{ThemeResource SurfaceSubCardBrush}"
+                    BorderBrush="{ThemeResource HairlineBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="10,4"
+                    Height="30"
+                    VerticalAlignment="Center">
+                <Grid ColumnDefinitions="Auto,*">
+                    <FontIcon Grid.Column="0"
+                              Glyph="&#xE721;"
+                              FontFamily="{StaticResource IconFont}"
+                              FontSize="11"
+                              Foreground="{ThemeResource TextMutedBrush}"
+                              VerticalAlignment="Center"
+                              Margin="0,0,6,0" />
+                    <TextBox Grid.Column="1"
+                             x:Name="StartupSearchBox"
+                             Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="Search startup apps by name, publisher, location, or command..."
+                             Background="Transparent"
+                             BorderThickness="0"
+                             FontSize="11"
+                             MinWidth="220"
+                             VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+
             <RadioButton GroupName="StartupFilter" Content="All"
                          Style="{StaticResource StartupChip}" Tag="All" IsChecked="True"
                          Checked="OnFilterChanged" />
@@ -254,6 +295,21 @@
                                                 Margin="0,0,6,0"
                                                 Visibility="{Binding CanReveal, Converter={StaticResource BoolToVis}}"
                                                 Command="{Binding DataContext.ViewModel.RevealCommand, ElementName=Root}"
+                                                CommandParameter="{Binding}" />
+
+                                        <!-- WPF's "AI Info" pill (StartupItemAi_Click): expand +
+                                             brief on what disabling this entry does. Online AI,
+                                             so never wired into the self-test. -->
+                                        <Button Content="AI Info"
+                                                ToolTipService.ToolTip="Get in-depth AI analysis of this startup program and disabling consequences"
+                                                Background="{ThemeResource PillButtonBgBrush}"
+                                                BorderBrush="{ThemeResource PillButtonBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="12"
+                                                Padding="10,4"
+                                                FontSize="11"
+                                                Margin="0,0,6,0"
+                                                Command="{Binding DataContext.ViewModel.AnalyzeItemCommand, ElementName=Root}"
                                                 CommandParameter="{Binding}" />
 
                                         <Button Content="Clean"

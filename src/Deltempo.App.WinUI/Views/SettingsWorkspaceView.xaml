@@ -117,6 +117,37 @@
                          Content="Safety"
                          Style="{StaticResource FilterChipRadio}"
                          IsChecked="{x:Bind ViewModel.IsSafetyCategory, Mode=TwoWay}" />
+
+            <!-- WPF's SettingsSearchBox. It is a panel-visibility filter there and a
+                 card-visibility filter here (the WinUI settings has cards, not tabs),
+                 but the contract is the same: nothing matches nothing to hide. -->
+            <Border Background="{ThemeResource SurfaceSubCardBrush}"
+                    BorderBrush="{ThemeResource HairlineBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="10,3"
+                    Height="28"
+                    VerticalAlignment="Center"
+                    Margin="8,0,0,0">
+                <Grid ColumnDefinitions="Auto,*">
+                    <FontIcon Grid.Column="0"
+                              Glyph="&#xE721;"
+                              FontFamily="{StaticResource IconFont}"
+                              FontSize="11"
+                              Foreground="{ThemeResource TextMutedBrush}"
+                              VerticalAlignment="Center"
+                              Margin="0,0,6,0" />
+                    <TextBox Grid.Column="1"
+                             x:Name="SettingsSearchBox"
+                             PlaceholderText="Search settings..."
+                             TextChanged="OnSettingsSearchChanged"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             FontSize="11"
+                             MinWidth="180"
+                             VerticalAlignment="Center" />
+                </Grid>
+            </Border>
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -124,6 +155,7 @@
 
                 <!-- ================= GENERAL ================= -->
                 <StackPanel Spacing="10"
+                            x:Name="GeneralSettingsPanel"
                             Visibility="{x:Bind ViewModel.ShowGeneral, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
                     <Border Style="{StaticResource SettingsCard}">
@@ -306,6 +338,7 @@
 
                 <!-- ================= UPDATES ================= -->
                 <StackPanel Spacing="10"
+                            x:Name="UpdatesSettingsPanel"
                             Visibility="{x:Bind ViewModel.ShowUpdates, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
                     <Border Style="{StaticResource SettingsCard}">
@@ -426,6 +459,7 @@
 
                 <!-- ================= MEMORY ================= -->
                 <StackPanel Spacing="10"
+                            x:Name="MemorySettingsPanel"
                             Visibility="{x:Bind ViewModel.ShowMemory, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
                     <Border Style="{StaticResource SettingsCard}">
@@ -565,6 +599,7 @@
 
                 <!-- ================= SAFETY ================= -->
                 <StackPanel Spacing="10"
+                            x:Name="SafetySettingsPanel"
                             Visibility="{x:Bind ViewModel.ShowSafety, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
                     <Border Style="{StaticResource SettingsCard}">

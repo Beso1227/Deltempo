@@ -54,13 +54,40 @@
                                FontWeight="SemiBold"
                                Foreground="{ThemeResource TextHighBrush}"
                                VerticalAlignment="Center" />
+                    <!-- WPF's ProcessSearchBox: match by name or window title. -->
+                    <Border Background="{ThemeResource SurfaceSubCardBrush}"
+                            BorderBrush="{ThemeResource HairlineBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="10,3"
+                            Height="28"
+                            VerticalAlignment="Center"
+                            Margin="12,0,0,0">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <FontIcon Grid.Column="0"
+                                      Glyph="&#xE721;"
+                                      FontFamily="{StaticResource IconFont}"
+                                      FontSize="11"
+                                      Foreground="{ThemeResource TextMutedBrush}"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,6,0" />
+                            <TextBox Grid.Column="1"
+                                     Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="Search processes by name or title..."
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     FontSize="11"
+                                     MinWidth="170"
+                                     VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
                     <TextBlock Text="{x:Bind ViewModel.SummaryText, Mode=OneWay}"
                                FontSize="11"
                                Foreground="{ThemeResource TextMutedBrush}"
                                Margin="12,0,0,0"
                                VerticalAlignment="Center"
                                TextWrapping="NoWrap"
-                               MaxWidth="640"
+                               MaxWidth="480"
                                HorizontalAlignment="Left" />
                 </StackPanel>
 

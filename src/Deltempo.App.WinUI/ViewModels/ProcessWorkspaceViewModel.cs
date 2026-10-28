@@ -86,6 +86,47 @@ public sealed partial class ProcessWorkspaceViewModel : ObservableObject
 
     public event Action<string, LogLevel>? LogRequested;
 
+    /// <summary>WPF's ProcessSearchBox: filters by process name or window title.</summary>
+    [ObservableProperty]
+    public partial string SearchText { get; set; } = string.Empty;
+
+    /// <summary>The scanned set before the search filter; the list always shows the filtered one.</summary>
+    private readonly List<ProcessRow> _all = [];
+
+    /// <summary>
+    /// Test seam: replaces the scanned set directly, the way StartupWorkspaceViewModel
+    /// does, so search can be exercised without a real process walk.
+    /// </summary>
+    internal void LoadFrom(IEnumerable<ProcessRow> rows)
+    {
+        _all.Clear();
+        _all.AddRange(rows);
+        ApplySearch();
+    }
+
+    /// <summary>WPF's ProcessSearchBox_TextChanged broke the query into the list.</summary>
+    partial void OnSearchTextChanged(string value) => ApplySearch();
+
+    private void ApplySearch()
+    {
+        string query = SearchText.Trim();
+        Processes.Clear();
+        if (string.IsNullOrEmpty(query))
+        {
+            foreach (ProcessRow row in _all) Processes.Add(row);
+            return;
+        }
+
+        foreach (ProcessRow row in _all)
+        {
+            if (row.ProcessName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                row.TitleText.Contains(query, StringComparison.OrdinalIgnoreCase))
+            {
+                Processes.Add(row);
+            }
+        }
+    }
+
     /// <summary>
     /// Reads the live process list. Read-only: nothing here changes a process, it
     /// only reads what the OS reports.
@@ -105,6 +146,7 @@ public sealed partial class ProcessWorkspaceViewModel : ObservableObject
             List<ProcessMemoryInfo> heavy =
                 await ProcessOptimizerService.GetHeavyProcessesAsync(MemoryThresholdBytes);
 
+            _all.Clear();
             Processes.Clear();
             int protectedCount = 0;
 
@@ -116,15 +158,20 @@ public sealed partial class ProcessWorkspaceViewModel : ObservableObject
                     continue;
                 }
 
-                Processes.Add(new ProcessRow
+                ProcessRow row = new()
                 {
                     ProcessName = process.ProcessName,
                     WindowTitle = process.WindowTitle,
                     ProcessId = process.ProcessId,
                     WorkingSetBytes = process.WorkingSetBytes,
                     IsSafeToClose = process.IsSafeToClose,
-                });
+                };
+                _all.Add(row);
             }
+
+            // A refresh re-applies the active search, the way WPF's ApplyProcessFilter
+            // re-filtered the whole scan output.
+            ApplySearch();
 
             SummaryText = Processes.Count == 0
                 ? "No process is holding more than 20 MB."

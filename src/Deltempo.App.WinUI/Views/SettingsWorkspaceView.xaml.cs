@@ -1,6 +1,7 @@
 using Deltempo.App.WinUI.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 using WinTempCleaner.Models;
@@ -80,6 +81,73 @@ public sealed partial class SettingsWorkspaceView : UserControl
 
     private void OnLog(string message, LogLevel level)
         => LogRequested?.Invoke(message, level);
+
+    // ---------------------------------------------------------------------
+    // Settings search
+    // ---------------------------------------------------------------------
+
+    /// <summary>
+    /// WPF's SettingsSearchBox_TextChanged. WPF showed/hid its four settings
+    /// panels by matching a hidden scope line; the WinUI settings is a stack of
+    /// titled cards per category, so the same search shows/hides those cards
+    /// instead. A card with no matching text hides; an empty query shows all.
+    /// Visibility inside the card tree is untouched - the search never changes
+    /// what a setting can do, only what is in the way.
+    /// </summary>
+    private void OnSettingsSearchChanged(object sender, TextChangedEventArgs e)
+    {
+        string term = SettingsSearchBox.Text.Trim();
+
+        // All four category panels, but only the visible one has cards laid out;
+        // the rest are cheap no-ops. The filter is over the card borders, which
+        // is the settings' own StorageCard family - the search never changes
+        // what a setting can do, only what is in the way.
+        FilterCards(GeneralSettingsPanel, term);
+        FilterCards(UpdatesSettingsPanel, term);
+        FilterCards(MemorySettingsPanel, term);
+        FilterCards(SafetySettingsPanel, term);
+    }
+
+    /// <summary>Shows/hides each search-scope card under <paramref name="panel"/>.</summary>
+    private static void FilterCards(Panel panel, string term)
+    {
+        if (panel is null)
+        {
+            return;
+        }
+
+        foreach (UIElement child in panel.Children)
+        {
+            if (child is Border card)
+            {
+                card.Visibility = term.Length == 0 || CardMatches(card, term)
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            }
+        }
+    }
+
+    /// <summary>True when any text anywhere inside the card contains the term.</summary>
+    private static bool CardMatches(DependencyObject root, string term)
+    {
+        int count = VisualTreeHelper.GetChildrenCount(root);
+        for (int i = 0; i < count; i++)
+        {
+            DependencyObject child = VisualTreeHelper.GetChild(root, i);
+            if (child is TextBlock tb &&
+                tb.Text.Contains(term, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (CardMatches(child, term))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private void OnThemeChangeRequested(bool isDark)
         => ThemeChangeRequested?.Invoke(isDark);

@@ -80,6 +80,8 @@ public sealed partial class StartupWorkspaceViewModel : ObservableObject
         RevealCommand = new RelayCommand<StartupItem>(Reveal);
         ToggleCommand = new AsyncRelayCommand<StartupItem>(ToggleAsync);
         ToggleExpandCommand = new RelayCommand<StartupItem>(ToggleExpand);
+        AnalyzeItemCommand = new AsyncRelayCommand<StartupItem>(AnalyzeItemAsync);
+        BatchAnalyzeCommand = new AsyncRelayCommand(BatchAnalyzeAsync);
     }
 
     public event Action<string, LogLevel>? LogRequested;
@@ -122,6 +124,14 @@ public sealed partial class StartupWorkspaceViewModel : ObservableObject
 
     public IRelayCommand<StartupItem> ToggleExpandCommand { get; }
 
+    public IAsyncRelayCommand<StartupItem> AnalyzeItemCommand { get; }
+
+    public IAsyncRelayCommand BatchAnalyzeCommand { get; }
+
+    /// <summary>WPF's StartupSearchBox: filters by any of the row's identifying text.</summary>
+    [ObservableProperty]
+    public partial string SearchText { get; set; } = string.Empty;
+
     /// <summary>
     /// Enumerates startup entries across the registry hives and Task Scheduler.
     /// Read-only: this only discovers what exists.
@@ -161,6 +171,9 @@ public sealed partial class StartupWorkspaceViewModel : ObservableObject
         ApplyFilter();
     }
 
+    /// <summary>WPF's StartupSearchBox_TextChanged broke the search into the same filter.</summary>
+    partial void OnSearchTextChanged(string value) => ApplyFilter();
+
     private void ApplyFilter()
     {
         IEnumerable<StartupItem> queryable = _allItems;
@@ -172,6 +185,20 @@ public sealed partial class StartupWorkspaceViewModel : ObservableObject
             StartupFilter.Orphaned => queryable.Where(x => x.IsFileMissing),
             _ => queryable,
         };
+
+        // WPF's query matched five fields in OrdinalIgnoreCase: title, name,
+        // publisher, location and raw command - a location search is how you find
+        // "which startup entry comes from this folder".
+        string query = SearchText.Trim();
+        if (!string.IsNullOrEmpty(query))
+        {
+            queryable = queryable.Where(x =>
+                x.DisplayTitle.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                x.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                x.Publisher.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                x.LocationDisplay.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                x.Command.Contains(query, StringComparison.OrdinalIgnoreCase));
+        }
 
         Items.Clear();
         foreach (StartupItem item in queryable)
@@ -351,6 +378,116 @@ public sealed partial class StartupWorkspaceViewModel : ObservableObject
 
         SoundService.PlayClickSound();
         item.IsExpanded = !item.IsExpanded;
+    }
+
+    /// <summary>
+    /// WPF's StartupItemAi_Click: expands the row and asks
+    /// StartupIntelligenceService for a disable-impact briefing (forceOnline,
+    /// so the row button is the user's explicit online AI request; the batch
+    /// below stays offline-first). Never called by the self-test.
+    /// </summary>
+    private async Task AnalyzeItemAsync(StartupItem? item)
+    {
+        if (item is null)
+        {
+            return;
+        }
+
+        SoundService.PlayClickSound();
+
+        // If already expanded and analyzed, toggle collapse - WPF did the same.
+        if (item.IsExpanded && item.IsAiEnriched)
+        {
+            item.IsExpanded = false;
+            return;
+        }
+
+        item.IsExpanded = true;
+        StatusText = $"Analyzing disable impact for '{item.DisplayTitle}' with AI...";
+
+        try
+        {
+            StartupAiReport report = await StartupIntelligenceService.AnalyzeStartupItemAsync(item, forceOnline: true);
+
+            item.Description = report.Description;
+            item.DisableVerdict = report.Verdict;
+            item.DisableImpact = report.DisableImpact;
+            item.Recommendation = report.Recommendation;
+            item.IsAiEnriched = true;
+            item.AiProviderUsed = report.ProviderUsed;
+
+            StatusText = $"Analysis complete for '{item.DisplayTitle}' via {report.ProviderUsed}.";
+            LogRequested?.Invoke(
+                $"AI Startup Intelligence analyzed '{item.DisplayTitle}': {report.Verdict} ({report.ProviderUsed})",
+                LogLevel.Info);
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"AI analysis failed: {ex.Message}";
+            LogRequested?.Invoke($"Startup AI error: {ex.Message}", LogLevel.Warning);
+        }
+    }
+
+    /// <summary>
+    /// WPF's StartupBatchAi_Click: walks the not-yet-analyzed entries offline
+    /// first (forceOnline: false means the service falls back to its local
+    /// intelligence instead of querying a provider). Never called by the
+    /// self-test.
+    /// </summary>
+    private async Task BatchAnalyzeAsync()
+    {
+        if (_allItems.Count == 0)
+        {
+            return;
+        }
+
+        SoundService.PlayClickSound();
+
+        var unanalyzed = _allItems
+            .Where(x => !x.IsAiEnriched &&
+                        x.DisableVerdict == StartupDisableVerdict.SafeToDisable &&
+                        string.IsNullOrWhiteSpace(x.Recommendation))
+            .ToList();
+        if (unanalyzed.Count == 0)
+        {
+            unanalyzed = [.. _allItems.Where(x => !x.IsAiEnriched)];
+        }
+
+        if (unanalyzed.Count == 0)
+        {
+            StatusText = "All startup items are already analyzed and verified.";
+            return;
+        }
+
+        int count = 0;
+        int total = unanalyzed.Count;
+
+        try
+        {
+            foreach (StartupItem item in unanalyzed)
+            {
+                count++;
+                StatusText = $"AI analyzing startup items ({count}/{total}): {item.DisplayTitle}...";
+
+                StartupAiReport report = await StartupIntelligenceService.AnalyzeStartupItemAsync(item, forceOnline: false);
+                if (report is not null)
+                {
+                    item.Description = report.Description;
+                    item.DisableVerdict = report.Verdict;
+                    item.DisableImpact = report.DisableImpact;
+                    item.Recommendation = report.Recommendation;
+                    item.IsAiEnriched = true;
+                    item.AiProviderUsed = report.ProviderUsed;
+                }
+            }
+
+            StatusText = $"Batch AI analysis completed for {total} startup items.";
+            LogRequested?.Invoke($"Completed AI analysis on {total} startup programs.", LogLevel.Success);
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Batch analysis ended: {ex.Message}";
+        }
     }
 
     /// <summary>Single funnel for log lines raised outside this class.</summary>
