@@ -58,6 +58,9 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
     /// <summary>The scan the Cancel button can stop. Null between scans.</summary>
     private CancellationTokenSource? _cts;
 
+    /// <summary>Latch for the online batch analysis; the command's CanExecute reads it.</summary>
+    private bool _isBatchAnalyzing;
+
     /// <summary>Marshals scan progress onto the UI thread.</summary>
     private readonly Action<Action> _post;
 
@@ -123,6 +126,7 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
         ToggleSelectionCommand = new RelayCommand<LargeFileInfo>(ToggleSelection);
         ViewModeCommand = new RelayCommand<LargeFileViewMode>(SetViewMode);
         AnalyzeItemCommand = new AsyncRelayCommand<LargeFileInfo>(AnalyzeItemAsync);
+        BatchAnalyzeCommand = new AsyncRelayCommand(BatchAnalyzeAsync, () => !_isBatchAnalyzing && !IsLoading);
         OpenRecycleBinCommand = new RelayCommand(OpenRecycleBin);
 
         Items.CollectionChanged += OnItemsCollectionChanged;
@@ -156,6 +160,30 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool IsLoading { get; set; }
+
+    /// <summary>
+    /// Category filter tag in the shape of WPF's LargeFileCategoryComboBox
+    /// (MainWindow.xaml:4568): "ALL", "SAFE" (IsAiSafe only), "RISK" (unsafe only), or
+    /// an exact category name such as "Installer / ISO", "Game Asset / Pak",
+    /// "Video / Media" or "Archive" compared OrdinalIgnoreCase like WPF's filter.
+    /// </summary>
+    public string CategoryFilter { get; set; } = "ALL";
+
+    /// <summary>
+    /// Sort tag in the shape of WPF's LargeFileSortComboBox: "SIZE_DESC" (largest
+    /// first), "SIZE_ASC", "SAFETY" (SafetyScore desc, then size desc) or "NAME"
+    /// (file name asc). WPF's CollectionViewSource sort order, applied here by
+    /// rebuilding the visible Items list.
+    /// </summary>
+    public string SortMode { get; set; } = "SIZE_DESC";
+
+    /// <summary>
+    /// True while the online batch analysis fans out. The batch is the same
+    /// online-AI path WPF's AskAiSelectedLargeFilesBtn drove; it never runs inside
+    /// the self-test.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsBatchAnalyzing { get; set; }
 
     /// <summary>
     /// Empty-state copy. WPF rewrote the two TextBlocks in place for the scanning,
@@ -210,6 +238,7 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
     public IRelayCommand<LargeFileInfo> ToggleSelectionCommand { get; }
     public IRelayCommand<LargeFileViewMode> ViewModeCommand { get; }
     public IAsyncRelayCommand<LargeFileInfo> AnalyzeItemCommand { get; }
+    public IAsyncRelayCommand BatchAnalyzeCommand { get; }
     public IRelayCommand OpenRecycleBinCommand { get; }
 
     /// <summary>Read-only file enumeration and safety classification. Deletes nothing.</summary>
@@ -308,20 +337,102 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
     partial void OnIsLoadingChanged(bool value)
     {
         CancelScanCommand.NotifyCanExecuteChanged();
+        BatchAnalyzeCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(ShowEmptyState));
     }
+
+    partial void OnIsBatchAnalyzingChanged(bool value)
+    {
+        BatchAnalyzeCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(BatchAnalyzeText));
+    }
+
+    /// <summary>WPF's AskAiSelectedLargeFilesBtn label behaviour in one property.</summary>
+    public string BatchAnalyzeText => IsBatchAnalyzing ? "Analyzing..." : "Analyze with AI";
 
 
     private void ApplyViewMode()
     {
         Items.Clear();
-        foreach (LargeFileInfo f in _allFiles)
+        foreach (LargeFileInfo f in ApplyListFilters(_allFiles))
         {
             Items.Add(f);
         }
         HasItems = Items.Count > 0;
         OnPropertyChanged(nameof(ShowEmptyState));
         UpdateSelectionSummary();
+    }
+
+    /// <summary>
+    /// WPF's FilterLargeFileItem + LargeFileSort_Changed in one rebuild: the category
+    /// filter and the sort mode act on the scanned result without touching the scan
+    /// itself. Exposed so the view can re-apply either choice without a re-scan.
+    /// </summary>
+    public void ApplyFilters()
+    {
+        if (IsLoading) return;
+
+        ApplyViewMode();
+        SoundService.PlayClickSound();
+    }
+
+    /// <summary>Filter then sort, exactly the WPF order semantics.</summary>
+    private List<LargeFileInfo> ApplyListFilters(List<LargeFileInfo> files)
+        => FilterAndSort(files, CategoryFilter, SortMode);
+
+    /// <summary>
+    /// The filter + sort core, pure and internal so the parity suite can prove the
+    /// WPF semantics (FilterLargeFileItem + the four sort orders) on real data.
+    /// </summary>
+    internal static List<LargeFileInfo> FilterAndSort(
+        List<LargeFileInfo> files,
+        string categoryFilter,
+        string sortMode)
+    {
+        IEnumerable<LargeFileInfo> filtered = files;
+
+        if (categoryFilter != "ALL")
+        {
+            if (categoryFilter == "SAFE")
+            {
+                filtered = filtered.Where(f => f.IsAiSafe);
+            }
+            else if (categoryFilter == "RISK")
+            {
+                filtered = filtered.Where(f => !f.IsAiSafe);
+            }
+            else
+            {
+                // WPF compared the category text OrdinalIgnoreCase.
+                filtered = filtered.Where(f =>
+                    string.Equals(f.Category, categoryFilter, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+
+        List<LargeFileInfo> list = filtered.ToList();
+
+        switch (sortMode)
+        {
+            case "SIZE_ASC":
+                list.Sort((a, b) => a.SizeBytes.CompareTo(b.SizeBytes));
+                break;
+            case "SAFETY":
+                list.Sort((a, b) =>
+                {
+                    int byScore = b.SafetyScore.CompareTo(a.SafetyScore);
+                    return byScore != 0 ? byScore : b.SizeBytes.CompareTo(a.SizeBytes);
+                });
+                break;
+            case "NAME":
+                list.Sort((a, b) => string.Compare(a.FileName, b.FileName, StringComparison.OrdinalIgnoreCase));
+                break;
+            case "SIZE_DESC":
+            default:
+                list.Sort((a, b) => b.SizeBytes.CompareTo(a.SizeBytes));
+                break;
+        }
+
+        return list;
     }
 
     private void SetViewMode(LargeFileViewMode mode)
@@ -447,6 +558,70 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
 
         SoundService.PlayClickSound();
         await LargeFileHunterService.AnalyzeItemWithAiAsync(item);
+
+        // RefreshLargeFileHeroStats + AddLog, the WPF order: the hero numbers change
+        // when the verdict reclassifies safety.
+        UpdateStorageSummary();
+        LogRequested?.Invoke(
+            $"[LargeFiles] AI analyzed '{item.FileName}': {item.VerdictShort}",
+            LogLevel.Info);
+    }
+
+    /// <summary>
+    /// WPF's AskAiSelectedLargeFiles_Click (MainWindow.Settings.cs:339): analyze the
+    /// ticked files; with no explicit selection fall back to the files that were
+    /// never verified online, and if everything was verified, re-analyze all of
+    /// them. Broken out of progress four-wide by the shared service.
+    /// </summary>
+    public async Task BatchAnalyzeAsync()
+    {
+        if (_isBatchAnalyzing) return;
+
+        List<LargeFileInfo> selected = _allFiles.Where(f => f.IsSelected).ToList();
+        if (selected.Count == 0)
+        {
+            selected = _allFiles.Where(f => !f.IsAiOnlineVerified).ToList();
+        }
+        if (selected.Count == 0)
+        {
+            selected = _allFiles.ToList();
+        }
+
+        if (selected.Count == 0)
+        {
+            StatusText = "No files need AI analysis. Select files or run a scan first.";
+            return;
+        }
+
+        SoundService.PlayClickSound();
+        _isBatchAnalyzing = true;
+        IsBatchAnalyzing = true;
+
+        try
+        {
+            LogRequested?.Invoke(
+                $"[LargeFiles] Starting online AI analysis for {selected.Count} large files...",
+                LogLevel.Info);
+
+            // WPF wrote the percentage into the selection summary text; the status
+            // line is the same kind of feedback without stealing the selection.
+            var progress = new Progress<int>(pct => _post(() =>
+                StatusText = $"AI analyzing {selected.Count} files: {pct}%"));
+
+            await LargeFileHunterService.BatchAnalyzeWithAiAsync(selected, progress);
+
+            LogRequested?.Invoke(
+                $"[LargeFiles] Completed AI analysis for {selected.Count} files.",
+                LogLevel.Info);
+            StatusText = $"AI analysis completed for {selected.Count} files.";
+            UpdateStorageSummary();
+            UpdateSelectionSummary();
+        }
+        finally
+        {
+            _isBatchAnalyzing = false;
+            IsBatchAnalyzing = false;
+        }
     }
 
     private void UpdateSelectionSummary()

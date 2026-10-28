@@ -107,13 +107,14 @@ public sealed partial class LargeFilesWorkspaceView : UserControl
                 BorderThickness = item.IsSelected ? new Thickness(2) : new Thickness(1),
                 Background = new SolidColorBrush(ParseColor(item.IsAiSafe ? "#13271E" : "#27161A")),
                 BorderBrush = new SolidColorBrush(ParseColor(item.IsAiSafe ? "#00E676" : "#FF8A80")),
+                IsTapEnabled = true,
             };
 
             // WinUI has no FrameworkElement.ToolTip (that is WPF); the attached
             // property is the only way to set one from code.
             ToolTipService.SetToolTip(border, new ToolTip
             {
-                Content = $"{item.FileName}\nSize: {item.FormattedSize}\nCategory: {item.Category}\nVerdict: {item.VerdictShort}\n{item.FilePath}\n\nClick to select"
+                Content = $"{item.FileName}\nSize: {item.FormattedSize}\nCategory: {item.Category}\nVerdict: {item.VerdictShort}\n{item.FilePath}\n\nClick to select • Double-click to reveal in Explorer"
             });
 
             if (tileW > 45 && tileH > 28)
@@ -152,6 +153,19 @@ public sealed partial class LargeFilesWorkspaceView : UserControl
                 border.Child = panel;
             }
 
+            // WPF's treemap click semantics (MainWindow.LargeFiles.cs:113): the second
+            // click of a double-tap reveals the file in Explorer; both events fire, so
+            // the reveal handler wins and the selection toggle is skipped to avoid
+            // an extra toggle around the reveal.
+            // WPF's treemap click semantics (MainWindow.LargeFiles.cs:113): a single
+            // click toggles selection, a double-click reveals the file in Explorer.
+            // WinUI raises Tapped for the first tap and DoubleTapped for the second,
+            // so the net effect is one selection toggle plus the reveal - exactly
+            // what the WPF handler produced.
+            border.DoubleTapped += (_, _) =>
+            {
+                ViewModel.RevealCommand.Execute(item);
+            };
             border.Tapped += (_, _) =>
             {
                 ViewModel.ToggleSelectionCommand.Execute(item);
@@ -199,6 +213,26 @@ public sealed partial class LargeFilesWorkspaceView : UserControl
             ViewModel.MinSizeBytes = bytes;
             SoundService.PlayClickSound();
             _ = ViewModel.ScanAsync();
+        }
+    }
+
+    /// <summary>WPF's LargeFileCategoryFilter_Changed: filter without a re-scan.</summary>
+    private void OnCategoryFilterChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if ((sender as ComboBox)?.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+        {
+            ViewModel.CategoryFilter = tag;
+            ViewModel.ApplyFilters();
+        }
+    }
+
+    /// <summary>WPF's LargeFileSort_Changed: re-order without a re-scan.</summary>
+    private void OnSortModeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if ((sender as ComboBox)?.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+        {
+            ViewModel.SortMode = tag;
+            ViewModel.ApplyFilters();
         }
     }
 

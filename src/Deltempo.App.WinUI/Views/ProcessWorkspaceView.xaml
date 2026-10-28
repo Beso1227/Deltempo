@@ -16,15 +16,21 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:Deltempo.App.WinUI.ViewModels"
+    xmlns:converters="using:Deltempo.App.WinUI.Converters"
     mc:Ignorable="d"
     x:DataType="vm:ProcessWorkspaceViewModel"
     d:DesignWidth="900"
     d:DesignHeight="460">
 
+    <UserControl.Resources>
+        <converters:BoolNegationConverter x:Key="NotBool" />
+    </UserControl.Resources>
+
     <Grid Padding="18,16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -166,5 +172,18 @@
                    FontSize="11"
                    Foreground="{ThemeResource TextMutedBrush}"
                    HorizontalAlignment="Left" />
+
+        <!-- WPF's footer Trim All button (MainWindow.xaml:5231): the one press that
+             runsets the shared RAM optimization across every eligible task instead
+             of trimming one row. -->
+        <Button Grid.Row="3"
+                Content="Trim All Background Memory"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Left"
+                Style="{StaticResource AccentButtonStyle}"
+                IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource NotBool}}"
+                Command="{x:Bind ViewModel.TrimAllCommand, Mode=OneTime}"
+                AutomationProperties.Name="Trim background memory of all listed processes"
+                Margin="0,10,0,0" />
     </Grid>
 </UserControl>

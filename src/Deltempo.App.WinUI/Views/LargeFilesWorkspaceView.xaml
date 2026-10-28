@@ -128,6 +128,18 @@
                             Command="{Binding DataContext.ViewModel.RevealCommand, ElementName=Root}"
                             CommandParameter="{Binding}" />
                         <Button
+                            Content="Ask AI"
+                            ToolTipService.ToolTip="Connect to AI / Internet to fetch real-world info on this file"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource PillButtonBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="10,4"
+                            FontSize="11"
+                            Margin="0,0,6,0"
+                            Command="{Binding DataContext.ViewModel.AnalyzeItemCommand, ElementName=Root}"
+                            CommandParameter="{Binding}" />
+                        <Button
                             Content="Recycle"
                             ToolTipService.ToolTip="Move this file to the Windows Recycle Bin."
                             Background="{StaticResource DestructiveRedBrush}"
@@ -238,6 +250,35 @@
             <RadioButton GroupName="LargeFileSize" Content="1 GB" Style="{StaticResource LargeFileChip}" Tag="1073741824" Checked="OnSizeChanged" />
             <RadioButton GroupName="LargeFileSize" Content="5 GB" Style="{StaticResource LargeFileChip}" Tag="5368709120" Checked="OnSizeChanged" />
 
+            <!-- WPF's LargeFileCategoryComboBox port: the same tags drive the
+                 OrdinalIgnoreCase category match, SAFE = safe-only, RISK = unsafe-only. -->
+            <TextBlock Text="Filter:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,6,0" />
+            <ComboBox x:Name="CategoryFilterCombo"
+                      Width="140"
+                      SelectionChanged="OnCategoryFilterChanged"
+                      AutomationProperties.Name="Filter large files by category">
+                <ComboBoxItem Content="All Items" Tag="ALL" IsSelected="True" />
+                <ComboBoxItem Content="Safe to Delete Only" Tag="SAFE" />
+                <ComboBoxItem Content="Protected Files Only" Tag="RISK" />
+                <ComboBoxItem Content="Installers &amp; ISOs" Tag="Installer / ISO" />
+                <ComboBoxItem Content="Game Assets" Tag="Game Asset / Pak" />
+                <ComboBoxItem Content="Media &amp; Videos" Tag="Video / Media" />
+                <ComboBoxItem Content="Archives" Tag="Archive" />
+            </ComboBox>
+
+            <!-- WPF's LargeFileSortComboBox port. -->
+            <TextBlock Text="Sort:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,6,0" />
+            <ComboBox x:Name="SortModeCombo"
+                      Width="120"
+                      SelectionChanged="OnSortModeChanged"
+                      AutomationProperties.Name="Sort large files">
+                <ComboBoxItem Content="Largest First" Tag="SIZE_DESC" IsSelected="True" />
+                <ComboBoxItem Content="Smallest First" Tag="SIZE_ASC" />
+                <ComboBoxItem Content="Safety Verdict" Tag="SAFETY" />
+                <ComboBoxItem Content="File Name" Tag="NAME" />
+            </ComboBox>
+
+
             <TextBlock Text="View:" FontSize="10" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,6,0" />
             <RadioButton GroupName="LargeFileView" Content="List" Style="{StaticResource LargeFileChip}" Tag="LIST" IsChecked="True" Checked="OnViewModeChanged" />
             <RadioButton GroupName="LargeFileView" Content="Treemap" Style="{StaticResource LargeFileChip}" Tag="TREEMAP" Checked="OnViewModeChanged" />
@@ -317,6 +358,23 @@
                         Padding="11,5"
                         FontSize="10.5"
                         Command="{x:Bind ViewModel.OpenRecycleBinCommand, Mode=OneTime}" />
+
+                    <!-- WPF's AskAiSelectedLargeFilesBtn (MainWindow.xaml:4672 /
+                         MainWindow.Settings.cs:339): ticked files first, then anything
+                         never verified online, then everything scanned. Online AI -
+                         never wired into the self-test. -->
+                    <Button
+                        Content="{x:Bind ViewModel.BatchAnalyzeText, Mode=OneWay}"
+                        ToolTipService.ToolTip="Connect to AI / Internet to fetch real-world info on the selected large files"
+                        AutomationProperties.Name="Ask AI about the selected large files"
+                        Background="{ThemeResource PillButtonBgBrush}"
+                        BorderBrush="{ThemeResource PillButtonBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Padding="11,5"
+                        FontSize="10.5"
+                        Command="{x:Bind ViewModel.BatchAnalyzeCommand, Mode=OneTime}"
+                        Margin="0,0,8,0" />
                     <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
                                FontSize="10.5"
                                Foreground="{ThemeResource TextMutedBrush}"

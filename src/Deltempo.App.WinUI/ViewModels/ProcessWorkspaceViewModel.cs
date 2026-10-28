@@ -65,6 +65,7 @@ public sealed partial class ProcessWorkspaceViewModel : ObservableObject
         RefreshCommand = new AsyncRelayCommand(RefreshAsync);
         TrimCommand = new AsyncRelayCommand<ProcessRow>(TrimAsync);
         EndTaskCommand = new AsyncRelayCommand<ProcessRow>(EndTaskAsync);
+        TrimAllCommand = new AsyncRelayCommand(TrimAllAsync, () => !IsBusy);
     }
 
     public ObservableCollection<ProcessRow> Processes { get; } = new();
@@ -83,6 +84,9 @@ public sealed partial class ProcessWorkspaceViewModel : ObservableObject
     public IAsyncRelayCommand<ProcessRow> TrimCommand { get; }
 
     public IAsyncRelayCommand<ProcessRow> EndTaskCommand { get; }
+
+    /// <summary>WPF's TrimAllProcesses_Click footer button (MainWindow.xaml:5231).</summary>
+    public IAsyncRelayCommand TrimAllCommand { get; }
 
     public event Action<string, LogLevel>? LogRequested;
 
@@ -189,6 +193,42 @@ public sealed partial class ProcessWorkspaceViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    /// <summary>
+    /// WPF's TrimAllProcesses_Click (MainWindow.SystemManagers.cs:477): the shared
+    /// RAM optimization pass over every eligible task, then a reload of the list.
+    /// Privileged calls live in the services; this only decides whether to run.
+    /// </summary>
+    public async Task TrimAllAsync()
+    {
+        if (IsBusy) return;
+
+        SoundService.PlayClickSound();
+        IsBusy = true;
+
+        try
+        {
+            var result = await MemoryOptimizerService.OptimizeRamAsync();
+
+            StatusText = $"Trimmed background working sets across {result.ProcessesOptimized} tasks.";
+            LogRequested?.Invoke(
+                $"[Process Optimizer] Trimmed background working sets across {result.ProcessesOptimized} tasks " +
+                $"in {result.ExecutionTimeMs}ms. Trimmed pages are re-faulted from disk on next access.",
+                LogLevel.Success);
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Trim-all failed: {ex.Message}";
+            LogRequested?.Invoke(StatusText, LogLevel.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+        // WPF reloaded the list after the pass.
+        await RefreshAsync();
     }
 
     /// <summary>
