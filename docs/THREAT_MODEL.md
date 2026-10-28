@@ -48,6 +48,7 @@ This document identifies potential attack vectors, adversarial edge cases, and t
 * **Mitigation (as implemented today)**:
   * Downloads are restricted to HTTPS and to an allowlisted host + exact release path prefix (`Core/Update/UpdateSecurityValidator.cs`).
   * The staged payload is verified before it is ever executed: SHA-256 against the release manifest, plus size, PE-header and version checks (`PatchIntegrityVerifier.VerifyStagedArtifact`), and any mismatch aborts the transaction.
+  * **Checksum gate (fail closed):** in the no-manifest update branch, a release that advertises a `checksums.sha256` asset but whose hash cannot be fetched or parsed is REJECTED (`UpdateService.EnsurePublishedChecksumAvailable`), not silently verified by Authenticode alone. Empty-hash staging remains allowed only when the release genuinely lists no checksums asset; that accepted fallback keeps Authenticode + HTTPS allowlist + size checks as its defense layers.
   * Released binaries are Authenticode-signed by the release workflow whenever a signing certificate is configured (`REQUIRE_SIGNING` can make a missing certificate a hard failure).
 
 * **Known gaps (do not assume these are covered)**:
