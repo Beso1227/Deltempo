@@ -120,10 +120,15 @@ jobs:
           }
 
           # CA5350/CA5351 (weak crypto) and CA2201 (reserved exception type) indicate real
-          # security or correctness bugs, and are genuinely at zero today. CA1062/CA1816/
-          # CA2016 do fire in this codebase but are dominated by style-level noise, so they
-          # are reported rather than gated until their families are cleaned up.
-          $blocking = @('CA5350','CA5351','CA2201')
+          # security or correctness bugs, and are genuinely at zero today.
+          # Promoted families (Phase D, 2026-10-28) - silenced-by-guard, then promoted to
+          # blocking with before -> after counts from the advisory build:
+          #   CA1062 (public-surface null validation): 89 -> 0 (ArgumentNullException guards)
+          #   CA2016 (cancellation forwarding): 2 -> 0 (one intentional non-propagation
+          #     in UpdateTransactionCoordinator now explicit with CancellationToken.None)
+          #   CA1816 (dispose patterns): 38 -> 0 (GC.SuppressFinalize in test Dispose)
+          # All three were fixed with no pragmas/suppressions and no signature changes.
+          $blocking = @('CA5350','CA5351','CA2201','CA1062','CA2016','CA1816')
           $hits = $blocking | Where-Object { $byRule.ContainsKey($_) }
           if ($hits) {
             foreach ($hit in $hits) { Write-Host "::error file=Directory.Build.props::Blocking analyzer rule $hit reported $($byRule[$hit]) occurrence(s)." }
