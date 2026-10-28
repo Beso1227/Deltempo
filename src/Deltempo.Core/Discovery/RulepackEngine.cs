@@ -31,6 +31,8 @@ public static class RulepackEngine
     /// </summary>
     public static List<string> ExpandPathTemplates(IEnumerable<string> templates)
     {
+        ArgumentNullException.ThrowIfNull(templates);
+
         var resolvedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var steamLibraries = new Lazy<List<string>>(MultiDriveDetector.DiscoverSteamLibraries);
         var driveRoots = new Lazy<List<string>>(MultiDriveDetector.GetReadyDriveRoots);
@@ -144,6 +146,8 @@ public static class RulepackEngine
     /// </summary>
     public static List<TargetFolderInfo> BuildTargetFolderInfos(IEnumerable<RulepackDefinition> rules, bool isAdmin)
     {
+        ArgumentNullException.ThrowIfNull(rules);
+
         var targets = new List<TargetFolderInfo>();
 
         foreach (var rule in rules)

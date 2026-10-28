@@ -7,6 +7,8 @@ public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
+        ArgumentNullException.ThrowIfNull(args);
+
         try
         {
             Console.OutputEncoding = Encoding.UTF8;

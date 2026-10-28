@@ -49,8 +49,16 @@ public record DriverMaintenanceResult(bool Success, long BytesFreed, int Package
         message = Message;
     }
 
-    public static implicit operator (bool Success, string Message)(DriverMaintenanceResult r) => (r.Success, r.Message);
-    public static implicit operator (bool Success, long BytesFreed, int PackagesPurged, string Message)(DriverMaintenanceResult r) => (r.Success, r.BytesFreed, r.PackagesPurged, r.Message);
+    public static implicit operator (bool Success, string Message)(DriverMaintenanceResult r)
+    {
+        ArgumentNullException.ThrowIfNull(r);
+        return (r.Success, r.Message);
+    }
+    public static implicit operator (bool Success, long BytesFreed, int PackagesPurged, string Message)(DriverMaintenanceResult r)
+    {
+        ArgumentNullException.ThrowIfNull(r);
+        return (r.Success, r.BytesFreed, r.PackagesPurged, r.Message);
+    }
 }
 
 /// <summary>

@@ -62,6 +62,8 @@ public static class SingleInstanceManager
 
     public static void NotifyExistingInstance(params string[] processNames)
     {
+        ArgumentNullException.ThrowIfNull(processNames);
+
         try
         {
             uint msg = RegisterWindowMessage(ShowWindowMessageName);

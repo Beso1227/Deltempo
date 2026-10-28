@@ -354,6 +354,8 @@ public static class SystemRepairService
         Action<double>? onProgress = null,
         CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(driveLetter);
+
         string system32 = Environment.GetFolderPath(Environment.SpecialFolder.System);
         string chkdskPath = Path.Combine(system32, "chkdsk.exe");
 

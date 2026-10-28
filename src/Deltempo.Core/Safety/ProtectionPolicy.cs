@@ -801,6 +801,8 @@ public static class ProtectionPolicy
 
     public static bool IsPackageOrScriptCachePath(string pathLower)
     {
+        ArgumentNullException.ThrowIfNull(pathLower);
+
         foreach (var marker in PackageAndScriptCachePathMarkers)
         {
             if (pathLower.Contains(marker, StringComparison.OrdinalIgnoreCase))

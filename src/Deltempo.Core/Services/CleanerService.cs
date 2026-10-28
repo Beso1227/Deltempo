@@ -561,6 +561,8 @@ public partial class CleanerService
 
     public async Task ScanFolderAsync(TargetFolderInfo folder, Action<string, LogLevel> logAction, CancellationToken ct, bool safeMode24Hours = false)
     {
+        ArgumentNullException.ThrowIfNull(folder);
+
         folder.IsScanning = true;
         folder.StatusMessage = "Scanning...";
 
@@ -859,6 +861,8 @@ public partial class CleanerService
         Action<double> progressReport,
         CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(folder);
+
         folder.IsCleaning = true;
         folder.StatusMessage = "Cleaning...";
 
@@ -1358,7 +1362,11 @@ public partial class CleanerService
     /// <summary>
     /// Public wrapper for dry-run planning. Returns resolved directories for a target folder.
     /// </summary>
-    public static List<string> ResolveDirectoriesForFolderPublic(TargetFolderInfo folder) => ResolveDirectoriesForFolder(folder);
+    public static List<string> ResolveDirectoriesForFolderPublic(TargetFolderInfo folder)
+    {
+        ArgumentNullException.ThrowIfNull(folder);
+        return ResolveDirectoriesForFolder(folder);
+    }
 
 
 
@@ -1383,6 +1391,9 @@ public partial class CleanerService
 
     public static string GenerateAuditReport(IEnumerable<TargetFolderInfo> targets, CleanSummary summary, bool safeMode)
     {
+        ArgumentNullException.ThrowIfNull(targets);
+        ArgumentNullException.ThrowIfNull(summary);
+
         var sb = new StringBuilder();
         sb.AppendLine("================================================================================");
         sb.AppendLine("                  DELTEMPO SYSTEM PURGE & AUDIT REPORT                          ");

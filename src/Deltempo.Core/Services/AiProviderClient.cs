@@ -113,6 +113,8 @@ public static class AiProviderClient
     /// <exception cref="AiProviderException">Always, for any provider-level failure.</exception>
     public static async Task<string> CompleteAsync(AiChatRequest request, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         if (string.IsNullOrWhiteSpace(request.ModelId))
         {
             throw new AiProviderException(AiFailureKind.ModelUnavailable,

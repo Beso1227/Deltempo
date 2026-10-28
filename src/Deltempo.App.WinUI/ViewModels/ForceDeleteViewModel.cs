@@ -583,6 +583,8 @@ public sealed partial class ForceDeleteTargetRowViewModel : ObservableObject
 {
     public ForceDeleteTargetRowViewModel(ForceDeleteTargetItem item, IRelayCommand<ForceDeleteTargetRowViewModel> toggleCommand)
     {
+        ArgumentNullException.ThrowIfNull(item);
+
         Item = item;
         ToggleCommand = toggleCommand;
         IsSelected = item.IsSelected;

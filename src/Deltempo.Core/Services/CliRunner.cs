@@ -16,6 +16,8 @@ public static partial class CliRunner
 
     public static async Task<int> RunAsync(string[] args)
     {
+        ArgumentNullException.ThrowIfNull(args);
+
         Console.WriteLine();
 
         string cmd = args.Length > 0 ? args[0].ToLowerInvariant().TrimStart('-') : "help";

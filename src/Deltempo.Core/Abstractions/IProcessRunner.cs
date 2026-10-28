@@ -157,6 +157,8 @@ public class SystemProcessRunner : IProcessRunner
     /// </remarks>
     public static string DrainOutput(Process process, TimeSpan timeout)
     {
+        ArgumentNullException.ThrowIfNull(process);
+
         var stdoutTask = ReadAllAsync(process.StandardOutput, CancellationToken.None);
         var stderrTask = ReadAllAsync(process.StandardError, CancellationToken.None);
 

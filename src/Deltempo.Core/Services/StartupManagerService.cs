@@ -237,6 +237,8 @@ public static class StartupManagerService
 
     public static void PopulateStartupIntelligence(StartupItem item)
     {
+        ArgumentNullException.ThrowIfNull(item);
+
         var cached = StartupIntelligenceService.GetCachedReport(item);
         if (cached != null)
         {
@@ -557,6 +559,8 @@ public static class StartupManagerService
 
     public static bool IsProtectedStartupItem(StartupItem item)
     {
+        ArgumentNullException.ThrowIfNull(item);
+
         if (ProtectedStartupNames.Contains(item.Name)) return true;
 
         var cmdLower = (item.Command + " " + item.ExePath).ToLowerInvariant();
@@ -573,6 +577,8 @@ public static class StartupManagerService
 
     public static bool ToggleStartupItem(StartupItem item, bool enable)
     {
+        ArgumentNullException.ThrowIfNull(item);
+
         try
         {
             // Protect essential OS security and boot components from being disabled
@@ -742,6 +748,8 @@ public static class StartupManagerService
 
     public static bool RemoveOrphanedStartupItem(StartupItem item)
     {
+        ArgumentNullException.ThrowIfNull(item);
+
         try
         {
             if (IsProtectedStartupItem(item)) return false;
@@ -823,6 +831,8 @@ public static class StartupManagerService
 
     public static List<StartupItem> OptimizeBoot(IEnumerable<StartupItem> items)
     {
+        ArgumentNullException.ThrowIfNull(items);
+
         var disabledList = new List<StartupItem>();
         foreach (var item in items)
         {

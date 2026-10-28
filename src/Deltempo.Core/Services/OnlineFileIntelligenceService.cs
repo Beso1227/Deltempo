@@ -265,6 +265,8 @@ public static class OnlineFileIntelligenceService
 
     public static OnlineSafetyReport GenerateBuiltInKnowledgeReport(FileForensicProfile profile)
     {
+        ArgumentNullException.ThrowIfNull(profile);
+
         var report = new OnlineSafetyReport
         {
             FilePath = profile.FilePath,

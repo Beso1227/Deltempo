@@ -62,8 +62,11 @@ public static class UpdateService
     public static Version CurrentVersion =>
         Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 0, 0);
 
-    public static Version NormalizeVersion(Version v) =>
-        new Version(v.Major, Math.Max(0, v.Minor), Math.Max(0, v.Build));
+    public static Version NormalizeVersion(Version v)
+    {
+        ArgumentNullException.ThrowIfNull(v);
+        return new Version(v.Major, Math.Max(0, v.Minor), Math.Max(0, v.Build));
+    }
 
     public static Version ParseReleaseVersion(string tagName)
     {

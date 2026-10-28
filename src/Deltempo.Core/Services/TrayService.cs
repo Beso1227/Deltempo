@@ -803,6 +803,9 @@ public static class TrayService
 
     public static void ShowNotification(string title, string message)
     {
+        ArgumentNullException.ThrowIfNull(title);
+        ArgumentNullException.ThrowIfNull(message);
+
         if (!_isInitialized || _trayHwnd == IntPtr.Zero) return;
         var nid = CreateNotifyData(_trayHwnd);
         nid.uFlags = NIF_INFO | NIF_ICON;
@@ -817,6 +820,8 @@ public static class TrayService
 
     public static void CheckLowDiskSpaceAndNotify(DriveTelemetryInfo telemetry)
     {
+        ArgumentNullException.ThrowIfNull(telemetry);
+
         if (!SettingsService.Current.LowDiskAlertEnabled) return;
 
         double freeGb = (double)telemetry.FreeBytes / (1024 * 1024 * 1024);

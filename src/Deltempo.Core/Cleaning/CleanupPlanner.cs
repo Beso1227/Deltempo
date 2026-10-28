@@ -19,6 +19,8 @@ public static class CleanupPlanner
         bool sendToRecycleBin = false,
         CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(directories);
+
         // Actions are accumulated into a local List and handed to the plan at the end. Writing
         // them one at a time through the public Actions list is the same cost, but doing it
         // directly also means no opportunity to pre-size. More importantly, this keeps the

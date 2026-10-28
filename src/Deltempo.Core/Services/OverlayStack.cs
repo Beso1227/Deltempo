@@ -54,6 +54,8 @@ public static class OverlayStack
     /// </summary>
     public static bool IsTopmost(FrameworkElement candidate)
     {
+        ArgumentNullException.ThrowIfNull(candidate);
+
         if (candidate.Parent is not Panel parent) return true;
 
         int candidateZ = Panel.GetZIndex(candidate);

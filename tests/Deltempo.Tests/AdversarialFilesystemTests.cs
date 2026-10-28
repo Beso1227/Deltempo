@@ -29,6 +29,7 @@ public class AdversarialFilesystemTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try
         {
             if (Directory.Exists(_sandboxDir))

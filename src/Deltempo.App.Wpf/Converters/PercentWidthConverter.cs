@@ -15,6 +15,8 @@ public class PercentWidthConverter : IMultiValueConverter
 {
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
+        ArgumentNullException.ThrowIfNull(values);
+
         if (values.Length < 2)
             return new GridLength(0);
 

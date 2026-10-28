@@ -21,6 +21,7 @@ public class CleanerServiceTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try
         {
             if (Directory.Exists(_testSandboxDir))

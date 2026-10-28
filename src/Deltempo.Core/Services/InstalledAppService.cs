@@ -542,6 +542,8 @@ public static class InstalledAppService
 
     public static IReadOnlyList<string> FindResidualLeftovers(InstalledAppItem app)
     {
+        ArgumentNullException.ThrowIfNull(app);
+
         var leftovers = new List<string>();
         if (string.IsNullOrWhiteSpace(app.DisplayName) || app.DisplayName.Length < 3)
             return leftovers;
@@ -684,6 +686,8 @@ public static class InstalledAppService
 
     public static IReadOnlyList<Process> GetRunningProcesses(InstalledAppItem app)
     {
+        ArgumentNullException.ThrowIfNull(app);
+
         var matched = new List<Process>();
         try
         {
@@ -745,6 +749,8 @@ public static class InstalledAppService
 
     public static async Task<bool> UninstallAppAsync(InstalledAppItem app, bool silent = false, int timeoutMs = 180000)
     {
+        ArgumentNullException.ThrowIfNull(app);
+
         // First terminate any running instances of the app so uninstaller isn't blocked
         await TerminateAppProcessesAsync(app);
 

@@ -114,6 +114,8 @@ public class LargeFileInfo : INotifyPropertyChanged
 
     public void ApplyOnlineReport(OnlineSafetyReport report)
     {
+        ArgumentNullException.ThrowIfNull(report);
+
         OnlineReport = report;
         AiVerdict = report.VerdictDisplay;
         VerdictShort = report.VerdictDisplay;
@@ -485,6 +487,8 @@ public static class LargeFileHunterService
 
     public static (string Category, string Icon) ClassifyFileCategory(string ext)
     {
+        ArgumentNullException.ThrowIfNull(ext);
+
         var lower = ext.ToLowerInvariant();
         return lower switch
         {
@@ -542,6 +546,8 @@ public static class LargeFileHunterService
 
     public static (int Succeeded, int Failed, long TotalFreedBytes) BatchMoveToRecycleBin(IEnumerable<LargeFileInfo> files)
     {
+        ArgumentNullException.ThrowIfNull(files);
+
         int succ = 0;
         int fail = 0;
         long freed = 0;

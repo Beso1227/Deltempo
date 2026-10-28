@@ -161,6 +161,8 @@ public sealed record FootprintRowViewModel
 
     public static FootprintRowViewModel FromEntry(AppDataFootprintEntry entry, long largestBytes)
     {
+        ArgumentNullException.ThrowIfNull(entry);
+
         double share = largestBytes > 0 ? (double)entry.SizeBytes / largestBytes * 100.0 : 0;
 
         (string badgeText, string foreground, string background, string bar) = entry switch

@@ -103,6 +103,8 @@ public sealed class CleaningPipelineViewModel : ObservableObject
         bool safeMode,
         bool recycleBin)
     {
+        ArgumentNullException.ThrowIfNull(selectedTargets);
+
         long totalEstimatedBytes = selectedTargets.Sum(t => t.SizeBytes);
         long totalEstimatedFiles = selectedTargets.Sum(t => (long)t.FileCount);
 
@@ -151,6 +153,8 @@ public sealed class CleaningPipelineViewModel : ObservableObject
     /// </summary>
     public static bool MatchesFilter(TargetFolderInfo target, string? filterTag, string? searchText)
     {
+        ArgumentNullException.ThrowIfNull(target);
+
         // 1. Tag filter
         if (filterTag == "SAFE" && !target.IsSafeModeEligible) return false;
         if (filterTag == "SYSTEM" &&

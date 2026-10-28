@@ -23,6 +23,7 @@ public class ForensicsKnowledgeTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try { Directory.Delete(_sandbox, true); } catch { }
     }
 

@@ -16,6 +16,7 @@ public class NativeFileScannerTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try
         {
             if (Directory.Exists(_testRoot))

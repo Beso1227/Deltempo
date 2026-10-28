@@ -22,6 +22,7 @@ public class SettingsStoreTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try { Directory.Delete(_dir, recursive: true); } catch { }
     }
 

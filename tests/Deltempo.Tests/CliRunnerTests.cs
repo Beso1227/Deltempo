@@ -17,6 +17,7 @@ public class CliRunnerTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         CliRunner.TargetsResolver = null;
         try
         {

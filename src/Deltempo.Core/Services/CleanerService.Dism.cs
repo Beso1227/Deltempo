@@ -138,6 +138,8 @@ public partial class CleanerService
 
     public static long ParseSizeStringToBytes(string sizeStr)
     {
+        ArgumentNullException.ThrowIfNull(sizeStr);
+
         try
         {
             var trimmed = sizeStr.Trim();

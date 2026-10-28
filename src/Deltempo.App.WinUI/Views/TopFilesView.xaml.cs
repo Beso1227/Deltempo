@@ -30,6 +30,8 @@ public sealed partial class TopFilesView : UserControl
     /// </summary>
     public void Open(TargetFolderInfo target)
     {
+        ArgumentNullException.ThrowIfNull(target);
+
         IEnumerable<JunkFileItem> files = target.TopFiles ?? [];
         FilesList.ItemsSource = files.ToList();
         TitleText.Text = $"{target.Name} \u2014 Top Junk Files";

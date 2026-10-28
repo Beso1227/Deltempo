@@ -29,6 +29,7 @@ public class OrphanEvidenceTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try { if (Directory.Exists(_sandbox)) Directory.Delete(_sandbox, true); }
         catch { }
     }

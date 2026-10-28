@@ -35,6 +35,7 @@ public class JunctionSafetyTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try
         {
             // NEVER Directory.Delete(sandbox, recursive:true): the sandbox contains junctions

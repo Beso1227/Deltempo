@@ -23,6 +23,8 @@ public partial class LockedFilesModal : UserControl
 
     public void PopulateAndOpen(IEnumerable<LockedFileItem> lockedItems)
     {
+        ArgumentNullException.ThrowIfNull(lockedItems);
+
         _items.Clear();
         foreach (var item in lockedItems)
         {

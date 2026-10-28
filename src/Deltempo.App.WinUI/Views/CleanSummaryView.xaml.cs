@@ -38,6 +38,8 @@ public sealed partial class CleanSummaryView : UserControl
     /// <summary>Fills the summary from a completed run.</summary>
     public void Show(CleanSummary summary, IReadOnlyList<TargetFolderInfo> targets, bool safeMode)
     {
+        ArgumentNullException.ThrowIfNull(summary);
+
         _summary = summary;
         _targets = targets;
         _safeMode = safeMode;

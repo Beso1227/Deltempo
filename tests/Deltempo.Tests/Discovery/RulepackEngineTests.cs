@@ -17,6 +17,7 @@ public class RulepackEngineTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try
         {
             if (Directory.Exists(_testRulesDir))

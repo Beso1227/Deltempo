@@ -269,6 +269,8 @@ public sealed partial class MemoryZoneRowViewModel : ObservableObject
 {
     public MemoryZoneRowViewModel(MemoryAreaSnapshot snapshot, IAsyncRelayCommand<MemoryZoneRowViewModel> flushCommand)
     {
+        ArgumentNullException.ThrowIfNull(snapshot);
+
         Snapshot = snapshot;
         FlushCommand = flushCommand;
         IsSelected = snapshot.IsSelected;

@@ -111,6 +111,8 @@ public static class CliRegistrationService
     /// <returns>Process exit code (0 on success).</returns>
     public static async Task<int> HandleRegisterCommandAsync(string[] args, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(args);
+
         bool remove = HasAnyFlag(args, "--remove", "--unregister", "-r") ||
                       (args.Length > 0 && args[0].Equals("unregister", StringComparison.OrdinalIgnoreCase));
         bool statusOnly = HasAnyFlag(args, "--status");

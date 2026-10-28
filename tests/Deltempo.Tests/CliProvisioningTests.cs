@@ -24,6 +24,7 @@ public class CliProvisioningTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try { if (Directory.Exists(_sandbox)) Directory.Delete(_sandbox, recursive: true); } catch { }
     }
 

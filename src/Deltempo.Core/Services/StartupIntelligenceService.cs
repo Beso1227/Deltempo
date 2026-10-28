@@ -104,6 +104,8 @@ public static class StartupIntelligenceService
     /// </remarks>
     public static string GetCacheKey(string name, string exePath, AppSettings settings)
     {
+        ArgumentNullException.ThrowIfNull(settings);
+
         string provider = string.IsNullOrWhiteSpace(settings.AiProvider) ? "BuiltIn" : settings.AiProvider;
         string model = AiModelCatalog.ResolveModelId(settings.AiProvider, settings.AiModelName);
         return $"{provider}|{model}|{GetCacheKey(name, exePath)}";
@@ -116,12 +118,16 @@ public static class StartupIntelligenceService
 
     public static StartupAiReport? GetCachedReport(StartupItem item)
     {
+        ArgumentNullException.ThrowIfNull(item);
+
         string key = GetCacheKey(item.Name, item.ExePath, SettingsService.Current);
         return MemoryCache.TryGetValue(key, out var report) ? report : null;
     }
 
     public static async Task<StartupAiReport> AnalyzeStartupItemAsync(StartupItem item, bool forceOnline = false, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(item);
+
         var settings = SettingsService.Current;
         string cacheKey = GetCacheKey(item.Name, item.ExePath, settings);
 
@@ -228,6 +234,8 @@ public static class StartupIntelligenceService
 
     public static StartupAiReport GenerateLocalIntelligenceReport(StartupItem item)
     {
+        ArgumentNullException.ThrowIfNull(item);
+
         var entry = StartupIntelligenceCatalog.FindCatalogEntry(item.Name, item.ExePath, item.Command) ??
                     StartupIntelligenceCatalog.ClassifyUnknownStartup(item.Name, item.ExePath, item.Command, item.Publisher);
 

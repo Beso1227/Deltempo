@@ -306,6 +306,8 @@ public static class ProcessOptimizerService
 
     public static (bool Success, long FreedBytes) TrimProcessMemoryEx(IEnumerable<int> pids)
     {
+        ArgumentNullException.ThrowIfNull(pids);
+
         SetIncreasePrivilege(SeDebugName);
         SetIncreasePrivilege(SeIncreaseQuotaName);
 
@@ -367,6 +369,8 @@ public static class ProcessOptimizerService
     /// </summary>
     public static bool SafeTerminateProcess(IEnumerable<int> pids, IReadOnlyDictionary<int, string>? expectedNames = null)
     {
+        ArgumentNullException.ThrowIfNull(pids);
+
         SetIncreasePrivilege(SeDebugName);
 
         bool anySuccess = false;

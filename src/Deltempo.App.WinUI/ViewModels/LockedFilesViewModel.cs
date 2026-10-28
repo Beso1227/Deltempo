@@ -67,6 +67,8 @@ public sealed partial class LockedFilesViewModel : ObservableObject
     /// <summary>Replaces the rows, mirroring the WPF PopulateAndOpen path.</summary>
     public void Load(IEnumerable<LockedFileItem> lockedItems)
     {
+        ArgumentNullException.ThrowIfNull(lockedItems);
+
         Rows.Clear();
         foreach (LockedFileItem item in lockedItems)
         {

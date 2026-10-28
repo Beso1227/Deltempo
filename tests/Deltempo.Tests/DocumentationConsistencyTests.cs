@@ -163,6 +163,7 @@ public class DocumentationConsistencyTests
     [InlineData("SECURITY.md")]
     public void PublishedTestCount_IsConsistentAcrossAiFacingAndWebsiteFiles(string relativePath)
     {
+        ArgumentNullException.ThrowIfNull(relativePath);
         var root = RepoRoot();
         var text = File.ReadAllText(Path.Combine(root, relativePath.Replace('/', Path.DirectorySeparatorChar)));
 
@@ -232,6 +233,7 @@ public class DocumentationConsistencyTests
     [InlineData("README.md")]
     public void NoFile_AdvertisesAnUnpublishedWingetPackage(string relativePath)
     {
+        ArgumentNullException.ThrowIfNull(relativePath);
         var text = File.ReadAllText(Path.Combine(RepoRoot(), relativePath.Replace('/', Path.DirectorySeparatorChar)));
 
         Assert.False(Regex.IsMatch(text, @"\bwinget\s+install\s+Beso1227\.Deltempo", RegexOptions.IgnoreCase),
@@ -757,6 +759,7 @@ public class DocumentationConsistencyTests
     [InlineData("docs/llms-full.txt")]
     public void UpdateVerificationDocs_DoNotReviveThePreHardeningClaims(string relativePath)
     {
+        ArgumentNullException.ThrowIfNull(relativePath);
         var root = RepoRoot();
         var text = File.ReadAllText(Path.Combine(root, relativePath.Replace('/', Path.DirectorySeparatorChar)));
 

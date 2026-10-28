@@ -31,6 +31,7 @@ public class SystemCoreWhitelistTests
     [InlineData("wintempcleaner")]
     public void IsProtectedProcess_ProtectsVitalWindowsProcesses(string processName)
     {
+        ArgumentNullException.ThrowIfNull(processName);
         // Strip .exe if provided to match Process.ProcessName semantics
         string cleanName = processName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)
             ? processName[..^4]

@@ -53,28 +53,52 @@ public static class Loc
         new PropertyMetadata(null, OnNameKeyChanged));
 
     public static void SetKey(DependencyObject element, string value)
-        => element.SetValue(KeyProperty, value);
+    {
+        ArgumentNullException.ThrowIfNull(element);
+        element.SetValue(KeyProperty, value);
+    }
 
     public static string GetKey(DependencyObject element)
-        => (string)element.GetValue(KeyProperty);
+    {
+        ArgumentNullException.ThrowIfNull(element);
+        return (string)element.GetValue(KeyProperty);
+    }
 
     public static void SetPlaceholderKey(DependencyObject element, string value)
-        => element.SetValue(PlaceholderKeyProperty, value);
+    {
+        ArgumentNullException.ThrowIfNull(element);
+        element.SetValue(PlaceholderKeyProperty, value);
+    }
 
     public static string GetPlaceholderKey(DependencyObject element)
-        => (string)element.GetValue(PlaceholderKeyProperty);
+    {
+        ArgumentNullException.ThrowIfNull(element);
+        return (string)element.GetValue(PlaceholderKeyProperty);
+    }
 
     public static void SetToolTipKey(DependencyObject element, string value)
-        => element.SetValue(ToolTipKeyProperty, value);
+    {
+        ArgumentNullException.ThrowIfNull(element);
+        element.SetValue(ToolTipKeyProperty, value);
+    }
 
     public static string GetToolTipKey(DependencyObject element)
-        => (string)element.GetValue(ToolTipKeyProperty);
+    {
+        ArgumentNullException.ThrowIfNull(element);
+        return (string)element.GetValue(ToolTipKeyProperty);
+    }
 
     public static void SetNameKey(DependencyObject element, string value)
-        => element.SetValue(NameKeyProperty, value);
+    {
+        ArgumentNullException.ThrowIfNull(element);
+        element.SetValue(NameKeyProperty, value);
+    }
 
     public static string GetNameKey(DependencyObject element)
-        => (string)element.GetValue(NameKeyProperty);
+    {
+        ArgumentNullException.ThrowIfNull(element);
+        return (string)element.GetValue(NameKeyProperty);
+    }
 
     private static void OnTextKeyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {

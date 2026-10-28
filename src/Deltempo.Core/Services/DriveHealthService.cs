@@ -38,6 +38,8 @@ public static class DriveHealthService
     /// </summary>
     public static DriveHealthInfo GetDriveHealthSnapshot(string driveLetter = "C:")
     {
+        ArgumentNullException.ThrowIfNull(driveLetter);
+
         string letter = driveLetter.TrimEnd('\\');
         if (!letter.EndsWith(':')) letter += ":";
 
@@ -75,6 +77,8 @@ public static class DriveHealthService
         Action<double>? onProgress = null,
         CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(driveLetter);
+
         var sw = Stopwatch.StartNew();
         string letter = driveLetter.TrimEnd('\\');
         if (!letter.EndsWith(':')) letter += ":";

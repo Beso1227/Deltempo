@@ -40,6 +40,7 @@ public class PackagingConfigurationTests
     [InlineData("src/Deltempo.Cli/Deltempo.Cli.csproj")]
     public void PublishableProjects_DeclareX64AndArm64RuntimeIdentifiers(string projectRelativePath)
     {
+        ArgumentNullException.ThrowIfNull(projectRelativePath);
         var content = Read(projectRelativePath.Split('/'));
 
         Assert.Contains("<RuntimeIdentifiers>", content);

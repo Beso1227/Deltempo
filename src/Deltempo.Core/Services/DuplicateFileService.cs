@@ -220,6 +220,8 @@ public class DuplicateFileService
 
     public static void ApplySelectionStrategy(List<DuplicateGroup> groups, DuplicateSelectionStrategy strategy)
     {
+        ArgumentNullException.ThrowIfNull(groups);
+
         foreach (var group in groups)
         {
             if (group.Files.Count <= 1) continue;

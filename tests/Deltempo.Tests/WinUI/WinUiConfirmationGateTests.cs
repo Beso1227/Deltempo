@@ -46,6 +46,7 @@ public class WinUiConfirmationGateTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try
         {
             if (Directory.Exists(_sandbox))

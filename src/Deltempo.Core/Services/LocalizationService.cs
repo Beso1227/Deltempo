@@ -698,6 +698,8 @@ public static class LocalizationService
 
     public static void LocalizeTarget(TargetFolderInfo target)
     {
+        ArgumentNullException.ThrowIfNull(target);
+
         switch (target.Id)
         {
             case "UserTemp":

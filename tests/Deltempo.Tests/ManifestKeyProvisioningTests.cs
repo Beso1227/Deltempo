@@ -52,6 +52,7 @@ public class ManifestKeyProvisioningTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         foreach (var v in EnvVars) Environment.SetEnvironmentVariable(v, null);
         ManifestSignatureVerifier.ClearTrustedKeys();
         ResetProvisioningAttempted();

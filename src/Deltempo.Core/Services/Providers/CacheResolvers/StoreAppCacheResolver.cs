@@ -90,6 +90,8 @@ public static class StoreAppCacheResolver
 
     public static void AddEbWebViewSafeCaches(string ebRoot, List<string> dirs)
     {
+        ArgumentNullException.ThrowIfNull(dirs);
+
         try
         {
             if (!Directory.Exists(ebRoot)) return;

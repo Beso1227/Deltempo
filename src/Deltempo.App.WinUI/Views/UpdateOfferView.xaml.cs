@@ -35,6 +35,8 @@ public sealed partial class UpdateOfferView : UserControl
     /// <summary>Fills and shows the offer from a checked release.</summary>
     public void Show(ReleaseInfo release, string currentVersionText)
     {
+        ArgumentNullException.ThrowIfNull(release);
+
         _release = release;
 
         VersionText.Text = string.IsNullOrWhiteSpace(release.TagName)

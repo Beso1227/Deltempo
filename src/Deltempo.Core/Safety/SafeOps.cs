@@ -25,6 +25,8 @@ public static class SafeOps
     /// </summary>
     public static void Try(string operation, Action action)
     {
+        ArgumentNullException.ThrowIfNull(action);
+
         try
         {
             action();
@@ -41,6 +43,8 @@ public static class SafeOps
     /// </summary>
     public static T Try<T>(string operation, Func<T> func, T fallback)
     {
+        ArgumentNullException.ThrowIfNull(func);
+
         try
         {
             return func();

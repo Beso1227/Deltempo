@@ -115,6 +115,8 @@ public static class NativeFileScanner
         CancellationToken ct = default,
         bool recurse = true)
     {
+        ArgumentNullException.ThrowIfNull(fileCallback);
+
         if (string.IsNullOrWhiteSpace(rootDirectory) || !Directory.Exists(rootDirectory))
             return;
 

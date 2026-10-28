@@ -30,6 +30,8 @@ public class ShareWidthConverter : IMultiValueConverter
 {
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
+        ArgumentNullException.ThrowIfNull(values);
+
         if (values.Length < 2) return 0d;
         if (values[0] is not IConvertible percent || values[1] is not IConvertible total)
         {

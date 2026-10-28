@@ -110,6 +110,8 @@ public static class AppIntelligenceService
     /// </remarks>
     public static string GetCacheKey(string publisher, string displayName, AppSettings settings)
     {
+        ArgumentNullException.ThrowIfNull(settings);
+
         string provider = string.IsNullOrWhiteSpace(settings.AiProvider) ? "BuiltIn" : settings.AiProvider;
         string model = AiModelCatalog.ResolveModelId(settings.AiProvider, settings.AiModelName);
         return $"{provider}|{model}|{GetCacheKey(publisher, displayName)}";
@@ -117,12 +119,16 @@ public static class AppIntelligenceService
 
     public static AppAiReport? GetCachedReport(InstalledAppItem app)
     {
+        ArgumentNullException.ThrowIfNull(app);
+
         string key = GetCacheKey(app.Publisher, app.DisplayName, SettingsService.Current);
         return MemoryCache.TryGetValue(key, out var report) ? report : null;
     }
 
     public static async Task<AppAiReport> AnalyzeAppAsync(InstalledAppItem app, bool forceOnline = false, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(app);
+
         var settings = SettingsService.Current;
         string cacheKey = GetCacheKey(app.Publisher, app.DisplayName, settings);
 
@@ -229,6 +235,8 @@ public static class AppIntelligenceService
 
     public static AppAiReport GenerateLocalIntelligenceReport(InstalledAppItem app)
     {
+        ArgumentNullException.ThrowIfNull(app);
+
         var catalogEntry = AppDescriptionCatalog.FindCatalogEntry(app.DisplayName, app.Publisher);
         if (catalogEntry != null)
         {

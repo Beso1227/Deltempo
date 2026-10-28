@@ -154,6 +154,9 @@ public static class UsnJournalScanner
         Action<UsnFileEntry> entryCallback,
         CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(driveRoot);
+        ArgumentNullException.ThrowIfNull(entryCallback);
+
         string drive = driveRoot.TrimEnd('\\', '/');
         string volumePath = $@"\\.\{drive}";
 

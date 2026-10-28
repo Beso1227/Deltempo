@@ -107,6 +107,8 @@ public static class CleanupExecutor
         Action<double>? progressReport = null,
         CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(plan);
+
         var result = new CleanupTransactionResult
         {
             ScopeId = plan.ScopeId,

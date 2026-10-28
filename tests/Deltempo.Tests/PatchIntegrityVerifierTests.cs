@@ -17,6 +17,7 @@ public class PatchIntegrityVerifierTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try
         {
             if (File.Exists(_tempFile))
