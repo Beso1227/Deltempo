@@ -94,7 +94,14 @@ One project, two flavors, no third project if it does not earn its place:
    per-action `runas`; parity tests for the title-bar privilege label and the
    restore-point flow under both levels. `_validation_`: a non-elevated run
    still scans and cleans standard paths, and asks for elevation only on the
-   two known restricted surfaces.
+   two known restricted surfaces. **Progress 2026-10-29:** the flavor split
+   itself is done — `-p:DeltempoMSIX=true` selects `app.store.manifest`
+   (asInvoker) while the preview/portable flavor keeps `app.manifest`
+   (requireAdministrator, byte-equal posture to the WPF head); the per-task
+   engines and bail-out texts are pinned by `StoreElevationParityTests`.
+   Still open before submit: a real unelevated end-to-end pass over the
+   standard-path scan/clean (manual) and the per-output confirmation on the
+   two restricted surfaces.
 2. **MSIX publish job** — `dotnet publish -c Release -r win-x64
    -p:WindowsPackageType=MSIX -p:GenerateAppxPackageOnBuild=true` in CI (build
    sign only), artifact upload for manual Store upload.
