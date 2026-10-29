@@ -44,18 +44,31 @@ portable build stay in step.
 
 ## 3. Packaging route
 
-One project, two flavors, no third project if it does not earn its place:
+**Decision update (2026-10-29):** the SDK route is closed. Publishing with
+`-p:WindowsPackageType=MSIX -p:GenerateAppxPackageOnBuild=true -p:EnableMsixTooling=true`
+was attempted twice against this project and both runs completed green while
+silently emitting no package (no `.msix`/`.appxupload` anywhere under
+`bin/`/`obj/`/`AppPackages/`; `AppxPackageDir` stayed empty). A silent no-op
+that reads green is worse than a failing tool, so per the rule below this is
+the moment the packaging project earns its place; this file's original one-
+project ambition is recorded as the fallback that lost on evidence.
 
 - Keep `WindowsAppSDKSelfContained=true` and `SelfContained=true` — the Store
   package must not need a separate runtime installer.
-- For the Store flavor publish with `-p:WindowsPackageType=MSIX` (the SDK emits the
-  `.appxupload` including the framework parts) rather than adding a separate
-  Windows Application Packaging project. If the SDK route blocks a real Store
-  requirement, THAT is the moment to introduce a packaging project, and only then.
+- Produce the `.appxupload` with a Windows Application Packaging project
+  under `packaging/Store/` consuming `packaging/Store/Package.appxmanifest`
+  (already in the repo with Partner Center placeholder identity) and the
+  generated logo set in `src/Deltempo.App.WinUI/Assets/Store/`
+  (`tools/generate-store-logos.ps1` is the only source of truth — regenerate
+  on icon changes, never edit the PNGs by hand).
 - `RuntimeIdentifier` stays per-architecture (`win-x64`, `win-arm64`); the Store
   flavor delivers one package per architecture, matching the existing publish
   pattern (see the `RuntimeIdentifier` rationale comment in the WinUI csproj
   header).
+- CI gate (`winui-store-package` job in `.github/workflows/ci.yml`) builds the
+  Store flavor (`-p:DeltempoMSIX=true`), fail-closed-verifies the asInvoker
+  manifest, the exe and the complete logo set, and uploads the publish folder
+  as the artifact the packaging project and Partner Center consume.
 - A/W: `WindowsAppSDK` 2.4.0 self-contained packages are accepted by the Store; pin
   the package version in `Directory.Packages.props` as today, no floating refs.
 
