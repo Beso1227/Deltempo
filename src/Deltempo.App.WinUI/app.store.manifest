@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Deltempo WinUI 3 shell - Store (MSIX) application manifest.
+
+  Identical to app.manifest except requestedExecutionLevel: Microsoft Store
+  review rejects auto-elevation (requireAdministrator), so the Store flavor
+  starts as the standard user and elevates per action instead. The per-action
+  path already exists and is shared with the WPF head:
+    - ElevationService.RestartAsAdmin (Verb=runas relaunch),
+    - SystemRepairService's per-operation runas, and
+    - the "Administrator privileges required..." report in the CLI.
+  The preview/portable flavor keeps app.manifest (requireAdministrator) so
+  dev behavior matches the shipped WPF app; pick THIS manifest by building
+  with -p:DeltempoMSIX=true (see the ApplicationManifest wiring in the csproj).
+
+  DPI, activeCodePage and longPathAware must stay byte-for-byte the same
+  rules as app.manifest: PerMonitorV2 sizing, UTF-8 recommendation for
+  unpackaged apps, and the \\?\ path handling in Core/Safety/PathSecurity.
+-->
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+  <assemblyIdentity version="1.0.0.0" name="Deltempo.WinUI.app" />
+
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    <security>
+      <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
+        <requestedExecutionLevel level="asInvoker" uiAccess="false" />
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <!-- Windows 10 / 11 -->
+      <maxversiontested Id="10.0.22000.0" />
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
+    </application>
+  </compatibility>
+
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/PM</dpiAware>
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2, PerMonitor</dpiAwareness>
+      <activeCodePage xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">UTF-8</activeCodePage>
+      <longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware>
+    </windowsSettings>
+  </application>
+</assembly>

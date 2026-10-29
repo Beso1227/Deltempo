@@ -32,7 +32,14 @@
 
     <!-- PerMonitorV2 DPI awareness, so a scaled display gets device-independent units and
          rasterised text instead of a physical-pixel layout. See app.manifest. -->
-    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Two manifests, one documentation of intent: the preview/portable flavor keeps
+         requireAdministrator (app.manifest, byte-equal to the WPF head's posture) and the
+         Store/MSIX flavor keeps app.store.manifest (asInvoker) because Store review
+         rejects auto-elevation. The Store plan (docs/PUBLISHING_MICROSOFT_STORE.md
+         section 2) is the authority on why; per-action elevation already exists at
+         runtime (ElevationService.RestartAsAdmin, SystemRepairService runas). -->
+    <ApplicationManifest Condition="'$(DeltempoMSIX)' == 'true'">app.store.manifest</ApplicationManifest>
+    <ApplicationManifest Condition="'$(DeltempoMSIX)' != 'true'">app.manifest</ApplicationManifest>
 
     <!-- Same .ico as the shipped WPF head: the exe carries it into Explorer,
          Task Manager, Alt-Tab and the taskbar before any window is shown. -->
