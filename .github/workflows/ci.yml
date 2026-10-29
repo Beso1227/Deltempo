@@ -370,3 +370,66 @@ jobs:
             **/TestResults/*.log
             **/TestResults/**/*.xml
             **/TestResults/**/*.dmp
+
+  winui-store-package:
+    # Store plan gate 2 (docs/PUBLISHING_MICROSOFT_STORE.md section 6): build
+    # the Store flavor (asInvoker manifest, -p:DeltempoMSIX=true) and upload
+    # the publish folder for the manual Partner Center submission. Build-sign
+    # only - the Store resigns; identity stays a placeholder until Section 1.
+    # The .msix itself is produced later via the packaging project: the SDK
+    # route (-p:WindowsPackageType=MSIX -p:GenerateAppxPackageOnBuild=true)
+    # was tried twice locally and silently produced no package, which is the
+    # documented trigger for that fallback. This job pins what IS true and
+    # fails closed on the parts a Store submission cannot compromise.
+    name: WinUI Store Flavor (asInvoker) Package Artifact
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/Directory.Packages.props'
+
+      - name: Restore Dependencies
+        run: dotnet restore src/Deltempo.App.WinUI/Deltempo.App.WinUI.csproj
+
+      - name: Publish Store Flavor (win-x64)
+        run: dotnet publish src/Deltempo.App.WinUI/Deltempo.App.WinUI.csproj -c Release -r win-x64 --self-contained true -p:DeltempoMSIX=true --no-restore
+
+      - name: Fail Closed on Store Submission Requirements
+        shell: pwsh
+        run: |
+          $publishDir = "src/Deltempo.App.WinUI/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish"
+          if (-not (Test-Path "$publishDir/Deltempo.WinUI.exe")) {
+            Write-Error "::error::Deltempo.WinUI.exe missing from the Store-flavor publish folder."
+            exit 1
+          }
+
+          # The asInvoker rule is the gate's whole reason to exist: an elevated
+          # Store build would be rejected, and worse, would look green.
+          $manifest = "src/Deltempo.App.WinUI/app.store.manifest"
+          $content = Get-Content $manifest -Raw
+          if ($content -notmatch 'requestedExecutionLevel level="asInvoker"') {
+            Write-Error "::error::Store manifest lost its asInvoker execution level."
+            exit 1
+          }
+
+          # Store logos (section 4 assets) must ship inside the package.
+          foreach ($size in 44, 50, 71, 150, 256) {
+            if (-not (Test-Path "src/Deltempo.App.WinUI/Assets/Store/Icon_$size.png")) {
+              Write-Error "::error::Missing Store logo Icon_$size.png (generate with tools/generate-store-logos.ps1)."
+              exit 1
+            }
+          }
+
+          Write-Host "Store-flavor publish folder verified: exe present, asInvoker manifest, logos complete."
+
+      - name: Publish Store Flavor Artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: WinUI-StoreFlavor-win-x64
+          path: src/Deltempo.App.WinUI/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish

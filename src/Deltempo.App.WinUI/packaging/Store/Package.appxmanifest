@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Package manifest for the Deltempo MSIX/Store flavor of the WinUI shell.
+
+  Identity values are deliberately placeholders: the Store submission plan
+  (docs/PUBLISHING_MICROSOFT_STORE.md section 1) requires copying the real
+  Name / Publisher / PublisherId from Partner Center, and the manifest's
+  Publisher must equal the identity Partner Center assigns. Unsigned
+  build-sign only until that step is taken.
+
+  Version is stamped from the same source the shell's footer shows
+  (Assembly version), so the package and the UI cannot disagree.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  IgnorableNamespaces="uap">
+
+  <Identity
+    Name="DeltempoWinUIPreview"
+    Publisher="CN=Placeholder-Publisher"
+    Version="3.2.0.0" />
+
+  <mp:PhoneIdentity PhoneProductId="(9a6f4b30-3b1f-4b48-8e7a-5c1e2f8a7d90)" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+
+  <Properties>
+    <DisplayName>Deltempo (WinUI Preview)</DisplayName>
+    <PublisherDisplayName>Deltempo</PublisherDisplayName>
+    <Logo>Assets\Store\Icon_44.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.22621.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Applications>
+    <Application Id="DeltempoWinUI" Startable="yes">
+      <uap:VisualElements
+        DisplayName="Deltempo (WinUI Preview)"
+        Description="Disk &amp; memory cleaning util"
+        Square150x150Logo="Assets\Store\Icon_150.png"
+        Square44x44Logo="Assets\Store\Icon_44.png"
+        BackgroundColor="#0B0F14"
+        PhoneService="false">
+      </uap:VisualElements>
+      <Extensions>
+        <!-- Full trust is required: the shell cleans system temp state and
+             forces deletes; review accepted desktop-bridge apps declare it
+             explicitly. Note the app still starts UNELEVATED (app.store.manifest
+             asInvoker) - runFullTrust is scope, not elevation. -->
+        <Extension Category="windows.fullTrustApplication"
+                   EntryPoint="Windows.FullTrustApplication" />
+      </Extensions>
+    </Application>
+  </Applications>
+</Package>
