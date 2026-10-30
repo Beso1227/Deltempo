@@ -140,6 +140,19 @@ public sealed partial class CleanerWorkspaceView : UserControl
         _ = ViewModel.RunDriveBenchmarkAsync();
     }
 
+    /// <summary>
+    /// Raised when the drive card's "Large Files" pill is pressed (WPF's
+    /// OpenLargeFilesModal_Click, MainWindow.xaml:770). The shell owns the section
+    /// map, so the pill only asks to be taken to the Large Files workspace.
+    /// </summary>
+    public event Action? LargeFilesRequested;
+
+    private void OnOpenLargeFilesClick(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        LargeFilesRequested?.Invoke();
+    }
+
     /// <summary>Engage / restore the Ultimate Performance plan. Mutating, never self-test.</summary>
     private void OnGameBoostClick(object sender, RoutedEventArgs e) => _ = ViewModel.ToggleGameBoostAsync();
 

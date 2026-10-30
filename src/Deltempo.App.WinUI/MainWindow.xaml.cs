@@ -884,6 +884,9 @@ public sealed partial class MainWindow : Window
 
         CleanerWorkspacePanel.FootprintRequested += OpenAppDataFootprint;
         CleanerWorkspacePanel.TopFilesRequested += OpenTopFilesInspector;
+        // The drive card's "Large Files" pill (WPF MainWindow.xaml:770) walks to the
+        // Large Files workspace the same way every other shell hand-off does.
+        CleanerWorkspacePanel.LargeFilesRequested += () => NavigateTo(LargeFilesSectionLabel);
         CleanerWorkspacePanel.ViewModel.CleanCompleted += OnCleanCompleted;
 
         // The locked-files inspector is a real surface, not a self-test prop. WPF opened
@@ -1853,6 +1856,42 @@ public sealed partial class MainWindow : Window
     }
 
     private void HideToTray() => AppWindow.Hide();
+
+    /// <summary>
+    /// The title-bar privilege capsule's elevate action, WPF's AdminElevationButton_Click
+    /// (MainWindow.xaml.cs:673): already elevated = nothing to do; otherwise confirm
+    /// (the same copy WPF shows) and relaunch elevated through the shared
+    /// ElevationService, which starts the elevated process and exits this one.
+    /// </summary>
+    private async void OnPrivilegeCapsuleClick(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+
+        if (ElevationService.IsAdministrator) return;
+
+        try
+        {
+            var dialog = new ContentDialog
+            {
+                XamlRoot = RootGrid.XamlRoot,
+                Title = "Elevate to Administrator",
+                Content = "Relaunch Deltempo with Administrator privileges?\n\n" +
+                          "This grants access to clean Windows Update cache, System Temp, Prefetch, and Driver packages.",
+                PrimaryButtonText = "Relaunch",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+            };
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                ElevationService.RestartAsAdmin();
+            }
+        }
+        catch (Exception ex)
+        {
+            ShellDiagnostics.Write($"elevation dialog failed: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
 
     private void RestoreFromTray()
     {

@@ -315,6 +315,32 @@
                                     AutomationProperties.Name="Run non-destructive sequential read speed test"
                                     Click="OnSpeedTestClick"
                                     VerticalAlignment="Center" />
+                        <!-- WPF's drive-card shortcut into the Large Files scanner
+                             (MainWindow.xaml:770, Click="OpenLargeFilesModal_Click"):
+                             the shell owns the section map, the pill only asks. -->
+                        <Button
+                            HorizontalAlignment="Left"
+                            Padding="8,2.5"
+                            CornerRadius="12"
+                            Background="{ThemeResource PillButtonBgBrush}"
+                            BorderBrush="{ThemeResource HairlineBorderBrush}"
+                            BorderThickness="1"
+                            ToolTipService.ToolTip="Scan Drive for AI-categorized Large Files"
+                            AutomationProperties.Name="Open the Large Files scanner"
+                            Click="OnOpenLargeFilesClick"
+                            HorizontalContentAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <FontIcon Glyph="&#xE8B7;"
+                                          FontFamily="{StaticResource IconFont}"
+                                          FontSize="10.5"
+                                          Foreground="{ThemeResource ElectricCyanBrush}" />
+                                <TextBlock Text="Large Files"
+                                           FontSize="10"
+                                           Foreground="{ThemeResource TextHighBrush}"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
                         </Grid>
                     </StackPanel>
                 </Border>

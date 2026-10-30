@@ -271,6 +271,40 @@ public class LargeFileAutoQueryParityTests
         Assert.Contains("Binding Explanation", xaml);
         Assert.Contains("AiRecommendation", xaml);
         Assert.Contains("Analyzing", xaml);
+
+        // The drive card's hand-off into this workspace (WPF's drive-card pill,
+        // MainWindow.xaml:770): the pill lives in the cleaner view, the shell
+        // navigates on its event.
+        string cleaner = File.ReadAllText(Path.Combine(
+            RepoRoot(), "src", "Deltempo.App.WinUI", "Views", "CleanerWorkspaceView.xaml"));
+        string cleanerCode = File.ReadAllText(Path.Combine(
+            RepoRoot(), "src", "Deltempo.App.WinUI", "Views", "CleanerWorkspaceView.xaml.cs"));
+        string winuiShell = File.ReadAllText(Path.Combine(
+            RepoRoot(), "src", "Deltempo.App.WinUI", "MainWindow.xaml.cs"));
+        Assert.Contains("LargeFilesRequested", cleanerCode);
+        Assert.Contains("OnOpenLargeFilesClick", cleaner);
+        Assert.Contains("Scan Drive for AI-categorized Large Files", cleaner);
+        Assert.Contains("CleanerWorkspacePanel.LargeFilesRequested", winuiShell);
+        Assert.Contains("NavigateTo(LargeFilesSectionLabel)", winuiShell);
+    }
+
+    [Fact]
+    public void ShellHeader_CarriesTheClickablePrivilegeCapsule()
+    {
+        string xaml = File.ReadAllText(Path.Combine(
+            RepoRoot(), "src", "Deltempo.App.WinUI", "MainWindow.xaml"));
+        string shell = File.ReadAllText(Path.Combine(
+            RepoRoot(), "src", "Deltempo.App.WinUI", "MainWindow.xaml.cs"));
+
+        // WPF's AdminElevationButton (MainWindow.xaml:355) ported: the capsule
+        // hosts the same PrivilegeLabel and asks for elevation on click.
+        Assert.Contains("PrivilegeCapsule", xaml);
+        Assert.Contains("<TextBlock x:Name=\"PrivilegeLabel\"", xaml);
+        Assert.Contains("Click=\"OnPrivilegeCapsuleClick\"", xaml);
+        Assert.Contains("Status of Administrator Privileges (Click to Elevate)", xaml);
+        Assert.Contains("OnPrivilegeCapsuleClick", shell);
+        Assert.Contains("Elevate to Administrator", shell);
+        Assert.Contains("ElevationService.RestartAsAdmin()", shell);
     }
 
     [Fact]

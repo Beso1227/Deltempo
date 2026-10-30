@@ -76,10 +76,23 @@
                         Height="13"
                         Background="{ThemeResource HairlineStrongBrush}"
                         VerticalAlignment="Center" />
-                <TextBlock x:Name="PrivilegeLabel"
-                           Style="{StaticResource CaptionText}"
-                           VerticalAlignment="Center"
-                           Text="" />
+                <!-- The privilege capsule is clickable, like WPF's AdminElevationButton
+                     (MainWindow.xaml:355 → AdminElevationButton_Click, xaml.cs:673):
+                     standard-user + click = confirm dialog, then RestartAsAdmin. -->
+                <Button x:Name="PrivilegeCapsule"
+                        VerticalAlignment="Center"
+                        Padding="8,3"
+                        CornerRadius="10"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="OnPrivilegeCapsuleClick"
+                        ToolTipService.ToolTip="Status of Administrator Privileges (Click to Elevate)"
+                        AutomationProperties.Name="Administrator privileges status">
+                    <TextBlock x:Name="PrivilegeLabel"
+                               Style="{StaticResource CaptionText}"
+                               VerticalAlignment="Center"
+                               Text="" />
+                </Button>
             </StackPanel>
 
             <!-- Section search, centred in the title bar. The rail is icon-only, so
