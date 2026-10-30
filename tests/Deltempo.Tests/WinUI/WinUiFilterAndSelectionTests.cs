@@ -260,4 +260,53 @@ public class WinUiFilterAndSelectionTests
         Assert.All(vm.Targets, t => Assert.False(t.IsSelected));
         Assert.False(vm.HasSelection);
     }
+
+    [Fact]
+    public async Task StartupToggle_SystemWideEntryWasRefusedWithElevationGuidance_UnderAStandardUser()
+    {
+        // WPF's StartupSwitch_Click (MainWindow.SystemManagers.cs:230) refuses
+        // HKLM/Common Startup entries upfront when the process is not elevated,
+        // with the "click the Admin button" guidance. The classic Windows process
+        // xunit launches runs as a standard user; when it does not, a skip is the
+        // only honest outcome - the gate reads the real process token.
+        if (ElevationService.IsRunAsAdmin())
+        {
+            Assert.Skip("the test process is elevated, so the standard-user refusal cannot be observed");
+        }
+
+        StartupWorkspaceViewModel vm = new();
+
+        var hklmEntry = new StartupItem
+        {
+            Name = "System-wide Service",
+            FriendlyName = "System-wide Service",
+            Location = "HKLM",
+            IsEnabled = true,
+        };
+        var commonEntry = new StartupItem
+        {
+            Name = "All Users Tool",
+            FriendlyName = "All Users Tool",
+            Location = "Common Startup",
+            IsEnabled = true,
+        };
+        vm.LoadFrom([hklmEntry, commonEntry]);
+
+        var log = new List<(string Message, LogLevel Level)>();
+        vm.LogRequested += (message, level) => log.Add((message, level));
+
+        // A system-wide refusal is upfront: the entry itself is never touched and
+        // ToggleStartupItem is never reached, so the run writes no registry state.
+        await vm.ToggleCommand.ExecuteAsync(hklmEntry);
+        Assert.True(hklmEntry.IsEnabled, "a refused toggle must leave the entry untouched");
+        Assert.Contains("Administrator privileges are required", vm.StatusText);
+
+        await vm.ToggleCommand.ExecuteAsync(commonEntry);
+        Assert.True(commonEntry.IsEnabled, "Common Startup is system-wide too");
+        Assert.Contains("All Users Tool", vm.StatusText);
+
+        // The refusal log lines carry a warning level exactly like WPF's AddLog.
+        Assert.All(log, l => Assert.Equal(LogLevel.Warning, l.Level));
+        Assert.Contains(log, l => l.Message.Contains("Elevation required", StringComparison.Ordinal));
+    }
 }

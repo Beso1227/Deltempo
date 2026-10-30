@@ -356,6 +356,20 @@ public sealed partial class StartupWorkspaceViewModel : ObservableObject
             return;
         }
 
+        // WPF's StartupSwitch_Click (MainWindow.SystemManagers.cs:230): system-wide
+        // entries live where a standard-user process cannot write, so the refusal
+        // happens upfront with the elevation guidance - not as a registry failure
+        // afterwards. ElevationService is the shared Core check.
+        if (!ElevationService.IsRunAsAdmin() &&
+            (item.Location.Contains("HKLM") || item.Location.Contains("Common")))
+        {
+            StatusText = $"Administrator privileges are required to modify system-wide startup app '{item.DisplayTitle}'. Elevate Deltempo from the title-bar privilege capsule.";
+            LogRequested?.Invoke(
+                $"[Startup] Elevation required to toggle '{item.DisplayTitle}'.",
+                LogLevel.Warning);
+            return;
+        }
+
         bool target = !item.IsEnabled;
         bool ok = StartupManagerService.ToggleStartupItem(item, target);
 
