@@ -44,31 +44,60 @@ portable build stay in step.
 
 ## 3. Packaging route
 
-**Decision update (2026-10-29):** the SDK route is closed. Publishing with
-`-p:WindowsPackageType=MSIX -p:GenerateAppxPackageOnBuild=true -p:EnableMsixTooling=true`
-was attempted twice against this project and both runs completed green while
-silently emitting no package (no `.msix`/`.appxupload` anywhere under
-`bin/`/`obj/`/`AppPackages/`; `AppxPackageDir` stayed empty). A silent no-op
-that reads green is worse than a failing tool, so per the rule below this is
-the moment the packaging project earns its place; this file's original one-
-project ambition is recorded as the fallback that lost on evidence.
+**Decision record (final, 2026-10-30).** Two routes were closed on evidence, and
+the working pipeline is `tools/build-store-package.ps1`:
+
+1. **Single-project SDK route, closed.** `dotnet publish -p:WindowsPackageType=MSIX
+   -p:GenerateAppxPackageOnBuild=true -p:EnableMsixTooling=true` (manifest ItemGroup
+   wired) ran three times green and silently emitted no package. The official docs
+   (learn.microsoft.com, "Automate building and packaging your single-project MSIX
+   app" / "CI for WinUI 3") run the packaging with **msbuild** — the AppxPackage
+   targets ship with Visual Studio, which `dotnet publish` never loads and this
+   dev machine does not have. The route would only work where VS exists (e.g. the
+   CI runner), tying Store output to one environment: rejected.
+2. **Windows Application Packaging project (`wapproj`), closed before creation.**
+   It builds through the same VS-shipped AppxPackage targets, so it cannot build
+   here either; creating an unbuildable project just to tick a checklist box is
+   worse than the honest script.
+3. **Winner — `tools/build-store-package.ps1`**: `dotnet publish` (Store flavor,
+   `-p:DeltempoMSIX=true`) → staging (manifest lands as the package root's
+   `AppxManifest.xml`, generated logos in place, PDBs pruned) → `makeappx pack`
+   resolved from the `Microsoft.Windows.SDK.BuildTools` NuGet the repo already
+   depends on. makeappx schema-validates the manifest (it caught a parenthesised
+   and an out-of-schema attribute during bring-up) and the script fails closed
+   on any packaging error. No Visual Studio anywhere in the chain. Output:
+   `packaging/Store/out/<Identity>_<Version>_x64.msix`, unsigned — the Store
+   resigns after submission, matching `/p:AppxPackageSigningEnabled=false` in
+   the documented Store workflow.
+
+Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`):
+
+- The full-trust entry point must be declared launchably: `Executable="Deltempo.WinUI.exe"`
+  plus `EntryPoint="Windows.FullTrustApplication"` **on the `Application`
+  element**, and the package must carry the `runFullTrust` restricted capability.
+  That capability is scope, not elevation — the Store flavor still starts
+  unelevated per `app.store.manifest`.
+- Placeholders remain until Section 2's Partner Center copy step: identity
+  `DeltempoWinUIPreview` / `CN=Placeholder-Publisher`.
 
 - Keep `WindowsAppSDKSelfContained=true` and `SelfContained=true` — the Store
   package must not need a separate runtime installer.
-- Produce the `.appxupload` with a Windows Application Packaging project
-  under `packaging/Store/` consuming `packaging/Store/Package.appxmanifest`
-  (already in the repo with Partner Center placeholder identity) and the
-  generated logo set in `src/Deltempo.App.WinUI/Assets/Store/`
-  (`tools/generate-store-logos.ps1` is the only source of truth — regenerate
-  on icon changes, never edit the PNGs by hand).
+- The generated logo set in `src/Deltempo.App.WinUI/Assets/Store/` ships inside
+  the package (`tools/generate-store-logos.ps1` is the only source of truth —
+  regenerate on icon changes, never edit the PNGs by hand).
 - `RuntimeIdentifier` stays per-architecture (`win-x64`, `win-arm64`); the Store
   flavor delivers one package per architecture, matching the existing publish
   pattern (see the `RuntimeIdentifier` rationale comment in the WinUI csproj
   header).
 - CI gate (`winui-store-package` job in `.github/workflows/ci.yml`) builds the
-  Store flavor (`-p:DeltempoMSIX=true`), fail-closed-verifies the asInvoker
-  manifest, the exe and the complete logo set, and uploads the publish folder
-  as the artifact the packaging project and Partner Center consume.
+  Store flavor, fail-closed-verifies the asInvoker manifest, the exe and the
+  complete logo set, packs the `.msix` with the same script, verifies an output
+  package actually exists (≥1 MB) and uploads both the publish folder and the
+  `.msix` as Partner Center artifacts.
+- The payload carries WPF assemblies (`PresentationFramework`, `WindowsBase`, …)
+  because `Deltempo.Core` (shared with the WPF head) references WPF for
+  `TrayService`. Pre-existing, not package-induced; noted so a future slimming
+  does not read as a packaging regression.
 - A/W: `WindowsAppSDK` 2.4.0 self-contained packages are accepted by the Store; pin
   the package version in `Directory.Packages.props` as today, no floating refs.
 
@@ -115,9 +144,11 @@ project ambition is recorded as the fallback that lost on evidence.
    Still open before submit: a real unelevated end-to-end pass over the
    standard-path scan/clean (manual) and the per-output confirmation on the
    two restricted surfaces.
-2. **MSIX publish job** — `dotnet publish -c Release -r win-x64
-   -p:WindowsPackageType=MSIX -p:GenerateAppxPackageOnBuild=true` in CI (build
-   sign only), artifact upload for manual Store upload.
+2. **MSIX package job** — **done 2026-10-30, section 3's pipeline**: the
+   `winui-store-package` CI job publishes the Store flavor, packs the
+   schema-validated `.msix` with `tools/build-store-package.ps1` (makeappx
+   from the SDK BuildTools NuGet; no Visual Studio), fail-closed-verifies the
+   package blob and uploads it plus the publish folder as artifacts.
 3. **Store logos + policy text** in the package manifest and this repo's docs.
 4. **Rename the WinUI mutex** to its final name; document the collision choice in
    THREAT_MODEL (two processes with the same name would otherwise fight over it).
