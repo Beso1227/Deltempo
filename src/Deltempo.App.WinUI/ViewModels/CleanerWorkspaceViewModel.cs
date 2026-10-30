@@ -102,12 +102,19 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         RetryTargetCommand = new AsyncRelayCommand<TargetFolderInfo>(RetryTargetAsync);
         CancelCommand = new RelayCommand(CancelRun, () => IsBusy);
         ExportAuditCommand = new RelayCommand(ExportAudit);
+        RamBoostCommand = new AsyncRelayCommand(RunRamBoostAsync, () => !IsBoosting);
+
+        // WPF's InitializeMemoryViewModel (MainWindow.Memory.cs:12) chained the
+        // RAM engine's log line into the shell's activity log; the workspace's
+        // LogRequested feeds the same sink here.
+        _memoryBoost.LogRequested += (message, level) => LogRequested?.Invoke(message, level);
 
         Targets.CollectionChanged += OnTargetsCollectionChanged;
 
         // Drive card reads disk metadata only - free space and health heuristics.
         // WPF refreshed the same card from its load path; the WinUI panel is built in
-        // InitializeComponent, so this is the equivalent moment.
+        // InitializeComponent, so this is the equivalent moment. The RAM card rides
+        // the same cadence, like WPF's UpdateMemoryTelemetry did from the load path.
         RefreshDriveTelemetry();
     }
 
@@ -174,6 +181,77 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool IsBenchmarking { get; set; }
+
+    // ---------------------------------------------------------------------
+    // RAM telemetry card (port of WPF's RAM Telemetry & Quick Optimizer Card,
+    // MainWindow.xaml:834-918, driven by MainWindow.Memory.cs's _memoryViewModel)
+    // ---------------------------------------------------------------------
+
+    /// <summary>
+    /// The shared RAM engine Core ships - the very instance the WPF hero drove
+    /// (MemoryOptimizationViewModel owns the boost latch, the telemetry read and
+    /// the result log line), reused here instead of re-specced in this project.
+    /// </summary>
+    private readonly WinTempCleaner.ViewModels.MemoryOptimizationViewModel _memoryBoost = new();
+
+    /// <summary>0-100, drives the hero RAM bar like WPF's HeroRamProgressBar.</summary>
+    [ObservableProperty]
+    public partial double RamUsedPercent { get; set; } = 50;
+
+    /// <summary>"42%", WPF's HeroRamPercentText ("--%" before the first read).</summary>
+    [ObservableProperty]
+    public partial string RamUsedPercentText { get; set; } = "--%";
+
+    /// <summary>"8 GB / 16 GB Used", WPF's HeroRamDetailText.</summary>
+    [ObservableProperty]
+    public partial string RamDetailText { get; set; } = "Reading RAM telemetry...";
+
+    [ObservableProperty]
+    public partial bool IsBoosting { get; set; }
+
+    [ObservableProperty]
+    public partial string BoostButtonText { get; set; } = "Quick Boost";
+
+    /// <summary>
+    /// Port of WPF's UpdateMemoryTelemetry (MainWindow.Memory.cs:31): re-reads live
+    /// RAM telemetry into the hero card. Cheap and read-only, so eager calls - and
+    /// the cleaner's existing refresh cadence, which routes here through
+    /// RefreshDriveTelemetry's callers - cannot hurt.
+    /// </summary>
+    public void RefreshRamTelemetry()
+    {
+        _memoryBoost.RefreshTelemetry();
+        RamUsedPercent = _memoryBoost.UsedPercent;
+        RamUsedPercentText = $"{_memoryBoost.UsedPercent:F0}%";
+        RamDetailText = _memoryBoost.FormattedDetail;
+        IsBoosting = _memoryBoost.IsBoosting;
+        BoostButtonText = _memoryBoost.BoostButtonText;
+    }
+
+    /// <summary>
+    /// Port of WPF's HeroBoostRamBtn_Click (MainWindow.Memory.cs:51): Quick Boost,
+    /// privileged NT working-set trim and standby eviction. The engine carries its
+    /// own busy latch and click/success/error cues, exactly as WPF relied on.
+    /// </summary>
+    public async Task RunRamBoostAsync()
+    {
+        if (IsBoosting) return;
+
+        IsBoosting = true;
+        BoostButtonText = "Boosting...";
+        try
+        {
+            await _memoryBoost.ExecuteBoostAsync();
+        }
+        finally
+        {
+            RefreshRamTelemetry();
+            // The engine resets its own latch in its finally; ours is derived
+            // state and must follow it, not lead it.
+            IsBoosting = _memoryBoost.IsBoosting;
+            BoostButtonText = _memoryBoost.BoostButtonText;
+        }
+    }
 
     // ---------------------------------------------------------------------
     // Game Boost + CTT WinUtil hero actions (port of WPF's HeroGameBoostBtn /
@@ -331,6 +409,14 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
 
     /// <summary>Writes the audit report from the cleaner header, as WPF did.</summary>
     public IRelayCommand ExportAuditCommand { get; }
+
+    /// <summary>
+    /// Quick Boost from the RAM telemetry card (WPF's HeroBoostRamBtn). Bound
+    /// directly; the CanExecute latch below mirrors the hero button's IsEnabled.
+    /// The engine's privileged targets make this the one command the self-test
+    /// never executes.
+    /// </summary>
+    public IAsyncRelayCommand RamBoostCommand { get; }
 
     /// <summary>Read-only scan of all target categories. Deletes nothing.</summary>
     public async Task ScanAllAsync()
@@ -499,6 +585,10 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         DriveFreeText = $"{telemetry.FreePercentage:F1}% {LocalizationService.Get("DriveFree")}";
         DriveDetailsText = $"{telemetry.FormattedFree} {LocalizationService.Get("DriveOf")} {telemetry.FormattedTotal}";
         DriveUsedPercent = telemetry.UsedPercentage;
+
+        // The RAM card shares the drive card's refresh cadence, the way WPF's
+        // load-path refresh touched both (UpdateDriveTelemetry + UpdateMemoryTelemetry).
+        RefreshRamTelemetry();
 
         HasSessionFreed = _sessionFreedBytes > 0;
         OnPropertyChanged(nameof(SessionFreedText));

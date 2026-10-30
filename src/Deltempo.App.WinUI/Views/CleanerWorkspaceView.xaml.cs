@@ -153,6 +153,19 @@ public sealed partial class CleanerWorkspaceView : UserControl
         LargeFilesRequested?.Invoke();
     }
 
+    /// <summary>
+    /// Raised when the RAM card's "RAM Cleaner" pill is pressed (WPF's
+    /// OpenMemoryCleanerModal_Click, MainWindow.Memory.cs:41). The shell owns the
+    /// section map, so the pill only asks to be taken to the Memory workspace.
+    /// </summary>
+    public event Action? MemoryCleanerRequested;
+
+    private void OnMemoryCleanerClick(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        MemoryCleanerRequested?.Invoke();
+    }
+
     /// <summary>Engage / restore the Ultimate Performance plan. Mutating, never self-test.</summary>
     private void OnGameBoostClick(object sender, RoutedEventArgs e) => _ = ViewModel.ToggleGameBoostAsync();
 

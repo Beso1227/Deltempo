@@ -315,6 +315,8 @@
                                     AutomationProperties.Name="Run non-destructive sequential read speed test"
                                     Click="OnSpeedTestClick"
                                     VerticalAlignment="Center" />
+                        </Grid>
+
                         <!-- WPF's drive-card shortcut into the Large Files scanner
                              (MainWindow.xaml:770, Click="OpenLargeFilesModal_Click"):
                              the shell owns the section map, the pill only asks. -->
@@ -340,7 +342,88 @@
                                            VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
+                    </StackPanel>
+                </Border>
 
+                <!-- RAM Telemetry & Quick Optimizer Card (WPF MainWindow.xaml:834-918):
+                     live used percent, RAM Cleaner walk to the Memory workspace and the
+                     Quick Boost trim. The RAM Cleaner pill only asks - the shell owns
+                     the section map, the same rule as the Large Files pill above. -->
+                <Border Style="{StaticResource StatCard}" Width="252" Padding="12,8"
+                        AutomationProperties.Name="System Memory RAM Telemetry">
+                    <StackPanel Spacing="5">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE950;"
+                                          FontFamily="{StaticResource IconFont}"
+                                          FontSize="11"
+                                          Foreground="{ThemeResource ElectricCyanBrush}" />
+                                <TextBlock loc:Loc.Key="HeroRamLabel" Text="RAM Memory"
+                                           FontSize="11" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextHighBrush}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock x:Name="RamPercentText"
+                                           Text="{x:Bind ViewModel.RamUsedPercentText, Mode=OneWay}"
+                                           FontSize="11" FontWeight="Bold"
+                                           Foreground="{ThemeResource ElectricCyanBrush}"
+                                           VerticalAlignment="Center" />
+                                <Button loc:Loc.Key="HeroRamBtn" Content="RAM Cleaner"
+                                        FontSize="10"
+                                        FontWeight="SemiBold"
+                                        Padding="8,2.5"
+                                        CornerRadius="12"
+                                        Background="{ThemeResource PillButtonBgBrush}"
+                                        BorderBrush="{ThemeResource HairlineBorderBrush}"
+                                        BorderThickness="1"
+                                        Foreground="{ThemeResource ElectricCyanBrush}"
+                                        VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Open Deep Kernel Memory &amp; Cache Cleaner"
+                                        AutomationProperties.Name="Open Deep Kernel Memory and Cache Cleaner"
+                                        Click="OnMemoryCleanerClick" />
+                            </StackPanel>
+                        </Grid>
+
+                        <ProgressBar
+                            x:Name="RamProgressBar"
+                            Minimum="0" Maximum="100"
+                            Value="{x:Bind ViewModel.RamUsedPercent, Mode=OneWay}"
+                            Height="6"
+                            Foreground="{ThemeResource ElectricCyanBrush}"
+                            Background="{ThemeResource TrackBgBrush}"
+                            BorderThickness="0" />
+
+                        <Grid ColumnSpacing="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="{x:Bind ViewModel.RamDetailText, Mode=OneWay}"
+                                       FontSize="10"
+                                       Foreground="{ThemeResource TextMediumBrush}"
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" />
+                            <Button Grid.Column="1"
+                                    Content="{x:Bind ViewModel.BoostButtonText, Mode=OneWay}"
+                                    FontSize="10"
+                                    FontWeight="SemiBold"
+                                    Padding="8,3"
+                                    CornerRadius="12"
+                                    Background="{ThemeResource PillButtonBgBrush}"
+                                    BorderBrush="{ThemeResource HairlineBorderBrush}"
+                                    BorderThickness="1"
+                                    Foreground="{ThemeResource TextHighBrush}"
+                                    IsEnabled="{x:Bind ViewModel.IsBoosting, Mode=OneWay, Converter={StaticResource NotBool}}"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    ToolTipService.ToolTip="Trim memory (cache eviction)"
+                                    AutomationProperties.HelpText="Trims working sets and discards cached pages. This raises available memory but is not a speed boost - evicted pages are re-read from disk on demand."
+                                    Command="{x:Bind ViewModel.RamBoostCommand, Mode=OneTime}" />
                         </Grid>
                     </StackPanel>
                 </Border>

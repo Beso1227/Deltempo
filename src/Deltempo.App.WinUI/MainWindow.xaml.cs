@@ -887,6 +887,9 @@ public sealed partial class MainWindow : Window
         // The drive card's "Large Files" pill (WPF MainWindow.xaml:770) walks to the
         // Large Files workspace the same way every other shell hand-off does.
         CleanerWorkspacePanel.LargeFilesRequested += () => NavigateTo(LargeFilesSectionLabel);
+        // The RAM card's "RAM Cleaner" pill (WPF OpenMemoryCleanerModal_Click,
+        // MainWindow.Memory.cs:41) walks to the Memory workspace likewise.
+        CleanerWorkspacePanel.MemoryCleanerRequested += () => NavigateTo(MemorySectionLabel);
         CleanerWorkspacePanel.ViewModel.CleanCompleted += OnCleanCompleted;
 
         // The locked-files inspector is a real surface, not a self-test prop. WPF opened
