@@ -46,11 +46,7 @@
                 BorderThickness="1"
                 CornerRadius="10"
                 Padding="12,9">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
                         <CheckBox
@@ -151,6 +147,62 @@
                             IsEnabled="{Binding IsSafe, Mode=OneWay}"
                             Command="{Binding DataContext.ViewModel.RecycleItemCommand, ElementName=Root}"
                             CommandParameter="{Binding}" />
+                    </StackPanel>
+
+                    <!-- Row 2: the AI explanation capsule, WPF's row 3
+                         (MainWindow.xaml:4822). Filled by ApplyOnlineReport; hidden
+                         until the row was verified online, with "Analyzing..."
+                         covering the fetch window like WPF's AskAiLargeFile_Click. -->
+                    <StackPanel Grid.Row="1">
+                        <Border
+                            Background="{ThemeResource SurfaceCardBrush}"
+                            BorderBrush="{ThemeResource HairlineBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="8,5"
+                            Visibility="{Binding IsAiOnlineVerified, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Spacing="2">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock
+                                        Text="{Binding Origin}"
+                                        FontSize="10.5"
+                                        FontWeight="SemiBold"
+                                        Foreground="{ThemeResource TextHighBrush}"
+                                        TextTrimming="CharacterEllipsis"
+                                        VerticalAlignment="Center" />
+                                    <Border
+                                        Grid.Column="1"
+                                        Background="{ThemeResource SurfaceSubCardBrush}"
+                                        BorderBrush="{ThemeResource HairlineBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="4"
+                                        Padding="6,1">
+                                        <TextBlock
+                                            Text="{Binding AiProviderLabel}"
+                                            FontSize="9"
+                                            Foreground="{ThemeResource TextMutedBrush}"
+                                            VerticalAlignment="Center" />
+                                    </Border>
+                                </Grid>
+                                <TextBlock
+                                    Text="{Binding Explanation}"
+                                    FontSize="10.5"
+                                    Foreground="{ThemeResource TextMediumBrush}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Text="{Binding AiRecommendation}"
+                                    FontSize="10"
+                                    Foreground="{ThemeResource SuccessTextBrightBrush}"
+                                    Margin="0,3,0,0"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <TextBlock
+                            Text="Analyzing..."
+                            FontSize="10.5"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource TextMutedBrush}"
+                            Visibility="{Binding IsAiAnalyzing, Converter={StaticResource BoolToVis}}" />
                     </StackPanel>
                 </Grid>
             </Border>

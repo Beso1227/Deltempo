@@ -303,6 +303,11 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
             // reset either way rather than left claiming "Scanning..." behind a list.
             EmptyTitle = "No large files found";
             EmptyHint = "Try a different scope or lower the minimum file size.";
+
+            // The Settings auto-query promise fires only after a clean scan: the
+            // gate, the empty-file guard and cancellation are AutoQueryAfterScanAsync's
+            // own business. A blocked or partial scan skips it on ScanCompleted above.
+            await AutoQueryAfterScanAsync();
         }
         catch (OperationCanceledException)
         {
@@ -571,22 +576,14 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
     /// WPF's AskAiSelectedLargeFiles_Click (MainWindow.Settings.cs:339): analyze the
     /// ticked files; with no explicit selection fall back to the files that were
     /// never verified online, and if everything was verified, re-analyze all of
-    /// them. Broken out of progress four-wide by the shared service.
+    /// them. Target resolution lives in LargeFileHunterService.SelectAnalyzeTargets
+    /// so the post-scan auto-query obeys the same rule.
     /// </summary>
     public async Task BatchAnalyzeAsync()
     {
         if (_isBatchAnalyzing) return;
 
-        List<LargeFileInfo> selected = _allFiles.Where(f => f.IsSelected).ToList();
-        if (selected.Count == 0)
-        {
-            selected = _allFiles.Where(f => !f.IsAiOnlineVerified).ToList();
-        }
-        if (selected.Count == 0)
-        {
-            selected = _allFiles.ToList();
-        }
-
+        List<LargeFileInfo> selected = LargeFileHunterService.SelectAnalyzeTargets(_allFiles);
         if (selected.Count == 0)
         {
             StatusText = "No files need AI analysis. Select files or run a scan first.";
@@ -594,28 +591,92 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
         }
 
         SoundService.PlayClickSound();
+        await RunBatchAnalyzeCoreAsync(selected);
+    }
+
+    /// <summary>
+    /// The latch + progress + summary body both the manual batch and the post-scan
+    /// auto-query share. The caller decides target resolution and whether a click
+    /// sound plays; this runs the online fan-out, flips BatchAnalyzeCommand's gate
+    /// (the manual button can't double-drive while this is live) and reports.
+    /// </summary>
+    private async Task RunBatchAnalyzeCoreAsync(IReadOnlyList<LargeFileInfo> targets)
+    {
         _isBatchAnalyzing = true;
         IsBatchAnalyzing = true;
 
         try
         {
             LogRequested?.Invoke(
-                $"[LargeFiles] Starting online AI analysis for {selected.Count} large files...",
+                $"[LargeFiles] Starting online AI analysis for {targets.Count} large files...",
                 LogLevel.Info);
 
             // WPF wrote the percentage into the selection summary text; the status
             // line is the same kind of feedback without stealing the selection.
             var progress = new Progress<int>(pct => _post(() =>
-                StatusText = $"AI analyzing {selected.Count} files: {pct}%"));
+                StatusText = $"AI analyzing {targets.Count} files: {pct}%"));
 
-            await LargeFileHunterService.BatchAnalyzeWithAiAsync(selected, progress);
+            await LargeFileHunterService.BatchAnalyzeWithAiAsync(targets, progress);
 
             LogRequested?.Invoke(
-                $"[LargeFiles] Completed AI analysis for {selected.Count} files.",
+                $"[LargeFiles] Completed AI analysis for {targets.Count} files.",
                 LogLevel.Info);
-            StatusText = $"AI analysis completed for {selected.Count} files.";
+            StatusText = $"AI analysis completed for {targets.Count} files.";
             UpdateStorageSummary();
             UpdateSelectionSummary();
+        }
+        finally
+        {
+            _isBatchAnalyzing = false;
+            IsBatchAnalyzing = false;
+        }
+    }
+
+    /// <summary>
+    /// The Settings promise "ask the provider about unknown large files as soon as
+    /// a scan finishes" runs through here. The gate is a seam rather than a direct
+    /// SettingsService read so a test can observe the wiring without mutating the
+    /// process-global settings store; production uses the AppSettings pair, which
+    /// is what WPF's identical handler reads.
+    /// </summary>
+    internal Func<bool>? AutoQueryGate { get; set; }
+
+    /// <summary>
+    /// The auto-query's analysis step, overridable the same way: tests record the
+    /// targets instead of touching the provider surface.
+    /// </summary>
+    internal Func<IReadOnlyList<LargeFileInfo>, Task>? AutoQueryRunner { get; set; }
+
+    /// <summary>
+    /// Production gate: the user must have enabled BOTH online AI and the
+    /// auto-query switch. Auto-querying an opt-out surface would be the checkbox
+    /// lying again - the exact defect this feature is being written to fix.
+    /// </summary>
+    internal static bool DefaultAutoQueryGate() =>
+        SettingsService.Current.AutoQueryAiForLargeFiles && SettingsService.Current.EnableOnlineAiSafety;
+
+    /// <summary>
+    /// Runs the shared batch over WPF's target rule after a clean scan, silently
+    /// when nothing needs analysis. Not a user click: no click sound, and a
+    /// cancelled or partial scan never reaches here (ScanAsync gates on
+    /// ScanCompleted before calling).
+    /// </summary>
+    internal async Task AutoQueryAfterScanAsync()
+    {
+        if (!(AutoQueryGate ?? DefaultAutoQueryGate)()) return;
+        if (_isBatchAnalyzing) return;
+
+        List<LargeFileInfo> targets = LargeFileHunterService.SelectAnalyzeTargets(_allFiles);
+        if (targets.Count == 0) return;
+
+        Func<IReadOnlyList<LargeFileInfo>, Task> runner = AutoQueryRunner ?? RunBatchAnalyzeCoreAsync;
+        _isBatchAnalyzing = true;
+        IsBatchAnalyzing = true;
+        try
+        {
+            // The automatic path is not a click: statuses and logs flow from the
+            // shared core, but no sound plays.
+            await runner(targets);
         }
         finally
         {

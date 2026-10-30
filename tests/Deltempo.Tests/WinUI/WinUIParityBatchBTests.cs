@@ -177,9 +177,14 @@ public class WinUIParityBatchBTests
 
         string vm = File.ReadAllText(Path.Combine(RepoRoot(), "src", "Deltempo.App.WinUI", "ViewModels", "LargeFilesWorkspaceViewModel.cs"));
 
-        // WPF's fallback chain: ticked, then never-verified, then everything.
-        Assert.Contains("f => f.IsSelected", vm);
-        Assert.Contains("!f.IsAiOnlineVerified", vm);
+        // WPF's fallback chain (ticked, then never-verified, then everything) now
+        // lives in Core as SelectAnalyzeTargets - shared with the post-scan
+        // auto-query so one rule cannot drift - and the VM must still delegate to it.
+        Assert.Contains("SelectAnalyzeTargets", vm);
+        string core = File.ReadAllText(Path.Combine(
+            RepoRoot(), "src", "Deltempo.Core", "Services", "LargeFileHunterService.cs"));
+        Assert.Contains("f => f.IsSelected", core);
+        Assert.Contains("!f.IsAiOnlineVerified", core);
         Assert.Contains("BatchAnalyzeWithAiAsync", vm);
 
         // The batch button warms its disabled state from a latch, never runs twice.

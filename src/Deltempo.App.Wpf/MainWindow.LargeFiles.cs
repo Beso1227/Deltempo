@@ -21,6 +21,7 @@ public partial class MainWindow
 {
 
     private bool _isLargeFileScanRunning;
+    private bool _isLargeFileAiBatchRunning;
     private string _largeFileCurrentViewMode = "LIST";
 
     private void LargeFileViewMode_Click(object sender, RoutedEventArgs e)
@@ -327,6 +328,14 @@ public partial class MainWindow
                 {
                     LargeFilesEmptyState.Visibility = Visibility.Collapsed;
                 }
+            }
+
+            // Only a clean, completed scan promises the auto-analysis (a cancelled or
+            // failed scan may have left a partial set up). The scan's own CTS rides
+            // along, so restarting the scan stops a running auto-batch too.
+            if (scanResult.ScanCompleted)
+            {
+                await AutoQueryLargeFilesAfterScanAsync(ct);
             }
         }
         catch (OperationCanceledException)

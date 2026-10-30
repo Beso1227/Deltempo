@@ -622,6 +622,7 @@ public partial class MainWindow : Window
 
         // AI & Online Intelligence
         SettingsEnableAiCheckBox.IsChecked = SettingsService.Current.EnableOnlineAiSafety;
+        SettingsAutoQueryAiCheckBox.IsChecked = SettingsService.Current.AutoQueryAiForLargeFiles;
         foreach (ComboBoxItem pItem in SettingsAiProviderComboBox.Items)
         {
             if (pItem.Tag is string pTag && string.Equals(pTag, SettingsService.Current.AiProvider, StringComparison.OrdinalIgnoreCase))

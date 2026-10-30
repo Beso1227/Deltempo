@@ -90,6 +90,7 @@ public partial class MainWindow
             s.MemoryAutoOptimizeIntervalHours = defaults.MemoryAutoOptimizeIntervalHours;
             s.MemoryAutoOptimizeFreeRamThresholdPercent = defaults.MemoryAutoOptimizeFreeRamThresholdPercent;
             s.EnableOnlineAiSafety = defaults.EnableOnlineAiSafety;
+            s.AutoQueryAiForLargeFiles = defaults.AutoQueryAiForLargeFiles;
             s.AiProvider = defaults.AiProvider;
             s.AiApiKey = defaults.AiApiKey;
             s.AiModelName = defaults.AiModelName;
@@ -204,6 +205,7 @@ public partial class MainWindow
             }
 
             s.EnableOnlineAiSafety = SettingsEnableAiCheckBox.IsChecked == true;
+            s.AutoQueryAiForLargeFiles = SettingsAutoQueryAiCheckBox.IsChecked == true;
             if (SettingsAiProviderComboBox.SelectedItem is ComboBoxItem provItem && provItem.Tag is string provTag)
             {
                 s.AiProvider = provTag;
@@ -338,17 +340,7 @@ public partial class MainWindow
 
     private async void AskAiSelectedLargeFiles_Click(object sender, RoutedEventArgs e)
     {
-        var selected = _largeFiles.Where(f => f.IsSelected).ToList();
-        if (selected.Count == 0)
-        {
-            // If no specific checkboxes are marked, analyze all scanned files that haven't been verified yet
-            selected = _largeFiles.Where(f => !f.IsAiOnlineVerified).ToList();
-            if (selected.Count == 0 && _largeFiles.Count > 0)
-            {
-                // If all were previously analyzed, allow re-analyzing all scanned files
-                selected = _largeFiles.ToList();
-            }
-        }
+        var selected = LargeFileHunterService.SelectAnalyzeTargets(_largeFiles);
 
         if (selected.Count == 0)
         {
@@ -356,22 +348,73 @@ public partial class MainWindow
             return;
         }
 
+        // The target rule above used to be inline here and was duplicated as the
+        // Settings auto-query promise by the WinUI app only. Extracted so the
+        // manual drive and the automatic drive pick the same files.
         AskAiSelectedLargeFilesBtn.IsEnabled = false;
         try
         {
-            AddLog($"Starting online AI analysis for {selected.Count} large files...", LogLevel.Info);
-            var progress = new Progress<int>(pct =>
-            {
-                LargeFilesSelectedSummaryText.Text = $"AI Analyzing {selected.Count} files: {pct}%";
-            });
-
-            await LargeFileHunterService.BatchAnalyzeWithAiAsync(selected, progress, _cts?.Token ?? default);
-            AddLog($"Completed AI intelligence analysis for {selected.Count} files.", LogLevel.Success);
-            RefreshLargeFileHeroStats();
-            UpdateLargeFileSelectionSummary();
+            await RunLargeFileAiBatchAsync(selected, _cts?.Token ?? default);
         }
         finally
         {
+            AskAiSelectedLargeFilesBtn.IsEnabled = true;
+        }
+    }
+
+    /// <summary>
+    /// The Ask-AI batch body shared by the manual button and the post-scan
+    /// auto-query. The progress readback overwrites the selection summary (as it
+    /// always did); the hero stats are refreshed afterwards because verdicts can
+    /// reclassify safety, which is also what the child sheet's trace used to rely on.
+    /// </summary>
+    private async Task RunLargeFileAiBatchAsync(List<LargeFileInfo> selected, CancellationToken ct)
+    {
+        AddLog($"Starting online AI analysis for {selected.Count} large files...", LogLevel.Info);
+        var progress = new Progress<int>(pct =>
+        {
+            LargeFilesSelectedSummaryText.Text = $"AI Analyzing {selected.Count} files: {pct}%";
+        });
+
+        await LargeFileHunterService.BatchAnalyzeWithAiAsync(selected, progress, ct);
+        AddLog($"Completed AI intelligence analysis for {selected.Count} files.", LogLevel.Success);
+        RefreshLargeFileHeroStats();
+        UpdateLargeFileSelectionSummary();
+    }
+
+    /// <summary>
+    /// The Settings switch AutoQueryAiForLargeFiles finally does something: after a
+    /// clean large-file scan, run the same Ask-AI batch over WPF's shared target
+    /// rule (ticked, then never-verified, then everything). Requires online AI too
+    /// - auto-querying a surface the user turned off would make both checkboxes lie.
+    /// Runs before RunLargeFileScanAsync's finally re-enables the scan button, so a
+    /// second scan cannot clear the rows out from under the running analysis, and
+    /// LargeFileFilter_Changed's guard keeps its cancel path reachable.
+    /// </summary>
+    private async Task AutoQueryLargeFilesAfterScanAsync(CancellationToken ct)
+    {
+        var config = SettingsService.Current;
+        if (!config.AutoQueryAiForLargeFiles || !config.EnableOnlineAiSafety) return;
+        if (_isLargeFileAiBatchRunning) return;
+
+        var selected = LargeFileHunterService.SelectAnalyzeTargets(_largeFiles);
+        if (selected.Count == 0) return;
+
+        _isLargeFileAiBatchRunning = true;
+        AskAiSelectedLargeFilesBtn.IsEnabled = false;
+        try
+        {
+            LargeFilesStatusText.Text = $"AI analyzing {selected.Count} large files...";
+            await RunLargeFileAiBatchAsync(selected, ct);
+            LargeFilesStatusText.Text = $"AI analysis completed for {selected.Count} large files.";
+        }
+        catch (OperationCanceledException)
+        {
+            LargeFilesStatusText.Text = "AI analysis cancelled.";
+        }
+        finally
+        {
+            _isLargeFileAiBatchRunning = false;
             AskAiSelectedLargeFilesBtn.IsEnabled = true;
         }
     }

@@ -3556,6 +3556,29 @@
                                                 </ComboBox>
                                             </Grid>
 
+                                            <!-- Auto-query switch. AppSettings had this toggle but no
+                                                 code acted on it, so the setting was a dead switch: the
+                                                 WinUI settings card promised it and neither app honored
+                                                 it; here it is made real alongside the WinUI one. -->
+                                            <Grid Margin="0,4,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0"
+                                                           Text="Ask AI about unverified files after every scan"
+                                                           FontSize="11.5"
+                                                           Foreground="{DynamicResource TextMediumBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <CheckBox Grid.Column="1"
+                                                           x:Name="SettingsAutoQueryAiCheckBox"
+                                                           Style="{DynamicResource ModernSwitchCheckBox}"
+                                                           FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
+                                                           IsChecked="False"
+                                                           ToolTip="Requires AI and Online File Intelligence to be enabled"
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+
                                             <!-- API Key Row (for Gemini, OpenAI, Groq) -->
                                             <Grid x:Name="SettingsAiApiKeyRow" Margin="0,4,0,6" Visibility="Collapsed">
                                                 <Grid.ColumnDefinitions>

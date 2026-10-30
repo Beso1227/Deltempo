@@ -599,6 +599,32 @@ public static class LargeFileHunterService
         }
     }
 
+    /// <summary>
+    /// The Ask-AI target rule WPF's AskAiSelectedLargeFiles_Click encoded inline
+    /// (MainWindow.Settings.cs): analyze the ticked files; with no tick fall back
+    /// to everything that was never verified online; with everything verified,
+    /// re-analyze all of them. Shared by the WinUI workspace, the WPF handler and
+    /// the post-scan auto-query so one rule cannot drift into three.
+    /// </summary>
+    public static List<LargeFileInfo> SelectAnalyzeTargets(IEnumerable<LargeFileInfo> files)
+    {
+        ArgumentNullException.ThrowIfNull(files);
+
+        List<LargeFileInfo> all = files.ToList();
+
+        List<LargeFileInfo> targets = all.Where(f => f.IsSelected).ToList();
+        if (targets.Count == 0)
+        {
+            targets = all.Where(f => !f.IsAiOnlineVerified).ToList();
+        }
+        if (targets.Count == 0)
+        {
+            targets = all;
+        }
+
+        return targets;
+    }
+
     public static async Task BatchAnalyzeWithAiAsync(
         IEnumerable<LargeFileInfo> items,
         IProgress<int>? progress = null,
