@@ -15,14 +15,15 @@
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
-  IgnorableNamespaces="uap">
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap mp rescap">
 
   <Identity
     Name="DeltempoWinUIPreview"
     Publisher="CN=Placeholder-Publisher"
     Version="3.2.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="(9a6f4b30-3b1f-4b48-8e7a-5c1e2f8a7d90)" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+  <mp:PhoneIdentity PhoneProductId="9a6f4b30-3b1f-4b48-8e7a-5c1e2f8a7d90" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
   <Properties>
     <DisplayName>Deltempo (WinUI Preview)</DisplayName>
@@ -39,23 +40,31 @@
   </Resources>
 
   <Applications>
-    <Application Id="DeltempoWinUI" Startable="yes">
+    <!-- Full trust: the shell cleans system temp state and forces deletes.
+         runFullTrust is scope, not elevation - the process still starts
+         unelevated per app.store.manifest (asInvoker). Executable + the
+         Windows.FullTrustApplication EntryPoint on the Application element
+         is the required form for a packaged desktop app: the Extension-only
+         pattern is for auxiliary extensions (startup task, execution alias),
+         not the main app's launch point. -->
+    <Application Id="DeltempoWinUI"
+                 Executable="Deltempo.WinUI.exe"
+                 EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="Deltempo (WinUI Preview)"
         Description="Disk &amp; memory cleaning util"
         Square150x150Logo="Assets\Store\Icon_150.png"
         Square44x44Logo="Assets\Store\Icon_44.png"
-        BackgroundColor="#0B0F14"
-        PhoneService="false">
+        BackgroundColor="#0B0F14">
       </uap:VisualElements>
-      <Extensions>
-        <!-- Full trust is required: the shell cleans system temp state and
-             forces deletes; review accepted desktop-bridge apps declare it
-             explicitly. Note the app still starts UNELEVATED (app.store.manifest
-             asInvoker) - runFullTrust is scope, not elevation. -->
-        <Extension Category="windows.fullTrustApplication"
-                   EntryPoint="Windows.FullTrustApplication" />
-      </Extensions>
     </Application>
   </Applications>
+
+  <!-- runFullTrust: the capability a full-trust desktop (windows/
+       Windows.FullTrustApplication) package MUST declare. This is the
+       scope declaration - it still says nothing about elevation; the
+       process starts as the standard user per app.store.manifest. -->
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
 </Package>

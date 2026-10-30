@@ -43,8 +43,15 @@ public class StorePackagingAssetTests
         Assert.Equal("DeltempoWinUIPreview", (string)identity.Attribute("Name")!);
         Assert.Equal("CN=Placeholder-Publisher", (string)identity.Attribute("Publisher")!);
 
-        // Full trust is scope, not elevation; the comment carries the trap.
-        Assert.Contains("windows.fullTrustApplication", manifest);
+        // Full trust is declared the launchable way: Executable + the
+        // Windows.FullTrustApplication EntryPoint ON the Application element,
+        // backed by the rescap capability (the official pairing). The comment
+        // carries the trap: runFullTrust is scope, not elevation.
+        Assert.Contains("Executable=\"Deltempo.WinUI.exe\"", manifest);
+        Assert.Contains("EntryPoint=\"Windows.FullTrustApplication\"", manifest);
+        Assert.Contains("<rescap:Capability Name=\"runFullTrust\" />", manifest);
+        Assert.Contains("<Application", manifest);
+        Assert.DoesNotContain("Category=\"windows.fullTrustApplication\"", manifest);
         Assert.Contains("runFullTrust is scope, not elevation", manifest);
     }
 
@@ -83,5 +90,26 @@ public class StorePackagingAssetTests
         // loses traceability.
         Assert.Contains("src\\Deltempo.App.Wpf\\app.ico", script);
         Assert.Contains("16, 44, 50, 71, 150, 256", script);
+    }
+
+    [Fact]
+    public void PackagingPipeline_ProducesTheMsixWithoutVisualStudio()
+    {
+        // Section 3's final decision: the package is built by
+        // tools/build-store-package.ps1, which packs the Store flavor's
+        // publish folder with makeappx.exe resolved from the
+        // Microsoft.Windows.SDK.BuildTools NuGet the repo already depends
+        // on. No Visual Studio, no .wapproj, no VS-only AppxPackage targets -
+        // it runs locally and on CI identically.
+        string script = Read("tools", "build-store-package.ps1");
+
+        Assert.Contains("microsoft.windows.sdk.buildtools", script);
+        Assert.Contains("makeappx", script);
+        // The package manifest's required in-package name.
+        Assert.Contains("AppxManifest.xml", script);
+        // Fail-closed posture: a makeappx failure must abort, never ship.
+        Assert.Contains("makeappx pack failed", script);
+        // PDBs are symbols, not runtime payload.
+        Assert.Contains("*.pdb", script);
     }
 }

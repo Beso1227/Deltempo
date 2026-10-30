@@ -373,15 +373,15 @@ jobs:
 
   winui-store-package:
     # Store plan gate 2 (docs/PUBLISHING_MICROSOFT_STORE.md section 6): build
-    # the Store flavor (asInvoker manifest, -p:DeltempoMSIX=true) and upload
-    # the publish folder for the manual Partner Center submission. Build-sign
-    # only - the Store resigns; identity stays a placeholder until Section 1.
-    # The .msix itself is produced later via the packaging project: the SDK
-    # route (-p:WindowsPackageType=MSIX -p:GenerateAppxPackageOnBuild=true)
-    # was tried twice locally and silently produced no package, which is the
-    # documented trigger for that fallback. This job pins what IS true and
-    # fails closed on the parts a Store submission cannot compromise.
-    name: WinUI Store Flavor (asInvoker) Package Artifact
+    # the Store flavor (asInvoker manifest, -p:DeltempoMSIX=true), verify the
+    # parts a Store submission cannot compromise, pack the actual .msix with
+    # tools/build-store-package.ps1 (makeappx from the SDK BuildTools NuGet -
+    # the SDK's dotnet-publish route ran twice green and silently produced no
+    # package, and msbuild's AppxPackage targets need Visual Studio, so the
+    # pipeline must not depend on either), and upload both the publish folder
+    # (for local testing) and the .msix (for Partner Center). Unsigned - the
+    # Store resigns; identity stays a placeholder until Section 1.
+    name: WinUI Store Flavor Package (asInvoker .msix)
     runs-on: windows-latest
     steps:
       - name: Checkout Source Code
@@ -428,8 +428,39 @@ jobs:
 
           Write-Host "Store-flavor publish folder verified: exe present, asInvoker manifest, logos complete."
 
+      - name: Pack the MSIX (makeappx, no Visual Studio)
+        # tools/build-store-package.ps1 reuses this job's publish folder
+        # (-SkipPublish), stages AppxManifest.xml + logos, prunes PDBs and
+        # runs makeappx pack from the Microsoft.Windows.SDK.BuildTools
+        # NuGet (restored above). makeappx schema-validates the manifest;
+        # the script fails closed on any packaging error.
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File tools/build-store-package.ps1 -SkipPublish
+
+      - name: Verify the Signed-Submission Artifact Exists
+        # Fail closed: a green job with no .msix is exactly the failure mode
+        # that made dotnet publish's silent no-op unusable.
+        shell: pwsh
+        run: |
+          $msix = Get-ChildItem "packaging/Store/out" -Filter *.msix -ErrorAction SilentlyContinue
+          if (-not $msix) {
+            Write-Error "::error::No .msix under packaging/Store/out after makeappx pack - treat as a packaging failure, not a pass."
+            exit 1
+          }
+          if ($msix.Length -lt 1MB) {
+            Write-Error "::error::$($msix.Name) is only $($msix.Length) bytes - a truncated self-contained payload."
+            exit 1
+          }
+          Write-Host "Store package verified: $($msix.Name), $([Math]::Round($msix.Length/1MB,1)) MB, unsigned (the Store resigns)."
+
       - name: Publish Store Flavor Artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: WinUI-StoreFlavor-win-x64
           path: src/Deltempo.App.WinUI/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish
+
+      - name: Publish Store Package Artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: WinUI-StorePackage-x64-msix
+          path: packaging/Store/out
