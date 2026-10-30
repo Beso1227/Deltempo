@@ -41,7 +41,7 @@
   <link rel="apple-touch-icon" href="../app_icon.webp">
 
   <!-- Fonts & Shared Style (fonts are self-hosted in style.css below - no Google Fonts request chain) -->
-    <link rel="stylesheet" href="../style.css?v=2.7.16">
+    <link rel="stylesheet" href="../style.css?v=2.8.0">
 
   <!-- Web App Manifest (PWA installability) -->
   <link rel="manifest" href="../manifest.json?v=2.7.14">
@@ -188,7 +188,7 @@
           <li><strong>Footprint Share Bar Rendering Fix:</strong> The share bar rendered empty three separate times. A circular <code>ActualWidth</code> binding resolved to a <code>GridLength</code>/<code>double</code> mismatch, and a <code>ColumnDefinition</code> that is not in the visual tree silently ignores its width. Replaced with <code>Converters/ShareWidthConverter.cs</code>, a converter that returns a concrete <code>double</code>.</li>
           <li><strong>Release Pipeline Corrected:</strong> <code>dotnet format</code> had been run against <code>WinTempCleaner.csproj</code> instead of <code>deltempo.sln</code>. The root project excludes Core, Tests, Cli, and Services, so a per-project format check is silently weaker &mdash; and seven files shipped with a trailing-newline failure that CI caught and the local gate could not.</li>
           <li><strong>Documentation Cannot Drift Anymore:</strong> The advertised test count is now verified by reflection against the suite itself (<code>PublishedTestCount_MatchesTheRealSuiteSize</code>), so a stale badge fails the build instead of misleading readers. The count moved 909&nbsp;&rarr;&nbsp;1134 across all nine READMEs, <code>SECURITY.md</code>, the public site, and the AI-facing metadata.</li>
-          <li><strong>Verified Quality:</strong> <strong>1499 automated tests</strong> passing. <code>TreatWarningsAsErrors</code> is enforced repo-wide; the only non-fatal diagnostic is <code>xUnit1051</code> (a cancellation-responsiveness preference, deliberately demoted and documented in <code>Deltempo.Tests.csproj</code>).</li>
+          <li><strong>Verified Quality:</strong> <strong>1501 automated tests</strong> passing. <code>TreatWarningsAsErrors</code> is enforced repo-wide; the only non-fatal diagnostic is <code>xUnit1051</code> (a cancellation-responsiveness preference, deliberately demoted and documented in <code>Deltempo.Tests.csproj</code>).</li>
         </ul>
       </div>
     </div>
@@ -646,6 +646,7 @@
     })();
   </script>
   <!-- Cybernetic Motion Engine -->
-  <script src="../motion.js?v=2.7.15" defer></script>
+  <script src="../vendor/lenis.min.js" defer></script>
+  <script src="../motion.js?v=2.8.0" defer></script>
 </body>
 </html>
