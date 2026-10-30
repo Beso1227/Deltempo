@@ -2,64 +2,56 @@ WEBVTT - Deltempo Official Launch Film Captions
 
 1
 00:00.000 --> 00:01.100
-Deltempo.
+There's a gigabyte problem.
 
 2
-00:01.150 --> 00:04.000
-14.8 gigabytes reclaimable.
+00:01.200 --> 00:03.450
+41 GB of recoverable junk — temp files, AppData junk, GPU shader caches.
 
 3
-00:02.600 --> 00:04.600
-Found across 26 scopes.
+00:03.650 --> 00:05.900
+Deltempo. Free, MIT-licensed, zero telemetry, no installer.
 
 4
-00:04.750 --> 00:07.050
-The Cleaner view scans every deep scope.
+00:06.000 --> 00:08.950
+Cleaner, Processes, Startup — one click scans every deep scope.
 
 5
-00:07.100 --> 00:07.900
-Safety shield. Zero credentials touched.
+00:09.150 --> 00:11.300
+The Cleaner scans every deep scope.
 
 6
-00:07.920 --> 00:08.400
-The Memory panel opens.
+00:11.400 --> 00:13.900
+Temp files, shader caches, bin crumbs, update cache — verified safe.
 
 7
-00:08.440 --> 00:12.600
-8 memory zones. 4.9 gigabytes of standby cache reclaimed.
+00:14.100 --> 00:15.950
+Done. 9.4 GB reclaimed.
 
 8
-00:12.650 --> 00:13.100
-Kernel isolation shield. 100% immune.
+00:16.300 --> 00:18.000
+Some of it is load-bearing.
 
 9
-00:13.700 --> 00:14.700
-Startup. Orphaned and broken entries.
+00:18.100 --> 00:20.600
+Install roots and build caches — REFUSED by construction.
 
 10
-00:14.760 --> 00:15.700
-Repair. One-click autonomous health check.
+00:20.700 --> 00:22.450
+Protection policy: denied, refused twice.
 
 11
-00:15.810 --> 00:16.800
-105 apps catalogued and deep-uninstalled.
+00:22.700 --> 00:26.800
+RAM in use — 13.4 GB of 31.9 GB. One click to boost.
 
 12
-00:16.860 --> 00:17.900
-WinUtil. Open source, built in.
+00:26.900 --> 00:28.900
+42% to 15% — 8.6 GB freed in one click.
 
 13
-00:17.920 --> 00:19.600
-The same engine, from the terminal.
+00:29.300 --> 00:30.950
+Deltempo. Portable. Open source.
 
 14
-00:19.620 --> 00:20.450
-Standby list reclaimed. Exit zero.
-
-15
-00:20.530 --> 00:22.000
-Deltempo. Portable. Open source. No installer. Version 3.0.0.
-
-4
-00:15.000 --> 00:20.000
-Fast, private, zero telemetry. Deltempo for Windows 10 and 11.
+00:31.000 --> 00:34.900
+irm https://beso1227.github.io/Deltempo/win | iex
