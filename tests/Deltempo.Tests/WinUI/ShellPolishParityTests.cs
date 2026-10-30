@@ -145,6 +145,32 @@ public class ShellPolishParityTests
         Assert.Contains("SetForegroundWindow", core);
     }
 
+    [Fact]
+    public void WinUiTrayFlyout_IsPromotedAboveTheTaskbar()
+    {
+        // WPF opens the tray menu from TrayService (foreground first, framework
+        // topmost popups). The WinUI flyout is composition-hosted without WS_EX_TOPMOST,
+        // so the shell must grant foreground for a visible window and promote the
+        // freshly created popup to HWND_TOPMOST - otherwise the always-topmost
+        // taskbar occludes the part of the menu overlapping the notification strip
+        // (verified live 2026-10-30).
+        string shell = ReadWinUi("MainWindow.xaml.cs");
+
+        Assert.Contains("PromoteTrayFlyoutPopup", shell);
+        Assert.Contains("EnumWindows", shell);
+        // The flyout host is "WinUIDesktopWin32WindowClass" on some WindowsAppSDK
+        // builds and "Microsoft.UI.Content.PopupWindowSiteBridge" on others, so the
+        // finder must not class-match a single name.
+        Assert.DoesNotContain("name.ToString() ==", shell);
+        // Activation of a hidden window keeps the flyout from ever displaying; the
+        // foreground grant must be gated on the window's visibility.
+        Assert.Contains("if (AppWindow.IsVisible)", shell);
+        Assert.Contains("SetForegroundWindow(mainHwnd)", shell);
+        // The promotion itself.
+        Assert.Contains("SetWindowPos", shell);
+        Assert.Contains("SWP_NOACTIVATE_FLAG", shell);
+    }
+
     /// <summary>Ascend until the solution file shows the repo root.</summary>
     private static string RepoRoot()
     {

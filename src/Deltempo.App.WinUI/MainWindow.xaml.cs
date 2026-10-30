@@ -1930,7 +1930,142 @@ public sealed partial class MainWindow : Window
             position = new Point(cursor.X / scale, cursor.Y / scale);
         }
 
+        // SetForegroundWindow before the flyout, same rule the WPF tray path obeys
+        // (TrayService.ShowLuxuryContextMenu: foreground, then menu.IsOpen). Only for
+        // a VISIBLE window though: activating the hidden-window state makes the
+        // flyout never display at all (verified live 2026-10-30 - the bridge popup was
+        // created yet never shown once the hidden main window was foregrounded), and
+        // the tray menu's common case is precisely a hidden window. For the hidden
+        // case the topmost promotion below carries the z-order instead.
+        IntPtr mainHwnd = WindowNative.GetWindowHandle(this);
+        if (AppWindow.IsVisible)
+        {
+            SetForegroundWindow(mainHwnd);
+        }
         flyout.ShowAt(RootGrid, new FlyoutShowOptions { Position = position });
+
+        // Second half of the same parity fix. WPF's Popup windows carry WS_EX_TOPMOST
+        // from the framework, which is why the WPF tray menu never fought the taskbar;
+        // a WinUI flyout popup (WinUIDesktopWin32WindowClass) is created WITHOUT it,
+        // so the always-topmost Shell_TrayWnd can occlude the part of the menu that
+        // overlaps the notification strip. Promote the fresh popup to topmost right
+        // after ShowAt created it - verified live 2026-10-30: the popup hwnd was
+        // foreground yet below Shell_TrayWnd in the z-order until this call.
+        PromoteTrayFlyoutPopup();
+    }
+
+    // The tray flyout promotion needs classic user32 plumbing; constants are
+    // suffixed to avoid colliding with script-style names. EnumWindows walks the
+    // z-order top-down, GetWindowThreadProcessId returns the thread id, and
+    // SetWindowPos takes the insert-after window as an IntPtr.
+    private const long HWND_TOPMOST_FLAG = -1;
+    private const uint SWP_NOSIZE_FLAG = 0x0001;
+    private const uint SWP_NOMOVE_FLAG = 0x0002;
+    private const uint SWP_NOACTIVATE_FLAG = 0x0010;
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetCurrentProcessId();
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetClassName(IntPtr hWnd, System.Text.StringBuilder name, int max);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr insertAfter, int x, int y, int cx, int cy, uint flags);
+
+    [UnmanagedFunctionPointerAttribute(System.Runtime.InteropServices.CallingConvention.StdCall)]
+    private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumWindows(EnumWindowsProc callback, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+    /// <summary>
+    /// Promotes the tray flyout's freshly-created popup window to HWND_TOPMOST.
+    ///
+    /// EnumWindows walks the z-order from the top: the popup was just foregrounded,
+    /// so the first visible top-level window of this process that is not the main
+    /// window is the flyout. ShowAt returns before WinUI's composition creates the
+    /// popup's hwnd (verified live 2026-10-30: the log said "no flyout popup found"
+    /// while the probe saw the popup milliseconds later), so the search retries
+    /// across dispatcher ticks. Logged either way; a failed promotion degrades to
+    /// the pre-fix z-order instead of crashing the shell.
+    /// </summary>
+    private const int TrayPromotionAttempts = 8;
+
+    private void PromoteTrayFlyoutPopup()
+    {
+        var queue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+        TryPromoteTrayFlyoutPopup(queue, TrayPromotionAttempts);
+    }
+
+    private void TryPromoteTrayFlyoutPopup(Microsoft.UI.Dispatching.DispatcherQueue queue, int attemptsLeft)
+    {
+        try
+        {
+            IntPtr main = WindowNative.GetWindowHandle(this);
+            uint thisPid = GetCurrentProcessId();
+            IntPtr popup = IntPtr.Zero;
+
+            EnumWindows((h, l) =>
+            {
+                GetWindowThreadProcessId(h, out uint pid);
+                if (pid == thisPid && h != main)
+                {
+                    var name = new System.Text.StringBuilder(64);
+                    GetClassName(h, name, 64);
+                    string cls = name.ToString();
+                    // Two things are deliberately NOT assumed:
+                    // - Visibility: the flyout's host window reports IsWindowVisible
+                    //   false while WinUI renders its content by composition (verified
+                    //   live 2026-10-30 with class Microsoft.UI.Content.PopupWindowSiteBridge).
+                    // - Exact class: the host is "WinUIDesktopWin32WindowClass" on some
+                    //   WindowsAppSDK builds and "Microsoft.UI.Content.PopupWindowSiteBridge"
+                    //   on others, both verified live. Accept this process's top-level
+                    //   windows that are either rendered or a popup host, minus the main
+                    //   window and input-method windows.
+                    bool isCandidate = IsWindowVisible(h) || cls.Contains("PopupWindow");
+                    bool isIme = cls == "MSCTFIME UI" || cls == "IME";
+                    if (isCandidate && !isIme)
+                    {
+                        popup = h;
+                        ShellDiagnostics.Write($"[Tray] flyout popup found: 0x{h.ToInt64():X} class {cls} visible {IsWindowVisible(h)}");
+                        return false; // the top-most match found; stop the walk
+                    }
+                }
+                return true;
+            }, IntPtr.Zero);
+
+            if (popup != IntPtr.Zero)
+            {
+                SetWindowPos(
+                    popup,
+                    new IntPtr(HWND_TOPMOST_FLAG),
+                    0, 0, 0, 0,
+                    SWP_NOSIZE_FLAG | SWP_NOMOVE_FLAG | SWP_NOACTIVATE_FLAG);
+                ShellDiagnostics.Write($"[Tray] flyout popup 0x{popup.ToInt64():X} promoted TOPMOST");
+                return;
+            }
+
+            if (attemptsLeft > 1)
+            {
+                // The popup hwnd does not exist yet; look again next dispatcher tick.
+                queue.TryEnqueue(() => TryPromoteTrayFlyoutPopup(queue, attemptsLeft - 1));
+                return;
+            }
+
+            ShellDiagnostics.Write("[Tray] no flyout popup found to promote; the menu may sit under the taskbar");
+        }
+        catch (Exception ex)
+        {
+            // A failed promotion degrades to the pre-fix behaviour (menu under the
+            // strip) rather than crashing the shell. Logged so it is never silent.
+            ShellDiagnostics.Write($"[Tray] flyout promotion failed: {ex.Message}");
+        }
     }
 
     private static void AddTrayItem(MenuFlyout flyout, string glyph, string text, Action action)
