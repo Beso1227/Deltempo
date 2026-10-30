@@ -129,7 +129,18 @@ Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`)
   (the app cannot run post-restart, so write a `Deployment`
   `AddPackage/RemovePackage` hook or accept and document the leftover folder;
   picking the documented-approach is fine, but it must be written down here once
-  shipped).
+  shipped). **Decision 2026-10-30 — accepted and documented (this paragraph is
+  the write-down):** the Deltempo data folder outlives uninstallation on
+  *both* channels — the WPF head has always behaved this way on GitHub
+  installs, so the Store flavor matching it keeps the two channels
+  consistent. No `Deployment` hook is registered: the cleanup the hook could
+  perform is user-hostile by default (it would destroy the journals that let
+  a user review what a cleanup run deleted), §7 forbids the background-task
+  surface it would need, and the folder is small, plain files under the
+  user's own profile. The privacy policy (docs/privacy.html, the Partner
+  Center URL) discloses the folder's paths; a user who wants it gone deletes
+  `%LOCALAPPDATA%\Deltempo\` after removal, which the policy page says when
+  the leftover note is added there.
 - **Single instance across two channels:** the mutexes are already namespaced
   (`Global\Deltempo_App_SingleInstance_Mutex_v2` WPF,
   `Global\Deltempo_WinUI_SingleInstance_Mutex_v1` WinUI — _renamed 2026-10-30_
