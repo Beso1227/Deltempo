@@ -125,9 +125,9 @@ Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`)
   shipped).
 - **Single instance across two channels:** the mutexes are already namespaced
   (`Global\Deltempo_App_SingleInstance_Mutex_v2` WPF,
-  `Global\Deltempo_WinUI_Preview_SingleInstance_Mutex_v1` WinUI). Before the Store
-  version goes live, rename the WinUI constant to a non-"Preview" final name —
-  the preview mutex name in `App.xaml.cs` is a shipping bug waiting to be activated.
+  `Global\Deltempo_WinUI_SingleInstance_Mutex_v1` WinUI — _renamed 2026-10-30_
+  from the `..._Preview_...` shipping-bug name, with the collision choice
+  documented in THREAT_MODEL.md section 2.9).
 - **File associations / protocol:** none today; don't add speculative ones now.
 
 ## 6. Gate sequence (executed in order, one commit per step)
@@ -152,6 +152,10 @@ Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`)
 3. **Store logos + policy text** in the package manifest and this repo's docs.
 4. **Rename the WinUI mutex** to its final name; document the collision choice in
    THREAT_MODEL (two processes with the same name would otherwise fight over it).
+   **Done 2026-10-30:** renamed to `Global\Deltempo_WinUI_SingleInstance_Mutex_v1`;
+   the deliberate distinct-from-WPF choice (both heads may run side by side) is
+   THREAT_MODEL.md section 2.9, and `ShellPolishParityTests` asserts the "Preview"
+   spelling is gone.
 5. **Manual Partner Center submission**, Store flight first; record the flight
    decision in RELEASE_ENGINEERING.md once decided.
 6. **Store-resign + review**: no action from us; keep the GitHub flavor's updates

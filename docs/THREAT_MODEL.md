@@ -131,7 +131,7 @@ This document identifies potential attack vectors, adversarial edge cases, and t
   * The release job downloads the MSIX and portable artefacts it signs from the same runner that built them, with no independent attestation of the build environment. Reproducible-build verification is not performed.
   * There is no second maintainer, so a change to the release workflow is reviewed by the same person who authored it. GitHub's approval rule does not allow self-approval, which is why `required_pull_request_reviews` cannot simply be switched on.
 
-#### 2.8.1 Maintainer checklist (appended 2026-10-28 — human actions only; no agent will perform these)
+#### 2.8.1 Maintainer checklist (appended 2026-10-28 - human actions only; no agent will perform these)
 
 Ground truth today: `ManifestSignatureVerifier` is wired into the live update path
 (`UpdateService.cs`, `VerifySignature`) and fails closed without an operator-provisioned
@@ -170,3 +170,34 @@ Items only the maintainer can close:
       SCRIPTS via `GITHUB_TOKEN`). It is git-ignored by pattern (`*.token` + explicit name),
       but a PAT with repo write scope that was ever pasted into an issue/chat/support ticket
       must be rotated on principle; this checklist records that reminder.
+
+### 2.9 Single-Instance Mutexes Across Two Distribution Channels
+
+* **Threat**: Deltempo ships through two independent channels - the WPF head via
+  GitHub Releases and the WinUI head via Microsoft Store - and any user may keep
+  both installed on one machine. Two processes that silently assume exclusive
+  ownership of shared state (log file roll chain, cleanup runs, diagnostics) must
+  not be allowed to race; conversely, a version-in-a-mutex-name that lies ("Preview"
+  in a shipping Store artifact) is a correctness bug waiting to activate the moment
+  the Store flavor goes live.
+* **Choice (deliberate, documented here)**: the two heads use **distinct single-instance
+  mutexes** - `Global\Deltempo_App_SingleInstance_Mutex_v2` (WPF, unchanged, it
+  ships from a different artifact set) and
+  `Global\Deltempo_WinUI_SingleInstance_Mutex_v1` (WinUI Store flavor, renamed
+  2026-10-30 from `Deltempo_WinUI_Preview_SingleInstance_Mutex_v1` per the Store plan,
+  docs/PUBLISHING_MICROSOFT_STORE.md gate 4). Consequences:
+  * Each head single-instances **against itself only**: a second launch of the same
+    head defers to the running copy (`SingleInstanceManager.TryAcquire` +
+    `NotifyExistingInstance` foreground handoff).
+  * The two heads CAN run at the same time. This is accepted, not an accident:
+    they are separate products with separate install and uninstall lifecycles
+    (GitHub/MSIX), separate log files (`deltempo.log`, `deltempo-winui.log`),
+    and separate diagnostics state - explicitly so neither channel's release
+    cadence is coupled to the other's.
+  * Shared destruction risk is handled at a different layer: temp/registry
+    cleanup uses the shared Core engines whose safety rules (sections 2.1-2.4)
+    apply regardless of which head drives them, and destructive cleanup remains
+    journal-based and per-run, not cross-process co-operative.
+* **Verification**: `ShellPolishParityTests` pins the WinUI mutex name AND asserts
+  the "Preview" spelling is gone; `StoreElevationParityTests` pins the elevation
+  flavor split both manifest flavours arrive through.
