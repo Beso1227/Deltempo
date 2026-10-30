@@ -1,12 +1,15 @@
 /**
- * Deltempo Cybernetic Motion Engine v2.2.0
+ * Deltempo Cybernetic Motion Engine v3.0.0
  * High-performance interactive visual systems:
- * - Depth-layered ambient constellation (calm drift, soft filaments, quiet hero focus)
- * - Fluid spring-interpolated precision dual-ring cursor with magnetic snap & click ripple
- * - Complete, universal suppression of Windows OS cursor across all DOM elements
+ * - Lenis 1.3 inertial scrolling with a scroll progress rail, glass-nav state and
+ *   scroll-driven background parallax (native scroll when reduced motion is on)
+ * - Depth-layered ambient constellation: scroll parallax, rare shooting stars,
+ *   velocity streaks, soft filaments and a quiet hero focus fade
+ * - Three-layer spring cursor (core dot, elastic ring, lagging halo) with magnetic
+ *   snap, drag affordance, text caret and kinetic click ripples
  * - Card surface reactive radial lighting & micro-tilt
- * - IntersectionObserver scroll reveals
- * - Full prefers-reduced-motion (static field) & touch-device compliance
+ * - IntersectionObserver scroll reveals with directional variants + grid stagger
+ * - Full prefers-reduced-motion (static field, native scroll) & touch-device compliance
  */
 
 (function () {
@@ -18,42 +21,154 @@
   const isReducedMotion = prefersReducedMotion.matches;
 
   /* ==========================================================================
-     2. IntersectionObserver Scroll Reveal System
+     2. Inertial Smooth Scrolling (Lenis 1.3) + scroll-driven chrome
+     ========================================================================== */
+  // Shared, read-only snapshot of the scroll position for the background field.
+  const scrollState = {
+    y: 0,
+    velocity: 0,
+    progress: 0,
+    lenis: null,
+  };
+
+  function initSmoothScroll() {
+    const docEl = document.documentElement;
+
+    // Thin progress rail: created once, reused by every page.
+    let progressBar = document.getElementById('scrollProgressBar');
+    if (!progressBar) {
+      progressBar = document.createElement('div');
+      progressBar.id = 'scrollProgressBar';
+      progressBar.className = 'scroll-progress-bar';
+      progressBar.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(progressBar);
+    }
+
+    function paint() {
+      const y = window.scrollY || window.pageYOffset || 0;
+      const max = Math.max(1, docEl.scrollHeight - window.innerHeight);
+      const p = Math.min(1, Math.max(0, y / max));
+
+      scrollState.y = y;
+      scrollState.progress = p;
+
+      progressBar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+      docEl.style.setProperty('--scroll-y', y.toFixed(1));
+      // Read by the back-to-top button's conic progress ring.
+      docEl.style.setProperty('--scroll-progress', p.toFixed(4));
+      docEl.classList.toggle('is-scrolled', y > 6);
+    }
+
+    const LenisCtor = window.Lenis;
+
+    // Reduced motion keeps the native, instant scroll — no hijacking, no easing.
+    if (typeof LenisCtor === 'function' && !isReducedMotion) {
+      const lenis = new LenisCtor({
+        // 0.085 is the showcase-weight glide: weighty without feeling laggy.
+        lerp: 0.085,
+        wheelMultiplier: 0.95,
+        touchMultiplier: 1.5,
+        smoothWheel: true,
+        syncTouch: false,
+        autoRaf: false,
+        // scroll-padding-top (96px) is read by Lenis itself, so an extra
+        // offset here would double the gap above the target section.
+        anchors: { offset: 0, duration: 1.05 },
+        stopInertiaOnNavigate: true,
+        respectReducedMotion: true,
+        prevent: function (node) {
+          return node instanceof Element && !!node.closest('[data-lenis-prevent]');
+        },
+      });
+
+      scrollState.lenis = lenis;
+      docEl.classList.add('has-lenis');
+
+      lenis.on('scroll', function (e) {
+        scrollState.velocity = e && typeof e.velocity === 'number' ? e.velocity : 0;
+        paint();
+      });
+
+      const raf = function (time) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      };
+      requestAnimationFrame(raf);
+
+      // Dynamic height changes (reveals, tab switches) would otherwise desync.
+      if ('ResizeObserver' in window) {
+        const ro = new ResizeObserver(function () {
+          lenis.resize();
+        });
+        ro.observe(document.body);
+      }
+      window.addEventListener(
+        'resize',
+        function () {
+          lenis.resize();
+          paint();
+        },
+        { passive: true }
+      );
+
+      paint();
+      return;
+    }
+
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint, { passive: true });
+    paint();
+  }
+
+  /* ==========================================================================
+     3. IntersectionObserver Scroll Reveal System
      ========================================================================== */
   function initScrollReveals() {
-    const revealElements = document.querySelectorAll('.reveal-on-scroll');
-    if (!revealElements.length) return;
+    const revealElements = document.querySelectorAll('.reveal-on-scroll, [data-reveal]');
+    // Grid containers whose direct children stagger in one after another.
+    const cascadeGroups = document.querySelectorAll('[data-cascade]');
 
     if (isReducedMotion || !('IntersectionObserver' in window)) {
       revealElements.forEach(function (el) {
         el.classList.add('revealed');
       });
+      cascadeGroups.forEach(function (el) {
+        el.classList.add('is-revealed');
+      });
       return;
     }
+
+    if (!revealElements.length && !cascadeGroups.length) return;
 
     const observer = new IntersectionObserver(
       function (entries, obs) {
         entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('revealed');
-            obs.unobserve(entry.target);
-          }
+          if (!entry.isIntersecting) return;
+          const el = entry.target;
+          el.classList.add(el.hasAttribute('data-cascade') ? 'is-revealed' : 'revealed');
+          obs.unobserve(el);
         });
       },
       {
         root: null,
-        rootMargin: '0px 0px -40px 0px',
-        threshold: 0.1,
+        // Fire a touch before the block's top edge clears the fold so the
+        // motion finishes as it settles into view, not after.
+        rootMargin: '0px 0px -12% 0px',
+        threshold: 0.08,
       }
     );
 
     revealElements.forEach(function (el) {
       observer.observe(el);
     });
+
+    cascadeGroups.forEach(function (el) {
+      observer.observe(el);
+    });
   }
 
   /* ==========================================================================
-     3. Cybernetic Interactive Particle Constellation Canvas
+     4. Cybernetic Interactive Particle Constellation Canvas
      ========================================================================== */
   function initInteractiveBackground() {
     let canvas = document.getElementById('ambientCanvas');
@@ -99,6 +214,11 @@
 
     // Kinetic shockwave impulses for particle reaction
     const shockwaves = [];
+
+    // Scroll-linked field offset (bounded) + rare shooting stars.
+    let fieldScroll = 0;
+    const shootingStars = [];
+    let nextShootingStar = 240 + Math.floor(Math.random() * 300);
 
     function resize() {
       width = window.innerWidth || 360;
@@ -350,9 +470,11 @@
         if (this.y < -50) this.y = height + 50;
         else if (this.y > height + 50) this.y = -50;
 
-        // Calculate 3D Parallax Screen Position with enhanced depth travel
+        // Calculate 3D Parallax Screen Position with enhanced depth travel.
+        // The scroll offset is bounded so the field never drifts off-screen.
+        const scrollShift = Math.min(fieldScroll, 1400) * (0.012 + this.layer * 0.022);
         this.renderX = this.x + tiltX * (this.currentZ - 1) * 22;
-        this.renderY = this.y + tiltY * (this.currentZ - 1) * 22;
+        this.renderY = this.y + tiltY * (this.currentZ - 1) * 22 - scrollShift;
       }
 
       draw(isLight) {
@@ -361,6 +483,22 @@
         const py = this.renderY;
         const cz = this.currentZ;
         const effAlpha = this.alpha * (isLight ? 0.62 : 1) * focusFade(px, py);
+
+        // Fast scrolling stretches near-field sparkles into faint light streaks,
+        // which reads as motion blur instead of a static constellation sliding by.
+        const streak = !isReducedMotion && this.layer > 0
+          ? Math.min(Math.abs(scrollState.velocity) * 0.85, 34) * (0.45 + this.z * 0.55)
+          : 0;
+
+        if (streak > 2.5) {
+          ctx.beginPath();
+          ctx.moveTo(px, py - streak);
+          ctx.lineTo(px, py + streak);
+          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.5})`;
+          ctx.lineWidth = Math.max(0.6, this.radius * 0.55);
+          ctx.lineCap = 'round';
+          ctx.stroke();
+        }
 
         // Far band: soft dust, no facets — pure depth cue.
         if (this.layer === 0 && !this.isNexus) {
@@ -481,6 +619,10 @@
       if (document.hidden) return;
 
       frameCount++;
+
+      // Ease the field toward the scroll offset so the parallax trails the page
+      // by a frame or two instead of snapping with it.
+      fieldScroll += (scrollState.y - fieldScroll) * 0.055;
 
       // Decay mouse movement velocity each frame
       mouse.vx *= 0.88;
@@ -694,16 +836,83 @@
         }
       }
 
-      // 5. Ambient glowing energy aura at mouse cursor coordinates in Cyber Mint
+      // 5. Ambient glowing energy aura at mouse cursor coordinates in Cyber Mint.
+      // Two radii: a tight core and a wide, very faint bloom that reads as lens light.
       if (mouse.active && mouse.x > 0 && mouse.y > 0) {
-        const mouseGrad = ctx.createRadialGradient(mouse.x, mouse.y, 2, mouse.x, mouse.y, 40);
-        mouseGrad.addColorStop(0, `rgba(${isLight ? '5, 150, 105' : '0, 242, 176'}, ${isLight ? 0.12 : 0.18})`);
-        mouseGrad.addColorStop(0.35, `rgba(${isLight ? '5, 150, 105' : '0, 242, 176'}, ${isLight ? 0.05 : 0.07})`);
+        const tint = isLight ? '5, 150, 105' : '0, 242, 176';
+
+        const outerGrad = ctx.createRadialGradient(mouse.x, mouse.y, 24, mouse.x, mouse.y, 168);
+        outerGrad.addColorStop(0, `rgba(${tint}, ${isLight ? 0.05 : 0.075})`);
+        outerGrad.addColorStop(0.55, `rgba(${tint}, ${isLight ? 0.018 : 0.028})`);
+        outerGrad.addColorStop(1, 'rgba(0, 242, 176, 0)');
+        ctx.beginPath();
+        ctx.arc(mouse.x, mouse.y, 168, 0, Math.PI * 2);
+        ctx.fillStyle = outerGrad;
+        ctx.fill();
+
+        const mouseGrad = ctx.createRadialGradient(mouse.x, mouse.y, 2, mouse.x, mouse.y, 44);
+        mouseGrad.addColorStop(0, `rgba(${tint}, ${isLight ? 0.14 : 0.21})`);
+        mouseGrad.addColorStop(0.35, `rgba(${tint}, ${isLight ? 0.05 : 0.07})`);
         mouseGrad.addColorStop(1, 'rgba(0, 242, 176, 0)');
         ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, 40, 0, Math.PI * 2);
+        ctx.arc(mouse.x, mouse.y, 44, 0, Math.PI * 2);
         ctx.fillStyle = mouseGrad;
         ctx.fill();
+      }
+
+      // 6. Rare shooting stars: one diagonal streak every ~8-18 seconds.
+      if (!isReducedMotion) {
+        if (frameCount > nextShootingStar) {
+          nextShootingStar = frameCount + 480 + Math.floor(Math.random() * 620);
+          if (shootingStars.length < 2) {
+            const angle = Math.PI / 4 + (Math.random() - 0.5) * 0.5;
+            const speed = 8.5 + Math.random() * 5;
+            shootingStars.push({
+              x: Math.random() * width * 0.85,
+              y: Math.random() * height * 0.32,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              life: 0,
+              maxLife: 58 + Math.floor(Math.random() * 34),
+            });
+          }
+        }
+
+        for (let i = shootingStars.length - 1; i >= 0; i--) {
+          const star = shootingStars[i];
+          star.life++;
+          star.x += star.vx;
+          star.y += star.vy;
+
+          const t = star.life / star.maxLife;
+          if (t >= 1) {
+            shootingStars.splice(i, 1);
+            continue;
+          }
+
+          // Sine envelope: fades in, peaks mid-flight, fades out.
+          const fade = Math.sin(Math.PI * t);
+          const tailX = star.x - star.vx * 10;
+          const tailY = star.y - star.vy * 10;
+          const headColor = isLight ? '5, 150, 105' : '240, 253, 249';
+
+          const trail = ctx.createLinearGradient(tailX, tailY, star.x, star.y);
+          trail.addColorStop(0, 'rgba(0, 242, 176, 0)');
+          trail.addColorStop(1, `rgba(${headColor}, ${(fade * (isLight ? 0.32 : 0.6)).toFixed(3)})`);
+
+          ctx.beginPath();
+          ctx.moveTo(tailX, tailY);
+          ctx.lineTo(star.x, star.y);
+          ctx.strokeStyle = trail;
+          ctx.lineWidth = 1.2;
+          ctx.lineCap = 'round';
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, 1.7, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${headColor}, ${(fade * (isLight ? 0.4 : 0.8)).toFixed(3)})`;
+          ctx.fill();
+        }
       }
     }
 
@@ -726,7 +935,7 @@
   }
 
   /* ==========================================================================
-     4. Card Reactive Surface Lighting & Micro 3D Tilt
+     5. Card Reactive Surface Lighting & Micro 3D Tilt
      ========================================================================== */
   function initCardInteractivity() {
     if (!isFinePointer.matches) return;
@@ -783,108 +992,162 @@
   }
 
   /* ==========================================================================
-     5. Upgraded Cybernetic Dual-Ring Cursor with Aerodynamic Stretch & Snap
+     6. Three-layer spring cursor: core dot, elastic ring, trailing halo
      ========================================================================== */
   function initPrecisionCursor() {
-    if (!isFinePointer.matches) return;
+    // A custom cursor is itself motion: reduced-motion users keep the OS pointer.
+    if (!isFinePointer.matches || isReducedMotion) return;
 
-    // Enforce full OS cursor suppression on document and body
-    document.documentElement.classList.add('has-custom-cursor');
+    const docEl = document.documentElement;
+    docEl.classList.add('has-custom-cursor');
     document.body.classList.add('has-custom-cursor');
-    document.documentElement.style.cursor = 'none';
-    document.body.style.cursor = 'none';
 
-    // Create cursor DOM elements if not already present
-    let dot = document.querySelector('.precision-cursor-dot');
-    let ring = document.querySelector('.precision-cursor-ring');
-
-    if (!dot) {
-      dot = document.createElement('div');
-      dot.className = 'precision-cursor-dot';
-      dot.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(dot);
+    function ensure(className) {
+      let el = document.querySelector('.' + className);
+      if (!el) {
+        el = document.createElement('div');
+        el.className = className;
+        el.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(el);
+      }
+      return el;
     }
 
-    if (!ring) {
-      ring = document.createElement('div');
-      ring.className = 'precision-cursor-ring';
-      ring.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(ring);
-    }
+    const dot = ensure('precision-cursor-dot');
+    const ring = ensure('precision-cursor-ring');
+    const halo = ensure('precision-cursor-halo');
 
-    let mouseX = -100;
-    let mouseY = -100;
-    let ringX = -100;
-    let ringY = -100;
-    let lastRingX = -100;
-    let lastRingY = -100;
+    let pointerX = -300;
+    let pointerY = -300;
     let isVisible = false;
-    let currentMagneticEl = null;
+    let magneticEl = null;
+    let lastTime = 0;
+    let emberCount = 0;
+
+    // Ring is snappy (slight overshoot), halo trails far behind for depth.
+    const ringSpring = { x: -300, y: -300, vx: 0, vy: 0 };
+    const haloSpring = { x: -300, y: -300, vx: 0, vy: 0 };
 
     let currentAngle = 0;
     let currentStretch = 1;
     let currentCompress = 1;
-    let activeEmberCount = 0;
 
-    function onPointerMove(e) {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-
-      if (!isVisible) {
-        isVisible = true;
-        ringX = mouseX;
-        ringY = mouseY;
-        lastRingX = mouseX;
-        lastRingY = mouseY;
-        dot.style.opacity = '1';
-        ring.style.opacity = '1';
-      }
-
-      // Direct hardware-accelerated tracking for instantaneous dot response (zero lag)
-      dot.style.transform = 'translate3d(' + mouseX + 'px, ' + mouseY + 'px, 0) translate(-50%, -50%)';
+    // Semi-implicit Euler spring: stable for these stiffness values at 60-144Hz.
+    function step(spring, tx, ty, stiffness, damping, dt) {
+      spring.vx += (tx - spring.x) * stiffness * dt;
+      spring.vy += (ty - spring.y) * stiffness * dt;
+      spring.vx -= spring.vx * damping * dt;
+      spring.vy -= spring.vy * damping * dt;
+      spring.x += spring.vx * dt;
+      spring.y += spring.vy * dt;
     }
 
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    function show() {
+      if (isVisible) return;
+      isVisible = true;
+      ringSpring.x = pointerX;
+      ringSpring.y = pointerY;
+      ringSpring.vx = 0;
+      ringSpring.vy = 0;
+      haloSpring.x = pointerX;
+      haloSpring.y = pointerY;
+      haloSpring.vx = 0;
+      haloSpring.vy = 0;
+      dot.style.opacity = '1';
+      ring.style.opacity = '1';
+      halo.style.opacity = '1';
+    }
 
-    // Window enter / leave handling
-    document.addEventListener('mouseleave', function () {
+    function hide() {
       isVisible = false;
       dot.style.opacity = '0';
       ring.style.opacity = '0';
-      document.documentElement.style.cursor = '';
-      document.body.style.cursor = '';
-    });
+      halo.style.opacity = '0';
+      if (magneticEl) {
+        magneticEl.style.transform = '';
+        magneticEl = null;
+      }
+    }
 
+    window.addEventListener(
+      'pointermove',
+      function (e) {
+        pointerX = e.clientX;
+        pointerY = e.clientY;
+        if (!isVisible) show();
+        // The core dot is never interpolated: it is the true pointer position.
+        dot.style.transform =
+          'translate3d(' + pointerX + 'px, ' + pointerY + 'px, 0) translate(-50%, -50%)';
+      },
+      { passive: true }
+    );
+
+    document.addEventListener('mouseleave', hide);
     document.addEventListener('mouseenter', function (e) {
-      document.documentElement.style.cursor = 'none';
-      document.body.style.cursor = 'none';
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      ringX = mouseX;
-      ringY = mouseY;
-      lastRingX = mouseX;
-      lastRingY = mouseY;
-      isVisible = true;
-      dot.style.opacity = '1';
-      ring.style.opacity = '1';
+      pointerX = e.clientX;
+      pointerY = e.clientY;
+      show();
     });
+    window.addEventListener('blur', hide);
 
-    // Active click states with kinetic shockwave
+    // One delegated pass decides every state, so classes can never go stale.
+    const interactiveSelector =
+      'a, button, input, textarea, select, [role="button"], [role="tab"], .btn-pill, .btn-icon, .hero-oneshot, .card-inner, .faq-item, .mobile-nav-link, .nav-link, summary, .calc-profile-btn, .cmd-pill';
+    const magneticSelector = '.btn-pill-primary, .hero-oneshot, #themeToggleBtn, .btn-icon, .dl-btn-primary';
+    const dragSelector = '[data-cursor="drag"], .app-tabs-island, .comp-table-wrap';
+
+    document.addEventListener(
+      'pointerover',
+      function (e) {
+        const t = e.target;
+        if (!(t instanceof Element)) return;
+
+        const dragTarget = t.closest(dragSelector);
+        const interactive = t.closest(interactiveSelector);
+        const magnetic = t.closest(magneticSelector);
+        const textField = t.closest('input, textarea');
+
+        ring.classList.toggle('cursor-drag', !!dragTarget && !magnetic);
+        dot.classList.toggle('cursor-drag', !!dragTarget && !magnetic);
+        ring.classList.toggle('cursor-hover', !!interactive);
+        dot.classList.toggle('cursor-hover', !!interactive);
+        halo.classList.toggle('cursor-hover', !!interactive);
+        ring.classList.toggle('cursor-text', !!textField);
+        dot.classList.toggle('cursor-text', !!textField);
+        ring.classList.toggle('cursor-magnetic', !!magnetic);
+
+        if (magnetic !== magneticEl) {
+          if (magneticEl) magneticEl.style.transform = '';
+          magneticEl = magnetic || null;
+        }
+      },
+      { passive: true }
+    );
+
     window.addEventListener(
       'pointerdown',
       function (e) {
         dot.classList.add('cursor-active');
         ring.classList.add('cursor-active');
 
-        // Spawn kinetic click pulse in Cyber Mint
         const pulse = document.createElement('div');
         pulse.className = 'cursor-click-pulse';
         pulse.style.left = e.clientX + 'px';
         pulse.style.top = e.clientY + 'px';
         document.body.appendChild(pulse);
+
+        // Second, tighter ring: two waves read as a deliberate "press" rather
+        // than a single ambient blip.
+        const inner = document.createElement('div');
+        inner.className = 'cursor-click-pulse pulse-inner';
+        inner.style.left = e.clientX + 'px';
+        inner.style.top = e.clientY + 'px';
+        document.body.appendChild(inner);
+
         setTimeout(function () { // DevSkim: ignore DS172411
           if (pulse.parentNode) pulse.parentNode.removeChild(pulse);
-        }, 550);
+          if (inner.parentNode) inner.parentNode.removeChild(inner);
+        }, 620);
       },
       { passive: true }
     );
@@ -898,124 +1161,76 @@
       { passive: true }
     );
 
-    // Interactive element hover & magnetic detection
-    const interactiveQuery =
-      'a, button, input, textarea, select, [role="button"], [role="tab"], .btn-pill, .btn-icon, .hero-oneshot, .card-inner, .faq-item, .mobile-nav-link, .nav-link, summary, .calc-profile-btn, .cmd-pill';
-    const magneticQuery =
-      '.btn-pill-primary, .hero-oneshot, #themeToggleBtn, .btn-icon, .dl-btn-primary, .app-tab';
+    function renderLoop(time) {
+      const dt = lastTime ? Math.min(0.05, (time - lastTime) / 1000) : 0.016;
+      lastTime = time;
 
-    document.addEventListener(
-      'pointerover',
-      function (e) {
-        const target = e.target.closest(interactiveQuery);
-        if (target) {
-          dot.classList.add('cursor-hover');
-          ring.classList.add('cursor-hover');
-
-          if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-            ring.classList.add('cursor-text');
-            dot.classList.add('cursor-text');
-          } else {
-            ring.classList.remove('cursor-text');
-            dot.classList.remove('cursor-text');
-          }
-
-          const magneticTarget = target.closest(magneticQuery);
-          if (magneticTarget) {
-            currentMagneticEl = magneticTarget;
-            ring.classList.add('cursor-magnetic');
-          }
-        }
-      },
-      { passive: true }
-    );
-
-    document.addEventListener(
-      'pointerout',
-      function (e) {
-        const target = e.target.closest(interactiveQuery);
-        if (target) {
-          dot.classList.remove('cursor-hover');
-          ring.classList.remove('cursor-hover');
-          ring.classList.remove('cursor-text');
-          dot.classList.remove('cursor-text');
-          ring.classList.remove('cursor-magnetic');
-
-          if (currentMagneticEl) {
-            currentMagneticEl.style.transform = '';
-            currentMagneticEl = null;
-          }
-        }
-      },
-      { passive: true }
-    );
-
-    // 60-144fps fluid aerodynamic spring physics loop
-    function renderLoop() {
       if (isVisible) {
-        let targetX = mouseX;
-        let targetY = mouseY;
+        let targetX = pointerX;
+        let targetY = pointerY;
 
-        // Apply magnetic pull when hovering primary action elements
-        if (currentMagneticEl) {
-          const rect = currentMagneticEl.getBoundingClientRect();
-          const centerX = rect.left + rect.width / 2;
-          const centerY = rect.top + rect.height / 2;
-          const deltaX = mouseX - centerX;
-          const deltaY = mouseY - centerY;
+        // Magnetic pull toward the centre of primary actions.
+        if (magneticEl && magneticEl.isConnected) {
+          const rect = magneticEl.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
 
-          targetX = mouseX * 0.48 + centerX * 0.52;
-          targetY = mouseY * 0.48 + centerY * 0.52;
+          targetX = pointerX * 0.45 + cx * 0.55;
+          targetY = pointerY * 0.45 + cy * 0.55;
 
-          const maxTranslate = 4.5;
-          const transX = Math.max(-maxTranslate, Math.min(maxTranslate, deltaX * 0.16));
-          const transY = Math.max(-maxTranslate, Math.min(maxTranslate, deltaY * 0.16));
-          currentMagneticEl.style.transform =
-            'translate3d(' + transX.toFixed(2) + 'px, ' + transY.toFixed(2) + 'px, 0)';
+          const maxTranslate = 3.5;
+          const tx = Math.max(-maxTranslate, Math.min(maxTranslate, (pointerX - cx) * 0.14));
+          const ty = Math.max(-maxTranslate, Math.min(maxTranslate, (pointerY - cy) * 0.14));
+          magneticEl.style.transform =
+            'translate3d(' + tx.toFixed(2) + 'px, ' + ty.toFixed(2) + 'px, 0)';
+        } else if (magneticEl) {
+          magneticEl = null;
         }
 
-        // Smooth spring interpolation (0.35 factor for responsive tracking)
-        ringX += (targetX - ringX) * 0.35;
-        ringY += (targetY - ringY) * 0.35;
+        step(ringSpring, targetX, targetY, 460, 32, dt);
+        step(haloSpring, targetX, targetY, 120, 24, dt);
 
-        // Compute velocity vector for aerodynamic stretch & kinetic ember trail
-        const dX = ringX - lastRingX;
-        const dY = ringY - lastRingY;
-        const speed = Math.sqrt(dX * dX + dY * dY);
+        const speed = Math.sqrt(ringSpring.vx * ringSpring.vx + ringSpring.vy * ringSpring.vy);
+        // The pill has fixed chevrons; stretching or rotating it would tilt them.
+        const isDrag = ring.classList.contains('cursor-drag');
 
-        if (speed > 1.2 && !currentMagneticEl) {
-          currentAngle = Math.atan2(dY, dX) * (180 / Math.PI);
+        if (speed > 40 && !magneticEl && !isDrag) {
+          currentAngle = Math.atan2(ringSpring.vy, ringSpring.vx) * (180 / Math.PI);
         }
 
-        // Spawn kinetic cyber embers when moving with high velocity (zero DOM query layout thrashing)
-        if (speed > 5.5 && !currentMagneticEl && Math.random() < 0.35 && activeEmberCount < 8) {
-          activeEmberCount++;
+        // Embers only on genuine flicks, and never more than six alive at once.
+        if (speed > 320 && !magneticEl && emberCount < 6 && Math.random() < 0.5) {
+          emberCount++;
           const ember = document.createElement('div');
           ember.className = 'cursor-ember';
-          ember.style.left = ringX + 'px';
-          ember.style.top = ringY + 'px';
-          ember.style.setProperty('--tx', (-(dX * 0.4) + (Math.random() - 0.5) * 8).toFixed(1) + 'px');
-          ember.style.setProperty('--ty', (-(dY * 0.4) + (Math.random() - 0.5) * 8).toFixed(1) + 'px');
+          ember.style.left = ringSpring.x + 'px';
+          ember.style.top = ringSpring.y + 'px';
+          ember.style.setProperty('--tx', (-(ringSpring.vx * 0.012) + (Math.random() - 0.5) * 10).toFixed(1) + 'px');
+          ember.style.setProperty('--ty', (-(ringSpring.vy * 0.012) + (Math.random() - 0.5) * 10).toFixed(1) + 'px');
           document.body.appendChild(ember);
           setTimeout(function () { // DevSkim: ignore DS172411
             if (ember.parentNode) ember.parentNode.removeChild(ember);
-            activeEmberCount = Math.max(0, activeEmberCount - 1);
-          }, 360);
+            emberCount = Math.max(0, emberCount - 1);
+          }, 420);
         }
 
-        const targetStretch = currentMagneticEl ? 1 : 1 + Math.min(speed * 0.012, 0.4);
-        const targetCompress = currentMagneticEl ? 1 : 1 - Math.min(speed * 0.006, 0.2);
-        currentStretch += (targetStretch - currentStretch) * 0.22;
-        currentCompress += (targetCompress - currentCompress) * 0.22;
-
-        lastRingX = ringX;
-        lastRingY = ringY;
+        // Velocity-based aerodynamic stretch along the direction of travel.
+        const targetStretch = magneticEl || isDrag ? 1 : 1 + Math.min(speed * 0.00045, 0.34);
+        const targetCompress = magneticEl || isDrag ? 1 : 1 - Math.min(speed * 0.00028, 0.16);
+        const ease = Math.min(1, dt * 16);
+        currentStretch += (targetStretch - currentStretch) * ease;
+        currentCompress += (targetCompress - currentCompress) * ease;
 
         ring.style.transform =
-          'translate3d(' + ringX.toFixed(2) + 'px, ' + ringY.toFixed(2) + 'px, 0) ' +
+          'translate3d(' + ringSpring.x.toFixed(2) + 'px, ' + ringSpring.y.toFixed(2) + 'px, 0) ' +
           'translate(-50%, -50%) ' +
           'rotate(' + currentAngle.toFixed(1) + 'deg) ' +
           'scale(' + currentStretch.toFixed(3) + ', ' + currentCompress.toFixed(3) + ')';
+
+        const haloScale = 1 + Math.min(speed * 0.0005, 0.35);
+        halo.style.transform =
+          'translate3d(' + haloSpring.x.toFixed(2) + 'px, ' + haloSpring.y.toFixed(2) + 'px, 0) ' +
+          'translate(-50%, -50%) scale(' + haloScale.toFixed(3) + ')';
       }
 
       requestAnimationFrame(renderLoop);
@@ -1025,7 +1240,7 @@
   }
 
   /* ==========================================================================
-     6. Interactive 7-Workspace Live Simulator Engine
+     7. Interactive 7-Workspace Live Simulator Engine
      ========================================================================== */
   function initWorkspaceSimulator() {
     const tabsIsland = document.querySelector('.app-tabs-island');
@@ -1265,7 +1480,7 @@
   }
 
   /* ==========================================================================
-     7. Interactive Space Reclaim Calculator
+     8. Interactive Space Reclaim Calculator
      ========================================================================== */
   function initReclaimCalculator() {
     const profileBtns = document.querySelectorAll('.calc-profile-btn');
@@ -1324,22 +1539,22 @@
   }
 
   /* ==========================================================================
-     8. Initialization on DOMContentLoaded
+     9. Initialization on DOMContentLoaded
      ========================================================================== */
   function initServiceWorker() {
-    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-      window.addEventListener('load', function () {
-        const swPath = window.location.pathname.includes('/docs/') ||
-          window.location.pathname.includes('/download/') ||
-          window.location.pathname.includes('/changelog/') ||
-          window.location.pathname.includes('/faq/')
-          ? '../sw.js'
-          : 'sw.js';
-        navigator.serviceWorker.register(swPath).catch(function (err) {
-          console.debug('ServiceWorker registration note:', err);
-        });
+    if (!('serviceWorker' in navigator) || !window.location.protocol.startsWith('http')) return;
+
+    window.addEventListener('load', function () {
+      // Resolve against motion.js itself, so every page — including the ones
+      // nested a level deep — lands on the single shared worker regardless of
+      // whether the site is mounted at the domain root or under /Deltempo/.
+      const script = document.querySelector('script[src*="motion.js"]');
+      const swUrl = script ? new URL('sw.js', script.src).href : new URL('sw.js', document.baseURI).href;
+
+      navigator.serviceWorker.register(swUrl).catch(function (err) {
+        console.debug('ServiceWorker registration note:', err);
       });
-    }
+    });
   }
 
   function initBackToTop() {
@@ -1362,15 +1577,20 @@
     }, { passive: true });
 
     btn.addEventListener('click', function () {
+      // Ride the same easing as every other scroll on the page.
+      if (scrollState.lenis) {
+        scrollState.lenis.scrollTo(0, { duration: 1.2 });
+        return;
+      }
       window.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: isReducedMotion ? 'auto' : 'smooth',
       });
     });
   }
 
   /* ==========================================================================
-     9. Global Responsive Mobile Menu Engine
+     10. Global Responsive Mobile Menu Engine
      ========================================================================== */
   function initMobileMenu() {
     const mobileToggle = document.getElementById('mobileToggle');
@@ -1384,12 +1604,15 @@
         mobileToggle.setAttribute('aria-expanded', 'true');
         mobileToggle.setAttribute('aria-label', 'Close Navigation Menu');
         document.body.style.overflow = 'hidden';
+        // Freeze the inertial scroller too, or the page keeps gliding behind the sheet.
+        if (scrollState.lenis) scrollState.lenis.stop();
       } else {
         mobileMenu.classList.remove('open');
         mobileMenu.setAttribute('aria-hidden', 'true');
         mobileToggle.setAttribute('aria-expanded', 'false');
         mobileToggle.setAttribute('aria-label', 'Open Navigation Menu');
         document.body.style.overflow = '';
+        if (scrollState.lenis) scrollState.lenis.start();
       }
     }
 
@@ -1419,7 +1642,7 @@
   }
 
   /* ==========================================================================
-     10. Active Navigation Scroll Spy
+     11. Active Navigation Scroll Spy
      ========================================================================== */
   function initScrollSpy() {
     const navLinks = document.querySelectorAll('.nav-links .nav-link');
@@ -1472,6 +1695,7 @@
 // (Note: Static multi-page routing is used to guarantee 100% reliable GitHub Pages navigation without 404 or DOM corruption)
 
   function initializeAll() {
+    initSmoothScroll();
     initScrollReveals();
     initInteractiveBackground();
     initCardInteractivity();

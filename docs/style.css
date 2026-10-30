@@ -217,13 +217,12 @@ html.light {
 
 html {
   scroll-behavior: smooth;
-  /* Keep anchor targets clear of the floating nav island. */
+  /* Keep anchor targets clear of the floating nav island. This is the single
+     source of truth: Lenis reads scroll-padding-top itself, and native
+     scrolling uses it too. A scroll-margin-top here as well would stack a
+     second 96px gap on every anchor jump. */
   scroll-padding-top: 96px;
   color-scheme: dark light;
-}
-
-[id] {
-  scroll-margin-top: 96px;
 }
 
 
@@ -2159,12 +2158,14 @@ html.light .mobile-menu-overlay {
    PRECISION CYBERNETIC CURSOR (Desktop Fine Pointer Only)
    ========================================================================== */
 @media (hover: hover) and (pointer: fine) {
-  /* Complete, universal suppression of Windows OS cursor across every DOM element */
-  html,
-  body,
-  *,
-  *::before,
-  *::after {
+  /* The OS pointer is only hidden once the custom cursor is actually mounted.
+     Reduced-motion visitors never get the class, so they keep a real pointer
+     instead of being left with nothing to aim with. */
+  html.has-custom-cursor,
+  html.has-custom-cursor body,
+  html.has-custom-cursor *,
+  html.has-custom-cursor *::before,
+  html.has-custom-cursor *::after {
     cursor: none !important;
   }
 
@@ -4615,4 +4616,795 @@ html.light .theme-icon-dark {
 .window-title picture img {
   width: 16px;
   height: 16px;
+}
+
+/* ==========================================================================
+   V3 · INERTIAL SCROLL, CURSOR DEPTH & MOTION POLISH
+   Appended last on purpose: it wins over the earlier duplicate blocks above
+   without having to hunt down and re-edit each one.
+   ========================================================================== */
+
+/* --- 1. Lenis base -------------------------------------------------------
+   Mirrors the library's own lenis.css (minus the autoToggle helper we do
+   not use). Without the first two rules the document keeps its old height
+   and the wrapper never becomes the scroll source. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  /* Lenis owns the easing; native smooth scroll would fight it. */
+  scroll-behavior: auto !important;
+}
+
+/* Lenis only carries the lenis-smooth class mid-scroll, so the guard above
+   is not enough on its own: kill native smooth scrolling for the whole
+   session once the inertial scroller is mounted. */
+html.has-lenis {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Horizontal rails stop at their own edges instead of chaining the gesture
+   to the page scroller. They are not marked data-lenis-prevent: they scroll
+   sideways, and we still want the wheel to drive the page vertically. */
+.app-tabs-island,
+.comp-table-wrap {
+  overscroll-behavior-x: contain;
+}
+
+/* --- 2. Scroll progress rail -------------------------------------------- */
+html {
+  /* Written once per scroll frame by motion.js; consumed by the aurora. */
+  --scroll-y: 0;
+}
+
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, rgba(0, 242, 176, 0) 0%, #00F2B0 45%, #9BFFE3 100%);
+  box-shadow: 0 0 12px rgba(0, 242, 176, 0.55);
+  z-index: 1200;
+  pointer-events: none;
+  will-change: transform;
+}
+
+html.light .scroll-progress-bar {
+  background: linear-gradient(90deg, rgba(4, 120, 87, 0) 0%, #047857 45%, #0D9488 100%);
+  box-shadow: 0 0 10px rgba(4, 120, 87, 0.3);
+}
+
+/* --- 3. Nav island gains depth once the page leaves the hero ------------- */
+html.is-scrolled .nav-island {
+  border-color: rgba(0, 242, 176, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 24px rgba(0, 242, 176, 0.05),
+    0 18px 44px -10px rgba(0, 0, 0, 0.68),
+    0 0 30px -8px rgba(0, 242, 176, 0.22);
+}
+
+html.light.is-scrolled .nav-island {
+  border-color: var(--border-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.04),
+    0 14px 34px -6px rgba(0, 0, 0, 0.12),
+    0 0 22px -6px rgba(5, 150, 105, 0.12);
+}
+
+/* --- 4. Cursor: trailing halo + drag affordance ------------------------- */
+@media (hover: hover) and (pointer: fine) {
+  /* Third, slowest layer. The ring tracks the pointer, this drifts behind it
+     and gives the cursor a sense of mass without lagging the aim point. */
+  .precision-cursor-halo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 242, 176, 0.1);
+    background: radial-gradient(
+      circle,
+      rgba(0, 242, 176, 0.11) 0%,
+      rgba(0, 242, 176, 0.035) 48%,
+      rgba(0, 242, 176, 0) 72%
+    );
+    pointer-events: none !important;
+    z-index: 999997;
+    opacity: 0;
+    will-change: transform, opacity;
+    transition: opacity 0.3s ease;
+  }
+
+  html.light .precision-cursor-halo {
+    border-color: rgba(4, 120, 87, 0.1);
+    background: radial-gradient(
+      circle,
+      rgba(4, 120, 87, 0.1) 0%,
+      rgba(4, 120, 87, 0.03) 48%,
+      rgba(4, 120, 87, 0) 72%
+    );
+  }
+
+  /* Sideways-scrollable surfaces: the ring flattens into a pill with
+     chevrons so the affordance reads as "grab and slide". */
+  .precision-cursor-ring.cursor-drag {
+    width: 58px;
+    height: 32px;
+    border-radius: 999px;
+    border-color: rgba(0, 242, 176, 0.6);
+    background: rgba(0, 242, 176, 0.08);
+    box-shadow: 0 0 20px rgba(0, 242, 176, 0.22), inset 0 0 12px rgba(0, 242, 176, 0.08);
+  }
+
+  .precision-cursor-ring.cursor-drag::before,
+  .precision-cursor-ring.cursor-drag::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    border-top: 1.5px solid rgba(0, 242, 176, 0.85);
+    border-left: 1.5px solid rgba(0, 242, 176, 0.85);
+  }
+
+  .precision-cursor-ring.cursor-drag::before {
+    left: 13px;
+    transform: translateY(-50%) rotate(-45deg);
+  }
+
+  .precision-cursor-ring.cursor-drag::after {
+    right: 13px;
+    transform: translateY(-50%) rotate(135deg);
+  }
+
+  .precision-cursor-dot.cursor-drag {
+    width: 4px;
+    height: 4px;
+  }
+
+  html.light .precision-cursor-ring.cursor-drag {
+    border-color: rgba(4, 120, 87, 0.55);
+    background: rgba(4, 120, 87, 0.07);
+    box-shadow: 0 0 18px rgba(4, 120, 87, 0.16), inset 0 0 12px rgba(4, 120, 87, 0.06);
+  }
+
+  html.light .precision-cursor-ring.cursor-drag::before,
+  html.light .precision-cursor-ring.cursor-drag::after {
+    border-color: rgba(4, 120, 87, 0.85);
+  }
+}
+
+/* --- 5. Reveal variants -------------------------------------------------
+   Opt in per element with data-reveal="left|right|scale|fade". The plain
+   default (no attribute) stays a 20px rise. */
+.reveal-on-scroll[data-reveal="left"] {
+  transform: translate3d(-28px, 0, 0);
+}
+
+.reveal-on-scroll[data-reveal="right"] {
+  transform: translate3d(28px, 0, 0);
+}
+
+.reveal-on-scroll[data-reveal="scale"] {
+  transform: scale(0.97);
+}
+
+.reveal-on-scroll[data-reveal="fade"] {
+  transform: none;
+}
+
+.reveal-on-scroll[data-reveal].revealed {
+  transform: none;
+}
+
+/* --- 6. Grid cascade ----------------------------------------------------
+   Cards rise in sequence instead of the whole grid fading as one slab.
+   Uses animation (not transition) so the cards keep their own hover
+   transition on transform/border/shadow untouched. */
+[data-cascade]:not(.is-revealed) > * {
+  opacity: 0;
+}
+
+[data-cascade].is-revealed > * {
+  animation: cascade-rise 0.66s var(--ease-smooth) backwards;
+}
+
+[data-cascade].is-revealed > *:nth-child(2) { animation-delay: 0.07s; }
+[data-cascade].is-revealed > *:nth-child(3) { animation-delay: 0.14s; }
+[data-cascade].is-revealed > *:nth-child(4) { animation-delay: 0.21s; }
+[data-cascade].is-revealed > *:nth-child(5) { animation-delay: 0.28s; }
+[data-cascade].is-revealed > *:nth-child(6) { animation-delay: 0.35s; }
+[data-cascade].is-revealed > *:nth-child(7) { animation-delay: 0.42s; }
+[data-cascade].is-revealed > *:nth-child(8) { animation-delay: 0.49s; }
+[data-cascade].is-revealed > *:nth-child(n + 9) { animation-delay: 0.56s; }
+
+@keyframes cascade-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (scripting: none) {
+  [data-cascade] > * {
+    opacity: 1;
+  }
+}
+
+/* --- 7. Primary CTA sheen ----------------------------------------------- */
+.btn-pill-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-pill-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.5) 46%,
+    rgba(255, 255, 255, 0.12) 56%,
+    transparent 70%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.72s var(--ease-smooth);
+  pointer-events: none;
+}
+
+.btn-pill-primary:hover::after,
+.btn-pill-primary:focus-visible::after {
+  transform: translateX(130%);
+}
+
+/* --- 8. Selection ------------------------------------------------------- */
+::selection {
+  background: rgba(0, 242, 176, 0.26);
+  color: #F8FAFC;
+}
+
+html.light ::selection {
+  background: rgba(4, 120, 87, 0.2);
+  color: #0F172A;
+}
+
+/* --- 9. Aurora scroll parallax ------------------------------------------
+   The orbs animate their own transform, so the drift has to live on the
+   container. The extra scale hides the 32px the translation can uncover. */
+.ambient-aurora {
+  transform: translate3d(0, calc(min(var(--scroll-y, 0), 1600) * -0.02px), 0) scale(1.12);
+}
+
+/* --- 10. Reduced motion -------------------------------------------------
+   Nothing here may move on its own; the JS already skips Lenis and the
+   custom cursor entirely, this keeps the CSS side honest too. */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-progress-bar {
+    transition: none;
+  }
+
+  .ambient-aurora {
+    transform: none;
+  }
+
+  .btn-pill-primary::after {
+    display: none;
+  }
+
+  [data-cascade]:not(.is-revealed) > * {
+    opacity: 1;
+  }
+
+  [data-cascade].is-revealed > * {
+    animation: none;
+  }
+
+  .reveal-on-scroll[data-reveal] {
+    transform: none;
+  }
+}
+/* ==========================================================================
+   V3.1 · PERFORMANCE, TOUCH ERGONOMICS, EXPAND MOTION & CURSOR DEPTH
+   Appended last so it wins over the earlier duplicate blocks above.
+   ========================================================================== */
+
+/* --- 1. Composite hygiene -------------------------------------------------
+   Every permanent will-change layer costs GPU memory, and on a 3x phone that
+   is the first thing to blow the budget. Reveals and card tilts only need the
+   hint while they are actually moving, so the hint is scoped to that window. */
+.ambient-canvas {
+  /* The canvas never transforms; it is already its own layer via contain. */
+  will-change: auto;
+}
+
+.reveal-on-scroll {
+  /* Transitions on opacity/transform are composited without the hint, and
+     leaving 26 layers promoted for the whole visit is pure waste. */
+  will-change: auto;
+}
+
+.reveal-on-scroll:not(.revealed) {
+  will-change: opacity, transform;
+}
+
+/* Card tilt only ever happens under a real pointer. */
+@media (hover: hover) and (pointer: fine) {
+  .double-bezel:hover,
+  .card-inner:hover,
+  .feature-card:hover,
+  .scope-card:hover,
+  .tier-card:hover,
+  .dl-card:hover,
+  .download-card:hover,
+  .doc-code-card:hover,
+  .arch-card:hover,
+  .faq-item:hover,
+  .hero-oneshot:hover {
+    will-change: transform;
+  }
+}
+
+/* The hero gradient animates background-position every frame; hinting the
+   drop-shadow filter as well forces a filter re-raster each frame. */
+.hero-title-gradient,
+.aurora-text {
+  will-change: background-position;
+}
+
+/* --- 2. Cheaper glass on small screens -----------------------------------
+   backdrop-filter is the single most expensive property in this stylesheet.
+   Halving the radius on phones keeps the frosted look at a fraction of the
+   fill-rate, which is exactly where mobile GPUs run out of headroom. */
+@media (max-width: 768px) {
+  .nav-island {
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+  }
+
+  .mobile-menu-overlay {
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+  }
+
+  .back-to-top {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .hero-oneshot {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* Softer, smaller orbs: the blur radius is the fill-rate. */
+  .aurora-orb {
+    filter: blur(62px);
+    opacity: 0.09;
+  }
+
+  .aurora-orb-3 {
+    display: none;
+  }
+
+  /* Full-page fixed film grain is a per-frame composite on mobile. */
+  .ambient-aurora::after {
+    opacity: 0.35;
+  }
+
+  /* 11 cards + 6 pills each carried a full-viewport blur on phones. Their
+     backgrounds are already ~0.9 alpha, so dropping the filter is invisible
+     but removes the single largest per-frame cost on mobile GPUs. */
+  .card-inner,
+  .btn-pill,
+  .hero-release-pill {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .card-inner {
+    background: linear-gradient(145deg, rgba(20, 29, 32, 0.94) 0%, rgba(13, 19, 21, 0.97) 100%);
+  }
+
+  html.light .card-inner {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 250, 252, 0.99) 100%);
+  }
+}
+
+/* --- 3. Touch ergonomics -------------------------------------------------
+   Fingers need 44x44 CSS px (WCAG 2.2 · 2.5.8 / Apple HIG). These controls
+   were 18-38px tall. Padding grows the hit area without moving the artwork. */
+.nav-brand,
+.nav-link,
+.btn-icon,
+.nav-mobile-toggle,
+.nav-download-btn,
+.hero-release-pill,
+.app-tab,
+.footer-link,
+.footer-top-link,
+.back-to-top,
+.btn-pill,
+.mobile-nav-link,
+.faq-question,
+.calc-profile-btn,
+.cmd-pill {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-brand {
+  min-height: 44px;
+  padding-block: 8px;
+}
+
+/* Size bumps only where a finger is the input device: a 44px icon button in
+   the 54px desktop island would visibly unbalance the nav. */
+@media (max-width: 1040px), (pointer: coarse) {
+  .btn-icon,
+  .nav-mobile-toggle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .nav-download-btn,
+  .hero-release-pill,
+  .btn-pill {
+    min-height: 44px;
+  }
+
+  .app-tab {
+    min-height: 44px;
+  }
+
+  .footer-link,
+  .footer-top-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .back-to-top {
+    width: 46px;
+    height: 46px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .nav-link {
+    min-height: 44px;
+  }
+
+  /* Remaining short controls found by the phone audit. */
+  .calc-profile-btn {
+    min-height: 44px;
+  }
+
+  .video-direct-link,
+  .text-accent-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 46px;
+    padding-block: 11px;
+  }
+
+  /* Narrow text links ("FAQ") need horizontal padding to reach 44px wide;
+     the visible text stays where it was, only the hit box grows. */
+  .footer-link,
+  .footer-top-link {
+    padding-inline: 8px;
+    margin-inline: -8px;
+    min-width: 44px;
+    justify-content: center;
+  }
+}
+
+/* --- 4. Safe-area insets -------------------------------------------------
+   Notches, home indicators and rounded corners must not eat controls. */
+.nav-wrapper {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+.scroll-progress-bar {
+  top: env(safe-area-inset-top, 0px);
+}
+
+.back-to-top {
+  bottom: max(2rem, calc(env(safe-area-inset-bottom, 0px) + 0.75rem));
+  right: max(2rem, calc(env(safe-area-inset-right, 0px) + 0.75rem));
+}
+
+.mobile-menu-overlay {
+  height: 100dvh;
+  padding-top: calc(6rem + env(safe-area-inset-top, 0px));
+  padding-right: max(2rem, env(safe-area-inset-right));
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+  padding-left: max(2rem, env(safe-area-inset-left));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .back-to-top {
+    bottom: max(1.25rem, calc(env(safe-area-inset-bottom, 0px) + 0.75rem));
+    right: max(1.25rem, calc(env(safe-area-inset-right, 0px) + 0.75rem));
+    width: 46px;
+    height: 46px;
+  }
+}
+
+/* --- 5. Sticky hover is a phone bug -------------------------------------
+   On touch, :hover latches after a tap and leaves cards lifted forever.
+   Drop the transform on coarse pointers and keep the colour feedback. */
+@media (hover: none) {
+  .double-bezel:hover,
+  .card-inner:hover,
+  .feature-card:hover,
+  .cap-item:hover,
+  .scope-card:hover,
+  .tier-card:hover,
+  .dl-card:hover,
+  .download-card:hover,
+  .doc-code-card:hover,
+  .arch-card:hover,
+  .faq-item:hover,
+  .trust-banner:hover,
+  .hero-oneshot:hover,
+  .btn-pill-primary:hover,
+  .btn-pill-secondary:hover,
+  .nav-link:hover,
+  .btn-icon:hover,
+  .back-to-top:hover {
+    transform: none;
+  }
+}
+
+/* --- 6. Press feedback --------------------------------------------------
+   A tap must answer immediately, even before the destination loads. */
+.btn-pill:active,
+.btn-icon:active,
+.app-tab:active,
+.faq-question:active,
+.mobile-nav-link:active,
+.footer-link:active,
+.calc-profile-btn:active,
+.cmd-pill:active,
+.hero-release-pill:active,
+.back-to-top:active {
+  transform: scale(0.965);
+  transition-duration: 0.08s;
+}
+
+/* --- 7. Expanding motion ------------------------------------------------
+   The FAQ used display:none -> block, which cannot animate. max-height +
+   opacity gives it a real open/close without a JS height measurement. */
+.faq-answer {
+  display: block;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    max-height 0.42s var(--ease-smooth),
+    padding-bottom 0.42s var(--ease-smooth),
+    opacity 0.3s ease,
+    transform 0.42s var(--ease-smooth);
+}
+
+.faq-item.open .faq-answer {
+  display: block;
+  max-height: 40rem;
+  padding-bottom: 1.25rem;
+  opacity: 1;
+  transform: none;
+}
+
+/* Tab panes swap instantly today; a short rise makes the switch readable. */
+.tab-pane.active {
+  animation: pane-enter 0.42s var(--ease-smooth) both;
+}
+
+@keyframes pane-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Mobile menu links cascade in instead of appearing as one slab. */
+.mobile-menu-overlay.open .mobile-nav-link {
+  animation: menu-link-enter 0.44s var(--ease-smooth) backwards;
+}
+
+.mobile-menu-overlay.open .mobile-nav-link:nth-child(1) { animation-delay: 0.03s; }
+.mobile-menu-overlay.open .mobile-nav-link:nth-child(2) { animation-delay: 0.06s; }
+.mobile-menu-overlay.open .mobile-nav-link:nth-child(3) { animation-delay: 0.09s; }
+.mobile-menu-overlay.open .mobile-nav-link:nth-child(4) { animation-delay: 0.12s; }
+.mobile-menu-overlay.open .mobile-nav-link:nth-child(5) { animation-delay: 0.15s; }
+.mobile-menu-overlay.open .mobile-nav-link:nth-child(6) { animation-delay: 0.18s; }
+.mobile-menu-overlay.open .mobile-nav-link:nth-child(7) { animation-delay: 0.21s; }
+.mobile-menu-overlay.open .mobile-nav-link:nth-child(8) { animation-delay: 0.24s; }
+.mobile-menu-overlay.open .mobile-nav-link:nth-child(9) { animation-delay: 0.27s; }
+.mobile-menu-overlay.open .mobile-nav-link:nth-child(10) { animation-delay: 0.30s; }
+.mobile-menu-overlay.open .mobile-nav-link:nth-child(11) { animation-delay: 0.33s; }
+.mobile-menu-overlay.open .mobile-nav-link:nth-child(12) { animation-delay: 0.36s; }
+.mobile-menu-overlay.open .mobile-nav-link:nth-child(n + 13) { animation-delay: 0.39s; }
+
+@keyframes menu-link-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(-14px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- 8. Scroll-up button: progress ring --------------------------------
+   The button now doubles as a scroll meter, so "how far down am I" is
+   readable without hunting for the 2px rail at the top of the page. */
+/* No local --scroll-progress here: the value is inherited from html, which
+   motion.js rewrites each scroll frame. A local declaration would shadow it. */
+.back-to-top {
+  position: fixed;
+}
+
+.back-to-top::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #00F2B0 calc(var(--scroll-progress) * 1turn),
+    rgba(255, 255, 255, 0.09) 0
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  pointer-events: none;
+}
+
+.back-to-top.visible::before {
+  opacity: 0.9;
+}
+
+html.light .back-to-top::before {
+  background: conic-gradient(
+    #047857 calc(var(--scroll-progress) * 1turn),
+    rgba(0, 0, 0, 0.08) 0
+  );
+}
+
+/* --- 9. Cursor: hover depth + click ripples ----------------------------
+   Hover now inverts (dot shrinks, ring fills) and grows a dashed orbit.
+   Click fires a fast inner ring plus the existing slow outer wave. */
+@media (hover: hover) and (pointer: fine) {
+  .precision-cursor-ring::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border-radius: inherit;
+    border: 1px dashed rgba(0, 242, 176, 0);
+    opacity: 0;
+    transition: opacity 0.24s ease, border-color 0.24s ease;
+    pointer-events: none;
+  }
+
+  .precision-cursor-ring.cursor-hover::after {
+    border-color: rgba(0, 242, 176, 0.45);
+    opacity: 1;
+    animation: cursor-orbit 5.5s linear infinite;
+  }
+
+  .precision-cursor-ring.cursor-hover {
+    border-width: 1px;
+    background: radial-gradient(
+      circle,
+      rgba(13, 211, 186, 0.3) 0%,
+      rgba(0, 242, 176, 0.12) 60%,
+      transparent 82%
+    );
+  }
+
+  .precision-cursor-dot.cursor-hover {
+    width: 5px;
+    height: 5px;
+    background: #00F2B0;
+  }
+
+  .precision-cursor-halo.cursor-hover {
+    opacity: 0.9;
+  }
+
+  html.light .precision-cursor-ring.cursor-hover::after {
+    border-color: rgba(4, 120, 87, 0.45);
+  }
+
+  html.light .precision-cursor-dot.cursor-hover {
+    background: #047857;
+  }
+
+  /* Second, faster ripple on press. */
+  .cursor-click-pulse.pulse-inner {
+    animation-duration: 0.36s;
+    animation-delay: 0.05s;
+    border-width: 2px;
+  }
+}
+
+@keyframes cursor-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- 10. Reduced motion -------------------------------------------------
+   Nothing here may move on its own. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-on-scroll:not(.revealed) {
+    will-change: auto;
+  }
+
+  .faq-answer,
+  .faq-item.open .faq-answer {
+    transition: none;
+    transform: none;
+  }
+
+  .tab-pane.active,
+  .mobile-menu-overlay.open .mobile-nav-link {
+    animation: none;
+  }
+
+  .precision-cursor-ring.cursor-hover::after {
+    animation: none;
+  }
+
+  .btn-pill:active,
+  .btn-icon:active,
+  .app-tab:active,
+  .faq-question:active,
+  .mobile-nav-link:active,
+  .footer-link:active,
+  .calc-profile-btn:active,
+  .cmd-pill:active,
+  .hero-release-pill:active,
+  .back-to-top:active {
+    transform: none;
+  }
 }
