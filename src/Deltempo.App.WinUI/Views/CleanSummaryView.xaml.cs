@@ -82,6 +82,11 @@ public sealed partial class CleanSummaryView : UserControl
 
         FilesText.Text = $"{summary.TotalFilesDeleted:N0}";
         FoldersText.Text = $"{summary.TotalFoldersDeleted:N0}";
+        // WPF's celebration RAM card (MainWindow.xaml:2249, Cleaning.cs:368/:510): the
+        // deep clean's standby flush is the real RAM figure; a category clean keeps
+        // the same "-- MB" placeholder WPF wrote there, since a disk-only run frees
+        // no RAM. The card is always visible so the grid keeps WPF's 4-stat shape.
+        RamStatText.Text = summary.IsDeepClean ? summary.FormattedRamFreed : "-- MB";
         TimeText.Text = $"{summary.ElapsedTime.TotalSeconds:N1}s";
 
         SkipText.Text = skipDetails.Count > 0

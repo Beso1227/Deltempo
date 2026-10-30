@@ -100,9 +100,14 @@
                                Visibility="Collapsed" />
                 </StackPanel>
 
-                <!-- 1. Numbers -->
+                <!-- 1. Numbers. WPF's celebration carries four stats
+                     (FILES DELETED / FOLDERS PURGED / RAM RECOVERED / TIME ELAPSED,
+                     MainWindow.xaml:2238-2256); the RAM card is the deep clean's
+                     second number and keeps WPF's placeholder copy on a category
+                     clean (MainWindow.Cleaning.cs:368). -->
                 <Grid Grid.Row="1" Margin="0,18,0,0" ColumnSpacing="10">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
@@ -139,6 +144,22 @@
                     </Border>
 
                     <Border Grid.Column="2" Style="{StaticResource StatCard}">
+                        <StackPanel Spacing="2" HorizontalAlignment="Center">
+                            <TextBlock x:Name="RamStatLabel"
+                                       loc:Loc.Key="RamRecovered" Text="RAM Recovered"
+                                       FontSize="9.5"
+                                       Foreground="{ThemeResource TextMutedBrush}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock x:Name="RamStatText"
+                                       Text="-- MB"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource ElectricCyanBrush}"
+                                       TextAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="3" Style="{StaticResource StatCard}">
                         <StackPanel Spacing="2" HorizontalAlignment="Center">
                             <TextBlock loc:Loc.Key="TimeElapsed" Text="Time Elapsed"
                                        FontSize="9.5"
