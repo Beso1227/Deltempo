@@ -112,6 +112,22 @@ Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`)
   Pinned by `StorePackagingAssetTests.Publish_StagesTheAppPriOrFailsClosed`;
   the shipped `.msix` has since been rebuilt with the PRI inside and the
   unelevated launch re-verified (see section 6, gate 1 progress).
+- **Tray flyout z-order fixed (2026-10-30).** The WinUI tray context menu opened
+  behind the taskbar: the flyout's popup host window carries no
+  `WS_EX_TOPMOST`, so the always-topmost `Shell_TrayWnd` occluded whatever
+  overlapped the notification strip (probe-verified before the fix). Three
+  live facts the fix encodes, all verified during the session:
+  a popup host reports `IsWindowVisible == false` while composition still
+  renders its content; the host class is `WinUIDesktopWin32WindowClass` on
+  some WindowsAppSDK builds and `Microsoft.UI.Content.PopupWindowSiteBridge`
+  on others, so the finder identifies by exclusion (own process, own
+  top-levels, not main, not IME) instead of class-matching; and calling
+  `SetForegroundWindow` on the *hidden* main window keeps the flyout from
+  ever displaying, so the foreground grant is gated on window visibility.
+  The promotion (`SetWindowPos` `HWND_TOPMOST` with `SWP_NOACTIVATE`) logs
+  through ShellDiagnostics and degrades to the pre-fix z-order on failure.
+  Pinned by `WinUiTrayFlyout_IsPromotedAboveTheTaskbar`; WPF unaffected
+  (framework popups are born topmost).
 - A/W: `WindowsAppSDK` 2.4.0 self-contained packages are accepted by the Store; pin
   the package version in `Directory.Packages.props` as today, no floating refs.
 
