@@ -69,6 +69,14 @@ New-Item -ItemType Directory -Force -Path (Join-Path $staging "Assets\Store") | 
 Copy-Item (Join-Path $repoRoot "src\Deltempo.App.WinUI\Assets\Store\*.png") `
     (Join-Path $staging "Assets\Store") -Force
 
+# Fail closed on the app PRI: a publish folder built by an older csproj
+# (before StageAppPriIntoPublish) lacks Deltempo.WinUI.pri, and the packaged
+# app would crash with XamlParseException on first launch - verified
+# 2026-10-30. The publish-stage target adds it; abort if it is still absent.
+if (-not (Test-Path (Join-Path $staging "Deltempo.WinUI.pri"))) {
+    throw "Staging folder has no Deltempo.WinUI.pri; the package would crash on boot. Republish with the current csproj."
+}
+
 # --- 4. Read the identity version for the output file name.
 $manifestText = [IO.File]::ReadAllText((Join-Path $repoRoot "src\Deltempo.App.WinUI\packaging\Store\Package.appxmanifest"))
 $version = [regex]::Match($manifestText, 'Version\s*=\s*"([^"]+)"').Groups[1].Value

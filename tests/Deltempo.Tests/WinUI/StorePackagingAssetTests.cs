@@ -112,4 +112,23 @@ public class StorePackagingAssetTests
         // PDBs are symbols, not runtime payload.
         Assert.Contains("*.pdb", script);
     }
+
+    [Fact]
+    public void Publish_StagesTheAppPriOrFailsClosed()
+    {
+        // dotnet publish leaves the app's own PRI in the build root, and a
+        // publish-folder launch then dies with XamlParseException the moment
+        // MainWindow.InitializeComponent resolves its compiled XAML
+        // (verified 2026-10-30: stowed exception at LoadComponent, clean
+        // launch once the PRI was copied in). The csproj must stage it on
+        // every publish - fail closed if the build produced none - and the
+        // packaging pipeline must refuse a staging folder without it.
+        string csproj = Read("src", "Deltempo.App.WinUI", "Deltempo.App.WinUI.csproj");
+        string script = Read("tools", "build-store-package.ps1");
+
+        Assert.Contains("StageAppPriIntoPublish", csproj);
+        Assert.Contains("$(AssemblyName).pri", csproj);
+        Assert.Contains("XamlParseException", csproj);
+        Assert.Contains("no Deltempo.WinUI.pri", script);
+    }
 }

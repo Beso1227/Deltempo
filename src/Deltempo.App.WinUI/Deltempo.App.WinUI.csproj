@@ -78,4 +78,29 @@
     <Content Include="..\Deltempo.App.Wpf\app.ico" Link="app.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- dotnet publish does not stage the app's own PRI (Deltempo.WinUI.pri):
+       it stays in the build root while the framework PRIs go to publish, and
+       a publish-folder launch then dies with XamlParseException the moment
+       MainWindow.InitializeComponent resolves its compiled XAML. Verified
+       2026-10-30 (crash log: XamlParseException at
+       MainWindow.g.i.cs LoadComponent; the exe launched cleanly once the
+       PRI was copied in by hand). Applies to BOTH flavors; the Store
+       (tools/build-store-package.ps1) re-checks it fail-closed. -->
+  <Target
+      Name="StageAppPriIntoPublish"
+      AfterTargets="Publish"
+      Condition="'$(PublishDir)' != ''">
+    <Copy
+        SourceFiles="$(OutputPath)$(AssemblyName).pri"
+        DestinationFiles="$(PublishDir)$(AssemblyName).pri"
+        OverwriteReadOnlyFiles="true"
+        Condition="Exists('$(OutputPath)$(AssemblyName).pri')" />
+    <Error
+        Condition="Exists('$(OutputPath)$(AssemblyName).pri') And !Exists('$(PublishDir)$(AssemblyName).pri')"
+        Text="Publish skipped $(AssemblyName).pri; the publish payload would crash on boot (XamlParseException)." />
+    <Error
+        Condition="!Exists('$(OutputPath)$(AssemblyName).pri')"
+        Text="$(OutputPath)$(AssemblyName).pri missing: the build produced no app PRI, so the publish payload could not load its own XAML." />
+  </Target>
+
 </Project>
