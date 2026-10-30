@@ -1095,6 +1095,9 @@
       'a, button, input, textarea, select, [role="button"], [role="tab"], .btn-pill, .btn-icon, .hero-oneshot, .card-inner, .faq-item, .mobile-nav-link, .nav-link, summary, .calc-profile-btn, .cmd-pill';
     const magneticSelector = '.btn-pill-primary, .hero-oneshot, #themeToggleBtn, .btn-icon, .dl-btn-primary';
     const dragSelector = '[data-cursor="drag"], .app-tabs-island, .comp-table-wrap';
+    // Solid mint surfaces swallow a mint cursor: the dot and ring need to
+    // invert to near-black there or they simply disappear on the CTA.
+    const accentSurfaceSelector = '.btn-pill-primary, .nav-download-btn, .pane-btn-primary';
 
     document.addEventListener(
       'pointerover',
@@ -1106,12 +1109,16 @@
         const interactive = t.closest(interactiveSelector);
         const magnetic = t.closest(magneticSelector);
         const textField = t.closest('input, textarea');
+        const accentSurface = t.closest(accentSurfaceSelector);
 
         ring.classList.toggle('cursor-drag', !!dragTarget && !magnetic);
         dot.classList.toggle('cursor-drag', !!dragTarget && !magnetic);
         ring.classList.toggle('cursor-hover', !!interactive);
         dot.classList.toggle('cursor-hover', !!interactive);
         halo.classList.toggle('cursor-hover', !!interactive);
+        ring.classList.toggle('cursor-invert', !!accentSurface);
+        dot.classList.toggle('cursor-invert', !!accentSurface);
+        halo.classList.toggle('cursor-invert', !!accentSurface);
         ring.classList.toggle('cursor-text', !!textField);
         dot.classList.toggle('cursor-text', !!textField);
         ring.classList.toggle('cursor-magnetic', !!magnetic);

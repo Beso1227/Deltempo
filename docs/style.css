@@ -5359,6 +5359,35 @@ html.light .back-to-top::before {
     background: #047857;
   }
 
+  /* Over a solid mint CTA the mint cursor is invisible. Invert to near-black
+     with a white keyline so the pointer stays legible on the brightest surface. */
+  .precision-cursor-dot.cursor-invert {
+    background: #04140F;
+    box-shadow:
+      0 0 0 1.5px rgba(255, 255, 255, 0.92),
+      0 0 12px rgba(4, 20, 15, 0.5);
+  }
+
+  .precision-cursor-ring.cursor-invert {
+    border-width: 1.5px;
+    border-color: rgba(4, 20, 15, 0.72);
+    background: radial-gradient(
+      circle,
+      rgba(4, 20, 15, 0.14) 0%,
+      rgba(4, 20, 15, 0.05) 62%,
+      transparent 84%
+    );
+    box-shadow: 0 0 14px rgba(4, 20, 15, 0.22);
+  }
+
+  .precision-cursor-ring.cursor-invert::after {
+    border-color: rgba(4, 20, 15, 0.4);
+  }
+
+  .precision-cursor-halo.cursor-invert {
+    opacity: 0.55;
+  }
+
   /* Second, faster ripple on press. */
   .cursor-click-pulse.pulse-inner {
     animation-duration: 0.36s;
