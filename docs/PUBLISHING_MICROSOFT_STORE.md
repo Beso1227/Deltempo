@@ -98,6 +98,20 @@ Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`)
   because `Deltempo.Core` (shared with the WPF head) references WPF for
   `TrayService`. Pre-existing, not package-induced; noted so a future slimming
   does not read as a packaging regression.
+- **App PRI found missing from publish (fixed 2026-10-30).** `dotnet publish`
+  leaves the app's own `Deltempo.WinUI.pri` in the build root while the
+  framework PRIs land in publish; launching the publish-folder exe then dies
+  at first paint with a stowed `XamlParseException` (crash log captured at
+  `MainWindow.g.i.cs:LoadComponent`). The runtime pass x-raying the embedded
+  manifest also caught a **stale apphost cache**: an incremental publish
+  after a flavor switch can embed the wrong manifest, so never trust a
+  non-clean publish that changes `ApplicationManifest`. Fixes, both
+  fail-closed: `StageAppPriIntoPublish` in the WinUI csproj (copies the PRI
+  into publish, errors when impossible) and a staging check in
+  `tools/build-store-package.ps1` that aborts packaging without the PRI.
+  Pinned by `StorePackagingAssetTests.Publish_StagesTheAppPriOrFailsClosed`;
+  the shipped `.msix` has since been rebuilt with the PRI inside and the
+  unelevated launch re-verified (see section 6, gate 1 progress).
 - A/W: `WindowsAppSDK` 2.4.0 self-contained packages are accepted by the Store; pin
   the package version in `Directory.Packages.props` as today, no floating refs.
 
@@ -161,7 +175,15 @@ Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`)
    engines and bail-out texts are pinned by `StoreElevationParityTests`.
    Still open before submit: a real unelevated end-to-end pass over the
    standard-path scan/clean (manual) and the per-output confirmation on the
-   two restricted surfaces.
+   two restricted surfaces. **Progress 2026-10-30 (agent-driven):** the
+   unelevated launch itself is verified on the machine — the publish-folder
+   exe starts without elevation (binary manifest check: asInvoker, no
+   `requireAdministrator` string), and a second launch defers to the running
+   copy with exit code 0 (`SingleInstanceManager.TryAcquire` +
+   `NotifyExistingInstance` path exercised live). The scan/clean flows and
+   the title-bar privilege label remain for a human eye (step 1 of the
+   manual checklist); this pass also caught and fixed the publish-PRI bug
+   (section 3).
 2. **MSIX package job** — **done 2026-10-30, section 3's pipeline**: the
    `winui-store-package` CI job publishes the Store flavor, packs the
    schema-validated `.msix` with `tools/build-store-package.ps1` (makeappx
