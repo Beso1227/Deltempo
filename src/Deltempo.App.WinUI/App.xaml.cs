@@ -7,10 +7,14 @@ namespace Deltempo.App.WinUI;
 public partial class App : Application
 {
     /// <summary>
-    /// Preview-only mutex. Deliberately distinct from the shipped app's
-    /// "Global\Deltempo_App_SingleInstance_Mutex_v2" so both can run at once.
+    /// The WinUI head's single-instance mutex. Deliberately distinct from the
+    /// shipped WPF head's "Global\Deltempo_App_SingleInstance_Mutex_v2" (see
+    /// docs/THREAT_MODEL.md section 2.9): a user running the GitHub WPF build
+    /// and the Store WinUI build side by side must not have either launch
+    /// silently defer to the other. Each head single-instances against itself;
+    /// the v2 WPF name predates the Store plan and ships as-is.
     /// </summary>
-    private const string SingleInstanceMutexName = "Global\\Deltempo_WinUI_Preview_SingleInstance_Mutex_v1";
+    private const string SingleInstanceMutexName = "Global\\Deltempo_WinUI_SingleInstance_Mutex_v1";
 
     private Window? _window;
 

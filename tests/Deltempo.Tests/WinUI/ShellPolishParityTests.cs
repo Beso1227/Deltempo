@@ -131,9 +131,11 @@ public class ShellPolishParityTests
         string app = ReadWinUi("App.xaml.cs");
 
         // Second launches surface the running copy instead of opening a twin. The
-        // preview's own mutex keeps it compatible with the shipped WPF app.
+        // head's own mutex keeps it compatible with the shipped WPF app
+        // (THREAT_MODEL.md section 2.9 documents that collision choice).
         Assert.Contains("SingleInstanceManager.TryAcquire", app);
-        Assert.Contains("Deltempo_WinUI_Preview_SingleInstance_Mutex_v1", app);
+        Assert.Contains("Deltempo_WinUI_SingleInstance_Mutex_v1", app);
+        Assert.DoesNotContain("Preview_SingleInstance", app);
         Assert.Contains("NotifyExistingInstance", app);
 
         // The Core side the notify path leans on: broadcast + enumeration.
