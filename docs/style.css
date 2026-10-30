@@ -217,7 +217,13 @@ html.light {
 
 html {
   scroll-behavior: smooth;
+  /* Keep anchor targets clear of the floating nav island. */
+  scroll-padding-top: 96px;
   color-scheme: dark light;
+}
+
+[id] {
+  scroll-margin-top: 96px;
 }
 
 
@@ -289,7 +295,25 @@ footer,
   backface-visibility: hidden;
   contain: layout paint style;
   pointer-events: none;
-  opacity: 0.14;
+  opacity: 0.11;
+}
+
+/* Fine film grain: breaks up the blurred gradients so the backdrop reads as
+   material instead of flat CSS glow. Sits under the particle canvas. */
+.ambient-aurora::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+html.light .ambient-aurora::after {
+  opacity: 0.32;
+  mix-blend-mode: multiply;
 }
 
 .aurora-orb-1 {
@@ -301,7 +325,7 @@ footer,
   max-height: 800px;
   background: radial-gradient(circle, #00F2B0 0%, rgba(0, 242, 176, 0) 70%);
   animation: aurora-drift-1 26s ease-in-out infinite alternate;
-  opacity: 0.16;
+  opacity: 0.13;
 }
 
 .aurora-orb-2 {
@@ -313,7 +337,7 @@ footer,
   max-height: 900px;
   background: radial-gradient(circle, #0DD3BA 0%, rgba(13, 211, 186, 0) 70%);
   animation: aurora-drift-2 30s ease-in-out infinite alternate;
-  opacity: 0.14;
+  opacity: 0.11;
 }
 
 .aurora-orb-3 {
@@ -325,7 +349,7 @@ footer,
   max-height: 750px;
   background: radial-gradient(circle, #059669 0%, rgba(5, 150, 105, 0) 70%);
   animation: aurora-drift-3 34s ease-in-out infinite alternate;
-  opacity: 0.15;
+  opacity: 0.12;
 }
 
 .aurora-grid {
@@ -341,7 +365,7 @@ footer,
 }
 
 html.light .aurora-orb {
-  opacity: 0.065;
+  opacity: 0.05;
   filter: blur(120px);
 }
 
@@ -881,6 +905,11 @@ html.light .card-inner::before {
   color: #fff;
 }
 
+/* Mobile-only short label; the long announcement line is desktop-only. */
+.pill-text-short {
+  display: none;
+}
+
 .pulse-dot {
   width: 8px;
   height: 8px;
@@ -1112,6 +1141,7 @@ html.light .hero-oneshot:hover .hero-oneshot-copy {
 .hero-oneshot-copy {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 4px;
   font-size: 0.75rem;
   padding: 3px 10px;
@@ -1161,6 +1191,8 @@ html.light .hero-oneshot:hover .hero-oneshot-copy {
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.09);
   overflow: hidden;
+  /* The page is centre-aligned; the mock app UI must read as an app. */
+  text-align: left;
 }
 
 html.light .app-window {
@@ -1400,6 +1432,18 @@ html.light .feature-icon-wrapper {
   letter-spacing: -0.02em;
 }
 
+/* One- and two-line titles must not shift the body copy below them. */
+@media (min-width: 641px) {
+  .features-grid .feature-title {
+    min-height: 3.3em;
+  }
+
+  /* Every workflow card title is a single word — no reservation needed. */
+  #how-it-works .feature-title {
+    min-height: 0;
+  }
+}
+
 .feature-body {
   color: var(--text-med);
   font-size: 0.95rem;
@@ -1409,7 +1453,7 @@ html.light .feature-icon-wrapper {
 /* Safety Pipeline Architecture */
 .safety-pipeline {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1.25rem;
   padding: 2.25rem 2.5rem;
@@ -1431,6 +1475,9 @@ html.light .safety-pipeline {
   text-align: center;
   flex: 1;
   min-width: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .pipeline-step-num {
@@ -1455,18 +1502,65 @@ html.light .safety-pipeline {
   line-height: 1.4;
 }
 
+/* Equal-height steps keep the five phases on one visual baseline. */
+@media (min-width: 769px) {
+  .pipeline-step-desc {
+    min-height: 4.2em;
+  }
+}
+
 .pipeline-arrow {
   color: var(--accent-cyan);
   opacity: 0.4;
   font-size: 1.35rem;
+  line-height: 1;
+  margin-top: 1.4rem;
+  align-self: flex-start;
   user-select: none;
 }
 
-/* 5 Safety Tiers Table */
+/* 5 Safety Tiers Table — 3 + 2 centred composition instead of a lone card. */
 .tier-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 1.25rem;
+}
+
+.tier-card {
+  grid-column: span 2;
+}
+
+.tier-card:nth-child(4) {
+  grid-column: 2 / span 2;
+}
+
+.tier-card:nth-child(5) {
+  grid-column: 4 / span 2;
+}
+
+@media (max-width: 1024px) {
+  .tier-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tier-card,
+  .tier-card:nth-child(4) {
+    grid-column: auto;
+  }
+
+  .tier-card:nth-child(5) {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .tier-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .tier-card:nth-child(5) {
+    grid-column: auto;
+  }
 }
 
 .tier-card {
@@ -1563,6 +1657,7 @@ html.light .tier-badge.unknown {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
+  align-items: stretch;
 }
 
 .cap-column {
@@ -1571,6 +1666,26 @@ html.light .tier-badge.unknown {
   background: linear-gradient(145deg, rgba(19, 27, 30, 0.9) 0%, rgba(13, 18, 20, 0.96) 100%);
   border: 1px solid rgba(0, 242, 176, 0.15);
   box-shadow: inset 0 1px 0 rgba(0, 242, 176, 0.12), 0 6px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Pinned footer anchors the bottom of every pillar, so the shorter OPTIMIZE
+   column ends on a deliberate line instead of trailing empty space. */
+.cap-foot {
+  margin-top: auto;
+  padding-top: 1.1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-low);
+}
+
+html.light .cap-foot {
+  border-top-color: rgba(0, 0, 0, 0.07);
 }
 
 html.light .cap-column {
@@ -1668,8 +1783,31 @@ html.light .faq-item:hover {
 }
 
 .faq-icon {
-  font-size: 1.25rem;
-  transition: transform var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin-left: 1rem;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 242, 176, 0.3);
+  background: rgba(0, 242, 176, 0.08);
+  color: var(--accent-cyan);
+  font-size: 1.05rem;
+  line-height: 1;
+  transition: transform 0.25s var(--ease-smooth), background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.faq-question:hover .faq-icon {
+  background: rgba(0, 242, 176, 0.16);
+  border-color: rgba(0, 242, 176, 0.5);
+}
+
+html.light .faq-icon {
+  border-color: rgba(5, 150, 105, 0.3);
+  background: rgba(5, 150, 105, 0.07);
+  color: var(--accent-cyan);
 }
 
 .faq-item.open .faq-icon {
@@ -1739,6 +1877,37 @@ html.light .trust-banner {
   font-weight: 600;
 }
 
+/* The banner sits on a mint wash, so secondary CTAs need a real edge. */
+.trust-banner .btn-pill-secondary {
+  border-color: rgba(0, 242, 176, 0.34);
+  background: rgba(6, 12, 12, 0.5);
+  box-shadow: inset 0 1px 0 rgba(0, 242, 176, 0.14), 0 2px 10px rgba(0, 0, 0, 0.22);
+}
+
+.trust-banner .btn-pill-secondary:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-cyan);
+}
+
+html.light .trust-banner .btn-pill-secondary {
+  border-color: rgba(5, 150, 105, 0.32);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.trust-banner .btn-pill::after {
+  content: "↗";
+  font-size: 0.85em;
+  opacity: 0.6;
+  margin-left: 0.1rem;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.trust-banner .btn-pill:hover::after {
+  opacity: 1;
+  transform: translate(1px, -1px);
+}
+
 /* Download CTA Card */
 .download-card {
   max-width: 800px;
@@ -1787,11 +1956,10 @@ html.light .trust-banner {
 }
 
 .footer-inner {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1.5rem;
+  gap: 1.25rem 2rem;
 }
 
 .footer-brand {
@@ -1804,7 +1972,9 @@ html.light .trust-banner {
 
 .footer-links {
   display: flex;
-  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem 1.5rem;
   list-style: none;
 }
 
@@ -1815,6 +1985,34 @@ html.light .trust-banner {
 
 .footer-link:hover {
   color: var(--text-high);
+}
+
+/* Second band: copyright and back-to-top, separated by a hairline. */
+.footer-copy-text {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.8rem;
+  color: var(--text-med);
+}
+
+.footer-top-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: var(--text-med);
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.footer-top-link:hover {
+  color: var(--accent-cyan);
+  transform: translateY(-1px);
 }
 
 /* Mobile Nav Overlay */
@@ -1936,13 +2134,24 @@ html.light .mobile-menu-overlay {
   }
 
   .footer-inner {
-    flex-direction: column;
-    text-align: center;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.1rem;
+  }
+
+  .footer-brand {
+    flex-wrap: wrap;
   }
 
   .footer-links {
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
+    gap: 0.45rem 1.15rem;
+  }
+
+  .footer-copy-text {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
   }
 }
 
@@ -2104,6 +2313,14 @@ html.light .mobile-menu-overlay {
   transform: translateY(0);
 }
 
+/* Without scripting the observer never runs — show everything instead. */
+@media (scripting: none) {
+  .reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .stagger-1 { transition-delay: 0.08s; }
 .stagger-2 { transition-delay: 0.16s; }
 .stagger-3 { transition-delay: 0.24s; }
@@ -2244,14 +2461,48 @@ html.light .badge-tag-bad {
   border-bottom: none;
 }
 
+.table-scroll-hint {
+  display: none;
+}
+
+/* Narrow screens: keep the capability label pinned while the matrix scrolls. */
+@media (max-width: 900px) {
+  .table-scroll-hint {
+    display: block;
+    margin: 0 0 0.6rem;
+    text-align: right;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-low);
+  }
+
+  .compare-table th:first-child,
+  .compare-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: #0E1416;
+    box-shadow: 1px 0 0 rgba(0, 242, 176, 0.16);
+  }
+
+  html.light .compare-table th:first-child,
+  html.light .compare-table td:first-child {
+    background: #FFFFFF;
+    box-shadow: 1px 0 0 rgba(0, 0, 0, 0.08);
+  }
+}
+
 .badge-tag-safe {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.25rem 0.65rem;
-  border-radius: 9999px;
+  padding: 0.25rem 0.6rem;
+  border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 700;
+  line-height: 1.35;
+  text-align: left;
   background: var(--accent-emerald-bg);
   color: var(--accent-emerald);
   border: 1px solid var(--accent-emerald-border);
@@ -2261,10 +2512,12 @@ html.light .badge-tag-bad {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.25rem 0.65rem;
-  border-radius: 9999px;
+  padding: 0.25rem 0.6rem;
+  border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
   background: rgba(239, 68, 68, 0.12);
   color: #F87171;
   border: 1px solid rgba(239, 68, 68, 0.25);
@@ -2436,6 +2689,7 @@ html.light .tabs-nav-arrow:hover {
 
 .app-tabs-island {
   flex: 1;
+  min-width: 0;
   display: flex;
   gap: 0.35rem;
   padding: 0.4rem 0.5rem;
@@ -2446,6 +2700,7 @@ html.light .tabs-nav-arrow:hover {
   overflow-x: auto;
   overflow-y: hidden;
   scroll-behavior: smooth;
+  scroll-padding-inline: 0.5rem;
   -webkit-overflow-scrolling: touch;
   /* Thin visible sleek scrollbar */
   scrollbar-width: thin;
@@ -2935,11 +3190,13 @@ html.light .video-direct-link:hover {
     gap: 0.45rem;
   }
 
+  /* A truncated sentence reads as broken; swap in a short label instead. */
   .hero-release-pill .pill-text {
-    display: inline-block;
-    max-width: 220px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: none;
+  }
+
+  .hero-release-pill .pill-text-short {
+    display: inline;
     white-space: nowrap;
   }
 
@@ -2974,12 +3231,30 @@ html.light .video-direct-link:hover {
     width: 100%;
     max-width: 100%;
     justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
     padding: 0.55rem 0.85rem;
     font-size: 0.78rem;
     margin-bottom: 2rem;
-    overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
+    /* Wrap the command instead of hiding the Copy badge off-screen. */
+    overflow-x: visible;
+    white-space: normal;
+  }
+
+  .hero-oneshot-cmd {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Keep the prompt glyph on the first command line, not floating mid-block. */
+  .hero-oneshot > .accent-cyan-text {
+    align-self: flex-start;
+    line-height: 1.45;
+    margin-top: 0.05em;
   }
 
   .hero-proof-row {
@@ -3002,6 +3277,39 @@ html.light .video-direct-link:hover {
 
   .app-window {
     border-radius: calc(var(--radius-lg) - 4px);
+  }
+
+  /* Arrows steal ~72px of a 390px screen; touch scrolling is better. */
+  .tabs-nav-arrow {
+    display: none;
+  }
+
+  .tabs-nav-wrapper {
+    gap: 0;
+  }
+
+  .pane-header,
+  .pane-header-lg,
+  .pane-header-sm {
+    align-items: flex-start;
+    row-gap: 0.6rem;
+  }
+
+  .pane-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .sim-junk-total {
+    white-space: nowrap;
+  }
+
+  .pane-btn-sm {
+    flex: 1 1 auto;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
   }
 
   .app-titlebar {
@@ -3725,8 +4033,20 @@ html.light .theme-icon-dark {
 /* Technical Specs Cards */
 .specs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1.25rem;
+}
+
+@media (max-width: 1024px) {
+  .specs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .specs-grid {
+    grid-template-columns: 1fr;
+  }
 }
 .spec-card {
   padding: 1.25rem;
@@ -3779,6 +4099,7 @@ html.light .theme-icon-dark {
 .cta-btn-primary {
   padding: 0.75rem 1.75rem 0.75rem 2rem;
   font-size: 1.05rem;
+  white-space: nowrap;
 }
 .cta-icon-box {
   width: 28px;
@@ -3787,6 +4108,37 @@ html.light .theme-icon-dark {
 .cta-btn-secondary {
   padding: 0.85rem 1.75rem;
   font-size: 1.05rem;
+  white-space: nowrap;
+}
+
+/* Two side-by-side CTAs must not wrap mid-label on phones. */
+@media (max-width: 640px) {
+  .download-card {
+    padding: 2.25rem 1.15rem;
+  }
+
+  .download-title {
+    font-size: 1.6rem;
+  }
+
+  .download-options {
+    gap: 0.7rem;
+  }
+
+  .cta-btn-primary,
+  .cta-btn-secondary {
+    font-size: 0.9rem;
+    padding: 0.7rem 1.1rem;
+  }
+
+  .cta-btn-primary {
+    padding-left: 1.25rem;
+  }
+
+  .cta-icon-box {
+    width: 24px;
+    height: 24px;
+  }
 }
 .mt-2 {
   margin-top: 0.5rem;
@@ -4218,9 +4570,22 @@ html.light .theme-icon-dark {
   font-weight: 700;
 }
 
+/* Inline "read more" link: arrow carries the affordance, no underline clutter. */
 .text-accent-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   color: var(--accent-cyan);
-  text-decoration: underline;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 1px;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.text-accent-link:hover {
+  border-bottom-color: currentColor;
+  filter: brightness(1.12);
 }
 .sim-card-val-amber {
   font-size: 0.75rem;

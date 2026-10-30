@@ -1,12 +1,12 @@
 /**
- * Deltempo Cybernetic Motion Engine v2.1.2
+ * Deltempo Cybernetic Motion Engine v2.2.0
  * High-performance interactive visual systems:
- * - Cybernetic Interactive Constellation & Quantum Particle Canvas
+ * - Depth-layered ambient constellation (calm drift, soft filaments, quiet hero focus)
  * - Fluid spring-interpolated precision dual-ring cursor with magnetic snap & click ripple
  * - Complete, universal suppression of Windows OS cursor across all DOM elements
  * - Card surface reactive radial lighting & micro-tilt
  * - IntersectionObserver scroll reveals
- * - Full prefers-reduced-motion & touch-device compliance
+ * - Full prefers-reduced-motion (static field) & touch-device compliance
  */
 
 (function () {
@@ -75,11 +75,14 @@
 
     let width = window.innerWidth || 360;
     let height = window.innerHeight || 640;
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // 1.75 keeps the field crisp without paying for 4x pixels on 3x displays.
+    let dpr = Math.min(window.devicePixelRatio || 1, 1.75);
     let animationFrameId = null;
+    let fieldReady = false;
 
     const isMobile = width < 768;
-    const particleCount = isMobile ? 18 : 100;
+    // A calm field reads as premium: fewer, slower, dimmer particles.
+    const particleCount = isMobile ? 14 : 64;
 
     // Interactive mouse coordinates and shockwave state
     const mouse = {
@@ -100,13 +103,14 @@
     function resize() {
       width = window.innerWidth || 360;
       height = window.innerHeight || 640;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, 1.75);
       mouse.radius = width < 768 ? 160 : 250;
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       canvas.style.width = width + 'px';
       canvas.style.height = height + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (fieldReady && isReducedMotion) render();
     }
 
     resize();
@@ -169,6 +173,19 @@
 
     let frameCount = 0;
 
+    // Keep the headline column visually quiet: the field fades where copy sits.
+    function focusFade(x, y) {
+      const cx = width * 0.5;
+      const cy = height * 0.4;
+      const rx = Math.min(width * 0.34, 520);
+      const ry = Math.min(height * 0.46, 520);
+      const dx = (x - cx) / rx;
+      const dy = (y - cy) / ry;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d >= 1) return 1;
+      return 0.3 + 0.7 * (d * d);
+    }
+
     class Particle {
       constructor() {
         this.reset(true);
@@ -177,34 +194,44 @@
       reset(initRandom) {
         this.x = initRandom ? Math.random() * width : (Math.random() > 0.5 ? 0 : width);
         this.y = initRandom ? Math.random() * height : Math.random() * height;
-        
-        // 3D Depth layer: 0.45 (far background) to 1.65 (foreground)
-        this.z = Math.random() * 1.2 + 0.45;
+
+        // Three explicit depth bands keep the field readable: far dust, mid field, near accents.
+        const band = Math.random();
+        this.layer = band < 0.55 ? 0 : band < 0.88 ? 1 : 2;
+        this.z = this.layer === 0
+          ? 0.5 + Math.random() * 0.18
+          : this.layer === 1
+            ? 0.78 + Math.random() * 0.28
+            : 1.12 + Math.random() * 0.3;
         this.zPhase = Math.random() * Math.PI * 2;
-        this.zSpeed = Math.random() * 0.016 + 0.008;
+        this.zSpeed = Math.random() * 0.008 + 0.004;
         this.currentZ = this.z;
         this.zLift = 0;
         this.renderX = this.x;
         this.renderY = this.y;
 
-        const speedScale = (isReducedMotion ? 0.12 : 0.55) * this.z;
+        // Slow, drifting motion reads as depth rather than jitter.
+        const speedScale = (isReducedMotion ? 0.04 : 0.17) * (0.55 + this.z * 0.55);
         this.baseVx = (Math.random() - 0.5) * speedScale;
         this.baseVy = (Math.random() - 0.5) * speedScale;
         this.vx = this.baseVx;
         this.vy = this.baseVy;
         this.swirlDir = Math.random() < 0.5 ? 1 : -1;
-        
-        // 15% are Holographic Shield Nexus nodes; 85% are Faceted Clean Sparkles (✦)
-        this.isNexus = Math.random() < 0.15;
-        this.baseRadius = (this.isNexus ? Math.random() * 1.5 + 4.0 : Math.random() * 1.4 + 2.2) * this.z;
+
+        // Rare ring nodes (5%) and quiet sparkles (95%) — no orbiting planet clutter.
+        this.isNexus = Math.random() < 0.05;
+        this.baseRadius = (this.isNexus ? Math.random() * 0.8 + 2.4 : Math.random() * 0.9 + 1.1) * this.z;
         this.radius = this.baseRadius;
         this.colorIdx = Math.floor(Math.random() * colorsDark.length);
-        this.pulseSpeed = Math.random() * 0.03 + 0.015;
+        this.pulseSpeed = Math.random() * 0.02 + 0.01;
         this.pulseAngle = Math.random() * Math.PI * 2;
         this.rot = Math.random() * Math.PI * 2;
-        this.baseRotSpeed = (Math.random() - 0.5) * (this.isNexus ? 0.012 : 0.024);
+        this.baseRotSpeed = (Math.random() - 0.5) * (this.isNexus ? 0.006 : 0.012);
         this.rotSpeed = this.baseRotSpeed;
-        this.alpha = (this.isNexus ? Math.random() * 0.2 + 0.82 : Math.random() * 0.3 + 0.58) * Math.min(1, this.z);
+
+        // Far particles sit behind the copy and must stay faint.
+        const depthAlpha = this.layer === 0 ? 0.5 : this.layer === 1 ? 0.78 : 1;
+        this.alpha = (this.isNexus ? 0.5 : Math.random() * 0.22 + 0.3) * depthAlpha * Math.min(1, this.z);
       }
 
       update() {
@@ -230,12 +257,12 @@
 
             // 1. Core deflection cushion (dist < 85px): particles gently part away, preventing clumping
             if (dist < 85) {
-              const pushFactor = Math.pow(1 - dist / 85, 1.4) * (isReducedMotion ? 0.8 : 3.6) * this.z;
+              const pushFactor = Math.pow(1 - dist / 85, 1.4) * (isReducedMotion ? 0.4 : 1.7) * this.z;
               this.vx += Math.cos(angle) * pushFactor;
               this.vy += Math.sin(angle) * pushFactor;
             } else {
               // 2. Orbital swirl & streamline flow (85px <= dist < magnetRadius)
-              const swirlFactor = Math.sin(proximity * Math.PI) * (isReducedMotion ? 0.2 : 0.85) * this.z;
+              const swirlFactor = Math.sin(proximity * Math.PI) * (isReducedMotion ? 0.08 : 0.4) * this.z;
               const swirlAngle = angle + (Math.PI * 0.5 * this.swirlDir);
               this.vx += Math.cos(swirlAngle) * swirlFactor * 0.45;
               this.vy += Math.sin(swirlAngle) * swirlFactor * 0.45;
@@ -248,7 +275,7 @@
 
             // 3. Dynamic mouse motion wake: sweeping cursor imparts aerodynamic wake behind it
             if (mouse.speed > 0.4) {
-              const wakePower = Math.pow(proximity, 1.3) * Math.min(mouse.speed, 20) * 0.045 * this.z;
+              const wakePower = Math.pow(proximity, 1.3) * Math.min(mouse.speed, 20) * 0.022 * this.z;
               this.vx += mouse.vx * wakePower;
               this.vy += mouse.vy * wakePower;
             }
@@ -280,7 +307,7 @@
         this.radius = this.baseRadius * (this.currentZ / this.z) + Math.sin(this.pulseAngle) * (this.isNexus ? 0.9 : 0.45) * this.currentZ;
 
         // Cap maximum velocity for silky smooth visual consistency
-        const maxSpeed = (isReducedMotion ? 0.6 : 3.8) * this.currentZ;
+        const maxSpeed = (isReducedMotion ? 0.2 : 1.5) * this.currentZ;
         const currentSpeedSq = this.vx * this.vx + this.vy * this.vy;
         if (currentSpeedSq > maxSpeed * maxSpeed) {
           const currentSpeed = Math.sqrt(currentSpeedSq);
@@ -324,91 +351,43 @@
         else if (this.y > height + 50) this.y = -50;
 
         // Calculate 3D Parallax Screen Position with enhanced depth travel
-        this.renderX = this.x + tiltX * (this.currentZ - 1) * 55;
-        this.renderY = this.y + tiltY * (this.currentZ - 1) * 55;
+        this.renderX = this.x + tiltX * (this.currentZ - 1) * 22;
+        this.renderY = this.y + tiltY * (this.currentZ - 1) * 22;
       }
 
       draw(isLight) {
         const c = (isLight ? colorsLight : colorsDark)[this.colorIdx];
-        const effAlpha = this.alpha * (isLight ? 0.75 : 1);
         const px = this.renderX;
         const py = this.renderY;
         const cz = this.currentZ;
+        const effAlpha = this.alpha * (isLight ? 0.62 : 1) * focusFade(px, py);
+
+        // Far band: soft dust, no facets — pure depth cue.
+        if (this.layer === 0 && !this.isNexus) {
+          ctx.beginPath();
+          ctx.arc(px, py, Math.max(0.6, this.radius * 0.6), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.9})`;
+          ctx.fill();
+          return;
+        }
 
         ctx.save();
         ctx.translate(px, py);
         ctx.rotate(this.rot);
 
         if (this.isNexus) {
-          // 3D Holographic Micro-Shield with Zero-ShadowBlur GPU Vector Bloom
-          const s = this.radius * 1.5;
+          // Quiet orbital accent: one hairline halo and a solid core.
+          const s = this.radius;
 
-          // Outer luminous bloom pass
           ctx.beginPath();
-          ctx.ellipse(0, 0, s * 2.5, s * 0.95, this.pulseAngle, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.12})`;
-          ctx.fill();
-
-          // 1. Primary Orbital Ring (perspective foreshortened)
-          ctx.beginPath();
-          ctx.ellipse(0, 0, s * 2.3, s * 0.85, this.pulseAngle, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.55})`;
-          ctx.lineWidth = 1;
+          ctx.arc(0, 0, s * 2.6, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.3})`;
+          ctx.lineWidth = 0.7;
           ctx.stroke();
 
-          // 2. Secondary Counter-Rotating Orbital Ring
           ctx.beginPath();
-          ctx.ellipse(0, 0, s * 1.75, s * 0.6, -this.pulseAngle * 1.3, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.38})`;
-          ctx.lineWidth = 0.8;
-          ctx.stroke();
-
-          // 3. Four Quantum Orbital Ticks on Ring
-          for (let k = 0; k < 4; k++) {
-            const oAngle = this.pulseAngle + (k * Math.PI) / 2;
-            const tx = Math.cos(oAngle) * (s * 2.3);
-            const ty = Math.sin(oAngle) * (s * 0.85);
-            ctx.beginPath();
-            ctx.arc(tx, ty, 1.2 * cz, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.95})`;
-            ctx.fill();
-          }
-
-          // 4. Shield Crest Silhouette - Soft Outer Aura
-          ctx.beginPath();
-          ctx.moveTo(0, -s * 1.15);
-          ctx.lineTo(s * 0.98, -s * 0.52);
-          ctx.lineTo(s * 0.98, s * 0.23);
-          ctx.quadraticCurveTo(s * 0.8, s * 0.98, 0, s * 1.38);
-          ctx.quadraticCurveTo(-s * 0.8, s * 0.98, -s * 0.98, s * 0.23);
-          ctx.lineTo(-s * 0.98, -s * 0.52);
-          ctx.closePath();
-          ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.18})`;
-          ctx.fill();
-
-          // Shield Crest Silhouette - Main Crisp Body
-          ctx.beginPath();
-          ctx.moveTo(0, -s);
-          ctx.lineTo(s * 0.85, -s * 0.45);
-          ctx.lineTo(s * 0.85, s * 0.2);
-          ctx.quadraticCurveTo(s * 0.7, s * 0.85, 0, s * 1.2);
-          ctx.quadraticCurveTo(-s * 0.7, s * 0.85, -s * 0.85, s * 0.2);
-          ctx.lineTo(-s * 0.85, -s * 0.45);
-          ctx.closePath();
-          ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.42})`;
-          ctx.fill();
-          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.95})`;
-          ctx.lineWidth = 1.4;
-          ctx.stroke();
-
-          // 5. Pulsating Diamond Core Crystal
-          ctx.beginPath();
-          ctx.moveTo(0, -s * 0.35);
-          ctx.lineTo(s * 0.3, 0);
-          ctx.lineTo(0, s * 0.35);
-          ctx.lineTo(-s * 0.3, 0);
-          ctx.closePath();
-          ctx.fillStyle = '#FFFFFF';
+          ctx.arc(0, 0, Math.max(0.9, s * 0.55), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha})`;
           ctx.fill();
         } else {
           // 3D Faceted Clean Sparkle / Quantum Diamond Shard (✦) with Double-Pass GPU Bloom
@@ -416,8 +395,8 @@
           const inner = r * 0.32;
 
           // Pass 1: Outer Soft Radiant Star Bloom (Zero shadowBlur overhead)
-          const rOuter = r * 1.35;
-          const innerOuter = inner * 1.35;
+          const rOuter = r * 1.2;
+          const innerOuter = inner * 1.2;
           ctx.beginPath();
           for (let k = 0; k < 4; k++) {
             const a1 = (k * Math.PI) / 2;
@@ -427,7 +406,7 @@
             ctx.quadraticCurveTo(0, 0, Math.cos(a2) * innerOuter, Math.sin(a2) * innerOuter);
           }
           ctx.closePath();
-          ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.22})`;
+          ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.14})`;
           ctx.fill();
 
           // Pass 2: Main Crisp Sparkle Body
@@ -444,7 +423,7 @@
           ctx.fill();
 
           // Facet internal cross-refraction lines for true gem sparkle
-          if (cz > 0.8) {
+          if (this.layer === 2 && cz > 1.0) {
             ctx.beginPath();
             ctx.moveTo(-r * 0.7, 0);
             ctx.lineTo(r * 0.7, 0);
@@ -473,26 +452,31 @@
     window.addEventListener(
       'pointerdown',
       function (e) {
+        if (isReducedMotion) return;
         shockwaves.push({
           x: e.clientX,
           y: e.clientY,
           radius: 0,
-          maxRadius: Math.min(width, height) * 0.35 + 130, // Contained, snappy ~270-320px
-          speed: 10.5,                                      // Fast propagation ~400ms duration
-          waveWidth: 32,
-          strength: 4.6,
-          alpha: 1.0,
+          maxRadius: Math.min(width, height) * 0.24 + 90, // Contained, calm ripple
+          speed: 7.5,
+          waveWidth: 24,
+          strength: 2.4,
+          alpha: 0.7,
           age: 0,
         });
       },
       { passive: true }
     );
 
-    const maxConnectionDistance = isMobile ? 95 : 140;
+    const maxConnectionDistance = isMobile ? 90 : 122;
     const maxConnectionDistanceSq = maxConnectionDistance * maxConnectionDistance;
 
     function render() {
-      animationFrameId = requestAnimationFrame(render);
+      if (!isReducedMotion) {
+        animationFrameId = requestAnimationFrame(render);
+      } else {
+        animationFrameId = null;
+      }
 
       if (document.hidden) return;
 
@@ -536,8 +520,8 @@
         // 1a. Pinpoint Diamond Micro-Flare at click epicenter during initial birth (first 14 frames)
         if (sw.age < 14) {
           const flareProgress = sw.age / 14;
-          const flareAlpha = (1 - flareProgress) * (isLight ? 0.7 : 0.95);
-          const flareSize = (1 - flareProgress * 0.6) * 16;
+          const flareAlpha = (1 - flareProgress) * (isLight ? 0.45 : 0.65);
+          const flareSize = (1 - flareProgress * 0.6) * 12;
           const flareRot = flareProgress * 1.5;
 
           ctx.save();
@@ -578,8 +562,8 @@
           sw.x, sw.y, sw.radius + 6
         );
         primaryGrad.addColorStop(0, `rgba(${waveColor}, 0)`);
-        primaryGrad.addColorStop(0.7, `rgba(${waveColor}, ${sw.alpha * (isLight ? 0.16 : 0.25)})`);
-        primaryGrad.addColorStop(1, `rgba(240, 253, 249, ${sw.alpha * (isLight ? 0.35 : 0.55)})`);
+        primaryGrad.addColorStop(0.7, `rgba(${waveColor}, ${sw.alpha * (isLight ? 0.1 : 0.15)})`);
+        primaryGrad.addColorStop(1, `rgba(240, 253, 249, ${sw.alpha * (isLight ? 0.22 : 0.34)})`);
 
         ctx.beginPath();
         ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
@@ -589,8 +573,8 @@
         // Crisp leading edge filament
         ctx.beginPath();
         ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(${waveColor}, ${sw.alpha * (isLight ? 0.55 : 0.85)})`;
-        ctx.lineWidth = 1.35;
+        ctx.strokeStyle = `rgba(${waveColor}, ${sw.alpha * (isLight ? 0.4 : 0.6)})`;
+        ctx.lineWidth = 1;
         ctx.stroke();
 
         // 1c. Secondary Harmonic Echo Wave (trailing at 72% radius with soft harmonic resonance)
@@ -646,7 +630,7 @@
           const depthDiff = Math.abs(p1.currentZ - p2.currentZ);
 
           // Only connect particles that inhabit similar 3D spatial depth
-          if (depthDiff > 0.55) continue;
+          if (depthDiff > 0.4) continue;
 
           // Fast bounding box reject avoids ~90% of sqrt/distance math
           const dx = p1.renderX - p2.renderX;
@@ -659,26 +643,25 @@
 
           const dist = Math.sqrt(distSq);
           const avgZ = (p1.currentZ + p2.currentZ) / 2;
-          let alpha = (1 - dist / maxConnectionDistance) * (1 - depthDiff / 0.55) * (isLight ? 0.22 : 0.38) * avgZ;
+          const midX = (p1.renderX + p2.renderX) * 0.5;
+          const midY = (p1.renderY + p2.renderY) * 0.5;
+          let alpha = (1 - dist / maxConnectionDistance) * (1 - depthDiff / 0.4) * (isLight ? 0.08 : 0.15) * avgZ;
+          alpha *= focusFade(midX, midY);
 
           // Cursor and shockwave electromagnetic resonance: lines passing near wavefront or cursor glow with 3D energy
           if (mouse.active && mouse.x > 0 && mouse.y > 0) {
-            const midX = (p1.renderX + p2.renderX) * 0.5;
-            const midY = (p1.renderY + p2.renderY) * 0.5;
             const mDist = Math.hypot(midX - mouse.x, midY - mouse.y);
             if (mDist < 130) {
-              alpha *= 1 + (1 - mDist / 130) * 0.85;
+              alpha *= 1 + (1 - mDist / 130) * 0.7;
             }
           }
 
           for (let s = 0; s < shockwaves.length; s++) {
             const sw = shockwaves[s];
-            const midX = (p1.renderX + p2.renderX) * 0.5;
-            const midY = (p1.renderY + p2.renderY) * 0.5;
             const sDist = Math.hypot(midX - sw.x, midY - sw.y);
             const sDiff = Math.abs(sDist - sw.radius);
             if (sDiff < sw.waveWidth) {
-              alpha *= 1 + (1 - sDiff / sw.waveWidth) * sw.alpha * 1.5;
+              alpha *= 1 + (1 - sDiff / sw.waveWidth) * sw.alpha * 1.1;
             }
           }
 
@@ -687,25 +670,25 @@
           ctx.lineTo(p2.renderX, p2.renderY);
           const strokeColor = isLight ? '5, 150, 105' : '0, 242, 176';
           ctx.strokeStyle = `rgba(${strokeColor}, ${alpha})`;
-          ctx.lineWidth = 0.9 * avgZ;
+          ctx.lineWidth = 0.55 * avgZ;
           ctx.stroke();
 
           // Animated photon packet travelling along active constellation lines
-          if (alpha > 0.18 && ((i + j) % 3 === 0)) {
-            const t = (frameCount * 0.012 + (i * 0.17)) % 1;
+          if (alpha > 0.09 && ((i + j) % 9 === 0)) {
+            const t = (frameCount * 0.005 + (i * 0.17)) % 1;
             const px = p1.renderX + (p2.renderX - p1.renderX) * t;
             const py = p1.renderY + (p2.renderY - p1.renderY) * t;
 
             // Outer soft photon halo (pure GPU vector)
             ctx.beginPath();
-            ctx.arc(px, py, 2.6 * avgZ, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${isLight ? '5, 150, 105' : '0, 242, 176'}, ${alpha * 0.35})`;
+            ctx.arc(px, py, 1.8 * avgZ, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${isLight ? '5, 150, 105' : '0, 242, 176'}, ${alpha * 0.3})`;
             ctx.fill();
 
             // Inner bright core
             ctx.beginPath();
-            ctx.arc(px, py, 1.2 * avgZ, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(240, 253, 249, ${alpha * 1.5})`;
+            ctx.arc(px, py, 0.8 * avgZ, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(240, 253, 249, ${alpha * 1.2})`;
             ctx.fill();
           }
         }
@@ -713,18 +696,33 @@
 
       // 5. Ambient glowing energy aura at mouse cursor coordinates in Cyber Mint
       if (mouse.active && mouse.x > 0 && mouse.y > 0) {
-        const mouseGrad = ctx.createRadialGradient(mouse.x, mouse.y, 2, mouse.x, mouse.y, 56);
-        mouseGrad.addColorStop(0, `rgba(${isLight ? '5, 150, 105' : '0, 242, 176'}, ${isLight ? 0.22 : 0.32})`);
-        mouseGrad.addColorStop(0.35, `rgba(${isLight ? '5, 150, 105' : '0, 242, 176'}, ${isLight ? 0.08 : 0.12})`);
+        const mouseGrad = ctx.createRadialGradient(mouse.x, mouse.y, 2, mouse.x, mouse.y, 40);
+        mouseGrad.addColorStop(0, `rgba(${isLight ? '5, 150, 105' : '0, 242, 176'}, ${isLight ? 0.12 : 0.18})`);
+        mouseGrad.addColorStop(0.35, `rgba(${isLight ? '5, 150, 105' : '0, 242, 176'}, ${isLight ? 0.05 : 0.07})`);
         mouseGrad.addColorStop(1, 'rgba(0, 242, 176, 0)');
         ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, 56, 0, Math.PI * 2);
+        ctx.arc(mouse.x, mouse.y, 40, 0, Math.PI * 2);
         ctx.fillStyle = mouseGrad;
         ctx.fill();
       }
     }
 
+    fieldReady = true;
     render();
+
+    // Stop the field entirely while the tab is hidden; resume without a jump.
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) {
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+        }
+        return;
+      }
+      if (!isReducedMotion && !animationFrameId) {
+        animationFrameId = requestAnimationFrame(render);
+      }
+    });
   }
 
   /* ==========================================================================
