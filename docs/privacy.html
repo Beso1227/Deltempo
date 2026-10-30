@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deltempo &mdash; Privacy Policy</title>
+  <meta name="description" content="Deltempo privacy policy: zero telemetry, 100% offline operation, and exactly which files the app writes on your machine - nothing more.">
+  <meta name="author" content="Beso1227">
+  <meta name="application-name" content="Deltempo">
+  <meta name="theme-color" content="#0B0F10">
+  <meta name="robots" content="index, follow">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Deltempo">
+  <meta property="og:title" content="Deltempo Privacy Policy">
+  <meta property="og:description" content="Zero telemetry, 100% local operation. This policy lists every file Deltempo writes.">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <style>
+    :root { --bg:#0B0F10; --card:#131A23; --hairline:#222C38; --text:#E8EAF0; --dim:#9AA7B5; --cyan:#00F2B0; }
+    * { box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif;
+           line-height:1.6; margin:0 auto; padding:3rem 1.25rem 5rem; max-width:760px; }
+    h1 { font-size:1.7rem; margin:0 0 .3rem; }
+    h2 { font-size:1.15rem; margin:2.2rem 0 .6rem; color:var(--cyan); }
+    p, li { color:var(--dim); }
+    code { background:var(--card); border:1px solid var(--hairline); border-radius:5px;
+           padding:.1rem .35rem; font-size:.9em; color:var(--cyan); }
+    ul { padding-left:1.3rem; }
+    .kicker { color:var(--cyan); font-size:.85rem; letter-spacing:.08em; text-transform:uppercase; }
+    .card { background:var(--card); border:1px solid var(--hairline); border-radius:10px;
+            padding:1rem 1.25rem; margin:1rem 0; }
+    a { color:var(--cyan); }
+    footer { margin-top:3rem; border-top:1px solid var(--hairline); padding-top:1rem;
+             font-size:.85rem; color:var(--dim); }
+  </style>
+</head>
+<body>
+<p class="kicker">Deltempo &middot; Privacy Policy</p>
+<h1>Privacy Policy</h1>
+<p>Effective for all distribution channels: GitHub Releases (WPF) and Microsoft Store (WinUI).
+Last updated 2026-10-30.</p>
+
+<div class="card">
+<p><strong style="color:var(--text)">Zero telemetry &mdash; 100% offline.</strong>
+Deltempo contains no telemetry, analytics libraries, advertising SDKs, crash reporting
+services, or background network beacons. Routine scanning, cleaning, memory optimization
+and uninstallation never touch the network. The single network feature is the
+<strong>optional</strong> update check, which contacts GitHub's public API over HTTPS,
+downloads nothing automatically, and sends nothing about you &mdash; only a request for the
+public release metadata of the project.</p>
+</div>
+
+<h2>What the app writes on your machine</h2>
+<p>We list everything, because there is nothing to hide:</p>
+<ul>
+  <li><code>%LOCALAPPDATA%\Deltempo\logs\deltempo.log</code> &mdash; rolling operation log (WPF head)
+      and <code>deltempo-winui.log</code> (WinUI head).</li>
+  <li><code>%LOCALAPPDATA%\Deltempo\crash.log</code> &mdash; an out-of-process crash note, written
+      only when the shell itself crashes. It contains local file-system paths that appear in stack
+      traces (for example your user profile path), and is readable by nothing outside this machine.</li>
+  <li><code>%LOCALAPPDATA%\Deltempo\journals\</code> &mdash; per-run cleanup journals, so every
+      deletion can be reviewed.</li>
+  <li><code>%LOCALAPPDATA%\Deltempo\settings.json</code> &mdash; your settings and preferences, stored locally.</li>
+</ul>
+
+<h2>What the app does not do</h2>
+<ul>
+  <li>No accounts, no sign-in requirements, no identifiers assigned to you.</li>
+  <li>No data leaves your machine through Deltempo. There is no upload path in the codebase.</li>
+  <li>No purchase, subscription, or advertising integration; the Store listing price is zero
+      for the preview.</li>
+</ul>
+
+<h2>Microsoft Store distribution</h2>
+<p>When Deltempo is installed from the Microsoft Store, the Store platform itself processes
+the install, licensing and update metadata under
+<a href="https://www.microsoft.com/en-us/privacystatement">Microsoft's own privacy statement</a>.
+Deltempo adds nothing to that flow: it does not read Store identifiers, purchase states or
+device IDs for any purpose, and Microsoft's app signing/review requires no additional
+permissions from you.</p>
+
+<h2>Open source</h2>
+<p>Deltempo is MIT-licensed and its full source is public, so this policy is itself
+verifiable: see
+<a href="https://github.com/Beso1227/Deltempo">the repository</a> and
+<a href="https://github.com/Beso1227/Deltempo/blob/main/docs/THREAT_MODEL.md">docs/THREAT_MODEL.md</a>.</p>
+
+<footer>
+  <p><a href="index.html">&larr; Back to the Deltempo site</a></p>
+</footer>
+</body>
+</html>

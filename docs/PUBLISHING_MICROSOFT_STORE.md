@@ -107,12 +107,19 @@ Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`)
   / `TitleBarLogo` / `WM_SETICON`); the MSI/Store surface needs dedicated Store
   logos: 44×44, 50×50, 71×71, 150×150, 310×310, plus 256×256 installer-style PNG.
   Generate them from the largest frame of `src/Deltempo.App.Wpf/app.ico`; do not
-  scale down screenshots.
+  scale down screenshots. **Progress 2026-10-30:** the required set is generated
+  and committed (`16/44/50/71/150/256`, from `tools/generate-store-logos.ps1`,
+  pinned by `StorePackagingAssetTests`); 310 is not required for a Win32
+  full-trust submission.
 - Screenshots at least 1366×768 — the shell's default window is 1360×840, so
   maximise it for the capture.
 - A privacy policy URL is mandatory; "zero telemetry, all local" (README claim,
   enforced in the repo) is the pitch, but the crash log `%LOCALAPPDATA%\Deltempo\crash.log`
   still contains paths — say so in the policy in one sentence so review never bounces.
+  **Progress 2026-10-30:** `docs/privacy.html` is that policy — it carries exactly
+  that disclosure and lists every file the app writes — served on the site at
+  <https://beso1227.github.io/Deltempo/privacy.html> and linked from the README's
+  privacy section. Use that URL verbatim in Partner Center.
 - Age rating: standard questionnaire, expect PEGI 3 / ESRB E with no extra content.
 
 ## 5. Behavior review — the deltas to fix before submission
@@ -150,6 +157,11 @@ Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`)
    from the SDK BuildTools NuGet; no Visual Studio), fail-closed-verifies the
    package blob and uploads it plus the publish folder as artifacts.
 3. **Store logos + policy text** in the package manifest and this repo's docs.
+   **Done 2026-10-30:** the logo set (16/44/50/71/150/256) is generated from
+   `app.ico` per section 3 and pinned by tests; the privacy policy page
+   (`docs/privacy.html`, served at
+   <https://beso1227.github.io/Deltempo/privacy.html>) carries the crash-log
+   disclosure section 4 requires, linked from the README.
 4. **Rename the WinUI mutex** to its final name; document the collision choice in
    THREAT_MODEL (two processes with the same name would otherwise fight over it).
    **Done 2026-10-30:** renamed to `Global\Deltempo_WinUI_SingleInstance_Mutex_v1`;

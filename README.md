@@ -433,6 +433,8 @@ exactly what is installed and which binary it points at.
 
 Deltempo is architected with security and user privacy as non-negotiable fundamentals:
 
+> **Privacy policy (Store submission):** [beso1227.github.io/Deltempo/privacy.html](https://beso1227.github.io/Deltempo/privacy.html) — zero telemetry, 100% offline, and the full list of files the app writes locally (including the crash-log paths disclosure).
+
 1. **Zero Telemetry Guarantee**: Deltempo contains **zero telemetry**, analytics libraries, advertising SDKs, or background ping trackers. Routine scanning, cleaning, memory optimization, and uninstallation run **100% offline**.
 2. **Deterministic Safety Pipeline**:
 
