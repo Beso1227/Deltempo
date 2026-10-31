@@ -559,8 +559,9 @@
         const s = stars[i];
 
         // Parallax: near stars travel further, which is what makes the field
-        // feel like space instead of a wallpaper.
-        const parallax = 0.055 + s.z * 0.16;
+        // feel like space instead of a wallpaper. The near layer is fast enough
+        // that a normal scroll smears it into a visible shooting star.
+        const parallax = 0.09 + s.z * 0.24;
         const my = -scrollDelta * parallax;
 
         s.x += s.driftX * dt + s.vx * dt;
@@ -605,11 +606,13 @@
         s.hot += (hotTarget - s.hot) * Math.min(1, 0.18 * dt);
 
         // Streak: length is how far the star actually moved this frame, which
-        // only scroll parallax and meteor drift can produce.
+        // only scroll parallax can produce. The gain is deliberately generous:
+        // a normal wheel notch has to read as a shooting star, not as a 2px
+        // twitch, while a full-page jump still tops out at a long tail.
         const motion = Math.abs(my);
         if (motion > 0.05) s.dirY = my > 0 ? 1 : -1;
-        const targetStreak = Math.min(motion * 3.4, 150);
-        s.streak += (targetStreak - s.streak) * Math.min(1, 0.28 * dt);
+        const targetStreak = Math.min(motion * 10, 300);
+        s.streak += (targetStreak - s.streak) * Math.min(1, 0.5 * dt);
 
         const twinkle = 0.72 + 0.28 * Math.sin(s.twinklePhase);
         s.twinklePhase += s.twinkleSpeed * dt * 6;
@@ -625,10 +628,11 @@
           ? (s.mint ? sprites.streakDustMint : sprites.streakDust)
           : (s.mint ? sprites.streakMint : sprites.streak);
 
-        // Meteor tail. Only stars that actually travelled a visible distance get
-        // one: short dashes everywhere read as drizzle, not as a sky moving.
-        if (s.streak > 4) {
-          const len = Math.min(s.streak * 2.2, 260);
+        // Shooting-star tail. Drawn as soon as a star starts moving, so a gentle
+        // scroll still smears it; the length is capped so a page jump does not
+        // turn the whole sky into one line.
+        if (s.streak > 1.5) {
+          const len = Math.min(s.streak * 2.6, 420);
           const wid = Math.max(2.4, s.r * 6);
           ctx.globalAlpha = Math.min(1, a * 0.9);
           // Scroll only ever moves stars straight up or down, so the tail needs
