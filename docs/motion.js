@@ -314,12 +314,8 @@
     function buildSprites() {
       sprites.star = makeSprite('236, 248, 255');
       sprites.mint = makeSprite('120, 255, 214');
-      sprites.dust = makeSprite('30, 41, 59');
-      sprites.dustMint = makeSprite('4, 120, 87');
       sprites.streak = makeStreak('226, 240, 255');
       sprites.streakMint = makeStreak('140, 255, 222');
-      sprites.streakDust = makeStreak('71, 85, 105');
-      sprites.streakDustMint = makeStreak('4, 120, 87');
     }
 
     buildSprites();
@@ -520,12 +516,10 @@
       lastFrameTime = now;
       frameCount += dt;
 
-      const isLight = document.documentElement.classList.contains('light');
-      const skySprite = isLight ? sprites.dust : sprites.star;
-      const mintSprite = isLight ? sprites.dustMint : sprites.mint;
-      const skyRGB = isLight ? '30, 41, 59' : '236, 248, 255';
-      const mintRGB = isLight ? '4, 120, 87' : '120, 255, 214';
-      const lightScale = isLight ? 0.42 : 1;
+      const skySprite = sprites.star;
+      const mintSprite = sprites.mint;
+      const skyRGB = '236, 248, 255';
+      const mintRGB = '120, 255, 214';
 
       // Scroll: stars physically slide against the page, and the distance they
       // travel this frame becomes the length of their streak.
@@ -546,7 +540,7 @@
         }
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(' + (isLight ? '5, 150, 105' : '0, 242, 176') + ', ' + (p.alpha * 0.35).toFixed(3) + ')';
+        ctx.strokeStyle = 'rgba(0, 242, 176, ' + (p.alpha * 0.35).toFixed(3) + ')';
         ctx.lineWidth = 1;
         ctx.stroke();
       }
@@ -617,16 +611,14 @@
         const twinkle = 0.72 + 0.28 * Math.sin(s.twinklePhase);
         s.twinklePhase += s.twinkleSpeed * dt * 6;
 
-        let a = s.alpha * twinkle * focusFade(s.x, s.y) * lightScale;
+        let a = s.alpha * twinkle * focusFade(s.x, s.y);
         a *= 1 + s.hot * 1.4;
         if (a <= 0.004) continue;
         if (a > 1) a = 1;
 
         const sprite = s.mint ? mintSprite : skySprite;
         const rgb = s.mint ? mintRGB : skyRGB;
-        const streakSprite = isLight
-          ? (s.mint ? sprites.streakDustMint : sprites.streakDust)
-          : (s.mint ? sprites.streakMint : sprites.streak);
+        const streakSprite = s.mint ? sprites.streakMint : sprites.streak;
 
         // Shooting-star tail. Drawn as soon as a star starts moving, so a gentle
         // scroll still smears it; the length is capped so a page jump does not
@@ -695,15 +687,13 @@
           }
 
           // Sine envelope: fade in, peak mid-flight, fade out. No hard start.
-          // Light theme gets a whisper only: a bright meteor on white paper
-          // reads as a scratch.
-          const fade = Math.sin(Math.PI * t) * (isLight ? 0.28 : 1);
+          const fade = Math.sin(Math.PI * t);
           const speed = Math.sqrt(m.vx * m.vx + m.vy * m.vy) || 1;
           const dx = m.vx / speed;
           const dy = m.vy / speed;
 
           // Tapered tail from the shared sprite, rotated onto the flight path.
-          const tailSprite = isLight ? sprites.streakDust : (m.mint ? sprites.streakMint : sprites.streak);
+          const tailSprite = m.mint ? sprites.streakMint : sprites.streak;
           const tailLen = m.len * (0.6 + 0.4 * fade);
           const tailWid = (4.5 + m.width * 5) * m.scale;
           ctx.globalAlpha = Math.min(1, fade * 0.9);
@@ -713,7 +703,7 @@
           ctx.drawImage(tailSprite, -tailWid / 2, -tailLen, tailWid, tailLen);
           ctx.restore();
 
-          const headSprite = isLight ? sprites.dust : (m.mint ? sprites.mint : sprites.star);
+          const headSprite = m.mint ? sprites.mint : sprites.star;
           const headSize = (18 + fade * 14) * m.scale;
           ctx.globalAlpha = Math.min(1, fade * 0.95);
           ctx.drawImage(headSprite, m.x - headSize / 2, m.y - headSize / 2, headSize, headSize);
@@ -724,10 +714,10 @@
       // 4. Pointer bloom: a single soft light so the sky reacts to the cursor
       // even between stars.
       if (pointer.active && !isReducedMotion) {
-        const tint = isLight ? '5, 150, 105' : '0, 242, 176';
+        const tint = '0, 242, 176';
         const bloom = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 150);
-        bloom.addColorStop(0, 'rgba(' + tint + ', ' + (isLight ? 0.05 : 0.07) + ')');
-        bloom.addColorStop(0.45, 'rgba(' + tint + ', ' + (isLight ? 0.02 : 0.03) + ')');
+        bloom.addColorStop(0, 'rgba(' + tint + ', 0.07)');
+        bloom.addColorStop(0.45, 'rgba(' + tint + ', 0.03)');
         bloom.addColorStop(1, 'rgba(' + tint + ', 0)');
         ctx.beginPath();
         ctx.arc(pointer.x, pointer.y, 150, 0, Math.PI * 2);
@@ -920,7 +910,7 @@
     // One delegated pass decides every state, so classes can never go stale.
     const interactiveSelector =
       'a, button, input, textarea, select, [role="button"], [role="tab"], .btn-pill, .btn-icon, .hero-oneshot, .card-inner, .faq-item, .mobile-nav-link, .nav-link, summary, .calc-profile-btn, .cmd-pill';
-    const magneticSelector = '.btn-pill-primary, .hero-oneshot, #themeToggleBtn, .btn-icon, .dl-btn-primary';
+    const magneticSelector = '.btn-pill-primary, .hero-oneshot, .btn-icon, .dl-btn-primary';
     const dragSelector = '[data-cursor="drag"], .comp-table-wrap';
     // Solid mint surfaces swallow a mint cursor: the dot and ring need to
     // invert to near-black there or they simply disappear on the CTA.
@@ -1234,8 +1224,7 @@
 
         let current = 76;
         const target = 34;
-        const isLight = document.documentElement.classList.contains('light');
-        const trackBg = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+        const trackBg = 'rgba(255,255,255,0.06)';
 
         const anim = setInterval(function () {
           if (current > target) {
