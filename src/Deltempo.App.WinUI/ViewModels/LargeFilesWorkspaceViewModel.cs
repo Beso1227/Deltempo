@@ -616,7 +616,44 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
             var progress = new Progress<int>(pct => _post(() =>
                 StatusText = $"AI analyzing {targets.Count} files: {pct}%"));
 
-            await LargeFileHunterService.BatchAnalyzeWithAiAsync(targets, progress);
+            // WPF's BatchAnalyzeWithAiAsync runs the fan-out under
+            // ConfigureAwait(false), so ApplyOnlineReport raises PropertyChanged
+            // from thread-pool threads. WPF marshals that silently; WinUI 3
+            // classic {Binding} does not, so the row updates would land off the
+            // UI thread. The fan-out therefore lives here for the WinUI shell:
+            // same target rule, same throttle depth, same progress reporting,
+            // but every row mutation is marshaled through _post first. Core's
+            // batch method remains untouched for the WPF shell.
+            using var throttler = new SemaphoreSlim(4);
+            int completed = 0;
+
+            var analyses = targets.Select(async item =>
+            {
+                await throttler.WaitAsync().ConfigureAwait(true);
+                try
+                {
+                    if (string.IsNullOrWhiteSpace(item.FilePath)) return;
+                    _post(() => item.IsAiAnalyzing = true);
+                    var report = await OnlineFileIntelligenceService
+                        .AnalyzeFileAsync(item.FilePath)
+                        .ConfigureAwait(true);
+                    _post(() => item.ApplyOnlineReport(report));
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine(
+                        $"[Deltempo AI] Item analysis error: {ex.Message}");
+                    _post(() => item.IsAiAnalyzing = false);
+                }
+                finally
+                {
+                    throttler.Release();
+                    int done = Interlocked.Increment(ref completed);
+                    ((IProgress<int>)progress).Report(done * 100 / Math.Max(1, targets.Count));
+                }
+            });
+
+            await Task.WhenAll(analyses).ConfigureAwait(true);
 
             LogRequested?.Invoke(
                 $"[LargeFiles] Completed AI analysis for {targets.Count} files.",

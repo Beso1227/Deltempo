@@ -375,6 +375,23 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
 
     public bool ShowAiModelRow => ShowAiApiKeyRow || ShowAiOllamaRow;
 
+    /// <summary>
+    /// "Ask AI don't work" was often really "which model is actually being hit?".
+    /// This surfaces the catalog default next to the custom-model box so the
+    /// effective model is visible without reading the code. A typed name still
+    /// wins - the catalog suggestion is never a restriction.
+    /// </summary>
+    public string AiDefaultModelText
+    {
+        get
+        {
+            string model = AiModelCatalog.ResolveModelId(AiProvider, userModelName: null);
+            return string.IsNullOrEmpty(model)
+                ? string.Empty
+                : $"Leave blank to use the provider default: {model}";
+        }
+    }
+
     // ---------------------------------------------------------------------
     // Commands
     // ---------------------------------------------------------------------
@@ -531,6 +548,7 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowAiApiKeyRow));
         OnPropertyChanged(nameof(ShowAiOllamaRow));
         OnPropertyChanged(nameof(ShowAiModelRow));
+        OnPropertyChanged(nameof(AiDefaultModelText));
         OnPropertyChanged(nameof(CachedAiReportsText));
     }
 
@@ -1066,6 +1084,7 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowAiApiKeyRow));
         OnPropertyChanged(nameof(ShowAiOllamaRow));
         OnPropertyChanged(nameof(ShowAiModelRow));
+        OnPropertyChanged(nameof(AiDefaultModelText));
 
         if (!string.IsNullOrWhiteSpace(value))
         {

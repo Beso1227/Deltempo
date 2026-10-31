@@ -61,8 +61,10 @@ public static class AiModelCatalog
         {
             ["BuiltIn"] = new("BuiltIn", RequiresApiKey: false, DefaultModelId: string.Empty, HostedModelTimeout),
             ["Gemini"] = new("Gemini", RequiresApiKey: true, DefaultModelId: "gemini-3.5-flash", HostedModelTimeout),
-            ["OpenAI"] = new("OpenAI", RequiresApiKey: true, DefaultModelId: "gpt-5-mini", HostedModelTimeout),
-            ["Groq"] = new("Groq", RequiresApiKey: true, DefaultModelId: "llama-3.3-70b-versatile", HostedModelTimeout),
+            ["OpenAI"] = new("OpenAI", RequiresApiKey: true, DefaultModelId: "gpt-5.4-mini", HostedModelTimeout),
+            // gpt-oss-120b is the verified production default: llama-3.3-70b-versatile
+            // answers only on Groq's Enterprise tier, so an ordinary API key got a 403.
+            ["Groq"] = new("Groq", RequiresApiKey: true, DefaultModelId: "openai/gpt-oss-120b", HostedModelTimeout),
             ["OpenRouter"] = new("OpenRouter", RequiresApiKey: true, DefaultModelId: "meta-llama/llama-3.3-70b-instruct", HostedModelTimeout),
             ["Ollama"] = new("Ollama", RequiresApiKey: false, DefaultModelId: "llama3.2", LocalModelTimeout, "http://localhost:11434"), // DevSkim: ignore DS162092
         }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
@@ -107,23 +109,26 @@ public static class AiModelCatalog
             "gemini" => new[]
             {
                 new AiModelOption("gemini-3.5-flash", "Gemini 3.5 Flash", "Default - fast, cheap, strong JSON"),
+                new AiModelOption("gemini-3.8-flash", "Gemini 3.8 Flash", "Newest stable generation"),
                 new AiModelOption("gemini-3.5-flash-lite", "Gemini 3.5 Flash Lite", "Cheapest hosted option"),
-                new AiModelOption("gemini-3.5-pro", "Gemini 3.5 Pro", "Slowest, most accurate"),
             },
             "openai" => new[]
             {
-                new AiModelOption("gpt-5-mini", "GPT-5 mini", "Default - good quality per token"),
-                new AiModelOption("gpt-5-nano", "GPT-5 nano", "Cheapest"),
-                new AiModelOption("gpt-5", "GPT-5", "Highest quality"),
+                // gpt-5-mini / gpt-5-nano / gpt-5 were found retired upstream; every
+                // suggestion below was live at the last catalog check.
+                new AiModelOption("gpt-5.4-mini", "GPT-5.4 mini", "Default - good quality per token"),
+                new AiModelOption("gpt-5.4-nano", "GPT-5.4 nano", "Cheapest"),
+                new AiModelOption("gpt-5.2", "GPT-5.2", "Highest quality"),
             },
             "groq" => new[]
             {
+                new AiModelOption("openai/gpt-oss-120b", "GPT-OSS 120B", "Default - open weights, no tier gate"),
                 new AiModelOption("llama-3.3-70b-versatile", "Llama 3.3 70B", "Enterprise tier only"),
-                new AiModelOption("openai/gpt-oss-120b", "GPT-OSS 120B", "Open weights"),
             },
             "openrouter" => new[]
             {
                 new AiModelOption("meta-llama/llama-3.3-70b-instruct", "Llama 3.3 70B", "Default"),
+                new AiModelOption("openai/gpt-oss-120b", "GPT-OSS 120B", "Open weights"),
                 new AiModelOption("qwen/qwen3-32b", "Qwen3 32B", "Strong multilingual"),
             },
             "ollama" => new[]

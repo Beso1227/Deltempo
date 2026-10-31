@@ -32,7 +32,7 @@
 
   <p>
     <sub>Prefere o terminal? Uma única linha instala e verifica a versão mais recente &mdash;
-      <code>irm https://beso1227.github.io/Deltempo/win | Invoke-Expression</code>
+      <code>irm https://beso1227.github.io/Deltempo/win | iex</code>
       &middot; Encontrou um bug ou tem uma ideia de funcionalidade? <a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>Abra uma issue</strong></a> &mdash; todo pedido é lido.
       Se o Deltempo devolveu espaço em disco para você, uma <a href="https://github.com/Beso1227/Deltempo"><strong>estrela</strong></a> realmente ajuda outras pessoas a encontrá-lo.</sub>
   </p>
@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Versão mais recente" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="Status da compilação no CI" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1507_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Testes: 1507 aprovados, 0 falhas" src="https://img.shields.io/badge/tests-1507_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1516_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Testes: 1516 aprovados, 0 falhas" src="https://img.shields.io/badge/tests-1516_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="Licença: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **Licença** | Código aberto ([MIT](LICENSE)) |
 | **Interfaces** | GUI moderna para desktop (WPF Fluent) e CLI de terminal headless |
 | **Distribuição** | Executável portátil de arquivo único (autossuficiente, sem necessidade de instalador) |
-| **Cobertura de testes** | 1507 testes automatizados (100% de aprovação, 0 falhas, 0 ignorados), fuzzing adversarial de sistema de arquivos |
+| **Cobertura de testes** | 1516 testes automatizados (100% de aprovação, 0 falhas, 0 ignorados), fuzzing adversarial de sistema de arquivos |
 | **Disponibilidade da CLI** | O comando `deltempo` se autoinstala na primeira inicialização da GUI — nenhuma configuração manual |
 | **Telemetria** | Zero telemetria. As operações de varredura, limpeza, memória e desinstalação são executadas 100% offline |
 | **Motor de segurança** | Planejamento em duas fases (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) com 5 níveis de risco e log transacional das operações |
@@ -363,7 +363,7 @@ deltempo appdata-report --top 15
 > ### ⚡ Execute em uma linha
 >
 > ```powershell
-> irm https://beso1227.github.io/Deltempo/win | Invoke-Expression
+> irm https://beso1227.github.io/Deltempo/win | iex
 > ```
 >
 > Baixa o release mais recente, verifica seu SHA-256, o armazena em cache em `%LOCALAPPDATA%\Deltempo\bin` e o inicia.
@@ -391,16 +391,16 @@ deltempo appdata-report --top 15
 Inicie o release mais recente diretamente pelo terminal — sem navegador, sem instalador:
 
 ```powershell
-irm https://beso1227.github.io/Deltempo/win | Invoke-Expression
+irm https://beso1227.github.io/Deltempo/win | iex
 ```
 
 O script de bootstrap baixa o `Deltempo.exe` mais recente, verifica seu SHA-256 contra o `checksums.sha256` publicado, o armazena em cache em `%LOCALAPPDATA%\Deltempo\bin` e o inicia. Para o binário da CLI headless, use o ponto de entrada `win-cli`:
 
 ```powershell
-irm https://beso1227.github.io/Deltempo/win-cli | Invoke-Expression
+irm https://beso1227.github.io/Deltempo/win-cli | iex
 ```
 
-Se o manifesto não puder ser lido ou se o hash não corresponder, o instalador aborta e não executa nada do que baixou — a verificação nunca é ignorada. Observe que `Invoke-Expression` não aceita argumentos, então o alvo é selecionado pelo ponto de entrada em vez de uma opção `-Cli`.
+Se o manifesto não puder ser lido ou se o hash não corresponder, o instalador aborta e não executa nada do que baixou — a verificação nunca é ignorada. Observe que `iex` não aceita argumentos, então o alvo é selecionado pelo ponto de entrada em vez de uma opção `-Cli`.
 
 ### Opção 3: O Comando `deltempo`
 
@@ -467,7 +467,7 @@ dotnet build deltempo.sln -c Release
 # projeto de testes, então uma verificação por projeto passaria sem erro e deixaria parte da solução sem verificar.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# Executar a suíte de testes automatizados (1507 testes unitários e de integração aprovados)
+# Executar a suíte de testes automatizados (1516 testes unitários e de integração aprovados)
 # O xunit.v3 roda sobre o Microsoft.Testing.Platform, que o `dotnet test` do SDK
 # do .NET 10 não consegue executar ("Testing with VSTest target is no longer
 # supported"). Compile uma vez e depois invoque o executável de testes diretamente.

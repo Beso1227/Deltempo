@@ -44,8 +44,8 @@
   "download": {
     "gui": "https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe",
     "cli": "https://github.com/Beso1227/Deltempo/releases/latest/download/deltempo_cli.exe",
-    "oneliner": "irm https://beso1227.github.io/Deltempo/win | Invoke-Expression",
-    "oneliner_cli": "irm https://beso1227.github.io/Deltempo/win-cli | Invoke-Expression"
+    "oneliner": "irm https://beso1227.github.io/Deltempo/win | iex",
+    "oneliner_cli": "irm https://beso1227.github.io/Deltempo/win-cli | iex"
   },
   "documentation": "https://beso1227.github.io/Deltempo/docs/",
   "llms_context": "https://beso1227.github.io/Deltempo/llms.txt",
@@ -62,5 +62,5 @@
     "CLI headless automation for CI/CD and PowerShell",
     "Zero telemetry, 100% offline and local"
   ],
-  "testCount": 1507
+  "testCount": 1516
 }

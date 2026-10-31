@@ -32,7 +32,7 @@
 
   <p>
     <sub>تفضّل الطرفية؟ سطر واحد يثبّت أحدث إصدار ويتحقّق منه &mdash;
-      <code>irm https://beso1227.github.io/Deltempo/win | Invoke-Expression</code>
+      <code>irm https://beso1227.github.io/Deltempo/win | iex</code>
       &middot; وجدت خطأً أو فكرة لميزة جديدة؟ <a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>افتح تذكرة</strong></a> &mdash; كل طلب يُقرأ.
       إن أعاد لك Deltempo بعض مساحة القرص، فإن <a href="https://github.com/Beso1227/Deltempo"><strong>نجمة</strong></a> تساعد فعلًا غيرك على العثور عليه.</sub>
   </p>
@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="أحدث إصدار" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="حالة بناء التكامل المستمر" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1507_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبارات: 1507 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-1507_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1516_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبارات: 1516 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-1516_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="الترخيص: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **الترخيص** | مفتوح المصدر ([MIT](LICENSE)) |
 | **الواجهات** | واجهة سطح مكتب رسومية حديثة (WPF Fluent)، وطرفية أوامر تعمل بلا واجهة |
 | **التوزيع** | ملف تنفيذي محمول مفرد (كامل بذاته، لا يحتاج إلى مُثبِّت) |
-| **تغطية الاختبارات** | 1507 اختبارًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 مُتخطّى)، وفحص تبدّل عشوائي معارِض لنظام الملفات |
+| **تغطية الاختبارات** | 1516 اختبارًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 مُتخطّى)، وفحص تبدّل عشوائي معارِض لنظام الملفات |
 | **توافر الطرفية** | أمر `deltempo` يُثبّت نفسه عند أول تشغيل للواجهة — دون إعداد يدوي |
 | **بيانات الاتّصال** | صفر بيانات اتّصال. عمليات الفحص والتنظيف والذاكرة وإلغاء التثبيت تعمل 100% دون اتصال |
 | **محرّك الأمان** | تخطيط على مرحلتين (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) مع 5 مستويات للمخاطر وسجلّ معاملات |
@@ -364,7 +364,7 @@ deltempo appdata-report --top 15
 > ### ⚡ شغّله بسطر واحد
 >
 > ```powershell
-> irm https://beso1227.github.io/Deltempo/win | Invoke-Expression
+> irm https://beso1227.github.io/Deltempo/win | iex
 > ```
 >
 > ينزّل أحدث إصدار، ويتحقّق من بصمة SHA-256، ويُخزّنه في `%LOCALAPPDATA%\Deltempo\bin`، ثم يُشغّله.
@@ -392,16 +392,16 @@ deltempo appdata-report --top 15
 شغّل أحدث إصدار مباشرة من طرفية — دون متصفّح، ودون مُثبِّت:
 
 ```powershell
-irm https://beso1227.github.io/Deltempo/win | Invoke-Expression
+irm https://beso1227.github.io/Deltempo/win | iex
 ```
 
 ينزّل سكربت الإقلاع أحدث `Deltempo.exe`، ويتحقّق من بصمة SHA-256 مقابل ملف `checksums.sha256` المنشور، ويُخزّنه في `%LOCALAPPDATA%\Deltempo\bin`، ثم يُشغّله. بالنسبة للثنائي الخاص بالطرفية بلا واجهة، استخدم نقطة الدخول `win-cli`:
 
 ```powershell
-irm https://beso1227.github.io/Deltempo/win-cli | Invoke-Expression
+irm https://beso1227.github.io/Deltempo/win-cli | iex
 ```
 
-إذا تعذّرت قراءة البيان (manifest) أو لم تتطابق البصمة، يتوقّف المُثبِّت ولا يُشغّل أي شيء نزّله — التحقّق لا يُتخطّى أبدًا. لاحظ أن `Invoke-Expression` لا تقبل أي وسيطات، لذلك يُختار الهدف عبر نقطة الدخول لا عبر مفتاح `-Cli`.
+إذا تعذّرت قراءة البيان (manifest) أو لم تتطابق البصمة، يتوقّف المُثبِّت ولا يُشغّل أي شيء نزّله — التحقّق لا يُتخطّى أبدًا. لاحظ أن `iex` لا تقبل أي وسيطات، لذلك يُختار الهدف عبر نقطة الدخول لا عبر مفتاح `-Cli`.
 
 ### الخيار 3: أمر `deltempo`
 
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # الاختبارات، لذا يغطي الفحص لكل مشروع جزءًا فقط من الحل دون أن يُعلن ذلك.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# تنفيذ مجموعة الاختبارات الآلية (1507 اختبار وحدة وتكامل ناجحًا)
+# تنفيذ مجموعة الاختبارات الآلية (1516 اختبار وحدة وتكامل ناجحًا)
 # يعمل xunit.v3 على Microsoft.Testing.Platform، وهو ما لا يستطيع `dotnet test` في
 # حزمة .NET 10 SDK تشغيله ("Testing with VSTest target is no longer supported"). ابنِ
 # المشروع مرة واحدة، ثم استدعِ الملف التنفيذي للاختبارات مباشرةً.

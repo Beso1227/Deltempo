@@ -809,7 +809,12 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Custom Model Name (Optional)" Style="{StaticResource RowLabel}" />
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Custom Model Name (Optional)" Style="{StaticResource RowLabel}" />
+                                    <!--/provider-default hint so users can see which model the provider will actually call -->
+                                    <TextBlock Text="{x:Bind ViewModel.AiDefaultModelText, Mode=OneWay}"
+                                               Style="{StaticResource RowHint}" />
+                                </StackPanel>
                                 <TextBox Grid.Column="1"
                                          Width="240"
                                          Text="{x:Bind ViewModel.AiModelName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"

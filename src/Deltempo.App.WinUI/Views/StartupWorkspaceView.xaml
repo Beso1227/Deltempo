@@ -294,7 +294,7 @@
                                                 FontSize="11"
                                                 Margin="0,0,6,0"
                                                 Visibility="{Binding CanReveal, Converter={StaticResource BoolToVis}}"
-                                                Command="{Binding DataContext.ViewModel.RevealCommand, ElementName=Root}"
+                                                Command="{Binding ViewModel.RevealCommand, ElementName=Root}"
                                                 CommandParameter="{Binding}" />
 
                                         <!-- WPF's Search Online button (MainWindow.SystemManagers.cs:159,
@@ -309,7 +309,7 @@
                                                 Padding="10,4"
                                                 FontSize="11"
                                                 Margin="0,0,6,0"
-                                                Command="{Binding DataContext.ViewModel.SearchOnlineCommand, ElementName=Root}"
+                                                Command="{Binding ViewModel.SearchOnlineCommand, ElementName=Root}"
                                                 CommandParameter="{Binding}">
                                             <FontIcon Glyph="&#xE721;"
                                                       FontFamily="{StaticResource IconFont}"
@@ -328,7 +328,7 @@
                                                 Padding="10,4"
                                                 FontSize="11"
                                                 Margin="0,0,6,0"
-                                                Command="{Binding DataContext.ViewModel.AnalyzeItemCommand, ElementName=Root}"
+                                                Command="{Binding ViewModel.AnalyzeItemCommand, ElementName=Root}"
                                                 CommandParameter="{Binding}" />
 
                                         <Button Content="Clean"
@@ -341,7 +341,7 @@
                                                 FontSize="11"
                                                 Margin="0,0,6,0"
                                                 Visibility="{Binding CanCleanOrphaned, Converter={StaticResource BoolToVis}}"
-                                                Command="{Binding DataContext.ViewModel.CleanOrphanedCommand, ElementName=Root}"
+                                                Command="{Binding ViewModel.CleanOrphanedCommand, ElementName=Root}"
                                                 CommandParameter="{Binding}" />
 
                                         <!-- Toggle is offered only when the entry is not
@@ -369,7 +369,7 @@
                                                 Padding="4"
                                                 Margin="8,0,0,0"
                                                 AutomationProperties.Name="Expand startup entry details"
-                                                Command="{Binding DataContext.ViewModel.ToggleExpandCommand, ElementName=Root}"
+                                                Command="{Binding ViewModel.ToggleExpandCommand, ElementName=Root}"
                                                 CommandParameter="{Binding}">
                                             <FontIcon Glyph="&#xE70D;"
                                                       FontFamily="{StaticResource IconFont}"

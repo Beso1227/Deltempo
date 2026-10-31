@@ -32,7 +32,7 @@
 
   <p>
     <sub>टर्मिनल पसंद है? एक ही लाइन नवीनतम रिलीज़ इंस्टॉल और सत्यापित कर देती है &mdash;
-      <code>irm https://beso1227.github.io/Deltempo/win | Invoke-Expression</code>
+      <code>irm https://beso1227.github.io/Deltempo/win | iex</code>
       &middot; बग या फ़ीचर आइडिया मिला? <a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>issue खोलें</strong></a> &mdash; हर अनुरोध पढ़ा जाता है।
       अगर Deltempo ने आपको कुछ डिस्क स्पेस वापस दिलाया, तो एक <a href="https://github.com/Beso1227/Deltempo"><strong>स्टार</strong></a> सचमुच दूसरों को इसे खोजने में मदद करता है।</sub>
   </p>
@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="नवीनतम रिलीज़" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI बिल्ड स्थिति" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1507_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="परीक्षण: 1507 पास, 0 विफल" src="https://img.shields.io/badge/tests-1507_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1516_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="परीक्षण: 1516 पास, 0 विफल" src="https://img.shields.io/badge/tests-1516_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="लाइसेंस: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **लाइसेंस** | ओपन-सोर्स ([MIT](LICENSE)) |
 | **इंटरफ़ेस** | आधुनिक डेस्कटॉप GUI (WPF Fluent) और हेडलेस टर्मिनल CLI |
 | **वितरण** | पोर्टेबल सिंगल-फ़ाइल एक्ज़ीक्यूटेबल (स्व-निहित, इंस्टॉलर की आवश्यकता नहीं) |
-| **परीक्षण कवरेज** | 1507 स्वचालित परीक्षण (100% पास दर, 0 विफल, 0 छोड़े गए), प्रतिकूल फ़ाइलसिस्टम फ़ज़िंग |
+| **परीक्षण कवरेज** | 1516 स्वचालित परीक्षण (100% पास दर, 0 विफल, 0 छोड़े गए), प्रतिकूल फ़ाइलसिस्टम फ़ज़िंग |
 | **CLI उपलब्धता** | `deltempo` कमांड पहली GUI लॉन्च पर स्वयं इंस्टॉल हो जाता है — कोई मैनुअल सेटअप नहीं |
 | **टेलीमेट्री** | शून्य टेलीमेट्री। स्कैन, सफ़ाई, मेमोरी और अनइंस्टॉलर के सभी संचालन 100% ऑफ़लाइन होते हैं |
 | **सुरक्षा इंजन** | दो-चरण योजना (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) — 5 जोखिम स्तर और लेन-देन जर्नलिंग के साथ |
@@ -364,7 +364,7 @@ deltempo appdata-report --top 15
 > ### ⚡ एक लाइन में चलाएँ
 >
 > ```powershell
-> irm https://beso1227.github.io/Deltempo/win | Invoke-Expression
+> irm https://beso1227.github.io/Deltempo/win | iex
 > ```
 >
 > नवीनतम रिलीज़ डाउनलोड करता है, उसका SHA-256 सत्यापित करता है, उसे `%LOCALAPPDATA%\Deltempo\bin` में कैश करता है, और लॉन्च करता है।
@@ -392,16 +392,16 @@ deltempo appdata-report --top 15
 अपने टर्मिनल से सीधे नवीनतम रिलीज़ लॉन्च करें — कोई ब्राउज़र नहीं, कोई इंस्टॉलर नहीं:
 
 ```powershell
-irm https://beso1227.github.io/Deltempo/win | Invoke-Expression
+irm https://beso1227.github.io/Deltempo/win | iex
 ```
 
 बूटस्ट्रैप स्क्रिप्ट नवीनतम `Deltempo.exe` डाउनलोड करती है, उसे प्रकाशित `checksums.sha256` के विरुद्ध उसका SHA-256 सत्यापित करती है, उसे `%LOCALAPPDATA%\Deltempo\bin` में कैश करती है, और लॉन्च करती है। हेडलेस CLI बाइनरी के लिए, `win-cli` एंट्री पॉइंट का उपयोग करें:
 
 ```powershell
-irm https://beso1227.github.io/Deltempo/win-cli | Invoke-Expression
+irm https://beso1227.github.io/Deltempo/win-cli | iex
 ```
 
-यदि मैनिफ़ेस्ट पढ़ा नहीं जा सकता, या हैश मेल नहीं खाता, तो इंस्टॉलर निरस्त हो जाता है और डाउनलोड की गई कुछ भी नहीं चलाता — सत्यापन कभी छोड़ा नहीं जाता। ध्यान दें कि `Invoke-Expression` कोई आर्ग्यूमेंट स्वीकार नहीं करता, इसलिए लक्ष्य `-Cli` स्विच के बजाय एंट्री पॉइंट द्वारा चुना जाता है।
+यदि मैनिफ़ेस्ट पढ़ा नहीं जा सकता, या हैश मेल नहीं खाता, तो इंस्टॉलर निरस्त हो जाता है और डाउनलोड की गई कुछ भी नहीं चलाता — सत्यापन कभी छोड़ा नहीं जाता। ध्यान दें कि `iex` कोई आर्ग्यूमेंट स्वीकार नहीं करता, इसलिए लक्ष्य `-Cli` स्विच के बजाय एंट्री पॉइंट द्वारा चुना जाता है।
 
 ### विकल्प 3: `deltempo` कमांड
 
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # प्रोजेक्ट शामिल हैं, इसलिए प्रति-प्रोजेक्ट जाँच समाधान का हिस्सा ही कवर करती है।
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# स्वचालित परीक्षण सूट निष्पादित करें (1507 पासिंग यूनिट और इंटीग्रेशन परीक्षण)
+# स्वचालित परीक्षण सूट निष्पादित करें (1516 पासिंग यूनिट और इंटीग्रेशन परीक्षण)
 # xunit.v3 Microsoft.TestingPlatform पर चलता है, जिसे .NET 10 SDK का `dotnet test`
 # चला नहीं सकता ("Testing with VSTest target is no longer supported")। एक बार बिल्ड करें,
 # फिर टेस्ट एक्ज़ीक्यूटेबल को सीधे कॉल करें।

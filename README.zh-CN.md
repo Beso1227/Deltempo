@@ -32,7 +32,7 @@
 
   <p>
     <sub>更喜欢终端？一行命令即可安装并校验最新版本 &mdash;
-      <code>irm https://beso1227.github.io/Deltempo/win | Invoke-Expression</code>
+      <code>irm https://beso1227.github.io/Deltempo/win | iex</code>
       &middot; 发现了 bug 或有功能建议？<a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>提交 Issue</strong></a> &mdash; 每一条反馈都会被阅读。
       如果 Deltempo 帮你找回了磁盘空间，一个 <a href="https://github.com/Beso1227/Deltempo"><strong>星标</strong></a> 真的能帮助更多人发现它。</sub>
   </p>
@@ -40,7 +40,7 @@
   <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="最新版本" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI 构建状态" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1507_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="测试：1507 通过，0 失败" src="https://img.shields.io/badge/tests-1507_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1516_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="测试：1516 通过，0 失败" src="https://img.shields.io/badge/tests-1516_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="许可证：MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -97,7 +97,7 @@
 | **许可证** | 开源（[MIT](LICENSE)） |
 | **界面** | 现代桌面 GUI（WPF Fluent）与无界面终端 CLI |
 | **分发方式** | 便携式单文件可执行程序（自包含，无需安装程序） |
-| **测试覆盖** | 1507 项自动化测试（100% 通过率，0 失败，0 跳过），对抗性文件系统模糊测试 |
+| **测试覆盖** | 1516 项自动化测试（100% 通过率，0 失败，0 跳过），对抗性文件系统模糊测试 |
 | **CLI 可用性** | `deltempo` 命令在 GUI 首次启动时自动自安装 —— 无需手动配置 |
 | **遥测** | 零遥测。扫描、清理、内存与卸载操作 100% 离线执行 |
 | **安全引擎** | 两阶段规划（`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`），含 5 级风险分层与事务日志 |
@@ -364,7 +364,7 @@ deltempo appdata-report --top 15
 > ### ⚡ 一行命令即可运行
 >
 > ```powershell
-> irm https://beso1227.github.io/Deltempo/win | Invoke-Expression
+> irm https://beso1227.github.io/Deltempo/win | iex
 > ```
 >
 > 下载最新版本，校验其 SHA-256，缓存到 `%LOCALAPPDATA%\Deltempo\bin`，然后启动它。
@@ -392,16 +392,16 @@ deltempo appdata-report --top 15
 直接从终端启动最新版本 —— 无需浏览器，无需安装程序：
 
 ```powershell
-irm https://beso1227.github.io/Deltempo/win | Invoke-Expression
+irm https://beso1227.github.io/Deltempo/win | iex
 ```
 
 引导脚本会下载最新的 `Deltempo.exe`，将其 SHA-256 与已发布的 `checksums.sha256` 进行比对校验，缓存到 `%LOCALAPPDATA%\Deltempo\bin`，然后启动它。如需无界面 CLI 二进制，请使用 `win-cli` 入口：
 
 ```powershell
-irm https://beso1227.github.io/Deltempo/win-cli | Invoke-Expression
+irm https://beso1227.github.io/Deltempo/win-cli | iex
 ```
 
-如果清单无法读取，或哈希值不匹配，安装程序会中止并不运行任何已下载的内容 —— 校验绝不会被跳过。请注意 `Invoke-Expression` 不接受任何参数，因此目标由入口点选择，而不是通过 `-Cli` 开关。
+如果清单无法读取，或哈希值不匹配，安装程序会中止并不运行任何已下载的内容 —— 校验绝不会被跳过。请注意 `iex` 不接受任何参数，因此目标由入口点选择，而不是通过 `-Cli` 开关。
 
 ### 方式三：`deltempo` 命令
 
@@ -475,7 +475,7 @@ dotnet build deltempo.sln -c Release
 # 因此按单个项目检查只会静默地漏掉解决方案的其余部分。
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# 执行自动化测试套件（1507 个通过的单元与集成测试）
+# 执行自动化测试套件（1516 个通过的单元与集成测试）
 # xunit.v3 运行在 Microsoft.Testing.Platform 上，.NET 10 SDK 的 `dotnet test` 无法驱动它
 #（"Testing with VSTest target is no longer supported"）。请先构建一次，
 # 然后直接调用测试可执行文件。
