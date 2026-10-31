@@ -248,10 +248,8 @@
     // Click pulses: a single expanding ring that lights the stars it passes.
     const pulses = [];
 
-    // Scroll motion, smoothed so a flick produces one long streak instead of a
-    // row of disconnected dashes.
+    // Scroll motion: the raw delta is what turns into streak length.
     let lastScrollY = window.scrollY || 0;
-    let scrollMomentum = 0;
 
     // Idle shooting stars.
     const meteors = [];
@@ -436,22 +434,73 @@
     }
 
     // --- Idle shooting stars ------------------------------------------------
-    function spawnMeteor() {
-      // Enter from the upper half at a shallow angle, so the streak crosses the
-      // sky rather than dropping straight down like a scratch.
-      const fromLeft = Math.random() < 0.55;
-      const angle = (Math.PI / 180) * (fromLeft ? 24 + Math.random() * 16 : 140 + Math.random() * 16);
-      const speed = 10 + Math.random() * 7;
-      meteors.push({
-        x: fromLeft ? -60 - Math.random() * width * 0.15 : width + 60 + Math.random() * width * 0.15,
-        y: Math.random() * height * 0.45,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
+    // Each meteor picks its own entry edge, entry point and heading, and the
+    // next one is never allowed to repeat the previous heading: the sky should
+    // read as a busy sky, not the same two diagonal lines on a loop.
+    let lastMeteorAngle = -10;
+
+    function meteorCandidate() {
+      // Heading variety: shallow grazes, mid diagonals, and the occasional
+      // steep dive. Measured in degrees below the horizontal.
+      const tier = Math.random();
+      const rise = tier < 0.45 ? 7 + Math.random() * 16
+        : tier < 0.85 ? 23 + Math.random() * 27
+          : 54 + Math.random() * 26;
+
+      const edge = Math.random();
+      const toRight = edge < 0.5;
+      let x;
+      let y;
+      let angle;
+      if (edge < 0.84) {
+        // In from a side edge. The entry height is bounded by how much height
+        // this heading covers across the frame, so a shallow meteor enters near
+        // the top instead of burning out above the fold.
+        angle = toRight ? rise : 180 - rise;
+        const drop = (width + 140) * Math.tan(angle * Math.PI / 180);
+        const lowY = -Math.min(80, drop * 0.15);
+        const highY = Math.max(lowY + 40, Math.min(height * 0.8, height - drop * 0.3));
+        x = toRight ? -60 - Math.random() * 170 : width + 60 + Math.random() * 170;
+        y = lowY + Math.random() * (highY - lowY);
+      } else {
+        // Straight out of the top, always diving so it lands in view. The entry
+        // sits on the side it is heading away from, so it crosses more sky.
+        angle = 40 + Math.random() * 40;
+        const right = Math.random() < 0.5;
+        if (!right) angle = 180 - angle;
+        x = width * (right ? 0.08 + Math.random() * 0.6 : 0.32 + Math.random() * 0.6);
+        y = -60 - Math.random() * 150;
+      }
+
+      const rad = angle * Math.PI / 180;
+      const speed = 8 + Math.random() * 9;
+      // Life is set from the distance the meteor should cover, so slow ones are
+      // not cut off halfway across the sky.
+      const travel = (width + height) * (0.6 + Math.random() * 0.5);
+      return {
+        x: x,
+        y: y,
+        angle: rad,
+        vx: Math.cos(rad) * speed,
+        vy: Math.sin(rad) * speed,
         life: 0,
-        maxLife: 80 + Math.floor(Math.random() * 60),
-        len: 150 + Math.random() * 130,
-        width: 1 + Math.random() * 0.8,
-      });
+        maxLife: Math.max(60, Math.round(travel / speed)),
+        len: 130 + Math.random() * 170,
+        width: 0.8 + Math.random() * 1.1,
+        // Distance variety: small far meteors and big near ones.
+        scale: 0.75 + Math.random() * 0.6,
+        mint: Math.random() < 0.35,
+      };
+    }
+
+    function spawnMeteor() {
+      let m = meteorCandidate();
+      // A new heading that echoes the last one looks like a loop; re-roll.
+      for (let i = 0; i < 3 && Math.abs(m.angle - lastMeteorAngle) < 0.35; i++) {
+        m = meteorCandidate();
+      }
+      lastMeteorAngle = m.angle;
+      meteors.push(m);
       if (meteors.length > 2) meteors.shift();
     }
 
@@ -483,7 +532,6 @@
       const y = scrollState.y;
       const scrollDelta = y - lastScrollY;
       lastScrollY = y;
-      scrollMomentum += (scrollDelta - scrollMomentum) * Math.min(1, 0.3 * dt);
 
       ctx.clearRect(0, 0, width, height);
 
@@ -651,9 +699,9 @@
           const dy = m.vy / speed;
 
           // Tapered tail from the shared sprite, rotated onto the flight path.
-          const tailSprite = isLight ? sprites.streakDust : sprites.streakMint;
+          const tailSprite = isLight ? sprites.streakDust : (m.mint ? sprites.streakMint : sprites.streak);
           const tailLen = m.len * (0.6 + 0.4 * fade);
-          const tailWid = 5 + m.width * 5;
+          const tailWid = (4.5 + m.width * 5) * m.scale;
           ctx.globalAlpha = Math.min(1, fade * 0.9);
           ctx.save();
           ctx.translate(m.x, m.y);
@@ -661,9 +709,10 @@
           ctx.drawImage(tailSprite, -tailWid / 2, -tailLen, tailWid, tailLen);
           ctx.restore();
 
-          const headSize = 20 + fade * 14;
+          const headSprite = isLight ? sprites.dust : (m.mint ? sprites.mint : sprites.star);
+          const headSize = (18 + fade * 14) * m.scale;
           ctx.globalAlpha = Math.min(1, fade * 0.95);
-          ctx.drawImage(skySprite, m.x - headSize / 2, m.y - headSize / 2, headSize, headSize);
+          ctx.drawImage(headSprite, m.x - headSize / 2, m.y - headSize / 2, headSize, headSize);
           ctx.globalAlpha = 1;
         }
       }
