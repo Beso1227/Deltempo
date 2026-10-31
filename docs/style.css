@@ -446,20 +446,6 @@ kbd {
   margin: 0 auto 3.5rem;
 }
 
-.section-tag {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: var(--radius-pill);
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  background: var(--accent-cyan-bg);
-  color: var(--accent-cyan);
-  border: 1px solid var(--accent-cyan-border);
-  margin-bottom: 1rem;
-}
-
 h1, h2, h3, h4, .section-title, .hero-headline, .hero-title-main {
   text-wrap: balance;
 }
@@ -969,100 +955,23 @@ html.light .hero-release-pill {
   margin: 0 auto 1.5rem;
 }
 
-/* Hero Headline Continuous Shimmer and Aurora Flow */
+/* Hero headline: solid ink, no shimmer. Emphasis comes from weight, not motion. */
 .hero-title-main {
   display: inline-block;
-  background: linear-gradient(
-    90deg,
-    #FFFFFF 0%,
-    #F1F5F9 18%,
-    #E2E8F0 32%,
-    #00F2B0 48%,
-    #A7F3D0 52%,
-    #E2E8F0 68%,
-    #F1F5F9 82%,
-    #FFFFFF 100%
-  );
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: hero-sheen-continuous 5s linear infinite;
-  will-change: background-position;
+  color: var(--text-high);
 }
 
 html.light .hero-title-main {
-  background: linear-gradient(
-    90deg,
-    #0F172A 0%,
-    #1E293B 18%,
-    #334155 32%,
-    #047857 48%,
-    #059669 52%,
-    #334155 68%,
-    #1E293B 82%,
-    #0F172A 100%
-  );
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-high);
 }
-
-@keyframes hero-sheen-continuous {
-  0% { background-position: 200% 0; }
-  100% { background-position: 0% 0; }
-}
-
+/* Second line: solid mint. No gradient, no shimmer, no glow. */
 .text-gradient {
   display: inline-block;
-  background: linear-gradient(
-    90deg,
-    #00F2B0 0%,
-    #0DD3BA 20%,
-    #34D399 40%,
-    #10B981 60%,
-    #00F2B0 80%,
-    #0DD3BA 100%
-  );
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: aurora-flow-continuous 6s linear infinite;
-  filter: drop-shadow(0 2px 18px rgba(0, 242, 176, 0.45));
-  will-change: background-position, filter;
+  color: var(--accent-emerald);
 }
 
 html.light .text-gradient {
-  background: linear-gradient(
-    90deg,
-    #047857 0%,
-    #059669 25%,
-    #0D9488 50%,
-    #059669 75%,
-    #047857 100%
-  );
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 10px rgba(5, 150, 105, 0.25));
-}
-
-@keyframes aurora-flow-continuous {
-  0% {
-    background-position: 0% 50%;
-    filter: drop-shadow(0 2px 18px rgba(0, 242, 176, 0.42));
-  }
-  50% {
-    background-position: -100% 50%;
-    filter: drop-shadow(0 2px 24px rgba(13, 211, 186, 0.5));
-  }
-  100% {
-    background-position: -200% 50%;
-    filter: drop-shadow(0 2px 18px rgba(0, 242, 176, 0.42));
-  }
+  color: #047857;
 }
 
 .hero-subtext {
@@ -5434,4 +5343,58 @@ html.light .back-to-top::before {
   .back-to-top:active {
     transform: none;
   }
+}
+
+/* ==========================================================================
+   v3.2 — Icon system
+   One authored stroke set (24px grid, 1.8 stroke, round joins) replaces every
+   emoji and Unicode glyph that had been standing in for an icon.
+   ========================================================================== */
+
+.i {
+  width: 1em;
+  height: 1em;
+  flex: none;
+  display: inline-block;
+  vertical-align: -0.14em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+
+.i-xs {
+  width: 0.82em;
+  height: 0.82em;
+}
+
+/* Slots that used to hold a text glyph are flex boxes now that they hold an SVG. */
+.hero-proof-icon,
+.cap-check,
+.tier-badge,
+.sim-sub-impact-good,
+.sim-sub-impact-bad,
+.sim-card-val-emerald,
+.badge-tag-safe,
+.badge-tag-bad,
+.pipeline-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+}
+
+.badge-tag-safe,
+.badge-tag-bad {
+  gap: 0.4rem;
+}
+
+.cap-check {
+  margin-top: 0.15em;
+}
+
+.pipeline-arrow,
+.sim-callout-icon {
+  gap: 0;
 }

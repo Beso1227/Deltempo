@@ -1363,7 +1363,7 @@
           'Volume C:\\ • 2,400 files/s • 45 MB/s • ETA: 3s',
           'Volume C:\\ • 4,200 files/s • 115 MB/s • ETA: 2s',
           'Volume D:\\ (NVMe) • 6,100 files/s • 190 MB/s • ETA: 1s',
-          '✓ Complete • 26 scopes scanned • 10,407 items verified'
+          '<svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Complete • 26 scopes scanned • 10,407 items verified'
         ];
 
         const interval = setInterval(function () {
@@ -1424,7 +1424,7 @@
             ramPercent.textContent = '34%';
             ramGauge.style.background = 'conic-gradient(var(--accent-emerald) 122.4deg, ' + trackBg + ' 0deg)';
             if (ramDetail) ramDetail.textContent = '5.4 GB / 16.0 GB (Flushed 6.8 GB Standby RAM)';
-            boostBtn.textContent = '✓ RAM Boosted (-6.8 GB)';
+            boostBtn.innerHTML = '<svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> RAM Boosted (-6.8 GB)';
             setTimeout(function () { // DevSkim: ignore DS172411
               boostBtn.textContent = '1-Click Boost Memory';
               boostBtn.disabled = false;
