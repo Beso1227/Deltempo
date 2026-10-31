@@ -1,6 +1,7 @@
 using Deltempo.App.WinUI.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using WinTempCleaner.Models;
 using WinTempCleaner.Services;
 
 namespace Deltempo.App.WinUI.Views;
@@ -89,6 +90,37 @@ public sealed partial class AppUninstallView : UserControl
     /// </summary>
     private void OnLeftoverChecked(object sender, RoutedEventArgs e)
         => ViewModel.NotifyTraceSelectionChanged();
+
+    // ---- Row button handlers ---------------------------------------------------
+
+    /// <summary>
+    /// Row buttons cannot reach the page's commands through an ElementName
+    /// {Binding} - WinUI 3 does not resolve the path from inside a DataTemplate
+    /// (the template owns its own namescope, where "Root" is invisible), so the
+    /// bindings silently failed. The clicks are handled here: read the app off
+    /// the DataContext, execute the ViewModel command. The commands keep all of
+    /// their gates and confirmations.
+    /// </summary>
+    private static InstalledAppItem? RowItem(object sender) =>
+        (sender as FrameworkElement)?.DataContext as InstalledAppItem;
+
+    private void OnRowFetchAiClick(object sender, RoutedEventArgs e)
+        => ViewModel.FetchAiCommand.Execute(RowItem(sender)!);
+
+    private void OnRowOpenInstallFolderClick(object sender, RoutedEventArgs e)
+        => ViewModel.OpenInstallFolderCommand.Execute(RowItem(sender));
+
+    private void OnRowScanTracesClick(object sender, RoutedEventArgs e)
+        => ViewModel.ScanTracesCommand.Execute(RowItem(sender)!);
+
+    private void OnRowForceRootCleanClick(object sender, RoutedEventArgs e)
+        => ViewModel.ForceRootCleanCommand.Execute(RowItem(sender)!);
+
+    private void OnRowDeepUninstallClick(object sender, RoutedEventArgs e)
+        => ViewModel.DeepUninstallCommand.Execute(RowItem(sender)!);
+
+    private void OnRowToggleExpandClick(object sender, RoutedEventArgs e)
+        => ViewModel.ToggleExpandCommand.Execute(RowItem(sender));
 
     // ---- Dialog hosts -------------------------------------------------------
 

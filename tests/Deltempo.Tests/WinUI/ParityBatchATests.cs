@@ -205,8 +205,13 @@ public class ParityBatchATests
     public void WinUiStartupRow_CarriesTheSameSearchOnlineAction()
     {
         string view = ReadWinUi("Views", "StartupWorkspaceView.xaml");
-        Assert.Contains("SearchOnlineCommand", view);
+        // The row button routes through a code-behind Click handler, because an
+        // ElementName command binding inside a DataTemplate never fires in WinUI 3.
+        Assert.Contains("OnRowSearchOnlineClick", view);
         Assert.Contains("Search web for process reputation &amp; safety", view);
+
+        string code = ReadWinUi("Views", "StartupWorkspaceView.xaml.cs");
+        Assert.Contains("ViewModel.SearchOnlineCommand.Execute", code);
 
         string vm = File.ReadAllText(Path.Combine(
             RepoRoot(), "src", "Deltempo.App.WinUI", "ViewModels", "StartupWorkspaceViewModel.cs"));

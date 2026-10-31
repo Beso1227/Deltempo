@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using WinTempCleaner.Services;
@@ -7,15 +8,19 @@ using Xunit;
 namespace Deltempo.Tests;
 
 /// <summary>
-/// Guards for the round that fixed the "Ask AI didn't work" report and the
-/// overflowing Large Files filter bar.
+/// Guards for the round that fixed the "row buttons didn't work" reports.
 ///
-/// Root cause of the dead buttons: the app never sets a DataContext, so the
-/// per-row commands bound as {Binding DataContext.ViewModel.X, ElementName=Root}
-/// resolved through null and never fired (Large Files, Startup and App
-/// Uninstall row actions were all dead, not just Ask AI). The working pattern
-/// was CleanerWorkspaceView's {Binding ViewModel.X, ElementName=Root}; these
-/// tests pin that no dead path can come back.
+/// Root cause of the dead buttons: WinUI 3 never resolves an ElementName path from
+/// inside a DataTemplate - the template is instantiated in its own namescope, where
+/// the page's "Root" is invisible, so every per-row
+/// Command="{Binding ViewModel.X, ElementName=Root}" binding silently failed to
+/// attach (the row COMMANDS never fired; footer x:Bind buttons kept working). That
+/// binding pattern had been installed by the previous fix round and pinned by these
+/// very tests, which is why the buttons stayed dead anyway. The row actions are now
+/// wired through code-behind Click handlers that read the item off the DataContext
+/// and execute the ViewModel commands - the same pattern the Cleaner workspace's
+/// Inspect button already used - across the Large Files, Startup, App Uninstall and
+/// Cleaner row templates.
 ///
 /// The model catalog entries were re-verified against the provider pages in
 /// October 2026; a retired default sent every request for a provider to a 404
@@ -24,36 +29,57 @@ namespace Deltempo.Tests;
 public class LargeFilesUiRepairParityTests
 {
     // -----------------------------------------------------------------
-    // Bindings: no view may path through Drawable DataContext again.
+    // Row buttons: no DataTemplate may drive the page through ElementName.
     // -----------------------------------------------------------------
 
     [Fact]
-    public void LargeFilesRows_BindTheViewModelWithoutADeadDataContextPath()
+    public void LargeFilesRows_ConnectTheViewModelThroughClickHandlers()
     {
         string xaml = ReadView("LargeFilesWorkspaceView.xaml");
 
+        // An ElementName path inside a DataTemplate is never resolved by WinUI 3;
+        // pin the dead pattern out and the working Click pattern in.
         Assert.DoesNotContain("DataContext.ViewModel", xaml, StringComparison.Ordinal);
-        Assert.Contains("Command=\"{Binding ViewModel.AnalyzeItemCommand, ElementName=Root}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Command=\"{Binding ViewModel.RevealCommand, ElementName=Root}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Command=\"{Binding ViewModel.RecycleItemCommand, ElementName=Root}\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("ElementName=Root", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowRevealClick\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowAskAiClick\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowRecycleClick\"", xaml, StringComparison.Ordinal);
+
+        // The handlers forward into the commands - the gates (scan in progress,
+        // already-analyzing row) keep working from the ViewModel side.
+        string code = ReadViewCodeBehind("LargeFilesWorkspaceView.xaml.cs");
+        Assert.Contains("ViewModel.RevealCommand.Execute", code, StringComparison.Ordinal);
+        Assert.Contains("ViewModel.AnalyzeItemCommand.Execute", code, StringComparison.Ordinal);
+        Assert.Contains("ViewModel.RecycleItemCommand.Execute", code, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void StartupRows_BindTheViewModelWithoutADeadDataContextPath()
+    public void StartupRows_ConnectTheViewModelThroughClickHandlers()
     {
         string xaml = ReadView("StartupWorkspaceView.xaml");
 
         Assert.DoesNotContain("DataContext.ViewModel", xaml, StringComparison.Ordinal);
-        Assert.Contains("ViewModel.AnalyzeItemCommand, ElementName=Root", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("ElementName=Root", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowRevealClick\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowSearchOnlineClick\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowAnalyzeAiClick\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowCleanOrphanedClick\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowToggleExpandClick\"", xaml, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void AppUninstallRows_BindTheViewModelWithoutADeadDataContextPath()
+    public void AppUninstallRows_ConnectTheViewModelThroughClickHandlers()
     {
         string xaml = ReadView("AppUninstallView.xaml");
 
         Assert.DoesNotContain("DataContext.ViewModel", xaml, StringComparison.Ordinal);
-        Assert.Contains("ViewModel.FetchAiCommand, ElementName=Root", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("ElementName=Root", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowFetchAiClick\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowOpenInstallFolderClick\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowScanTracesClick\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowForceRootCleanClick\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowDeepUninstallClick\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnRowToggleExpandClick\"", xaml, StringComparison.Ordinal);
     }
 
     // -----------------------------------------------------------------
@@ -89,15 +115,61 @@ public class LargeFilesUiRepairParityTests
         string xaml = ReadView("LargeFilesWorkspaceView.xaml");
 
         // WPF's AskAiLargeFile_Click set btn.IsEnabled = false around the fetch;
-        // the WinUI row expresses the same lock through the row state.
+        // the WinUI row expresses the same lock through AnalyzeItemCommand's
+        // canExecute (item.IsAiAnalyzing), because a local IsEnabled binding
+        // overrides the command-driven IsEnabled and left the scan gate inert.
         Assert.Contains(
-            "IsEnabled=\"{Binding IsAiAnalyzing, Converter={StaticResource NotBool}}\"",
-            xaml,
+            "item is not null && !IsLoading && !item.IsAiAnalyzing",
+            ReadViewModel(),
             StringComparison.Ordinal);
         Assert.Contains(
             "Visibility=\"{Binding IsAiAnalyzing, Converter={StaticResource BoolToVis}}\"",
             xaml,
             StringComparison.Ordinal);
+    }
+
+    // -----------------------------------------------------------------
+    // Ask AI survives the scan/analysis race.
+    // -----------------------------------------------------------------
+
+    [Fact]
+    public void RowAskAi_CanExecute_TracksTheScanGate()
+    {
+        // The scan rebuilds the item list wholesale on completion, so a verdict
+        // applied mid-scan landed on an instance the list threw away and the row
+        // silently reverted to UNKNOWN. The row button now follows the same gate
+        // the bottom bar's "Analyze with AI" always had.
+        var vm = new Deltempo.App.WinUI.ViewModels.LargeFilesWorkspaceViewModel();
+        var item = new LargeFileInfo { FilePath = @"C:\temp\game37.arc", FileName = "game37.arc" };
+
+        Assert.True(vm.AnalyzeItemCommand.CanExecute(item));
+
+        vm.IsLoading = true;
+        Assert.False(vm.AnalyzeItemCommand.CanExecute(item), "a mid-scan Ask AI click loses its verdict when the scan rebuilds the list");
+
+        vm.IsLoading = false;
+        Assert.True(vm.AnalyzeItemCommand.CanExecute(item));
+
+        // A row that is already analyzing disables its own button too - the XAML
+        // IsEnabled binding that used to do this overrode the command-driven
+        // IsEnabled, which is what let the mid-scan click slip through.
+        item.IsAiAnalyzing = true;
+        Assert.False(vm.AnalyzeItemCommand.CanExecute(item), "a row that is analyzing must disable its own Ask AI button");
+
+        item.IsAiAnalyzing = false;
+        Assert.True(vm.AnalyzeItemCommand.CanExecute(item));
+
+        Assert.False(vm.AnalyzeItemCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void RowAskAi_TracksTheBatchLatchToo()
+    {
+        var vm = new Deltempo.App.WinUI.ViewModels.LargeFilesWorkspaceViewModel();
+        var item = new LargeFileInfo { FilePath = @"C:\temp\game37.arc", FileName = "game37.arc" };
+
+        vm.IsBatchAnalyzing = true;
+        Assert.False(vm.BatchAnalyzeCommand.CanExecute(null));
     }
 
     // -----------------------------------------------------------------
@@ -161,6 +233,19 @@ public class LargeFilesUiRepairParityTests
             m => m.Id == "openai/gpt-oss-120b" && m.Note is not null && m.Note.Contains("Default", StringComparison.Ordinal));
     }
 
+    private static string ReadViewModel()
+    {
+        var dir = AppContext.BaseDirectory;
+        for (var i = 0; i < 12; i++)
+        {
+            string candidate = Path.Combine(dir, "src", "Deltempo.App.WinUI", "ViewModels", "LargeFilesWorkspaceViewModel.cs");
+            if (File.Exists(candidate)) return File.ReadAllText(candidate);
+            dir = Path.GetFullPath(Path.Combine(dir, ".."));
+        }
+
+        throw new InvalidOperationException("could not locate LargeFilesWorkspaceViewModel.cs under the repository root");
+    }
+
     private static string ReadView(string name)
     {
         var dir = AppContext.BaseDirectory;
@@ -173,6 +258,9 @@ public class LargeFilesUiRepairParityTests
 
         throw new InvalidOperationException($"could not locate {name} under the repository root");
     }
+
+    private static string ReadViewCodeBehind(string name)
+        => ReadView(name);
 
     private static string RepoRoot()
     {

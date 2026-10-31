@@ -59,7 +59,6 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
     private CancellationTokenSource? _cts;
 
     /// <summary>Latch for the online batch analysis; the command's CanExecute reads it.</summary>
-    private bool _isBatchAnalyzing;
 
     /// <summary>Marshals scan progress onto the UI thread.</summary>
     private readonly Action<Action> _post;
@@ -125,8 +124,8 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
         RevealCommand = new RelayCommand<LargeFileInfo>(Reveal);
         ToggleSelectionCommand = new RelayCommand<LargeFileInfo>(ToggleSelection);
         ViewModeCommand = new RelayCommand<LargeFileViewMode>(SetViewMode);
-        AnalyzeItemCommand = new AsyncRelayCommand<LargeFileInfo>(AnalyzeItemAsync);
-        BatchAnalyzeCommand = new AsyncRelayCommand(BatchAnalyzeAsync, () => !_isBatchAnalyzing && !IsLoading);
+        AnalyzeItemCommand = new AsyncRelayCommand<LargeFileInfo>(AnalyzeItemAsync, item => item is not null && !IsLoading && !item.IsAiAnalyzing);
+        BatchAnalyzeCommand = new AsyncRelayCommand(BatchAnalyzeAsync, () => !IsBatchAnalyzing && !IsLoading);
         OpenRecycleBinCommand = new RelayCommand(OpenRecycleBin);
 
         Items.CollectionChanged += OnItemsCollectionChanged;
@@ -341,6 +340,7 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
 
     partial void OnIsLoadingChanged(bool value)
     {
+        AnalyzeItemCommand.NotifyCanExecuteChanged();
         CancelScanCommand.NotifyCanExecuteChanged();
         BatchAnalyzeCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(ShowEmptyState));
@@ -561,8 +561,47 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
     {
         if (item is null) return;
 
+        // The scan rebuilds the item list wholesale when it finishes, so a verdict
+        // applied mid-scan lands on an instance the list is about to throw away -
+        // the row silently reverted to UNKNOWN. The command's canExecute already
+        // disables the row button for this window; this guard is the same rule for
+        // anything that reaches the VM directly.
+        if (IsLoading)
+        {
+            LogRequested?.Invoke(
+                $"[LargeFiles] Ask AI skipped for '{item.FileName}': a scan is still running.",
+                LogLevel.Info);
+            return;
+        }
+        if (item.IsAiAnalyzing)
+        {
+            LogRequested?.Invoke(
+                $"[LargeFiles] Ask AI skipped for '{item.FileName}': already analyzing.",
+                LogLevel.Info);
+            return;
+        }
+
         SoundService.PlayClickSound();
-        await LargeFileHunterService.AnalyzeItemWithAiAsync(item);
+        LogRequested?.Invoke(
+            $"[LargeFiles] Ask AI requested for '{item.FileName}'...",
+            LogLevel.Info);
+
+        // Core sets the same flag, but setting it here first lets the command gate
+        // disable this row's button from click one (the local XAML IsEnabled binding
+        // that used to cover this overrode the command-driven IsEnabled, which is
+        // why the mid-scan click used to slip through).
+        item.IsAiAnalyzing = true;
+        AnalyzeItemCommand.NotifyCanExecuteChanged();
+
+        try
+        {
+            await LargeFileHunterService.AnalyzeItemWithAiAsync(item);
+        }
+        finally
+        {
+            item.IsAiAnalyzing = false;
+            AnalyzeItemCommand.NotifyCanExecuteChanged();
+        }
 
         // RefreshLargeFileHeroStats + AddLog, the WPF order: the hero numbers change
         // when the verdict reclassifies safety.
@@ -581,7 +620,7 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
     /// </summary>
     public async Task BatchAnalyzeAsync()
     {
-        if (_isBatchAnalyzing) return;
+        if (IsBatchAnalyzing) return;
 
         List<LargeFileInfo> selected = LargeFileHunterService.SelectAnalyzeTargets(_allFiles);
         if (selected.Count == 0)
@@ -602,7 +641,6 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
     /// </summary>
     private async Task RunBatchAnalyzeCoreAsync(IReadOnlyList<LargeFileInfo> targets)
     {
-        _isBatchAnalyzing = true;
         IsBatchAnalyzing = true;
 
         try
@@ -664,7 +702,6 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
         }
         finally
         {
-            _isBatchAnalyzing = false;
             IsBatchAnalyzing = false;
         }
     }
@@ -701,13 +738,12 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
     internal async Task AutoQueryAfterScanAsync()
     {
         if (!(AutoQueryGate ?? DefaultAutoQueryGate)()) return;
-        if (_isBatchAnalyzing) return;
+        if (IsBatchAnalyzing) return;
 
         List<LargeFileInfo> targets = LargeFileHunterService.SelectAnalyzeTargets(_allFiles);
         if (targets.Count == 0) return;
 
         Func<IReadOnlyList<LargeFileInfo>, Task> runner = AutoQueryRunner ?? RunBatchAnalyzeCoreAsync;
-        _isBatchAnalyzing = true;
         IsBatchAnalyzing = true;
         try
         {
@@ -717,7 +753,6 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
         }
         finally
         {
-            _isBatchAnalyzing = false;
             IsBatchAnalyzing = false;
         }
     }

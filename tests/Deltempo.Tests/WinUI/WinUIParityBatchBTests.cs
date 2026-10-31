@@ -162,7 +162,11 @@ public class WinUIParityBatchBTests
         // The command existed; the deficiency was that no view element bound it.
         string view = ReadWinUi("Views", "LargeFilesWorkspaceView.xaml");
         Assert.Contains("Content=\"Ask AI\"", view);
-        Assert.Contains("ViewModel.AnalyzeItemCommand", view);
+        // The row button routes through a code-behind Click handler, because an
+        // ElementName command binding inside a DataTemplate never fires in WinUI 3.
+        Assert.Contains("OnRowAskAiClick", view);
+        string code = ReadWinUi("Views", "LargeFilesWorkspaceView.xaml.cs");
+        Assert.Contains("ViewModel.AnalyzeItemCommand.Execute", code);
 
         string vm = File.ReadAllText(Path.Combine(RepoRoot(), "src", "Deltempo.App.WinUI", "ViewModels", "LargeFilesWorkspaceViewModel.cs"));
         Assert.Contains("AnalyzeItemWithAiAsync(item)", vm);

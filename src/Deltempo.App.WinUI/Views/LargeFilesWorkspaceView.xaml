@@ -121,8 +121,7 @@
                             Padding="10,4"
                             FontSize="11"
                             Margin="0,0,6,0"
-                            Command="{Binding ViewModel.RevealCommand, ElementName=Root}"
-                            CommandParameter="{Binding}" />
+                            Click="OnRowRevealClick" />
                         <Button
                             Content="Ask AI"
                             ToolTipService.ToolTip="Connect to AI / Internet to fetch real-world info on this file"
@@ -133,9 +132,7 @@
                             Padding="10,4"
                             FontSize="11"
                             Margin="0,0,6,0"
-                            IsEnabled="{Binding IsAiAnalyzing, Converter={StaticResource NotBool}}"
-                            Command="{Binding ViewModel.AnalyzeItemCommand, ElementName=Root}"
-                            CommandParameter="{Binding}" />
+                            Click="OnRowAskAiClick" />
                         <Button
                             Content="Recycle"
                             ToolTipService.ToolTip="Move this file to the Windows Recycle Bin."
@@ -146,8 +143,7 @@
                             Padding="10,4"
                             FontSize="11"
                             IsEnabled="{Binding IsSafe, Mode=OneWay}"
-                            Command="{Binding ViewModel.RecycleItemCommand, ElementName=Root}"
-                            CommandParameter="{Binding}" />
+                            Click="OnRowRecycleClick" />
                     </StackPanel>
 
                     <!-- Row 2: the AI explanation capsule, WPF's row 3

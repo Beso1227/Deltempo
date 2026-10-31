@@ -123,6 +123,19 @@ public sealed partial class CleanerWorkspaceView : UserControl
         }
     }
 
+    // Row buttons cannot reach the page's commands through an ElementName
+    // {Binding} - WinUI 3 does not resolve the path from inside a DataTemplate
+    // (the template owns its own namescope, where "Root" is invisible), so the
+    // binding silently failed. The click is handled here, same as Inspect above.
+    private void OnRowRetryClick(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        if (sender is FrameworkElement { DataContext: TargetFolderInfo target })
+        {
+            ViewModel.RetryTargetCommand.Execute(target);
+        }
+    }
+
     private void OnFootprintRequested(object sender, RoutedEventArgs e)
     {
         SoundService.PlayClickSound();

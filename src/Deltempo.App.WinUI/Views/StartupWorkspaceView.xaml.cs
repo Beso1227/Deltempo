@@ -83,6 +83,32 @@ public sealed partial class StartupWorkspaceView : UserControl
         }
     }
 
+    /// <summary>
+    /// Row buttons cannot reach the page's commands through an ElementName
+    /// {Binding} - WinUI 3 does not resolve the path from inside a DataTemplate
+    /// (the template owns its own namescope, where "Root" is invisible), so the
+    /// bindings silently failed and every row button was dead. The clicks are
+    /// handled here instead: read the entry off the DataContext, execute the
+    /// ViewModel command. The commands keep all of their gates (canExecute).
+    /// </summary>
+    private static StartupItem? RowItem(object sender) =>
+        (sender as FrameworkElement)?.DataContext as StartupItem;
+
+    private void OnRowRevealClick(object sender, RoutedEventArgs e)
+        => ViewModel.RevealCommand.Execute(RowItem(sender));
+
+    private void OnRowSearchOnlineClick(object sender, RoutedEventArgs e)
+        => ViewModel.SearchOnlineCommand.Execute(RowItem(sender));
+
+    private void OnRowAnalyzeAiClick(object sender, RoutedEventArgs e)
+        => ViewModel.AnalyzeItemCommand.Execute(RowItem(sender));
+
+    private void OnRowCleanOrphanedClick(object sender, RoutedEventArgs e)
+        => ViewModel.CleanOrphanedCommand.Execute(RowItem(sender));
+
+    private void OnRowToggleExpandClick(object sender, RoutedEventArgs e)
+        => ViewModel.ToggleExpandCommand.Execute(RowItem(sender));
+
     /// <summary>Maps a chip's Tag back onto the enum. Fires on template apply too, so it is idempotent.</summary>
     private void OnFilterChanged(object sender, RoutedEventArgs e)
     {

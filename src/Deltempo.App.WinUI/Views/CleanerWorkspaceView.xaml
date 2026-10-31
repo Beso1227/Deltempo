@@ -188,8 +188,7 @@
                             FontSize="10"
                             Margin="6,0,0,0"
                             AutomationProperties.Name="Retry this category"
-                            Command="{Binding ViewModel.RetryTargetCommand, ElementName=Root}"
-                            CommandParameter="{Binding}"
+                            Click="OnRowRetryClick"
                             Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}" />
                     </StackPanel>
                 </Grid>

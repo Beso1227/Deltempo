@@ -184,7 +184,9 @@ public class SearchAiParityTests
             RepoRoot(), "src", "Deltempo.App.WinUI", "Views", "StartupWorkspaceView.xaml"));
 
         Assert.Contains("BatchAnalyzeCommand", xaml);
-        Assert.Contains("AnalyzeItemCommand", xaml);
+        // The row buttons are wired through code-behind Click handlers; an
+        // ElementName command binding inside a DataTemplate never fires.
+        Assert.Contains("OnRowAnalyzeAiClick", xaml);
         Assert.Contains("Search startup apps by name, publisher, location, or command...", xaml);
         Assert.Contains("AI Info", xaml);
         Assert.Contains("AI Analyze All", xaml);

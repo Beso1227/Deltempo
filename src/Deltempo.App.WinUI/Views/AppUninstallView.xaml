@@ -345,8 +345,7 @@
                                                         Padding="10,4"
                                                         FontSize="11"
                                                         Margin="0,0,6,0"
-                                                        Command="{Binding ViewModel.FetchAiCommand, ElementName=Root}"
-                                                        CommandParameter="{Binding}" />
+                                                        Click="OnRowFetchAiClick" />
 
                                                 <Button Content="Open"
                                                         ToolTipService.ToolTip="Open the install folder in File Explorer"
@@ -358,8 +357,7 @@
                                                         FontSize="11"
                                                         Margin="0,0,6,0"
                                                         Visibility="{Binding CanOpenInstallFolder, Converter={StaticResource BoolToVis}}"
-                                                        Command="{Binding ViewModel.OpenInstallFolderCommand, ElementName=Root}"
-                                                        CommandParameter="{Binding}" />
+                                                        Click="OnRowOpenInstallFolderClick" />
 
                                                 <Button Content="Scan"
                                                         ToolTipService.ToolTip="Scan for leftover files, registry keys, and shortcuts"
@@ -370,8 +368,7 @@
                                                         Padding="10,4"
                                                         FontSize="11"
                                                         Margin="0,0,6,0"
-                                                        Command="{Binding ViewModel.ScanTracesCommand, ElementName=Root}"
-                                                        CommandParameter="{Binding}" />
+                                                        Click="OnRowScanTracesClick" />
 
                                                 <Button Content="Force Clean"
                                                         ToolTipService.ToolTip="Scan and purge all remnants. Use when the official uninstaller is broken."
@@ -382,8 +379,7 @@
                                                         Padding="10,4"
                                                         FontSize="11"
                                                         Margin="0,0,6,0"
-                                                        Command="{Binding ViewModel.ForceRootCleanCommand, ElementName=Root}"
-                                                        CommandParameter="{Binding}" />
+                                                        Click="OnRowForceRootCleanClick" />
 
                                                 <Button Content="Uninstall"
                                                         ToolTipService.ToolTip="Run the official uninstaller, then eradicate leftover traces"
@@ -393,8 +389,7 @@
                                                         CornerRadius="12"
                                                         Padding="14,5"
                                                         FontSize="11"
-                                                        Command="{Binding ViewModel.DeepUninstallCommand, ElementName=Root}"
-                                                        CommandParameter="{Binding}" />
+                                                        Click="OnRowDeepUninstallClick" />
                                             </StackPanel>
                                         </Grid>
 
@@ -418,8 +413,7 @@
                                                     Background="Transparent"
                                                     BorderThickness="0"
                                                     Padding="4"
-                                                    Command="{Binding ViewModel.ToggleExpandCommand, ElementName=Root}"
-                                                    CommandParameter="{Binding}">
+                                                    Click="OnRowToggleExpandClick">
                                                 <FontIcon Glyph="{Binding ExpandGlyph}"
                                           FontFamily="{StaticResource IconFont}"
                                           FontSize="11"

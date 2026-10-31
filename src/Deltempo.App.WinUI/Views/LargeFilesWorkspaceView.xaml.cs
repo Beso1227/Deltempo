@@ -298,6 +298,24 @@ public sealed partial class LargeFilesWorkspaceView : UserControl
         return result == ContentDialogResult.Primary;
     }
 
+    // WinUI 3 does not resolve an ElementName {Binding} from inside a DataTemplate
+    // (the row template is instantiated in its own namescope, so "Root" cannot be
+    // found and every Command binding in the row silently failed to fire). The row
+    // buttons are therefore routed through Click handlers that read the item from
+    // the DataContext and execute the ViewModel commands directly - the same
+    // pattern the Cleaner workspace's Inspect button already used.
+    private static LargeFileInfo? RowItem(object sender) =>
+        (sender as FrameworkElement)?.DataContext as LargeFileInfo;
+
+    private void OnRowRevealClick(object sender, RoutedEventArgs e)
+        => ViewModel.RevealCommand.Execute(RowItem(sender));
+
+    private void OnRowAskAiClick(object sender, RoutedEventArgs e)
+        => ViewModel.AnalyzeItemCommand.Execute(RowItem(sender));
+
+    private void OnRowRecycleClick(object sender, RoutedEventArgs e)
+        => ViewModel.RecycleItemCommand.Execute(RowItem(sender));
+
     private void OpenInFolder(string path)
     {
         try
