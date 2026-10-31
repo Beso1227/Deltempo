@@ -51,7 +51,41 @@
        stylesheet instead of after a googleapis -> gstatic round-trip chain. -->
   <link rel="preload" as="font" type="font/woff2" href="fonts/plus-jakarta-sans-latin.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="fonts/jetbrains-mono-latin.woff2" crossorigin>
-  <!-- Latest-release lookup (inline script at the end of <body>) reuses this socket
+  <!-- Latest-release lookup (inline script at the end of <body>
+  <svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
+    <symbol id="i-clean" viewBox="0 0 24 24"><path d="m7 21-4.3-4.3a2.4 2.4 0 0 1 0-3.4l9.6-9.6a2.4 2.4 0 0 1 3.4 0l5.6 5.6a2.4 2.4 0 0 1 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/></symbol>
+    <symbol id="i-package" viewBox="0 0 24 24"><path d="m7.5 4.3 9 5.1"/><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9 0"/><path d="m12 15-3-3a22 22 0 0 1 2-4A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22.4 22.4 0 0 1-4 2"/><path d="M9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0"/><path d="M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></symbol>
+    <symbol id="i-gamepad" viewBox="0 0 24 24"><path d="M6 12h4"/><path d="M8 10v4"/><path d="M15 13h.01"/><path d="M18 11h.01"/><rect x="2" y="6" width="20" height="12" rx="6"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></symbol>
+    <symbol id="i-recycle" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.3-6"/><path d="M20 12a8 8 0 0 1-13.3 6"/><path d="M17 3v4h-4"/><path d="M7 21v-4h4"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.7 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.5 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2"/><path d="M15 2v2"/><path d="M9 20v2"/><path d="M15 20v2"/><path d="M2 9h2"/><path d="M2 15h2"/><path d="M20 9h2"/><path d="M20 15h2"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5A5.9 5.9 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.8.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></symbol>
+    <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v6h6"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></symbol>
+    <symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2.2"/><path d="M7 2v20"/><path d="M17 2v20"/><path d="M2 12h20"/><path d="M2 7h5"/><path d="M2 17h5"/><path d="M17 17h5"/><path d="M17 7h5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5L20 6.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11"/><path d="M17.5 6.5l-11 11"/></symbol>
+    <symbol id="i-partial" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5"/><path d="m6 11 6-6 6 6"/></symbol>
+  </svg>
+) reuses this socket
        instead of paying DNS + TCP + TLS after motion.js has already parsed. -->
   <link rel="preconnect" href="https://api.github.com">
 
@@ -126,7 +160,7 @@
           "One-Line PowerShell Install (irm https://beso1227.github.io/Deltempo/win | Invoke-Expression)",
           "Portable Standalone Single-File Executable",
           "Deterministic 5-Tier Safety Engine with Pre-Deletion Revalidation",
-          "Zero Telemetry, Local Operation, Open Source (MIT, 1505 Verified Tests)"
+          "Zero Telemetry, Local Operation, Open Source (MIT, 1507 Verified Tests)"
         ],
         "offers": {
           "@type": "Offer",
@@ -383,7 +417,7 @@
   <!-- Mobile Menu Overlay -->
   <div class="mobile-menu-overlay" id="mobileMenu">
     <a href="./" class="mobile-nav-link">Home</a>
-    <a href="#video" class="mobile-nav-link">🎬 Launch Video (35s)</a>
+    <a href="#video" class="mobile-nav-link"><svg class="i" aria-hidden="true"><use href="#i-film"></use></svg> Launch Video (35s)</a>
     <a href="#why" class="mobile-nav-link">Why Deltempo</a>
     <a href="#compare" class="mobile-nav-link">Comparison</a>
     <a href="#safety" class="mobile-nav-link">Safety Architecture</a>
@@ -425,7 +459,7 @@
             </span>
           </a>
           <a href="#video" class="btn-pill btn-pill-secondary hero-video-btn">
-            <span class="accent-cyan-text">▶</span>
+            <span class="accent-cyan-text"><svg class="i" aria-hidden="true"><use href="#i-play"></use></svg></span>
             <span>Watch Video (35s)</span>
           </a>
           <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="btn-pill btn-pill-secondary hero-gh-btn">
@@ -443,24 +477,24 @@
         <!-- Proof Row -->
         <div class="hero-proof-row reveal-on-scroll stagger-4">
           <div class="hero-proof-item">
-            <span class="hero-proof-icon">✓</span>
+            <span class="hero-proof-icon"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
             <span>5-Tier Safety Engine</span>
           </div>
           <div class="hero-proof-item">
-            <span class="hero-proof-icon">✓</span>
+            <span class="hero-proof-icon"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
             <span>NT Kernel Memory Optimizer</span>
           </div>
           <div class="hero-proof-item">
-            <span class="hero-proof-icon">✓</span>
+            <span class="hero-proof-icon"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
             <span>Deep Root Uninstaller &amp; Leftovers</span>
           </div>
           <div class="hero-proof-item">
-            <span class="hero-proof-icon">✓</span>
+            <span class="hero-proof-icon"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
             <span>Zero Telemetry &amp; 100% Offline</span>
           </div>
           <div class="hero-proof-item">
-            <span class="hero-proof-icon">✓</span>
-            <span>1505 Passing Tests</span>
+            <span class="hero-proof-icon"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
+            <span>1507 Passing Tests</span>
           </div>
         </div>
 
@@ -495,28 +529,28 @@
                 </button>
                 <div class="app-tabs app-tabs-island" id="simulatorTabs" role="tablist" tabindex="0">
                   <button type="button" class="app-tab active" data-tab="cleaner" role="tab" aria-selected="true">
-                    <span>🧹 System Cleaner</span>
+                    <span><svg class="i" aria-hidden="true"><use href="#i-clean"></use></svg> System Cleaner</span>
                   </button>
                   <button type="button" class="app-tab" data-tab="memory" role="tab" aria-selected="false">
-                    <span>⚡ NT Kernel Memory</span>
+                    <span><svg class="i" aria-hidden="true"><use href="#i-bolt"></use></svg> NT Kernel Memory</span>
                   </button>
                   <button type="button" class="app-tab" data-tab="largefiles" role="tab" aria-selected="false">
-                    <span>📦 Large Files</span>
+                    <span><svg class="i" aria-hidden="true"><use href="#i-package"></use></svg> Large Files</span>
                   </button>
                   <button type="button" class="app-tab" data-tab="startup" role="tab" aria-selected="false">
-                    <span>🚀 Startup Manager</span>
+                    <span><svg class="i" aria-hidden="true"><use href="#i-rocket"></use></svg> Startup Manager</span>
                   </button>
                   <button type="button" class="app-tab" data-tab="procs" role="tab" aria-selected="false">
-                    <span>📊 Running Processes</span>
+                    <span><svg class="i" aria-hidden="true"><use href="#i-activity"></use></svg> Running Processes</span>
                   </button>
                   <button type="button" class="app-tab" data-tab="repair" role="tab" aria-selected="false">
-                    <span>🛠️ System Repair</span>
+                    <span><svg class="i" aria-hidden="true"><use href="#i-wrench"></use></svg> System Repair</span>
                   </button>
                   <button type="button" class="app-tab" data-tab="uninstaller" role="tab" aria-selected="false">
-                    <span>🗑️ App Uninstaller</span>
+                    <span><svg class="i" aria-hidden="true"><use href="#i-trash"></use></svg> App Uninstaller</span>
                   </button>
                   <button type="button" class="app-tab" data-tab="cli" role="tab" aria-selected="false">
-                    <span>💻 Terminal CLI</span>
+                    <span><svg class="i" aria-hidden="true"><use href="#i-terminal"></use></svg> Terminal CLI</span>
                   </button>
                 </div>
                 <button type="button" class="tabs-nav-arrow tabs-arrow-right" id="tabNavRight" aria-label="Scroll tabs right" title="Scroll right">
@@ -546,42 +580,42 @@
 
                   <div class="scopes-grid">
                     <div class="scope-card">
-                      <div class="scope-icon">🎮</div>
+                      <div class="scope-icon"><svg class="i" aria-hidden="true"><use href="#i-gamepad"></use></svg></div>
                       <div>
                         <div class="scope-title">DirectX &amp; GPU Shaders</div>
                         <div class="scope-desc">NVIDIA, AMD, Intel &amp; DirectX shader bytecode. Purges compiled caches safely.</div>
                       </div>
                     </div>
                     <div class="scope-card">
-                      <div class="scope-icon">📁</div>
+                      <div class="scope-icon"><svg class="i" aria-hidden="true"><use href="#i-folder"></use></svg></div>
                       <div>
                         <div class="scope-title">Windows &amp; User Temp</div>
                         <div class="scope-desc">User %TEMP% &amp; System Temp files past the 24-hour protection shield.</div>
                       </div>
                     </div>
                     <div class="scope-card">
-                      <div class="scope-icon">📦</div>
+                      <div class="scope-icon"><svg class="i" aria-hidden="true"><use href="#i-package"></use></svg></div>
                       <div>
                         <div class="scope-title">Delivery Optimization</div>
                         <div class="scope-desc">Windows Update peer-to-peer cache chunks and update staging leftovers.</div>
                       </div>
                     </div>
                     <div class="scope-card">
-                      <div class="scope-icon">⚙️</div>
+                      <div class="scope-icon"><svg class="i" aria-hidden="true"><use href="#i-gear"></use></svg></div>
                       <div>
                         <div class="scope-title">Developer Caches</div>
                         <div class="scope-desc">npm, pip, NuGet, Cargo, Bun &amp; Gradle build cache trees (100% credential protected).</div>
                       </div>
                     </div>
                     <div class="scope-card">
-                      <div class="scope-icon">💬</div>
+                      <div class="scope-icon"><svg class="i" aria-hidden="true"><use href="#i-message"></use></svg></div>
                       <div>
                         <div class="scope-title">Messaging Media Scratch</div>
                         <div class="scope-desc">Volatile media caches for Discord, Telegram &amp; WhatsApp. Session tokens strictly protected.</div>
                       </div>
                     </div>
                     <div class="scope-card">
-                      <div class="scope-icon">🌐</div>
+                      <div class="scope-icon"><svg class="i" aria-hidden="true"><use href="#i-globe"></use></svg></div>
                       <div>
                         <div class="scope-title">Browser Disk Caches</div>
                         <div class="scope-desc">Edge, Chrome, Brave &amp; Firefox HTTP caches. Passwords, cookies &amp; logins untouched.</div>
@@ -604,7 +638,7 @@
                       <div class="pane-title">Working Set Trimming &amp; Standby List Purge</div>
                     </div>
                     <button type="button" class="btn-pill btn-pill-primary pane-btn-md" id="simBoostBtn">
-                      ⚡ 1-Click Boost Memory
+                      <svg class="i" aria-hidden="true"><use href="#i-bolt"></use></svg> 1-Click Boost Memory
                     </button>
                   </div>
 
@@ -645,20 +679,20 @@
                       <div class="pane-subtitle">Transparent Disk Consumption</div>
                       <div class="pane-title">Large File Hunter with Recycle Bin Undo Safety</div>
                     </div>
-                    <span class="tier-badge safe">♻️ Windows Recycle Bin Protected</span>
+                    <span class="tier-badge safe"><svg class="i" aria-hidden="true"><use href="#i-recycle"></use></svg> Windows Recycle Bin Protected</span>
                   </div>
 
                   <div class="sim-list-mono">
                     <div class="sim-list-row">
-                      <span>📁 C:\Users\Admin\Downloads\UnrealEngine-5.4-Setup.exe</span>
+                      <span><svg class="i" aria-hidden="true"><use href="#i-folder"></use></svg> C:\Users\Admin\Downloads\UnrealEngine-5.4-Setup.exe</span>
                       <span class="text-accent-amber">8.4 GB</span>
                     </div>
                     <div class="sim-list-row">
-                      <span>📁 C:\Users\Admin\AppData\Local\NVIDIA\DXCache\dx_48102.bin</span>
+                      <span><svg class="i" aria-hidden="true"><use href="#i-folder"></use></svg> C:\Users\Admin\AppData\Local\NVIDIA\DXCache\dx_48102.bin</span>
                       <span class="text-accent-cyan">2.1 GB</span>
                     </div>
                     <div class="sim-list-row">
-                      <span>📁 C:\Windows\Temp\stale_driver_package.cab</span>
+                      <span><svg class="i" aria-hidden="true"><use href="#i-folder"></use></svg> C:\Windows\Temp\stale_driver_package.cab</span>
                       <span class="text-accent-emerald">1.6 GB</span>
                     </div>
                   </div>
@@ -671,28 +705,28 @@
                       <div class="pane-subtitle">Boot Acceleration</div>
                       <div class="pane-title">Startup Manager with Core OS Process Immunity</div>
                     </div>
-                    <span class="tier-badge protected">🛡️ Windows Defender &amp; Security Protected</span>
+                    <span class="tier-badge protected"><svg class="i" aria-hidden="true"><use href="#i-shield"></use></svg> Windows Defender &amp; Security Protected</span>
                   </div>
 
                   <div class="sim-list-regular">
                     <div class="sim-list-row-center">
                       <div>
                         <strong>Discord</strong> <span class="sim-sub-scope">Registry HKCU</span>
-                        <div class="sim-sub-impact-good">🤖 AI Verdict: SafeToDisable • Won't affect voice or messaging when launched manually</div>
+                        <div class="sim-sub-impact-good"><svg class="i" aria-hidden="true"><use href="#i-cpu"></use></svg> AI Verdict: SafeToDisable • Won't affect voice or messaging when launched manually</div>
                       </div>
                       <div class="sim-row-actions"><span class="text-accent-amber">HIGH IMPACT</span> <span class="text-accent-emerald">ENABLED</span></div>
                     </div>
                     <div class="sim-list-row-center">
                       <div>
                         <strong>Spotify</strong> <span class="sim-sub-scope">Startup Folder</span>
-                        <div class="sim-sub-impact-good">🤖 AI Verdict: SafeToDisable • Disabling cuts ~1.8s boot delay</div>
+                        <div class="sim-sub-impact-good"><svg class="i" aria-hidden="true"><use href="#i-cpu"></use></svg> AI Verdict: SafeToDisable • Disabling cuts ~1.8s boot delay</div>
                       </div>
                       <div class="sim-row-actions"><span class="text-accent-cyan">MEDIUM IMPACT</span> <span class="text-accent-emerald">ENABLED</span></div>
                     </div>
                     <div class="sim-list-row-center">
                       <div>
                         <strong>Windows Security Tray</strong> <span class="sim-sub-scope">Registry HKLM</span>
-                        <div class="sim-sub-impact-bad">🛡️ AI Verdict: EssentialKeep • Protected core Windows security component</div>
+                        <div class="sim-sub-impact-bad"><svg class="i" aria-hidden="true"><use href="#i-shield"></use></svg> AI Verdict: EssentialKeep • Protected core Windows security component</div>
                       </div>
                       <div class="sim-row-actions"><span class="text-accent-emerald">CORE OS</span> <span class="text-accent-emerald">PROTECTED</span></div>
                     </div>
@@ -711,14 +745,14 @@
 
                   <div class="sim-list-mono">
                     <div class="sim-list-row-center">
-                      <span>🌐 msedge.exe (PID 15058)</span>
+                      <span><svg class="i" aria-hidden="true"><use href="#i-globe"></use></svg> msedge.exe (PID 15078)</span>
                       <div class="pane-actions">
                         <span class="text-accent-cyan">842 MB</span>
                         <span class="sim-badge-cyan">TRIMMED</span>
                       </div>
                     </div>
                     <div class="sim-list-row-center">
-                      <span>🎮 steamwebhelper.exe (PID 8904)</span>
+                      <span><svg class="i" aria-hidden="true"><use href="#i-gamepad"></use></svg> steamwebhelper.exe (PID 8904)</span>
                       <div class="pane-actions">
                         <span class="text-accent-amber">418 MB</span>
                         <span class="sim-badge-amber">ACTIVE</span>
@@ -734,19 +768,19 @@
                       <div class="pane-subtitle">Autonomous Integrity Engine</div>
                       <div class="pane-title">Windows Servicing Stack &amp; Corruption Repair</div>
                     </div>
-                    <span class="tier-badge safe">🛡️ DISM &amp; SFC Servicing Stack</span>
+                    <span class="tier-badge safe"><svg class="i" aria-hidden="true"><use href="#i-shield"></use></svg> DISM &amp; SFC Servicing Stack</span>
                   </div>
 
                   <div class="sim-grid-tweaks">
                     <div class="sim-card">
                       <div class="sim-card-heading-sm">SFC Scannow</div>
                       <p class="sim-card-desc-sm">Scans and repairs corrupted system files.</p>
-                      <div class="sim-card-val-emerald">✓ Healthy</div>
+                      <div class="sim-card-val-emerald"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Healthy</div>
                     </div>
                     <div class="sim-card">
                       <div class="sim-card-heading-sm">DISM Component Store</div>
                       <p class="sim-card-desc-sm">Restores corrupted Windows system packages.</p>
-                      <div class="sim-card-val-emerald">✓ Ready</div>
+                      <div class="sim-card-val-emerald"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Ready</div>
                     </div>
                     <div class="sim-card">
                       <div class="sim-card-heading-sm">WinSxS Scavenge</div>
@@ -764,14 +798,14 @@
                       <div class="pane-title">Silent Batch Removal &amp; Residual Leftover Sweeper</div>
                     </div>
                     <div class="sim-header-tags">
-                      <span class="tier-badge safe">🛡️ Deep Root Tracing</span>
+                      <span class="tier-badge safe"><svg class="i" aria-hidden="true"><use href="#i-shield"></use></svg> Deep Root Tracing</span>
                       <span class="sim-safe-tag">Restore Point: Optional (Off by Default)</span>
                     </div>
                   </div>
 
                   <div class="sim-filter-bar">
                     <div class="sim-search-box">
-                      <span>🔍</span>
+                      <span><svg class="i" aria-hidden="true"><use href="#i-search"></use></svg></span>
                       <span>Filter 78 installed applications...</span>
                     </div>
                     <div class="sim-action-btns">
@@ -784,7 +818,7 @@
                     <!-- App 1: Epic Games Launcher -->
                     <div class="sim-tweak-row">
                       <div class="pane-actions">
-                        <span class="sim-tweak-icon">🎮</span>
+                        <span class="sim-tweak-icon"><svg class="i" aria-hidden="true"><use href="#i-gamepad"></use></svg></span>
                         <div>
                           <div class="sim-tweak-title">Epic Games Launcher</div>
                           <div class="sim-tweak-scope">Epic Games Inc. • 1.84 GB • Win32 Registry</div>
@@ -799,7 +833,7 @@
                     <!-- App 2: Visual Studio Preview -->
                     <div class="sim-tweak-row">
                       <div class="pane-actions">
-                        <span class="sim-tweak-icon">💻</span>
+                        <span class="sim-tweak-icon"><svg class="i" aria-hidden="true"><use href="#i-terminal"></use></svg></span>
                         <div>
                           <div class="sim-tweak-title">Microsoft Visual Studio 2022 Preview</div>
                           <div class="sim-tweak-scope">Microsoft Corporation • 14.2 GB • ProgramData Residuals</div>
@@ -814,7 +848,7 @@
                     <!-- App 3: Spotify -->
                     <div class="sim-tweak-row">
                       <div class="pane-actions">
-                        <span class="sim-tweak-icon">🎵</span>
+                        <span class="sim-tweak-icon"><svg class="i" aria-hidden="true"><use href="#i-music"></use></svg></span>
                         <div>
                           <div class="sim-tweak-title">Spotify Music Desktop</div>
                           <div class="sim-tweak-scope">Spotify AB • 312 MB • Roaming AppData</div>
@@ -829,7 +863,7 @@
                     <!-- App Intelligence Briefing Card -->
                     <div class="sim-tweak-callout">
                       <div class="sim-callout-header">
-                        <span class="sim-callout-icon">💡</span>
+                        <span class="sim-callout-icon"><svg class="i" aria-hidden="true"><use href="#i-bulb"></use></svg></span>
                         <strong class="sim-callout-title">Expandable Application Intelligence</strong>
                       </div>
                       <p class="sim-callout-text">
@@ -943,16 +977,16 @@
           <div class="card-inner calc-card">
             <div class="calc-profiles">
               <button type="button" class="calc-profile-btn active" data-profile="gamer">
-                <span>🎮</span> Gamer
+                <span><svg class="i" aria-hidden="true"><use href="#i-gamepad"></use></svg></span> Gamer
               </button>
               <button type="button" class="calc-profile-btn" data-profile="dev">
-                <span>💻</span> Developer
+                <span><svg class="i" aria-hidden="true"><use href="#i-terminal"></use></svg></span> Developer
               </button>
               <button type="button" class="calc-profile-btn" data-profile="everyday">
-                <span>💼</span> Everyday / Office
+                <span><svg class="i" aria-hidden="true"><use href="#i-briefcase"></use></svg></span> Everyday / Office
               </button>
               <button type="button" class="calc-profile-btn" data-profile="power">
-                <span>⚡</span> Power User
+                <span><svg class="i" aria-hidden="true"><use href="#i-bolt"></use></svg></span> Power User
               </button>
             </div>
 
@@ -1021,7 +1055,7 @@
         <div class="features-grid" data-cascade>
           <div class="double-bezel reveal-on-scroll stagger-1">
             <div class="card-inner feature-card">
-              <div class="feature-icon-wrapper">🧹</div>
+              <div class="feature-icon-wrapper"><svg class="i" aria-hidden="true"><use href="#i-clean"></use></svg></div>
               <h3 class="feature-title">Clean What Matters</h3>
               <p class="feature-body">Removes disposable Windows caches, GPU shaders, crash dumps, and installer leftovers without touching personal files, documents, or browser saved credentials.</p>
             </div>
@@ -1029,7 +1063,7 @@
 
           <div class="double-bezel reveal-on-scroll stagger-2">
             <div class="card-inner feature-card">
-              <div class="feature-icon-wrapper">⚡</div>
+              <div class="feature-icon-wrapper"><svg class="i" aria-hidden="true"><use href="#i-bolt"></use></svg></div>
               <h3 class="feature-title">NT Kernel Memory Optimization</h3>
               <p class="feature-body">Uses native Windows NT APIs to safely trim process working sets, flush filesystem cache pages, and purge the standby list without terminating active applications.</p>
             </div>
@@ -1037,7 +1071,7 @@
 
           <div class="double-bezel reveal-on-scroll stagger-3">
             <div class="card-inner feature-card">
-              <div class="feature-icon-wrapper">🔒</div>
+              <div class="feature-icon-wrapper"><svg class="i" aria-hidden="true"><use href="#i-lock"></use></svg></div>
               <h3 class="feature-title">No Telemetry &amp; Local Operation</h3>
               <p class="feature-body">Runs locally on your computer. Contains no analytics tracking, advertisements, or background telemetry. Routine scan and clean operations run entirely offline; update checks query GitHub only when invoked.</p>
             </div>
@@ -1045,7 +1079,7 @@
 
           <div class="double-bezel reveal-on-scroll stagger-4">
             <div class="card-inner feature-card">
-              <div class="feature-icon-wrapper">🛡️</div>
+              <div class="feature-icon-wrapper"><svg class="i" aria-hidden="true"><use href="#i-shield"></use></svg></div>
               <h3 class="feature-title">Deterministic Safety Architecture</h3>
               <p class="feature-body">Files are evaluated against an immutable protection policy, path boundary rules, and a recent modification shield before anything is deleted.</p>
             </div>
@@ -1053,7 +1087,7 @@
 
           <div class="double-bezel">
             <div class="card-inner feature-card">
-              <div class="feature-icon-wrapper">📦</div>
+              <div class="feature-icon-wrapper"><svg class="i" aria-hidden="true"><use href="#i-package"></use></svg></div>
               <h3 class="feature-title">Portable Single-File Binary</h3>
               <p class="feature-body">Self-contained executable. No installer required, no background services lingering in Windows, and no leftover background daemons.</p>
             </div>
@@ -1061,9 +1095,9 @@
 
           <div class="double-bezel">
             <div class="card-inner feature-card">
-              <div class="feature-icon-wrapper">📖</div>
+              <div class="feature-icon-wrapper"><svg class="i" aria-hidden="true"><use href="#i-book"></use></svg></div>
               <h3 class="feature-title">Open Source (MIT)</h3>
-              <p class="feature-body">Every single line of C#, XAML, and build scripts is open for inspection on GitHub under the permissive MIT license. Backed by 1505 automated verification tests, all enforced green by a coverage-gated CI pipeline.</p>
+              <p class="feature-body">Every single line of C#, XAML, and build scripts is open for inspection on GitHub under the permissive MIT license. Backed by 1507 automated verification tests, all enforced green by a coverage-gated CI pipeline.</p>
             </div>
           </div>
         </div>
@@ -1079,7 +1113,7 @@
           <p class="section-subtitle">How Deltempo compares technically with CCleaner, BleachBit, Bulk Crap Uninstaller (BCU), and Windows Storage Sense.</p>
         </div>
 
-        <p class="table-scroll-hint" aria-hidden="true">Swipe to compare →</p>
+        <p class="table-scroll-hint" aria-hidden="true">Swipe to compare <svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg></p>
 
         <div class="double-bezel reveal-on-scroll stagger-1">
           <div class="card-inner comparison-wrapper comp-table-wrap">
@@ -1087,7 +1121,7 @@
               <thead>
                 <tr>
                   <th scope="col" class="col-w20">Feature / Capability</th>
-                  <th scope="col" class="highlight col-w24">⚡ Deltempo (v3.2.0)</th>
+                  <th scope="col" class="highlight col-w24"><svg class="i" aria-hidden="true"><use href="#i-bolt"></use></svg> Deltempo (v3.2.0)</th>
                   <th scope="col" class="col-w19">CCleaner</th>
                   <th scope="col" class="col-w19">BleachBit</th>
                   <th scope="col" class="col-w18">Bulk Crap Uninstaller</th>
@@ -1096,66 +1130,66 @@
               <tbody>
                 <tr>
                   <td><strong>License &amp; Source</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ 100% MIT Open Source</span><br ><span class="comp-subtext">C# &amp; modern .NET, 1505 tests</span></td>
-                  <td><span class="badge-tag-bad">✕ Proprietary</span><br ><span class="comp-subtext-plain">Closed source / Gen Digital</span></td>
-                  <td><span class="badge-tag-safe">✓ GPLv3 Open Source</span><br ><span class="comp-subtext-plain">Python GTK codebase</span></td>
-                  <td><span class="badge-tag-safe">✓ Apache 2.0</span><br ><span class="comp-subtext-plain">C# WinForms</span></td>
+                  <td class="highlight"><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> 100% MIT Open Source</span><br ><span class="comp-subtext">C# &amp; modern .NET, 1507 tests</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-x"></use></svg> Proprietary</span><br ><span class="comp-subtext-plain">Closed source / Gen Digital</span></td>
+                  <td><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> GPLv3 Open Source</span><br ><span class="comp-subtext-plain">Python GTK codebase</span></td>
+                  <td><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Apache 2.0</span><br ><span class="comp-subtext-plain">C# WinForms</span></td>
                 </tr>
                 <tr>
                   <td><strong>Telemetry &amp; Privacy</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ 0 Telemetry / Offline</span><br ><span class="comp-subtext">100% local, zero tracking IDs</span></td>
-                  <td><span class="badge-tag-bad">✕ Heavy Telemetry</span><br ><span class="comp-subtext-plain">Active tracking &amp; upsell popups</span></td>
-                  <td><span class="badge-tag-safe">✓ Zero Telemetry</span><br ><span class="comp-subtext-plain">Local execution only</span></td>
-                  <td><span class="badge-tag-safe">✓ Zero Telemetry</span><br ><span class="comp-subtext-plain">Manual check updates</span></td>
+                  <td class="highlight"><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> 0 Telemetry / Offline</span><br ><span class="comp-subtext">100% local, zero tracking IDs</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-x"></use></svg> Heavy Telemetry</span><br ><span class="comp-subtext-plain">Active tracking &amp; upsell popups</span></td>
+                  <td><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Zero Telemetry</span><br ><span class="comp-subtext-plain">Local execution only</span></td>
+                  <td><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Zero Telemetry</span><br ><span class="comp-subtext-plain">Manual check updates</span></td>
                 </tr>
                 <tr>
                   <td><strong>Cache &amp; Junk Scopes</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ 26+ Verified Scopes</span><br ><span class="comp-subtext">GPU Shaders, Dumps, Delivery Opt</span></td>
-                  <td><span class="badge-tag-bad">△ Basic Temp &amp; Registry</span><br ><span class="comp-subtext-plain">Misses GPU shader bytecode</span></td>
-                  <td><span class="badge-tag-safe">✓ Deep App Cleaning</span><br ><span class="comp-subtext-plain">XML-driven app cleaners</span></td>
-                  <td><span class="badge-tag-bad">✕ Uninstaller Only</span><br ><span class="comp-subtext-plain">No disk/cache cleaners</span></td>
+                  <td class="highlight"><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> 26+ Verified Scopes</span><br ><span class="comp-subtext">GPU Shaders, Dumps, Delivery Opt</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-partial"></use></svg> Basic Temp &amp; Registry</span><br ><span class="comp-subtext-plain">Misses GPU shader bytecode</span></td>
+                  <td><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Deep App Cleaning</span><br ><span class="comp-subtext-plain">XML-driven app cleaners</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-x"></use></svg> Uninstaller Only</span><br ><span class="comp-subtext-plain">No disk/cache cleaners</span></td>
                 </tr>
                 <tr>
                   <td><strong>Deep Root Uninstaller</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ Built-In Deep Sweeper</span><br ><span class="comp-subtext">Sweeps AppData, registry &amp; shortcuts</span></td>
-                  <td><span class="badge-tag-bad">△ Standard Uninstall</span><br ><span class="comp-subtext-plain">Leaves residual files &amp; keys</span></td>
-                  <td><span class="badge-tag-bad">✕ No Uninstaller</span><br ><span class="comp-subtext-plain">Cache wipe only</span></td>
-                  <td><span class="badge-tag-safe">✓ Advanced Uninstaller</span><br ><span class="comp-subtext-plain">Deep quiet batch uninstallation</span></td>
+                  <td class="highlight"><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Built-In Deep Sweeper</span><br ><span class="comp-subtext">Sweeps AppData, registry &amp; shortcuts</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-partial"></use></svg> Standard Uninstall</span><br ><span class="comp-subtext-plain">Leaves residual files &amp; keys</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-x"></use></svg> No Uninstaller</span><br ><span class="comp-subtext-plain">Cache wipe only</span></td>
+                  <td><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Advanced Uninstaller</span><br ><span class="comp-subtext-plain">Deep quiet batch uninstallation</span></td>
                 </tr>
                 <tr>
                   <td><strong>System Restore Points</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ Optional (Off by Default)</span><br ><span class="comp-subtext">User toggle, zero surprise freeze</span></td>
-                  <td><span class="badge-tag-bad">✕ Persistent Prompts</span><br ><span class="comp-subtext-plain">Nag screens &amp; warnings</span></td>
-                  <td><span class="badge-tag-bad">✕ Not Supported</span><br ><span class="comp-subtext-plain">No restore integration</span></td>
-                  <td><span class="badge-tag-bad">△ Auto / Dialog Prompts</span><br ><span class="comp-subtext-plain">Prompts on each removal</span></td>
+                  <td class="highlight"><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Optional (Off by Default)</span><br ><span class="comp-subtext">User toggle, zero surprise freeze</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-x"></use></svg> Persistent Prompts</span><br ><span class="comp-subtext-plain">Nag screens &amp; warnings</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-x"></use></svg> Not Supported</span><br ><span class="comp-subtext-plain">No restore integration</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-partial"></use></svg> Auto / Dialog Prompts</span><br ><span class="comp-subtext-plain">Prompts on each removal</span></td>
                 </tr>
                 <tr>
                   <td><strong>NT Kernel Standby Memory</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ Native NT APIs (&lt;50ms)</span><br ><span class="comp-subtext">Flushes standby list without kill</span></td>
-                  <td><span class="badge-tag-bad">✕ Placebo Optimizer</span><br ><span class="comp-subtext-plain">Freezes apps or fakes RAM</span></td>
-                  <td><span class="badge-tag-bad">✕ Not Supported</span><br ><span class="comp-subtext-plain">No memory optimization</span></td>
-                  <td><span class="badge-tag-bad">✕ Not Supported</span><br ><span class="comp-subtext-plain">No memory management</span></td>
+                  <td class="highlight"><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Native NT APIs (&lt;50ms)</span><br ><span class="comp-subtext">Flushes standby list without kill</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-x"></use></svg> Placebo Optimizer</span><br ><span class="comp-subtext-plain">Freezes apps or fakes RAM</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-x"></use></svg> Not Supported</span><br ><span class="comp-subtext-plain">No memory optimization</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-x"></use></svg> Not Supported</span><br ><span class="comp-subtext-plain">No memory management</span></td>
                 </tr>
                 <tr>
                   <td><strong>Safety &amp; Protection</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ 5-Tier Engine + TOCTOU</span><br ><span class="comp-subtext">Pre-delete recheck + 2-Phase Safety</span></td>
-                  <td><span class="badge-tag-bad">✕ Risky Registry Edits</span><br ><span class="comp-subtext-plain">Blind wildcard deletes</span></td>
-                  <td><span class="badge-tag-safe">✓ Regex Exclusions</span><br ><span class="comp-subtext-plain">Safe path exclusions</span></td>
-                  <td><span class="badge-tag-safe">✓ Confidence Ratings</span><br ><span class="comp-subtext-plain">Certificate &amp; safety rating</span></td>
+                  <td class="highlight"><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> 5-Tier Engine + TOCTOU</span><br ><span class="comp-subtext">Pre-delete recheck + 2-Phase Safety</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-x"></use></svg> Risky Registry Edits</span><br ><span class="comp-subtext-plain">Blind wildcard deletes</span></td>
+                  <td><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Regex Exclusions</span><br ><span class="comp-subtext-plain">Safe path exclusions</span></td>
+                  <td><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Confidence Ratings</span><br ><span class="comp-subtext-plain">Certificate &amp; safety rating</span></td>
                 </tr>
                 <tr>
                   <td><strong>Visual Design &amp; RTL</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ Fluent Glass &amp; Arabic RTL</span><br ><span class="comp-subtext">Obsidian / Porcelain eye-comfort</span></td>
-                  <td><span class="badge-tag-bad">✕ Ad-Cluttered Legacy</span><br ><span class="comp-subtext-plain">Annoying upgrade banners</span></td>
-                  <td><span class="badge-tag-bad">△ Legacy GTK Linux Port</span><br ><span class="comp-subtext-plain">Dated utility styling</span></td>
-                  <td><span class="badge-tag-bad">△ Dense WinForms</span><br ><span class="comp-subtext-plain">Complex spreadsheet layout</span></td>
+                  <td class="highlight"><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Fluent Glass &amp; Arabic RTL</span><br ><span class="comp-subtext">Obsidian / Porcelain eye-comfort</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-x"></use></svg> Ad-Cluttered Legacy</span><br ><span class="comp-subtext-plain">Annoying upgrade banners</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-partial"></use></svg> Legacy GTK Linux Port</span><br ><span class="comp-subtext-plain">Dated utility styling</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-partial"></use></svg> Dense WinForms</span><br ><span class="comp-subtext-plain">Complex spreadsheet layout</span></td>
                 </tr>
                 <tr>
                   <td><strong>Pricing &amp; Upsells</strong></td>
-                  <td class="highlight"><span class="badge-tag-safe">✓ 100% Free Forever</span><br ><span class="comp-subtext">Zero ads, zero subscriptions</span></td>
-                  <td><span class="badge-tag-bad">✕ $29.95/yr Subscription</span><br ><span class="comp-subtext-plain">Features paywalled in Pro</span></td>
-                  <td><span class="badge-tag-safe">✓ Free (GPLv3)</span><br ><span class="comp-subtext-plain">Donation supported</span></td>
-                  <td><span class="badge-tag-safe">✓ Free (Apache 2.0)</span><br ><span class="comp-subtext-plain">Donation supported</span></td>
+                  <td class="highlight"><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> 100% Free Forever</span><br ><span class="comp-subtext">Zero ads, zero subscriptions</span></td>
+                  <td><span class="badge-tag-bad"><svg class="i" aria-hidden="true"><use href="#i-x"></use></svg> $29.95/yr Subscription</span><br ><span class="comp-subtext-plain">Features paywalled in Pro</span></td>
+                  <td><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Free (GPLv3)</span><br ><span class="comp-subtext-plain">Donation supported</span></td>
+                  <td><span class="badge-tag-safe"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Free (Apache 2.0)</span><br ><span class="comp-subtext-plain">Donation supported</span></td>
                 </tr>
               </tbody>
             </table>
@@ -1180,25 +1214,25 @@
             <div class="pipeline-step-name">Scan</div>
             <div class="pipeline-step-desc">Identifies candidate disposable files across 25+ scopes</div>
           </div>
-          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-arrow"><svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg></div>
           <div class="pipeline-step">
             <div class="pipeline-step-num">STEP 02</div>
             <div class="pipeline-step-name">Plan</div>
             <div class="pipeline-step-desc">Builds candidate transaction plan without modifying disk</div>
           </div>
-          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-arrow"><svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg></div>
           <div class="pipeline-step">
             <div class="pipeline-step-num">STEP 03</div>
             <div class="pipeline-step-name">Protect</div>
             <div class="pipeline-step-desc">Enforces protection policy &amp; recent file safety shield</div>
           </div>
-          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-arrow"><svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg></div>
           <div class="pipeline-step">
             <div class="pipeline-step-num">STEP 04</div>
             <div class="pipeline-step-name">Revalidate</div>
             <div class="pipeline-step-desc">Mitigates TOCTOU risk by re-checking canonical path, bounds, and attributes immediately before delete</div>
           </div>
-          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-arrow"><svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg></div>
           <div class="pipeline-step">
             <div class="pipeline-step-num">STEP 05</div>
             <div class="pipeline-step-name">Clean</div>
@@ -1259,44 +1293,44 @@
           <!-- COLUMN 1: CLEAN -->
           <div class="cap-column">
             <div class="cap-col-header">
-              <span class="text-accent-cyan">🧹</span>
+              <span class="text-accent-cyan"><svg class="i" aria-hidden="true"><use href="#i-clean"></use></svg></span>
               <span>CLEAN</span>
             </div>
             <ul class="cap-list">
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Duplicate File Finder:</strong> 3-stage SHA-256 byte-level duplicate scanner with system path protection.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>GPU Shader Caches:</strong> Purges DirectX, NVIDIA, AMD, and Intel shader caches safely.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Windows &amp; User Temp:</strong> Cleans temporary directories past the 24-hour safety shield.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Delivery Optimization:</strong> Cleans peer-to-peer Windows Update cached chunks.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>AppData Footprint Report:</strong> See exactly what is occupying <code>AppData</code>, largest first. Strictly read-only &mdash; there is no delete button, by design. Also detects data left behind by uninstalled Microsoft Store apps.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Developer Caches:</strong> Reclaims build directories from npm, pip, NuGet, and Cargo.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>VSS Shadow Copy Pruner:</strong> Enumerate system restore points and prune obsolete snapshots safely.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Messaging App Scratch:</strong> Purges media caches for Discord, Telegram, and WhatsApp.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Browser Disk Caches:</strong> Cleans HTTP caches for Chromium and Firefox browsers.</div>
               </li>
             </ul>
@@ -1306,36 +1340,36 @@
           <!-- COLUMN 2: OPTIMIZE -->
           <div class="cap-column">
             <div class="cap-col-header">
-              <span class="text-accent-emerald">⚡</span>
+              <span class="text-accent-emerald"><svg class="i" aria-hidden="true"><use href="#i-bolt"></use></svg></span>
               <span>OPTIMIZE</span>
             </div>
             <ul class="cap-list">
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Squarified Treemap:</strong> Interactive hierarchical storage visualizer mapping space hogs instantly.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Standby List Purge:</strong> Reclaims standby memory pages via <code>NtSetSystemInformation</code>.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Working Set Trim:</strong> Trims private working sets across running applications.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>System File Cache Reset:</strong> Flushes excessive file cache working sets safely.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Global Hotkey:</strong> Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd> anywhere for instant 1-click memory flush.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>OS Process Shield:</strong> Core processes (<code>csrss</code>, <code>dwm</code>, <code>explorer</code>) are shielded.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>DISM &amp; SFC Integration:</strong> One-click Windows Component Store health check and repair.</div>
               </li>
             </ul>
@@ -1345,44 +1379,44 @@
           <!-- COLUMN 3: CONTROL -->
           <div class="cap-column">
             <div class="cap-col-header">
-              <span class="text-accent-purple">🛡️</span>
+              <span class="text-accent-purple"><svg class="i" aria-hidden="true"><use href="#i-shield"></use></svg></span>
               <span>CONTROL</span>
             </div>
             <ul class="cap-list">
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Deep Root App Uninstaller:</strong> BCU engine with silent batch removal and leftover file/registry sweeper.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Task Scheduler &amp; Context Menu:</strong> Automated scheduled cleanups and 1-click Explorer right-click cleaning.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Low Disk Shield:</strong> Background tray guardian telemetry warning when free disk space is critical.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Startup AI Safety Verdicts:</strong> AI intelligence answering <em>"Will anything go wrong if I disable this?"</em>.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Large File Hunter:</strong> Inspect large files with Recycle Bin undo protection.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Synchronous CLI:</strong> Native console executable for PowerShell and script pipelines.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>CTT WinUtil Integration:</strong> 1-click link to the official Chris Titus Tech Windows Utility page — Deltempo never runs it for you.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Continuous Patch Delivery:</strong> Safe rolling updates with SHA-256 and PE header verification.</div>
               </li>
               <li class="cap-item">
-                <span class="cap-check">✓</span>
+                <span class="cap-check"><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg></span>
                 <div><strong>Multi-Language (in progress):</strong> Language selector for English, Arabic, Spanish, French, and German. The Cleaner workspace is localized and Arabic gets native RTL flow; modals and the remaining workspaces are not yet translated.</div>
               </li>
             </ul>
@@ -1475,19 +1509,19 @@
 
           <div class="trust-badges">
             <div class="trust-badge-item">
-              <span>📄</span>
+              <span><svg class="i" aria-hidden="true"><use href="#i-doc"></use></svg></span>
               <span>MIT Licensed</span>
             </div>
             <div class="trust-badge-item">
-              <span>🔒</span>
+              <span><svg class="i" aria-hidden="true"><use href="#i-lock"></use></svg></span>
               <span>No Telemetry</span>
             </div>
             <div class="trust-badge-item">
-              <span>🛡️</span>
-              <span>1505 Automated Tests</span>
+              <span><svg class="i" aria-hidden="true"><use href="#i-shield"></use></svg></span>
+              <span>1507 Automated Tests</span>
             </div>
             <div class="trust-badge-item">
-              <span>🔑</span>
+              <span><svg class="i" aria-hidden="true"><use href="#i-key"></use></svg></span>
               <span>SHA-256 Checksums</span>
             </div>
           </div>
@@ -1689,7 +1723,7 @@
           <div class="download-meta">
             <p><strong>Platform:</strong> Windows 10 / 11 (64-bit) • <strong>Type:</strong> Portable Single-File Binary • <strong>Latest Release:</strong> GitHub Releases</p>
             <p class="mt-2">Or launch straight from PowerShell: <code>irm https://beso1227.github.io/Deltempo/win | Invoke-Expression</code></p>
-            <p class="mt-2"><a href="download/" class="text-accent-link">View Checksums &amp; Verification Guide →</a></p>
+            <p class="mt-2"><a href="download/" class="text-accent-link">View Checksums &amp; Verification Guide <svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
           </div>
         </div>
       </div>
@@ -1722,7 +1756,7 @@
 
       <div class="footer-copy-text">
         <span>Copyright © 2026 Beso1227 / Deltempo Project.</span>
-        <a href="#top" class="footer-top-link">Back to top <span aria-hidden="true">↑</span></a>
+        <a href="#top" class="footer-top-link">Back to top <span aria-hidden="true"><svg class="i" aria-hidden="true"><use href="#i-arrow-up"></use></svg></span></a>
       </div>
     </div>
   </footer>
