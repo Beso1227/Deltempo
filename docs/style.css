@@ -5184,8 +5184,9 @@ html.light ::selection {
 /* --- 8. Scroll-up button: progress ring --------------------------------
    The button now doubles as a scroll meter, so "how far down am I" is
    readable without hunting for the 2px rail at the top of the page. */
-/* No local --scroll-progress here: the value is inherited from html, which
-   motion.js rewrites each scroll frame. A local declaration would shadow it. */
+/* --scroll-progress is written as an inline custom property on this button,
+   not on html: a :root write would invalidate style for the whole tree on
+   every scroll frame. The fallback keeps the ring valid before first paint. */
 .back-to-top {
   position: fixed;
 }
@@ -5196,7 +5197,7 @@ html.light ::selection {
   inset: -3px;
   border-radius: 50%;
   background: conic-gradient(
-    #00F2B0 calc(var(--scroll-progress) * 1turn),
+    #00F2B0 calc(var(--scroll-progress, 0) * 1turn),
     rgba(255, 255, 255, 0.09) 0
   );
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
@@ -5212,7 +5213,7 @@ html.light ::selection {
 
 html.light .back-to-top::before {
   background: conic-gradient(
-    #047857 calc(var(--scroll-progress) * 1turn),
+    #047857 calc(var(--scroll-progress, 0) * 1turn),
     rgba(0, 0, 0, 0.08) 0
   );
 }

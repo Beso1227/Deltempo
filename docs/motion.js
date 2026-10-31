@@ -44,6 +44,17 @@
       document.body.appendChild(progressBar);
     }
 
+    // Both scroll readouts are consumed by exactly one element each. A custom
+    // property is not free: writing one forces a style recalculation whether
+    // it lands on :root or on the consumer. The parallax therefore drives
+    // `transform` directly (compositor-only, no recalc), and the ring is
+    // quantised to a step that is sub-pixel on a 46px button.
+    const auroraEl = document.querySelector('.ambient-aurora');
+    const topBtn = document.querySelector('.back-to-top');
+    let lastScrollY = -1;
+    let lastProgress = -1;
+    let wasScrolled = null;
+
     function paint() {
       const y = window.scrollY || window.pageYOffset || 0;
       const max = Math.max(1, docEl.scrollHeight - window.innerHeight);
@@ -53,10 +64,29 @@
       scrollState.progress = p;
 
       progressBar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
-      docEl.style.setProperty('--scroll-y', y.toFixed(1));
-      // Read by the back-to-top button's conic progress ring.
-      docEl.style.setProperty('--scroll-progress', p.toFixed(4));
-      docEl.classList.toggle('is-scrolled', y > 6);
+
+      if (auroraEl && !isReducedMotion) {
+        const sy = Math.min(y, 1600);
+        if (sy !== lastScrollY) {
+          lastScrollY = sy;
+          auroraEl.style.transform =
+            'translate3d(0,' + (sy * -0.02).toFixed(2) + 'px,0) scale(1.12)';
+        }
+      }
+      // Read by the back-to-top button's conic progress ring. 0.005 turn is
+      // under a pixel of arc at 46px, and the ring only matters once visible.
+      if (topBtn && topBtn.classList.contains('visible')) {
+        const pr = Math.round(p * 200) / 200;
+        if (pr !== lastProgress) {
+          lastProgress = pr;
+          topBtn.style.setProperty('--scroll-progress', String(pr));
+        }
+      }
+      const scrolled = y > 6;
+      if (scrolled !== wasScrolled) {
+        wasScrolled = scrolled;
+        docEl.classList.toggle('is-scrolled', scrolled);
+      }
     }
 
     const LenisCtor = window.Lenis;
@@ -1031,6 +1061,11 @@
     let currentAngle = 0;
     let currentStretch = 1;
     let currentCompress = 1;
+    // The halo lags the ring, so its own velocity vector is a truer reading of
+    // where the pointer has been. Stretching it along that vector turns the
+    // trail into a comet instead of a uniformly growing blob.
+    let haloAngle = 0;
+    let currentHaloStretch = 1;
 
     // Semi-implicit Euler spring: stable for these stiffness values at 60-144Hz.
     function step(spring, tx, ty, stiffness, damping, dt) {
@@ -1235,9 +1270,18 @@
           'scale(' + currentStretch.toFixed(3) + ', ' + currentCompress.toFixed(3) + ')';
 
         const haloScale = 1 + Math.min(speed * 0.0005, 0.35);
+        const haloVelocity = Math.sqrt(haloSpring.vx * haloSpring.vx + haloSpring.vy * haloSpring.vy);
+        if (haloVelocity > 60 && !isDrag) {
+          haloAngle = Math.atan2(haloSpring.vy, haloSpring.vx) * (180 / Math.PI);
+        }
+        const targetHaloStretch = isDrag ? 1 : 1 + Math.min(haloVelocity * 0.00034, 0.26);
+        currentHaloStretch += (targetHaloStretch - currentHaloStretch) * ease;
         halo.style.transform =
           'translate3d(' + haloSpring.x.toFixed(2) + 'px, ' + haloSpring.y.toFixed(2) + 'px, 0) ' +
-          'translate(-50%, -50%) scale(' + haloScale.toFixed(3) + ')';
+          'translate(-50%, -50%) ' +
+          'rotate(' + haloAngle.toFixed(1) + 'deg) ' +
+          'scale(' + (haloScale * currentHaloStretch).toFixed(3) + ', ' +
+          (haloScale / currentHaloStretch).toFixed(3) + ')';
       }
 
       requestAnimationFrame(renderLoop);
