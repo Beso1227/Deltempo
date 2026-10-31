@@ -93,6 +93,33 @@
                                VerticalAlignment="Center"
                                Text="" />
                 </Button>
+                <Border Width="1"
+                        Height="13"
+                        Background="{ThemeResource HairlineStrongBrush}"
+                        VerticalAlignment="Center" />
+                <!-- WPF's title-bar language pill (MainWindow.xaml:435-447): the five
+                     shipped languages one click away, without a Settings round-trip.
+                     Selection drives LocalizationService.CurrentLanguage; the shell's
+                     OnLanguageChanged walk re-labels everything and mirrors RTL. -->
+                <ComboBox x:Name="TitleLanguageCombo"
+                          Width="64"
+                          MinHeight="26"
+                          FontSize="10.5"
+                          Padding="8,1,0,1"
+                          CornerRadius="10"
+                          Background="Transparent"
+                          BorderBrush="{ThemeResource HairlineStrongBrush}"
+                          BorderThickness="1"
+                          VerticalAlignment="Center"
+                          AutomationProperties.Name="Select Application Language"
+                          ToolTipService.ToolTip="Select Application Language"
+                          SelectionChanged="OnTitleLanguageChanged">
+                    <ComboBoxItem Content="EN" Tag="en" ToolTipService.ToolTip="English" AutomationProperties.Name="English" />
+                    <ComboBoxItem Content="AR" Tag="ar" ToolTipService.ToolTip="العربية (Arabic)" AutomationProperties.Name="العربية (Arabic)" />
+                    <ComboBoxItem Content="ES" Tag="es" ToolTipService.ToolTip="Español (Spanish)" AutomationProperties.Name="Español (Spanish)" />
+                    <ComboBoxItem Content="FR" Tag="fr" ToolTipService.ToolTip="Français (French)" AutomationProperties.Name="Français (French)" />
+                    <ComboBoxItem Content="DE" Tag="de" ToolTipService.ToolTip="Deutsch (German)" AutomationProperties.Name="Deutsch (German)" />
+                </ComboBox>
             </StackPanel>
 
             <!-- Section search, centred in the title bar. The rail is icon-only, so

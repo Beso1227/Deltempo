@@ -51,6 +51,43 @@ public class ParityBatchATests
         Assert.Contains("SettingsService.Update(s => s.SoundEnabled = enabled)", wpf);
     }
 
+    // ------------------------------------------------------------------
+    // 1b. Title-bar quick language pill (WPF's LanguageComboBox),
+    //     the last audit-ranked shell gap after the RAM hero card.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void WpfTitleBar_CarriesTheQuickLanguagePill()
+    {
+        // The counterpart: five shipped languages, one click from the title bar.
+        string wpf = ReadWpf("MainWindow.xaml");
+        Assert.Contains("x:Name=\"LanguageComboBox\"", wpf);
+        Assert.Contains("LanguageComboBox_SelectionChanged", wpf);
+        string ui = ReadWpf("MainWindow.Ui.cs");
+        Assert.Contains("LocalizationService.CurrentLanguage = langCode", ui);
+    }
+
+    [Fact]
+    public void WinUiTitleBar_CarriesTheSameQuickLanguagePill()
+    {
+        string shell = ReadWinUi("MainWindow.xaml");
+        string code = ReadWinUi("MainWindow.xaml.cs");
+
+        Assert.Contains("TitleLanguageCombo", shell);
+        Assert.Contains("OnTitleLanguageChanged", shell);
+        Assert.Contains("AutomationProperties.Name=\"Select Application Language\"", shell);
+        foreach (string tag in new[] { "\"en\"", "\"ar\"", "\"es\"", "\"fr\"", "\"de\"" })
+        {
+            Assert.Contains($"Tag={tag}", shell);
+        }
+
+        // Same assignment WPF made; the shell's LanguageChanged walk does the
+        // re-labelling, and the pill follows whoever changed the language
+        // (this combo, or the full Settings picker) via the sync pass.
+        Assert.Contains("LocalizationService.CurrentLanguage = langCode", code);
+        Assert.Contains("SyncTitleLanguageCombo", code);
+    }
+
     [Fact]
     public void WinUiStatusBar_OffersTheSameSoundToggle()
     {

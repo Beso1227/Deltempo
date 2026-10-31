@@ -1861,6 +1861,51 @@ public sealed partial class MainWindow : Window
     private void HideToTray() => AppWindow.Hide();
 
     /// <summary>
+    /// The title-bar language pill, WPF's LanguageComboBox_SelectionChanged
+    /// (MainWindow.Ui.cs:115): assign the code, the shell's LanguageChanged walk
+    /// does the re-labelling and the RTL mirror. Assigning an unknown tag is a
+    /// no-op rather than an English reset, matching LocalizationService's guards.
+    /// </summary>
+    private void OnTitleLanguageChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ComboBox combo || combo.SelectedItem is not ComboBoxItem item ||
+            item.Tag is not string langCode)
+        {
+            return;
+        }
+
+        if (string.Equals(langCode, LocalizationService.CurrentLanguage, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        SoundService.PlayClickSound();
+        LocalizationService.CurrentLanguage = langCode;
+    }
+
+    /// <summary>
+    /// Keeps the pill's selection honest with whichever surface changed the
+    /// language (this combo, or the full picker in Settings), without re-raising
+    /// the selection change.
+    /// </summary>
+    private void SyncTitleLanguageCombo()
+    {
+        int index = LocalizationService.CurrentLanguage switch
+        {
+            "ar" => 1,
+            "es" => 2,
+            "fr" => 3,
+            "de" => 4,
+            _ => 0,
+        };
+
+        if (TitleLanguageCombo.SelectedIndex != index)
+        {
+            TitleLanguageCombo.SelectedIndex = index;
+        }
+    }
+
+    /// <summary>
     /// The title-bar privilege capsule's elevate action, WPF's AdminElevationButton_Click
     /// (MainWindow.xaml.cs:673): already elevated = nothing to do; otherwise confirm
     /// (the same copy WPF shows) and relaunch elevated through the shared
@@ -2680,6 +2725,11 @@ public sealed partial class MainWindow : Window
 
         RootGrid.FlowDirection = isRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
         TitleBarHost.FlowDirection = FlowDirection.LeftToRight;
+
+        // The title-bar pill must show the language in force, whoever set it -
+        // this pill, or the full picker in Settings (WPF's pill only ever saw
+        // its own selection, so it had no drift to guard against).
+        SyncTitleLanguageCombo();
 
         foreach ((string label, ListViewItem item) in _railItems)
         {
