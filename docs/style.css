@@ -4977,6 +4977,14 @@ html.light ::selection {
   will-change: background-position;
 }
 
+/* Card glass: the fill is 92-96% opaque, so a 16px backdrop blur behind it is
+   invisible while still costing a blur pass per card on every scroll frame.
+   11 of these were the single largest desktop compositing cost. */
+.card-inner {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 /* --- 2. Cheaper glass on small screens -----------------------------------
    backdrop-filter is the single most expensive property in this stylesheet.
    Halving the radius on phones keeps the frosted look at a fraction of the
@@ -5017,22 +5025,12 @@ html.light ::selection {
     opacity: 0.35;
   }
 
-  /* 11 cards + 6 pills each carried a full-viewport blur on phones. Their
-     backgrounds are already ~0.9 alpha, so dropping the filter is invisible
-     but removes the single largest per-frame cost on mobile GPUs. */
-  .card-inner,
+  /* Pills keep their blur on desktop (small area, adds depth) but drop it on
+     phones, where 6 more full-viewport blur passes are not affordable. */
   .btn-pill,
   .hero-release-pill {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-  }
-
-  .card-inner {
-    background: linear-gradient(145deg, rgba(20, 29, 32, 0.94) 0%, rgba(13, 19, 21, 0.97) 100%);
-  }
-
-  html.light .card-inner {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 250, 252, 0.99) 100%);
   }
 }
 
