@@ -251,7 +251,7 @@ Served from GitHub Pages as two extensionless PowerShell scripts: `docs/win` (GU
 - `docs/.nojekyll` disables Jekyll, so both are served raw as `application/octet-stream`. `Invoke-RestMethod` still returns a string for that content type, which is what makes `| iex` work — verified against PowerShell 7.6.6.
 - Bootstrap flow: read `checksums.sha256` → download the chosen binary → verify SHA-256 → cache in `%LOCALAPPDATA%\Deltempo\bin` → launch.
 - Trust anchor: the `checksums.sha256` release asset, attached by the `Upload Checksum Manifest` step and regenerated on every tag. A Pages-hosted copy used to be tried as a fallback, but it was never regenerated, so it could only ever cause a digest mismatch and abort — it has been removed rather than left as a decorative anchor. A missing manifest or a digest mismatch aborts the install; verification is never skipped or downgraded to a warning.
-- `Invoke-Expression` accepts no arguments, so `win-cli` passes the target through `DELTEMPO_TARGET`. `win` consumes that variable, so a later run defaults back to the GUI.
+- `iex` accepts no arguments, so `win-cli` passes the target through `DELTEMPO_TARGET`. `win` consumes that variable, so a later run defaults back to the GUI.
 - Re-running the command always pulls the newest published release.
 
 ---

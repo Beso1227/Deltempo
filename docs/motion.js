@@ -3,13 +3,14 @@
  * High-performance interactive visual systems:
  * - Lenis 1.3 inertial scrolling with a scroll progress rail, glass-nav state and
  *   scroll-driven background parallax (native scroll when reduced motion is on)
- * - Depth-layered ambient constellation: scroll parallax, rare shooting stars,
- *   velocity streaks, soft filaments and a quiet hero focus fade
+ * - Deep-space starfield: depth-layered stars that streak into shooting stars as
+ *   the page scrolls, part and brighten around the cursor, flare on click, and
+ *   idle meteors crossing the sky
  * - Three-layer spring cursor (core dot, elastic ring, lagging halo) with magnetic
  *   snap, drag affordance, text caret and kinetic click ripples
  * - Card surface reactive radial lighting & micro-tilt
  * - IntersectionObserver scroll reveals with directional variants + grid stagger
- * - Full prefers-reduced-motion (static field, native scroll) & touch-device compliance
+ * - Full prefers-reduced-motion (static starfield, native scroll) & touch-device compliance
  */
 
 (function () {
@@ -198,7 +199,7 @@
   }
 
   /* ==========================================================================
-     4. Cybernetic Interactive Particle Constellation Canvas
+     4. Deep-space starfield: scroll streaks, pointer wake, idle shooting stars
      ========================================================================== */
   function initInteractiveBackground() {
     let canvas = document.getElementById('ambientCanvas');
@@ -215,431 +216,261 @@
       }
     }
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     let width = window.innerWidth || 360;
     let height = window.innerHeight || 640;
-    // 1.75 keeps the field crisp without paying for 4x pixels on 3x displays.
-    let dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    // 2x is the point where a 0.6px star still reads as a point instead of a
+    // grey smudge; beyond that we only pay fill rate. Phones sit at 1.5x: the
+    // canvas covers the whole viewport, so every extra device pixel is cleared
+    // and repainted 60 times a second.
+    function targetDpr() {
+      const w = window.innerWidth || 360;
+      return Math.min(window.devicePixelRatio || 1, w < 768 ? 1.5 : 2);
+    }
+    let dpr = targetDpr();
     let animationFrameId = null;
-    let fieldReady = false;
+    let lastFrameTime = 0;
 
-    const isMobile = width < 768;
-    // A calm field reads as premium: fewer, slower, dimmer particles.
-    const particleCount = isMobile ? 14 : 64;
+    // A sky, not a swarm. Desktop gets enough points to read as depth; phones
+    // get a lighter field because every star is also a streak candidate.
+    const STAR_COUNT_DESKTOP = 220;
+    const STAR_COUNT_MOBILE = 110;
 
-    // Interactive mouse coordinates and shockwave state
-    const mouse = {
-      x: -1000,
-      y: -1000,
-      lastX: -1000,
-      lastY: -1000,
+    const pointer = {
+      x: -9999,
+      y: -9999,
       vx: 0,
       vy: 0,
       speed: 0,
-      radius: isMobile ? 160 : 250,
       active: false,
+      radius: 190,
     };
 
-    // Kinetic shockwave impulses for particle reaction
-    const shockwaves = [];
+    // Click pulses: a single expanding ring that lights the stars it passes.
+    const pulses = [];
 
-    // Scroll-linked field offset (bounded) + rare shooting stars.
-    let fieldScroll = 0;
-    const shootingStars = [];
-    let nextShootingStar = 240 + Math.floor(Math.random() * 300);
+    // Scroll motion, smoothed so a flick produces one long streak instead of a
+    // row of disconnected dashes.
+    let lastScrollY = window.scrollY || 0;
+    let scrollMomentum = 0;
+
+    // Idle shooting stars.
+    const meteors = [];
+    let nextMeteorAt = 240 + Math.random() * 300;
+    let frameCount = 0;
+
+    // --- Star sprites -------------------------------------------------------
+    // One pre-rendered glow per tint. Drawing a 64px sprite is far cheaper than
+    // building a radial gradient per star per frame, and it keeps the core
+    // crisp while the halo stays soft.
+    const sprites = {};
+
+    function makeSprite(rgb) {
+      const size = 64;
+      const c = document.createElement('canvas');
+      c.width = size;
+      c.height = size;
+      const g = c.getContext('2d');
+      const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+      // Tight core, short bloom. A wide falloff is what makes a point of light
+      // read as a dust mote instead of a star.
+      grad.addColorStop(0, 'rgba(' + rgb + ', 1)');
+      grad.addColorStop(0.1, 'rgba(' + rgb + ', 0.92)');
+      grad.addColorStop(0.22, 'rgba(' + rgb + ', 0.24)');
+      grad.addColorStop(0.44, 'rgba(' + rgb + ', 0.05)');
+      grad.addColorStop(1, 'rgba(' + rgb + ', 0)');
+      g.fillStyle = grad;
+      g.fillRect(0, 0, size, size);
+      return c;
+    }
+
+    // A tapered meteor tail: bright at the head (bottom), transparent at the
+    // tip, soft on both sides. Drawing one scaled sprite is cheaper than
+    // stroking a per-star gradient every frame.
+    function makeStreak(rgb) {
+      const w = 32;
+      const h = 128;
+      const c = document.createElement('canvas');
+      c.width = w;
+      c.height = h;
+      const g = c.getContext('2d');
+      const vg = g.createLinearGradient(0, 0, 0, h);
+      vg.addColorStop(0, 'rgba(' + rgb + ', 0)');
+      vg.addColorStop(0.45, 'rgba(' + rgb + ', 0.16)');
+      vg.addColorStop(0.82, 'rgba(' + rgb + ', 0.62)');
+      vg.addColorStop(1, 'rgba(' + rgb + ', 1)');
+      g.fillStyle = vg;
+      g.fillRect(0, 0, w, h);
+      // Only the alpha of this pass survives, so the colour is irrelevant.
+      g.globalCompositeOperation = 'destination-in';
+      const hg = g.createLinearGradient(0, 0, w, 0);
+      hg.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      hg.addColorStop(0.34, 'rgba(0, 0, 0, 0.75)');
+      hg.addColorStop(0.5, 'rgba(0, 0, 0, 1)');
+      hg.addColorStop(0.66, 'rgba(0, 0, 0, 0.75)');
+      hg.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      g.fillStyle = hg;
+      g.fillRect(0, 0, w, h);
+      return c;
+    }
+
+    function buildSprites() {
+      sprites.star = makeSprite('236, 248, 255');
+      sprites.mint = makeSprite('120, 255, 214');
+      sprites.dust = makeSprite('30, 41, 59');
+      sprites.dustMint = makeSprite('4, 120, 87');
+      sprites.streak = makeStreak('226, 240, 255');
+      sprites.streakMint = makeStreak('140, 255, 222');
+      sprites.streakDust = makeStreak('71, 85, 105');
+      sprites.streakDustMint = makeStreak('4, 120, 87');
+    }
+
+    buildSprites();
+
+    // --- Star model ---------------------------------------------------------
+    const stars = [];
+
+    function spawnStar(star) {
+      star.z = 0.32 + Math.random() * 1.08;
+      star.x = Math.random() * width;
+      star.y = Math.random() * height;
+      star.r = (0.45 + Math.random() * 1.05) * star.z;
+      // Depth comes from size and speed, not from dimming: a far star is a
+      // small point, not a faded one, or the sky reads as noise.
+      star.alpha = (0.4 + Math.random() * 0.55) * (0.72 + 0.28 * Math.min(1, star.z));
+      star.mint = Math.random() < 0.2;
+      star.sparkle = Math.random() < 0.09 && star.z > 0.95;
+      star.twinklePhase = Math.random() * Math.PI * 2;
+      star.twinkleSpeed = 0.004 + Math.random() * 0.012;
+      star.driftX = (Math.random() - 0.5) * 0.05 * star.z;
+      star.driftY = (Math.random() - 0.5) * 0.05 * star.z;
+      star.vx = 0;
+      star.vy = 0;
+      star.streak = 0;
+      star.dirX = 0;
+      star.dirY = 1;
+      star.hot = 0;
+      return star;
+    }
+
+    function starTarget() {
+      return width < 768 ? STAR_COUNT_MOBILE : STAR_COUNT_DESKTOP;
+    }
+
+    function resetField() {
+      const target = starTarget();
+      while (stars.length < target) stars.push(spawnStar({}));
+      if (stars.length > target) stars.length = target;
+      for (let i = 0; i < stars.length; i++) spawnStar(stars[i]);
+    }
+
+    // On mobile the URL bar sliding in and out fires `resize` on every scroll
+    // gesture. Re-seeding the sky there would look like the whole field
+    // teleporting, so an existing field is only remapped into the new box.
+    function remapField(prevWidth, prevHeight) {
+      const sx = prevWidth > 0 ? width / prevWidth : 1;
+      const sy = prevHeight > 0 ? height / prevHeight : 1;
+      for (let i = 0; i < stars.length; i++) {
+        const s = stars[i];
+        s.x *= sx;
+        s.y *= sy;
+        if (s.x < 0) s.x = 0;
+        else if (s.x > width) s.x = width;
+        if (s.y < 0) s.y = 0;
+        else if (s.y > height) s.y = height;
+      }
+    }
+
+    // Stars fade where the hero copy sits: the sky must not fight the headline.
+    function focusFade(x, y) {
+      const cx = width * 0.5;
+      const cy = height * 0.42;
+      const rx = Math.min(width * 0.36, 560);
+      const ry = Math.min(height * 0.48, 540);
+      const dx = (x - cx) / rx;
+      const dy = (y - cy) / ry;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d >= 1) return 1;
+      return 0.45 + 0.55 * d * d;
+    }
 
     function resize() {
+      const prevWidth = width;
+      const prevHeight = height;
       width = window.innerWidth || 360;
       height = window.innerHeight || 640;
-      dpr = Math.min(window.devicePixelRatio || 1, 1.75);
-      mouse.radius = width < 768 ? 160 : 250;
+      dpr = targetDpr();
+      pointer.radius = width < 768 ? 150 : 190;
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       canvas.style.width = width + 'px';
       canvas.style.height = height + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      if (fieldReady && isReducedMotion) render();
+      if (stars.length && stars.length === starTarget() && prevWidth > 0) {
+        remapField(prevWidth, prevHeight);
+      } else {
+        resetField();
+      }
+      if (isReducedMotion) render();
     }
 
-    resize();
     window.addEventListener('resize', resize, { passive: true });
 
-    // Track pointer position across entire viewport with fluid velocity derivation
-    function updatePointer(x, y) {
-      if (mouse.x > -500 && mouse.y > -500) {
-        const dx = x - mouse.x;
-        const dy = y - mouse.y;
-        mouse.vx = mouse.vx * 0.35 + dx * 0.65;
-        mouse.vy = mouse.vy * 0.35 + dy * 0.65;
-        mouse.speed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
+    // --- Pointer ------------------------------------------------------------
+    function onPointerMove(e) {
+      const x = e.clientX;
+      const y = e.clientY;
+      if (pointer.x > -5000) {
+        pointer.vx = pointer.vx * 0.4 + (x - pointer.x) * 0.6;
+        pointer.vy = pointer.vy * 0.4 + (y - pointer.y) * 0.6;
+        pointer.speed = Math.sqrt(pointer.vx * pointer.vx + pointer.vy * pointer.vy);
       }
-      mouse.lastX = mouse.x;
-      mouse.lastY = mouse.y;
-      mouse.x = x;
-      mouse.y = y;
-      mouse.active = true;
+      pointer.x = x;
+      pointer.y = y;
+      pointer.active = true;
     }
 
-    window.addEventListener(
-      'pointermove',
-      function (e) {
-        updatePointer(e.clientX, e.clientY);
-      },
-      { passive: true }
-    );
-
-    document.addEventListener('mouseleave', function () {
-      mouse.x = -1000;
-      mouse.y = -1000;
-      mouse.vx = 0;
-      mouse.vy = 0;
-      mouse.speed = 0;
-      mouse.active = false;
-    });
-
-    const particles = [];
-
-    // Smooth camera / field 3D parallax tilt state
-    let tiltX = 0;
-    let tiltY = 0;
-
-    const colorsDark = [
-      { r: 0, g: 242, b: 176 },   // Cyber Mint #00F2B0
-      { r: 13, g: 211, b: 186 },  // Electric Teal #0DD3BA
-      { r: 52, g: 211, b: 153 },  // Pure Spring Mint #34D399
-      { r: 16, g: 185, b: 129 },  // Neon Emerald #10B981
-      { r: 240, g: 253, b: 249 }, // Star Crystal White
-    ];
-
-    const colorsLight = [
-      { r: 5, g: 150, b: 105 },   // Deep Emerald #059669
-      { r: 13, g: 148, b: 136 },  // Deep Teal #0D9488
-      { r: 4, g: 120, b: 87 },    // Forest Mint #047857
-      { r: 16, g: 185, b: 129 },  // Jade #10B981
-      { r: 51, g: 65, b: 85 },    // Slate #334155
-    ];
-
-    let frameCount = 0;
-
-    // Keep the headline column visually quiet: the field fades where copy sits.
-    function focusFade(x, y) {
-      const cx = width * 0.5;
-      const cy = height * 0.4;
-      const rx = Math.min(width * 0.34, 520);
-      const ry = Math.min(height * 0.46, 520);
-      const dx = (x - cx) / rx;
-      const dy = (y - cy) / ry;
-      const d = Math.sqrt(dx * dx + dy * dy);
-      if (d >= 1) return 1;
-      return 0.3 + 0.7 * (d * d);
+    if (!isReducedMotion && isFinePointer.matches) {
+      window.addEventListener('pointermove', onPointerMove, { passive: true });
+      document.addEventListener('mouseleave', function () {
+        pointer.active = false;
+        pointer.x = -9999;
+        pointer.y = -9999;
+        pointer.vx = 0;
+        pointer.vy = 0;
+        pointer.speed = 0;
+      });
+      window.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0) return;
+        pulses.push({ x: e.clientX, y: e.clientY, r: 0, alpha: 0.9 });
+        if (pulses.length > 3) pulses.shift();
+      }, { passive: true });
     }
 
-    class Particle {
-      constructor() {
-        this.reset(true);
-      }
-
-      reset(initRandom) {
-        this.x = initRandom ? Math.random() * width : (Math.random() > 0.5 ? 0 : width);
-        this.y = initRandom ? Math.random() * height : Math.random() * height;
-
-        // Three explicit depth bands keep the field readable: far dust, mid field, near accents.
-        const band = Math.random();
-        this.layer = band < 0.55 ? 0 : band < 0.88 ? 1 : 2;
-        this.z = this.layer === 0
-          ? 0.5 + Math.random() * 0.18
-          : this.layer === 1
-            ? 0.78 + Math.random() * 0.28
-            : 1.12 + Math.random() * 0.3;
-        this.zPhase = Math.random() * Math.PI * 2;
-        this.zSpeed = Math.random() * 0.008 + 0.004;
-        this.currentZ = this.z;
-        this.zLift = 0;
-        this.renderX = this.x;
-        this.renderY = this.y;
-
-        // Slow, drifting motion reads as depth rather than jitter.
-        const speedScale = (isReducedMotion ? 0.04 : 0.17) * (0.55 + this.z * 0.55);
-        this.baseVx = (Math.random() - 0.5) * speedScale;
-        this.baseVy = (Math.random() - 0.5) * speedScale;
-        this.vx = this.baseVx;
-        this.vy = this.baseVy;
-        this.swirlDir = Math.random() < 0.5 ? 1 : -1;
-
-        // Rare ring nodes (5%) and quiet sparkles (95%) — no orbiting planet clutter.
-        this.isNexus = Math.random() < 0.05;
-        this.baseRadius = (this.isNexus ? Math.random() * 0.8 + 2.4 : Math.random() * 0.9 + 1.1) * this.z;
-        this.radius = this.baseRadius;
-        this.colorIdx = Math.floor(Math.random() * colorsDark.length);
-        this.pulseSpeed = Math.random() * 0.02 + 0.01;
-        this.pulseAngle = Math.random() * Math.PI * 2;
-        this.rot = Math.random() * Math.PI * 2;
-        this.baseRotSpeed = (Math.random() - 0.5) * (this.isNexus ? 0.006 : 0.012);
-        this.rotSpeed = this.baseRotSpeed;
-
-        // Far particles sit behind the copy and must stay faint.
-        const depthAlpha = this.layer === 0 ? 0.5 : this.layer === 1 ? 0.78 : 1;
-        this.alpha = (this.isNexus ? 0.5 : Math.random() * 0.22 + 0.3) * depthAlpha * Math.min(1, this.z);
-      }
-
-      update() {
-        this.pulseAngle += this.pulseSpeed;
-        this.rot += this.rotSpeed;
-        this.zPhase += this.zSpeed;
-
-        let proximity = 0;
-        let targetZLift = 0;
-
-        // Enhanced organic 3D fluid deflection & celestial orbital swirl around cursor
-        if (mouse.active && mouse.x > -500 && mouse.y > -500) {
-          const dx = this.renderX - mouse.x;
-          const dy = this.renderY - mouse.y;
-          const distSq = dx * dx + dy * dy;
-          const magnetRadius = mouse.radius;
-          const magnetRadiusSq = magnetRadius * magnetRadius;
-
-          if (distSq < magnetRadiusSq && distSq > 0.01) {
-            const dist = Math.sqrt(distSq);
-            proximity = 1 - (dist / magnetRadius);
-            const angle = Math.atan2(dy, dx); // Vector pointing outward from mouse
-
-            // 1. Core deflection cushion (dist < 85px): particles gently part away, preventing clumping
-            if (dist < 85) {
-              const pushFactor = Math.pow(1 - dist / 85, 1.4) * (isReducedMotion ? 0.4 : 1.7) * this.z;
-              this.vx += Math.cos(angle) * pushFactor;
-              this.vy += Math.sin(angle) * pushFactor;
-            } else {
-              // 2. Orbital swirl & streamline flow (85px <= dist < magnetRadius)
-              const swirlFactor = Math.sin(proximity * Math.PI) * (isReducedMotion ? 0.08 : 0.4) * this.z;
-              const swirlAngle = angle + (Math.PI * 0.5 * this.swirlDir);
-              this.vx += Math.cos(swirlAngle) * swirlFactor * 0.45;
-              this.vy += Math.sin(swirlAngle) * swirlFactor * 0.45;
-
-              // Gentle radial cushioning keeps particles circulating in a spacious orbit
-              const gentleRepel = (1 - proximity) * proximity * 0.35 * this.z;
-              this.vx += Math.cos(angle) * gentleRepel;
-              this.vy += Math.sin(angle) * gentleRepel;
-            }
-
-            // 3. Dynamic mouse motion wake: sweeping cursor imparts aerodynamic wake behind it
-            if (mouse.speed > 0.4) {
-              const wakePower = Math.pow(proximity, 1.3) * Math.min(mouse.speed, 20) * 0.022 * this.z;
-              this.vx += mouse.vx * wakePower;
-              this.vy += mouse.vy * wakePower;
-            }
-
-            // 4. 3D depth pop & specular spin acceleration
-            targetZLift = proximity * 0.45 * this.z;
-            const spinBoost = this.swirlDir * proximity * 0.035 * (1 + mouse.speed * 0.04);
-            this.rotSpeed = this.baseRotSpeed + spinBoost;
-
-            // Fluid damping inside cursor influence zone
-            this.vx *= 0.93;
-            this.vy *= 0.93;
-          } else {
-            this.rotSpeed = this.rotSpeed * 0.94 + this.baseRotSpeed * 0.06;
-            this.vx = this.vx * 0.985 + this.baseVx * 0.015;
-            this.vy = this.vy * 0.985 + this.baseVy * 0.015;
-          }
-        } else {
-          this.rotSpeed = this.rotSpeed * 0.94 + this.baseRotSpeed * 0.06;
-          this.vx = this.vx * 0.985 + this.baseVx * 0.015;
-          this.vy = this.vy * 0.985 + this.baseVy * 0.015;
-        }
-
-        // Smoothly interpolate 3D Z lift
-        this.zLift += (targetZLift - this.zLift) * 0.12;
-
-        // Dynamic 3D breathing Z oscillation + cursor 3D lift
-        this.currentZ = Math.max(0.35, this.z + Math.sin(this.zPhase) * 0.22 + this.zLift);
-        this.radius = this.baseRadius * (this.currentZ / this.z) + Math.sin(this.pulseAngle) * (this.isNexus ? 0.9 : 0.45) * this.currentZ;
-
-        // Cap maximum velocity for silky smooth visual consistency
-        const maxSpeed = (isReducedMotion ? 0.2 : 1.5) * this.currentZ;
-        const currentSpeedSq = this.vx * this.vx + this.vy * this.vy;
-        if (currentSpeedSq > maxSpeed * maxSpeed) {
-          const currentSpeed = Math.sqrt(currentSpeedSq);
-          this.vx = (this.vx / currentSpeed) * maxSpeed;
-          this.vy = (this.vy / currentSpeed) * maxSpeed;
-        }
-
-        // Apply 3D Gravitational Harmonic Wave from clicks
-        for (let i = shockwaves.length - 1; i >= 0; i--) {
-          const sw = shockwaves[i];
-          const sdx = this.renderX - sw.x;
-          const sdy = this.renderY - sw.y;
-          const sDist = Math.sqrt(sdx * sdx + sdy * sdy);
-          const diff = sDist - sw.radius;
-
-          if (Math.abs(diff) < sw.waveWidth) {
-            const wavePhase = (diff / sw.waveWidth) * (Math.PI / 2);
-            const impulseFactor = Math.cos(wavePhase) * sw.alpha;
-
-            // 1. Radial elastic velocity kick
-            const impulse = impulseFactor * sw.strength * this.z;
-            const angle = Math.atan2(sdy, sdx);
-            this.vx += Math.cos(angle) * impulse * 0.45;
-            this.vy += Math.sin(angle) * impulse * 0.45;
-
-            // 2. 3D Gravitational Z-bounce (jumping toward the screen like acoustic ripples on liquid)
-            this.zLift += impulseFactor * 0.55 * this.z;
-
-            // 3. Excitation spin surge
-            this.rotSpeed += this.swirlDir * impulseFactor * 0.045;
-          }
-        }
-
-        this.x += this.vx;
-        this.y += this.vy;
-
-        // Wrap around viewport boundaries smoothly
-        if (this.x < -50) this.x = width + 50;
-        else if (this.x > width + 50) this.x = -50;
-        if (this.y < -50) this.y = height + 50;
-        else if (this.y > height + 50) this.y = -50;
-
-        // Calculate 3D Parallax Screen Position with enhanced depth travel.
-        // The scroll offset is bounded so the field never drifts off-screen.
-        const scrollShift = Math.min(fieldScroll, 1400) * (0.012 + this.layer * 0.022);
-        this.renderX = this.x + tiltX * (this.currentZ - 1) * 22;
-        this.renderY = this.y + tiltY * (this.currentZ - 1) * 22 - scrollShift;
-      }
-
-      draw(isLight) {
-        const c = (isLight ? colorsLight : colorsDark)[this.colorIdx];
-        const px = this.renderX;
-        const py = this.renderY;
-        const cz = this.currentZ;
-        const effAlpha = this.alpha * (isLight ? 0.62 : 1) * focusFade(px, py);
-
-        // Fast scrolling stretches near-field sparkles into faint light streaks,
-        // which reads as motion blur instead of a static constellation sliding by.
-        const streak = !isReducedMotion && this.layer > 0
-          ? Math.min(Math.abs(scrollState.velocity) * 0.85, 34) * (0.45 + this.z * 0.55)
-          : 0;
-
-        if (streak > 2.5) {
-          ctx.beginPath();
-          ctx.moveTo(px, py - streak);
-          ctx.lineTo(px, py + streak);
-          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.5})`;
-          ctx.lineWidth = Math.max(0.6, this.radius * 0.55);
-          ctx.lineCap = 'round';
-          ctx.stroke();
-        }
-
-        // Far band: soft dust, no facets — pure depth cue.
-        if (this.layer === 0 && !this.isNexus) {
-          ctx.beginPath();
-          ctx.arc(px, py, Math.max(0.6, this.radius * 0.6), 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.9})`;
-          ctx.fill();
-          return;
-        }
-
-        ctx.save();
-        ctx.translate(px, py);
-        ctx.rotate(this.rot);
-
-        if (this.isNexus) {
-          // Quiet orbital accent: one hairline halo and a solid core.
-          const s = this.radius;
-
-          ctx.beginPath();
-          ctx.arc(0, 0, s * 2.6, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.3})`;
-          ctx.lineWidth = 0.7;
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.arc(0, 0, Math.max(0.9, s * 0.55), 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha})`;
-          ctx.fill();
-        } else {
-          // 3D Faceted Clean Sparkle / Quantum Diamond Shard (✦) with Double-Pass GPU Bloom
-          const r = this.radius;
-          const inner = r * 0.32;
-
-          // Pass 1: Outer Soft Radiant Star Bloom (Zero shadowBlur overhead)
-          const rOuter = r * 1.2;
-          const innerOuter = inner * 1.2;
-          ctx.beginPath();
-          for (let k = 0; k < 4; k++) {
-            const a1 = (k * Math.PI) / 2;
-            const a2 = a1 + Math.PI / 4;
-            if (k === 0) ctx.moveTo(Math.cos(a1) * rOuter, Math.sin(a1) * rOuter);
-            else ctx.lineTo(Math.cos(a1) * rOuter, Math.sin(a1) * rOuter);
-            ctx.quadraticCurveTo(0, 0, Math.cos(a2) * innerOuter, Math.sin(a2) * innerOuter);
-          }
-          ctx.closePath();
-          ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha * 0.14})`;
-          ctx.fill();
-
-          // Pass 2: Main Crisp Sparkle Body
-          ctx.beginPath();
-          for (let k = 0; k < 4; k++) {
-            const a1 = (k * Math.PI) / 2;
-            const a2 = a1 + Math.PI / 4;
-            if (k === 0) ctx.moveTo(Math.cos(a1) * r, Math.sin(a1) * r);
-            else ctx.lineTo(Math.cos(a1) * r, Math.sin(a1) * r);
-            ctx.quadraticCurveTo(0, 0, Math.cos(a2) * inner, Math.sin(a2) * inner);
-          }
-          ctx.closePath();
-          ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${effAlpha})`;
-          ctx.fill();
-
-          // Facet internal cross-refraction lines for true gem sparkle
-          if (this.layer === 2 && cz > 1.0) {
-            ctx.beginPath();
-            ctx.moveTo(-r * 0.7, 0);
-            ctx.lineTo(r * 0.7, 0);
-            ctx.moveTo(0, -r * 0.7);
-            ctx.lineTo(0, r * 0.7);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${effAlpha * 0.55})`;
-            ctx.lineWidth = 0.75;
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.arc(0, 0, inner * 0.6, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${effAlpha * 0.95})`;
-            ctx.fill();
-          }
-        }
-
-        ctx.restore();
-      }
+    // --- Idle shooting stars ------------------------------------------------
+    function spawnMeteor() {
+      // Enter from the upper half at a shallow angle, so the streak crosses the
+      // sky rather than dropping straight down like a scratch.
+      const fromLeft = Math.random() < 0.55;
+      const angle = (Math.PI / 180) * (fromLeft ? 24 + Math.random() * 16 : 140 + Math.random() * 16);
+      const speed = 10 + Math.random() * 7;
+      meteors.push({
+        x: fromLeft ? -60 - Math.random() * width * 0.15 : width + 60 + Math.random() * width * 0.15,
+        y: Math.random() * height * 0.45,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 0,
+        maxLife: 80 + Math.floor(Math.random() * 60),
+        len: 150 + Math.random() * 130,
+        width: 1 + Math.random() * 0.8,
+      });
+      if (meteors.length > 2) meteors.shift();
     }
 
-    for (let i = 0; i < particleCount; i++) {
-      particles.push(new Particle());
-    }
-
-    // Trigger 3D Gravitational Harmonic Wave on pointer click (compact dual-ring + diamond micro-flare)
-    window.addEventListener(
-      'pointerdown',
-      function (e) {
-        if (isReducedMotion) return;
-        shockwaves.push({
-          x: e.clientX,
-          y: e.clientY,
-          radius: 0,
-          maxRadius: Math.min(width, height) * 0.24 + 90, // Contained, calm ripple
-          speed: 7.5,
-          waveWidth: 24,
-          strength: 2.4,
-          alpha: 0.7,
-          age: 0,
-        });
-      },
-      { passive: true }
-    );
-
-    const maxConnectionDistance = isMobile ? 90 : 122;
-    const maxConnectionDistanceSq = maxConnectionDistance * maxConnectionDistance;
-
-    function render() {
+    // --- Frame --------------------------------------------------------------
+    function render(now) {
       if (!isReducedMotion) {
         animationFrameId = requestAnimationFrame(render);
       } else {
@@ -648,306 +479,248 @@
 
       if (document.hidden) return;
 
-      frameCount++;
+      const dt = isReducedMotion
+        ? 1
+        : Math.min(Math.max((now - lastFrameTime) / 16.667, 0.2), 3);
+      lastFrameTime = now;
+      frameCount += dt;
 
-      // Ease the field toward the scroll offset so the parallax trails the page
-      // by a frame or two instead of snapping with it.
-      fieldScroll += (scrollState.y - fieldScroll) * 0.055;
+      const isLight = document.documentElement.classList.contains('light');
+      const skySprite = isLight ? sprites.dust : sprites.star;
+      const mintSprite = isLight ? sprites.dustMint : sprites.mint;
+      const skyRGB = isLight ? '30, 41, 59' : '236, 248, 255';
+      const mintRGB = isLight ? '4, 120, 87' : '120, 255, 214';
+      const lightScale = isLight ? 0.42 : 1;
 
-      // Decay mouse movement velocity each frame
-      mouse.vx *= 0.88;
-      mouse.vy *= 0.88;
-      mouse.speed *= 0.88;
+      // Scroll: stars physically slide against the page, and the distance they
+      // travel this frame becomes the length of their streak.
+      const y = scrollState.y;
+      const scrollDelta = y - lastScrollY;
+      lastScrollY = y;
+      scrollMomentum += (scrollDelta - scrollMomentum) * Math.min(1, 0.3 * dt);
 
-      // Update 3D Camera Tilt
-      if (mouse.active) {
-        const targetTiltX = (mouse.x - width / 2) / (width / 2);
-        const targetTiltY = (mouse.y - height / 2) / (height / 2);
-        tiltX += (targetTiltX - tiltX) * 0.06;
-        tiltY += (targetTiltY - tiltY) * 0.06;
-      } else {
-        tiltX += (0 - tiltX) * 0.03;
-        tiltY += (0 - tiltY) * 0.03;
-      }
+      // Pointer decay (velocity is per-frame, so it is frame-rate scaled).
+      pointer.vx *= Math.pow(0.86, dt);
+      pointer.vy *= Math.pow(0.86, dt);
+      pointer.speed *= Math.pow(0.86, dt);
 
       ctx.clearRect(0, 0, width, height);
 
-      const isLight = document.documentElement.classList.contains('light');
-
-      // 1. Update and render 3D Gravitational Harmonic Waves in Cyber Mint
-      for (let i = shockwaves.length - 1; i >= 0; i--) {
-        const sw = shockwaves[i];
-        sw.age++;
-        sw.radius += sw.speed;
-        sw.alpha = Math.max(0, 1 - sw.radius / sw.maxRadius);
-
-        if (sw.radius >= sw.maxRadius || sw.alpha <= 0) {
-          shockwaves.splice(i, 1);
+      // 1. Click pulses: expanding ring, one arc, fading fast.
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        const p = pulses[i];
+        p.r += 11 * dt;
+        p.alpha -= 0.018 * dt;
+        if (p.alpha <= 0) {
+          pulses.splice(i, 1);
           continue;
         }
-
-        const waveColor = isLight ? '5, 150, 105' : '0, 242, 176';
-        const innerColor = isLight ? '13, 148, 136' : '13, 211, 186';
-
-        // 1a. Pinpoint Diamond Micro-Flare at click epicenter during initial birth (first 14 frames)
-        if (sw.age < 14) {
-          const flareProgress = sw.age / 14;
-          const flareAlpha = (1 - flareProgress) * (isLight ? 0.45 : 0.65);
-          const flareSize = (1 - flareProgress * 0.6) * 12;
-          const flareRot = flareProgress * 1.5;
-
-          ctx.save();
-          ctx.translate(sw.x, sw.y);
-          ctx.rotate(flareRot);
-
-          // Ethereal flare core
-          ctx.beginPath();
-          ctx.arc(0, 0, flareSize * 0.55, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(240, 253, 249, ${flareAlpha})`;
-          ctx.fill();
-
-          // 4-point diamond prism rays
-          ctx.beginPath();
-          ctx.moveTo(0, -flareSize * 1.5);
-          ctx.lineTo(flareSize * 0.3, 0);
-          ctx.lineTo(0, flareSize * 1.5);
-          ctx.lineTo(-flareSize * 0.3, 0);
-          ctx.closePath();
-          ctx.fillStyle = `rgba(${waveColor}, ${flareAlpha * 0.75})`;
-          ctx.fill();
-
-          ctx.beginPath();
-          ctx.moveTo(-flareSize * 1.5, 0);
-          ctx.lineTo(0, flareSize * 0.3);
-          ctx.lineTo(flareSize * 1.5, 0);
-          ctx.lineTo(0, -flareSize * 0.3);
-          ctx.closePath();
-          ctx.fillStyle = `rgba(${waveColor}, ${flareAlpha * 0.75})`;
-          ctx.fill();
-
-          ctx.restore();
-        }
-
-        // 1b. Primary Luminous Wavefront (sleek vector ring + soft inner gradient)
-        const primaryGrad = ctx.createRadialGradient(
-          sw.x, sw.y, Math.max(0, sw.radius - sw.waveWidth),
-          sw.x, sw.y, sw.radius + 6
-        );
-        primaryGrad.addColorStop(0, `rgba(${waveColor}, 0)`);
-        primaryGrad.addColorStop(0.7, `rgba(${waveColor}, ${sw.alpha * (isLight ? 0.1 : 0.15)})`);
-        primaryGrad.addColorStop(1, `rgba(240, 253, 249, ${sw.alpha * (isLight ? 0.22 : 0.34)})`);
-
         ctx.beginPath();
-        ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
-        ctx.fillStyle = primaryGrad;
-        ctx.fill();
-
-        // Crisp leading edge filament
-        ctx.beginPath();
-        ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(${waveColor}, ${sw.alpha * (isLight ? 0.4 : 0.6)})`;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(' + (isLight ? '5, 150, 105' : '0, 242, 176') + ', ' + (p.alpha * 0.35).toFixed(3) + ')';
         ctx.lineWidth = 1;
         ctx.stroke();
-
-        // 1c. Secondary Harmonic Echo Wave (trailing at 72% radius with soft harmonic resonance)
-        if (sw.radius > 32) {
-          const echoRadius = sw.radius * 0.72;
-          ctx.beginPath();
-          ctx.arc(sw.x, sw.y, echoRadius, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(${innerColor}, ${sw.alpha * (isLight ? 0.22 : 0.35)})`;
-          ctx.lineWidth = 0.85;
-          ctx.stroke();
-        }
       }
 
-      // 2. Pairwise particle relaxation: desktop only to keep mobile main-thread light
-      if (!isMobile) {
-      const sepDist = 38;
-      const sepDistSq = sepDist * sepDist;
-      for (let i = 0; i < particles.length; i++) {
-        const p1 = particles[i];
-        for (let j = i + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const pdx = p1.x - p2.x;
-          if (Math.abs(pdx) > sepDist) continue;
-          const pdy = p1.y - p2.y;
-          if (Math.abs(pdy) > sepDist) continue;
-          const distSq = pdx * pdx + pdy * pdy;
-          if (distSq < sepDistSq && distSq > 0.04) {
-            const d = Math.sqrt(distSq);
-            const force = (1 - d / sepDist) * 0.28;
-            const fx = (pdx / d) * force;
-            const fy = (pdy / d) * force;
-            p1.vx += fx;
-            p1.vy += fy;
-            p2.vx -= fx;
-            p2.vy -= fy;
-          }
-        }
-      }
-      }
+      // 2. Stars.
+      const wakeRadius = pointer.radius;
+      const wakeRadiusSq = wakeRadius * wakeRadius;
+      const wakeActive = pointer.active && pointer.speed > 0.6 && !isReducedMotion;
 
-      // 3. Update and render 3D particles
-      for (let i = 0; i < particles.length; i++) {
-        particles[i].update();
-        particles[i].draw(isLight);
-      }
+      for (let i = 0; i < stars.length; i++) {
+        const s = stars[i];
 
-      // 4. Draw 3D constellation filament lines between depth-matched particles
-      for (let i = 0; i < particles.length; i++) {
-        const p1 = particles[i];
+        // Parallax: near stars travel further, which is what makes the field
+        // feel like space instead of a wallpaper.
+        const parallax = 0.055 + s.z * 0.16;
+        let mx = 0;
+        let my = -scrollDelta * parallax;
 
-        for (let j = i + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const depthDiff = Math.abs(p1.currentZ - p2.currentZ);
+        s.x += s.driftX * dt + s.vx * dt;
+        s.y += s.driftY * dt + s.vy * dt;
+        s.vx *= Math.pow(0.9, dt);
+        s.vy *= Math.pow(0.9, dt);
+        s.y += my;
 
-          // Only connect particles that inhabit similar 3D spatial depth
-          if (depthDiff > 0.4) continue;
+        // Wrap: a star that leaves the top re-enters from the bottom, keeping
+        // the sky density constant through any amount of scrolling.
+        if (s.x < -20) s.x = width + 20;
+        else if (s.x > width + 20) s.x = -20;
+        if (s.y < -20) s.y = height + 20;
+        else if (s.y > height + 20) s.y = -20;
 
-          // Fast bounding box reject avoids ~90% of sqrt/distance math
-          const dx = p1.renderX - p2.renderX;
-          if (Math.abs(dx) > maxConnectionDistance) continue;
-          const dy = p1.renderY - p2.renderY;
-          if (Math.abs(dy) > maxConnectionDistance) continue;
-
+        // Pointer: part the field gently, brighten what is close, and drag a
+        // wake behind a fast flick.
+        let hotTarget = 0;
+        if (pointer.active) {
+          const dx = s.x - pointer.x;
+          const dy = s.y - pointer.y;
           const distSq = dx * dx + dy * dy;
-          if (distSq > maxConnectionDistanceSq) continue;
-
-          const dist = Math.sqrt(distSq);
-          const avgZ = (p1.currentZ + p2.currentZ) / 2;
-          const midX = (p1.renderX + p2.renderX) * 0.5;
-          const midY = (p1.renderY + p2.renderY) * 0.5;
-          let alpha = (1 - dist / maxConnectionDistance) * (1 - depthDiff / 0.4) * (isLight ? 0.08 : 0.15) * avgZ;
-          alpha *= focusFade(midX, midY);
-
-          // Cursor and shockwave electromagnetic resonance: lines passing near wavefront or cursor glow with 3D energy
-          if (mouse.active && mouse.x > 0 && mouse.y > 0) {
-            const mDist = Math.hypot(midX - mouse.x, midY - mouse.y);
-            if (mDist < 130) {
-              alpha *= 1 + (1 - mDist / 130) * 0.7;
+          if (distSq < wakeRadiusSq) {
+            const dist = Math.sqrt(distSq) || 1;
+            const near = 1 - dist / wakeRadius;
+            hotTarget = near * near * 1.15;
+            const push = near * near * (isReducedMotion ? 0 : 0.5) * s.z;
+            s.vx += (dx / dist) * push;
+            s.vy += (dy / dist) * push;
+            if (wakeActive) {
+              const wake = near * Math.min(pointer.speed, 26) * 0.14;
+              mx += pointer.vx * wake;
+              my += pointer.vy * wake;
             }
           }
+        }
 
-          for (let s = 0; s < shockwaves.length; s++) {
-            const sw = shockwaves[s];
-            const sDist = Math.hypot(midX - sw.x, midY - sw.y);
-            const sDiff = Math.abs(sDist - sw.radius);
-            if (sDiff < sw.waveWidth) {
-              alpha *= 1 + (1 - sDiff / sw.waveWidth) * sw.alpha * 1.1;
+        // Click pulses light the ring as it passes.
+        for (let k = 0; k < pulses.length; k++) {
+          const p = pulses[k];
+          const dx = s.x - p.x;
+          const dy = s.y - p.y;
+          const band = Math.abs(Math.sqrt(dx * dx + dy * dy) - p.r);
+          if (band < 30) hotTarget += (1 - band / 30) * p.alpha * 0.9;
+        }
+
+        s.hot += (hotTarget - s.hot) * Math.min(1, 0.18 * dt);
+
+        // Streak: length is how far the star actually moved this frame.
+        const motion = Math.sqrt(mx * mx + my * my);
+        if (motion > 0.05) {
+          s.dirX = mx / motion;
+          s.dirY = my / motion;
+        }
+        const targetStreak = Math.min(motion * 3.4, 150);
+        s.streak += (targetStreak - s.streak) * Math.min(1, 0.28 * dt);
+
+        const twinkle = 0.72 + 0.28 * Math.sin(s.twinklePhase);
+        s.twinklePhase += s.twinkleSpeed * dt * 6;
+
+        let a = s.alpha * twinkle * focusFade(s.x, s.y) * lightScale;
+        a *= 1 + s.hot * 1.4;
+        if (a <= 0.004) continue;
+        if (a > 1) a = 1;
+
+        const sprite = s.mint ? mintSprite : skySprite;
+        const rgb = s.mint ? mintRGB : skyRGB;
+        const streakSprite = isLight
+          ? (s.mint ? sprites.streakDustMint : sprites.streakDust)
+          : (s.mint ? sprites.streakMint : sprites.streak);
+
+        // Meteor tail. Only stars that actually travelled a visible distance get
+        // one: short dashes everywhere read as drizzle, not as a sky moving.
+        if (s.streak > 4) {
+          const len = Math.min(s.streak * 2.2, 260);
+          const wid = Math.max(2.4, s.r * 6);
+          ctx.globalAlpha = Math.min(1, a * 0.9);
+          if (s.dirX > -0.06 && s.dirX < 0.06) {
+            // Straight up or down (scroll and most wakes): no rotation, but the
+            // tail still has to trail behind the head in the direction of travel.
+            if (s.dirY < 0) {
+              ctx.save();
+              ctx.translate(s.x, s.y);
+              ctx.scale(1, -1);
+              ctx.drawImage(streakSprite, -wid / 2, -len, wid, len);
+              ctx.restore();
+            } else {
+              ctx.drawImage(streakSprite, s.x - wid / 2, s.y - len, wid, len);
             }
+          } else {
+            ctx.save();
+            ctx.translate(s.x, s.y);
+            ctx.rotate(Math.atan2(s.dirY, s.dirX) - Math.PI / 2);
+            ctx.drawImage(streakSprite, -wid / 2, -len, wid, len);
+            ctx.restore();
           }
+          ctx.globalAlpha = 1;
+        }
 
+        // Star head: soft halo, then a crisp core so the point reads as light.
+        const size = (s.streak > 6 ? 4.2 : 5.4) + s.r * 6.2;
+        ctx.globalAlpha = a;
+        ctx.drawImage(sprite, s.x - size / 2, s.y - size / 2, size, size);
+        ctx.globalAlpha = Math.min(1, a * 1.05);
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, Math.max(0.45, s.r * 0.5), 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(' + rgb + ', 1)';
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        // A few bright stars get the four-point diffraction cross that makes a
+        // point of light read as a star rather than a pixel.
+        if (s.sparkle && s.streak < 8 && a > 0.35) {
+          const arm = s.r * 3.2;
+          ctx.strokeStyle = 'rgba(' + rgb + ', ' + (a * 0.3).toFixed(3) + ')';
+          ctx.lineWidth = 0.6;
           ctx.beginPath();
-          ctx.moveTo(p1.renderX, p1.renderY);
-          ctx.lineTo(p2.renderX, p2.renderY);
-          const strokeColor = isLight ? '5, 150, 105' : '0, 242, 176';
-          ctx.strokeStyle = `rgba(${strokeColor}, ${alpha})`;
-          ctx.lineWidth = 0.55 * avgZ;
+          ctx.moveTo(s.x - arm, s.y);
+          ctx.lineTo(s.x + arm, s.y);
+          ctx.moveTo(s.x, s.y - arm);
+          ctx.lineTo(s.x, s.y + arm);
           ctx.stroke();
-
-          // Animated photon packet travelling along active constellation lines
-          if (alpha > 0.09 && ((i + j) % 9 === 0)) {
-            const t = (frameCount * 0.005 + (i * 0.17)) % 1;
-            const px = p1.renderX + (p2.renderX - p1.renderX) * t;
-            const py = p1.renderY + (p2.renderY - p1.renderY) * t;
-
-            // Outer soft photon halo (pure GPU vector)
-            ctx.beginPath();
-            ctx.arc(px, py, 1.8 * avgZ, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${isLight ? '5, 150, 105' : '0, 242, 176'}, ${alpha * 0.3})`;
-            ctx.fill();
-
-            // Inner bright core
-            ctx.beginPath();
-            ctx.arc(px, py, 0.8 * avgZ, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(240, 253, 249, ${alpha * 1.2})`;
-            ctx.fill();
-          }
         }
       }
 
-      // 5. Ambient glowing energy aura at mouse cursor coordinates in Cyber Mint.
-      // Two radii: a tight core and a wide, very faint bloom that reads as lens light.
-      if (mouse.active && mouse.x > 0 && mouse.y > 0) {
-        const tint = isLight ? '5, 150, 105' : '0, 242, 176';
-
-        const outerGrad = ctx.createRadialGradient(mouse.x, mouse.y, 24, mouse.x, mouse.y, 168);
-        outerGrad.addColorStop(0, `rgba(${tint}, ${isLight ? 0.05 : 0.075})`);
-        outerGrad.addColorStop(0.55, `rgba(${tint}, ${isLight ? 0.018 : 0.028})`);
-        outerGrad.addColorStop(1, 'rgba(0, 242, 176, 0)');
-        ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, 168, 0, Math.PI * 2);
-        ctx.fillStyle = outerGrad;
-        ctx.fill();
-
-        const mouseGrad = ctx.createRadialGradient(mouse.x, mouse.y, 2, mouse.x, mouse.y, 44);
-        mouseGrad.addColorStop(0, `rgba(${tint}, ${isLight ? 0.14 : 0.21})`);
-        mouseGrad.addColorStop(0.35, `rgba(${tint}, ${isLight ? 0.05 : 0.07})`);
-        mouseGrad.addColorStop(1, 'rgba(0, 242, 176, 0)');
-        ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, 44, 0, Math.PI * 2);
-        ctx.fillStyle = mouseGrad;
-        ctx.fill();
-      }
-
-      // 6. Rare shooting stars: one diagonal streak every ~8-18 seconds.
+      // 3. Idle shooting stars.
       if (!isReducedMotion) {
-        if (frameCount > nextShootingStar) {
-          nextShootingStar = frameCount + 480 + Math.floor(Math.random() * 620);
-          if (shootingStars.length < 2) {
-            const angle = Math.PI / 4 + (Math.random() - 0.5) * 0.5;
-            const speed = 8.5 + Math.random() * 5;
-            shootingStars.push({
-              x: Math.random() * width * 0.85,
-              y: Math.random() * height * 0.32,
-              vx: Math.cos(angle) * speed,
-              vy: Math.sin(angle) * speed,
-              life: 0,
-              maxLife: 58 + Math.floor(Math.random() * 34),
-            });
-          }
+        if (frameCount > nextMeteorAt) {
+          nextMeteorAt = frameCount + 420 + Math.random() * 660;
+          spawnMeteor();
         }
 
-        for (let i = shootingStars.length - 1; i >= 0; i--) {
-          const star = shootingStars[i];
-          star.life++;
-          star.x += star.vx;
-          star.y += star.vy;
+        for (let i = meteors.length - 1; i >= 0; i--) {
+          const m = meteors[i];
+          m.life += dt;
+          m.x += m.vx * dt;
+          m.y += m.vy * dt;
 
-          const t = star.life / star.maxLife;
-          if (t >= 1) {
-            shootingStars.splice(i, 1);
+          const t = m.life / m.maxLife;
+          if (t >= 1 || m.x < -400 || m.x > width + 400 || m.y > height + 400) {
+            meteors.splice(i, 1);
             continue;
           }
 
-          // Sine envelope: fades in, peaks mid-flight, fades out.
-          const fade = Math.sin(Math.PI * t);
-          const tailX = star.x - star.vx * 10;
-          const tailY = star.y - star.vy * 10;
-          const headColor = isLight ? '5, 150, 105' : '240, 253, 249';
+          // Sine envelope: fade in, peak mid-flight, fade out. No hard start.
+          // Light theme gets a whisper only: a bright meteor on white paper
+          // reads as a scratch.
+          const fade = Math.sin(Math.PI * t) * (isLight ? 0.28 : 1);
+          const speed = Math.sqrt(m.vx * m.vx + m.vy * m.vy) || 1;
+          const dx = m.vx / speed;
+          const dy = m.vy / speed;
 
-          const trail = ctx.createLinearGradient(tailX, tailY, star.x, star.y);
-          trail.addColorStop(0, 'rgba(0, 242, 176, 0)');
-          trail.addColorStop(1, `rgba(${headColor}, ${(fade * (isLight ? 0.32 : 0.6)).toFixed(3)})`);
+          // Tapered tail from the shared sprite, rotated onto the flight path.
+          const tailSprite = isLight ? sprites.streakDust : sprites.streakMint;
+          const tailLen = m.len * (0.6 + 0.4 * fade);
+          const tailWid = 5 + m.width * 5;
+          ctx.globalAlpha = Math.min(1, fade * 0.9);
+          ctx.save();
+          ctx.translate(m.x, m.y);
+          ctx.rotate(Math.atan2(dy, dx) - Math.PI / 2);
+          ctx.drawImage(tailSprite, -tailWid / 2, -tailLen, tailWid, tailLen);
+          ctx.restore();
 
-          ctx.beginPath();
-          ctx.moveTo(tailX, tailY);
-          ctx.lineTo(star.x, star.y);
-          ctx.strokeStyle = trail;
-          ctx.lineWidth = 1.2;
-          ctx.lineCap = 'round';
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.arc(star.x, star.y, 1.7, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${headColor}, ${(fade * (isLight ? 0.4 : 0.8)).toFixed(3)})`;
-          ctx.fill();
+          const headSize = 20 + fade * 14;
+          ctx.globalAlpha = Math.min(1, fade * 0.95);
+          ctx.drawImage(skySprite, m.x - headSize / 2, m.y - headSize / 2, headSize, headSize);
+          ctx.globalAlpha = 1;
         }
+      }
+
+      // 4. Pointer bloom: a single soft light so the sky reacts to the cursor
+      // even between stars.
+      if (pointer.active && !isReducedMotion) {
+        const tint = isLight ? '5, 150, 105' : '0, 242, 176';
+        const bloom = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 150);
+        bloom.addColorStop(0, 'rgba(' + tint + ', ' + (isLight ? 0.05 : 0.07) + ')');
+        bloom.addColorStop(0.45, 'rgba(' + tint + ', ' + (isLight ? 0.02 : 0.03) + ')');
+        bloom.addColorStop(1, 'rgba(' + tint + ', 0)');
+        ctx.beginPath();
+        ctx.arc(pointer.x, pointer.y, 150, 0, Math.PI * 2);
+        ctx.fillStyle = bloom;
+        ctx.fill();
       }
     }
 
-    fieldReady = true;
-    render();
+    resize();
+    if (!isReducedMotion) render(performance.now());
 
     // Stop the field entirely while the tab is hidden; resume without a jump.
     document.addEventListener('visibilitychange', function () {
@@ -959,6 +732,7 @@
         return;
       }
       if (!isReducedMotion && !animationFrameId) {
+        lastFrameTime = performance.now();
         animationFrameId = requestAnimationFrame(render);
       }
     });
@@ -1052,7 +826,6 @@
     let isVisible = false;
     let magneticEl = null;
     let lastTime = 0;
-    let emberCount = 0;
 
     // Ring is snappy (slight overshoot), halo trails far behind for depth.
     const ringSpring = { x: -300, y: -300, vx: 0, vy: 0 };
@@ -1088,16 +861,18 @@
       haloSpring.y = pointerY;
       haloSpring.vx = 0;
       haloSpring.vy = 0;
-      dot.style.opacity = '1';
-      ring.style.opacity = '1';
-      halo.style.opacity = '1';
+      // A class, not an inline style: an inline opacity would outrank every
+      // state rule below (hover recedes the halo to 0.45, invert to 0.55).
+      dot.classList.add('cursor-visible');
+      ring.classList.add('cursor-visible');
+      halo.classList.add('cursor-visible');
     }
 
     function hide() {
       isVisible = false;
-      dot.style.opacity = '0';
-      ring.style.opacity = '0';
-      halo.style.opacity = '0';
+      dot.classList.remove('cursor-visible');
+      ring.classList.remove('cursor-visible');
+      halo.classList.remove('cursor-visible');
       if (magneticEl) {
         magneticEl.style.transform = '';
         magneticEl = null;
@@ -1129,7 +904,7 @@
     const interactiveSelector =
       'a, button, input, textarea, select, [role="button"], [role="tab"], .btn-pill, .btn-icon, .hero-oneshot, .card-inner, .faq-item, .mobile-nav-link, .nav-link, summary, .calc-profile-btn, .cmd-pill';
     const magneticSelector = '.btn-pill-primary, .hero-oneshot, #themeToggleBtn, .btn-icon, .dl-btn-primary';
-    const dragSelector = '[data-cursor="drag"], .app-tabs-island, .comp-table-wrap';
+    const dragSelector = '[data-cursor="drag"], .comp-table-wrap';
     // Solid mint surfaces swallow a mint cursor: the dot and ring need to
     // invert to near-black there or they simply disappear on the CTA.
     const accentSurfaceSelector = '.btn-pill-primary, .nav-download-btn, .pane-btn-primary';
@@ -1240,21 +1015,8 @@
           currentAngle = Math.atan2(ringSpring.vy, ringSpring.vx) * (180 / Math.PI);
         }
 
-        // Embers only on genuine flicks, and never more than six alive at once.
-        if (speed > 320 && !magneticEl && emberCount < 6 && Math.random() < 0.5) {
-          emberCount++;
-          const ember = document.createElement('div');
-          ember.className = 'cursor-ember';
-          ember.style.left = ringSpring.x + 'px';
-          ember.style.top = ringSpring.y + 'px';
-          ember.style.setProperty('--tx', (-(ringSpring.vx * 0.012) + (Math.random() - 0.5) * 10).toFixed(1) + 'px');
-          ember.style.setProperty('--ty', (-(ringSpring.vy * 0.012) + (Math.random() - 0.5) * 10).toFixed(1) + 'px');
-          document.body.appendChild(ember);
-          setTimeout(function () { // DevSkim: ignore DS172411
-            if (ember.parentNode) ember.parentNode.removeChild(ember);
-            emberCount = Math.max(0, emberCount - 1);
-          }, 420);
-        }
+        // No spark particles: the comet halo already carries the motion, and
+        // random spawns read as noise rather than feedback.
 
         // Velocity-based aerodynamic stretch along the direction of travel.
         const targetStretch = magneticEl || isDrag ? 1 : 1 + Math.min(speed * 0.00045, 0.34);

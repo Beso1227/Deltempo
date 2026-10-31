@@ -121,11 +121,15 @@
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', Consolas, Monaco, 'Courier New', monospace;
 
-  /* Dark Theme Tokens (Obsidian Carbon & Cyber Mint) */
-  --bg-canvas: #0B0F10;
-  --bg-surface: #0E1416;
-  --bg-card: #12191C;
-  --bg-card-hover: #182327;
+  /* Dark Theme Tokens (Deep Space & Cyber Mint)
+     The canvas is near-black so the starfield reads as sky rather than as
+     texture on a grey panel; surfaces step up in tiny increments so cards
+     still separate without turning the page grey. */
+  --bg-canvas: #04060B;
+  --bg-surface: #080C13;
+  --bg-card: #0B1119;
+  --bg-card-hover: #121A25;
+  --bg-surface-elevated: #141D2A;
   --bg-bezel: rgba(0, 242, 176, 0.03);
 
   --border-subtle: rgba(0, 242, 176, 0.12);
@@ -135,8 +139,9 @@
   --text-high: #F8FAFC;
   --text-med: #94A3B8;
   /* Dark theme needs a LIGHT low-emphasis ink: #475569 is the light-theme value
-     and only reaches 2.5:1 on #0B0F10/#12191C (WCAG AA needs 4.5:1).
-     #7C8CA1 measures 5.6:1 on --bg-canvas, 5.2:1 on --bg-card, 4.7:1 on hover. */
+     and only reaches 2.5:1 on the dark canvas (WCAG AA needs 4.5:1).
+     #7C8CA1 measures 7.4:1 on --bg-canvas, 6.9:1 on --bg-card,
+     6.3:1 on hover. */
   --text-low: #7C8CA1;
 
   --accent-cyan: #00F2B0;
@@ -174,6 +179,7 @@ html.light {
   --bg-surface: #FFFFFF;
   --bg-card: #F1F5F9;
   --bg-card-hover: #E2E8F0;
+  --bg-surface-elevated: #E2E8F0;
   --bg-bezel: rgba(0, 0, 0, 0.02);
 
   --border-subtle: rgba(0, 0, 0, 0.08);
@@ -298,13 +304,14 @@ footer,
 }
 
 /* Fine film grain: breaks up the blurred gradients so the backdrop reads as
-   material instead of flat CSS glow. Sits under the particle canvas. */
+   material instead of flat CSS glow. It has to stay very low: soft-light noise
+   lifts a near-black canvas by ~6% at 0.35, which turns space grey. */
 .ambient-aurora::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.1;
   mix-blend-mode: soft-light;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
   background-size: 160px 160px;
@@ -315,6 +322,8 @@ html.light .ambient-aurora::after {
   mix-blend-mode: multiply;
 }
 
+/* Cold nebula, not an aurora. Three very faint clouds give the black some
+   depth: mint (brand), deep blue, and a cyan-teal wash at the bottom. */
 .aurora-orb-1 {
   top: -10vw;
   left: 5vw;
@@ -324,7 +333,7 @@ html.light .ambient-aurora::after {
   max-height: 800px;
   background: radial-gradient(circle, #00F2B0 0%, rgba(0, 242, 176, 0) 70%);
   animation: aurora-drift-1 26s ease-in-out infinite alternate;
-  opacity: 0.13;
+  opacity: 0.055;
 }
 
 .aurora-orb-2 {
@@ -334,9 +343,9 @@ html.light .ambient-aurora::after {
   height: 60vw;
   max-width: 900px;
   max-height: 900px;
-  background: radial-gradient(circle, #0DD3BA 0%, rgba(13, 211, 186, 0) 70%);
+  background: radial-gradient(circle, #1E3A8A 0%, rgba(30, 58, 138, 0) 70%);
   animation: aurora-drift-2 30s ease-in-out infinite alternate;
-  opacity: 0.11;
+  opacity: 0.18;
 }
 
 .aurora-orb-3 {
@@ -346,17 +355,19 @@ html.light .ambient-aurora::after {
   height: 50vw;
   max-width: 750px;
   max-height: 750px;
-  background: radial-gradient(circle, #059669 0%, rgba(5, 150, 105, 0) 70%);
+  background: radial-gradient(circle, #0E7490 0%, rgba(14, 116, 144, 0) 70%);
   animation: aurora-drift-3 34s ease-in-out infinite alternate;
-  opacity: 0.12;
+  opacity: 0.1;
 }
 
+/* A whisper of a grid: enough to register as a coordinate plane behind the
+   stars, not enough to read as a wireframe. */
 .aurora-grid {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
   background-size: 52px 52px;
   mask-image: radial-gradient(circle at 50% 35%, black 45%, transparent 85%);
   -webkit-mask-image: radial-gradient(circle at 50% 35%, black 45%, transparent 85%);
@@ -725,7 +736,7 @@ html.light .btn-pill-primary:hover {
 }
 
 .btn-pill-secondary {
-  background: rgba(14, 20, 22, 0.72);
+  background: rgba(8, 12, 19, 0.72);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-subtle);
@@ -1214,7 +1225,7 @@ html.light .app-window {
 .scope-card {
   padding: 1.15rem;
   border-radius: var(--radius-md);
-  background: linear-gradient(145deg, rgba(22, 31, 34, 0.9) 0%, rgba(14, 20, 22, 0.95) 100%);
+  background: linear-gradient(145deg, rgba(18, 26, 37, 0.9) 0%, rgba(8, 12, 19, 0.95) 100%);
   border: 1px solid rgba(0, 242, 176, 0.16);
   box-shadow: inset 0 1px 0 rgba(0, 242, 176, 0.12), 0 4px 16px rgba(0, 0, 0, 0.3);
   display: flex;
@@ -1928,7 +1939,7 @@ html.light .trust-banner .btn-pill-secondary {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(11, 15, 16, 0.96);
+  background: rgba(4, 6, 11, 0.96);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
   z-index: 999;
@@ -2082,121 +2093,123 @@ html.light .mobile-menu-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    background: #FFFFFF;
-    box-shadow:
-      0 0 0 1.5px #00F2B0,
-      0 0 10px #00F2B0,
-      0 0 20px rgba(0, 242, 176, 0.85);
+    background: #00F2B0;
+    box-shadow: 0 0 0 1px rgba(4, 20, 15, 0.55);
     pointer-events: none !important;
     z-index: 999999;
     opacity: 0;
     will-change: transform;
-    transition: opacity 0.15s ease, width 0.18s cubic-bezier(0.16, 1, 0.3, 1), height 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease, box-shadow 0.18s ease;
+    transition: opacity 0.15s ease, width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, box-shadow 0.2s ease;
   }
 
+  /* Shown once the pointer has been seen. Kept as a class so the state rules
+     (hover, invert, text) can still override the opacity. */
+  .precision-cursor-dot.cursor-visible,
+  .precision-cursor-ring.cursor-visible,
+  .precision-cursor-halo.cursor-visible {
+    opacity: 1;
+  }
+
+  /* One hairline, no fill, no glow. The soft layer is the halo behind it;
+     a second glow here only smears the edge that makes the pointer precise. */
   .precision-cursor-ring {
     position: fixed;
     top: 0;
     left: 0;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    border: 1.5px solid rgba(0, 242, 176, 0.75);
-    background: radial-gradient(circle, rgba(0, 242, 176, 0.12) 0%, transparent 70%);
-    box-shadow: 0 0 16px rgba(0, 242, 176, 0.25);
+    border: 1px solid rgba(0, 242, 176, 0.5);
+    background: transparent;
     pointer-events: none !important;
     z-index: 999998;
     opacity: 0;
     will-change: transform;
-    transition: opacity 0.2s ease, width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    transition: opacity 0.2s ease, width 0.26s cubic-bezier(0.16, 1, 0.3, 1), height 0.26s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, background-color 0.22s ease;
   }
 
-  /* Hover State (Links, Buttons, Interactive Cards) */
+  /* Hover: the ring opens up and the dot tightens. Nothing blurs. */
   .precision-cursor-ring.cursor-hover {
-    width: 52px;
-    height: 52px;
-    border-color: rgba(13, 211, 186, 0.9);
-    background: radial-gradient(circle, rgba(13, 211, 186, 0.22) 0%, rgba(0, 242, 176, 0.08) 65%, transparent 80%);
-    box-shadow: 0 0 28px rgba(13, 211, 186, 0.5);
+    width: 46px;
+    height: 46px;
+    border-color: rgba(0, 242, 176, 0.95);
+    background: rgba(0, 242, 176, 0.05);
   }
 
   .precision-cursor-dot.cursor-hover {
-    width: 9px;
-    height: 9px;
-    background: #FFFFFF;
-    box-shadow:
-      0 0 0 2px #00F2B0,
-      0 0 14px #00F2B0,
-      0 0 26px rgba(0, 242, 176, 0.9);
+    width: 4px;
+    height: 4px;
+    background: #00F2B0;
+    box-shadow: 0 0 0 1px rgba(4, 20, 15, 0.55), 0 0 10px rgba(0, 242, 176, 0.35);
   }
 
-  /* Active / Pressed State */
+  /* Press: the ring closes on the point, then springs back with the pointer. */
   .precision-cursor-ring.cursor-active {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     border-color: #00F2B0;
-    background: rgba(16, 185, 129, 0.3);
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.7);
+    background: rgba(0, 242, 176, 0.14);
   }
 
   .precision-cursor-dot.cursor-active {
-    width: 5px;
-    height: 5px;
-    background: #10B981;
-    box-shadow: 0 0 14px #10B981;
+    width: 3px;
+    height: 3px;
+    background: #00F2B0;
   }
 
-  /* Text Input State */
+  /* Text fields: the ring becomes a caret so the insertion point is readable. */
   .precision-cursor-ring.cursor-text {
-    width: 3px;
-    height: 22px;
-    border-radius: 2px;
+    width: 2px;
+    height: 20px;
+    border-radius: 1px;
     border: none;
     background: #00F2B0;
-    box-shadow: 0 0 14px rgba(0, 242, 176, 0.9);
   }
 
   .precision-cursor-dot.cursor-text {
     opacity: 0 !important;
   }
 
-  /* Magnetic Snapping Bracket State */
+  /* Magnetic targets: same hairline, one step wider, so the ring reads as
+     holding the control instead of snapping to a second shape. */
   .precision-cursor-ring.cursor-magnetic {
-    border-radius: 14px;
-    border-color: #00F2B0;
-    background: rgba(0, 242, 176, 0.08);
-    box-shadow: 0 0 24px rgba(0, 242, 176, 0.35);
+    width: 52px;
+    height: 52px;
+    border-color: rgba(0, 242, 176, 0.9);
+  }
+
+  /* Press always wins over the magnetic width: the ring closes on the point
+     even when it was holding a control. */
+  .precision-cursor-ring.cursor-magnetic.cursor-active {
+    width: 24px;
+    height: 24px;
   }
 
   /* Light Theme Tuning */
   html.light .precision-cursor-dot {
-    background: #059669;
-    box-shadow: 0 0 0 1.5px #059669, 0 0 10px rgba(5, 150, 105, 0.85);
+    background: #047857;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
   }
 
   html.light .precision-cursor-ring {
-    border-color: rgba(5, 150, 105, 0.75);
-    background: radial-gradient(circle, rgba(5, 150, 105, 0.12) 0%, transparent 70%);
+    border-color: rgba(4, 120, 87, 0.5);
   }
 
   html.light .precision-cursor-ring.cursor-hover {
-    border-color: rgba(13, 148, 136, 0.9);
-    background: radial-gradient(circle, rgba(13, 148, 136, 0.18) 0%, transparent 70%);
-    box-shadow: 0 0 24px rgba(13, 148, 136, 0.4);
+    border-color: rgba(4, 120, 87, 0.95);
+    background: rgba(4, 120, 87, 0.05);
   }
 
   html.light .precision-cursor-dot.cursor-hover {
     background: #047857;
-    box-shadow: 0 0 0 2px #047857, 0 0 14px rgba(4, 120, 87, 0.9);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
   }
 
   html.light .precision-cursor-ring.cursor-magnetic {
-    border-color: #059669;
-    background: rgba(5, 150, 105, 0.08);
-    box-shadow: 0 0 20px rgba(5, 150, 105, 0.25);
+    border-color: rgba(4, 120, 87, 0.9);
   }
 }
 
@@ -2337,7 +2350,7 @@ html.light .badge-tag-bad {
 
 .compare-table th {
   padding: 1.25rem 1.5rem;
-  background: rgba(14, 20, 22, 0.95);
+  background: rgba(8, 12, 19, 0.95);
   font-weight: 700;
   border-bottom: 1px solid rgba(0, 242, 176, 0.16);
   color: var(--text-high);
@@ -2496,52 +2509,27 @@ html.light .back-to-top {
 }
 
 /* ==========================================================================
-   KINETIC CYBERNETIC CURSOR PULSE
+   CURSOR PRESS RIPPLES
    ========================================================================== */
 .cursor-click-pulse {
   position: fixed;
-  width: 16px;
-  height: 16px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  border: 1.5px solid #00F2B0;
-  box-shadow: 0 0 18px rgba(0, 242, 176, 0.85), inset 0 0 10px rgba(0, 242, 176, 0.4);
+  border: 1px solid rgba(0, 242, 176, 0.9);
   transform: translate(-50%, -50%) scale(1);
   pointer-events: none !important;
   z-index: 999997;
-  animation: cursorPulseAnim 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: cursorPulseAnim 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes cursorPulseAnim {
-  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(4.8); opacity: 0; }
-}
-
-/* Kinetic Cyber Spark Embers (micro-trail on rapid motion) */
-.cursor-ember {
-  position: fixed;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #00F2B0;
-  box-shadow: 0 0 8px #00F2B0, 0 0 14px rgba(0, 242, 176, 0.9);
-  pointer-events: none !important;
-  z-index: 999996;
-  transform: translate(-50%, -50%) scale(1);
-  animation: emberFade 0.36s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes emberFade {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
-  100% { transform: translate(-50%, -50%) scale(0.2) translate(var(--tx, 0px), var(--ty, 0px)); opacity: 0; }
+  0% { transform: translate(-50%, -50%) scale(0.75); opacity: 0.95; }
+  100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
 }
 
 html.light .cursor-click-pulse {
-  border-color: #059669;
-  box-shadow: 0 0 14px rgba(5, 150, 105, 0.85);
-}
-html.light .cursor-ember {
-  background: #059669;
-  box-shadow: 0 0 8px #059669;
+  border-color: rgba(4, 120, 87, 0.9);
 }
 
 /* ==========================================================================
@@ -2967,7 +2955,7 @@ html.light .video-double-bezel {
   aspect-ratio: 16 / 9;
   border-radius: calc(var(--radius-xl) - 8px);
   overflow: hidden;
-  background: #0B0F10;
+  background: #04060B;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -4631,12 +4619,14 @@ html.light.is-scrolled .nav-island {
     width: 84px;
     height: 84px;
     border-radius: 50%;
-    border: 1px solid rgba(0, 242, 176, 0.1);
+    /* No border: a hairline here would read as a third orbit. This layer is
+       only the ambient bloom behind the dot and the ring. */
     background: radial-gradient(
       circle,
-      rgba(0, 242, 176, 0.11) 0%,
-      rgba(0, 242, 176, 0.035) 48%,
-      rgba(0, 242, 176, 0) 72%
+      rgba(0, 242, 176, 0.12) 0%,
+      rgba(0, 242, 176, 0.04) 40%,
+      rgba(0, 242, 176, 0.012) 70%,
+      rgba(0, 242, 176, 0) 100%
     );
     pointer-events: none !important;
     z-index: 999997;
@@ -4646,12 +4636,12 @@ html.light.is-scrolled .nav-island {
   }
 
   html.light .precision-cursor-halo {
-    border-color: rgba(4, 120, 87, 0.1);
     background: radial-gradient(
       circle,
-      rgba(4, 120, 87, 0.1) 0%,
-      rgba(4, 120, 87, 0.03) 48%,
-      rgba(4, 120, 87, 0) 72%
+      rgba(4, 120, 87, 0.11) 0%,
+      rgba(4, 120, 87, 0.035) 40%,
+      rgba(4, 120, 87, 0.01) 70%,
+      rgba(4, 120, 87, 0) 100%
     );
   }
 
@@ -4662,8 +4652,7 @@ html.light.is-scrolled .nav-island {
     height: 32px;
     border-radius: 999px;
     border-color: rgba(0, 242, 176, 0.6);
-    background: rgba(0, 242, 176, 0.08);
-    box-shadow: 0 0 20px rgba(0, 242, 176, 0.22), inset 0 0 12px rgba(0, 242, 176, 0.08);
+    background: rgba(0, 242, 176, 0.06);
   }
 
   .precision-cursor-ring.cursor-drag::before,
@@ -4694,8 +4683,7 @@ html.light.is-scrolled .nav-island {
 
   html.light .precision-cursor-ring.cursor-drag {
     border-color: rgba(4, 120, 87, 0.55);
-    background: rgba(4, 120, 87, 0.07);
-    box-shadow: 0 0 18px rgba(4, 120, 87, 0.16), inset 0 0 12px rgba(4, 120, 87, 0.06);
+    background: rgba(4, 120, 87, 0.06);
   }
 
   html.light .precision-cursor-ring.cursor-drag::before,
@@ -5218,78 +5206,25 @@ html.light .back-to-top::before {
   );
 }
 
-/* --- 9. Cursor: hover depth + click ripples ----------------------------
-   Hover now inverts (dot shrinks, ring fills) and grows a dashed orbit.
-   Click fires a fast inner ring plus the existing slow outer wave. */
+/* --- 9. Cursor: hover weight + click ripples ---------------------------
+   Hover opens the ring and tightens the dot; the halo recedes so the
+   hairline stays the sharpest thing on screen. Press closes the ring, then
+   one slow and one fast ripple read as a deliberate press. */
 @media (hover: hover) and (pointer: fine) {
-  .precision-cursor-ring::after {
-    content: "";
-    position: absolute;
-    inset: -7px;
-    border-radius: inherit;
-    border: 1px dashed rgba(0, 242, 176, 0);
-    opacity: 0;
-    transition: opacity 0.24s ease, border-color 0.24s ease;
-    pointer-events: none;
-  }
-
-  .precision-cursor-ring.cursor-hover::after {
-    border-color: rgba(0, 242, 176, 0.45);
-    opacity: 1;
-    animation: cursor-orbit 5.5s linear infinite;
-  }
-
-  .precision-cursor-ring.cursor-hover {
-    border-width: 1px;
-    background: radial-gradient(
-      circle,
-      rgba(13, 211, 186, 0.3) 0%,
-      rgba(0, 242, 176, 0.12) 60%,
-      transparent 82%
-    );
-  }
-
-  .precision-cursor-dot.cursor-hover {
-    width: 5px;
-    height: 5px;
-    background: #00F2B0;
-  }
-
   .precision-cursor-halo.cursor-hover {
-    opacity: 0.9;
-  }
-
-  html.light .precision-cursor-ring.cursor-hover::after {
-    border-color: rgba(4, 120, 87, 0.45);
-  }
-
-  html.light .precision-cursor-dot.cursor-hover {
-    background: #047857;
+    opacity: 0.45;
   }
 
   /* Over a solid mint CTA the mint cursor is invisible. Invert to near-black
      with a white keyline so the pointer stays legible on the brightest surface. */
   .precision-cursor-dot.cursor-invert {
     background: #04140F;
-    box-shadow:
-      0 0 0 1.5px rgba(255, 255, 255, 0.92),
-      0 0 12px rgba(4, 20, 15, 0.5);
+    box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.92);
   }
 
   .precision-cursor-ring.cursor-invert {
-    border-width: 1.5px;
     border-color: rgba(4, 20, 15, 0.72);
-    background: radial-gradient(
-      circle,
-      rgba(4, 20, 15, 0.14) 0%,
-      rgba(4, 20, 15, 0.05) 62%,
-      transparent 84%
-    );
-    box-shadow: 0 0 14px rgba(4, 20, 15, 0.22);
-  }
-
-  .precision-cursor-ring.cursor-invert::after {
-    border-color: rgba(4, 20, 15, 0.4);
+    background: transparent;
   }
 
   .precision-cursor-halo.cursor-invert {
@@ -5298,15 +5233,9 @@ html.light .back-to-top::before {
 
   /* Second, faster ripple on press. */
   .cursor-click-pulse.pulse-inner {
-    animation-duration: 0.36s;
-    animation-delay: 0.05s;
-    border-width: 2px;
-  }
-}
-
-@keyframes cursor-orbit {
-  to {
-    transform: rotate(360deg);
+    animation-duration: 0.34s;
+    animation-delay: 0.04s;
+    border-width: 1.5px;
   }
 }
 
@@ -5325,10 +5254,6 @@ html.light .back-to-top::before {
 
   .tab-pane.active,
   .mobile-menu-overlay.open .mobile-nav-link {
-    animation: none;
-  }
-
-  .precision-cursor-ring.cursor-hover::after {
     animation: none;
   }
 

@@ -41,7 +41,7 @@
   <link rel="apple-touch-icon" href="../app_icon.webp">
 
   <!-- Fonts & Shared Style (fonts are self-hosted in style.css below - no Google Fonts request chain) -->
-  <link rel="stylesheet" href="../style.css?v=3.2.0">
+  <link rel="stylesheet" href="../style.css?v=3.6.8">
 
   <!-- Web App Manifest (PWA installability) -->
   <link rel="manifest" href="../manifest.json?v=2.7.14">
@@ -269,7 +269,7 @@
         <div class="download-oneliner-row">
           <button type="button" class="hero-oneshot" id="onelinerBtn" title="Click to copy the one-line install command">
             <span class="accent-cyan-text">$</span>
-            <span class="hero-oneshot-cmd">irm https://beso1227.github.io/Deltempo/win | Invoke-Expression</span>
+            <span class="hero-oneshot-cmd">irm https://beso1227.github.io/Deltempo/win | iex</span>
             <span class="hero-oneshot-copy" id="onelinerBadge">Copy</span>
           </button>
           <span class="download-oneliner-hint"># PowerShell 5.1+ or PowerShell 7</span>
@@ -361,7 +361,7 @@
       const onelinerBtn = document.getElementById('onelinerBtn');
       const onelinerBadge = document.getElementById('onelinerBadge');
       const onelinerCmd = document.querySelector('.hero-oneshot-cmd');
-      const ONE_LINER_CMD = 'irm https://beso1227.github.io/Deltempo/win | Invoke-Expression'; // DevSkim: ignore DS172411
+      const ONE_LINER_CMD = 'irm https://beso1227.github.io/Deltempo/win | iex'; // DevSkim: ignore DS172411
       const ONE_LINER_TITLE = 'Click to copy the one-line install command';
       const ONE_LINER_BLOCKED_TITLE = 'Auto-copy was blocked by your browser or an extension. The command is selected — press Ctrl+C.';
       let oneLinerBadgeTimer = null;
@@ -597,6 +597,6 @@
   </script>
   <!-- Cybernetic Motion Engine -->
   <script src="../vendor/lenis.min.js" defer></script>
-  <script src="../motion.js?v=3.2.0" defer></script>
+  <script src="../motion.js?v=3.6.8" defer></script>
 </body>
 </html>
