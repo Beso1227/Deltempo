@@ -199,7 +199,7 @@
   }
 
   /* ==========================================================================
-     4. Deep-space starfield: scroll streaks, pointer wake, idle shooting stars
+     4. Deep-space starfield: scroll streaks, pointer repulsion, idle shooting stars
      ========================================================================== */
   function initInteractiveBackground() {
     let canvas = document.getElementById('ambientCanvas');
@@ -241,9 +241,6 @@
     const pointer = {
       x: -9999,
       y: -9999,
-      vx: 0,
-      vy: 0,
-      speed: 0,
       active: false,
       radius: 190,
     };
@@ -349,7 +346,6 @@
       star.vx = 0;
       star.vy = 0;
       star.streak = 0;
-      star.dirX = 0;
       star.dirY = 1;
       star.hot = 0;
       return star;
@@ -420,15 +416,8 @@
 
     // --- Pointer ------------------------------------------------------------
     function onPointerMove(e) {
-      const x = e.clientX;
-      const y = e.clientY;
-      if (pointer.x > -5000) {
-        pointer.vx = pointer.vx * 0.4 + (x - pointer.x) * 0.6;
-        pointer.vy = pointer.vy * 0.4 + (y - pointer.y) * 0.6;
-        pointer.speed = Math.sqrt(pointer.vx * pointer.vx + pointer.vy * pointer.vy);
-      }
-      pointer.x = x;
-      pointer.y = y;
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
       pointer.active = true;
     }
 
@@ -438,9 +427,6 @@
         pointer.active = false;
         pointer.x = -9999;
         pointer.y = -9999;
-        pointer.vx = 0;
-        pointer.vy = 0;
-        pointer.speed = 0;
       });
       window.addEventListener('pointerdown', function (e) {
         if (e.button !== 0) return;
@@ -499,11 +485,6 @@
       lastScrollY = y;
       scrollMomentum += (scrollDelta - scrollMomentum) * Math.min(1, 0.3 * dt);
 
-      // Pointer decay (velocity is per-frame, so it is frame-rate scaled).
-      pointer.vx *= Math.pow(0.86, dt);
-      pointer.vy *= Math.pow(0.86, dt);
-      pointer.speed *= Math.pow(0.86, dt);
-
       ctx.clearRect(0, 0, width, height);
 
       // 1. Click pulses: expanding ring, one arc, fading fast.
@@ -525,7 +506,6 @@
       // 2. Stars.
       const wakeRadius = pointer.radius;
       const wakeRadiusSq = wakeRadius * wakeRadius;
-      const wakeActive = pointer.active && pointer.speed > 0.6 && !isReducedMotion;
 
       for (let i = 0; i < stars.length; i++) {
         const s = stars[i];
@@ -533,8 +513,7 @@
         // Parallax: near stars travel further, which is what makes the field
         // feel like space instead of a wallpaper.
         const parallax = 0.055 + s.z * 0.16;
-        let mx = 0;
-        let my = -scrollDelta * parallax;
+        const my = -scrollDelta * parallax;
 
         s.x += s.driftX * dt + s.vx * dt;
         s.y += s.driftY * dt + s.vy * dt;
@@ -549,8 +528,8 @@
         if (s.y < -20) s.y = height + 20;
         else if (s.y > height + 20) s.y = -20;
 
-        // Pointer: part the field gently, brighten what is close, and drag a
-        // wake behind a fast flick.
+        // Pointer: part the field gently and brighten what is close. The
+        // pointer never draws a tail — streaks belong to scroll and meteors.
         let hotTarget = 0;
         if (pointer.active) {
           const dx = s.x - pointer.x;
@@ -563,11 +542,6 @@
             const push = near * near * (isReducedMotion ? 0 : 0.5) * s.z;
             s.vx += (dx / dist) * push;
             s.vy += (dy / dist) * push;
-            if (wakeActive) {
-              const wake = near * Math.min(pointer.speed, 26) * 0.14;
-              mx += pointer.vx * wake;
-              my += pointer.vy * wake;
-            }
           }
         }
 
@@ -582,12 +556,10 @@
 
         s.hot += (hotTarget - s.hot) * Math.min(1, 0.18 * dt);
 
-        // Streak: length is how far the star actually moved this frame.
-        const motion = Math.sqrt(mx * mx + my * my);
-        if (motion > 0.05) {
-          s.dirX = mx / motion;
-          s.dirY = my / motion;
-        }
+        // Streak: length is how far the star actually moved this frame, which
+        // only scroll parallax and meteor drift can produce.
+        const motion = Math.abs(my);
+        if (motion > 0.05) s.dirY = my > 0 ? 1 : -1;
         const targetStreak = Math.min(motion * 3.4, 150);
         s.streak += (targetStreak - s.streak) * Math.min(1, 0.28 * dt);
 
@@ -611,24 +583,16 @@
           const len = Math.min(s.streak * 2.2, 260);
           const wid = Math.max(2.4, s.r * 6);
           ctx.globalAlpha = Math.min(1, a * 0.9);
-          if (s.dirX > -0.06 && s.dirX < 0.06) {
-            // Straight up or down (scroll and most wakes): no rotation, but the
-            // tail still has to trail behind the head in the direction of travel.
-            if (s.dirY < 0) {
-              ctx.save();
-              ctx.translate(s.x, s.y);
-              ctx.scale(1, -1);
-              ctx.drawImage(streakSprite, -wid / 2, -len, wid, len);
-              ctx.restore();
-            } else {
-              ctx.drawImage(streakSprite, s.x - wid / 2, s.y - len, wid, len);
-            }
-          } else {
+          // Scroll only ever moves stars straight up or down, so the tail needs
+          // no rotation — just the flip that keeps it behind the head.
+          if (s.dirY < 0) {
             ctx.save();
             ctx.translate(s.x, s.y);
-            ctx.rotate(Math.atan2(s.dirY, s.dirX) - Math.PI / 2);
+            ctx.scale(1, -1);
             ctx.drawImage(streakSprite, -wid / 2, -len, wid, len);
             ctx.restore();
+          } else {
+            ctx.drawImage(streakSprite, s.x - wid / 2, s.y - len, wid, len);
           }
           ctx.globalAlpha = 1;
         }
