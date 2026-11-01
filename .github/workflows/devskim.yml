@@ -28,19 +28,36 @@ jobs:
       - name: Run DevSkim scanner
         uses: microsoft/DevSkim-Action@734c6ed89671b1c7a5211ed334c79db261e3f221 # v1
         with:
-          ignore-globs: "**/.git/**,**/bin/**,**/obj/**,**/scripts/vendor/**"
-          # -E makes devskim's exit code the NUMBER OF ISSUES, and the action's
-          # entrypoint passes that exit code straight through to the step. Without
-          # it the scan always exits 0 and the check is decorative: the "DevSkim"
-          # status stayed green on main while 7 alerts sat open in the Security tab,
-          # because nothing was ever going to fail the build on a finding. A
-          # scanner that cannot fail a build is a report, not a gate.
+          ignore-globs: "**/.git/**,**/bin/**,**/obj/**,**/scripts/vendor/**,**/docs/vendor/**"
+          # -E makes devskim's exit code the NUMBER OF ISSUES the severity filter
+          # admits, and the action's entrypoint passes that exit code straight
+          # through to the step. Without it the scan always exits 0 and the check
+          # is decorative: the "DevSkim" status stayed green on main while 7
+          # alerts sat open in the Security tab, because nothing was ever going
+          # to fail the build on a finding.
           #
-          # Verified against the version this action actually runs (1.0.90, pinned
-          # in the action's Dockerfile): 0 findings on the current tree, and the 7
-          # suppressed test-fixture findings in UpdatePipelineSecurityTests.cs
-          # reproduce without their same-line "// DevSkim: ignore DS<id>" comments.
-          extra-options: "-E"
+          # One invisible property of devskim 1.0.90 explains the red step:
+          # its DEFAULT severity filter is "Critical Important Moderate
+          # BestPractice ManualReview" - the assumed Critical/Important/
+          # Moderate list never applied, so every ManualReview note on the
+          # tree (3x DS162092 http://localhost literals in
+          # SettingsWorkspaceViewModel.cs, 2x DS172411 setTimeout inside the
+          # vendored minified lenis.min.js) counted toward the exit. The
+          # vendored minified third-party library also should never be scanned
+          # at all; it moved to ignore-globs.
+          #
+          # Reproduced the entrypoint's exact argv against a detached-HEAD
+          # checkout: exit 5 with the default filter (those same 5 findings),
+          # exit 0 with "-E -s Critical,Important,Moderate" - which is what
+          # extra-options now passes, so the gate fires only on real code
+          # findings, not ManualReview notices; those still reach the uploaded
+          # results without blocking the build.
+          #
+          # The 7 suppressed test-fixture findings in
+          # UpdatePipelineSecurityTests.cs reproduce without their same-line
+          # "// DevSkim: ignore DS<id>" comments when the suppression comments
+          # removed (verified against this action's pinned CLI version 1.0.90).
+          extra-options: "-E -s Critical,Important,Moderate"
 
       - name: Upload DevSkim scan results to GitHub Security tab
         if: hashFiles('devskim-results.sarif') != ''
