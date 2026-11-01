@@ -90,6 +90,26 @@
       }
     }
 
+    // The bar's Download CTA is held back while the hero owns the screen, then
+    // springs into the bar once the hero has scrolled past the header. Only
+    // pages with a hero opt in, so sub-pages keep the CTA from the first frame.
+    // rootMargin pulls the observation line down to the header's bottom edge,
+    // so the swap happens the moment the hero clears the bar instead of when it
+    // leaves the viewport entirely.
+    const heroEl = document.querySelector('.hero');
+    if (heroEl && 'IntersectionObserver' in window && !isReducedMotion) {
+      docEl.classList.add('nav-cta-staged');
+      const ctaObserver = new IntersectionObserver(
+        function (entries) {
+          const entry = entries[entries.length - 1];
+          const pastHero = !entry.isIntersecting && entry.boundingClientRect.bottom <= 96;
+          docEl.classList.toggle('nav-cta-live', pastHero);
+        },
+        { rootMargin: '-96px 0px 0px 0px', threshold: 0 }
+      );
+      ctaObserver.observe(heroEl);
+    }
+
     const LenisCtor = window.Lenis;
 
     // Reduced motion keeps the native, instant scroll — no hijacking, no easing.
