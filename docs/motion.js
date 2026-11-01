@@ -941,7 +941,7 @@
 
     // One delegated pass decides every state, so classes can never go stale.
     const interactiveSelector =
-      'a, button, input, textarea, select, [role="button"], [role="tab"], .btn-pill, .btn-icon, .hero-oneshot, .card-inner, .faq-item, .mobile-nav-link, .nav-link, summary, .calc-profile-btn, .cmd-pill';
+      'a, button, input, textarea, select, [role="button"], [role="tab"], .btn-pill, .btn-icon, .hero-oneshot, .card-inner, .faq-item, .mobile-nav-link, .nav-link, summary, .cmd-pill';
     const magneticSelector = '.btn-pill-primary, .hero-oneshot, .btn-icon, .dl-btn-primary';
     const dragSelector = '[data-cursor="drag"], .comp-table-wrap';
     // Solid mint surfaces swallow a mint cursor: the dot and ring need to
@@ -1089,65 +1089,6 @@
     }
 
     requestAnimationFrame(renderLoop);
-  }
-
-  /* ==========================================================================
-     6. Interactive Space Reclaim Calculator
-     ========================================================================== */
-  function initReclaimCalculator() {
-    const profileBtns = document.querySelectorAll('.calc-profile-btn');
-    const calcStorage = document.getElementById('calcStorageValue');
-    const calcRam = document.getElementById('calcRamValue');
-    const calcBar1 = document.getElementById('calcBarTemp');
-    const calcBar2 = document.getElementById('calcBarShader');
-    const calcBar3 = document.getElementById('calcBarDev');
-    const calcSummary = document.getElementById('calcSummaryText');
-
-    if (!profileBtns.length || !calcStorage || !calcRam) return;
-
-    const data = {
-      gamer: {
-        storage: '32.4 GB',
-        ram: '4.8 GB',
-        bars: { temp: '35%', shader: '45%', dev: '20%' },
-        summary: 'Cleans massive DirectX, NVIDIA, AMD, and Unreal Engine shader caches plus game installer dumps.'
-      },
-      dev: {
-        storage: '26.8 GB',
-        ram: '6.2 GB',
-        bars: { temp: '20%', shader: '15%', dev: '65%' },
-        summary: 'Reclaims npm-cache, pip wheels, .gradle, Cargo registry caches, and heavy Docker temp staging.'
-      },
-      everyday: {
-        storage: '14.5 GB',
-        ram: '3.4 GB',
-        bars: { temp: '60%', shader: '10%', dev: '30%' },
-        summary: 'Safely flushes browser HTTP caches, Windows Update Delivery Optimization, and app temporary logs.'
-      },
-      power: {
-        storage: '48.2 GB',
-        ram: '8.4 GB',
-        bars: { temp: '30%', shader: '35%', dev: '35%' },
-        summary: 'Complete multi-drive sweep across 26 verified scopes, crash dumps, and full NT memory purge.'
-      }
-    };
-
-    profileBtns.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        profileBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const prof = btn.getAttribute('data-profile');
-        const item = data[prof];
-        if (item) {
-          calcStorage.textContent = item.storage;
-          calcRam.textContent = item.ram;
-          if (calcBar1) calcBar1.style.width = item.bars.temp;
-          if (calcBar2) calcBar2.style.width = item.bars.shader;
-          if (calcBar3) calcBar3.style.width = item.bars.dev;
-          if (calcSummary) calcSummary.textContent = item.summary;
-        }
-      });
-    });
   }
 
   /* ==========================================================================
@@ -1634,7 +1575,6 @@
     initInteractiveBackground();
     initCardInteractivity();
     initPrecisionCursor();
-    initReclaimCalculator();
     initServiceWorker();
     initBackToTop();
     initMobileMenu();
