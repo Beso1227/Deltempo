@@ -56,7 +56,7 @@
   <link rel="preconnect" href="https://api.github.com">
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=3.6.29">
+  <link rel="stylesheet" href="style.css?v=3.6.36">
 
   <!-- Web App Manifest (PWA installability) -->
   <link rel="manifest" href="manifest.json?v=2.7.14">
@@ -897,20 +897,83 @@
         </div>
       </div>
     <script>
-      /* Reveal the hero synchronously while the document is still parsing.
-         motion.js is deferred, so without this the hero stays at opacity:0
-         until that file has downloaded, which costs FCP, LCP and Speed Index.
-         The hero is the first section, so it is above the fold by
-         construction - no rect reads, no reflows. Google Fonts loads with
-         display=swap, so text paints as soon as the stylesheet lands.
-         Anything below the fold keeps its scroll-reveal (motion.js). */
+      /* Hero entrance. Runs synchronously while the hero is still parsing, so
+         the first paint already carries the intro's start state and nothing
+         can flash. The rise/fade itself is CSS (@keyframes hero-rise) keyed off
+         html.hero-intro, so it runs even if motion.js is slow or blocked; only
+         the typewriter cursor needs JavaScript.
+         The hero is above the fold by construction - no rect reads, no reflows.
+         Reduced motion: nothing is armed, so the hero is simply visible. */
       (function () {
-        var els = document.querySelectorAll('.hero .reveal-on-scroll');
+        var root = document.documentElement;
+        var hero = document.querySelector('.hero');
+        if (!hero) return;
+
+        // The scroll observer never runs above the fold, so reveal here (this
+        // also keeps the hero out of the LCP queue waiting on motion.js).
+        var els = hero.querySelectorAll('.reveal-on-scroll');
         for (var i = 0; i < els.length; i++) {
           els[i].classList.add('revealed');
         }
+
+        var reduce = false;
+        try {
+          reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        } catch (err) { /* media queries unsupported: treat as no preference */ }
+        if (reduce || !document.createElement) return;
+
+        // Split both headline lines into characters. Characters stay inline so
+        // line breaking is identical to the unsplit text (zero layout shift);
+        // opacity is the only property that changes.
+        var step = window.innerWidth <= 720 ? 13 : 22;
+        var lines = hero.querySelectorAll('.hero-title-main, .text-gradient');
+        var chars = [];
+        for (var l = 0; l < lines.length; l++) {
+          var line = lines[l];
+          var text = line.textContent;
+          line.textContent = '';
+          line.setAttribute('aria-hidden', 'true');
+          for (var c = 0; c < text.length; c++) {
+            var span = document.createElement('span');
+            span.className = 'tw-char';
+            span.textContent = text.charAt(c);
+            span.style.setProperty('--tw-delay', (120 + chars.length * step) + 'ms');
+            line.appendChild(span);
+            chars.push(span);
+          }
+        }
+
+        var h1 = hero.querySelector('.hero-headline');
+        if (h1 && chars.length) {
+          h1.setAttribute('aria-label',
+            'Deltempo — Pure Windows Cleaner. NT Memory and Deep Cache Reclaim.');
+          h1.style.setProperty('--tw-step', step + 'ms');
+          root.classList.add('hero-intro');
+        }
       })();
     </script>
+    </section>
+
+    <!-- CAPABILITY ICON BAND (decorative: same tools are described below) -->
+    <section class="icon-band" aria-hidden="true">
+      <div class="icon-band-viewport">
+        <ul class="icon-band-track" data-icon-band>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-clean"></use></svg></li>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-bolt"></use></svg></li>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-shield"></use></svg></li>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-package"></use></svg></li>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-terminal"></use></svg></li>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-gamepad"></use></svg></li>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-wrench"></use></svg></li>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-rocket"></use></svg></li>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-activity"></use></svg></li>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-trash"></use></svg></li>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-folder"></use></svg></li>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-globe"></use></svg></li>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-gear"></use></svg></li>
+          <li class="icon-band-cell"><svg class="i"><use href="#i-message"></use></svg></li>
+        </ul>
+      </div>
     </section>
 
     <!-- 35-SECOND LAUNCH FILM SHOWCASE -->
@@ -927,11 +990,14 @@
           </p>
         </div>
 
-        <div class="video-showcase-wrapper reveal-on-scroll stagger-1" data-reveal="scale">
+      </div>
+
+      <div class="video-bleed">
+        <div class="video-showcase-wrapper" data-video-stage>
           <div class="double-bezel video-double-bezel">
-            <div class="video-player-container">
+            <div class="video-player-container" data-cursor="play">
               <video
-                id="launchVideo" controls preload="none"
+                id="launchVideo" controls preload="none" muted
                 poster="deltempo-poster-1024.webp"
                 playsinline
                 class="responsive-launch-video"
@@ -943,22 +1009,38 @@
               </video>
             </div>
           </div>
-          <div class="video-caption-bar">
-            <div class="video-badges">
-              <span class="video-badge"><span class="badge-dot-green"></span> 1080p · 60fps</span>
-              <span class="video-badge">35s Fast Tour</span>
-              <span class="video-badge">Zero Telemetry</span>
-            </div>
-            <a href="https://github.com/Beso1227/Deltempo/releases/latest" class="video-direct-link">
-              <span>Get Deltempo free</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
-            </a>
+        </div>
+
+        <div class="video-caption-bar">
+          <div class="video-badges">
+            <span class="video-badge"><span class="badge-dot-green"></span> 1080p · 60fps</span>
+            <span class="video-badge">35s Fast Tour</span>
+            <span class="video-badge">Zero Telemetry</span>
           </div>
+          <a href="https://github.com/Beso1227/Deltempo/releases/latest" class="video-direct-link">
+            <span>Get Deltempo free</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+          </a>
         </div>
       </div>
     </section>
 
-    <!-- INTERACTIVE SPACE RECLAIM CALCULATOR (NEW 10/10 EXPERIENCE) -->
+    <!-- SIGNAL FIELD: hover assembles the app mark out of dots -->
+    <section class="dotfield-section" id="signature">
+      <div class="dotfield-inner">
+        <div class="dotfield-copy">
+          <span class="dotfield-eyebrow">Signal field</span>
+          <h2 class="dotfield-title">Hover to assemble the mark.</h2>
+          <p class="dotfield-note">26 verified cleanup scopes. Point at the field and they pull into one shape.</p>
+        </div>
+        <div class="dotfield-stage" data-dotfield tabindex="-1">
+          <canvas class="dotfield-canvas" aria-hidden="true"></canvas>
+          <span class="dotfield-hint" aria-hidden="true">Hover the field</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERACTIVE SPACE RECLAIM CALCULATOR -->
     <section class="section-py section-glow-cyan" id="calculator">
       <div class="container">
         <div class="section-header reveal-on-scroll">
@@ -1324,6 +1406,10 @@
               </li>
             </ul>
             <div class="cap-foot">9 cleanup scopes</div>
+            <div class="cap-visual" aria-hidden="true">
+              <span class="cap-visual-icon text-accent-cyan"><svg class="i"><use href="#i-clean"></use></svg></span>
+              <span class="cap-visual-meta">Clean · 9 scopes</span>
+            </div>
           </div>
 
           <!-- COLUMN 2: OPTIMIZE -->
@@ -1363,6 +1449,10 @@
               </li>
             </ul>
             <div class="cap-foot">7 optimization tools</div>
+            <div class="cap-visual" aria-hidden="true">
+              <span class="cap-visual-icon text-accent-emerald"><svg class="i"><use href="#i-bolt"></use></svg></span>
+              <span class="cap-visual-meta">Optimize · 7 tools</span>
+            </div>
           </div>
 
           <!-- COLUMN 3: CONTROL -->
@@ -1410,6 +1500,10 @@
               </li>
             </ul>
             <div class="cap-foot">9 control tools</div>
+            <div class="cap-visual" aria-hidden="true">
+              <span class="cap-visual-icon text-accent-purple"><svg class="i"><use href="#i-shield"></use></svg></span>
+              <span class="cap-visual-meta">Control · 9 tools</span>
+            </div>
           </div>
         </div>
       </div>
@@ -1745,6 +1839,7 @@
         <a href="#top" class="footer-top-link">Back to top <span aria-hidden="true"><svg class="i" aria-hidden="true"><use href="#i-arrow-up"></use></svg></span></a>
       </div>
     </div>
+    <div class="footer-wordmark" aria-hidden="true"><span>DELTEMPO</span></div>
   </footer>
 
   <!-- LIGHTWEIGHT VANILLA JS (< 3 KB) FOR TABS & ACCORDION -->
@@ -1959,7 +2054,7 @@
 
   <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals, Mobile Menu, Scroll Spy) -->
   <script src="vendor/lenis.min.js" defer></script>
-  <script src="motion.js?v=3.6.29" defer></script>
+  <script src="motion.js?v=3.6.36" defer></script>
 
   <!-- Dynamic Release Version Sync -->
   <script>

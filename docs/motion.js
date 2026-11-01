@@ -32,6 +32,15 @@
     lenis: null,
   };
 
+  // Scroll-linked features subscribe here instead of each attaching its own
+  // scroll listener. There is exactly one paint per scroll tick (Lenis rAF or
+  // the native listener below), so scrub work stays in one read/write pass.
+  const scrollHooks = [];
+
+  function onScrollFrame(fn) {
+    scrollHooks.push(fn);
+  }
+
   function initSmoothScroll() {
     const docEl = document.documentElement;
 
@@ -63,6 +72,10 @@
 
       scrollState.y = y;
       scrollState.progress = p;
+
+      for (let h = 0; h < scrollHooks.length; h++) {
+        scrollHooks[h](y, p);
+      }
 
       progressBar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
 
@@ -947,12 +960,15 @@
         const magnetic = t.closest(magneticSelector);
         const textField = t.closest('input, textarea');
         const accentSurface = t.closest(accentSurfaceSelector);
+        const playSurface = t.closest('[data-cursor="play"]');
 
-        ring.classList.toggle('cursor-drag', !!dragTarget && !magnetic);
-        dot.classList.toggle('cursor-drag', !!dragTarget && !magnetic);
-        ring.classList.toggle('cursor-hover', !!interactive);
-        dot.classList.toggle('cursor-hover', !!interactive);
-        halo.classList.toggle('cursor-hover', !!interactive);
+        ring.classList.toggle('cursor-play', !!playSurface);
+        dot.classList.toggle('cursor-play', !!playSurface);
+        ring.classList.toggle('cursor-drag', !!dragTarget && !magnetic && !playSurface);
+        dot.classList.toggle('cursor-drag', !!dragTarget && !magnetic && !playSurface);
+        ring.classList.toggle('cursor-hover', !!interactive && !playSurface);
+        dot.classList.toggle('cursor-hover', !!interactive && !playSurface);
+        halo.classList.toggle('cursor-hover', !!interactive && !playSurface);
         ring.classList.toggle('cursor-invert', !!accentSurface);
         dot.classList.toggle('cursor-invert', !!accentSurface);
         halo.classList.toggle('cursor-invert', !!accentSurface);
@@ -1533,6 +1549,562 @@
 // SPA-grade instant page transitions across GitHub Pages without full reloads
 // (Note: Static multi-page routing is used to guarantee 100% reliable GitHub Pages navigation without 404 or DOM corruption)
 
+  /* ==========================================================================
+     12. Hero typewriter cursor
+     The characters type themselves in CSS (see html.hero-intro .tw-char), so
+     this function only has to walk the same clock and park the caret at the
+     last character that has appeared. Nothing here gates the text itself.
+     ========================================================================== */
+  function initHeroTypewriter() {
+    const docEl = document.documentElement;
+    if (isReducedMotion || !docEl.classList.contains('hero-intro')) return;
+
+    const h1 = document.querySelector('.hero-headline');
+    if (!h1) return;
+    const chars = Array.prototype.slice.call(h1.querySelectorAll('.tw-char'));
+    if (!chars.length) return;
+
+    const cursor = document.createElement('span');
+    cursor.className = 'tw-cursor';
+    cursor.setAttribute('aria-hidden', 'true');
+    h1.appendChild(cursor);
+
+    const cssStep = parseFloat(getComputedStyle(h1).getPropertyValue('--tw-step'));
+    const step = cssStep > 0 ? cssStep : 22;
+    const startAt = 120;
+    const endAt = startAt + chars.length * step;
+
+    let lastIndex = -2;
+    let blinking = false;
+
+    function place(index) {
+      const char = chars[Math.max(0, Math.min(chars.length - 1, index))];
+      const box = char.getBoundingClientRect();
+      const head = h1.getBoundingClientRect();
+      cursor.style.transform =
+        'translate3d(' + (box.right - head.left).toFixed(1) + 'px, ' +
+        (box.top - head.top).toFixed(1) + 'px, 0)';
+    }
+
+    const t0 = performance.now();
+    cursor.classList.add('tw-cursor-on');
+    place(0);
+
+    function frame(now) {
+      const elapsed = now - t0;
+      const index = elapsed < startAt ? 0 : Math.floor((elapsed - startAt) / step);
+      if (index !== lastIndex) {
+        lastIndex = index;
+        place(index);
+      }
+      if (elapsed < endAt + 1700) {
+        requestAnimationFrame(frame);
+        return;
+      }
+      if (!blinking) {
+        blinking = true;
+        cursor.classList.add('tw-cursor-blink');
+        setTimeout(function () { // DevSkim: ignore DS172411
+          cursor.classList.remove('tw-cursor-on', 'tw-cursor-blink');
+          setTimeout(function () {
+            if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
+          }, 260);
+        }, 1400);
+      }
+    }
+    requestAnimationFrame(frame);
+
+    // A late web font swaps glyph widths underneath the caret; re-measure.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        lastIndex = -2;
+        place(chars.length - 1);
+      });
+    }
+  }
+
+  /* ==========================================================================
+     13. Capability icon band
+     Two motions on two layers: the strip drifts against the page on scroll
+     (one transform on the track), while each cell rides its own sine phase
+     (one transform per cell). The loop stops as soon as the band leaves the
+     viewport, so an idle band costs nothing.
+     ========================================================================== */
+  function initIconBand() {
+    const track = document.querySelector('[data-icon-band]');
+    if (!track) return;
+    const band = track.closest('.icon-band') || track;
+    const cells = Array.prototype.slice.call(track.children);
+    if (!cells.length) return;
+
+    const mobile = window.innerWidth < 768;
+    const driftRange = mobile ? 120 : 250;
+
+    function scrub() {
+      const rect = band.getBoundingClientRect();
+      const vh = window.innerHeight || 1;
+      const total = vh + rect.height;
+      const p = Math.min(1, Math.max(0, (vh - rect.top) / total));
+      track.style.transform = 'translate3d(' + (-driftRange * p).toFixed(1) + 'px, 0, 0)';
+    }
+
+    if (isReducedMotion) {
+      track.style.transform = 'none';
+      return;
+    }
+
+    onScrollFrame(scrub);
+    scrub();
+
+    const amplitude = mobile ? 12 : 22;
+    const period = 7000;
+    let phase = 0;
+    let last = 0;
+    let rafId = null;
+    let visible = false;
+
+    function render(now) {
+      const dt = last ? Math.min(64, now - last) : 16;
+      last = now;
+      phase = (phase + dt) % period;
+      const t = (phase / period) * Math.PI * 2;
+      for (let i = 0; i < cells.length; i++) {
+        const offset = (i / cells.length) * Math.PI * 2;
+        cells[i].style.transform =
+          'translate3d(0, ' + (Math.sin(t + offset) * amplitude).toFixed(2) + 'px, 0)';
+      }
+      rafId = requestAnimationFrame(render);
+    }
+
+    function start() {
+      if (rafId !== null) return;
+      last = 0;
+      rafId = requestAnimationFrame(render);
+    }
+
+    function stop() {
+      if (rafId === null) return;
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
+    if (!('IntersectionObserver' in window)) {
+      start();
+      return;
+    }
+
+    new IntersectionObserver(
+      function (entries) {
+        visible = entries[entries.length - 1].isIntersecting;
+        if (visible) start();
+        else stop();
+      },
+      { rootMargin: '120px 0px' }
+    ).observe(band);
+  }
+
+  /* ==========================================================================
+     14. Video stage
+     The film grows out of the page as it arrives (0.5 -> 1 on desktop,
+     0.92 -> 1 on phones), plays muted while it owns the viewport, and pauses
+     when it leaves. A native pause by the visitor is sticky: scrolling the
+     film back in never resumes it over their choice.
+     ========================================================================== */
+  function initVideoStage() {
+    const stage = document.querySelector('[data-video-stage]');
+    if (!stage) return;
+    const section = stage.closest('.video-section') || stage;
+    const video = section.querySelector('video');
+    const connection = navigator.connection;
+    const saveData = !!(connection && connection.saveData);
+    const motionOK = !isReducedMotion && !saveData;
+
+    function scrub() {
+      const rect = stage.getBoundingClientRect();
+      const vh = window.innerHeight || 1;
+      const mobile = window.innerWidth <= 768;
+      const start = vh;
+      const end = mobile ? vh * 0.2 : vh * 0.5;
+      const p = Math.min(1, Math.max(0, (start - rect.top) / Math.max(1, start - end)));
+      // power2.out, the curve Antigravity's scrub carries by default.
+      const eased = 1 - Math.pow(1 - p, 2);
+      const from = mobile ? 0.92 : 0.5;
+      stage.style.transform = 'scale(' + (from + (1 - from) * eased).toFixed(4) + ')';
+    }
+
+    if (motionOK) {
+      onScrollFrame(scrub);
+      window.addEventListener('resize', scrub, { passive: true });
+      scrub();
+    } else {
+      // No scale, no autoplay: the film is simply present at its final size.
+      stage.style.transform = 'none';
+    }
+
+    if (!video || !motionOK || !('IntersectionObserver' in window)) return;
+
+    let autoPause = false;
+    let userPaused = false;
+
+    video.addEventListener('play', function () {
+      autoPause = false;
+    });
+    video.addEventListener('pause', function () {
+      if (!autoPause) userPaused = true;
+    });
+
+    new IntersectionObserver(
+      function (entries) {
+        const entry = entries[entries.length - 1];
+        if (entry.isIntersecting) {
+          if (userPaused) return;
+          autoPause = true;
+          const attempt = video.play();
+          if (attempt && typeof attempt.catch === 'function') attempt.catch(function () {});
+        } else if (!video.paused) {
+          autoPause = true;
+          video.pause();
+        }
+      },
+      { threshold: 0.35 }
+    ).observe(section);
+  }
+
+  /* ==========================================================================
+     15. Signal field
+     A cloud of dots that assembles into the Deltempo mark on hover. Targets
+     are sampled from the real app icon (mint pixels only), so the shape is
+     the product's own mark rather than a stand-in. Vanilla canvas: no WebGL,
+     no shader compiler, and it stops the moment the field scrolls away.
+     ========================================================================== */
+  function initDotField() {
+    const stage = document.querySelector('[data-dotfield]');
+    if (!stage) return;
+    const canvas = stage.querySelector('.dotfield-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) return;
+
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let dots = [];
+    let targets = [];
+    let hover = isReducedMotion ? 1 : 0;
+    let hoverTarget = isReducedMotion ? 1 : 0;
+    let rafId = null;
+    let visible = false;
+    let seed = 20261101;
+
+    function rand() {
+      // Deterministic cloud: the field looks the same on every visit.
+      seed = (seed * 1664525 + 1013904223) % 4294967296;
+      return seed / 4294967296;
+    }
+
+    function mintPixel(data) {
+      const r = data[0];
+      const g = data[1];
+      const b = data[2];
+      const a = data[3];
+      return a > 140 && g > 110 && g > r * 1.12 && g > b * 1.02;
+    }
+
+    function sampleTargets(image) {
+      const size = 168;
+      const off = document.createElement('canvas');
+      off.width = size;
+      off.height = size;
+      const octx = off.getContext('2d', { willReadFrequently: true });
+      if (!octx) return [];
+      octx.drawImage(image, 0, 0, size, size);
+      let pixels;
+      try {
+        pixels = octx.getImageData(0, 0, size, size).data;
+      } catch (err) {
+        return [];
+      }
+      const points = [];
+      for (let y = 0; y < size; y += 2) {
+        for (let x = 0; x < size; x += 2) {
+          const i = (y * size + x) * 4;
+          if (!mintPixel([pixels[i], pixels[i + 1], pixels[i + 2], pixels[i + 3]])) continue;
+          // Keep the mark, drop the plate edge and the outer glow ring: only
+          // the central disc of the icon is the glyph itself.
+          const nx = x / size - 0.5;
+          const ny = y / size - 0.5;
+          if (Math.sqrt(nx * nx + ny * ny) > 0.42) continue;
+          points.push({ x: x / size, y: y / size });
+        }
+      }
+      return points;
+    }
+
+    function buildDots() {
+      const spot = Math.min(height * 0.9, width * 0.82);
+      const originX = (width - spot) / 2;
+      const originY = (height - spot) / 2;
+
+      // A jittered grid, not a random scatter: at rest the field reads as a
+      // deliberate dot matrix instead of more of the sky behind it.
+      const gap = width < 640 ? 18 : 21;
+      const placed = [];
+      for (let y = gap / 2; y < height; y += gap) {
+        for (let x = gap / 2; x < width; x += gap) {
+          placed.push({
+            x: x + (rand() - 0.5) * gap * 0.55,
+            y: y + (rand() - 0.5) * gap * 0.55,
+          });
+        }
+      }
+
+      return placed.map(function (p, i) {
+        let target = null;
+        if (targets.length) {
+          let best = Infinity;
+          for (let t = 0; t < targets.length; t++) {
+            const dx = originX + targets[t].x * spot - p.x;
+            const dy = originY + targets[t].y * spot - p.y;
+            const d = dx * dx + dy * dy;
+            if (d < best) {
+              best = d;
+              target = targets[t];
+            }
+          }
+        }
+        return {
+          x: p.x,
+          y: p.y,
+          bx: p.x,
+          by: p.y,
+          tx: target ? originX + target.x * spot : p.x,
+          ty: target ? originY + target.y * spot : p.y,
+          vx: 0,
+          vy: 0,
+          size: 1.5 + (i % 3) * 0.35,
+          bright: 0.3 + rand() * 0.5,
+          mint: rand() > 0.2,
+        };
+      });
+    }
+
+    function resize() {
+      const rect = stage.getBoundingClientRect();
+      width = Math.max(1, Math.round(rect.width));
+      height = Math.max(1, Math.round(rect.height));
+      dpr = Math.min(window.devicePixelRatio || 1, width < 768 ? 1.5 : 2);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      dots = buildDots();
+      draw();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      for (let i = 0; i < dots.length; i++) {
+        const d = dots[i];
+        const near = Math.min(1, Math.max(0, 1 - Math.hypot(d.tx - d.x, d.ty - d.y) / 26)) * hover;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.size + near * 1.3, 0, Math.PI * 2);
+        ctx.fillStyle = d.mint
+          ? 'rgba(0, 242, 176, ' + (d.bright * (0.42 + 0.58 * hover)).toFixed(3) + ')'
+          : 'rgba(214, 232, 226, ' + (d.bright * 0.6 * (0.5 + 0.5 * hover)).toFixed(3) + ')';
+        ctx.fill();
+      }
+    }
+
+    function step() {
+      hover += (hoverTarget - hover) * 0.075;
+      if (hover < 0.002) hover = 0;
+      if (hover > 0.998) hover = 1;
+      const pull = hover * hover; // uIsHovering^2 in the reference shader
+
+      for (let i = 0; i < dots.length; i++) {
+        const d = dots[i];
+        const gx = d.bx + (d.tx - d.bx) * pull;
+        const gy = d.by + (d.ty - d.by) * pull;
+        d.vx = (d.vx + (gx - d.x) * 0.055) * 0.86;
+        d.vy = (d.vy + (gy - d.y) * 0.055) * 0.86;
+        d.x += d.vx;
+        d.y += d.vy;
+      }
+      draw();
+      rafId = requestAnimationFrame(step);
+    }
+
+    function start() {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(step);
+    }
+
+    function stop() {
+      if (rafId === null) return;
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
+    // The mark is sampled from the shipped icon. If it cannot be read (offline
+    // first visit, canvas tainted), the field still renders as a cloud.
+    const image = new Image();
+    image.decoding = 'async';
+    image.onload = function () {
+      targets = sampleTargets(image);
+      resize();
+    };
+    image.onerror = function () {
+      targets = [];
+      resize();
+    };
+    image.src = 'app_icon-192.png';
+
+    resize();
+
+    if (isReducedMotion) return;
+    if (isFinePointer.matches) {
+      stage.addEventListener('pointerenter', function () {
+        hoverTarget = 1;
+        stage.classList.add('is-engaged');
+        start();
+      });
+      stage.addEventListener('pointerleave', function () {
+        hoverTarget = 0;
+        stage.classList.remove('is-engaged');
+      });
+    }
+
+    window.addEventListener('resize', resize, { passive: true });
+
+    if (!('IntersectionObserver' in window)) {
+      start();
+      return;
+    }
+
+    new IntersectionObserver(
+      function (entries) {
+        visible = entries[entries.length - 1].isIntersecting;
+        if (visible) start();
+        else stop();
+      },
+      { rootMargin: '200px 0px' }
+    ).observe(stage);
+
+    // Touch has no hover: assemble once when the field first arrives, so the
+    // mark is still the payoff instead of a shapeless cloud.
+    if (!isFinePointer.matches) {
+      new IntersectionObserver(
+        function (entries) {
+          if (entries[entries.length - 1].isIntersecting) hoverTarget = 1;
+        },
+        { threshold: 0.5 }
+      ).observe(stage);
+    }
+  }
+
+  /* ==========================================================================
+     16. Footer letterform scrub
+     The wordmark rises 60px as the footer enters, one letter after the next.
+     ========================================================================== */
+  function initFooterWordmark() {
+    const mark = document.querySelector('.footer-wordmark');
+    if (!mark) return;
+    const inner = mark.querySelector('span');
+    if (!inner) return;
+
+    // Split once so each letter can lag the one before it.
+    const text = inner.textContent;
+    inner.textContent = '';
+    const letters = [];
+    for (let i = 0; i < text.length; i++) {
+      const span = document.createElement('span');
+      span.className = 'fw-letter';
+      span.textContent = text.charAt(i);
+      inner.appendChild(span);
+      letters.push(span);
+    }
+    mark.setAttribute('aria-hidden', 'true');
+
+    if (isReducedMotion) return;
+
+    let lastProgress = -1;
+
+    function scrub() {
+      const rect = mark.getBoundingClientRect();
+      const vh = window.innerHeight || 1;
+      const p = Math.min(1, Math.max(0, (vh - rect.top) / (vh * 0.62)));
+      const rounded = Math.round(p * 100) / 100;
+      if (rounded === lastProgress) return;
+      lastProgress = rounded;
+      mark.style.transform = 'translate3d(0, ' + (-60 * (1 - p)).toFixed(1) + 'px, 0)';
+      for (let i = 0; i < letters.length; i++) {
+        const lit = Math.min(1, Math.max(0, (p - i * 0.045) / 0.5));
+        letters[i].style.opacity = (0.35 + 0.65 * lit).toFixed(3);
+      }
+    }
+
+    onScrollFrame(scrub);
+    scrub();
+  }
+
+  /* ==========================================================================
+     17. Word reveal
+     Headings fade in word by word at the reference cadence (5ms apart, 100ms
+     each). Only plain-text headings are split; anything with inline markup is
+     left alone so links and emphasis stay intact.
+     ========================================================================== */
+  function initWordReveal() {
+    if (isReducedMotion) return;
+
+    const headings = document.querySelectorAll('.section-title, .dotfield-title');
+    if (!headings.length) return;
+
+    const pending = [];
+
+    headings.forEach(function (el) {
+      if (el.children.length) return;
+      const text = el.textContent;
+      if (!text || !text.trim()) return;
+
+      const parts = text.split(/(\s+)/);
+      el.textContent = '';
+      let index = 0;
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        if (!part) continue;
+        if (/^\s+$/.test(part)) {
+          el.appendChild(document.createTextNode(part));
+          continue;
+        }
+        const word = document.createElement('span');
+        word.className = 'wr-word';
+        word.style.setProperty('--wr-i', String(index++));
+        word.textContent = part;
+        el.appendChild(word);
+      }
+      pending.push(el);
+    });
+
+    if (!pending.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+      pending.forEach(function (el) { el.classList.add('wr-revealed'); });
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      function (entries, obs) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('wr-revealed');
+          obs.unobserve(entry.target);
+        });
+      },
+      { rootMargin: '0px 0px -10% 0px', threshold: 0.1 }
+    );
+
+    pending.forEach(function (el) { observer.observe(el); });
+  }
+
   function initializeAll() {
     initSmoothScroll();
     initScrollReveals();
@@ -1545,6 +2117,12 @@
     initBackToTop();
     initMobileMenu();
     initScrollSpy();
+    initHeroTypewriter();
+    initIconBand();
+    initVideoStage();
+    initDotField();
+    initFooterWordmark();
+    initWordReveal();
   }
 
   if (document.readyState === 'loading') {
