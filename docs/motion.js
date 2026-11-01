@@ -1201,7 +1201,10 @@
     function syncPill() {
       const armed = !started && !isReducedMotion && finePointer.matches && wideWindow.matches;
       stage.classList.toggle('is-pill-armed', armed);
-      if (!armed) stage.classList.remove('is-pill-live');
+      if (!armed) {
+        stage.classList.remove('is-pill-live');
+        stage.classList.remove('is-pill-tracking');
+      }
     }
 
     // The nav island is fixed and paints above the frame (z-index 1000), and the
@@ -1238,10 +1241,29 @@
       stage.classList.add('is-pill-live');
     }
 
-    stage.addEventListener('pointerenter', function (e) { track(e.clientX, e.clientY); }, { passive: true });
-    stage.addEventListener('pointermove', function (e) { track(e.clientX, e.clientY); }, { passive: true });
+    // Coming in from outside the frame, the pill has to appear where the hand
+    // already is. Its position is written first and the travel transition is
+    // held off until the next move, so it pops in place instead of sliding
+    // across the poster from its parked rail - that slide read as a stray
+    // second button. From the next move on it trails, which is the reference.
+    stage.addEventListener('pointerenter', function (e) {
+      stage.classList.remove('is-pill-tracking');
+      track(e.clientX, e.clientY);
+    }, { passive: true });
+
+    stage.addEventListener('pointermove', function (e) {
+      if (!stage.classList.contains('is-pill-live')) {
+        stage.classList.remove('is-pill-tracking');
+        track(e.clientX, e.clientY);
+      } else {
+        stage.classList.add('is-pill-tracking');
+        track(e.clientX, e.clientY);
+      }
+    }, { passive: true });
+
     stage.addEventListener('pointerleave', function () {
       stage.classList.remove('is-pill-live');
+      stage.classList.remove('is-pill-tracking');
     }, { passive: true });
 
     syncPill();
@@ -1267,8 +1289,11 @@
 
     button.addEventListener('click', start);
 
-    // Clicking the poster is the same request as clicking the pill.
-    video.addEventListener('click', function () {
+    // The poster is not a hit target of its own while the film is idle (see the
+    // pointer-events rule on the frame), so the click that starts it is taken
+    // here. Once the film is running the native transport owns the pointer and
+    // this listener must not fight it - a click on the pause button must pause.
+    shell.addEventListener('click', function () {
       if (!started) start();
     });
   }
@@ -1319,18 +1344,21 @@
   }
 
   /* ==========================================================================
-     12. Word reveal
-     Headings fade in word by word at the reference cadence (5ms apart, 100ms
-     each). Only plain-text headings are split; anything with inline markup is
-     left alone so links and emphasis stay intact.
+     12. Word reveal, written by the scroll
+     A plain-text heading is split into words once. The scroll position then
+     writes two properties on it: --wr-p, its own progress through the viewport,
+     and --wr-n, how many words it holds. Each word derives its opacity from its
+     index (see .wr-word), so the line is written as the visitor scrolls down and
+     un-written as they scroll back up. No timer, no observer: the reveal is the
+     scroll itself, which is what makes it read as writing rather than as a
+     one-shot fade. Headings with inline markup are left alone so links and
+     emphasis survive.
      ========================================================================== */
   function initWordReveal() {
-    if (isReducedMotion) return;
-
-    const headings = document.querySelectorAll('.section-title');
+    const headings = document.querySelectorAll('.section-title, .section-subtitle');
     if (!headings.length) return;
 
-    const pending = [];
+    const tracked = [];
 
     headings.forEach(function (el) {
       if (el.children.length) return;
@@ -1353,28 +1381,41 @@
         word.textContent = part;
         el.appendChild(word);
       }
-      pending.push(el);
+      if (!index) return;
+
+      el.style.setProperty('--wr-n', String(index));
+
+      // A heading that cannot be scrubbed is simply already written: the words
+      // must never be the reason the text is unreadable.
+      if (isReducedMotion) {
+        el.classList.add('no-word-reveal');
+        return;
+      }
+      tracked.push(el);
     });
 
-    if (!pending.length) return;
+    if (!tracked.length) return;
 
-    if (!('IntersectionObserver' in window)) {
-      pending.forEach(function (el) { el.classList.add('wr-revealed'); });
-      return;
+    function scrub() {
+      const vh = window.innerHeight || 1;
+      // Written across the last stretch of the approach: by the time the heading
+      // settles at reading height, every word is present.
+      const start = vh * 0.94;
+      const span = vh * 0.55;
+
+      for (let i = 0; i < tracked.length; i++) {
+        const el = tracked[i];
+        const rect = el.getBoundingClientRect();
+        // Parked well outside the viewport: keep its last value, skip the write.
+        if (rect.bottom < -vh * 0.15 || rect.top > vh * 1.15) continue;
+        const p = Math.min(1, Math.max(0, (start - rect.top) / span));
+        el.style.setProperty('--wr-p', p.toFixed(4));
+      }
     }
 
-    const observer = new IntersectionObserver(
-      function (entries, obs) {
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add('wr-revealed');
-          obs.unobserve(entry.target);
-        });
-      },
-      { rootMargin: '0px 0px -10% 0px', threshold: 0.1 }
-    );
-
-    pending.forEach(function (el) { observer.observe(el); });
+    onScrollFrame(scrub);
+    window.addEventListener('resize', scrub, { passive: true });
+    scrub();
   }
 
   function initializeAll() {

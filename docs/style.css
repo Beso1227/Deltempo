@@ -1225,10 +1225,14 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   text-align: left;
 }
 
+/* The expander is drawn, not typed: two 1.75px rules on a 28px ring, so it stays
+   pixel-centred at any font size (a "+" glyph sits on the font's own baseline
+   and the ring only ever looks approximately centred). Opening lays the upright
+   rule down onto the horizontal one - plus becomes minus - on a back-out curve,
+   which reads as one movement instead of a spin. */
 .faq-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
+  display: inline-block;
   flex-shrink: 0;
   width: 28px;
   height: 28px;
@@ -1237,9 +1241,25 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   border: 1px solid rgba(0, 242, 176, 0.3);
   background: rgba(0, 242, 176, 0.08);
   color: var(--accent-cyan);
-  font-size: 1.05rem;
-  line-height: 1;
-  transition: transform 0.25s var(--ease-smooth), background-color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.faq-icon::before,
+.faq-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 11px;
+  height: 1.75px;
+  margin: -0.875px 0 0 -5.5px;
+  border-radius: 999px;
+  background: currentColor;
+  transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.faq-icon::after {
+  transform: rotate(90deg);
 }
 
 .faq-question:hover .faq-icon {
@@ -1247,8 +1267,13 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   border-color: rgba(0, 242, 176, 0.5);
 }
 
-.faq-item.open .faq-icon {
-  transform: rotate(45deg);
+.faq-question[aria-expanded="true"] .faq-icon {
+  background: rgba(0, 242, 176, 0.18);
+  border-color: rgba(0, 242, 176, 0.55);
+}
+
+.faq-question[aria-expanded="true"] .faq-icon::after {
+  transform: rotate(0deg);
 }
 
 .faq-answer {
@@ -1261,6 +1286,34 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 
 .faq-item.open .faq-answer {
   display: block;
+}
+
+/* The FAQ itself lives on its own page. The home page signposts it with one
+   line instead of fifteen accordions standing between the features and the
+   download - the questions are one click away and nobody has to scroll past
+   them to reach the thing they came for. */
+.faq-teaser .container {
+  max-width: 720px;
+  text-align: center;
+}
+
+.faq-teaser-line {
+  font-size: 1.0625rem;
+  color: var(--text-med);
+}
+
+.faq-teaser-label {
+  margin-right: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+}
+
+.faq-teaser-link {
+  margin-left: 0.35rem;
+  white-space: nowrap;
 }
 
 /* Trust / Open Source Banner */
@@ -3514,11 +3567,15 @@ html.hero-intro .tw-char {
     opacity: 0;
     pointer-events: none;
     transform: translate3d(var(--play-pill-x, 0px), var(--play-pill-y, 0px), 0) translate(-50%, -50%);
-    scale: 0.4;
+    scale: 0.82;
+    /* No transform transition until the pill has landed. The first entry must
+       materialise under the pointer, not slide across the poster from wherever
+       it was parked - that slide was reading as a second, stray button. Only
+       once it is tracking does it trail, which is the reference's behaviour:
+       it appears where your hand is, then follows with a lag. */
     transition:
-      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-      scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-      opacity 0.24s ease,
+      scale 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+      opacity 0.16s ease,
       box-shadow 0.4s var(--ease-smooth);
   }
 
@@ -3526,6 +3583,14 @@ html.hero-intro .tw-char {
     opacity: 1;
     pointer-events: auto;
     scale: 1;
+  }
+
+  .video-showcase-wrapper.is-pill-armed.is-pill-live.is-pill-tracking .video-play {
+    transition:
+      transform 0.34s cubic-bezier(0.16, 1, 0.3, 1),
+      scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+      opacity 0.16s ease,
+      box-shadow 0.4s var(--ease-smooth);
   }
 
   /* Under the pointer is the pill's resting state, so the press-ready growth
@@ -3557,6 +3622,30 @@ html.hero-intro .tw-char {
 .video-showcase-wrapper.is-started .video-play {
   opacity: 0;
   visibility: hidden;
+}
+
+/* While the film is idle the frame carries exactly one affordance: the pill.
+   The poster gets no UA transport, no hover overlay and no hit target of its
+   own, so nothing can light up under the pointer except the Play intro pill -
+   the shell takes the click instead. The native bar comes back only once the
+   visitor has started the film, because from then on pause, scrub and
+   fullscreen are the visitor's, not ours. */
+.video-showcase-wrapper:not(.is-started) video {
+  pointer-events: none;
+}
+
+.video-showcase-wrapper:not(.is-started) video::-webkit-media-controls,
+.video-showcase-wrapper:not(.is-started) video::-webkit-media-controls-enclosure,
+.video-showcase-wrapper:not(.is-started) video::-webkit-media-controls-panel,
+.video-showcase-wrapper:not(.is-started) video::-webkit-media-controls-play-button,
+.video-showcase-wrapper:not(.is-started) video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.video-showcase-wrapper:not(.is-started) .video-player-container {
+  cursor: pointer;
 }
 
 /* On a phone the frame is only 200px tall and the poster's wordmark, chips and
@@ -3710,21 +3799,24 @@ html.hero-intro .tw-char {
   color: var(--text-low);
 }
 
-/* Word reveal: same 5ms cadence and 100ms fade as the reference, applied to
-   plain-text headings only. */
+/* Word reveal, written by the scroll position rather than by a timer.
+   JS splits a plain-text heading once and writes two properties on it: --wr-p
+   (its own progress through the viewport) and --wr-n (how many words it holds).
+   Each word carries --wr-i. One property per heading per frame; the per-word
+   maths happens in the browser, so nothing is measured word by word. Scrolling
+   back un-writes the line, which is what makes it read as writing rather than
+   as a one-shot animation. */
 .wr-word {
+  --wr-x: clamp(0, calc((var(--wr-p, 1) * (var(--wr-n, 1) + 1.4) - var(--wr-i, 0)) * 2.6), 1);
   display: inline-block;
-  opacity: 0;
+  opacity: var(--wr-x);
+  transform: translateY(calc((1 - var(--wr-x)) * 0.16em));
 }
 
-.wr-revealed .wr-word,
+/* Reduced motion, or a heading the scrub could not take: simply written. */
 .no-word-reveal .wr-word {
-  animation: wr-in 0.1s linear both;
-  animation-delay: calc(var(--wr-i, 0) * 5ms);
-}
-
-@keyframes wr-in {
-  to { opacity: 1; }
+  opacity: 1;
+  transform: none;
 }
 
 /* --- 6. Footer: letterform scrub ---------------------------------------- */

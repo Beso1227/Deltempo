@@ -56,7 +56,7 @@
   <link rel="preconnect" href="https://api.github.com">
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=3.6.51">
+  <link rel="stylesheet" href="style.css?v=3.6.53">
 
   <!-- Without scripting the film keeps its native controls, so the pill (which
        would be inert) is not shown at all. -->
@@ -216,108 +216,6 @@
         "duration": "PT35S",
         "contentUrl": "https://beso1227.github.io/Deltempo/deltempo.mp4",
         "embedUrl": "https://beso1227.github.io/Deltempo/#video"
-      },
-      {
-        "@type": "FAQPage",
-        "@id": "https://beso1227.github.io/Deltempo/#faq",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "What is Deltempo and how is it different from CCleaner?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Deltempo is a portable, 100% open-source Windows cleaner, deep uninstaller, and NT memory optimizer. Unlike proprietary utilities like CCleaner, Deltempo operates with zero telemetry, zero analytics tracking, and zero background daemons. It cleans 26+ verified cache scopes including GPU shaders, uninstalls software with residual leftover sweeps, trims RAM with native NT kernel APIs, and uses a deterministic 5-tier safety engine."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Does Deltempo create system restore points automatically during app uninstallation?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "No. Deltempo respects your choice and system resources. In the Deep Root App Uninstaller, restore point creation is an optional toggle that is turned off by default. If you prefer to have a checkpoint before removing an app, simply check the box in the GUI or pass the '--restore-point' flag in the CLI."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How does Deltempo find duplicate files safely?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Deltempo uses a high-performance 3-stage duplicate detection pipeline: Stage 1 groups files by exact byte length, Stage 2 reads initial 4KB header prefixes to eliminate mismatches with minimal disk I/O, and Stage 3 computes full SHA-256 cryptographic hashes only when needed. Windows system folders and core binaries are strictly protected from deletion."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How does the Treemap Disk Visualizer work?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "The built-in Treemap Visualizer uses the squarified treemap layout algorithm (Bruls, Huizing, van Wijk) to display nested rectangles proportional to file and folder sizes. It operates 100% locally with zero external libraries and lets you instantly locate disk space hogs."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Can Deltempo manage Windows Restore Points and Volume Shadow Copies (VSS)?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Deltempo includes dedicated VSS shadow copy management to enumerate existing system restore points, create instant checkpoints before major operations, and safely prune obsolete snapshots past user-configured retention thresholds."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Can Deltempo run automatically on a schedule or from Windows Explorer?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Deltempo integrates directly with the native Windows Task Scheduler for automated daily, weekly, or idle cleaning. It also provides an optional 1-click Windows Explorer context menu entry to clean or inspect folders directly from right-click."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How does Deltempo compare to CCleaner, BleachBit, and Bulk Crap Uninstaller?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Deltempo combines the best aspects of all three while remaining 100% open source under MIT. Unlike CCleaner, it has zero telemetry and no paid upsells. Unlike BleachBit, it features a modern Fluent UI, native NT kernel memory optimization, and an app uninstaller. Unlike BCU, it includes an integrated 26+ scope disk cleaner, large file hunter, system repair tools, and a high-DPI tray monitor."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Is Deltempo safe to use?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Deltempo incorporates a deterministic 5-tier safety engine with pre-deletion revalidation (TOCTOU protection). Critical OS files, user documents, and browser passwords are mathematically protected by an immutable exclusion policy."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Does Deltempo support Arabic and other international languages?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Deltempo ships a language selector covering English, Arabic, Spanish, French, and German. Coverage is partial and still in progress: today it translates the main Cleaner workspace (header, target list, scan results and log), and selecting Arabic activates native Right-to-Left window flow with numeric values and paths kept Left-to-Right so statistics never invert. The modal dialogs and the remaining workspaces are still English-only."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Does Deltempo delete personal files or browser passwords?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Deltempo's protection policies strictly exclude personal files, documents, code repositories, browser login databases, and messaging app credentials from cleanup."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Is installation required for Deltempo?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "No. Deltempo is a portable, self-contained single-file executable. It does not require an installer or background services. You can also fetch and run the latest release in one line with: irm https://beso1227.github.io/Deltempo/win | iex."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Does Deltempo collect telemetry or contain ads?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Deltempo collects zero telemetry, zero analytics, and contains no advertisements. Routine scan, clean, and memory operations execute 100% locally on your PC."
-            }
-          }
-        ]
       }
     ]
   }
@@ -387,7 +285,7 @@
         <li><a href="#video" class="nav-link">Video</a></li>
         <li><a href="compare/" class="nav-link">Compare</a></li>
         <li><a href="#features" class="nav-link">Features</a></li>
-        <li><a href="#faq" class="nav-link">FAQ</a></li>
+        <li><a href="faq/" class="nav-link">FAQ</a></li>
         <li><a href="download/" class="nav-link">Download</a></li>
         <li><a href="changelog/" class="nav-link">Changelog</a></li>
         <li><a href="docs/" class="nav-link">Docs</a></li>
@@ -413,7 +311,7 @@
     <a href="./" class="mobile-nav-link">Home</a>
     <a href="#video" class="mobile-nav-link">Launch Video (35s)</a>
     <a href="#features" class="mobile-nav-link">Capabilities</a>
-    <a href="#faq" class="mobile-nav-link">FAQ</a>
+    <a href="faq/" class="mobile-nav-link">FAQ</a>
     <a href="download/" class="mobile-nav-link">Download Center</a>
     <a href="changelog/" class="mobile-nav-link">Changelog</a>
     <a href="docs/" class="mobile-nav-link">Documentation</a>
@@ -760,165 +658,15 @@
       </div>
     </section>
 
-    <!-- FREQUENTLY ASKED QUESTIONS -->
-    <section class="section-py" id="faq">
+    <!-- FAQ lives on its own page: the home page links to it instead of
+         inlining fifteen accordions nobody scrolls on the way to Download. -->
+    <section class="section-py faq-teaser">
       <div class="container">
-        <div class="section-header reveal-on-scroll">
-          <h2 class="section-title">Deltempo Frequently Asked Questions</h2>
-          <p class="section-subtitle">Straight answers to practical questions about Deltempo's architecture, safety, and operation.</p>
-        </div>
-
-        <div class="faq-grid reveal-on-scroll stagger-1">
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>What is Deltempo and how is it different from CCleaner?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              Deltempo is a portable, 100% open-source Windows cleaner, deep uninstaller, and NT memory optimizer. Unlike proprietary utilities like CCleaner, Deltempo operates with zero telemetry, zero analytics tracking, and zero background daemons. It cleans 26+ verified cache scopes including GPU shaders, uninstalls software with residual leftover sweeps, trims RAM with native NT kernel APIs, and uses a deterministic 5-tier safety engine.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>Does Deltempo create system restore points automatically during app uninstallation?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              No. Deltempo respects your system resources and choices. In the Deep Root App Uninstaller, restore point creation is an optional toggle that is turned off by default. If you prefer to have a checkpoint before removing an app, simply check the box in the GUI or pass the <code>--restore-point</code> flag in the CLI.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>How does Deltempo find duplicate files safely?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              Deltempo uses a high-performance 3-stage duplicate detection pipeline: Stage 1 groups files by exact byte length, Stage 2 reads initial 4KB header prefixes to eliminate mismatches with minimal disk I/O, and Stage 3 computes full SHA-256 cryptographic hashes only when needed. Windows system directories and executable files are strictly immune from deletion.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>How does the Treemap Disk Visualizer work?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              The built-in Treemap Visualizer uses the squarified treemap layout algorithm (Bruls, Huizing, van Wijk) to display nested rectangles proportional to file and folder sizes. It operates 100% locally with zero external libraries and lets you instantly locate disk space hogs.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>Can Deltempo manage Windows Restore Points and Volume Shadow Copies (VSS)?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              Yes. Deltempo includes dedicated VSS shadow copy management to enumerate existing system restore points, create instant checkpoints before major operations, and safely prune obsolete snapshots past user-configured retention thresholds.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>Can Deltempo run automatically on a schedule or from Windows Explorer?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              Yes. Deltempo integrates directly with the native Windows Task Scheduler for automated daily, weekly, or idle cleaning. It also provides an optional 1-click Windows Explorer context menu entry to clean or inspect folders directly from right-click.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>How does Deltempo compare to CCleaner, BleachBit, and Bulk Crap Uninstaller?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              Deltempo combines the best aspects of all three while remaining 100% open source under MIT. Unlike CCleaner, it has zero telemetry and no paid upsells. Unlike BleachBit, it features a modern Fluent UI, native NT kernel memory optimization, and an app uninstaller. Unlike BCU, it includes an integrated 26+ scope disk cleaner, large file hunter, system repair tools, and a high-DPI tray monitor.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>Is Deltempo free and open source?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              Yes. Deltempo is free and open source under the permissive MIT license. There are no paid tiers, no ads, no subscriptions, and no premium upsells.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>Does Deltempo support Arabic and other international languages?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              Yes. Deltempo ships a language selector covering English, Arabic, Spanish, French, and German. Coverage is partial and still in progress: today it translates the main Cleaner workspace (header, target list, scan results and log), and selecting Arabic activates native Right-to-Left window flow with numeric values and paths kept Left-to-Right so statistics never invert. The modal dialogs and the remaining workspaces are still English-only.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>Does Deltempo delete personal files or passwords?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              No. Deltempo's protection policies are designed to strictly exclude personal files, documents, code repositories, browser login databases, and messaging app credentials from cleanup.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>What Windows versions are supported?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              Deltempo natively supports 64-bit Windows 10 and Windows 11. It runs on modern .NET as a self-contained executable with no external runtimes required.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>How does the NT kernel memory optimizer work?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              It calls native Windows NT APIs (<code>NtSetSystemInformation</code> with memory list class 80 and <code>EmptyWorkingSet</code>) to flush unreferenced standby lists and trim private working sets. It does not terminate running processes or kill active windows.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>How do I install or update Deltempo from the terminal?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              Open PowerShell and run: <code>irm https://beso1227.github.io/Deltempo/win | iex</code>. The script downloads the latest release, verifies its SHA-256 checksum, caches it locally, and launches it. Re-running the same command always pulls the newest published version, so update is identical to install. For the headless CLI binary, run <code>irm https://beso1227.github.io/Deltempo/win-cli | iex</code> instead. If the checksum manifest cannot be read or does not match, the install aborts and nothing is executed.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>Does Deltempo require installation?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              No. Deltempo is a portable single-file executable. When run, it registers a user-level App Path so you can invoke <code>deltempo</code> from terminal sessions without modifying Windows system directories.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question" aria-expanded="false">
-              <span>Does Deltempo have a command-line interface (CLI)?</span>
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              Yes. Both the main executable and the dedicated <code>deltempo_cli.exe</code> support synchronous terminal execution with subcommands like <code>deltempo clean temp</code>, <code>deltempo status --json</code>, and <code>deltempo update</code>.
-            </div>
-          </div>
-        </div>
+        <p class="faq-teaser-line reveal-on-scroll">
+          <span class="faq-teaser-label">Questions?</span>
+          Safety tiers, leftover sweeps, RAM trimming and licensing are answered in full on one page.
+          <a class="text-accent-link faq-teaser-link" href="faq/">Read all answers <svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
+        </p>
       </div>
     </section>
 
@@ -983,31 +731,14 @@
     <div class="footer-wordmark" aria-hidden="true"><span>DELTEMPO</span></div>
   </footer>
 
-  <!-- LIGHTWEIGHT VANILLA JS (< 3 KB) FOR TABS & ACCORDION -->
+  <!-- LIGHTWEIGHT VANILLA JS (< 3 KB) FOR THE ONE-LINER AND THE REVEAL FALLBACK -->
   <script>
     (function () {
       'use strict';
 
-
-      // 2. FAQ Accordion
-      const faqButtons = document.querySelectorAll('.faq-question');
-      faqButtons.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          const item = btn.closest('.faq-item');
-          const isOpen = item.classList.contains('open');
-
-          // Close other items
-          document.querySelectorAll('.faq-item').forEach(i => {
-            i.classList.remove('open');
-            i.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
-          });
-
-          if (!isOpen) {
-            item.classList.add('open');
-            btn.setAttribute('aria-expanded', 'true');
-          }
-        });
-      });
+      // The FAQ accordion used to be inlined here; the questions now live on
+      // faq/, which owns their own script, so the home page has no accordion to
+      // wire up.
 
       // 4. One-Liner Command Copy Button
       // Robust copy: navigator.clipboard.writeText can silently fail when an
@@ -1195,7 +926,7 @@
 
   <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals, Mobile Menu, Scroll Spy) -->
   <script src="vendor/lenis.min.js" defer></script>
-  <script src="motion.js?v=3.6.51" defer></script>
+  <script src="motion.js?v=3.6.53" defer></script>
 
   <!-- Dynamic Release Version Sync -->
   <script>
