@@ -40,15 +40,25 @@ if (-not (Test-Path (Join-Path $PublishDir "Deltempo.WinUI.exe"))) {
 
 # --- 2. Fail-closed tool resolution: makeappx from SDK BuildTools.
 #
-# Resolve the NuGet global-packages root the way NuGet itself does, in the
-# documented precedence: the NUGET_PACKAGES environment variable, then
-# `dotnet nuget locals`, then the historic %USERPROFILE% default, plus the
-# workspace-local mirror. The original hard-coded %USERPROFILE% lookup was
-# born failing on CI (2026-10-30, its first ever run): setup-dotnet's
-# cache: true restores the package graph outside that folder, while
-# `dotnet restore` (which honors the same resolution) succeeds - so the
-# publish step sees the package and the pack script did not.
+# Resolve the NuGet global-packages root by asking MSBuild for
+# NuGetPackageFolders: it is the root the very SDK on this machine resolved for
+# this project, so it tracks wherever the packages were actually placed -
+# including the setup-dotnet cache redirection. CI ground truth, 2026-11-01:
+# with `cache: true`, setup-dotnet restores the package tarball with
+# `tar -P -C <workspace>`, and the graph lands outside every candidate the
+# original heuristics could guess (NUGET_PACKAGES, `dotnet nuget locals`
+# output, %USERPROFILE%\.nuget\packages, even the workspace .nuget mirror) -
+# which is why every such guess missed while restore and publish succeeded.
+# The heuristics stay as fallbacks (listed in the throw so a future failure
+# names every path tried), but the property query comes first because it
+# cannot disagree with the restore that already ran in this job.
 $packageRoots = @()
+$msbuildFolders = dotnet msbuild (Join-Path $repoRoot "src\Deltempo.App.WinUI\Deltempo.App.WinUI.csproj") `
+    -getProperty:NuGetPackageFolders -nologo 2>$null
+if ($LASTEXITCODE -eq 0 -and $msbuildFolders) {
+    # Resolved roots, semicolon separated.
+    $packageRoots += (($msbuildFolders -join "`n") -split ';' | Where-Object { $_ })
+}
 if ($env:NUGET_PACKAGES) { $packageRoots += $env:NUGET_PACKAGES }
 $locals = dotnet nuget locals global-packages --list 2>$null
 if ($LASTEXITCODE -eq 0 -and $locals) {
