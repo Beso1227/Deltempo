@@ -6,8 +6,7 @@
  * - Deep-space starfield: depth-layered stars that streak into shooting stars as
  *   the page scrolls, part and brighten around the cursor, flare on click, and
  *   idle meteors crossing the sky
- * - Three-layer spring cursor (core dot, elastic ring, lagging halo) with magnetic
- *   snap, drag affordance, text caret and kinetic click ripples
+ * - Native OS cursor everywhere: no drawn pointer, no magnetic offset
  * - Card surface reactive radial lighting & micro-tilt
  * - IntersectionObserver scroll reveals with directional variants + grid stagger
  * - Full prefers-reduced-motion (static starfield, native scroll) & touch-device compliance
@@ -835,264 +834,7 @@
   }
 
   /* ==========================================================================
-     5. Three-layer spring cursor: core dot, elastic ring, trailing halo
-     ========================================================================== */
-  function initPrecisionCursor() {
-    // A custom cursor is itself motion: reduced-motion users keep the OS pointer.
-    if (!isFinePointer.matches || isReducedMotion) return;
-
-    const docEl = document.documentElement;
-    docEl.classList.add('has-custom-cursor');
-    document.body.classList.add('has-custom-cursor');
-
-    function ensure(className) {
-      let el = document.querySelector('.' + className);
-      if (!el) {
-        el = document.createElement('div');
-        el.className = className;
-        el.setAttribute('aria-hidden', 'true');
-        document.body.appendChild(el);
-      }
-      return el;
-    }
-
-    const dot = ensure('precision-cursor-dot');
-    const ring = ensure('precision-cursor-ring');
-    const halo = ensure('precision-cursor-halo');
-
-    let pointerX = -300;
-    let pointerY = -300;
-    let isVisible = false;
-    let magneticEl = null;
-    let lastTime = 0;
-
-    // Ring is snappy (slight overshoot), halo trails far behind for depth.
-    const ringSpring = { x: -300, y: -300, vx: 0, vy: 0 };
-    const haloSpring = { x: -300, y: -300, vx: 0, vy: 0 };
-
-    let currentAngle = 0;
-    let currentStretch = 1;
-    let currentCompress = 1;
-    // The halo lags the ring, so its own velocity vector is a truer reading of
-    // where the pointer has been. Stretching it along that vector turns the
-    // trail into a comet instead of a uniformly growing blob.
-    let haloAngle = 0;
-    let currentHaloStretch = 1;
-
-    // Semi-implicit Euler spring: stable for these stiffness values at 60-144Hz.
-    function step(spring, tx, ty, stiffness, damping, dt) {
-      spring.vx += (tx - spring.x) * stiffness * dt;
-      spring.vy += (ty - spring.y) * stiffness * dt;
-      spring.vx -= spring.vx * damping * dt;
-      spring.vy -= spring.vy * damping * dt;
-      spring.x += spring.vx * dt;
-      spring.y += spring.vy * dt;
-    }
-
-    function show() {
-      if (isVisible) return;
-      isVisible = true;
-      ringSpring.x = pointerX;
-      ringSpring.y = pointerY;
-      ringSpring.vx = 0;
-      ringSpring.vy = 0;
-      haloSpring.x = pointerX;
-      haloSpring.y = pointerY;
-      haloSpring.vx = 0;
-      haloSpring.vy = 0;
-      // A class, not an inline style: an inline opacity would outrank every
-      // state rule below (hover recedes the halo to 0.45, invert to 0.55).
-      dot.classList.add('cursor-visible');
-      ring.classList.add('cursor-visible');
-      halo.classList.add('cursor-visible');
-    }
-
-    function hide() {
-      isVisible = false;
-      dot.classList.remove('cursor-visible');
-      ring.classList.remove('cursor-visible');
-      halo.classList.remove('cursor-visible');
-      if (magneticEl) {
-        magneticEl.style.transform = '';
-        magneticEl = null;
-      }
-    }
-
-    window.addEventListener(
-      'pointermove',
-      function (e) {
-        pointerX = e.clientX;
-        pointerY = e.clientY;
-        if (!isVisible) show();
-        // The core dot is never interpolated: it is the true pointer position.
-        dot.style.transform =
-          'translate3d(' + pointerX + 'px, ' + pointerY + 'px, 0) translate(-50%, -50%)';
-      },
-      { passive: true }
-    );
-
-    document.addEventListener('mouseleave', hide);
-    document.addEventListener('mouseenter', function (e) {
-      pointerX = e.clientX;
-      pointerY = e.clientY;
-      show();
-    });
-    window.addEventListener('blur', hide);
-
-    // One delegated pass decides every state, so classes can never go stale.
-    const interactiveSelector =
-      'a, button, input, textarea, select, [role="button"], [role="tab"], .btn-pill, .btn-icon, .hero-oneshot, .card-inner, .faq-item, .mobile-nav-link, .nav-link, summary, .cmd-pill';
-    const magneticSelector = '.btn-pill-primary, .hero-oneshot, .btn-icon, .dl-btn-primary';
-    const dragSelector = '[data-cursor="drag"], .comp-table-wrap';
-    // Solid mint surfaces swallow a mint cursor: the dot and ring need to
-    // invert to near-black there or they simply disappear on the CTA.
-    const accentSurfaceSelector = '.btn-pill-primary, .nav-download-btn';
-
-    document.addEventListener(
-      'pointerover',
-      function (e) {
-        const t = e.target;
-        if (!(t instanceof Element)) return;
-
-        const dragTarget = t.closest(dragSelector);
-        const interactive = t.closest(interactiveSelector);
-        const magnetic = t.closest(magneticSelector);
-        const textField = t.closest('input, textarea');
-        const accentSurface = t.closest(accentSurfaceSelector);
-
-        ring.classList.toggle('cursor-drag', !!dragTarget && !magnetic);
-        dot.classList.toggle('cursor-drag', !!dragTarget && !magnetic);
-        ring.classList.toggle('cursor-hover', !!interactive);
-        dot.classList.toggle('cursor-hover', !!interactive);
-        halo.classList.toggle('cursor-hover', !!interactive);
-        ring.classList.toggle('cursor-invert', !!accentSurface);
-        dot.classList.toggle('cursor-invert', !!accentSurface);
-        halo.classList.toggle('cursor-invert', !!accentSurface);
-        ring.classList.toggle('cursor-text', !!textField);
-        dot.classList.toggle('cursor-text', !!textField);
-        ring.classList.toggle('cursor-magnetic', !!magnetic);
-
-        if (magnetic !== magneticEl) {
-          if (magneticEl) magneticEl.style.transform = '';
-          magneticEl = magnetic || null;
-        }
-      },
-      { passive: true }
-    );
-
-    window.addEventListener(
-      'pointerdown',
-      function (e) {
-        dot.classList.add('cursor-active');
-        ring.classList.add('cursor-active');
-
-        const pulse = document.createElement('div');
-        pulse.className = 'cursor-click-pulse';
-        pulse.style.left = e.clientX + 'px';
-        pulse.style.top = e.clientY + 'px';
-        document.body.appendChild(pulse);
-
-        // Second, tighter ring: two waves read as a deliberate "press" rather
-        // than a single ambient blip.
-        const inner = document.createElement('div');
-        inner.className = 'cursor-click-pulse pulse-inner';
-        inner.style.left = e.clientX + 'px';
-        inner.style.top = e.clientY + 'px';
-        document.body.appendChild(inner);
-
-        setTimeout(function () { // DevSkim: ignore DS172411
-          if (pulse.parentNode) pulse.parentNode.removeChild(pulse);
-          if (inner.parentNode) inner.parentNode.removeChild(inner);
-        }, 620);
-      },
-      { passive: true }
-    );
-
-    window.addEventListener(
-      'pointerup',
-      function () {
-        dot.classList.remove('cursor-active');
-        ring.classList.remove('cursor-active');
-      },
-      { passive: true }
-    );
-
-    function renderLoop(time) {
-      const dt = lastTime ? Math.min(0.05, (time - lastTime) / 1000) : 0.016;
-      lastTime = time;
-
-      if (isVisible) {
-        let targetX = pointerX;
-        let targetY = pointerY;
-
-        // Magnetic pull toward the centre of primary actions.
-        if (magneticEl && magneticEl.isConnected) {
-          const rect = magneticEl.getBoundingClientRect();
-          const cx = rect.left + rect.width / 2;
-          const cy = rect.top + rect.height / 2;
-
-          targetX = pointerX * 0.45 + cx * 0.55;
-          targetY = pointerY * 0.45 + cy * 0.55;
-
-          const maxTranslate = 3.5;
-          const tx = Math.max(-maxTranslate, Math.min(maxTranslate, (pointerX - cx) * 0.14));
-          const ty = Math.max(-maxTranslate, Math.min(maxTranslate, (pointerY - cy) * 0.14));
-          magneticEl.style.transform =
-            'translate3d(' + tx.toFixed(2) + 'px, ' + ty.toFixed(2) + 'px, 0)';
-        } else if (magneticEl) {
-          magneticEl = null;
-        }
-
-        step(ringSpring, targetX, targetY, 460, 32, dt);
-        step(haloSpring, targetX, targetY, 120, 24, dt);
-
-        const speed = Math.sqrt(ringSpring.vx * ringSpring.vx + ringSpring.vy * ringSpring.vy);
-        // The pill has fixed chevrons; stretching or rotating it would tilt them.
-        const isDrag = ring.classList.contains('cursor-drag');
-
-        if (speed > 40 && !magneticEl && !isDrag) {
-          currentAngle = Math.atan2(ringSpring.vy, ringSpring.vx) * (180 / Math.PI);
-        }
-
-        // No spark particles: the comet halo already carries the motion, and
-        // random spawns read as noise rather than feedback.
-
-        // Velocity-based aerodynamic stretch along the direction of travel.
-        const targetStretch = magneticEl || isDrag ? 1 : 1 + Math.min(speed * 0.00045, 0.34);
-        const targetCompress = magneticEl || isDrag ? 1 : 1 - Math.min(speed * 0.00028, 0.16);
-        const ease = Math.min(1, dt * 16);
-        currentStretch += (targetStretch - currentStretch) * ease;
-        currentCompress += (targetCompress - currentCompress) * ease;
-
-        ring.style.transform =
-          'translate3d(' + ringSpring.x.toFixed(2) + 'px, ' + ringSpring.y.toFixed(2) + 'px, 0) ' +
-          'translate(-50%, -50%) ' +
-          'rotate(' + currentAngle.toFixed(1) + 'deg) ' +
-          'scale(' + currentStretch.toFixed(3) + ', ' + currentCompress.toFixed(3) + ')';
-
-        const haloScale = 1 + Math.min(speed * 0.0005, 0.35);
-        const haloVelocity = Math.sqrt(haloSpring.vx * haloSpring.vx + haloSpring.vy * haloSpring.vy);
-        if (haloVelocity > 60 && !isDrag) {
-          haloAngle = Math.atan2(haloSpring.vy, haloSpring.vx) * (180 / Math.PI);
-        }
-        const targetHaloStretch = isDrag ? 1 : 1 + Math.min(haloVelocity * 0.00034, 0.26);
-        currentHaloStretch += (targetHaloStretch - currentHaloStretch) * ease;
-        halo.style.transform =
-          'translate3d(' + haloSpring.x.toFixed(2) + 'px, ' + haloSpring.y.toFixed(2) + 'px, 0) ' +
-          'translate(-50%, -50%) ' +
-          'rotate(' + haloAngle.toFixed(1) + 'deg) ' +
-          'scale(' + (haloScale * currentHaloStretch).toFixed(3) + ', ' +
-          (haloScale / currentHaloStretch).toFixed(3) + ')';
-      }
-
-      requestAnimationFrame(renderLoop);
-    }
-
-    requestAnimationFrame(renderLoop);
-  }
-
-  /* ==========================================================================
-     7. Initialization on DOMContentLoaded
+     5. Initialization on DOMContentLoaded
      ========================================================================== */
   function initServiceWorker() {
     if (!('serviceWorker' in navigator) || !window.location.protocol.startsWith('http')) return;
@@ -1143,7 +885,7 @@
   }
 
   /* ==========================================================================
-     8. Global Responsive Mobile Menu Engine
+     6. Global Responsive Mobile Menu Engine
      ========================================================================== */
   function initMobileMenu() {
     const mobileToggle = document.getElementById('mobileToggle');
@@ -1195,7 +937,7 @@
   }
 
   /* ==========================================================================
-     9. Active Navigation Scroll Spy
+     7. Active Navigation Scroll Spy
      ========================================================================== */
   function initScrollSpy() {
     const navLinks = document.querySelectorAll('.nav-links .nav-link');
@@ -1248,7 +990,7 @@
 // (Note: Static multi-page routing is used to guarantee 100% reliable GitHub Pages navigation without 404 or DOM corruption)
 
   /* ==========================================================================
-     10. Hero typewriter cursor
+     8. Hero typewriter cursor
      The characters type themselves in CSS (see html.hero-intro .tw-char), so
      this function only has to walk the same clock and park the caret at the
      last character that has appeared. Nothing here gates the text itself.
@@ -1322,7 +1064,7 @@
   }
 
   /* ==========================================================================
-     11. Capability icon band
+     9. Capability icon band
      Two motions on two layers: the strip drifts against the page on scroll
      (one transform on the track), while each cell rides its own sine phase
      (one transform per cell). The loop stops as soon as the band leaves the
@@ -1402,7 +1144,7 @@
   }
 
   /* ==========================================================================
-     12. Video stage
+     10. Video stage
      The film grows out of the page as it arrives (0.5 -> 1 on desktop,
      0.92 -> 1 on phones) and never plays on its own: the mint pill over the
      poster is the only way in, so the page stays quiet until the visitor asks
@@ -1466,7 +1208,7 @@
   }
 
   /* ==========================================================================
-     13. Footer letterform scrub
+     11. Footer letterform scrub
      The wordmark rises 60px as the footer enters, one letter after the next.
      ========================================================================== */
   function initFooterWordmark() {
@@ -1511,7 +1253,7 @@
   }
 
   /* ==========================================================================
-     14. Word reveal
+     12. Word reveal
      Headings fade in word by word at the reference cadence (5ms apart, 100ms
      each). Only plain-text headings are split; anything with inline markup is
      left alone so links and emphasis stay intact.
@@ -1574,7 +1316,6 @@
     initScrollReveals();
     initInteractiveBackground();
     initCardInteractivity();
-    initPrecisionCursor();
     initServiceWorker();
     initBackToTop();
     initMobileMenu();
