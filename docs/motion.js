@@ -22,7 +22,7 @@
   const isReducedMotion = prefersReducedMotion.matches;
 
   /* ==========================================================================
-     2. Inertial Smooth Scrolling (Lenis 1.3) + scroll-driven chrome
+     1. Inertial Smooth Scrolling (Lenis 1.3) + scroll-driven chrome
      ========================================================================== */
   // Shared, read-only snapshot of the scroll position for the background field.
   const scrollState = {
@@ -185,7 +185,7 @@
   }
 
   /* ==========================================================================
-     3. IntersectionObserver Scroll Reveal System
+     2. IntersectionObserver Scroll Reveal System
      ========================================================================== */
   function initScrollReveals() {
     const revealElements = document.querySelectorAll('.reveal-on-scroll, [data-reveal]');
@@ -232,7 +232,7 @@
   }
 
   /* ==========================================================================
-     4. Deep-space starfield: scroll streaks, pointer repulsion, idle shooting stars
+     3. Deep-space starfield: scroll streaks, pointer repulsion, idle shooting stars
      ========================================================================== */
   function initInteractiveBackground() {
     let canvas = document.getElementById('ambientCanvas');
@@ -779,12 +779,12 @@
   }
 
   /* ==========================================================================
-     5. Card Reactive Surface Lighting & Micro 3D Tilt
+     4. Card Reactive Surface Lighting & Micro 3D Tilt
      ========================================================================== */
   function initCardInteractivity() {
     if (!isFinePointer.matches) return;
     const cards = document.querySelectorAll(
-      '.double-bezel, .card-inner, .feature-card, .cap-item, .hero-oneshot, .showcase-wrapper, .arch-card, .dl-card, .faq-item, .scope-card, .tier-card, .doc-code-card, .download-card, .trust-banner'
+      '.double-bezel, .card-inner, .feature-card, .cap-item, .hero-oneshot, .arch-card, .dl-card, .faq-item, .scope-card, .tier-card, .doc-code-card, .download-card, .trust-banner'
     );
 
     if (!cards.length) return;
@@ -807,7 +807,6 @@
           if (
             !isReducedMotion &&
             (card.classList.contains('double-bezel') ||
-              card.classList.contains('showcase-wrapper') ||
               card.classList.contains('feature-card') ||
               card.classList.contains('tier-card') ||
               card.classList.contains('scope-card'))
@@ -836,7 +835,7 @@
   }
 
   /* ==========================================================================
-     6. Three-layer spring cursor: core dot, elastic ring, trailing halo
+     5. Three-layer spring cursor: core dot, elastic ring, trailing halo
      ========================================================================== */
   function initPrecisionCursor() {
     // A custom cursor is itself motion: reduced-motion users keep the OS pointer.
@@ -947,7 +946,7 @@
     const dragSelector = '[data-cursor="drag"], .comp-table-wrap';
     // Solid mint surfaces swallow a mint cursor: the dot and ring need to
     // invert to near-black there or they simply disappear on the CTA.
-    const accentSurfaceSelector = '.btn-pill-primary, .nav-download-btn, .pane-btn-primary';
+    const accentSurfaceSelector = '.btn-pill-primary, .nav-download-btn';
 
     document.addEventListener(
       'pointerover',
@@ -1096,246 +1095,7 @@
   }
 
   /* ==========================================================================
-     7. Interactive 7-Workspace Live Simulator Engine
-     ========================================================================== */
-  function initWorkspaceSimulator() {
-    const tabsIsland = document.querySelector('.app-tabs-island');
-    const tabs = document.querySelectorAll('.app-tab');
-    const tabNavLeft = document.getElementById('tabNavLeft');
-    const tabNavRight = document.getElementById('tabNavRight');
-
-    if (!tabs.length) return;
-
-    // Arrow button visibility helper
-    function updateArrows() {
-      if (!tabsIsland || !tabNavLeft || !tabNavRight) return;
-      const maxScroll = tabsIsland.scrollWidth - tabsIsland.clientWidth - 4;
-      tabNavLeft.classList.toggle('disabled', tabsIsland.scrollLeft <= 4);
-      tabNavRight.classList.toggle('disabled', tabsIsland.scrollLeft >= maxScroll);
-    }
-
-    if (tabsIsland) {
-      // 1. Mouse wheel horizontal scrolling (supports mouse roll in either orientation)
-      tabsIsland.addEventListener('wheel', function (e) {
-        if (tabsIsland.scrollWidth > tabsIsland.clientWidth) {
-          const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-          if (delta !== 0) {
-            e.preventDefault();
-            tabsIsland.scrollLeft += delta;
-            updateArrows();
-          }
-        }
-      }, { passive: false });
-
-      // 2. Click & drag mouse panning
-      let isDown = false;
-      let startX = 0;
-      let scrollLeft = 0;
-
-      tabsIsland.addEventListener('mousedown', function (e) {
-        if (e.button !== 0) return;
-        isDown = true;
-        startX = e.pageX - tabsIsland.offsetLeft;
-        scrollLeft = tabsIsland.scrollLeft;
-        tabsIsland.style.cursor = 'grabbing';
-      });
-
-      window.addEventListener('mouseup', function () {
-        if (isDown && tabsIsland) {
-          isDown = false;
-          tabsIsland.style.cursor = '';
-        }
-      });
-
-      tabsIsland.addEventListener('mousemove', function (e) {
-        if (!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - tabsIsland.offsetLeft;
-        const walk = (x - startX) * 1.5;
-        tabsIsland.scrollLeft = scrollLeft - walk;
-        updateArrows();
-      });
-
-      tabsIsland.addEventListener('scroll', updateArrows, { passive: true });
-      window.addEventListener('resize', updateArrows);
-      setTimeout(updateArrows, 100);
-
-      // Arrow navigation button handlers
-      if (tabNavLeft) {
-        tabNavLeft.addEventListener('click', function () {
-          tabsIsland.scrollBy({ left: -220, behavior: 'smooth' });
-          setTimeout(updateArrows, 300);
-        });
-      }
-      if (tabNavRight) {
-        tabNavRight.addEventListener('click', function () {
-          tabsIsland.scrollBy({ left: 220, behavior: 'smooth' });
-          setTimeout(updateArrows, 300);
-        });
-      }
-    }
-
-    tabs.forEach(function (tab) {
-      tab.addEventListener('click', function () {
-        tabs.forEach(function (t) {
-          t.classList.remove('active');
-          t.setAttribute('aria-selected', 'false');
-        });
-        document.querySelectorAll('.tab-pane').forEach(function (p) {
-          p.classList.remove('active');
-        });
-
-        tab.classList.add('active');
-        tab.setAttribute('aria-selected', 'true');
-        tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-        setTimeout(updateArrows, 300);
-
-        const target = tab.getAttribute('data-tab');
-        const pane = document.getElementById('pane-' + target);
-        if (pane) pane.classList.add('active');
-      });
-    });
-
-    // 1. Cleaner Scan Simulation
-    const scanBtn = document.getElementById('simScanBtn');
-    const cleanBtn = document.getElementById('simCleanBtn');
-    const scanDock = document.getElementById('simScanDock');
-    const junkTotal = document.getElementById('simJunkTotal');
-
-    if (scanBtn && scanDock && junkTotal) {
-      scanBtn.addEventListener('click', function () {
-        scanBtn.disabled = true;
-        scanBtn.textContent = 'Scanning...';
-        scanDock.style.display = 'flex';
-        let step = 0;
-        const phases = [
-          'Volume C:\\ • 2,400 files/s • 45 MB/s • ETA: 3s',
-          'Volume C:\\ • 4,200 files/s • 115 MB/s • ETA: 2s',
-          'Volume D:\\ (NVMe) • 6,100 files/s • 190 MB/s • ETA: 1s',
-          '<svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> Complete • 26 scopes scanned • 10,407 items verified'
-        ];
-
-        const interval = setInterval(function () {
-          if (step < phases.length) {
-            scanDock.innerHTML = '<span class="status-pulse-green"></span> ' + phases[step];
-            step++;
-          } else {
-            clearInterval(interval);
-            scanBtn.disabled = false;
-            scanBtn.textContent = 'Re-Scan';
-            junkTotal.textContent = '14.8 GB';
-            if (cleanBtn) cleanBtn.disabled = false;
-          }
-        }, 600);
-      });
-    }
-
-    if (cleanBtn && junkTotal && scanDock) {
-      cleanBtn.addEventListener('click', function () {
-        cleanBtn.disabled = true;
-        cleanBtn.textContent = 'Cleaning...';
-        scanDock.innerHTML = '<span class="status-pulse-green"></span> Purging verified caches & bottom-up empty directories...';
-        setTimeout(function () { // DevSkim: ignore DS172411
-          junkTotal.textContent = '0 B';
-          cleanBtn.textContent = 'Cleaned!';
-          scanDock.innerHTML = '✓ Reclaimed 14.8 GB • 0 locked-file errors • System Clean';
-          setTimeout(function () { // DevSkim: ignore DS172411
-            cleanBtn.textContent = 'Clean Verified Junk';
-            cleanBtn.disabled = true;
-          }, 3000);
-        }, 1200);
-      });
-    }
-
-    // 2. RAM Boost Simulation
-    const boostBtn = document.getElementById('simBoostBtn');
-    const ramGauge = document.getElementById('simRamGauge');
-    const ramPercent = document.getElementById('simRamPercent');
-    const ramDetail = document.getElementById('simRamDetail');
-
-    if (boostBtn && ramGauge && ramPercent) {
-      boostBtn.addEventListener('click', function () {
-        boostBtn.disabled = true;
-        boostBtn.textContent = 'Optimizing NT Kernel...';
-
-        let current = 76;
-        const target = 34;
-        const trackBg = 'rgba(255,255,255,0.06)';
-
-        const anim = setInterval(function () {
-          if (current > target) {
-            current -= 3;
-            ramPercent.textContent = current + '%';
-            ramGauge.style.background = 'conic-gradient(var(--accent-cyan) ' + (current * 3.6) + 'deg, ' + trackBg + ' 0deg)';
-          } else {
-            clearInterval(anim);
-            ramPercent.textContent = '34%';
-            ramGauge.style.background = 'conic-gradient(var(--accent-emerald) 122.4deg, ' + trackBg + ' 0deg)';
-            if (ramDetail) ramDetail.textContent = '5.4 GB / 16.0 GB (Flushed 6.8 GB Standby RAM)';
-            boostBtn.innerHTML = '<svg class="i" aria-hidden="true"><use href="#i-check"></use></svg> RAM Boosted (-6.8 GB)';
-            setTimeout(function () { // DevSkim: ignore DS172411
-              boostBtn.textContent = '1-Click Boost Memory';
-              boostBtn.disabled = false;
-            }, 3000);
-          }
-        }, 40);
-      });
-    }
-
-    // 3. Interactive CLI Console
-    const cliOutput = document.getElementById('simCliOutput');
-    const cmdPills = document.querySelectorAll('.cmd-pill');
-
-    const cliResponses = {
-      'deltempo status':
-        '<span style="color:var(--accent-cyan);font-weight:700;">>>> Deltempo System Telemetry (v2.0.0)</span>\n' +
-        '  OS Platform: Windows 11 Pro 64-bit (24H2)\n' +
-        '  Privileges: Standard Invoker (Restart Manager available)\n' +
-        '  Physical Memory: 15.9 GB total | 5.2 GB active | 5.8 GB standby\n' +
-        '  Storage: C:\\ (NVMe) 84.2 GB free / 512.0 GB (83.5% Used)\n' +
-        '  Status: Ready for optimization',
-      'deltempo boost --all':
-        '<span style="color:var(--accent-emerald);font-weight:700;">>>> NT Kernel Memory Deep Purge:</span>\n' +
-        '  [OK] Trimmed 18 inactive application working sets\n' +
-        '  [OK] Flushed Windows NT Standby Page Lists (Pri 0-7)\n' +
-        '  [OK] Cleared System File Cache memory pages\n' +
-        '  SUCCESS: Freed 5.84 GB physical RAM in 42ms.',
-      'deltempo smart --dry-run':
-        '<span style="color:var(--accent-amber);font-weight:700;">>>> Deltempo Smart Clean (Dry Run Simulation):</span>\n' +
-        '  Safety Shield: ACTIVE (<24h protected)\n' +
-        '  Selected Scopes: 14 safe disposable cache targets\n' +
-        '  - User & Windows Temp: 4.8 GB (1,420 files)\n' +
-        '  - DirectX & GPU Shaders: 1.2 GB (890 files)\n' +
-        '  - Developer Caches (npm/pip/gradle): 5.4 GB (8,120 files)\n' +
-        '  - Delivery Optimization: 2.1 GB (12 chunks)\n' +
-        '  TOTAL RECLAIMABLE: 13.5 GB across 10,442 items (0 files modified).',
-      'deltempo scan temp':
-        '<span style="color:var(--accent-cyan);font-weight:700;">>>> Scanning Category: [temp]</span>\n' +
-        '  Scanning Volume C:\\ (%TEMP% & Windows Temp)...\n' +
-        '  Found: 4,820 MB across 1,420 files past 24-hour shield.\n' +
-        '  Protected files untouched: 0 credential or personal documents.'
-    };
-
-    if (cliOutput && cmdPills.length) {
-      cmdPills.forEach(function (pill) {
-        pill.addEventListener('click', function () {
-          cmdPills.forEach(p => p.classList.remove('active'));
-          pill.classList.add('active');
-          const cmd = pill.getAttribute('data-cmd');
-          if (cliResponses[cmd]) {
-            const safeCmd = String(cmd).replace(/[&<>"']/g, function (m) {
-              return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
-            });
-            cliOutput.innerHTML =
-              '<span style="color:var(--accent-cyan);">$</span> ' + safeCmd + '\n\n' + cliResponses[cmd];
-          }
-        });
-      });
-    }
-  }
-
-  /* ==========================================================================
-     8. Interactive Space Reclaim Calculator
+     6. Interactive Space Reclaim Calculator
      ========================================================================== */
   function initReclaimCalculator() {
     const profileBtns = document.querySelectorAll('.calc-profile-btn');
@@ -1394,7 +1154,7 @@
   }
 
   /* ==========================================================================
-     9. Initialization on DOMContentLoaded
+     7. Initialization on DOMContentLoaded
      ========================================================================== */
   function initServiceWorker() {
     if (!('serviceWorker' in navigator) || !window.location.protocol.startsWith('http')) return;
@@ -1445,7 +1205,7 @@
   }
 
   /* ==========================================================================
-     10. Global Responsive Mobile Menu Engine
+     8. Global Responsive Mobile Menu Engine
      ========================================================================== */
   function initMobileMenu() {
     const mobileToggle = document.getElementById('mobileToggle');
@@ -1497,7 +1257,7 @@
   }
 
   /* ==========================================================================
-     11. Active Navigation Scroll Spy
+     9. Active Navigation Scroll Spy
      ========================================================================== */
   function initScrollSpy() {
     const navLinks = document.querySelectorAll('.nav-links .nav-link');
@@ -1550,7 +1310,7 @@
 // (Note: Static multi-page routing is used to guarantee 100% reliable GitHub Pages navigation without 404 or DOM corruption)
 
   /* ==========================================================================
-     12. Hero typewriter cursor
+     10. Hero typewriter cursor
      The characters type themselves in CSS (see html.hero-intro .tw-char), so
      this function only has to walk the same clock and park the caret at the
      last character that has appeared. Nothing here gates the text itself.
@@ -1624,7 +1384,7 @@
   }
 
   /* ==========================================================================
-     13. Capability icon band
+     11. Capability icon band
      Two motions on two layers: the strip drifts against the page on scroll
      (one transform on the track), while each cell rides its own sine phase
      (one transform per cell). The loop stops as soon as the band leaves the
@@ -1704,7 +1464,7 @@
   }
 
   /* ==========================================================================
-     14. Video stage
+     12. Video stage
      The film grows out of the page as it arrives (0.5 -> 1 on desktop,
      0.92 -> 1 on phones), plays muted while it owns the viewport, and pauses
      when it leaves. A native pause by the visitor is sticky: scrolling the
@@ -1771,238 +1531,7 @@
   }
 
   /* ==========================================================================
-     15. Signal field
-     A cloud of dots that assembles into the Deltempo mark on hover. Targets
-     are sampled from the real app icon (mint pixels only), so the shape is
-     the product's own mark rather than a stand-in. Vanilla canvas: no WebGL,
-     no shader compiler, and it stops the moment the field scrolls away.
-     ========================================================================== */
-  function initDotField() {
-    const stage = document.querySelector('[data-dotfield]');
-    if (!stage) return;
-    const canvas = stage.querySelector('.dotfield-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d', { alpha: true });
-    if (!ctx) return;
-
-    let width = 0;
-    let height = 0;
-    let dpr = 1;
-    let dots = [];
-    let targets = [];
-    let hover = isReducedMotion ? 1 : 0;
-    let hoverTarget = isReducedMotion ? 1 : 0;
-    let rafId = null;
-    let visible = false;
-    let seed = 20261101;
-
-    function rand() {
-      // Deterministic cloud: the field looks the same on every visit.
-      seed = (seed * 1664525 + 1013904223) % 4294967296;
-      return seed / 4294967296;
-    }
-
-    function mintPixel(data) {
-      const r = data[0];
-      const g = data[1];
-      const b = data[2];
-      const a = data[3];
-      return a > 140 && g > 110 && g > r * 1.12 && g > b * 1.02;
-    }
-
-    function sampleTargets(image) {
-      const size = 168;
-      const off = document.createElement('canvas');
-      off.width = size;
-      off.height = size;
-      const octx = off.getContext('2d', { willReadFrequently: true });
-      if (!octx) return [];
-      octx.drawImage(image, 0, 0, size, size);
-      let pixels;
-      try {
-        pixels = octx.getImageData(0, 0, size, size).data;
-      } catch (err) {
-        return [];
-      }
-      const points = [];
-      for (let y = 0; y < size; y += 2) {
-        for (let x = 0; x < size; x += 2) {
-          const i = (y * size + x) * 4;
-          if (!mintPixel([pixels[i], pixels[i + 1], pixels[i + 2], pixels[i + 3]])) continue;
-          // Keep the mark, drop the plate edge and the outer glow ring: only
-          // the central disc of the icon is the glyph itself.
-          const nx = x / size - 0.5;
-          const ny = y / size - 0.5;
-          if (Math.sqrt(nx * nx + ny * ny) > 0.42) continue;
-          points.push({ x: x / size, y: y / size });
-        }
-      }
-      return points;
-    }
-
-    function buildDots() {
-      const spot = Math.min(height * 0.9, width * 0.82);
-      const originX = (width - spot) / 2;
-      const originY = (height - spot) / 2;
-
-      // A jittered grid, not a random scatter: at rest the field reads as a
-      // deliberate dot matrix instead of more of the sky behind it.
-      const gap = width < 640 ? 18 : 21;
-      const placed = [];
-      for (let y = gap / 2; y < height; y += gap) {
-        for (let x = gap / 2; x < width; x += gap) {
-          placed.push({
-            x: x + (rand() - 0.5) * gap * 0.55,
-            y: y + (rand() - 0.5) * gap * 0.55,
-          });
-        }
-      }
-
-      return placed.map(function (p, i) {
-        let target = null;
-        if (targets.length) {
-          let best = Infinity;
-          for (let t = 0; t < targets.length; t++) {
-            const dx = originX + targets[t].x * spot - p.x;
-            const dy = originY + targets[t].y * spot - p.y;
-            const d = dx * dx + dy * dy;
-            if (d < best) {
-              best = d;
-              target = targets[t];
-            }
-          }
-        }
-        return {
-          x: p.x,
-          y: p.y,
-          bx: p.x,
-          by: p.y,
-          tx: target ? originX + target.x * spot : p.x,
-          ty: target ? originY + target.y * spot : p.y,
-          vx: 0,
-          vy: 0,
-          size: 1.5 + (i % 3) * 0.35,
-          bright: 0.3 + rand() * 0.5,
-          mint: rand() > 0.2,
-        };
-      });
-    }
-
-    function resize() {
-      const rect = stage.getBoundingClientRect();
-      width = Math.max(1, Math.round(rect.width));
-      height = Math.max(1, Math.round(rect.height));
-      dpr = Math.min(window.devicePixelRatio || 1, width < 768 ? 1.5 : 2);
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      dots = buildDots();
-      draw();
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, width, height);
-      for (let i = 0; i < dots.length; i++) {
-        const d = dots[i];
-        const near = Math.min(1, Math.max(0, 1 - Math.hypot(d.tx - d.x, d.ty - d.y) / 26)) * hover;
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, d.size + near * 1.3, 0, Math.PI * 2);
-        ctx.fillStyle = d.mint
-          ? 'rgba(0, 242, 176, ' + (d.bright * (0.42 + 0.58 * hover)).toFixed(3) + ')'
-          : 'rgba(214, 232, 226, ' + (d.bright * 0.6 * (0.5 + 0.5 * hover)).toFixed(3) + ')';
-        ctx.fill();
-      }
-    }
-
-    function step() {
-      hover += (hoverTarget - hover) * 0.075;
-      if (hover < 0.002) hover = 0;
-      if (hover > 0.998) hover = 1;
-      const pull = hover * hover; // uIsHovering^2 in the reference shader
-
-      for (let i = 0; i < dots.length; i++) {
-        const d = dots[i];
-        const gx = d.bx + (d.tx - d.bx) * pull;
-        const gy = d.by + (d.ty - d.by) * pull;
-        d.vx = (d.vx + (gx - d.x) * 0.055) * 0.86;
-        d.vy = (d.vy + (gy - d.y) * 0.055) * 0.86;
-        d.x += d.vx;
-        d.y += d.vy;
-      }
-      draw();
-      rafId = requestAnimationFrame(step);
-    }
-
-    function start() {
-      if (rafId !== null) return;
-      rafId = requestAnimationFrame(step);
-    }
-
-    function stop() {
-      if (rafId === null) return;
-      cancelAnimationFrame(rafId);
-      rafId = null;
-    }
-
-    // The mark is sampled from the shipped icon. If it cannot be read (offline
-    // first visit, canvas tainted), the field still renders as a cloud.
-    const image = new Image();
-    image.decoding = 'async';
-    image.onload = function () {
-      targets = sampleTargets(image);
-      resize();
-    };
-    image.onerror = function () {
-      targets = [];
-      resize();
-    };
-    image.src = 'app_icon-192.png';
-
-    resize();
-
-    if (isReducedMotion) return;
-    if (isFinePointer.matches) {
-      stage.addEventListener('pointerenter', function () {
-        hoverTarget = 1;
-        stage.classList.add('is-engaged');
-        start();
-      });
-      stage.addEventListener('pointerleave', function () {
-        hoverTarget = 0;
-        stage.classList.remove('is-engaged');
-      });
-    }
-
-    window.addEventListener('resize', resize, { passive: true });
-
-    if (!('IntersectionObserver' in window)) {
-      start();
-      return;
-    }
-
-    new IntersectionObserver(
-      function (entries) {
-        visible = entries[entries.length - 1].isIntersecting;
-        if (visible) start();
-        else stop();
-      },
-      { rootMargin: '200px 0px' }
-    ).observe(stage);
-
-    // Touch has no hover: assemble once when the field first arrives, so the
-    // mark is still the payoff instead of a shapeless cloud.
-    if (!isFinePointer.matches) {
-      new IntersectionObserver(
-        function (entries) {
-          if (entries[entries.length - 1].isIntersecting) hoverTarget = 1;
-        },
-        { threshold: 0.5 }
-      ).observe(stage);
-    }
-  }
-
-  /* ==========================================================================
-     16. Footer letterform scrub
+     13. Footer letterform scrub
      The wordmark rises 60px as the footer enters, one letter after the next.
      ========================================================================== */
   function initFooterWordmark() {
@@ -2047,7 +1576,7 @@
   }
 
   /* ==========================================================================
-     17. Word reveal
+     14. Word reveal
      Headings fade in word by word at the reference cadence (5ms apart, 100ms
      each). Only plain-text headings are split; anything with inline markup is
      left alone so links and emphasis stay intact.
@@ -2055,7 +1584,7 @@
   function initWordReveal() {
     if (isReducedMotion) return;
 
-    const headings = document.querySelectorAll('.section-title, .dotfield-title');
+    const headings = document.querySelectorAll('.section-title');
     if (!headings.length) return;
 
     const pending = [];
@@ -2111,7 +1640,6 @@
     initInteractiveBackground();
     initCardInteractivity();
     initPrecisionCursor();
-    initWorkspaceSimulator();
     initReclaimCalculator();
     initServiceWorker();
     initBackToTop();
@@ -2120,7 +1648,6 @@
     initHeroTypewriter();
     initIconBand();
     initVideoStage();
-    initDotField();
     initFooterWordmark();
     initWordReveal();
   }
