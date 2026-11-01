@@ -3558,6 +3558,61 @@ html.hero-intro .tw-char {
   outline-offset: 4px;
 }
 
+/* The pill does not sit still on a desktop pointer. Antigravity plants its play
+   affordance on the frame and translates it to the cursor, so the label is
+   always under the hand that is about to press it: it pops in with an overshoot
+   and trails the pointer by about a third of a second. Same motion here - the
+   JS writes --play-pill-x/y, the trail is a 0.35s power2.out transform and the
+   pop is a back.out(1.7) scale on its own property, so the two curves never
+   fight over one transition.
+   The hidden state keeps opacity instead of visibility: a pill that vanished
+   from the tab order would leave keyboard visitors with no way in, so it stays
+   focusable and parks itself back on the rail when it takes focus. */
+@media (hover: hover) and (pointer: fine) and (min-width: 641px) {
+  .video-showcase-wrapper.is-pill-armed .video-play {
+    left: 0;
+    top: 0;
+    translate: none;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(var(--play-pill-x, 0px), var(--play-pill-y, 0px), 0) translate(-50%, -50%);
+    scale: 0.4;
+    transition:
+      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+      opacity 0.24s ease,
+      box-shadow 0.4s var(--ease-smooth);
+  }
+
+  .video-showcase-wrapper.is-pill-armed.is-pill-live .video-play {
+    opacity: 1;
+    pointer-events: auto;
+    scale: 1;
+  }
+
+  /* Under the pointer is the pill's resting state, so the press-ready growth
+     and the glow are the same hover it always had, just measured on `scale`
+     where the transform cannot outrank it. */
+  .video-showcase-wrapper.is-pill-armed.is-pill-live .video-play:hover {
+    scale: 1.045;
+  }
+
+  .video-showcase-wrapper.is-pill-armed.is-pill-live .video-play:active {
+    scale: 0.985;
+  }
+
+  /* Keyboard focus pins it to the rail it occupies without scripting. */
+  .video-showcase-wrapper.is-pill-armed .video-play:focus-visible {
+    left: clamp(1.15rem, 2.6vw, 2rem);
+    top: 50%;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate3d(0, -50%, 0);
+    scale: 1;
+    transition: none;
+  }
+}
+
 /* Once the visitor has started the film, the pill retires for good: the native
    controls own every state after that (pause, scrub, replay), so the pill can
    never sit on top of them. */

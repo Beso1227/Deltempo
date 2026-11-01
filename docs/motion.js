@@ -1150,6 +1150,9 @@
      poster is the only way in, so the page stays quiet until the visitor asks
      for the film. Native controls appear on that first click and own every
      state after it, so the pill retires for good.
+     On a desktop pointer the pill also rides the cursor, the way Antigravity's
+     play affordance does: it pops in under the hand instead of waiting to be
+     found in a corner of the poster.
      ========================================================================== */
   function initVideoStage() {
     const stage = document.querySelector('[data-video-stage]');
@@ -1185,6 +1188,68 @@
 
     let started = false;
 
+    // ---- Pill rides the pointer (Antigravity's play affordance) ------------
+    // The pill is planted on the frame and translated to the cursor, so the
+    // label lands under the hand that is about to press it. The trail and the
+    // pop are CSS transitions over --play-pill-x/y; this only measures.
+    // A mouse can be plugged into a phone-sized window, and a hybrid device can
+    // switch pointers mid-visit, so the mode is decided here and re-decided on
+    // a media change instead of being assumed once.
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const wideWindow = window.matchMedia('(min-width: 641px)');
+
+    function syncPill() {
+      const armed = !started && !isReducedMotion && finePointer.matches && wideWindow.matches;
+      stage.classList.toggle('is-pill-armed', armed);
+      if (!armed) stage.classList.remove('is-pill-live');
+    }
+
+    // The nav island is fixed and paints above the frame (z-index 1000), and the
+    // top of a tall frame is usually off screen while the film is in view. A
+    // pill following the raw pointer would slide under the bar and be sliced in
+    // half, so the tracked point is clamped to the band of frame the visitor can
+    // actually see and reach: never outside the frame, never under the nav.
+    function track(clientX, clientY) {
+      if (started) return;
+      const rect = stage.getBoundingClientRect();
+      // The stage is scaled by the scroll scrub, so one viewport pixel is not
+      // one local pixel: divide by the live scale or the pill drifts off the
+      // cursor while the frame is still growing.
+      const scale = rect.width > 0 ? rect.width / stage.offsetWidth : 1;
+      const pad = 12;
+      const halfW = (button.offsetWidth * scale) / 2;
+      const halfH = (button.offsetHeight * scale) / 2;
+
+      const nav = document.querySelector('.nav-island');
+      const ceiling = Math.max(rect.top, (nav ? nav.getBoundingClientRect().bottom : 0) + pad);
+      const floor = Math.min(rect.bottom, window.innerHeight || rect.bottom);
+
+      // A band narrower than the pill (the visitor parked the frame under the
+      // bar) takes its centre rather than an inverted clamp.
+      function clamp(value, lo, hi) {
+        return hi < lo ? (lo + hi) / 2 : Math.min(Math.max(value, lo), hi);
+      }
+
+      const x = clamp(clientX, rect.left + pad + halfW, rect.right - pad - halfW);
+      const y = clamp(clientY, ceiling + pad + halfH, floor - pad - halfH);
+
+      button.style.setProperty('--play-pill-x', ((x - rect.left) / scale).toFixed(1) + 'px');
+      button.style.setProperty('--play-pill-y', ((y - rect.top) / scale).toFixed(1) + 'px');
+      stage.classList.add('is-pill-live');
+    }
+
+    stage.addEventListener('pointerenter', function (e) { track(e.clientX, e.clientY); }, { passive: true });
+    stage.addEventListener('pointermove', function (e) { track(e.clientX, e.clientY); }, { passive: true });
+    stage.addEventListener('pointerleave', function () {
+      stage.classList.remove('is-pill-live');
+    }, { passive: true });
+
+    syncPill();
+    [finePointer, wideWindow].forEach(function (query) {
+      if (typeof query.addEventListener === 'function') query.addEventListener('change', syncPill);
+      else if (typeof query.addListener === 'function') query.addListener(syncPill);
+    });
+
     function start() {
       // Native transport only once the visitor has asked for the film, so the
       // idle poster stays a single, unambiguous affordance.
@@ -1192,6 +1257,7 @@
         started = true;
         stage.classList.add('is-started');
         video.controls = true;
+        syncPill();
       }
       const attempt = video.play();
       if (attempt && typeof attempt.catch === 'function') {
