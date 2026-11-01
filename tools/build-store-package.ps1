@@ -39,13 +39,39 @@ if (-not (Test-Path (Join-Path $PublishDir "Deltempo.WinUI.exe"))) {
 }
 
 # --- 2. Fail-closed tool resolution: makeappx from SDK BuildTools.
-$buildToolsRoot = Get-ChildItem `
-    (Join-Path $env:USERPROFILE ".nuget\packages\microsoft.windows.sdk.buildtools") `
-    -Directory -ErrorAction SilentlyContinue |
-    Sort-Object Name | Select-Object -Last 1
-if ($null -eq $buildToolsRoot) {
-    throw "Microsoft.Windows.SDK.BuildTools is not in the NuGet cache; run dotnet restore first."
+#
+# Resolve the NuGet global-packages root the way NuGet itself does, in the
+# documented precedence: the NUGET_PACKAGES environment variable, then
+# `dotnet nuget locals`, then the historic %USERPROFILE% default, plus the
+# workspace-local mirror. The original hard-coded %USERPROFILE% lookup was
+# born failing on CI (2026-10-30, its first ever run): setup-dotnet's
+# cache: true restores the package graph outside that folder, while
+# `dotnet restore` (which honors the same resolution) succeeds - so the
+# publish step sees the package and the pack script did not.
+$packageRoots = @()
+if ($env:NUGET_PACKAGES) { $packageRoots += $env:NUGET_PACKAGES }
+$locals = dotnet nuget locals global-packages --list 2>$null
+if ($LASTEXITCODE -eq 0 -and $locals) {
+    # Output format: "global-packages: <path>" - strip the label.
+    $packageRoots += (($locals | Select-Object -First 1) -replace '^global-packages:\s*', '')
 }
+$packageRoots += (Join-Path $env:USERPROFILE ".nuget\packages")
+$packageRoots += (Join-Path $repoRoot ".nuget\packages")
+
+$buildToolsRoot = $null
+$usedRoot = $null
+foreach ($root in ($packageRoots | Where-Object { $_ } | Select-Object -Unique)) {
+    $found = Get-ChildItem `
+        (Join-Path $root "microsoft.windows.sdk.buildtools") `
+        -Directory -ErrorAction SilentlyContinue |
+        Sort-Object Name | Select-Object -Last 1
+    if ($null -ne $found) { $buildToolsRoot = $found; $usedRoot = $root; break }
+}
+if ($null -eq $buildToolsRoot) {
+    $tried = ($packageRoots | Where-Object { $_ } | Select-Object -Unique) -join ', '
+    throw "Microsoft.Windows.SDK.BuildTools was not found in any NuGet global-packages location ($tried); run dotnet restore first."
+}
+Write-Host "SDK BuildTools resolved from $usedRoot ($($buildToolsRoot.Name))."
 $makeappx = Get-ChildItem (Join-Path $buildToolsRoot.FullName "bin") -Recurse -Filter "makeappx.exe" |
     Where-Object { $_.Directory.Name -eq "x64" } | Select-Object -First 1
 if ($null -eq $makeappx) {

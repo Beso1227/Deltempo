@@ -48,7 +48,7 @@ public class StoreElevationParityTests
         Assert.Equal("UTF-8", ManifestValue(manifest, "activeCodePage"));
         Assert.Equal("true", ManifestValue(manifest, "longPathAware"));
         Assert.Equal("PerMonitorV2, PerMonitor", ManifestValue(manifest, "dpiAwareness"));
-        Assert.Equal("http://schemas.microsoft.com/SMI/2016/WindowsSettings",
+        Assert.Equal("http://schemas.microsoft.com/SMI/2016/WindowsSettings", // DevSkim: ignore DS137138 (SMI manifest XML namespace - a fixed spec identifier, never fetched)
             ManifestNamespace(manifest, "longPathAware"));
 
         // Both manifests agree on the elevated framing they came from.
