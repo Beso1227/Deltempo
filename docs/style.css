@@ -494,19 +494,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   opacity: 0.9;
 }
 
-/* Brand separator: a hairline that fades at both ends, so the logo group reads
-   as its own pane without drawing a hard rule across the glass. Only where the
-   link list is actually visible. */
-@media (min-width: 1153px) {
-  .nav-brand::after {
-    content: '';
-    width: 1px;
-    height: 20px;
-    margin-left: 0.45rem;
-    background: linear-gradient(180deg, rgba(178, 208, 255, 0) 0%, rgba(178, 208, 255, 0.22) 50%, rgba(178, 208, 255, 0) 100%);
-  }
-}
-
 .brand-logo-img {
   width: 26px;
   height: 26px;
@@ -562,13 +549,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   flex-shrink: 0;
 }
 
-.nav-divider {
-  width: 1px;
-  height: 20px;
-  background: linear-gradient(180deg, rgba(178, 208, 255, 0) 0%, rgba(178, 208, 255, 0.26) 50%, rgba(178, 208, 255, 0) 100%);
-  flex-shrink: 0;
-}
-
 .nav-download-btn {
   padding: 0.45rem 1.15rem !important;
   font-size: 0.85rem !important;
@@ -591,22 +571,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
    nav-cta-live once the hero is above the bar. Everything here is gated on
    `scripting: enabled`, so a visitor without JS (or in a browser too old to
    parse the query) gets the CTA immediately instead of a permanently empty slot. */
-@media (scripting: enabled) {
-  html.nav-cta-staged .nav-divider {
-    transition: opacity 0.3s ease, max-width 0.5s cubic-bezier(0.22, 1, 0.36, 1), margin 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    max-width: 1px;
-  }
-
-  html.nav-cta-staged:not(.nav-cta-live) .nav-divider {
-    max-width: 0;
-    /* Cancel the island's 1.25rem gap on both sides so the collapsed divider
-       leaves no dead glass between the links and the trailing edge. */
-    margin-left: -1.25rem;
-    margin-right: -1.25rem;
-    opacity: 0;
-  }
-}
-
 /* Desktop: the pill collapses its own box, so the island's width follows it
    and the whole bar glides wider as the CTA arrives. */
 @media (scripting: enabled) and (min-width: 1153px) {
@@ -685,8 +649,7 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 
 /* Reduced motion gets the CTA immediately, with no travel and no flourish. */
 @media (prefers-reduced-motion: reduce) {
-  html.nav-cta-staged:not(.nav-cta-live) .nav-download-btn,
-  html.nav-cta-staged:not(.nav-cta-live) .nav-divider {
+  html.nav-cta-staged:not(.nav-cta-live) .nav-download-btn {
     max-width: none;
     margin-left: 0;
     margin-right: 0;
@@ -697,7 +660,7 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
     visibility: visible;
   }
 
-  /* Restore the pill's own box only — the divider must stay 1px wide. */
+  /* Restore the pill's own box so it lands at its natural width. */
   html.nav-cta-staged:not(.nav-cta-live) .nav-download-btn {
     padding-left: 1.15rem !important;
     padding-right: 1.15rem !important;
@@ -1065,17 +1028,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.feature-card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 2rem;
-  right: 2rem;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0, 242, 176, 0.4), transparent);
-  pointer-events: none;
-}
-
 .feature-card:hover {
   transform: translateY(-3px);
 }
@@ -1195,7 +1147,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 .cap-foot {
   margin-top: auto;
   padding-top: 1.1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
   font-family: var(--font-mono);
   font-size: 0.7rem;
   font-weight: 700;
@@ -1213,7 +1164,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   letter-spacing: -0.01em;
   margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(0, 242, 176, 0.14);
   color: var(--text-high);
 }
 
@@ -1254,15 +1204,13 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 
 .faq-item {
   border-radius: var(--radius-md);
-  border: 1px solid rgba(0, 242, 176, 0.14);
   background: linear-gradient(145deg, rgba(20, 29, 32, 0.88) 0%, rgba(13, 19, 21, 0.95) 100%);
   box-shadow: inset 0 1px 0 rgba(0, 242, 176, 0.08), 0 4px 16px rgba(0, 0, 0, 0.25);
   overflow: hidden;
-  transition: border-color var(--transition-fast), box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .faq-item:hover {
-  border-color: rgba(0, 242, 176, 0.38);
   box-shadow: inset 0 1px 0 rgba(0, 242, 176, 0.18), 0 6px 20px rgba(0, 0, 0, 0.35), 0 0 14px rgba(0, 242, 176, 0.08);
 }
 
@@ -1484,13 +1432,11 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   font-weight: 700;
   color: var(--text-high);
   padding: 0.5rem 0;
-  border-bottom: 1px solid var(--border-subtle);
-  transition: color 0.18s ease, border-color 0.18s ease, padding-left 0.18s ease;
+  transition: color 0.18s ease, padding-left 0.18s ease;
 }
 
 .mobile-nav-link:hover {
   color: var(--accent-cyan);
-  border-color: var(--accent-cyan-border);
   padding-left: 0.35rem;
 }
 
@@ -1511,10 +1457,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
    glass by ~10-30px and pushed a horizontal scrollbar onto the page. */
 @media (max-width: 1152px) {
   .nav-links {
-    display: none;
-  }
-
-  .nav-divider {
     display: none;
   }
 
@@ -1667,7 +1609,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   padding: 1.25rem 1.5rem;
   background: rgba(8, 12, 19, 0.95);
   font-weight: 700;
-  border-bottom: 1px solid rgba(0, 242, 176, 0.16);
   color: var(--text-high);
   white-space: nowrap;
 }
@@ -1675,14 +1616,11 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 .compare-table th.highlight {
   color: var(--accent-cyan);
   background: rgba(0, 242, 176, 0.1);
-  border-left: 1px solid rgba(0, 242, 176, 0.35);
-  border-right: 1px solid rgba(0, 242, 176, 0.35);
   position: relative;
 }
 
 .compare-table td {
   padding: 1.15rem 1.5rem;
-  border-bottom: 1px solid rgba(0, 242, 176, 0.08);
   color: var(--text-med);
   vertical-align: middle;
 }
@@ -1690,13 +1628,18 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 .compare-table td.highlight {
   color: var(--text-high);
   background: rgba(0, 242, 176, 0.04);
-  border-left: 1px solid rgba(0, 242, 176, 0.3);
-  border-right: 1px solid rgba(0, 242, 176, 0.3);
   font-weight: 600;
 }
 
-.compare-table tr:last-child td {
-  border-bottom: none;
+/* The row rules are gone, so alternating rows carry the tracking instead: a
+   stripe faint enough to read as texture rather than as a line. Without it a
+   five-column matrix loses its row alignment across the wide middle columns. */
+.compare-table tbody tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.014);
+}
+
+.compare-table tbody tr:nth-child(even) td.highlight {
+  background: rgba(0, 242, 176, 0.055);
 }
 
 
@@ -2402,7 +2345,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 
 .specs-header {
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(0, 242, 176, 0.16);
   font-weight: 800;
   font-size: 1.15rem;
   color: var(--text-high);
@@ -2426,10 +2368,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.92rem;
-}
-
-.specs-row {
-  border-bottom: 1px solid rgba(0, 242, 176, 0.08);
 }
 
 .specs-label {
