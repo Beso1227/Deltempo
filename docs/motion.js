@@ -959,15 +959,12 @@
         const magnetic = t.closest(magneticSelector);
         const textField = t.closest('input, textarea');
         const accentSurface = t.closest(accentSurfaceSelector);
-        const playSurface = t.closest('[data-cursor="play"]');
 
-        ring.classList.toggle('cursor-play', !!playSurface);
-        dot.classList.toggle('cursor-play', !!playSurface);
-        ring.classList.toggle('cursor-drag', !!dragTarget && !magnetic && !playSurface);
-        dot.classList.toggle('cursor-drag', !!dragTarget && !magnetic && !playSurface);
-        ring.classList.toggle('cursor-hover', !!interactive && !playSurface);
-        dot.classList.toggle('cursor-hover', !!interactive && !playSurface);
-        halo.classList.toggle('cursor-hover', !!interactive && !playSurface);
+        ring.classList.toggle('cursor-drag', !!dragTarget && !magnetic);
+        dot.classList.toggle('cursor-drag', !!dragTarget && !magnetic);
+        ring.classList.toggle('cursor-hover', !!interactive);
+        dot.classList.toggle('cursor-hover', !!interactive);
+        halo.classList.toggle('cursor-hover', !!interactive);
         ring.classList.toggle('cursor-invert', !!accentSurface);
         dot.classList.toggle('cursor-invert', !!accentSurface);
         halo.classList.toggle('cursor-invert', !!accentSurface);
@@ -1466,18 +1463,15 @@
   /* ==========================================================================
      12. Video stage
      The film grows out of the page as it arrives (0.5 -> 1 on desktop,
-     0.92 -> 1 on phones), plays muted while it owns the viewport, and pauses
-     when it leaves. A native pause by the visitor is sticky: scrolling the
-     film back in never resumes it over their choice.
+     0.92 -> 1 on phones) and never plays on its own: the mint pill over the
+     poster is the only way in, so the page stays quiet until the visitor asks
+     for the film. Native controls appear on that first click and own every
+     state after it, so the pill retires for good.
      ========================================================================== */
   function initVideoStage() {
     const stage = document.querySelector('[data-video-stage]');
     if (!stage) return;
     const section = stage.closest('.video-section') || stage;
-    const video = section.querySelector('video');
-    const connection = navigator.connection;
-    const saveData = !!(connection && connection.saveData);
-    const motionOK = !isReducedMotion && !saveData;
 
     function scrub() {
       const rect = stage.getBoundingClientRect();
@@ -1492,42 +1486,42 @@
       stage.style.transform = 'scale(' + (from + (1 - from) * eased).toFixed(4) + ')';
     }
 
-    if (motionOK) {
+    if (isReducedMotion) {
+      // No scale: the film is simply present at its final size.
+      stage.style.transform = 'none';
+    } else {
       onScrollFrame(scrub);
       window.addEventListener('resize', scrub, { passive: true });
       scrub();
-    } else {
-      // No scale, no autoplay: the film is simply present at its final size.
-      stage.style.transform = 'none';
     }
 
-    if (!video || !motionOK || !('IntersectionObserver' in window)) return;
+    const shell = section.querySelector('[data-video-shell]');
+    const video = shell && shell.querySelector('video');
+    const button = stage.querySelector('[data-video-play]');
+    if (!video || !button) return;
 
-    let autoPause = false;
-    let userPaused = false;
+    let started = false;
 
-    video.addEventListener('play', function () {
-      autoPause = false;
+    function start() {
+      // Native transport only once the visitor has asked for the film, so the
+      // idle poster stays a single, unambiguous affordance.
+      if (!started) {
+        started = true;
+        stage.classList.add('is-started');
+        video.controls = true;
+      }
+      const attempt = video.play();
+      if (attempt && typeof attempt.catch === 'function') {
+        attempt.catch(function () {});
+      }
+    }
+
+    button.addEventListener('click', start);
+
+    // Clicking the poster is the same request as clicking the pill.
+    video.addEventListener('click', function () {
+      if (!started) start();
     });
-    video.addEventListener('pause', function () {
-      if (!autoPause) userPaused = true;
-    });
-
-    new IntersectionObserver(
-      function (entries) {
-        const entry = entries[entries.length - 1];
-        if (entry.isIntersecting) {
-          if (userPaused) return;
-          autoPause = true;
-          const attempt = video.play();
-          if (attempt && typeof attempt.catch === 'function') attempt.catch(function () {});
-        } else if (!video.paused) {
-          autoPause = true;
-          video.pause();
-        }
-      },
-      { threshold: 0.35 }
-    ).observe(section);
   }
 
   /* ==========================================================================

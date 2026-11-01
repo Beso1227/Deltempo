@@ -56,7 +56,11 @@
   <link rel="preconnect" href="https://api.github.com">
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=3.6.40">
+  <link rel="stylesheet" href="style.css?v=3.6.45">
+
+  <!-- Without scripting the film keeps its native controls, so the pill (which
+       would be inert) is not shown at all. -->
+  <noscript><style>.video-play{display:none}</style></noscript>
 
   <!-- Web App Manifest (PWA installability) -->
   <link rel="manifest" href="manifest.json?v=2.7.14">
@@ -548,37 +552,15 @@
     </script>
     </section>
 
-    <!-- CAPABILITY ICON BAND (decorative: same tools are described below) -->
-    <section class="icon-band" aria-hidden="true">
-      <div class="icon-band-viewport">
-        <ul class="icon-band-track" data-icon-band>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-clean"></use></svg></li>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-bolt"></use></svg></li>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-shield"></use></svg></li>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-package"></use></svg></li>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-terminal"></use></svg></li>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-gamepad"></use></svg></li>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-wrench"></use></svg></li>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-rocket"></use></svg></li>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-activity"></use></svg></li>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-trash"></use></svg></li>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-folder"></use></svg></li>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-globe"></use></svg></li>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-gear"></use></svg></li>
-          <li class="icon-band-cell"><svg class="i"><use href="#i-message"></use></svg></li>
-        </ul>
-      </div>
-    </section>
-
     <!-- 35-SECOND LAUNCH FILM SHOWCASE -->
     <section class="section-py video-section section-glow-emerald" id="video">
 
       <div class="video-bleed">
         <div class="video-showcase-wrapper" data-video-stage>
           <div class="double-bezel video-double-bezel">
-            <div class="video-player-container" data-cursor="play">
+            <div class="video-player-container" data-video-shell>
               <video
-                id="launchVideo" controls preload="none" muted
+                id="launchVideo" controls preload="none"
                 poster="deltempo-poster-1024.webp"
                 playsinline
                 class="responsive-launch-video"
@@ -588,8 +570,41 @@
                 <track kind="captions" src="deltempo-captions.vtt" srclang="en" label="English" default>
                 Your browser does not support HTML5 video. <a href="deltempo.mp4" download>Download the launch video</a>.
               </video>
+              <script>
+                // Native controls are the no-JS fallback; with scripting on, the
+                // pill is the only way in, so the bar is taken off before paint.
+                document.getElementById('launchVideo').controls = false;
+              </script>
             </div>
           </div>
+          <button type="button" class="video-play" data-video-play>
+            <span class="video-play-glyph" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.29-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z"/></svg>
+            </span>
+            <span>Play intro</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- CAPABILITY ICON BAND (decorative: the same tools are described below) -->
+      <div class="icon-band" aria-hidden="true">
+        <div class="icon-band-viewport">
+          <ul class="icon-band-track" data-icon-band>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-clean"></use></svg></li>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-bolt"></use></svg></li>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-shield"></use></svg></li>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-package"></use></svg></li>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-terminal"></use></svg></li>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-gamepad"></use></svg></li>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-wrench"></use></svg></li>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-rocket"></use></svg></li>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-activity"></use></svg></li>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-trash"></use></svg></li>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-folder"></use></svg></li>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-globe"></use></svg></li>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-gear"></use></svg></li>
+            <li class="icon-band-cell"><svg class="i"><use href="#i-message"></use></svg></li>
+          </ul>
         </div>
       </div>
     </section>
@@ -1608,7 +1623,7 @@
 
   <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals, Mobile Menu, Scroll Spy) -->
   <script src="vendor/lenis.min.js" defer></script>
-  <script src="motion.js?v=3.6.40" defer></script>
+  <script src="motion.js?v=3.6.45" defer></script>
 
   <!-- Dynamic Release Version Sync -->
   <script>

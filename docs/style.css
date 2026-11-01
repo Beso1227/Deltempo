@@ -4146,7 +4146,8 @@ html.hero-intro .tw-char {
    described in text further down, so the band is aria-hidden. */
 .icon-band {
   position: relative;
-  padding: 0.5rem 0 1.25rem;
+  margin-top: clamp(1.25rem, 2.4vw, 2rem);
+  padding: 0.25rem 0 0.5rem;
   overflow: hidden;
 }
 
@@ -4183,11 +4184,12 @@ html.hero-intro .tw-char {
 }
 
 /* --- 4. Video stage: scrub-linked scale ---------------------------------- */
-/* The film is the widest object on the page and it now opens its own section,
-   so the section padding that used to sit under a headline block would read as
-   a hole above the frame. A little air is kept for the band that precedes it. */
+/* The film now opens its own section and the icon band rides directly under
+   the frame, so the section keeps a little top air and no bottom padding: the
+   band's own margins do the separating, and the next section brings its own. */
 .video-section.section-py {
   padding-top: 1.25rem;
+  padding-bottom: 0;
 }
 
 .video-bleed {
@@ -4212,38 +4214,110 @@ html.hero-intro .tw-char {
 }
 
 /* Scaling from the bottom edge keeps the frame's own border glued to the floor
-   at every scale, so the growth reads as the film rising into place. */
+   at every scale, so the growth reads as the film rising into place. It is also
+   the positioning context for the pill that sits on the frame's left rail. */
 .video-showcase-wrapper[data-video-stage] {
+  position: relative;
   transform-origin: 50% 100%;
   will-change: transform;
 }
 
-/* The play state replaces the precision cursor's hairline ring with a filled
-   play chip, matching the affordance on the Antigravity film. */
-.precision-cursor-ring.cursor-play {
-  width: 74px;
-  height: 74px;
-  border-color: rgba(0, 242, 176, 0.75);
-  background: rgba(4, 6, 11, 0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.precision-cursor-ring.cursor-play::before {
-  content: "";
+/* The play affordance is Antigravity's cursor pill, rebuilt in Deltempo's
+   material: one solid lozenge carrying a glyph and a label, no ring, no chrome.
+   Mint fill with near-black ink so it reads as the page's own button.
+   It rides the left rail of the frame rather than the centre: the poster
+   already puts its wordmark and install command dead centre, and a pill over
+   either of them would read as a mistake. The left rail is empty dark, and it
+   stays clear of the native control bar once the film starts. */
+.video-play {
   position: absolute;
+  left: clamp(1.15rem, 2.6vw, 2rem);
   top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  margin: -9px 0 0 -6px;
-  border-top: 9px solid transparent;
-  border-bottom: 9px solid transparent;
-  border-left: 14px solid var(--accent-cyan);
+  translate: 0 -50%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.8rem 1.55rem 0.8rem 1.1rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--accent-emerald);
+  color: #04060B;
+  font-family: inherit;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow:
+    0 18px 44px -14px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(4, 6, 11, 0.25);
+  transition:
+    transform 0.4s var(--ease-smooth),
+    opacity 0.28s ease,
+    visibility 0.28s ease,
+    box-shadow 0.4s var(--ease-smooth);
 }
 
-.precision-cursor-dot.cursor-play {
-  opacity: 0 !important;
+.video-play-glyph {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+}
+
+.video-play-glyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+@media (hover: hover) {
+  .video-play:hover {
+    transform: scale(1.045);
+    box-shadow:
+      0 18px 44px -14px rgba(0, 0, 0, 0.8),
+      0 0 34px -6px rgba(0, 242, 176, 0.55);
+  }
+}
+
+.video-play:active {
+  transform: scale(0.985);
+}
+
+.video-play:focus-visible {
+  outline: 2px solid var(--text-high);
+  outline-offset: 4px;
+}
+
+/* Once the visitor has started the film, the pill retires for good: the native
+   controls own every state after that (pause, scrub, replay), so the pill can
+   never sit on top of them. */
+.video-showcase-wrapper.is-started .video-play {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* On a phone the frame is only 200px tall and the poster's wordmark, chips and
+   install card fill all of it, so the pill steps out of the frame and sits
+   under the player instead: nothing is covered, and the tap target stays wide. */
+@media (max-width: 640px) {
+  .video-play {
+    position: static;
+    translate: none;
+    display: flex;
+    width: max-content;
+    margin: 0.7rem auto 0;
+    gap: 0.5rem;
+    padding: 0.65rem 1.2rem 0.65rem 0.85rem;
+    font-size: 0.9375rem;
+  }
+
+  .video-play-glyph {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 /* --- 6. Feature rows: alternating copy / visual -------------------------- */
@@ -4463,7 +4537,7 @@ html.hero-intro .tw-char {
     animation: none !important;
   }
 
-  .precision-cursor-ring.cursor-play {
-    display: none;
+  .video-play {
+    transition: none;
   }
 }
