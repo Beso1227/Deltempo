@@ -628,6 +628,11 @@ p, .section-subtitle, .hero-subtext, .card-desc, .faq-answer, .scope-desc {
     transform: translateY(-14px) scale(0.82);
     filter: blur(6px);
     pointer-events: none;
+    /* Off-screen means off the tab order and out of the a11y tree: a keyboard
+       user on the hero must not land on an invisible Download link. The delay
+       lets the fade-out finish before visibility flips. */
+    visibility: hidden;
+    transition: opacity 0.32s ease, max-width 0.5s cubic-bezier(0.22, 1, 0.36, 1), padding 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.58s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.38s ease, visibility 0s linear 0.5s;
   }
 }
 
@@ -643,6 +648,9 @@ p, .section-subtitle, .hero-subtext, .card-desc, .faq-answer, .scope-desc {
     transform: translateY(-10px) scale(0.8);
     filter: blur(5px);
     pointer-events: none;
+    /* Same reasoning as desktop: hidden must also mean untabbable. */
+    visibility: hidden;
+    transition: opacity 0.32s ease, transform 0.58s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.38s ease, visibility 0s linear 0.45s;
   }
 }
 
@@ -687,6 +695,7 @@ p, .section-subtitle, .hero-subtext, .card-desc, .faq-answer, .scope-desc {
     transform: none;
     filter: none;
     pointer-events: auto;
+    visibility: visible;
   }
 
   /* Restore the pill's own box only — the divider must stay 1px wide. */
