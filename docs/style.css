@@ -3546,6 +3546,20 @@ html.hero-intro .tw-char {
   cursor: pointer;
 }
 
+/* While the pill is the pointer, the operating system's arrow is put away -
+   otherwise the visitor holds two cursors at once, and the arrow sits on the
+   pill's face because the pill trails it by a third of a second. It comes back
+   the moment the film starts (the native transport needs it), and it never
+   leaves on the parked rail: a phone, a touch pointer, a narrow window and a
+   reduced-motion visitor all keep the ordinary cursor on an ordinary button. */
+@media (hover: hover) and (pointer: fine) and (min-width: 641px) {
+  .video-showcase-wrapper.is-pill-armed,
+  .video-showcase-wrapper.is-pill-armed .video-player-container,
+  .video-showcase-wrapper.is-pill-armed .video-play {
+    cursor: none;
+  }
+}
+
 /* On a phone the frame is only 200px tall and the poster's wordmark, chips and
    install card fill all of it, so the pill steps out of the frame and sits
    under the player instead: nothing is covered, and the tap target stays wide. */
