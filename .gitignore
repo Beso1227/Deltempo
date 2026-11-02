@@ -199,6 +199,10 @@ graphify-out/
 GRAPHIFY.md
 vault/
 brag-output/
+# Archify diagram working folders: candidate JSON, rendered HTML, and the
+# browser-check/visual-check evidence (receipts, contact sheets, screenshots).
+# Regenerable local artifacts, never source.
+.archify/
 .deploy*.cmd
 ci_runs.json
 ci_*.json
