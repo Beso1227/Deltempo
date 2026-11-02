@@ -789,6 +789,10 @@
     if (!cards.length) return;
 
     cards.forEach(function (card) {
+      // The player's frame is answered by the scroll, not by the pointer: its
+      // border must not tilt, brighten or shift when the cursor crosses it.
+      if (card.classList.contains('video-double-bezel')) return;
+
       let isTicking = false;
 
       function onPointerMove(e) {

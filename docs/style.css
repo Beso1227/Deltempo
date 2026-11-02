@@ -163,6 +163,10 @@
   --radius-xl: 24px;
   --radius-pill: 9999px;
 
+  /* The player's single corner. The reference uses 36px on a wide screen and
+     24px once the frame is phone width, so the same numbers are used here. */
+  --video-frame-radius: 36px;
+
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
@@ -1772,28 +1776,44 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   width: 100%;
 }
 
+/* The frame is one surface, the way the reference builds its player: a single
+   rounded rectangle holding the film - no padded bezel, no second hairline, no
+   glow. It is also inert to the pointer: the border must not move, brighten or
+   tilt when the cursor crosses it, so the micro-tilt, the hover glow and the
+   surface lighting every other card carries are switched off here, and section
+   4 of motion.js skips this element. What is left is depth: one soft shadow
+   under the shape so it reads as a panel rather than a hole in the page. */
 .video-double-bezel {
-  padding: 10px;
-  border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), 0 0 36px rgba(0, 242, 176, 0.12);
-  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+  padding: 0;
+  border-radius: var(--video-frame-radius);
+  background: #05070C;
+  border: 0;
+  /* Depth only: one soft shadow so the panel sits above the page, and a single
+     pixel of light on the top edge - the reference's surface carries the same
+     catch-light. Nothing here reacts to the pointer. */
+  box-shadow:
+    0 34px 90px -36px rgba(0, 0, 0, 0.92),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transform: none;
+  will-change: auto;
+  transition: none;
 }
 
 .video-double-bezel:hover {
-  border-color: rgba(0, 242, 176, 0.3);
-  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.65), 0 0 44px rgba(0, 242, 176, 0.2);
+  border: 0;
+  box-shadow:
+    0 34px 90px -36px rgba(0, 0, 0, 0.92),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .video-player-container {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  border-radius: calc(var(--radius-xl) - 8px);
+  border-radius: inherit;
   overflow: hidden;
   background: #04060B;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 0;
 }
 
 .responsive-launch-video {
@@ -1818,13 +1838,10 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
     margin: 1.5rem auto 0;
   }
 
-  .video-double-bezel {
-    padding: 6px;
-    border-radius: var(--radius-lg);
-  }
-
-  .video-player-container {
-    border-radius: calc(var(--radius-lg) - 4px);
+  /* One corner, smaller once the frame is phone width - the reference's own
+     step, and the shape stays the same at both sizes. */
+  .video-section {
+    --video-frame-radius: 24px;
   }
 }
 
@@ -1903,7 +1920,9 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
     text-align: left;
   }
 
-  .double-bezel {
+  /* The player keeps its own single-surface shape at every width, so it is not
+     one of the cards this softens. */
+  .double-bezel:not(.video-double-bezel) {
     padding: 5px;
     border-radius: var(--radius-lg);
   }
@@ -2803,7 +2822,7 @@ html.is-scrolled .nav-island {
 
 /* Card tilt only ever happens under a real pointer. */
 @media (hover: hover) and (pointer: fine) {
-  .double-bezel:hover,
+  .double-bezel:not(.video-double-bezel):hover,
   .card-inner:hover,
   .feature-card:hover,
   .scope-card:hover,
@@ -3361,20 +3380,18 @@ html.hero-intro .tw-char {
 }
 
 .video-bleed .video-double-bezel {
-  padding: 10px;
-  border-radius: 44px;
+  border-radius: var(--video-frame-radius);
 }
 
-.video-bleed .video-player-container {
-  border-radius: 34px;
-}
-
-/* Scaling from the bottom edge keeps the frame's own border glued to the floor
-   at every scale, so the growth reads as the film rising into place. It is also
-   the positioning context for the pill that sits on the frame's left rail. */
+/* The reference scales the whole player from its own centre: 0.5 to 1 on a wide
+   screen, 0.92 to 1 once it is phone width, power2.out, scrubbed by the scroll
+   between "section top meets the fold" and "section top reaches the middle"
+   (0.2 viewport on a phone). The same numbers and the same default GSAP origin
+   are used here, so the growth reads identically. The frame is also the
+   positioning context for the pill that sits on its left rail. */
 .video-showcase-wrapper[data-video-stage] {
   position: relative;
-  transform-origin: 50% 100%;
+  transform-origin: 50% 50%;
   will-change: transform;
 }
 
