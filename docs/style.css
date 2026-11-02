@@ -185,11 +185,12 @@
 
 html {
   scroll-behavior: smooth;
-  /* Keep anchor targets clear of the floating nav island. This is the single
-     source of truth: Lenis reads scroll-padding-top itself, and native
-     scrolling uses it too. A scroll-margin-top here as well would stack a
-     second 96px gap on every anchor jump. */
-  scroll-padding-top: 96px;
+  /* A small clearance so an anchored section does not butt against the top
+     edge; the corner brand floats over that band, not over the content. This is
+     the single source of truth: Lenis reads scroll-padding-top itself, and
+     native scrolling uses it too. A scroll-margin-top here as well would stack
+     a second gap on every anchor jump. */
+  scroll-padding-top: 24px;
   color-scheme: dark;
 }
 
@@ -239,7 +240,6 @@ body {
 }
 
 .nav-wrapper,
-.mobile-menu-overlay,
 main,
 section,
 .hero,
@@ -441,63 +441,29 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   line-height: 1.65;
 }
 
-/* Floating Island Header */
+/* Corner chrome -------------------------------------------------------------
+   The bar is gone. A fixed, unpainted layer holds two things only: the brand
+   in the top-left corner, and the Download pill, which drops into the
+   top-right corner once the hero is behind us. The layer itself never paints,
+   so the page reads full-bleed at every scroll position, and it ignores the
+   pointer so nothing behind it becomes unclickable. */
 .nav-wrapper {
-  position: sticky;
-  top: 1rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
-  padding: 0 1rem;
-  margin-bottom: 1rem;
-  width: 100%;
   display: flex;
-  justify-content: center;
-}
-
-.nav-island {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.25rem;
-  width: max-content;
-  max-width: 100%;
-  margin: 0 auto;
-  height: 54px;
-  padding: 0 0.75rem 0 1rem;
-  /* Space glass: a cool tinted pane, not a grey slab. The mint sheen at the
-     top edge is the same light the starfield throws, so the bar belongs to
-     the sky instead of sitting on top of it. Blur is light enough that the
-     brightest stars still glimmer through as soft blooms. */
-  background:
-    radial-gradient(120% 140% at 50% -20%, rgba(0, 242, 176, 0.1) 0%, rgba(0, 242, 176, 0) 58%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.02) 46%, rgba(255, 255, 255, 0.045) 100%),
-    rgba(7, 11, 18, 0.58);
-  backdrop-filter: blur(26px) saturate(150%);
-  -webkit-backdrop-filter: blur(26px) saturate(150%);
-  /* Cool-blue hairline reads as edge-lit glass against a warm-black sky;
-     the mint rim underneath is the accent light from below. */
-  border: 1px solid rgba(178, 208, 255, 0.13);
-  border-radius: var(--radius-pill);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    inset 0 -1px 0 rgba(0, 242, 176, 0.16),
-    inset 0 0 24px rgba(0, 242, 176, 0.035),
-    0 16px 40px -8px rgba(0, 0, 0, 0.62),
-    0 0 26px -8px rgba(0, 242, 176, 0.12);
-  transition: border-color var(--transition-fast), background-color var(--transition-normal), box-shadow var(--transition-normal);
-}
-
-.nav-island:hover {
-  border-color: rgba(178, 208, 255, 0.2);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    inset 0 -1px 0 rgba(0, 242, 176, 0.22),
-    inset 0 0 28px rgba(0, 242, 176, 0.05),
-    0 20px 48px -8px rgba(0, 0, 0, 0.66),
-    0 0 34px -6px rgba(0, 242, 176, 0.16);
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  pointer-events: none;
 }
 
 .nav-brand {
   display: flex;
+  pointer-events: auto;
   align-items: center;
   gap: 0.65rem;
   font-weight: 800;
@@ -506,6 +472,8 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   color: var(--text-high);
   white-space: nowrap !important;
   flex-shrink: 0;
+  /* Over the poster and the starfield the wordmark needs its own shadow. */
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.55);
   transition: opacity 0.2s ease;
 }
 
@@ -523,49 +491,13 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   box-shadow: 0 0 12px rgba(0, 242, 176, 0.3);
 }
 
-.nav-links {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  list-style: none;
-  gap: 0.15rem;
-  margin: 0;
-  padding: 0;
-  flex: 0 0 auto;
-}
-
-.nav-link {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.35rem 0.65rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-med);
-  border: 1px solid transparent;
-  white-space: nowrap !important;
-  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-}
-
-.nav-link:hover {
-  color: var(--text-high);
-  background: rgba(0, 242, 176, 0.07);
-  border-color: rgba(0, 242, 176, 0.16);
-  text-shadow: 0 0 12px rgba(0, 242, 176, 0.28);
-}
-
-.nav-link.active {
-  color: var(--accent-cyan);
-  background: var(--accent-cyan-bg);
-  border-color: var(--accent-cyan-border);
-  box-shadow: 0 0 14px rgba(0, 242, 176, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
 .nav-actions {
   display: flex;
   align-items: center;
   gap: 0.55rem;
   flex-shrink: 0;
+  margin-left: auto;
+  pointer-events: auto;
 }
 
 .nav-download-btn {
@@ -580,113 +512,88 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   height: 22px !important;
 }
 
-/* The bar's Download CTA belongs to the page's scroll story: while the hero
-   owns the screen the island shrinks to brand + links, then it widens and the
-   pill springs into place once the hero has scrolled past the header. The
-   island is width: max-content, so collapsing the pill's own box is what makes
-   the bar grow — no fixed widths to keep in sync with the label.
-   index.html ships nav-cta-staged on <html> so the pill is hidden from the very
-   first paint instead of blinking in until motion.js runs; motion.js then adds
-   nav-cta-live once the hero is above the bar. Everything here is gated on
-   `scripting: enabled`, so a visitor without JS (or in a browser too old to
-   parse the query) gets the CTA immediately instead of a permanently empty slot. */
-/* Desktop: the pill collapses its own box, so the island's width follows it
-   and the whole bar glides wider as the CTA arrives. */
-@media (scripting: enabled) and (min-width: 1153px) {
-  html.nav-cta-staged .nav-download-btn {
-    transition: opacity 0.32s ease, max-width 0.5s cubic-bezier(0.22, 1, 0.36, 1), padding 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.58s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.38s ease;
-    /* Generous cap (natural width is ~135px) so zoomed text never clips. */
-    max-width: 260px;
-    /* The label is clipped by the pill itself while it grows, so it reads as a
-       reveal instead of text floating outside the box. */
-    overflow: hidden;
-  }
-
-  html.nav-cta-staged:not(.nav-cta-live) .nav-download-btn {
-    max-width: 0;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    opacity: 0;
-    transform: translateY(-14px) scale(0.82);
-    filter: blur(6px);
-    pointer-events: none;
-    /* Off-screen means off the tab order and out of the a11y tree: a keyboard
-       user on the hero must not land on an invisible Download link. The delay
-       lets the fade-out finish before visibility flips. */
-    visibility: hidden;
-    transition: opacity 0.32s ease, max-width 0.5s cubic-bezier(0.22, 1, 0.36, 1), padding 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.58s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.38s ease, visibility 0s linear 0.5s;
-  }
-}
-
-/* Phones and tablets keep the island full-bleed, so the pill only fades and
-   springs — the hamburger never moves. */
-@media (scripting: enabled) and (max-width: 1152px) {
-  html.nav-cta-staged .nav-download-btn {
-    transition: opacity 0.32s ease, transform 0.58s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.38s ease;
-  }
-
-  html.nav-cta-staged:not(.nav-cta-live) .nav-download-btn {
-    opacity: 0;
-    transform: translateY(-10px) scale(0.8);
-    filter: blur(5px);
-    pointer-events: none;
-    /* Same reasoning as desktop: hidden must also mean untabbable. */
-    visibility: hidden;
-    transition: opacity 0.32s ease, transform 0.58s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.38s ease, visibility 0s linear 0.45s;
-  }
-}
-
-/* One-shot arrival: a mint ring expands off the pill while the primary sheen
-   sweeps across it. Toggling the class restarts both, so the moment plays
-   again every time the hero is scrolled back into view. */
-@keyframes navCtaArrive {
+/* The pill belongs to the page's scroll story. The hero carries its own
+   Download button, so the corner one is held back while the hero owns the
+   screen; once the hero is behind us it drops into the top-right corner. It
+   arrives on a spring - falling in from above, overshooting the corner, then
+   squashing and settling - which is what makes a corner affordance feel placed
+   rather than switched on. index.html ships nav-cta-staged on <html> so the
+   pill is absent from the first paint instead of blinking in until motion.js
+   runs; motion.js then toggles nav-cta-live. Every rule here is gated on
+   `scripting: enabled`, so a visitor without JS gets the CTA immediately
+   instead of a permanently empty corner. */
+@keyframes navCtaDrop {
   0% {
-    box-shadow: 0 0 0 0 rgba(0, 242, 176, 0.55), 0 2px 14px rgba(0, 242, 176, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    opacity: 0;
+    transform: translate3d(0, -210%, 0) scale(0.42);
   }
-  55% {
-    box-shadow: 0 0 0 10px rgba(0, 242, 176, 0), 0 10px 28px rgba(0, 242, 176, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  32% {
+    opacity: 1;
+  }
+  58% {
+    opacity: 1;
+    transform: translate3d(0, 9px, 0) scaleX(1.09) scaleY(0.91);
+  }
+  76% {
+    transform: translate3d(0, -4px, 0) scaleX(0.975) scaleY(1.025);
+  }
+  89% {
+    transform: translate3d(0, 2px, 0) scaleX(1.008) scaleY(0.992);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(0, 242, 176, 0), 0 2px 14px rgba(0, 242, 176, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    opacity: 1;
+    transform: none;
   }
 }
 
-@keyframes navCtaSheen {
-  from { transform: translateX(-130%); }
-  to { transform: translateX(130%); }
+/* One-shot arrival ring: a mint halo expands off the pill as it lands. */
+@keyframes navCtaArrive {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 242, 176, 0.5), 0 2px 14px rgba(0, 242, 176, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  60% {
+    box-shadow: 0 0 0 12px rgba(0, 242, 176, 0), 0 12px 30px rgba(0, 242, 176, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  100% {
+    box-shadow: 0 2px 14px rgba(0, 242, 176, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
 }
 
 @media (scripting: enabled) {
-  html.nav-cta-live .nav-download-btn {
-    animation: navCtaArrive 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  /* Leaving the corner is a small, quiet fall back up - the arrival is the
+     moment worth watching. */
+  html.nav-cta-staged .nav-download-btn {
+    transition: opacity 0.24s ease, transform 0.34s cubic-bezier(0.4, 0, 1, 1);
   }
 
-  html.nav-cta-live .nav-download-btn::after {
-    animation: navCtaSheen 0.85s cubic-bezier(0.3, 0.9, 0.3, 1) 0.1s;
+  html.nav-cta-staged:not(.nav-cta-live) .nav-download-btn {
+    opacity: 0;
+    transform: translate3d(0, -150%, 0) scale(0.5);
+    pointer-events: none;
+    /* Off-screen also means off the tab order: a keyboard user on the hero must
+       not land on an invisible Download link. The delay lets the fall finish
+       before visibility flips. */
+    visibility: hidden;
+    transition: opacity 0.24s ease, transform 0.34s cubic-bezier(0.4, 0, 1, 1), visibility 0s linear 0.34s;
+  }
+
+  html.nav-cta-live .nav-download-btn {
+    animation:
+      navCtaDrop 0.78s cubic-bezier(0.22, 1.2, 0.36, 1) both,
+      navCtaArrive 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.04s;
   }
 }
 
 /* Reduced motion gets the CTA immediately, with no travel and no flourish. */
 @media (prefers-reduced-motion: reduce) {
   html.nav-cta-staged:not(.nav-cta-live) .nav-download-btn {
-    max-width: none;
-    margin-left: 0;
-    margin-right: 0;
     opacity: 1;
     transform: none;
-    filter: none;
     pointer-events: auto;
     visibility: visible;
   }
 
-  /* Restore the pill's own box so it lands at its natural width. */
-  html.nav-cta-staged:not(.nav-cta-live) .nav-download-btn {
-    padding-left: 1.15rem !important;
-    padding-right: 1.15rem !important;
-  }
-
-  html.nav-cta-live .nav-download-btn,
-  html.nav-cta-live .nav-download-btn::after {
+  html.nav-cta-live .nav-download-btn {
     animation: none;
   }
 }
@@ -753,26 +660,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 14px rgba(0, 242, 176, 0.12), inset 0 1px 0 rgba(0, 242, 176, 0.14);
 }
 
-/* Mobile Nav Toggle */
-.nav-mobile-toggle {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  gap: 5px;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-}
-
-.nav-mobile-toggle span {
-  display: block;
-  width: 20px;
-  height: 2px;
-  background: var(--text-high);
-  transition: all var(--transition-fast);
-  margin: 0 auto;
-}
-
 /* Double-Bezel Hardware Architecture */
 /* Double-Bezel Hardware Architecture */
 .double-bezel {
@@ -828,7 +715,10 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 
 /* Hero Section with Macro-Whitespace */
 .hero {
-  padding: 5.5rem 0 6rem;
+  /* The bar used to sit in the flow above this block. It is corner chrome now,
+     so the hero owns the extra space instead: the brand floats in clear sky and
+     the headline starts below it instead of under it. */
+  padding: 8.5rem 0 6rem;
   text-align: center;
 }
 
@@ -1401,41 +1291,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   transform: translateY(-1px);
 }
 
-/* Mobile Nav Overlay */
-.mobile-menu-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(4, 6, 11, 0.96);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  z-index: 999;
-  padding: 6rem 2rem 2rem;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.mobile-menu-overlay.open {
-  display: flex;
-}
-
-.mobile-nav-link {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-high);
-  padding: 0.5rem 0;
-  transition: color 0.18s ease, padding-left 0.18s ease;
-}
-
-.mobile-nav-link:hover {
-  color: var(--accent-cyan);
-  padding-left: 0.35rem;
-}
-
-.mobile-nav-link.active {
-  color: var(--accent-cyan);
-}
-
 /* Responsive Breakpoints */
 @media (max-width: 1024px) {
   .cap-columns {
@@ -1443,15 +1298,9 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   }
 }
 
-/* The nine-item bar needs ~1121px of content plus the 32px gutter, so the
-   link list only fits from 1153px up. Below that the hamburger takes over —
-   at 1041-1152 the old breakpoint let the island's content overflow its own
-   glass by ~10-30px and pushed a horizontal scrollbar onto the page. */
+/* The corner button keeps its label on a wide screen; on tighter widths it
+   becomes a real 44px icon target instead of a squeezed chip. */
 @media (max-width: 1152px) {
-  .nav-links {
-    display: none;
-  }
-
   .nav-download-btn span:first-child {
     display: none;
   }
@@ -1459,30 +1308,15 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   .nav-download-btn {
     padding: 0.45rem 0.7rem !important;
     gap: 0 !important;
-    /* Icon-only on phones: keep it a real 44px target, not a 35px chip. */
     min-width: 44px;
     min-height: 44px;
     justify-content: center;
-  }
-
-  .nav-island {
-    width: 100%;
-    max-width: 100%;
-    height: 52px;
-    /* With the link list gone the island is a wide pane holding two clusters;
-       centring them leaves a dead gap in the middle, so push the brand to the
-       leading edge and the controls to the trailing one. */
-    justify-content: space-between;
-  }
-
-  .nav-mobile-toggle {
-    display: flex;
   }
 }
 
 @media (max-width: 768px) {
   .hero {
-    padding-top: 3rem;
+    padding-top: 7rem;
   }
 
 
@@ -1872,7 +1706,7 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 
   /* Hero Section Mobile Polish */
   .hero {
-    padding-top: 2rem;
+    padding-top: 7rem;
     padding-bottom: 2rem;
   }
 
@@ -1995,8 +1829,11 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   display: none !important;
 }
 
+/* The corner brand floats over the top of the page, so a content page starts
+   below it rather than under it. This replaces the clearance the old bar used
+   to take up in the flow. */
 .content-page {
-  padding-top: 2rem;
+  padding-top: 6.5rem;
   padding-bottom: 5rem;
   max-width: 900px;
 }
@@ -2235,7 +2072,7 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 
 /* Download Center Components */
 .download-main {
-  padding-top: 2rem;
+  padding-top: 6.5rem;
   padding-bottom: 5rem;
 }
 
@@ -2667,21 +2504,6 @@ html {
   will-change: transform;
 }
 
-/* --- 3. Nav island gains depth once the page leaves the hero ------------- */
-html.is-scrolled .nav-island {
-  background:
-    radial-gradient(120% 140% at 50% -20%, rgba(0, 242, 176, 0.12) 0%, rgba(0, 242, 176, 0) 58%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.015) 46%, rgba(255, 255, 255, 0.035) 100%),
-    rgba(6, 10, 16, 0.72);
-  border-color: rgba(0, 242, 176, 0.2);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.26),
-    inset 0 -1px 0 rgba(0, 242, 176, 0.24),
-    inset 0 0 26px rgba(0, 242, 176, 0.05),
-    0 18px 44px -10px rgba(0, 0, 0, 0.72),
-    0 0 32px -8px rgba(0, 242, 176, 0.24);
-}
-
 /* --- 4. Reveal variants -------------------------------------------------
    Opt in per element with data-reveal="left|right|scale|fade". The plain
    default (no attribute) stays a 20px rise. */
@@ -2869,22 +2691,6 @@ html.is-scrolled .nav-island {
    Halving the radius on phones keeps the frosted look at a fraction of the
    fill-rate, which is exactly where mobile GPUs run out of headroom. */
 @media (max-width: 768px) {
-  .nav-island {
-    backdrop-filter: blur(18px) saturate(160%);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
-    /* A narrow bar is mostly rim, so a full-strength sheen turns the whole
-       island green on a phone. Halve it and keep the rim. */
-    background:
-      radial-gradient(120% 140% at 50% -20%, rgba(0, 242, 176, 0.055) 0%, rgba(0, 242, 176, 0) 58%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 46%, rgba(255, 255, 255, 0.04) 100%),
-      rgba(7, 11, 18, 0.6);
-  }
-
-  .mobile-menu-overlay {
-    backdrop-filter: blur(12px) saturate(140%);
-    -webkit-backdrop-filter: blur(12px) saturate(140%);
-  }
-
   .back-to-top {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -2922,14 +2728,11 @@ html.is-scrolled .nav-island {
    Fingers need 44x44 CSS px (WCAG 2.2 · 2.5.8 / Apple HIG). These controls
    were 18-38px tall. Padding grows the hit area without moving the artwork. */
 .nav-brand,
-.nav-link,
-.nav-mobile-toggle,
 .nav-download-btn,
 .footer-link,
 .footer-top-link,
 .back-to-top,
 .btn-pill,
-.mobile-nav-link,
 .faq-question,
 .calc-profile-btn,
 .cmd-pill {
@@ -2945,12 +2748,7 @@ html.is-scrolled .nav-island {
 /* Size bumps only where a finger is the input device: a 44px icon button in
    the 54px desktop island would visibly unbalance the nav. */
 @media (max-width: 1040px), (pointer: coarse) {
-  .nav-mobile-toggle {
-    min-width: 44px;
-    min-height: 44px;
-  }
-
-  .nav-download-btn,
+    .nav-download-btn,
   .btn-pill {
     min-height: 44px;
   }
@@ -2969,13 +2767,7 @@ html.is-scrolled .nav-island {
     min-height: 44px;
   }
 
-  .nav-link {
-    min-height: 44px;
-  }
-
-
-  
-  .text-accent-link {
+    .text-accent-link {
     display: inline-flex;
     align-items: center;
     min-height: 46px;
@@ -2996,8 +2788,9 @@ html.is-scrolled .nav-island {
 /* --- 4. Safe-area insets -------------------------------------------------
    Notches, home indicators and rounded corners must not eat controls. */
 .nav-wrapper {
-  padding-left: max(1rem, env(safe-area-inset-left));
-  padding-right: max(1rem, env(safe-area-inset-right));
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+  padding-left: max(1.25rem, env(safe-area-inset-left));
+  padding-right: max(1.25rem, env(safe-area-inset-right));
 }
 
 .scroll-progress-bar {
@@ -3007,17 +2800,6 @@ html.is-scrolled .nav-island {
 .back-to-top {
   bottom: max(2rem, calc(env(safe-area-inset-bottom, 0px) + 0.75rem));
   right: max(2rem, calc(env(safe-area-inset-right, 0px) + 0.75rem));
-}
-
-.mobile-menu-overlay {
-  height: 100dvh;
-  padding-top: calc(6rem + env(safe-area-inset-top, 0px));
-  padding-right: max(2rem, env(safe-area-inset-right));
-  padding-bottom: max(2rem, env(safe-area-inset-bottom));
-  padding-left: max(2rem, env(safe-area-inset-left));
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 768px) {
@@ -3048,7 +2830,6 @@ html.is-scrolled .nav-island {
   .hero-oneshot:hover,
   .btn-pill-primary:hover,
   .btn-pill-secondary:hover,
-  .nav-link:hover,
   .back-to-top:hover {
     transform: none;
   }
@@ -3058,7 +2839,6 @@ html.is-scrolled .nav-island {
    A tap must answer immediately, even before the destination loads. */
 .btn-pill:active,
 .faq-question:active,
-.mobile-nav-link:active,
 .footer-link:active,
 .calc-profile-btn:active,
 .cmd-pill:active,
@@ -3097,36 +2877,6 @@ html.is-scrolled .nav-island {
   from {
     opacity: 0;
     transform: translate3d(0, 10px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* Mobile menu links cascade in instead of appearing as one slab. */
-.mobile-menu-overlay.open .mobile-nav-link {
-  animation: menu-link-enter 0.44s var(--ease-smooth) backwards;
-}
-
-.mobile-menu-overlay.open .mobile-nav-link:nth-child(1) { animation-delay: 0.03s; }
-.mobile-menu-overlay.open .mobile-nav-link:nth-child(2) { animation-delay: 0.06s; }
-.mobile-menu-overlay.open .mobile-nav-link:nth-child(3) { animation-delay: 0.09s; }
-.mobile-menu-overlay.open .mobile-nav-link:nth-child(4) { animation-delay: 0.12s; }
-.mobile-menu-overlay.open .mobile-nav-link:nth-child(5) { animation-delay: 0.15s; }
-.mobile-menu-overlay.open .mobile-nav-link:nth-child(6) { animation-delay: 0.18s; }
-.mobile-menu-overlay.open .mobile-nav-link:nth-child(7) { animation-delay: 0.21s; }
-.mobile-menu-overlay.open .mobile-nav-link:nth-child(8) { animation-delay: 0.24s; }
-.mobile-menu-overlay.open .mobile-nav-link:nth-child(9) { animation-delay: 0.27s; }
-.mobile-menu-overlay.open .mobile-nav-link:nth-child(10) { animation-delay: 0.30s; }
-.mobile-menu-overlay.open .mobile-nav-link:nth-child(11) { animation-delay: 0.33s; }
-.mobile-menu-overlay.open .mobile-nav-link:nth-child(12) { animation-delay: 0.36s; }
-.mobile-menu-overlay.open .mobile-nav-link:nth-child(n + 13) { animation-delay: 0.39s; }
-
-@keyframes menu-link-enter {
-  from {
-    opacity: 0;
-    transform: translate3d(-14px, 0, 0);
   }
   to {
     opacity: 1;
@@ -3178,13 +2928,8 @@ html.is-scrolled .nav-island {
   }
 
   
-  .mobile-menu-overlay.open .mobile-nav-link {
-    animation: none;
-  }
-
   .btn-pill:active,
   .faq-question:active,
-  .mobile-nav-link:active,
   .footer-link:active,
   .calc-profile-btn:active,
   .cmd-pill:active,

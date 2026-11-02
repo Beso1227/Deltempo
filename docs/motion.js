@@ -62,7 +62,6 @@
     const topBtn = document.querySelector('.back-to-top');
     let lastScrollY = -1;
     let lastProgress = -1;
-    let wasScrolled = null;
 
     function paint() {
       const y = window.scrollY || window.pageYOffset || 0;
@@ -95,19 +94,14 @@
           topBtn.style.setProperty('--scroll-progress', String(pr));
         }
       }
-      const scrolled = y > 6;
-      if (scrolled !== wasScrolled) {
-        wasScrolled = scrolled;
-        docEl.classList.toggle('is-scrolled', scrolled);
-      }
     }
 
-    // The bar's Download CTA is held back while the hero owns the screen, then
-    // springs into the bar once the hero has scrolled past the header. Only
+    // The bar's Download pill is held back while the hero owns the screen, then
+    // drops into the top-right corner once the hero has scrolled past. Only
     // pages with a hero opt in, so sub-pages keep the CTA from the first frame.
-    // rootMargin pulls the observation line down to the header's bottom edge,
-    // so the swap happens the moment the hero clears the bar instead of when it
-    // leaves the viewport entirely.
+    // rootMargin pulls the observation line down to where the old bar's bottom
+    // edge used to be, so the swap happens the moment the hero clears the top of
+    // the page instead of when it leaves the viewport entirely.
     const heroEl = document.querySelector('.hero');
     if (heroEl && 'IntersectionObserver' in window && !isReducedMotion) {
       docEl.classList.add('nav-cta-staged');
@@ -888,108 +882,6 @@
     });
   }
 
-  /* ==========================================================================
-     6. Global Responsive Mobile Menu Engine
-     ========================================================================== */
-  function initMobileMenu() {
-    const mobileToggle = document.getElementById('mobileToggle');
-    const mobileMenu = document.getElementById('mobileMenu');
-    if (!mobileToggle || !mobileMenu) return;
-
-    function toggleMobileMenu(open) {
-      if (open) {
-        mobileMenu.classList.add('open');
-        mobileMenu.setAttribute('aria-hidden', 'false');
-        mobileToggle.setAttribute('aria-expanded', 'true');
-        mobileToggle.setAttribute('aria-label', 'Close Navigation Menu');
-        document.body.style.overflow = 'hidden';
-        // Freeze the inertial scroller too, or the page keeps gliding behind the sheet.
-        if (scrollState.lenis) scrollState.lenis.stop();
-      } else {
-        mobileMenu.classList.remove('open');
-        mobileMenu.setAttribute('aria-hidden', 'true');
-        mobileToggle.setAttribute('aria-expanded', 'false');
-        mobileToggle.setAttribute('aria-label', 'Open Navigation Menu');
-        document.body.style.overflow = '';
-        if (scrollState.lenis) scrollState.lenis.start();
-      }
-    }
-
-    mobileToggle.addEventListener('click', function () {
-      const isOpen = mobileMenu.classList.contains('open');
-      toggleMobileMenu(!isOpen);
-    });
-
-    document.querySelectorAll('.mobile-nav-link').forEach(function (link) {
-      link.addEventListener('click', function () {
-        toggleMobileMenu(false);
-      });
-    });
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && mobileMenu.classList.contains('open')) {
-        toggleMobileMenu(false);
-        mobileToggle.focus();
-      }
-    });
-
-    window.addEventListener('resize', function () {
-      if (window.innerWidth > 960 && mobileMenu.classList.contains('open')) {
-        toggleMobileMenu(false);
-      }
-    });
-  }
-
-  /* ==========================================================================
-     7. Active Navigation Scroll Spy
-     ========================================================================== */
-  function initScrollSpy() {
-    const navLinks = document.querySelectorAll('.nav-links .nav-link');
-    if (!navLinks.length) return;
-
-    const tracked = [];
-    navLinks.forEach(function (link) {
-      const href = link.getAttribute('href');
-      if (href && href.startsWith('#') && href.length > 1) {
-        const target = document.getElementById(href.substring(1));
-        if (target) {
-          tracked.push({ link: link, target: target });
-        }
-      }
-    });
-
-    if (!tracked.length) return;
-
-    function updateActiveNav() {
-      const scrollPos = window.scrollY + 160;
-      let currentActive = null;
-
-      for (let i = 0; i < tracked.length; i++) {
-        const top = tracked[i].target.offsetTop;
-        const height = tracked[i].target.offsetHeight;
-        if (scrollPos >= top && scrollPos < top + height) {
-          currentActive = tracked[i].link;
-          break;
-        }
-      }
-
-      tracked.forEach(function (item) {
-        if (item.link === currentActive) {
-          item.link.classList.add('active');
-        } else {
-          item.link.classList.remove('active');
-        }
-      });
-    }
-
-    window.addEventListener('scroll', updateActiveNav, { passive: true });
-    if (typeof requestIdleCallback === 'function') {
-      requestIdleCallback(updateActiveNav);
-    } else {
-      setTimeout(updateActiveNav, 100);
-    }
-  }
-
 // SPA-grade instant page transitions across GitHub Pages without full reloads
 // (Note: Static multi-page routing is used to guarantee 100% reliable GitHub Pages navigation without 404 or DOM corruption)
 
@@ -1227,8 +1119,8 @@
       const halfW = (button.offsetWidth * scale) / 2;
       const halfH = (button.offsetHeight * scale) / 2;
 
-      const nav = document.querySelector('.nav-island');
-      const ceiling = Math.max(rect.top, (nav ? nav.getBoundingClientRect().bottom : 0) + pad);
+      const chrome = document.querySelector('.nav-brand');
+      const ceiling = Math.max(rect.top, (chrome ? chrome.getBoundingClientRect().bottom : 0) + pad);
       const floor = Math.min(rect.bottom, window.innerHeight || rect.bottom);
 
       // A band narrower than the pill (the visitor parked the frame under the
@@ -1626,8 +1518,6 @@
     initCardInteractivity();
     initServiceWorker();
     initBackToTop();
-    initMobileMenu();
-    initScrollSpy();
     initHeroTypewriter();
     initIconBand();
     initVideoStage();
