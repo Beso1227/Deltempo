@@ -1344,77 +1344,274 @@
   }
 
   /* ==========================================================================
-     12. Word reveal, written by the scroll
-     A plain-text heading is split into words once. The scroll position then
-     writes two properties on it: --wr-p, its own progress through the viewport,
-     and --wr-n, how many words it holds. Each word derives its opacity from its
-     index (see .wr-word), so the line is written as the visitor scrolls down and
-     un-written as they scroll back up. No timer, no observer: the reveal is the
-     scroll itself, which is what makes it read as writing rather than as a
-     one-shot fade. Headings with inline markup are left alone so links and
-     emphasis survive.
+     12. Text written by the scroll
+     Every prose block is split once into word spans. One scroll pass then writes
+     a single property per block, --wr-p, and each word derives its own opacity
+     from it (see .wr-word). A line is therefore written as the visitor scrolls
+     and un-written as they scroll back: nothing is timed, the scroll is the
+     clock, which is what makes it read as writing rather than as a one-shot
+     fade. The hero is left out - it types itself on load (section 8).
+
+     The split is layout-neutral: a word box lays out exactly like the word did.
+     Three cases are left alone, all because a box of their own would join a
+     layout that is not this text line: a word already inside a word span, text
+     sitting directly inside a flex or grid container (such text nodes are
+     anonymous items), and text inside a control that answers on hover instead
+     of on scroll. Words stay inline boxes, so wrap points, text-wrap balancing
+     and block heights do not move. Inline markup survives because only text
+     nodes are split: links, <strong> and <em> keep working.
+
+     Ownership is resolved per text node, from the node outwards, so a footer
+     link or a badge inside a flex row is written with the block that holds it
+     rather than being skipped for having an inline parent. Each element's
+     display is resolved once and remembered, so the walk costs one computed
+     style per element instead of one per text node.
+
+     Classification is a read-only pass that runs to completion before anything
+     is mutated, so no layout is forced mid-split. Splitting happens in slices:
+     what sits near the viewport splits before the first paint, the rest in idle
+     slices, and a block is split and painted in the same task so it is never
+     shown whole and then dimmed. At scroll time every block's document position
+     was already measured, so the pass is arithmetic plus the properties that
+     actually moved - it never asks for a layout, and a block whose progress did
+     not change is not written at all.
      ========================================================================== */
-  function initWordReveal() {
-    const headings = document.querySelectorAll('.section-title, .section-subtitle');
-    if (!headings.length) return;
+  const TEXT_SKIP_ELEMENTS = 'script, style, noscript, template, pre, code, kbd, samp, textarea, input, select, option, iframe, video, canvas, svg, math, header, nav';
+  const TEXT_SKIP_SELECTOR = [
+    '.hero',                 // the hero has its own intro
+    '.wr-word',
+    '.footer-wordmark',       // letterform scrub, see section 6
+    '.sr-only',
+    '.btn-pill',              // calls to action answer on hover/press instead
+    '.cmd-pill',
+    '.copy-btn',
+    '[class*="doc-cli"]',     // terminal mockups are monospace pictures
+    '[aria-hidden="true"]',
+    '[data-no-scrub]',
+  ].join(',');
+  const TEXT_SKIP_COMBINED = TEXT_SKIP_ELEMENTS + ',' + TEXT_SKIP_SELECTOR;
 
-    const tracked = [];
+  function initTextScrub() {
+    if (isReducedMotion) return;
 
-    headings.forEach(function (el) {
-      if (el.children.length) return;
-      const text = el.textContent;
-      if (!text || !text.trim()) return;
+    const roots = document.querySelectorAll('main, footer');
+    if (!roots.length) return;
 
-      const parts = text.split(/(\s+)/);
-      el.textContent = '';
-      let index = 0;
+    // Display is asked once per element and remembered: the walk below would
+    // otherwise compute it again for every text node in a run.
+    const displays = new Map();
+
+    function displayOf(el) {
+      let d = displays.get(el);
+      if (d === undefined) {
+        d = getComputedStyle(el).display;
+        displays.set(el, d);
+      }
+      return d;
+    }
+
+    // Each element is classified once and remembered: whether it sits under a
+    // skip, and which block owns the words it starts. Resolving this from the
+    // element outwards (and memoising the answer for the parent) costs one
+    // selector match per element rather than two per text node.
+    const status = new Map();
+
+    function statusOf(el) {
+      let s = status.get(el);
+      if (s) return s;
+      const up = el.parentElement && el.parentElement !== document.body
+        ? statusOf(el.parentElement)
+        : { blocked: false, owner: null };
+      const d = displayOf(el);
+      s = {
+        blocked: up.blocked || el.matches(TEXT_SKIP_COMBINED),
+        owner: d !== 'inline' && d !== 'contents' ? el : up.owner,
+      };
+      status.set(el, s);
+      return s;
+    }
+
+    // One entry per owning block, in document order, holding the text nodes it
+    // writes. A node is claimed by exactly one owner, so nothing is split twice.
+    const runs = new Map();
+
+    for (let r = 0; r < roots.length; r++) {
+      const root = roots[r];
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      let node;
+      while ((node = walker.nextNode())) {
+        if (!node.nodeValue.trim()) continue;
+        const parent = node.parentElement;
+        if (!parent) continue;
+
+        const s = statusOf(parent);
+        if (s.blocked || !s.owner) continue;
+
+        // A text node sitting directly inside a flex or grid container is an
+        // anonymous item; a box per word would make each word an item instead.
+        if (parent === s.owner) {
+          const d = displayOf(s.owner);
+          if (d.indexOf('flex') >= 0 || d.indexOf('grid') >= 0) continue;
+        }
+
+        const nodes = runs.get(s.owner);
+        if (nodes) nodes.push(node);
+        else runs.set(s.owner, [node]);
+      }
+    }
+
+    if (!runs.size) return;
+
+    function splitWords(node, index) {
+      const parts = node.nodeValue.split(/(\s+)/);
+      const frag = document.createDocumentFragment();
       for (let i = 0; i < parts.length; i++) {
         const part = parts[i];
         if (!part) continue;
         if (/^\s+$/.test(part)) {
-          el.appendChild(document.createTextNode(part));
+          frag.appendChild(document.createTextNode(part));
           continue;
         }
         const word = document.createElement('span');
         word.className = 'wr-word';
         word.style.setProperty('--wr-i', String(index++));
         word.textContent = part;
-        el.appendChild(word);
+        frag.appendChild(word);
       }
-      if (!index) return;
+      node.parentNode.replaceChild(frag, node);
+      return index;
+    }
 
-      el.style.setProperty('--wr-n', String(index));
+    const tracked = [];
+    const next = [];
+    let docHeight = 0;
 
-      // A heading that cannot be scrubbed is simply already written: the words
-      // must never be the reason the text is unreadable.
-      if (isReducedMotion) {
-        el.classList.add('no-word-reveal');
-        return;
-      }
-      tracked.push(el);
-    });
-
-    if (!tracked.length) return;
-
-    function scrub() {
-      const vh = window.innerHeight || 1;
-      // Written across the last stretch of the approach: by the time the heading
-      // settles at reading height, every word is present.
-      const start = vh * 0.94;
-      const span = vh * 0.55;
-
+    // Where each block sits in the document. Measured once, because writing the
+    // scrub never changes layout: a block's position only moves when the page
+    // reflows, which is a resize, a late font or a late image, and each of those
+    // re-measures. With the position cached the scroll pass reads nothing, so it
+    // never asks the browser to lay the page out again - the only work a frame
+    // pays for is restyling the blocks whose progress actually moved.
+    function measure() {
+      const sy = window.scrollY || window.pageYOffset || 0;
+      docHeight = document.documentElement.scrollHeight || 0;
       for (let i = 0; i < tracked.length; i++) {
-        const el = tracked[i];
-        const rect = el.getBoundingClientRect();
-        // Parked well outside the viewport: keep its last value, skip the write.
-        if (rect.bottom < -vh * 0.15 || rect.top > vh * 1.15) continue;
-        const p = Math.min(1, Math.max(0, (start - rect.top) / span));
-        el.style.setProperty('--wr-p', p.toFixed(4));
+        const rect = tracked[i].getBoundingClientRect();
+        tracked[i].__wry = rect.top + sy;
+        tracked[i].__wrh = rect.height;
       }
     }
 
+    // How far a block has been written at a given scroll position. A block is
+    // finished before it reaches reading height, so anything the visitor has
+    // stopped to read is whole; only the strip entering from the bottom is
+    // still being written. A tall paragraph is given more travel than a
+    // heading, so the words arrive at a similar rate rather than in one gulp.
+    function progressAt(top, height, scrolled, vh, tail) {
+      const span = Math.min(Math.max(vh * 0.32, height * 1.1), vh * 0.9);
+      let p = (vh * 0.96 - (top - scrolled)) / span;
+      p = p < 0 ? 0 : p > 1 ? 1 : p;
+      if (tail) p += (1 - p) * tail;
+      // 500 steps keeps the number short enough that unchanged blocks compare
+      // equal, and is under a third of a pixel of travel per step.
+      return Math.round(p * 500) / 500;
+    }
+
+    // Splitting a few thousand words into boxes is not free, so it is done in
+    // slices: whatever sits near the viewport is split before the first paint,
+    // the rest in idle slices. A block is split and painted in the same task,
+    // so it can never be shown fully written and then dimmed.
+    const near = [];
+    const far = [];
+    const vh0 = window.innerHeight || 1;
+    runs.forEach(function (nodes, el) {
+      (el.getBoundingClientRect().top < vh0 * 1.5 ? near : far).push({ el: el, nodes: nodes });
+    });
+    const order = near.concat(far);
+    let qi = 0;
+
+    docHeight = document.documentElement.scrollHeight || 0;
+
+    function splitRun(run) {
+      let index = 0;
+      for (let i = 0; i < run.nodes.length; i++) index = splitWords(run.nodes[i], index);
+      if (!index) return false;
+      run.el.style.setProperty('--wr-n', String(index));
+      tracked.push(run.el);
+      return true;
+    }
+
+    // Paint freshly split blocks, and remember where each of them sits while
+    // the rects are already in hand: every rect is read before any property is
+    // written, so the slice pays for one layout instead of one per block.
+    function paint(list) {
+      const vh = window.innerHeight || 1;
+      const sy = window.scrollY || window.pageYOffset || 0;
+      const values = [];
+      for (let i = 0; i < list.length; i++) {
+        const rect = list[i].getBoundingClientRect();
+        list[i].__wry = rect.top + sy;
+        list[i].__wrh = rect.height;
+        values[i] = progressAt(rect.top, rect.height, sy, vh, 0);
+      }
+      for (let i = 0; i < list.length; i++) {
+        list[i].__wrp = values[i];
+        list[i].style.setProperty('--wr-p', String(values[i]));
+      }
+    }
+
+    const schedule = window.requestIdleCallback
+      ? function () { window.requestIdleCallback(splitSlice, { timeout: 200 }); }
+      : function () { window.setTimeout(splitSlice, 16); };
+
+    function splitSlice() {
+      const started = performance.now();
+      const fresh = [];
+      while (qi < order.length) {
+        if (splitRun(order[qi++])) fresh.push(order[qi - 1].el);
+        if (performance.now() - started > 4) break;
+      }
+      if (fresh.length) paint(fresh);
+      if (qi < order.length) schedule();
+    }
+
+    splitSlice();
+
+    function scrub(y) {
+      const vh = window.innerHeight || 1;
+      const scrolled = typeof y === 'number' ? y : (window.scrollY || window.pageYOffset || 0);
+      const maxY = Math.max(0, docHeight - vh);
+
+      // The end of the document has no scroll left to write with. Rather than
+      // stranding the footer's words half-lit, the last third of a viewport
+      // finishes whatever is still open.
+      let tail = (scrolled - (maxY - vh * 0.35)) / (vh * 0.35);
+      tail = tail < 0 ? 0 : tail > 1 ? 1 : tail;
+
+      // Pure arithmetic: the positions were measured once, so this pass reads
+      // nothing from the document and never forces a layout.
+      for (let i = 0; i < tracked.length; i++) {
+        next[i] = progressAt(tracked[i].__wry, tracked[i].__wrh, scrolled, vh, tail);
+      }
+
+      // Write pass. The last value written lives on the element, so a block
+      // painted when it was split is not written again for the same value.
+      for (let i = 0; i < tracked.length; i++) {
+        if (next[i] === tracked[i].__wrp) continue;
+        tracked[i].__wrp = next[i];
+        tracked[i].style.setProperty('--wr-p', String(next[i]));
+      }
+    }
+
+    function remeasure() {
+      measure();
+      scrub();
+    }
+
     onScrollFrame(scrub);
-    window.addEventListener('resize', scrub, { passive: true });
+    window.addEventListener('resize', remeasure, { passive: true });
+    window.addEventListener('load', remeasure);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
     scrub();
   }
 
@@ -1431,7 +1628,7 @@
     initIconBand();
     initVideoStage();
     initFooterWordmark();
-    initWordReveal();
+    initTextScrub();
   }
 
   if (document.readyState === 'loading') {

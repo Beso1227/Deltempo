@@ -3697,24 +3697,26 @@ html.hero-intro .tw-char {
   color: var(--text-low);
 }
 
-/* Word reveal, written by the scroll position rather than by a timer.
-   JS splits a plain-text heading once and writes two properties on it: --wr-p
+/* Text written by the scroll position rather than by a timer.
+   JS splits prose into words once and writes two properties per block: --wr-p
    (its own progress through the viewport) and --wr-n (how many words it holds).
-   Each word carries --wr-i. One property per heading per frame; the per-word
-   maths happens in the browser, so nothing is measured word by word. Scrolling
-   back un-writes the line, which is what makes it read as writing rather than
-   as a one-shot animation. */
+   Each word carries --wr-i. One property per block per frame; the per-word maths
+   happens in the browser, so nothing is measured word by word. Scrolling back
+   un-writes the line, which is what makes it read as writing rather than as a
+   one-shot animation.
+
+   A word stays an inline box. That is the whole reason this is free: line
+   breaking, text-wrap: balance/pretty, hyphenation and the height of every
+   block are exactly what they were before the split, so no paragraph reflows
+   when it becomes animatable. The rise is a relative offset, which moves the
+   painted box without taking part in layout; being in em, it scales with the
+   type it belongs to - a couple of pixels under body copy, ten under a
+   headline. */
 .wr-word {
   --wr-x: clamp(0, calc((var(--wr-p, 1) * (var(--wr-n, 1) + 1.4) - var(--wr-i, 0)) * 2.6), 1);
-  display: inline-block;
-  opacity: var(--wr-x);
-  transform: translateY(calc((1 - var(--wr-x)) * 0.16em));
-}
-
-/* Reduced motion, or a heading the scrub could not take: simply written. */
-.no-word-reveal .wr-word {
-  opacity: 1;
-  transform: none;
+  position: relative;
+  top: calc((1 - var(--wr-x)) * 0.14em);
+  opacity: calc(0.1 + var(--wr-x) * 0.9);
 }
 
 /* --- 6. Footer: letterform scrub ---------------------------------------- */
