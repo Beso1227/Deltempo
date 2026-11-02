@@ -762,45 +762,38 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 }
 
 .hero-headline {
-  /* One word per step, four steps, each canted a couple of degrees and shifted
-     a little further right than the one above it. The result is a diagonal
-     band across the fold instead of a centred block, and every line stays on
-     its own baseline because the break points are the ones the browser had
-     already chosen for this copy. The size is derived from the widest line
-     plus the outermost step, so the band reaches both edges of the container
-     without overflowing them. */
-  font-size: clamp(2rem, 6.25vw, 5.6rem);
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  line-height: 1.16;
+  /* Two sentences, two lines. Each one spans the content width, and the pair is
+     canted as a single block: the baselines stay parallel at one angle, so the
+     fold carries a diagonal banner instead of a stack of tilted fragments. The
+     size is the largest that still keeps sentence one inside the container
+     (measured at 16.7em, minus the cant). */
+  font-size: clamp(2rem, 5.4vw, 4.1875rem);
+  font-weight: 800;
+  letter-spacing: -0.032em;
+  line-height: 1.06;
   max-width: none;
-  margin: 0 auto 1.5rem;
+  /* The cant drops the left end of each line by ~0.46em below its box, so the
+     bottom margin carries that extra ink as well as the normal gap. */
+  margin: 0 auto 2.9rem;
   text-wrap: wrap;
 }
 
 .hero-line {
-  /* A block box the width of the text, not of the container: the step below
-     translates the box, and a full-width box would drag the right edge of the
-     page with it. */
   display: block;
+  /* Text-width boxes: the cant turns the box too, and a container-wide box
+     would take the page's right edge with it. */
   width: max-content;
   max-width: 100%;
   margin: 0 auto;
-  /* Each step is a fixed line: letting one wrap would break the cascade. */
   white-space: nowrap;
   color: var(--text-high);
+  transform: rotate(-3.2deg);
 }
 
-/* Second line: solid mint. No gradient, no shimmer, no glow. The two mint
-   steps sit furthest out, so the eye runs top-left to bottom-right. */
+/* Second line: solid mint. No gradient, no shimmer, no glow. */
 .hero-line-accent {
   color: var(--accent-emerald);
 }
-
-.hero-headline .hero-line:nth-child(1) { transform: translateX(-1.8em) rotate(-2deg); }
-.hero-headline .hero-line:nth-child(2) { transform: translateX(-0.6em) rotate(-2deg); }
-.hero-headline .hero-line:nth-child(3) { transform: translateX(0.6em) rotate(-2deg); }
-.hero-headline .hero-line:nth-child(4) { transform: translateX(1.8em) rotate(-2deg); }
 
 .hero-ctas {
   display: flex;
@@ -1750,18 +1743,19 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   }
 
   .hero-headline {
-    /* Same staircase at phone scale, with the step tightened so a canted line
-       can never cross the padded edge. */
-    font-size: min(8.8vw, 2.4rem);
-    letter-spacing: -0.03em;
-    line-height: 1.2;
-    margin-bottom: 1.25rem;
+    /* Phone keeps the two sentences, but they wrap rather than shrink to
+       nothing: two lines at 36px would be unreadable. The cant is dropped
+       because a wrapped line tilts away from its own break. */
+    font-size: min(9.2vw, 2.4rem);
+    letter-spacing: -0.028em;
+    line-height: 1.14;
+    margin-bottom: 1.4rem;
   }
 
-  .hero-headline .hero-line:nth-child(1) { transform: translateX(-0.9em) rotate(-1.5deg); }
-  .hero-headline .hero-line:nth-child(2) { transform: translateX(-0.3em) rotate(-1.5deg); }
-  .hero-headline .hero-line:nth-child(3) { transform: translateX(0.3em) rotate(-1.5deg); }
-  .hero-headline .hero-line:nth-child(4) { transform: translateX(0.9em) rotate(-1.5deg); }
+  .hero-line {
+    white-space: normal;
+    transform: none;
+  }
 
   .hero-ctas {
     flex-direction: column;

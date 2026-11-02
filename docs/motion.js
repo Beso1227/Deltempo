@@ -1494,7 +1494,7 @@
         lastIndex = index;
         place(index);
       }
-      if (elapsed < endAt + 1700) {
+      if (elapsed < endAt + 380) {
         requestAnimationFrame(frame);
         return;
       }
@@ -1506,7 +1506,7 @@
           setTimeout(function () {
             if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
           }, 260);
-        }, 1400);
+        }, 520);
       }
     }
     requestAnimationFrame(frame);
