@@ -239,6 +239,27 @@ body {
   will-change: transform;
 }
 
+/* The sky that gathers. The same starfield, composited on a second sheet above
+   the content surfaces: the pillar cards paint an almost opaque panel on a
+   phone, so the points that form the panel must sit in front of it rather than
+   behind. Hidden whenever no shape is in play, so the sheet costs nothing at
+   rest. */
+.scope-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: none;
+  pointer-events: none;
+  z-index: 3;
+  contain: strict;
+  transform: translateZ(0);
+}
+
+.scope-canvas.is-live {
+  display: block;
+}
+
 .nav-wrapper,
 main,
 section,
@@ -3407,6 +3428,10 @@ html.hero-intro .tw-char {
 .cap-column .cap-foot { grid-area: foot; }
 
 .cap-visual {
+  /* 0 while the sky is still scattered, 1 once it has gathered into this
+     panel. motion.js writes this per frame; the default of 1 keeps the panel
+     exactly as it was for no-JS and reduced-motion visitors. */
+  --sc-form: 1;
   grid-area: visual;
   position: relative;
   display: flex;
@@ -3440,7 +3465,7 @@ html.hero-intro .tw-char {
   inset: -40% 20% auto;
   height: 220px;
   background: radial-gradient(closest-side, rgba(0, 242, 176, 0.14), transparent);
-  opacity: 0.7;
+  opacity: calc(0.16 + 0.54 * var(--sc-form));
   pointer-events: none;
 }
 
@@ -3451,8 +3476,13 @@ html.hero-intro .tw-char {
   position: relative;
   display: grid;
   place-items: center;
-  width: clamp(150px, 15vw, 200px);
+  width: clamp(170px, 17vw, 230px);
   aspect-ratio: 1 / 1;
+  /* The drawn glyph is the body, not the subject: while the sky is forming
+     this icon the points are the icon, so motion.js lowers --sc-draw until
+     only a ghost of the stroke is left underneath them. Without JS (or with
+     reduced motion) it stays 1 and the icon is drawn exactly as designed. */
+  opacity: calc(0.12 + 0.88 * var(--sc-form) * var(--sc-draw, 1));
 }
 
 .cap-visual-icon::before,
@@ -3466,13 +3496,13 @@ html.hero-intro .tw-char {
 .cap-visual-icon::before {
   inset: 0;
   border: 1px solid currentColor;
-  opacity: 0.16;
+  opacity: calc(0.04 + 0.12 * var(--sc-form));
 }
 
 .cap-visual-icon::after {
   inset: 15%;
   border: 1px dashed currentColor;
-  opacity: 0.3;
+  opacity: calc(0.07 + 0.23 * var(--sc-form));
   animation: cap-orbit 34s linear infinite;
 }
 
@@ -3482,8 +3512,8 @@ html.hero-intro .tw-char {
 
 .cap-visual-icon .i {
   position: relative;
-  width: clamp(64px, 6.4vw, 86px);
-  height: clamp(64px, 6.4vw, 86px);
+  width: clamp(104px, 10.5vw, 140px);
+  height: clamp(104px, 10.5vw, 140px);
 }
 
 .cap-visual-meta {
@@ -3494,6 +3524,7 @@ html.hero-intro .tw-char {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-low);
+  opacity: calc(0.1 + 0.9 * var(--sc-form));
 }
 
 /* Text written by the scroll position rather than by a timer.
