@@ -53,7 +53,7 @@
   <link rel="preload" as="font" type="font/woff2" href="fonts/jetbrains-mono-latin.woff2" crossorigin>
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=3.7.4">
+  <link rel="stylesheet" href="style.css?v=3.7.5">
 
   <!-- Without scripting the film keeps its native controls, so the pill (which
        would be inert) is not shown at all. -->
@@ -621,29 +621,48 @@
     </section>
 
     <!-- DOWNLOAD CALL TO ACTION -->
-    <section class="section-py section-bordered" id="download">
+    <!-- The closing statement, not another card: the page has been a tour of
+         boxed capability panels, so it ends in the open, on the same starfield
+         the hero started on - a horizon glow instead of a bezel. The hero's
+         two-line rhythm comes back (white line, mint line) at display scale,
+         so the top and bottom of the page rhyme without repeating the canted
+         banner or the constellation. -->
+    <section class="section-py cta-final" id="download" aria-labelledby="cta-title">
       <div class="container">
-        <div class="download-card">
-          <h2 class="download-title">Get Deltempo Today</h2>
-          <p class="download-subtext">Open source, portable, and free forever. No installation required.</p>
+        <p class="cta-kicker reveal-on-scroll">
+          <span class="cta-kicker-dot" aria-hidden="true"></span>
+          Free · Open source · MIT
+        </p>
 
-          <div class="download-options">
-            <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-pill btn-pill-primary cta-btn-primary">
-              <span>Download Deltempo.exe (GUI)</span>
-              <span class="btn-icon-bubble cta-icon-box">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              </span>
-            </a>
-            <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/deltempo_cli.exe" class="btn-pill btn-pill-secondary cta-btn-secondary">
-              <span>Download deltempo_cli.exe (CLI)</span>
-            </a>
-          </div>
+        <h2 class="cta-title reveal-on-scroll stagger-1" id="cta-title">
+          <span class="cta-title-line">Get Deltempo</span>
+          <span class="cta-title-line cta-title-accent">today.</span>
+        </h2>
 
-          <div class="download-meta">
-            <p><strong>Platform:</strong> Windows 10 / 11 (64-bit) • <strong>Type:</strong> Portable Single-File Binary • <strong>Latest Release:</strong> GitHub Releases</p>
-            <p class="mt-2">Or launch straight from PowerShell: <code>irm https://beso1227.github.io/Deltempo/win | iex</code></p>
-            <p class="mt-2"><a href="download/" class="text-accent-link">View Checksums &amp; Verification Guide <svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
-          </div>
+        <p class="cta-sub reveal-on-scroll stagger-2">
+          One portable file for <span class="cta-nowrap">Windows 10 / 11 (64-bit)</span>. Open source, free forever.
+        </p>
+
+        <div class="cta-actions reveal-on-scroll stagger-3">
+          <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-pill btn-pill-primary cta-primary">
+            <span>Download Deltempo.exe</span>
+            <span class="btn-icon-bubble cta-primary-icon">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </span>
+          </a>
+          <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/deltempo_cli.exe" class="btn-pill btn-pill-secondary cta-secondary" aria-label="Download deltempo_cli.exe, the command-line version">
+            <span class="cta-cli-tag" aria-hidden="true">CLI</span>
+            <span class="cta-cli-file">deltempo_cli.exe</span>
+          </a>
+        </div>
+
+        <div class="cta-foot reveal-on-scroll stagger-4">
+          <ul class="cta-facts">
+            <li><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg>SHA-256 verified</li>
+            <li><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg>Zero telemetry</li>
+            <li><svg class="i" aria-hidden="true"><use href="#i-check"></use></svg>No install</li>
+          </ul>
+          <a href="download/" class="text-accent-link cta-verify-link">Verify the download <svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
         </div>
       </div>
     </section>
@@ -876,6 +895,6 @@
 
   <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals, Mobile Menu, Scroll Spy) -->
   <script src="vendor/lenis.min.js" defer></script>
-  <script src="motion.js?v=3.7.4" defer></script>
+  <script src="motion.js?v=3.7.5" defer></script>
 </body>
 </html>

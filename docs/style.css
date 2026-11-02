@@ -1239,43 +1239,8 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   transform: translate(1px, -1px);
 }
 
-/* Download CTA Card */
-.download-card {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 3rem 2rem;
-  border-radius: var(--radius-xl);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-lg);
-  text-align: center;
-}
-
-.download-title {
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
-}
-
-.download-subtext {
-  color: var(--text-med);
-  margin-bottom: 2rem;
-  font-size: 1.05rem;
-}
-
-.download-options {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-}
-
-.download-meta {
-  font-size: 0.85rem;
-  color: var(--text-med);
-  line-height: 1.6;
-}
+/* The final call to action is styled in the extracted component block below
+   ("The closing section"), next to the footer rules. */
 
 /* Footer */
 .footer {
@@ -2392,51 +2357,291 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   flex-wrap: wrap;
 }
 
-/* CTA & Footer */
-.cta-btn-primary {
-  padding: 0.75rem 1.75rem 0.75rem 2rem;
-  font-size: 1.05rem;
-  white-space: nowrap;
+/* The closing section ------------------------------------------------------
+   Deliberately not a card: every section above this one is a boxed panel, so
+   the page ends in the open, on the same starfield the hero opened on. The
+   hero's two-line rhythm returns here (white line, mint line) at display
+   scale, so the top and bottom of the page rhyme without repeating the canted
+   banner or the constellation. */
+.cta-final {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  text-align: center;
+  /* Declared after the shared .section-py media query, so the finale keeps its
+     own breathing room instead of inheriting the section floor. */
+  padding-top: clamp(5.5rem, 11vh, 9rem);
+  padding-bottom: clamp(3.5rem, 6vh, 5rem);
 }
-.cta-icon-box {
-  width: 28px;
-  height: 28px;
+
+/* Two layers: a low emerald horizon so the page does not cut to flat black,
+   and a wide soft halo behind the type so the words sit in light the way the
+   hero's do. The mask kills the glow exactly at the section edge - otherwise
+   the light is sliced off in a hard line where the footer begins. */
+.cta-final::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(46% 34% at 50% 44%, rgba(0, 242, 176, 0.055) 0%, transparent 72%),
+    radial-gradient(68% 62% at 50% 104%, rgba(0, 242, 176, 0.26) 0%, rgba(0, 242, 176, 0.08) 46%, transparent 72%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 74%, rgba(0, 0, 0, 0.4) 90%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 74%, rgba(0, 0, 0, 0.4) 90%, transparent 100%);
+  pointer-events: none;
 }
-.cta-btn-secondary {
-  padding: 0.85rem 1.75rem;
-  font-size: 1.05rem;
+
+.cta-final::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 176, 0.26), transparent);
+  pointer-events: none;
+}
+
+/* Micro-label on a rule, so the section opens like a title page rather than a
+   stack of centred text. */
+.cta-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 1.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-low);
+}
+
+.cta-kicker::before,
+.cta-kicker::after {
+  content: '';
+  width: 2.5rem;
+  height: 1px;
+  background: rgba(0, 242, 176, 0.3);
+}
+
+.cta-kicker-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-emerald);
+  box-shadow: 0 0 0 3px rgba(0, 242, 176, 0.12), 0 0 12px rgba(0, 242, 176, 0.8);
+}
+
+.cta-title {
+  margin: 0 0 1.6rem;
+  font-size: clamp(2.55rem, 6.1vw, 5rem);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.042em;
+  color: var(--text-high);
+}
+
+.cta-title-line {
+  display: block;
+}
+
+/* The accent line carries its own light; at this size a coloured line without
+   a bloom reads as a flat swatch. */
+.cta-title-accent {
+  color: var(--accent-emerald);
+  text-shadow: 0 0 64px rgba(0, 242, 176, 0.22);
+}
+
+.cta-sub {
+  max-width: 50ch;
+  margin: 0 auto 2.6rem;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--text-med);
+}
+
+.cta-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+/* Same height on both pills: a 7px step between them reads as a mistake, not
+   as hierarchy. */
+.cta-actions .btn-pill {
+  min-height: 3.875rem;
+}
+
+.cta-primary {
+  padding: 1rem 1.5rem 1rem 1.9rem;
+  gap: 0.85rem;
+  font-size: 1.0625rem;
+}
+
+.cta-primary-icon {
+  width: 30px;
+  height: 30px;
+}
+
+/* The CLI pill is the technical twin: mono filename, mint CLI tag, and no
+   download bubble, so the two paths are distinguishable at a glance. */
+.cta-secondary {
+  padding: 0.9rem 1.35rem;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+}
+
+.cta-cli-tag {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  padding: 0.28rem 0.4rem 0.24rem;
+  border-radius: 4px;
+  background: var(--accent-cyan-bg);
+  border: 1px solid var(--accent-cyan-border);
+  color: var(--accent-cyan);
+  transition: background-color 0.2s ease;
+}
+
+.cta-cli-file {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  letter-spacing: -0.01em;
+}
+
+.cta-secondary:hover .cta-cli-tag {
+  background: rgba(0, 242, 176, 0.18);
+}
+
+/* Footline: the hero's check-mark proof row comes back in mono, next to the
+   one action that matters if the user wants to check the binary first. */
+.cta-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.9rem;
+  margin-top: 2.6rem;
+}
+
+.cta-facts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.71rem;
+  font-weight: 400;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-low);
+}
+
+.cta-facts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.cta-facts .i {
+  width: 12px;
+  height: 12px;
+  color: var(--accent-emerald);
+}
+
+.cta-verify-link {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.cta-verify-link .i {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.25s var(--ease-smooth);
+}
+
+.cta-verify-link:hover .i {
+  transform: translateX(3px);
+}
+
+/* Never split a checksum algorithm across lines. */
+.cta-nowrap {
   white-space: nowrap;
 }
 
-/* Two side-by-side CTAs must not wrap mid-label on phones. */
+/* The two CTAs stack on phones: side by side they either wrap mid-filename or
+   shrink under the 44px touch target. */
 @media (max-width: 640px) {
-  .download-card {
-    padding: 2.25rem 1.15rem;
+  .cta-final {
+    padding-top: 4.25rem;
+    padding-bottom: 3.25rem;
   }
 
-  .download-title {
-    font-size: 1.6rem;
+  .cta-kicker {
+    font-size: 0.62rem;
+    letter-spacing: 0.13em;
+    margin-bottom: 1.35rem;
   }
 
-  .download-options {
-    gap: 0.7rem;
+  .cta-kicker::before,
+  .cta-kicker::after {
+    width: 1.35rem;
   }
 
-  .cta-btn-primary,
-  .cta-btn-secondary {
-    font-size: 0.9rem;
-    padding: 0.7rem 1.1rem;
+  .cta-title {
+    font-size: clamp(2.1rem, 10.4vw, 2.9rem);
+    letter-spacing: -0.038em;
+    margin-bottom: 1.3rem;
   }
 
-  .cta-btn-primary {
-    padding-left: 1.25rem;
+  .cta-sub {
+    max-width: 34ch;
+    margin-bottom: 2.1rem;
+    font-size: 1rem;
   }
 
-  .cta-icon-box {
-    width: 24px;
-    height: 24px;
+  .cta-actions {
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  /* Full-width pills, but the label stays on one line: at 320px "Download
+     Deltempo.exe" would otherwise break after "Download" and grow the pill to
+     two rows. */
+  .cta-actions .btn-pill {
+    width: 100%;
+    justify-content: center;
+    white-space: nowrap;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 0.95rem;
+    gap: 0.55rem;
+  }
+
+  .cta-foot {
+    flex-direction: column;
+    gap: 0.9rem;
+    margin-top: 2.1rem;
+  }
+
+  .cta-facts {
+    gap: 0.45rem 0.85rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
   }
 }
+
 .mt-2 {
   margin-top: 0.5rem;
 }
@@ -2721,7 +2926,6 @@ html {
   .scope-card:hover,
   .tier-card:hover,
   .dl-card:hover,
-  .download-card:hover,
   .doc-code-card:hover,
   .arch-card:hover,
   .faq-item:hover,
@@ -2878,7 +3082,6 @@ html {
   .scope-card:hover,
   .tier-card:hover,
   .dl-card:hover,
-  .download-card:hover,
   .doc-code-card:hover,
   .arch-card:hover,
   .faq-item:hover,

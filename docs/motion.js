@@ -1338,7 +1338,7 @@
   function initCardInteractivity() {
     if (!isFinePointer.matches) return;
     const cards = document.querySelectorAll(
-      '.double-bezel, .card-inner, .feature-card, .cap-item, .hero-oneshot, .arch-card, .dl-card, .faq-item, .scope-card, .tier-card, .doc-code-card, .download-card, .trust-banner'
+      '.double-bezel, .card-inner, .feature-card, .cap-item, .hero-oneshot, .arch-card, .dl-card, .faq-item, .scope-card, .tier-card, .doc-code-card, .trust-banner'
     );
 
     if (!cards.length) return;
