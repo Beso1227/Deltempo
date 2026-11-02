@@ -394,6 +394,21 @@ kbd {
   padding-bottom: 6rem;
 }
 
+/* Kept out of the flow but still in the accessibility tree, for headings whose
+   words are carried by something visual instead. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 .section-header {
   text-align: center;
   max-width: 720px;
@@ -3319,10 +3334,13 @@ html.hero-intro .tw-char {
 /* A strip of the app's own tool icons, scrolling against the page while each
    cell rides its own sine wave. Decorative by design: the same tools are
    described in text further down, so the band is aria-hidden. */
+/* The band is now the only thing between the player and the capability
+   columns, so it owns that gap outright: the padding is the whole space above
+   and below, and it is equal, which centres the icon row in the room the
+   removed headline left behind. */
 .icon-band {
   position: relative;
-  margin-top: clamp(1.25rem, 2.4vw, 2rem);
-  padding: 0.25rem 0 0.5rem;
+  padding: clamp(2.5rem, 5.5vw, 4.5rem) 0;
   overflow: hidden;
 }
 
@@ -3359,12 +3377,17 @@ html.hero-intro .tw-char {
 }
 
 /* --- 4. Video stage: scrub-linked scale ---------------------------------- */
-/* The film now opens its own section and the icon band rides directly under
-   the frame, so the section keeps a little top air and no bottom padding: the
-   band's own margins do the separating, and the next section brings its own. */
+/* The film now opens its own section, the icon band rides under the frame with
+   its own equal air above and below, and the capability matrix that follows
+   brings no top padding of its own: the band is what sits between them, so its
+   two paddings are the whole gap and the icons land dead centre in it. */
 .video-section.section-py {
   padding-top: 1.25rem;
   padding-bottom: 0;
+}
+
+#features.section-py {
+  padding-top: 0;
 }
 
 .video-bleed {

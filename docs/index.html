@@ -53,7 +53,7 @@
   <link rel="preload" as="font" type="font/woff2" href="fonts/jetbrains-mono-latin.woff2" crossorigin>
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=3.6.70">
+  <link rel="stylesheet" href="style.css?v=3.6.72">
 
   <!-- Without scripting the film keeps its native controls, so the pill (which
        would be inert) is not shown at all. -->
@@ -492,10 +492,10 @@
     <!-- CAPABILITIES MATRIX -->
     <section class="section-py" id="features">
       <div class="container">
-        <div class="section-header reveal-on-scroll">
-          <h2 class="section-title">Complete suite of Windows maintenance tools.</h2>
-          <p class="section-subtitle">Organized cleanly into three functional pillars: Clean, Optimize, and Control.</p>
-        </div>
+        <!-- The headline that used to open this section is gone: the icons above
+             carry the eye straight into the columns. The heading stays for the
+             document outline and screen readers only. -->
+        <h2 class="sr-only">Complete suite of Windows maintenance tools</h2>
 
         <div class="cap-columns reveal-on-scroll stagger-1">
           <!-- COLUMN 1: CLEAN -->
@@ -902,6 +902,6 @@
 
   <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals, Mobile Menu, Scroll Spy) -->
   <script src="vendor/lenis.min.js" defer></script>
-  <script src="motion.js?v=3.6.70" defer></script>
+  <script src="motion.js?v=3.6.72" defer></script>
 </body>
 </html>
