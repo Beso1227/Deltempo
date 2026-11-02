@@ -51,12 +51,9 @@
        stylesheet instead of after a googleapis -> gstatic round-trip chain. -->
   <link rel="preload" as="font" type="font/woff2" href="fonts/plus-jakarta-sans-latin.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="fonts/jetbrains-mono-latin.woff2" crossorigin>
-  <!-- Latest-release lookup (inline script at the end of <body>) reuses this socket
-       instead of paying DNS + TCP + TLS after motion.js has already parsed. -->
-  <link rel="preconnect" href="https://api.github.com">
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=3.6.53">
+  <link rel="stylesheet" href="style.css?v=3.6.54">
 
   <!-- Without scripting the film keeps its native controls, so the pill (which
        would be inert) is not shown at all. -->
@@ -324,15 +321,6 @@
     <!-- HERO SECTION -->
     <section class="hero">
       <div class="container">
-        <div class="hero-eyebrow reveal-on-scroll">
-          <a href="changelog/" id="heroReleasePill" class="hero-release-pill" title="View v3.2.0 Release Notes">
-            <span class="pill-dot"></span>
-            <span class="pill-tag" id="heroVersionTag">v3.2.0</span>
-            <span class="pill-text">Latest Stable Release • Deep Root Uninstaller &amp; AI Intelligence</span>
-            <span class="pill-text-short">Latest Release</span>
-            <svg class="pill-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
-          </a>
-        </div>
         <h1 class="hero-headline reveal-on-scroll stagger-1">
           <span class="hero-title-main">Deltempo — Pure Windows Cleaner.</span><br >
           <span class="text-gradient">NT Memory &amp; Deep Cache Reclaim.</span>
@@ -658,18 +646,6 @@
       </div>
     </section>
 
-    <!-- FAQ lives on its own page: the home page links to it instead of
-         inlining fifteen accordions nobody scrolls on the way to Download. -->
-    <section class="section-py faq-teaser">
-      <div class="container">
-        <p class="faq-teaser-line reveal-on-scroll">
-          <span class="faq-teaser-label">Questions?</span>
-          Safety tiers, leftover sweeps, RAM trimming and licensing are answered in full on one page.
-          <a class="text-accent-link faq-teaser-link" href="faq/">Read all answers <svg class="i" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
-        </p>
-      </div>
-    </section>
-
     <!-- DOWNLOAD CALL TO ACTION -->
     <section class="section-py section-bordered" id="download">
       <div class="container">
@@ -926,32 +902,6 @@
 
   <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals, Mobile Menu, Scroll Spy) -->
   <script src="vendor/lenis.min.js" defer></script>
-  <script src="motion.js?v=3.6.53" defer></script>
-
-  <!-- Dynamic Release Version Sync -->
-  <script>
-    (function() {
-      const pill = document.getElementById('heroReleasePill');
-      const tag = document.getElementById('heroVersionTag');
-      if (!pill || !tag) return;
-
-      fetch('https://api.github.com/repos/Beso1227/Deltempo/releases/latest', {
-        headers: { 'Accept': 'application/vnd.github+json' }
-      })
-      .then(function(res) { return res.ok ? res.json() : Promise.reject(res.status); })
-      .then(function(data) {
-        if (data && typeof data.tag_name === 'string' && /^v?[0-9]+(\.[0-9]+)*(-[a-zA-Z0-9.]+)?$/.test(data.tag_name)) {
-          if (data.tag_name !== tag.textContent) {
-            tag.textContent = data.tag_name;
-            pill.setAttribute('title', 'View ' + data.tag_name + ' Release Notes');
-            pill.href = 'changelog/';
-          }
-        }
-      })
-      .catch(function() {
-        // keep fallback version on failure
-      });
-    })();
-  </script>
+  <script src="motion.js?v=3.6.54" defer></script>
 </body>
 </html>
