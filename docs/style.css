@@ -762,27 +762,45 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 }
 
 .hero-headline {
-  /* Fluid across all viewports: 2.25rem (mobile) -> 4.25rem (desktop).
-     The previous fixed `font-size: 2.25rem` media-query override was
-     removed so typography now scales continuously (no breakpoint jumps). */
-  font-size: clamp(2.25rem, 3.2vw + 1.5rem, 4.25rem);
+  /* One word per step, four steps, each canted a couple of degrees and shifted
+     a little further right than the one above it. The result is a diagonal
+     band across the fold instead of a centred block, and every line stays on
+     its own baseline because the break points are the ones the browser had
+     already chosen for this copy. The size is derived from the widest line
+     plus the outermost step, so the band reaches both edges of the container
+     without overflowing them. */
+  font-size: clamp(2rem, 6.25vw, 5.6rem);
   font-weight: 900;
   letter-spacing: -0.04em;
-  line-height: 1.15;
-  max-width: 920px;
+  line-height: 1.16;
+  max-width: none;
   margin: 0 auto 1.5rem;
+  text-wrap: wrap;
 }
 
-/* Hero headline: solid ink, no shimmer. Emphasis comes from weight, not motion. */
-.hero-title-main {
-  display: inline-block;
+.hero-line {
+  /* A block box the width of the text, not of the container: the step below
+     translates the box, and a full-width box would drag the right edge of the
+     page with it. */
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+  /* Each step is a fixed line: letting one wrap would break the cascade. */
+  white-space: nowrap;
   color: var(--text-high);
 }
-/* Second line: solid mint. No gradient, no shimmer, no glow. */
-.text-gradient {
-  display: inline-block;
+
+/* Second line: solid mint. No gradient, no shimmer, no glow. The two mint
+   steps sit furthest out, so the eye runs top-left to bottom-right. */
+.hero-line-accent {
   color: var(--accent-emerald);
 }
+
+.hero-headline .hero-line:nth-child(1) { transform: translateX(-1.8em) rotate(-2deg); }
+.hero-headline .hero-line:nth-child(2) { transform: translateX(-0.6em) rotate(-2deg); }
+.hero-headline .hero-line:nth-child(3) { transform: translateX(0.6em) rotate(-2deg); }
+.hero-headline .hero-line:nth-child(4) { transform: translateX(1.8em) rotate(-2deg); }
 
 .hero-ctas {
   display: flex;
@@ -1732,11 +1750,18 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   }
 
   .hero-headline {
-    font-size: clamp(1.85rem, 7.5vw, 2.6rem);
+    /* Same staircase at phone scale, with the step tightened so a canted line
+       can never cross the padded edge. */
+    font-size: min(8.8vw, 2.4rem);
     letter-spacing: -0.03em;
-    line-height: 1.18;
+    line-height: 1.2;
     margin-bottom: 1.25rem;
   }
+
+  .hero-headline .hero-line:nth-child(1) { transform: translateX(-0.9em) rotate(-1.5deg); }
+  .hero-headline .hero-line:nth-child(2) { transform: translateX(-0.3em) rotate(-1.5deg); }
+  .hero-headline .hero-line:nth-child(3) { transform: translateX(0.3em) rotate(-1.5deg); }
+  .hero-headline .hero-line:nth-child(4) { transform: translateX(0.9em) rotate(-1.5deg); }
 
   .hero-ctas {
     flex-direction: column;
@@ -2282,11 +2307,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 .hero-dl-btn .btn-icon-bubble {
   width: 26px;
   height: 26px;
-}
-
-.hero-video-btn {
-  padding: 0.75rem 1.4rem;
-  font-size: 1rem;
 }
 
 .hero-gh-btn {
@@ -3027,15 +3047,15 @@ html {
   }
   html.hero-intro .hero-ctas {
     --rise: 50px;
-    animation: hero-rise 1.5s var(--ease-smooth) 0.44s both;
+    animation: hero-rise 1.2s var(--ease-smooth) var(--tw-end, 0.44s) both;
   }
   html.hero-intro .hero-oneshot {
     --rise: 1em;
-    animation: hero-rise 1.3s var(--ease-smooth) 0.58s both;
+    animation: hero-rise 1.3s var(--ease-smooth) calc(var(--tw-end, 0.44s) + 200ms) both;
   }
   html.hero-intro .hero-proof-row {
     --rise: 1em;
-    animation: hero-rise 1.3s var(--ease-smooth) 0.66s both;
+    animation: hero-rise 1.3s var(--ease-smooth) calc(var(--tw-end, 0.44s) + 300ms) both;
   }
 }
 

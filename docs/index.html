@@ -53,7 +53,7 @@
   <link rel="preload" as="font" type="font/woff2" href="fonts/jetbrains-mono-latin.woff2" crossorigin>
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=3.6.93">
+  <link rel="stylesheet" href="style.css?v=3.7.0">
 
   <!-- Without scripting the film keeps its native controls, so the pill (which
        would be inert) is not shown at all. -->
@@ -293,8 +293,10 @@
     <section class="hero">
       <div class="container">
         <h1 class="hero-headline reveal-on-scroll stagger-1">
-          <span class="hero-title-main">Deltempo — Pure Windows Cleaner.</span><br >
-          <span class="text-gradient">NT Memory &amp; Deep Cache Reclaim.</span>
+          <span class="hero-line">Deltempo — Pure</span>
+          <span class="hero-line">Windows Cleaner.</span>
+          <span class="hero-line hero-line-accent">NT Memory &amp; Deep</span>
+          <span class="hero-line hero-line-accent">Cache Reclaim.</span>
         </h1>
         <div class="hero-ctas reveal-on-scroll stagger-3">
           <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-pill btn-pill-primary hero-dl-btn">
@@ -302,10 +304,6 @@
             <span class="btn-icon-bubble">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             </span>
-          </a>
-          <a href="#video" class="btn-pill btn-pill-secondary hero-video-btn">
-            <span class="accent-cyan-text"><svg class="i" aria-hidden="true"><use href="#i-play"></use></svg></span>
-            <span>Watch Video (35s)</span>
           </a>
           <a href="https://github.com/Beso1227/Deltempo" target="_blank" rel="noopener" class="btn-pill btn-pill-secondary hero-gh-btn">
             <span class="accent-cyan-text"><svg class="i" aria-hidden="true"><use href="#i-github"></use></svg></span>
@@ -371,11 +369,11 @@
         } catch (err) { /* media queries unsupported: treat as no preference */ }
         if (reduce || !document.createElement) return;
 
-        // Split both headline lines into characters. Characters stay inline so
-        // line breaking is identical to the unsplit text (zero layout shift);
-        // opacity is the only property that changes.
+        // Split each headline step into characters. Characters stay inline so
+        // the line breaks stay exactly where the markup puts them; opacity is
+        // the only property that changes.
         var step = window.innerWidth <= 720 ? 13 : 22;
-        var lines = hero.querySelectorAll('.hero-title-main, .text-gradient');
+        var lines = hero.querySelectorAll('.hero-line');
         var chars = [];
         for (var l = 0; l < lines.length; l++) {
           var line = lines[l];
@@ -397,6 +395,10 @@
           h1.setAttribute('aria-label',
             'Deltempo — Pure Windows Cleaner. NT Memory and Deep Cache Reclaim.');
           h1.style.setProperty('--tw-step', step + 'ms');
+          // When the last character lands. The CTA row, the one-liner and the
+          // proof row are held behind this, so the hero hands over to its
+          // controls only once the headline has finished writing itself.
+          root.style.setProperty('--tw-end', (120 + chars.length * step) + 'ms');
           root.classList.add('hero-intro');
         }
       })();
@@ -873,6 +875,6 @@
 
   <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals, Mobile Menu, Scroll Spy) -->
   <script src="vendor/lenis.min.js" defer></script>
-  <script src="motion.js?v=3.6.93" defer></script>
+  <script src="motion.js?v=3.7.0" defer></script>
 </body>
 </html>
