@@ -736,10 +736,31 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 
 /* Hero Section with Macro-Whitespace */
 .hero {
-  /* The bar used to sit in the flow above this block. It is corner chrome now,
-     so the hero owns the extra space instead: the brand floats in clear sky and
-     the headline starts below it instead of under it. */
-  padding: 8.5rem 0 6rem;
+  /* The hero owns exactly one screen. Its content is only ~390px tall, so on a
+     tall monitor the section used to end well above the fold and the next
+     section's top padding read as a dead band under the banner. `min-height`
+     makes the section reach the fold at any window size; the content is centred
+     in the height that is left, so the extra room becomes porch above and below
+     the banner instead of a gap between sections.
+
+     `svh`, not `vh`: on a phone `vh` is the height with the URL bar collapsed,
+     which would push the CTA row below the bar while it is showing.
+
+     `safe` centring: when the window is too short for the content (a 600px-tall
+     laptop window), plain centring would overflow equally above and below and
+     cut the headline off under the browser edge. `safe` falls back to
+     start-alignment, so a short window scrolls instead of clipping. */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  justify-content: safe center;
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100svh;
+  /* Fluid, not fixed: the floors let a short window hold the whole hero without
+     shrinking the type, the ceilings give a tall one the full Antigravity
+     porch, and the top floor keeps the corner brand clear of the headline. */
+  padding: clamp(4.5rem, 9vh, 8.5rem) 0 clamp(3.5rem, 8vh, 6rem);
   text-align: center;
 }
 
