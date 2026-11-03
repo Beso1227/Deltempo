@@ -603,6 +603,167 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
       navCtaDrop 0.78s cubic-bezier(0.22, 1.2, 0.36, 1) both,
       navCtaArrive 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.04s;
   }
+
+  /* ---- Second act: the pill becomes the primary button -------------------
+     While the hero owns the screen the corner CTA is the only way down. Once
+     the finale is on screen the real download buttons are right there, so the
+     corner pill stops competing with them: it takes the drop's diagonal, a
+     small pull back then a dive down the empty right half, and lays itself
+     over the primary button, growing to row height as it arrives. Its own
+     label dissolves on the way down, so what lands is a clean mint surface -
+     the same surface the button is built from - and that surface then fades
+     away *through* the button, leaving the real one. Nothing ever sits beside
+     the row: there is never a third pill.
+
+     motion.js writes --dock-x / --dock-y / --dock-s from the live rectangles
+     once the page has stopped moving, so the landing point is never a guess
+     at a target that is still drifting. */
+  html.cta-dock .nav-download-btn {
+    animation: navCtaDock 1s cubic-bezier(0.4, 0, 0.2, 1) both;
+    pointer-events: none;
+  }
+
+  /* The pill's own words and icon leave as it commits to the dive: they
+     dissolve during the pull-back and the first stretch, so by the time the
+     shell so much as touches the button it is a bare mint surface and never
+     double-exposes its label over the button's. */
+  html.cta-dock .nav-download-btn > span {
+    animation: navCtaLabelOut 0.3s cubic-bezier(0.4, 0, 0.6, 1) 0.12s both;
+  }
+
+  /* Reverse fill: scrolling back out of the finale returns the pill to its
+     corner, landing with the same squash-and-settle as the original drop. */
+  html.cta-undock .nav-download-btn {
+    animation: navCtaReturn 0.64s cubic-bezier(0.3, 1.16, 0.4, 1) both;
+    pointer-events: none;
+  }
+
+  /* The return animation ends back at transform:none, so dropping the classes
+     afterwards would re-run navCtaDrop. This pins the resting state instead. */
+  html.cta-returned .nav-download-btn {
+    animation: none;
+  }
+
+  /* Only once the flight has finished: with the pill laid over the real button
+     it must leave the tab order (pointer-events alone does not). Doing this
+     inside the keyframes flipped it at 50%, cutting the dissolve short. */
+  html.cta-docked .nav-download-btn {
+    visibility: hidden;
+  }
+
+  /* The real button receives it: a mint ring that expands off its edge,
+     timed to the moment the flying pill reaches it. */
+  html.cta-dock .cta-primary {
+    animation: navCtaReceive 0.86s cubic-bezier(0.22, 1, 0.36, 1) 0.34s both;
+  }
+}
+
+@keyframes navCtaLabelOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The pill's diagonal flight onto the primary button. It leans back, dives
+   down the free right half of the screen, and lands dead centre on the primary
+   CTA grown to the button's size - on phones, aligned with the button's icon
+   instead, so icon meets icon. What is flying is already a bare mint shell:
+   the same surface the button itself is built from. The shell settles onto
+   the button and then dissolves through it, leaving the real one behind, and
+   nothing ever comes to rest in the row. */
+@keyframes navCtaDock {
+  0% {
+    opacity: 1;
+    visibility: visible;
+    transform: translate3d(0, 0, 0) scale(1);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  /* Anticipation: a small lift and lean back off the corner. */
+  9% {
+    opacity: 1;
+    transform: translate3d(6px, -14px, 0) scale(0.9);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+  }
+  /* The dive stays over the empty right half, so it never crosses the
+     subheading on the way down. */
+  30% {
+    opacity: 1;
+    transform: translate3d(calc(var(--dock-x, 0px) * 0.35), calc(var(--dock-y, 0px) * 0.52 - 8px), 0) scale(0.94);
+    animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+  }
+  /* Contact: the shell lands centred on the primary at the button's size,
+     sinking the two pixels a pressed button does. On phones, where the
+     actions stack full-width, the aim is the button's icon, so icon meets
+     icon and the flying shell never covers the label it is becoming. */
+  56% {
+    opacity: 1;
+    transform: translate3d(calc(var(--dock-x, 0px)), calc(var(--dock-y, 0px) + 2px), 0) scale(calc(var(--dock-s, 1) * 1.01));
+    animation-timing-function: cubic-bezier(0.3, 1, 0.36, 1);
+  }
+  /* The shell settles into its landing and holds a beat, so the eye reads it
+     as the button itself before the handover. */
+  62% {
+    opacity: 1;
+    transform: translate3d(calc(var(--dock-x, 0px)), calc(var(--dock-y, 0px) + 2px), 0) scale(var(--dock-s, 1));
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  /* It burns through: the surface fades out over the identical surface of the
+     real button sitting underneath it, so nothing new appears in the row and
+     nothing is ever parked in it. */
+  74% {
+    opacity: 0.55;
+  }
+  84%,
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(var(--dock-x, 0px)), calc(var(--dock-y, 0px) + 2px), 0) scale(var(--dock-s, 1));
+  }
+}
+
+@keyframes navCtaReturn {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--dock-x, 0px), var(--dock-y, 0px), 0) scale(calc(var(--dock-s, 1) * 0.92));
+  }
+  22% {
+    opacity: 1;
+  }
+  46% {
+    opacity: 1;
+    transform: translate3d(calc(var(--dock-x, 0px) * 0.52), calc(var(--dock-y, 0px) * 0.42 - 22px), 0) scale(1.05);
+  }
+  74% {
+    opacity: 1;
+    transform: translate3d(0, 8px, 0) scaleX(1.07) scaleY(0.93);
+  }
+  88% {
+    transform: translate3d(0, -3px, 0) scaleX(0.985) scaleY(1.015);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Impact halo on the primary button as the flying shell arrives on it.
+   0% and 100% are the button's own shadow, so the animation leaves no residue
+   when it is dropped. */
+@keyframes navCtaReceive {
+  0% {
+    transform: none;
+    box-shadow: inset 0 1px 0 rgba(0, 242, 176, 0.08);
+  }
+  30% {
+    transform: translate3d(-2px, 0, 0);
+    box-shadow: 0 0 0 2px rgba(0, 242, 176, 0.4), 0 0 22px rgba(0, 242, 176, 0.24), inset 0 1px 0 rgba(0, 242, 176, 0.34);
+  }
+  100% {
+    transform: none;
+    box-shadow: 0 0 0 12px rgba(0, 242, 176, 0), 0 0 22px rgba(0, 242, 176, 0), inset 0 1px 0 rgba(0, 242, 176, 0.08);
+  }
 }
 
 /* Reduced motion gets the CTA immediately, with no travel and no flourish. */
@@ -2371,7 +2532,17 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   /* Declared after the shared .section-py media query, so the finale keeps its
      own breathing room instead of inheriting the section floor. */
   padding-top: clamp(5.5rem, 11vh, 9rem);
-  padding-bottom: clamp(3.5rem, 6vh, 5rem);
+  padding-bottom: clamp(2.75rem, 5vh, 4rem);
+}
+
+/* Handoff to the footer. The finale already ends on its own horizon, so the
+   footer's standing 5rem gap on top of the section's bottom padding left
+   ~11rem of dead air between the last fact row and the footer - on the final
+   scroll that read as an empty screen rather than the end of the page. The
+   footer keeps its full gap on every other page. */
+main:has(> .cta-final) + .footer {
+  margin-top: 0;
+  padding-top: 2rem;
 }
 
 /* Two layers: a low emerald horizon so the page does not cut to flat black,
@@ -2585,7 +2756,7 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 @media (max-width: 640px) {
   .cta-final {
     padding-top: 4.25rem;
-    padding-bottom: 3.25rem;
+    padding-bottom: 2.5rem;
   }
 
   .cta-kicker {
@@ -2617,7 +2788,7 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   }
 
   /* Full-width pills, but the label stays on one line: at 320px "Download
-     Deltempo.exe" would otherwise break after "Download" and grow the pill to
+     Deltempo" would otherwise break after "Download" and grow the pill to
      two rows. */
   .cta-actions .btn-pill {
     width: 100%;

@@ -110,10 +110,127 @@
           const entry = entries[entries.length - 1];
           const pastHero = !entry.isIntersecting && entry.boundingClientRect.bottom <= 96;
           docEl.classList.toggle('nav-cta-live', pastHero);
+          // Back at the hero the pill has not landed anywhere yet, so the
+          // "already returned" pin must go: the next pass deserves the drop.
+          if (!pastHero) docEl.classList.remove('cta-returned');
         },
         { rootMargin: '-96px 0px 0px 0px', threshold: 0 }
       );
       ctaObserver.observe(heroEl);
+    }
+
+    // ---- The pill's second act: it becomes the primary button --------------
+    // Once the closing section is on screen the corner pill has nothing left
+    // to point at, because the real download button is right there. So it
+    // dives onto that button, grown to its size, and its surface dissolves
+    // through the button's identical surface - the pill never parks anywhere
+    // in the row.
+    //
+    // The landing point is measured when the scroll comes to REST, not when
+    // the section appears: the row keeps rising as the page settles, so aiming
+    // early would leave the pill landing below it.
+    const dockTarget = document.querySelector('.cta-final .cta-primary');
+    const dockRow = document.querySelector('.cta-final .cta-actions');
+    const navPill = document.querySelector('.nav-download-btn');
+    if (dockTarget && dockRow && navPill && 'IntersectionObserver' in window && !isReducedMotion) {
+      let inSight = false;
+      let docked = false;
+      let settleTimer = 0;
+
+      function aim() {
+        const p = navPill.getBoundingClientRect();
+        const primary = dockTarget.getBoundingClientRect();
+        // The shell lands at the button's height, so the surface it presents
+        // is the size of the surface it is becoming.
+        const s = Math.min(1.75, Math.max(1, primary.height / p.height));
+        // By default the flight lands dead centre on the primary button.
+        let cx = primary.left + primary.width / 2;
+        let cy = primary.top + primary.height / 2;
+
+        // On phones the actions stack into full-width columns. Centring there
+        // would put the flying shell's icon over the button's label, so the
+        // aim is the button's own icon bubble instead: icon meets icon.
+        if (getComputedStyle(dockRow).flexDirection === 'column') {
+          const bubble = dockTarget.querySelector('.btn-icon-bubble');
+          if (bubble) {
+            const b = bubble.getBoundingClientRect();
+            cx = b.left + b.width / 2;
+            cy = b.top + b.height / 2;
+          }
+        }
+
+        docEl.style.setProperty('--dock-x', (cx - (p.left + p.width / 2)).toFixed(1) + 'px');
+        docEl.style.setProperty('--dock-y', (cy - (p.top + p.height / 2)).toFixed(1) + 'px');
+        docEl.style.setProperty('--dock-s', s.toFixed(3));
+      }
+
+      function dock() {
+        settleTimer = 0;
+        // No hero, no drop: without nav-cta-live the pill is parked off-screen
+        // and flying an invisible element would only write style for nothing.
+        if (docked || !inSight || !docEl.classList.contains('nav-cta-live')) return;
+        aim();
+        docEl.classList.remove('cta-returned', 'cta-undock', 'cta-docked');
+        // Restart from frame 0 when the pill docks again after a return.
+        void navPill.offsetWidth;
+        docEl.classList.add('cta-dock');
+        docked = true;
+      }
+
+      function scheduleDock() {
+        if (docked) return;
+        clearTimeout(settleTimer);
+        settleTimer = setTimeout(function () {
+          // Lenis keeps moving a few pixels after the last native scroll
+          // event, and aiming at a target that is still drifting leaves the
+          // pill short of the button (measurably so on phones). Sample twice:
+          // only a page that has actually stopped gets an aim.
+          const y = window.scrollY;
+          settleTimer = setTimeout(function () {
+            if (Math.abs(window.scrollY - y) > 2) {
+              scheduleDock();
+              return;
+            }
+            dock();
+          }, 130);
+        }, 260);
+      }
+
+      new IntersectionObserver(
+        function (entries) {
+          inSight = entries[entries.length - 1].intersectionRatio >= 0.85;
+          if (!inSight) {
+            clearTimeout(settleTimer);
+            settleTimer = 0;
+            if (docked) {
+              docked = false;
+              docEl.classList.remove('cta-dock', 'cta-docked');
+              docEl.classList.add('cta-undock');
+            }
+          } else {
+            scheduleDock();
+          }
+        },
+        { threshold: [0, 0.85, 0.99] }
+      ).observe(dockTarget);
+
+      window.addEventListener('scroll', scheduleDock, { passive: true });
+
+      navPill.addEventListener('animationend', function (event) {
+        if (event.target !== navPill) return;
+        // navCtaDrop's end can land inside the dock if the visitor reaches the
+        // finale right after the drop; only the dock's own end may hide it.
+        if (event.animationName === 'navCtaReturn' && docEl.classList.contains('cta-undock')) {
+          docEl.classList.remove('cta-undock');
+          // navCtaReturn ends at transform:none, so removing it would let
+          // navCtaDrop replay. The pin keeps the pill resting in the corner.
+          docEl.classList.add('cta-returned');
+        } else if (event.animationName === 'navCtaDock' && docEl.classList.contains('cta-dock')) {
+          // Parked on the button: invisible, inert, and out of the tab order
+          // until the finale leaves the viewport.
+          docEl.classList.add('cta-docked');
+        }
+      });
     }
 
     const LenisCtor = window.Lenis;
