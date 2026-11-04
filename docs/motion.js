@@ -63,10 +63,24 @@
     let lastScrollY = -1;
     let lastProgress = -1;
 
+    // Document height changes only on load and resize - reading it every
+    // paint forces a layout pass per frame, so it is cached and refreshed
+    // on those two moments only.
+    let maxScroll = 1;
+    function measureMaxScroll() {
+      maxScroll = Math.max(1, docEl.scrollHeight - window.innerHeight);
+    }
+    measureMaxScroll();
+    window.addEventListener('resize', measureMaxScroll, { passive: true });
+    window.addEventListener('load', measureMaxScroll, { passive: true });
+
+    // scaleX writes are the only thing this frame always does - but only
+    // when the rail actually moved by a visible quantum.
+    let lastRail = -1;
+
     function paint() {
       const y = window.scrollY || window.pageYOffset || 0;
-      const max = Math.max(1, docEl.scrollHeight - window.innerHeight);
-      const p = Math.min(1, Math.max(0, y / max));
+      const p = Math.min(1, Math.max(0, y / maxScroll));
 
       scrollState.y = y;
       scrollState.progress = p;
@@ -75,7 +89,11 @@
         scrollHooks[h](y, p);
       }
 
-      progressBar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+      const rail = Math.round(p * 500) / 500;
+      if (rail !== lastRail) {
+        lastRail = rail;
+        progressBar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+      }
 
       if (auroraEl && !isReducedMotion) {
         const sy = Math.min(y, 1600);
@@ -119,7 +137,7 @@
       ctaObserver.observe(heroEl);
     }
 
-    // ---- The pill's second act: it becomes the primary button --------------
+  // ---- The pill's second act: it becomes the primary button --------------
     // Once the closing section is on screen the corner pill has nothing left
     // to point at, because the real download button is right there. So it
     // dives onto that button, grown to its size, and its surface dissolves
@@ -133,28 +151,36 @@
     const dockRow = document.querySelector('.cta-final .cta-actions');
     const navPill = document.querySelector('.nav-download-btn');
     if (dockTarget && dockRow && navPill && 'IntersectionObserver' in window && !isReducedMotion) {
+      // The middle button does not exist until the corner pill becomes it:
+      // it is hidden from the very first frame of a scripted, motion-
+      // friendly visit. No-JS and reduced-motion never carry the class,
+      // so for them the button is simply always there.
+      docEl.classList.add('cta-primary-hidden');
       let inSight = false;
       let docked = false;
       let settleTimer = 0;
+      let dockRevealTimer = 0;
 
       // The flight target: dead centre on the primary button - or, when the
       // actions stack into full-width columns on phones, the button's own
       // icon bubble, so icon meets icon and the label is never covered.
       // s is the launch scale: the shell lands at the button's height, so
       // the surface it presents is the size of the surface it is becoming.
+      // Measured in layout space: the hidden button ships translateY and
+      // scale, and getBoundingClientRect would bake both into the aim.
       function targetPoint() {
-        const primary = dockTarget.getBoundingClientRect();
-        let cx = primary.left + primary.width / 2;
-        let cy = primary.top + primary.height / 2;
+        const p0 = layoutPos(dockTarget);
+        let cx = p0.x + dockTarget.offsetWidth / 2;
+        let cy = p0.y + dockTarget.offsetHeight / 2 - scrollState.y;
         if (getComputedStyle(dockRow).flexDirection === 'column') {
           const bubble = dockTarget.querySelector('.btn-icon-bubble');
           if (bubble) {
-            const b = bubble.getBoundingClientRect();
-            cx = b.left + b.width / 2;
-            cy = b.top + b.height / 2;
+            const b0 = layoutPos(bubble);
+            cx = b0.x + bubble.offsetWidth / 2;
+            cy = b0.y + bubble.offsetHeight / 2 - scrollState.y;
           }
         }
-        const s = Math.min(1.75, Math.max(1, primary.height / navPill.offsetHeight));
+        const s = Math.min(1.75, Math.max(1, dockTarget.offsetHeight / navPill.offsetHeight));
         return { x: cx, y: cy, s: s };
       }
 
@@ -203,11 +229,19 @@
         // shell to the corner before the new dive; letting the end handler
         // re-arm keeps every frame continuous.
         if (docEl.classList.contains('cta-undock')) return;
+        const t = targetPoint();
         aim();
         docEl.classList.remove('cta-returned', 'cta-undock', 'cta-docked');
         // Restart from frame 0 when the pill docks again after a return.
         void navPill.offsetWidth;
         docEl.classList.add('cta-dock');
+        // The sky welds itself into the landing point.
+        spawnBurst(t.x, t.y, 1);
+        // The middle button materialises under the shell as it touches
+        // down, so the corner button visibly becomes it.
+        dockRevealTimer = setTimeout(function () {
+          docEl.classList.remove('cta-primary-hidden');
+        }, 300);
         docked = true;
       }
 
@@ -215,19 +249,26 @@
         if (docked) return;
         clearTimeout(settleTimer);
         settleTimer = setTimeout(function () {
-          // Lenis keeps moving a few pixels after the last native scroll
-          // event, and aiming at a target that is still drifting leaves the
-          // pill short of the button (measurably so on phones). Sample twice:
-          // only a page that has actually stopped gets an aim.
+          // One quiet sample is not enough on a long slow glide - three in
+          // a row means the page is actually parked. The aim locks before
+          // the dive, so docking during residual glide lands the shell
+          // short of the button.
           const y = window.scrollY;
           settleTimer = setTimeout(function () {
-            if (Math.abs(window.scrollY - y) > 2) {
+            const y2 = window.scrollY;
+            if (Math.abs(y2 - y) > 2) {
               scheduleDock();
               return;
             }
-            dock();
-          }, 110);
-        }, 150);
+            settleTimer = setTimeout(function () {
+              if (Math.abs(window.scrollY - y2) > 2) {
+                scheduleDock();
+                return;
+              }
+              dock();
+            }, 80);
+          }, 80);
+        }, 90);
       }
 
       new IntersectionObserver(
@@ -238,11 +279,18 @@
             settleTimer = 0;
             if (docked) {
               docked = false;
+              clearTimeout(dockRevealTimer);
+              dockRevealTimer = 0;
               // Re-aim while the outgoing state is still applied: the read has
               // to see the transform the shell is actually carrying (held on
               // the button, or mid-flight), and must run before any class
               // clears it.
               aimReturn();
+              // The middle button un-exists the moment the shell commits to
+              // leaving; the CLI path remains for anyone mid-click.
+              docEl.classList.add('cta-primary-hidden');
+              const t = targetPoint();
+              spawnBurst(t.x, t.y, -1);
               docEl.classList.remove('cta-dock', 'cta-docked');
               // Restart from frame 0 when the pill docks again after a return.
               void navPill.offsetWidth;
@@ -273,6 +321,10 @@
         } else if (event.animationName === 'navCtaDock' && docEl.classList.contains('cta-dock')) {
           // Parked on the button: invisible, inert, and out of the tab order
           // until the finale leaves the viewport.
+          clearTimeout(dockRevealTimer);
+          dockRevealTimer = 0;
+          // Belt and braces: the button is there when the shell comes to rest.
+          docEl.classList.remove('cta-primary-hidden');
           docEl.classList.add('cta-docked');
         }
       });
@@ -284,7 +336,7 @@
     if (typeof LenisCtor === 'function' && !isReducedMotion) {
       const lenis = new LenisCtor({
         // 0.085 is the showcase-weight glide: weighty without feeling laggy.
-        lerp: 0.085,
+        lerp: 0.105,
         wheelMultiplier: 0.95,
         touchMultiplier: 1.5,
         smoothWheel: true,
@@ -339,9 +391,63 @@
     paint();
   }
 
+  // --- Star bursts -----------------------------------------------------------
+  // The sky is the material the download button is made of. When the
+  // corner pill commits to becoming the middle button, a swarm of stars
+  // converges from all directions onto its landing point and welds the
+  // shape shut; when the visitor leaves the finale, the button exhales
+  // and the stars stream back into the sky. Colours follow the field:
+  // mostly mint, the odd ice-blue straggler. Shared between the scroll
+  // handlers (who fire it) and the starfield (who draws it), so it lives
+  // at the top level of the IIFE; viewport reads happen at call time.
+  const bursts = [];
+  const impacts = [];
+
+  function spawnBurst(x, y, dir) {
+    if (isReducedMotion) return;
+    // Any burst in flight is spent: re-entering supersedes an exhale,
+    // leaving kills an inbound swarm - the page must not weld a button
+    // that is no longer on screen.
+    bursts.length = 0;
+    const compact = window.innerWidth < 768;
+    const n = compact ? 22 : 34;
+    for (let i = 0; i < n; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const r0 = (compact ? 150 : 225) + Math.random() * (compact ? 160 : 300);
+      bursts.push({
+        x0: x + Math.cos(ang) * r0,
+        y0: y + Math.sin(ang) * r0,
+        px: x + Math.cos(ang) * r0,
+        py: y + Math.sin(ang) * r0,
+        tx: x,
+        ty: y,
+        age: -Math.random() * 22, // a third of a second of stagger, max
+        size: 1.1 + Math.random() * 1.9,
+        mint: Math.random() < 0.7,
+        seed: Math.random() * Math.PI * 2,
+        dir: dir,
+      });
+    }
+  }
+
   /* ==========================================================================
      2. IntersectionObserver Scroll Reveal System
      ========================================================================== */
+  // Document-space position that ignores reveal transforms: elements parked
+  // off-screen or hidden with transforms (the hidden CTA ships translateY and
+  // scale) would otherwise bake those offsets into every measured point.
+  function layoutPos(el) {
+    let x = 0;
+    let y = 0;
+    let node = el;
+    while (node) {
+      x += node.offsetLeft || 0;
+      y += node.offsetTop || 0;
+      node = node.offsetParent;
+    }
+    return { x: x, y: y };
+  }
+
   function initScrollReveals() {
     const revealElements = document.querySelectorAll('.reveal-on-scroll, [data-reveal]');
     // Grid containers whose direct children stagger in one after another.
@@ -689,21 +795,6 @@
       scopeCanvas.setAttribute('aria-hidden', 'true');
       document.body.appendChild(scopeCanvas);
       scopeCtx = scopeCanvas.getContext('2d', { alpha: true });
-    }
-
-    // Document-space position that ignores reveal transforms: the pillars are
-    // translated into place on first paint, and a rect measured then would
-    // bake that offset into every target for the rest of the session.
-    function layoutPos(el) {
-      let x = 0;
-      let y = 0;
-      let node = el;
-      while (node) {
-        x += node.offsetLeft || 0;
-        y += node.offsetTop || 0;
-        node = node.offsetParent;
-      }
-      return { x: x, y: y };
     }
 
     // The three panel icons are single-path symbols, so their real geometry can
@@ -1240,20 +1331,21 @@
       const wakeRadius = pointer.radius;
       const wakeRadiusSq = wakeRadius * wakeRadius;
 
-      // The constellation is the same sky composited on a second sheet: the
-      // panel surfaces are almost opaque on a phone, so the points that form
-      // them have to sit in front of the cards rather than behind. The sheet
-      // only exists while a shape is in play, and costs nothing at rest.
+      // The constellation and the bursts live on a second sheet, above the
+      // content: the panel surfaces on a phone are almost opaque, and a
+      // welding swarm must be visible over the button itself. The sheet
+      // only exists while a shape or a burst is in play, and costs nothing
+      // at rest.
       const scopeOn = scopeState.presence > 0.002 && !!scopeCtx;
-      if (scopeCtx && (scopeOn || scopeWasLive)) {
+      const burstActive = bursts.length > 0 || impacts.length > 0;
+      if (scopeCtx && (scopeOn || scopeWasLive || burstActive)) {
         scopeCtx.clearRect(0, 0, width, height);
       }
       scopeWasLive = scopeOn;
-      if (scopeCanvas && scopeOn !== scopeLive) {
-        scopeLive = scopeOn;
-        scopeCanvas.classList.toggle('is-live', scopeOn);
-        // The drawn glyph crossfades with the gather itself via --sc-form
-        // (opacity = 1 - form), so no visibility switch is needed here.
+      const sheetOn = scopeOn || burstActive;
+      if (scopeCanvas && sheetOn !== scopeLive) {
+        scopeLive = sheetOn;
+        scopeCanvas.classList.toggle('is-live', sheetOn);
       }
 
       let scopeR = 0;
@@ -1500,6 +1592,73 @@
           ctx.lineTo(s.x, s.y + arm);
           ctx.stroke();
         }
+      }
+
+      // 2.5 The star bursts: the sky welding itself into the button on the
+      // way in, and exhaling back out when the visitor leaves.
+      if (bursts.length || impacts.length) {
+        const sheet = scopeCtx || ctx;
+        for (let i = bursts.length - 1; i >= 0; i--) {
+          const p = bursts[i];
+          p.age += dt;
+          if (p.age < 0) continue;
+          const life = 52; // a touch under a second
+          const k = Math.min(1, p.age / life);
+          if (k >= 1) {
+            if (p.dir === 1) impacts.push({ x: p.tx, y: p.ty, age: 0 });
+            bursts.splice(i, 1);
+            continue;
+          }
+          // Inbound accelerates into the landing (power curve - the swarm
+          // is visible mid-flight instead of lurking at the edges); exhale
+          // launches hard and drifts off.
+          const ease = p.dir === 1 ? Math.pow(k, 1.6) : 1 - Math.pow(1 - k, 3);
+          const inv = 1 - ease;
+          const wob = Math.sin(k * Math.PI * 2.6 + p.seed) * 26 * (1 - k) * (p.dir === 1 ? 1 : 0.6);
+          const dxn = Math.cos(p.seed);
+          const dyn = Math.sin(p.seed);
+          const px = p.dir === 1
+            ? p.x0 * inv + p.tx * ease + dxn * wob
+            : p.tx * inv + p.x0 * ease + dxn * wob;
+          const py = p.dir === 1
+            ? p.y0 * inv + p.ty * ease + dyn * wob
+            : p.ty * inv + p.y0 * ease + dyn * wob;
+          // Every bead leaves a short trail along its flight line - a
+          // firework weld, not a sprinkle of dots.
+          const trailAlpha = Math.max(0, Math.min(1, (k < 0.15 ? k / 0.15 : 1)) * 0.5);
+          sheet.globalAlpha = trailAlpha;
+          sheet.strokeStyle = p.mint ? 'rgb(140, 255, 222)' : 'rgb(226, 238, 255)';
+          sheet.lineWidth = Math.max(0.7, p.size * 1.1);
+          sheet.beginPath();
+          sheet.moveTo(p.px, p.py);
+          sheet.lineTo(px, py);
+          sheet.stroke();
+          p.px = px;
+          p.py = py;
+          // Fade in fast, burn steady, fade out fast.
+          const env = k < 0.15 ? k / 0.15 : k > 0.78 ? (1 - k) / 0.22 : 1;
+          const size = (p.size + 0.9 + Math.sin(p.age * 0.35 + p.seed) * 0.35) * 3.1;
+          sheet.globalAlpha = Math.max(0, Math.min(1, env) * 0.95);
+          sheet.drawImage(p.mint ? sprites.mint : sprites.ice, px - size / 2, py - size / 2, size, size);
+        }
+        // Impact flashes: a quick expanding ring where the swarm lands.
+        for (let i = impacts.length - 1; i >= 0; i--) {
+          const f = impacts[i];
+          f.age += dt;
+          const k = f.age / 26;
+          if (k >= 1) {
+            impacts.splice(i, 1);
+            continue;
+          }
+          const ring = 4 + k * 46;
+          sheet.globalAlpha = (1 - k) * 0.7;
+          sheet.strokeStyle = 'rgb(140, 255, 222)';
+          sheet.lineWidth = Math.max(0.6, 2.4 * (1 - k));
+          sheet.beginPath();
+          sheet.arc(f.x, f.y, ring, 0, Math.PI * 2);
+          sheet.stroke();
+        }
+        sheet.globalAlpha = 1;
       }
 
       // 3. Idle shooting stars.
