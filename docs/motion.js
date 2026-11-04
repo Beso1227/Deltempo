@@ -226,13 +226,13 @@
               return;
             }
             dock();
-          }, 130);
-        }, 260);
+          }, 110);
+        }, 150);
       }
 
       new IntersectionObserver(
         function (entries) {
-          inSight = entries[entries.length - 1].intersectionRatio >= 0.85;
+          inSight = entries[entries.length - 1].intersectionRatio >= 0.5;
           if (!inSight) {
             clearTimeout(settleTimer);
             settleTimer = 0;
@@ -252,7 +252,7 @@
             scheduleDock();
           }
         },
-        { threshold: [0, 0.85, 0.99] }
+        { threshold: [0, 0.5, 0.99] }
       ).observe(dockTarget);
 
       window.addEventListener('scroll', scheduleDock, { passive: true });
@@ -433,9 +433,6 @@
       radius: 190,
     };
 
-    // Click pulses: a single expanding ring that lights the stars it passes.
-    const pulses = [];
-
     // Scroll motion: the raw delta is what turns into streak length.
     let lastScrollY = window.scrollY || 0;
 
@@ -517,13 +514,19 @@
 
     function buildSprites() {
       sprites.star = makeSprite('236, 248, 255');
+      sprites.ice = makeSprite('226, 238, 255');
+      sprites.sun = makeSprite('255, 240, 205');
+      sprites.ember = makeSprite('255, 216, 165');
       sprites.mint = makeSprite('120, 255, 214');
       sprites.violet = makeSprite('167, 139, 250');
       sprites.streak = makeStreak('226, 240, 255');
       sprites.streakMint = makeStreak('140, 255, 222');
       sprites.streakViolet = makeStreak('186, 166, 255');
+      sprites.streakSun = makeStreak('255, 233, 180');
       sprites.auraMint = makeAura('40, 255, 208');
       sprites.auraViolet = makeAura('167, 139, 250');
+      sprites.auraIce = makeAura('178, 210, 255');
+      sprites.auraSun = makeAura('255, 224, 158');
     }
 
     buildSprites();
@@ -531,16 +534,53 @@
     // --- Star model ---------------------------------------------------------
     const stars = [];
 
+    // Temperature order matches TINT_RGB and TINT_SPRITES below:
+    // 0 = ice blue-white, 1 = warm gold, 2 = ember orange, 3 = the rare
+    // mint from deep-space emission nebulae.
+    const TINT_RGB = ['226, 238, 255', '255, 240, 205', '255, 216, 165', '120, 255, 214'];
+    const BAND_ANG = (-19 * Math.PI) / 180;
+
+    // Approximate gaussian in [-1, 1], dense at the spine - the profile of a
+    // galactic disk, not a box.
+    function gauss() {
+      return (Math.random() + Math.random() + Math.random()) / 1.5 - 1;
+    }
+
     function spawnStar(star) {
       star.z = 0.32 + Math.random() * 1.08;
       star.x = Math.random() * width;
       star.y = Math.random() * height;
-      star.r = (0.45 + Math.random() * 1.05) * star.z;
-      // Depth comes from size and speed, not from dimming: a far star is a
-      // small point, not a faded one, or the sky reads as noise.
-      star.alpha = (0.4 + Math.random() * 0.55) * (0.72 + 0.28 * Math.min(1, star.z));
-      star.mint = Math.random() < 0.2;
-      star.sparkle = Math.random() < 0.09 && star.z > 0.95;
+      // Magnitude distribution follows a power law: most points are faint,
+      // a few are commanding. Sizes follow magnitude so brightness and
+      // girth arrive together.
+      star.mag = Math.pow(Math.random(), 2.4);
+      star.r = (0.42 + star.mag * 1.26) * (0.55 + 0.6 * star.z);
+      // Depth comes from size and speed, not from dimming alone: a far
+      // star is a small point, not just a faded one.
+      star.alpha = (0.26 + star.mag * 0.62) * (0.66 + 0.34 * Math.min(1, star.z));
+
+      // Temperature: a real sky is dominated by blue-white, salted with
+      // gold and ember; the mint is a rare nebular member of the family.
+      const roll = Math.random();
+      star.tint = roll < 0.58 ? 0 : roll < 0.74 ? 1 : roll < 0.84 ? 2 : 3;
+
+      star.dust = false;
+      // The Milky Way: a shallow river of micro-stars running behind
+      // everything else. One third of the field lives in the band, with
+      // gaussian falloff from the spine and capped brightness - it reads
+      // as structure, never as noise in front of content.
+      if (Math.random() < 0.34) {
+        const len = Math.hypot(width, height) * 1.18;
+        const along = (Math.random() - 0.5) * len;
+        const off = gauss() * height * 0.13;
+        star.x = width * 0.44 + Math.cos(BAND_ANG) * along - Math.sin(BAND_ANG) * off;
+        star.y = height * 0.46 + Math.sin(BAND_ANG) * along + Math.cos(BAND_ANG) * off;
+        star.dust = true;
+        star.r *= 0.62;
+        star.alpha = Math.min(star.alpha, 0.30 + Math.random() * 0.12);
+      }
+
+      star.sparkle = !star.dust && Math.random() < 0.09 && star.z > 0.95;
       star.twinklePhase = Math.random() * Math.PI * 2;
       star.twinkleSpeed = 0.004 + Math.random() * 0.012;
       star.driftX = (Math.random() - 0.5) * 0.05 * star.z;
@@ -550,12 +590,12 @@
       star.streak = 0;
       star.dirY = 1;
       star.hot = 0;
-      // Constellation membership. `null` until the field is assigned a shape;
-      // a member keeps its slot on the panel it is currently tracing.
+      // Constellation membership. `null` until the section is approached and
+      // the near stars are drafted; a member carries its home snapshot with
+      // it so the release can put the exact same star back.
       star.cseed = null;
       star.gvx = 0;
       star.gvy = 0;
-      star.gprev = 0;
       star.fx = 0;
       star.fy = 1;
       return star;
@@ -627,6 +667,7 @@
     let scopeLive = false;
     let scopeWasLive = false;
     let memberCount = 0;
+    let membersArmed = false;
 
     // Point scratch: the target maths runs for every member every frame, so it
     // writes here instead of returning a fresh object.
@@ -667,16 +708,15 @@
 
     // The three panel icons are single-path symbols, so their real geometry can
     // be walked and resampled once. Returns points in the glyph's rendered
-    // pixels, relative to its centre.
-    function glyphPoints(use, renderWidth) {
-      if (!use || !(renderWidth > 0)) return [];
-      const href = use.getAttribute('href') || use.getAttribute('xlink:href') || '';
-      if (!href) return [];
-      let data = glyphCache[href];
+    // pixels, relative to its centre. The geometry comes from the sprite
+    // symbol itself - there is no drawn icon in the layout to sample.
+    function glyphPoints(symbol, renderWidth) {
+      if (!symbol || !(renderWidth > 0)) return [];
+      const key = symbol.id || 'glyph';
+      let data = glyphCache[key];
       if (data === undefined) {
         data = null;
-        const symbol = document.querySelector(href);
-        if (symbol) {
+        {
           const vb = (symbol.getAttribute('viewBox') || '0 0 24 24').split(/[\s,]+/);
           const vbX = Number(vb[0]) || 0;
           const vbY = Number(vb[1]) || 0;
@@ -722,7 +762,7 @@
           document.body.removeChild(probe);
           data = { unit: vbW, points: pts };
         }
-        glyphCache[href] = data;
+        glyphCache[key] = data;
       }
       if (!data || !data.points.length) return [];
       const k = renderWidth / data.unit;
@@ -738,11 +778,17 @@
       scopes.length = 0;
       for (let i = 0; i < els.length; i++) {
         const el = els[i];
-        const icon = el.querySelector('.cap-visual-icon');
-        const rgb = window.getComputedStyle(icon || el).color.match(/[\d.]+/g) || [];
+        // There is no drawn icon in the layout: the anchor is an invisible
+        // spacer that reserves the constellation's footprint, and the
+        // geometry comes from the hidden sprite symbol named by data.
+        const anchor = el.querySelector('.cap-visual-anchor');
+        const glyphId = el.getAttribute('data-scope-glyph');
+        const symbol = glyphId ? document.querySelector('#' + glyphId) : null;
+        const rgb = window.getComputedStyle(anchor || el).color.match(/[\d.]+/g) || [];
         scopes.push({
           el: el,
-          icon: icon,
+          icon: anchor,
+          glyphEl: symbol,
           accent: [Number(rgb[0]) || 0, Number(rgb[1]) || 242, Number(rgb[2]) || 176],
           left: 0,
           top: 0,
@@ -769,19 +815,16 @@
         sc.height = el.offsetHeight;
         sc.center = pos.y + sc.height / 2;
 
-        const icon = sc.icon;
-        if (icon) {
+        const anchor = sc.icon;
+        if (anchor) {
           // Relative rects cancel the reveal transform that still sits on the
           // grid when the page first paints.
           const pr = el.getBoundingClientRect();
-          const ir = icon.getBoundingClientRect();
-          sc.iconCx = sc.left + (ir.left - pr.left) + ir.width / 2;
-          sc.iconCy = sc.top + (ir.top - pr.top) + ir.height / 2;
-          sc.iconR = ir.width / 2;
-          const svg = icon.querySelector('svg');
-          sc.glyph = svg
-            ? glyphPoints(svg.querySelector('use'), svg.getBoundingClientRect().width)
-            : [];
+          const ar = anchor.getBoundingClientRect();
+          sc.iconCx = sc.left + (ar.left - pr.left) + ar.width / 2;
+          sc.iconCy = sc.top + (ar.top - pr.top) + ar.height / 2;
+          sc.iconR = ar.width / 2;
+          sc.glyph = glyphPoints(sc.glyphEl, ar.width);
         }
         sc.form = -1;
       }
@@ -792,26 +835,43 @@
     // glyph's outline, and the same slot exists on every pillar, so the shape
     // can be carried from one to the next and morph through the icons instead
     // of dissolving back into the sky.
+    //
+    // The member set is drawn the moment the section is approached, never at
+    // load: the section is 2,000px down the page, and a rank computed at
+    // load would be a random line ordering. Assigning at approach time
+    // ranks stars by their ACTUAL distance to the icon on the live layout,
+    // and every member's full state (position AND motion) is snapshotted
+    // into `home`, so the release can put the exact same stars back.
     function assignMembers() {
-      if (!scopes.length) return;
-      const want = width < 768 ? 60 : 88;
+      if (!scopes.length || membersArmed) return;
+      const want = width < 768 ? 76 : 124;
       memberCount = want;
+      const reach = Math.max(width, height) * 0.6 + 240;
 
-      for (let i = 0; i < stars.length; i++) stars[i].cseed = null;
-
-      // Depth ordering: the stars the eye already follows are the ones that
-      // gather, so the shape reads immediately.
-      const order = [];
-      for (let i = 0; i < stars.length; i++) order.push(i);
-      order.sort(function (a, b) {
-        return stars[b].z - stars[a].z;
+      const sc = scopeState.from || scopes[0];
+      const fy = sc.iconCy - scrollState.y;
+      const ranked = [];
+      for (let i = 0; i < stars.length; i++) {
+        const s = stars[i];
+        if (s.cseed) continue;
+        const dx = s.x - sc.iconCx;
+        const dy = s.y - fy;
+        ranked.push({ i: i, d: Math.sqrt(dx * dx + dy * dy), z: s.z });
+      }
+      ranked.sort(function (a, b) {
+        return (a.d - b.d) || (b.z - a.z);
       });
 
-      for (let k = 0; k < want && k < order.length; k++) {
+      let filled = 0;
+      for (let k = 0; k < ranked.length && filled < want; k++) {
+        const s = stars[ranked[k].i];
+        // Only inside the window: leaving one slot empty is better than
+        // dragging a dot the full width of the screen into the shape.
+        if (ranked[k].d > reach && filled >= want * 0.6) break;
         // Arc-length slots, evenly spread with a little organic jitter, so the
         // outline is drawn by points rather than ruled by a machine.
-        const t = Math.min(1, Math.max(0, (k + 0.5 + (Math.random() - 0.5) * 0.85) / want));
-        stars[order[k]].cseed = {
+        const t = Math.min(1, Math.max(0, ((filled + 0.5 + (Math.random() - 0.5) * 0.85) / want)));
+        s.cseed = {
           t: t,
           // A small stagger on entry and exit keeps the edge alive without
           // breaking the shape apart while it travels.
@@ -821,8 +881,43 @@
           big: Math.random() < 0.18,
           jx: (Math.random() - 0.5) * 2.4,
           jy: (Math.random() - 0.5) * 2.4,
+          // The whole truth about this star at the moment it was drafted:
+          // where it was, and exactly how it was moving. The release target
+          // is derived from this, and the velocities come back verbatim, so
+          // after the sequence every star is indistinguishable from its
+          // never-recruited siblings.
+          home: {
+            docX: s.x,
+            docY: s.y + scrollState.y,
+            vx: s.vx, vy: s.vy, gvx: s.gvx, gvy: s.gvy,
+            streak: s.streak, fx: s.fx, fy: s.fy, dirY: s.dirY,
+          },
         };
+        filled++;
       }
+      membersArmed = true;
+    }
+
+    // Put every recruited star back exactly where and how it was: restore
+    // the motion state verbatim and drop membership, so the sky is
+    // bit-identical to the sky that was never touched.
+    function releaseMembers() {
+      for (let i = 0; i < stars.length; i++) {
+        const s = stars[i];
+        const seed = s.cseed;
+        if (!seed || !seed.home) continue;
+        const home = seed.home;
+        s.vx = home.vx;
+        s.vy = home.vy;
+        s.gvx = 0;
+        s.gvy = 0;
+        s.streak = home.streak;
+        s.fx = home.fx;
+        s.fy = home.fy;
+        s.dirY = home.dirY;
+        s.cseed = null;
+      }
+      membersArmed = false;
     }
 
     // Where a member sits *relative to its icon's centre*. Keeping the slot in
@@ -847,7 +942,13 @@
     // next glyph near the end of the flight, so mid-flight the eye sees the
     // icon it already knows moving through space, not two shapes blended into
     // a smear. One shared arc, one shared rhythm.
-    function scopeTarget(seed) {
+    //
+    // The gather is not a teleport-into-existence: each star slides from the
+    // exact spot it occupied when it was drafted (its `home`) to its slot,
+    // weighted by the same gate that fades it in. Presence rising draws the
+    // shape; presence falling runs the identical blend backwards and the
+    // star is home again. No mode flags, no cut points, endless reverse.
+    function scopeTarget(seed, gather) {
       const from = scopeState.from;
       const to = scopeState.to;
       if (!from) return;
@@ -880,6 +981,15 @@
         x += scopeState.arcX * arc;
         y += scopeState.arcY * arc;
       }
+      // Blend with home: at gather 0 the target IS the drafted position, at
+      // gather 1 it is the slot. Anything between is a straight ramp, so the
+      // release path is exactly the entry path reversed.
+      if (seed.home && gather < 1) {
+        const w = 1 - gather;
+        const hy = seed.home.docY - scrollState.y;
+        x = x * gather + seed.home.docX * w;
+        y = y * gather + hy * w;
+      }
       scopeTX = x;
       scopeTY = y;
     }
@@ -903,6 +1013,13 @@
       if (focus <= enterA || focus >= exitB) presence = 0;
       else if (focus < enterB) presence = smooth01((focus - enterA) / (enterB - enterA));
       else if (focus > exitA) presence = smooth01(1 - (focus - exitA) / (exitB - exitA));
+
+      // Draft the near stars when the section is about to own the screen.
+      // Standing down is per-star: each member restores itself the moment
+      // it is back home (see the render loop), so members never pop
+      // mid-air - even if the page jumps past the section in one go.
+      if (presence > 0.002 && !membersArmed) assignMembers();
+      else if (presence <= 0.002) membersArmed = false;
 
       let from = first;
       let to = first;
@@ -979,13 +1096,15 @@
       canvas.style.width = width + 'px';
       canvas.style.height = height + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // A resize rebuilds the sky; membership does not survive it. Stand
+      // the drafted stars down first so their home snapshots are honoured,
+      // then let updateScopes re-draft from the new layout when needed.
+      if (membersArmed) releaseMembers();
       if (stars.length && stars.length === starTarget() && prevWidth > 0) {
         remapField(prevWidth, prevHeight);
       } else {
         resetField();
-        assignMembers();
       }
-      if (memberCount !== (width < 768 ? 60 : 88)) assignMembers();
 
       if (scopeCanvas && scopeCtx) {
         scopeCanvas.width = Math.floor(width * dpr);
@@ -1016,11 +1135,6 @@
         pointer.x = -9999;
         pointer.y = -9999;
       });
-      window.addEventListener('pointerdown', function (e) {
-        if (e.button !== 0) return;
-        pulses.push({ x: e.clientX, y: e.clientY, r: 0, alpha: 0.9 });
-        if (pulses.length > 3) pulses.shift();
-      }, { passive: true });
     }
 
     // --- Idle shooting stars ------------------------------------------------
@@ -1110,10 +1224,9 @@
       lastFrameTime = now;
       frameCount += dt;
 
-      const skySprite = sprites.star;
-      const mintSprite = sprites.mint;
-      const skyRGB = '236, 248, 255';
-      const mintRGB = '120, 255, 214';
+      const tintSprites = [sprites.ice, sprites.sun, sprites.ember, sprites.mint];
+      const tintFills = ['rgb(226, 238, 255)', 'rgb(255, 240, 205)', 'rgb(255, 216, 165)', 'rgb(120, 255, 214)'];
+      const streakSprites = [sprites.streak, sprites.streakSun, sprites.streakSun, sprites.streakMint];
 
       // Scroll: stars physically slide against the page, and the distance they
       // travel this frame becomes the length of their streak.
@@ -1123,23 +1236,7 @@
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Click pulses: expanding ring, one arc, fading fast.
-      for (let i = pulses.length - 1; i >= 0; i--) {
-        const p = pulses[i];
-        p.r += 11 * dt;
-        p.alpha -= 0.018 * dt;
-        if (p.alpha <= 0) {
-          pulses.splice(i, 1);
-          continue;
-        }
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(0, 242, 176, ' + (p.alpha * 0.35).toFixed(3) + ')';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-
-      // 2. Stars.
+      // Stars.
       const wakeRadius = pointer.radius;
       const wakeRadiusSq = wakeRadius * wakeRadius;
 
@@ -1155,11 +1252,8 @@
       if (scopeCanvas && scopeOn !== scopeLive) {
         scopeLive = scopeOn;
         scopeCanvas.classList.toggle('is-live', scopeOn);
-        // The glyph steps back to a ghost while the sky is forming it; the
-        // points become the icon instead of decorating one.
-        for (let k = 0; k < scopes.length; k++) {
-          scopes[k].el.style.setProperty('--sc-draw', scopeOn ? '0.05' : '1');
-        }
+        // The drawn glyph crossfades with the gather itself via --sc-form
+        // (opacity = 1 - form), so no visibility switch is needed here.
       }
 
       let scopeR = 0;
@@ -1177,8 +1271,6 @@
       const mintish = scopeG > scopeB * 1.08;
       const scopeTrail = mintish ? sprites.streakMint : sprites.streakViolet;
       const scopeAura = mintish ? sprites.auraMint : sprites.auraViolet;
-      const skyFill = 'rgb(' + skyRGB + ')';
-      const mintFill = 'rgb(' + mintRGB + ')';
 
       for (let i = 0; i < stars.length; i++) {
         const s = stars[i];
@@ -1187,18 +1279,23 @@
         const prevY = s.y;
 
         // 0 = a free star, 1 = a point in the constellation. The entrance is
-        // gated per star, so the outline is drawn rather than popped.
+        // gated per star, so the outline is drawn rather than popped. The
+        // target is ALWAYS computed for a drafted star - at gate 0 the
+        // blend inside scopeTarget is home itself, so a released member
+        // glides back to its drafted spot instead of collapsing to the
+        // origin - and it does not depend on scopeOn, so the release still
+        // works when the canvas has already hidden.
         let gather = 0;
         let targetX = 0;
         let targetY = 0;
-        if (seed && scopeOn) {
-          const gate = smooth01((scopeState.presence - seed.lag * 0.55) / (1 - seed.lag * 0.55));
-          if (gate > 0) {
-            gather = gate;
-            scopeTarget(seed);
-            targetX = scopeTX;
-            targetY = scopeTY;
-          }
+        if (seed) {
+          const gate = scopeOn
+            ? smooth01((scopeState.presence - seed.lag * 0.55) / (1 - seed.lag * 0.55))
+            : 0;
+          gather = gate;
+          scopeTarget(seed, gather);
+          targetX = scopeTX;
+          targetY = scopeTY;
         }
         const free = 1 - gather;
 
@@ -1216,11 +1313,18 @@
         s.y += my;
 
         // A damped pull rather than a hard set: the star arrives with weight
-        // and keeps a pixel or two of lag while the panel is scrolling.
-        if (gather > 0.001) {
-          const pull = 0.028 * gather;
-          s.gvx = (s.gvx + (targetX - s.x) * pull * dt) * Math.pow(0.87, dt);
-          s.gvy = (s.gvy + (targetY - s.y) * pull * dt) * Math.pow(0.87, dt);
+        // and keeps a pixel or two of lag while the panel is scrolling. The
+        // pull runs for members even at gather 0 - that is the ride home.
+        if (gather > 0.001 || seed) {
+          const dx = targetX - s.x;
+          const dy = targetY - s.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > 0.05) {
+            const arrive = Math.min(0.09, 0.045 + dist * 0.00055);
+            const brake = Math.min(0.42, 0.3 + dist * 0.0004);
+            s.gvx += (dx * arrive - s.gvx * brake) * dt;
+            s.gvy += (dy * arrive - s.gvy * brake) * dt;
+          }
           s.x += s.gvx * dt;
           s.y += s.gvy * dt;
         } else {
@@ -1228,31 +1332,37 @@
           s.gvy *= Math.pow(0.86, dt);
         }
 
-        // When the shape lets go, the energy comes from its own unmaking: each
-        // frame of falling gather turns into an outward kick, so the icon
-        // unpicks itself from the centre into the sky. The kick is proportional
-        // to the drop, so a parked page scatters nothing.
-        if (seed) {
-          if (gather < s.gprev) {
-            const sc = scopeState.from;
-            if (sc) {
-              const rdx = s.x - sc.iconCx;
-              const rdy = s.y - (sc.iconCy - scrollState.y);
-              const rd = Math.sqrt(rdx * rdx + rdy * rdy) || 1;
-              const kick = (s.gprev - gather) * 14;
-              s.vx += (rdx / rd) * kick;
-              s.vy += (rdy / rd) * kick;
-            }
+        // Home means home: once the section is gone (presence 0) and the
+        // member has glided back within a few pixels of its drafted spot,
+        // restore its exact pre-draft motion verbatim and drop the member
+        // tag - it rejoins the sky as if it had never been recruited.
+        if (seed && scopeState.presence <= 0.002) {
+          const hx = seed.home.docX;
+          const hy = seed.home.docY - scrollState.y;
+          const ddx = s.x - hx;
+          const ddy = s.y - hy;
+          if (ddx * ddx + ddy * ddy < 25) {
+            s.vx = seed.home.vx;
+            s.vy = seed.home.vy;
+            s.gvx = 0;
+            s.gvy = 0;
+            s.streak = seed.home.streak;
+            s.fx = seed.home.fx;
+            s.fy = seed.home.fy;
+            s.dirY = seed.home.dirY;
+            s.cseed = null;
           }
-          s.gprev = gather;
-        } else {
-          s.gprev = 0;
         }
 
+        // No kick on release: the member glides back to its drafted spot by
+        // the same blend that took it to its slot, so the icon unpicks
+        // itself into the exact sky that was there before it arrived.
+
         // Wrap: a star that leaves the top re-enters from the bottom, keeping
-        // the sky density constant through any amount of scrolling. A member
-        // on the shape is exempt, or it would teleport away from its slot.
-        if (free > 0.985) {
+        // the sky density constant through any amount of scrolling. Members
+        // are exempt while any membership remains, or a member flying home
+        // could teleport to the other side mid-route.
+        if (!seed) {
           if (s.x < -20) s.x = width + 20;
           else if (s.x > width + 20) s.x = -20;
           if (s.y < -20) s.y = height + 20;
@@ -1273,17 +1383,6 @@
             const push = near * near * (isReducedMotion ? 0 : 0.5) * s.z * free;
             s.vx += (dx / dist) * push;
             s.vy += (dy / dist) * push;
-          }
-        }
-
-        // Click pulses light the ring as it passes, in the scattered sky only.
-        if (free > 0.5) {
-          for (let k = 0; k < pulses.length; k++) {
-            const p = pulses[k];
-            const dx = s.x - p.x;
-            const dy = s.y - p.y;
-            const band = Math.abs(Math.sqrt(dx * dx + dy * dy) - p.r);
-            if (band < 30) hotTarget += (1 - band / 30) * p.alpha * 0.9;
           }
         }
 
@@ -1316,20 +1415,19 @@
         s.twinklePhase += s.twinkleSpeed * dt * 6;
 
         // A formed point is exempt from the hero's centre fade: it is the
-        // content there, not sky noise behind it.
+        // content there, not sky noise behind it, and it burns brighter than
+        // the sky so the outline reads as light, not as a dotted line.
         let a = s.alpha * twinkle * (focusFade(s.x, s.y) * free + gather);
         a *= 1 + s.hot * 1.4;
-        if (gather > 0) a *= 1 + gather * 0.18;
+        if (gather > 0) a *= 1 + gather * 0.5;
         if (a <= 0.004) continue;
         if (a > 1) a = 1;
 
         // A gathered point is drawn on the sheet that sits above the cards;
         // a scattered one stays on the sky behind everything.
         const sheet = gather > 0.004 ? scopeCtx : ctx;
-        // Formed points burn white-hot: they sit on the icon's own stroke, so
-        // a mint bead would sink into a mint bar. The accent lives in the halo.
-        const sprite = gather > 0.3 ? sprites.star : (s.mint ? mintSprite : skySprite);
-        const rgb = s.mint ? mintRGB : skyRGB;
+        const sprite = gather > 0.3 ? sprites.star : tintSprites[s.tint];
+        const rgb = TINT_RGB[s.tint];
 
         // Shooting-star tail. Drawn as soon as a star starts moving, so a gentle
         // scroll still smears it; the length is capped so a page jump does not
@@ -1351,24 +1449,32 @@
             sheet.save();
             sheet.translate(s.x, s.y);
             sheet.scale(1, -1);
-            sheet.drawImage(s.mint ? sprites.streakMint : sprites.streak, -wid / 2, -len, wid, len);
+            sheet.drawImage(streakSprites[s.tint], -wid / 2, -len, wid, len);
             sheet.restore();
           } else {
-            sheet.drawImage(s.mint ? sprites.streakMint : sprites.streak, s.x - wid / 2, s.y - len, wid, len);
+            sheet.drawImage(streakSprites[s.tint], s.x - wid / 2, s.y - len, wid, len);
           }
           sheet.globalAlpha = 1;
         }
 
         // Star head: soft halo, then a crisp core so the point reads as light.
-        let size = ((s.streak > 6 ? 4.2 : 5.4) + s.r * 6.2) * (1 - 0.1 * gather);
+        let size = ((s.streak > 6 ? 4.2 : 5.4) + s.r * 6.2) * (1 + 0.12 * gather);
         // A quorum of the members are drawn larger, which keeps the outline
         // from reading as an even string of identical beads.
         if (gather > 0.3 && seed && seed.big) size *= 1.4;
+        // The rare brilliant stars get a wide, faint bloom first - the
+        // touch that separates a photographed sky from clip-art dots.
+        if (s.mag > 0.55 && gather < 0.4) {
+          const aura = s.tint === 1 || s.tint === 2 ? sprites.auraSun : sprites.auraIce;
+          const spread = size * 3.6;
+          sheet.globalAlpha = Math.min(1, a * 0.42);
+          sheet.drawImage(aura, s.x - spread / 2, s.y - spread / 2, spread, spread);
+        }
         // A wide aura under the formed points, drawn only once they are on the
         // shape: the outline glows instead of being a thin dotted line.
         if (gather > 0.2) {
-          const halo = size * 2.5;
-          sheet.globalAlpha = Math.min(1, a * gather * 0.36);
+          const halo = size * 2.9;
+          sheet.globalAlpha = Math.min(1, a * gather * 0.5);
           sheet.drawImage(scopeAura, s.x - halo / 2, s.y - halo / 2, halo, halo);
         }
         sheet.globalAlpha = a;
@@ -1376,7 +1482,7 @@
         sheet.globalAlpha = Math.min(1, a * 1.05);
         sheet.beginPath();
         sheet.arc(s.x, s.y, Math.max(0.45, s.r * 0.5), 0, Math.PI * 2);
-        sheet.fillStyle = gather > 0.25 ? 'rgb(244, 255, 252)' : (s.mint ? mintFill : skyFill);
+        sheet.fillStyle = gather > 0.25 ? 'rgb(244, 255, 252)' : tintFills[s.tint];
         sheet.fill();
         sheet.globalAlpha = 1;
 
