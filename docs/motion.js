@@ -137,19 +137,15 @@
       let docked = false;
       let settleTimer = 0;
 
-      function aim() {
-        const p = navPill.getBoundingClientRect();
+      // The flight target: dead centre on the primary button - or, when the
+      // actions stack into full-width columns on phones, the button's own
+      // icon bubble, so icon meets icon and the label is never covered.
+      // s is the launch scale: the shell lands at the button's height, so
+      // the surface it presents is the size of the surface it is becoming.
+      function targetPoint() {
         const primary = dockTarget.getBoundingClientRect();
-        // The shell lands at the button's height, so the surface it presents
-        // is the size of the surface it is becoming.
-        const s = Math.min(1.75, Math.max(1, primary.height / p.height));
-        // By default the flight lands dead centre on the primary button.
         let cx = primary.left + primary.width / 2;
         let cy = primary.top + primary.height / 2;
-
-        // On phones the actions stack into full-width columns. Centring there
-        // would put the flying shell's icon over the button's label, so the
-        // aim is the button's own icon bubble instead: icon meets icon.
         if (getComputedStyle(dockRow).flexDirection === 'column') {
           const bubble = dockTarget.querySelector('.btn-icon-bubble');
           if (bubble) {
@@ -158,10 +154,43 @@
             cy = b.top + b.height / 2;
           }
         }
+        const s = Math.min(1.75, Math.max(1, primary.height / navPill.offsetHeight));
+        return { x: cx, y: cy, s: s };
+      }
 
-        docEl.style.setProperty('--dock-x', (cx - (p.left + p.width / 2)).toFixed(1) + 'px');
-        docEl.style.setProperty('--dock-y', (cy - (p.top + p.height / 2)).toFixed(1) + 'px');
+      // The offsets are relative to wherever the reference point claims the
+      // shell is: the resting corner for a launch, or the pill's current
+      // visual position for a return.
+      function writeAim(bx, by, t, s) {
+        docEl.style.setProperty('--dock-x', (t.x - bx).toFixed(1) + 'px');
+        docEl.style.setProperty('--dock-y', (t.y - by).toFixed(1) + 'px');
         docEl.style.setProperty('--dock-s', s.toFixed(3));
+      }
+
+      function aim() {
+        const p = navPill.getBoundingClientRect();
+        const t = targetPoint();
+        writeAim(p.left + p.width / 2, p.top + p.height / 2, t, t.s);
+      }
+
+      // The return flight must start from wherever the shell IS, not from
+      // where it was aimed: layout can change between the dive and the
+      // scroll-away (a window resize, a phone rotation), and a stale vector
+      // would fly it home from the wrong place or teleport it mid-air. So
+      // the launch point, scale and offsets are re-measured here, from the
+      // transform the pill is genuinely carrying right now.
+      function aimReturn() {
+        const p = navPill.getBoundingClientRect();
+        const t = targetPoint();
+        const tr = getComputedStyle(navPill).transform;
+        let mx = 0, my = 0, ms = 1;
+        if (tr && tr !== 'none') {
+          const d = new DOMMatrixReadOnly(tr);
+          mx = d.e || 0;
+          my = d.f || 0;
+          ms = Math.max(0.05, d.a || 1);
+        }
+        writeAim(p.left + p.width / 2 - mx, p.top + p.height / 2 - my, t, ms);
       }
 
       function dock() {
@@ -169,6 +198,11 @@
         // No hero, no drop: without nav-cta-live the pill is parked off-screen
         // and flying an invisible element would only write style for nothing.
         if (docked || !inSight || !docEl.classList.contains('nav-cta-live')) return;
+        // A return flight may still be running (the visitor scrolled out and
+        // immediately back in). Stripping it mid-flight would teleport the
+        // shell to the corner before the new dive; letting the end handler
+        // re-arm keeps every frame continuous.
+        if (docEl.classList.contains('cta-undock')) return;
         aim();
         docEl.classList.remove('cta-returned', 'cta-undock', 'cta-docked');
         // Restart from frame 0 when the pill docks again after a return.
@@ -204,7 +238,14 @@
             settleTimer = 0;
             if (docked) {
               docked = false;
+              // Re-aim while the outgoing state is still applied: the read has
+              // to see the transform the shell is actually carrying (held on
+              // the button, or mid-flight), and must run before any class
+              // clears it.
+              aimReturn();
               docEl.classList.remove('cta-dock', 'cta-docked');
+              // Restart from frame 0 when the pill docks again after a return.
+              void navPill.offsetWidth;
               docEl.classList.add('cta-undock');
             }
           } else {
@@ -225,6 +266,10 @@
           // navCtaReturn ends at transform:none, so removing it would let
           // navCtaDrop replay. The pin keeps the pill resting in the corner.
           docEl.classList.add('cta-returned');
+          // A dock may have been requested while the return was airborne
+          // (visitor back inside the finale); re-arm it now that the shell
+          // has landed.
+          if (inSight) scheduleDock();
         } else if (event.animationName === 'navCtaDock' && docEl.classList.contains('cta-dock')) {
           // Parked on the button: invisible, inert, and out of the tab order
           // until the finale leaves the viewport.

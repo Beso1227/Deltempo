@@ -632,10 +632,22 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   }
 
   /* Reverse fill: scrolling back out of the finale returns the pill to its
-     corner, landing with the same squash-and-settle as the original drop. */
+     corner, landing with the same squash-and-settle as the original drop.
+
+     0% is wherever the shell actually is: motion.js re-aims at the drop-out,
+     reading the transform the pill is genuinely carrying, so a resize between
+     the dive and the return - or an abort mid-flight - hands over to a
+     seamless flight home instead of teleporting from a stale vector. */
   html.cta-undock .nav-download-btn {
     animation: navCtaReturn 0.64s cubic-bezier(0.3, 1.16, 0.4, 1) both;
     pointer-events: none;
+  }
+
+  /* The flight home is shell-only, mirroring the dive: the pill's words leave
+     while it is airborne and return as it comes to rest, so it never travels
+     with a readable label. */
+  html.cta-undock .nav-download-btn > span {
+    animation: navCtaLabelIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) 0.34s both;
   }
 
   /* The return animation ends back at transform:none, so dropping the classes
@@ -664,6 +676,15 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   }
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes navCtaLabelIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
   }
 }
 
@@ -712,11 +733,12 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   }
   /* It burns through: the surface fades out over the identical surface of the
      real button sitting underneath it, so nothing new appears in the row and
-     nothing is ever parked in it. */
-  74% {
-    opacity: 0.55;
+     nothing is ever parked in it. The fade is quick - the fewer frames the
+     button's label has to read through fading glass, the crisper the reveal. */
+  72% {
+    opacity: 0.6;
   }
-  84%,
+  82%,
   100% {
     opacity: 0;
     transform: translate3d(calc(var(--dock-x, 0px)), calc(var(--dock-y, 0px) + 2px), 0) scale(var(--dock-s, 1));
@@ -726,14 +748,14 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 @keyframes navCtaReturn {
   0% {
     opacity: 0;
-    transform: translate3d(var(--dock-x, 0px), var(--dock-y, 0px), 0) scale(calc(var(--dock-s, 1) * 0.92));
+    transform: translate3d(var(--dock-x, 0px), var(--dock-y, 0px), 0) scale(var(--dock-s, 1));
   }
-  22% {
+  12% {
     opacity: 1;
   }
   46% {
     opacity: 1;
-    transform: translate3d(calc(var(--dock-x, 0px) * 0.52), calc(var(--dock-y, 0px) * 0.42 - 22px), 0) scale(1.05);
+    transform: translate3d(calc(var(--dock-x, 0px) * 0.52), calc(var(--dock-y, 0px) * 0.42 - 22px), 0) scale(calc(var(--dock-s, 1) * 0.63 + 0.37));
   }
   74% {
     opacity: 1;
