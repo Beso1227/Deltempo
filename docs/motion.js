@@ -659,11 +659,12 @@
       // Magnitude distribution follows a power law: most points are faint,
       // a few are commanding. Sizes follow magnitude so brightness and
       // girth arrive together.
-      star.mag = Math.pow(Math.random(), 2.4);
-      star.r = (0.42 + star.mag * 1.26) * (0.55 + 0.6 * star.z);
+      star.mag = Math.pow(Math.random(), 2.1);
+      star.r = (0.48 + star.mag * 1.18) * (0.55 + 0.6 * star.z);
       // Depth comes from size and speed, not from dimming alone: a far
-      // star is a small point, not just a faded one.
-      star.alpha = (0.26 + star.mag * 0.62) * (0.66 + 0.34 * Math.min(1, star.z));
+      // star is a small point, not just a faded one. The floor stays
+      // visible though - a sky you cannot see is not a sky at all.
+      star.alpha = (0.34 + star.mag * 0.56) * (0.72 + 0.28 * Math.min(1, star.z));
 
       // Temperature: a real sky is dominated by blue-white, salted with
       // gold and ember; the mint is a rare nebular member of the family.
@@ -745,7 +746,9 @@
       const dy = (y - cy) / ry;
       const d = Math.sqrt(dx * dx + dy * dy);
       if (d >= 1) return 1;
-      return 0.45 + 0.55 * d * d;
+      // A whisper of dimming behind the headline - never a blackout: the
+      // sky must be unmistakably alive at the top of the page.
+      return 0.8 + 0.2 * d * d;
     }
 
     // --- Scope constellation -------------------------------------------------
@@ -1490,7 +1493,7 @@
           if (speed > 0.35) {
             s.fx = mdx / speed;
             s.fy = mdy / speed;
-            s.streak += (Math.min(speed * 8.5, 240) - s.streak) * Math.min(1, 0.5 * dt);
+            s.streak += (Math.min(speed * 5.2, 110) - s.streak) * Math.min(1, 0.35 * dt);
           } else {
             s.streak += (0 - s.streak) * Math.min(1, 0.22 * dt);
           }
@@ -1858,9 +1861,13 @@
     }, { passive: true });
 
     btn.addEventListener('click', function () {
-      // Ride the same easing as every other scroll on the page.
+      // Cinematic exhale: a long, soft-eased ride home (this is also what
+      // lets Lenis stream the starfield past the camera).
       if (scrollState.lenis) {
-        scrollState.lenis.scrollTo(0, { duration: 1.2 });
+        scrollState.lenis.scrollTo(0, {
+          duration: 1.5,
+          easing: function (t) { return 1 - Math.pow(2, -10 * t); },
+        });
         return;
       }
       window.scrollTo({

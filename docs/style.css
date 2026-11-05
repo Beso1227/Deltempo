@@ -694,7 +694,7 @@ h3 strong,
      the dive and the return - or an abort mid-flight - hands over to a
      seamless flight home instead of teleporting from a stale vector. */
   html.cta-undock .nav-download-btn {
-    animation: navCtaReturn 0.48s cubic-bezier(0.3, 1.16, 0.4, 1) both;
+    animation: navCtaReturn 0.6s cubic-bezier(0.22, 1.09, 0.36, 1) both;
     pointer-events: none;
   }
 
@@ -805,16 +805,19 @@ h3 strong,
   12% {
     opacity: 1;
   }
-  46% {
-    opacity: 1;
-    transform: translate3d(calc(var(--dock-x, 0px) * 0.52), calc(var(--dock-y, 0px) * 0.42 - 22px), 0) scale(calc(var(--dock-s, 1) * 0.63 + 0.37));
+  22% {
+    /* The shell lifts clear of the button's ghost first - a small, honest
+       hop before it commits to the flight. */
+    transform: translate3d(var(--dock-x, 0px), calc(var(--dock-y, 0px) - 34px), 0) scale(calc(var(--dock-s, 1) * 0.97));
   }
-  74% {
-    opacity: 1;
-    transform: translate3d(0, 8px, 0) scaleX(1.07) scaleY(0.93);
+  52% {
+    transform: translate3d(calc(var(--dock-x, 0px) * 0.45), calc(var(--dock-y, 0px) * 0.35 - 58px), 0) scale(calc(var(--dock-s, 1) * 0.6 + 0.4));
   }
-  88% {
-    transform: translate3d(0, -3px, 0) scaleX(0.985) scaleY(1.015);
+  78% {
+    transform: translate3d(0, 6px, 0) scaleX(1.04) scaleY(0.96);
+  }
+  90% {
+    transform: translate3d(0, -3px, 0) scaleX(0.99) scaleY(1.01);
   }
   100% {
     opacity: 1;
@@ -2755,7 +2758,8 @@ main:has(> .cta-final) + .footer {
     visibility: hidden;
     transform: translateY(14px) scale(0.9);
     pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.26s cubic-bezier(0.4, 0, 0.6, 1), visibility 0s linear 0.26s;
+    /* The shell must be visibly off the button before its ghost lets go. */
+    transition: opacity 0.36s ease 0.12s, transform 0.4s cubic-bezier(0.34, 1.06, 0.64, 1) 0.12s, visibility 0s linear 0.36s;
   }
 
   html:not(.cta-primary-hidden) .cta-primary {
