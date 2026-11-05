@@ -1,4 +1,20 @@
-/* Self-hosted webfonts (Plus Jakarta Sans + JetBrains Mono, latin subsets) - avoids the googleapis->gstatic request chain on the critical path. Pulled from Google Fonts css2 API; regenerate when changing families/weights. */
+/* Self-hosted webfonts (Plus Jakarta Sans + JetBrains Mono, latin subsets) - avoids the googleapis->gstatic request chain on the critical path. Pulled from Google Fonts css2 API; regenerate when changing families/weights. The display serif italic is Instrument Serif (OFL), used only for the hero's accent line. */
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/instrument-serif-italic-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/instrument-serif-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 @font-face {
   font-family: 'JetBrains Mono';
   font-style: normal;
@@ -119,6 +135,7 @@
 
 :root {
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
   --font-mono: 'JetBrains Mono', Consolas, Monaco, 'Courier New', monospace;
 
   /* Dark Theme Tokens (Deep Space & Cyber Mint)
@@ -449,10 +466,11 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 }
 
 .section-title {
-  font-size: 2.35rem;
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  line-height: 1.2;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  font-size: 2.48rem;
+  line-height: 1.15;
   margin-bottom: 1rem;
 }
 
@@ -992,9 +1010,41 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   transform: rotate(-3.2deg);
 }
 
-/* Second line: solid mint. No gradient, no shimmer, no glow. */
+/* The white line is printed, not chalked: a top-lit gradient with a cool
+   graphite base, so it sits IN the dark instead of ON it. */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .hero-line {
+    background: linear-gradient(180deg, #ffffff 0%, #eef2f3 34%, #93a7b0 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+}
+
+/* Second line: Instrument Serif italic against the grotesque - the editorial
+   contrast that makes a headline feel written instead of stamped - filled
+   with a diagonal aurora gradient rather than flat mint. The padding keeps
+   descenders ("p", "y") inside the clip box. */
 .hero-line-accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.17em;
+  letter-spacing: -0.008em;
+  line-height: 1.04;
+  padding-bottom: 0.1em;
   color: var(--accent-emerald);
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .hero-line-accent {
+    background: linear-gradient(97deg, #c0ffe6 0%, #4dffc4 28%, #00f2b0 55%, #00c887 88%, #0a8f63 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
 }
 
 .hero-ctas {
@@ -2098,8 +2148,11 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 }
 
 .doc-heading {
-  font-size: 1.4rem;
-  font-weight: 800;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  font-size: 1.55rem;
+  line-height: 1.25;
   margin-bottom: 1rem;
 }
 
@@ -2613,10 +2666,11 @@ main:has(> .cta-final) + .footer {
 
 .cta-title {
   margin: 0 0 1.6rem;
-  font-size: clamp(2.55rem, 6.1vw, 5rem);
-  font-weight: 800;
-  line-height: 0.98;
-  letter-spacing: -0.042em;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2.75rem, 6.4vw, 5.2rem);
+  line-height: 1;
+  letter-spacing: -0.025em;
   color: var(--text-high);
 }
 
@@ -2625,8 +2679,10 @@ main:has(> .cta-final) + .footer {
 }
 
 /* The accent line carries its own light; at this size a coloured line without
-   a bloom reads as a flat swatch. */
+   a bloom reads as a flat swatch. Set in the serif italic so the page's two
+   typefaces answer each other across the hero and the close. */
 .cta-title-accent {
+  font-style: italic;
   color: var(--accent-emerald);
   text-shadow: 0 0 64px rgba(0, 242, 176, 0.22);
 }
