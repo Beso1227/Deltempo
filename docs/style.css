@@ -218,7 +218,8 @@ body {
   color: var(--text-high);
   font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 1.65;
+  font-weight: 700;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -467,6 +468,7 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 
 .section-title {
   font-family: var(--font-serif);
+  font-style: italic;
   font-weight: 400;
   letter-spacing: -0.02em;
   font-size: 2.48rem;
@@ -475,14 +477,15 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 }
 
 /* ---- The two voices -------------------------------------------------------
-   One system runs the whole site: Instrument Serif carries every headline,
-   Plus Jakarta Sans carries everything else. The hero headline and the
-   footer ghost keep their Jakarta 900 voice on purpose; the italic is saved
-   for the hero's accent line and the finale. */
+   One system runs the whole site: Instrument Serif ITALIC carries every
+   headline, Plus Jakarta Sans carries everything else with the hero's
+   printed-gradient voice. The hero headline and the footer ghost keep
+   their Jakarta 900 voice on purpose. */
 h1:not(.hero-headline),
 h2,
 h3 {
   font-family: var(--font-serif);
+  font-style: italic;
   font-weight: 400;
   letter-spacing: -0.02em;
 }
@@ -493,6 +496,7 @@ h3 {
 .doc-tier-title,
 .faq-question {
   font-family: var(--font-serif);
+  font-style: italic;
   font-weight: 400;
   letter-spacing: -0.01em;
 }
@@ -1529,7 +1533,7 @@ h3 strong,
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 0.4rem 1.5rem;
+  gap: 0.35rem 1.1rem;
   list-style: none;
 }
 
