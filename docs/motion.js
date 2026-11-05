@@ -1881,81 +1881,7 @@
 // (Note: Static multi-page routing is used to guarantee 100% reliable GitHub Pages navigation without 404 or DOM corruption)
 
   /* ==========================================================================
-     8. Hero typewriter cursor
-     The characters type themselves in CSS (see html.hero-intro .tw-char), so
-     this function only has to walk the same clock and park the caret at the
-     last character that has appeared. Nothing here gates the text itself.
-     ========================================================================== */
-  function initHeroTypewriter() {
-    const docEl = document.documentElement;
-    if (isReducedMotion || !docEl.classList.contains('hero-intro')) return;
-
-    const h1 = document.querySelector('.hero-headline');
-    if (!h1) return;
-    const chars = Array.prototype.slice.call(h1.querySelectorAll('.tw-char'));
-    if (!chars.length) return;
-
-    const cursor = document.createElement('span');
-    cursor.className = 'tw-cursor';
-    cursor.setAttribute('aria-hidden', 'true');
-    h1.appendChild(cursor);
-
-    const cssStep = parseFloat(getComputedStyle(h1).getPropertyValue('--tw-step'));
-    const step = cssStep > 0 ? cssStep : 22;
-    const startAt = 120;
-    const endAt = startAt + chars.length * step;
-
-    let lastIndex = -2;
-    let blinking = false;
-
-    function place(index) {
-      const char = chars[Math.max(0, Math.min(chars.length - 1, index))];
-      const box = char.getBoundingClientRect();
-      const head = h1.getBoundingClientRect();
-      cursor.style.transform =
-        'translate3d(' + (box.right - head.left).toFixed(1) + 'px, ' +
-        (box.top - head.top).toFixed(1) + 'px, 0)';
-    }
-
-    const t0 = performance.now();
-    cursor.classList.add('tw-cursor-on');
-    place(0);
-
-    function frame(now) {
-      const elapsed = now - t0;
-      const index = elapsed < startAt ? 0 : Math.floor((elapsed - startAt) / step);
-      if (index !== lastIndex) {
-        lastIndex = index;
-        place(index);
-      }
-      if (elapsed < endAt + 380) {
-        requestAnimationFrame(frame);
-        return;
-      }
-      if (!blinking) {
-        blinking = true;
-        cursor.classList.add('tw-cursor-blink');
-        setTimeout(function () { // DevSkim: ignore DS172411
-          cursor.classList.remove('tw-cursor-on', 'tw-cursor-blink');
-          setTimeout(function () {
-            if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
-          }, 260);
-        }, 520);
-      }
-    }
-    requestAnimationFrame(frame);
-
-    // A late web font swaps glyph widths underneath the caret; re-measure.
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(function () {
-        lastIndex = -2;
-        place(chars.length - 1);
-      });
-    }
-  }
-
-  /* ==========================================================================
-     9. Capability icon band
+     6. Capability icon band
      Two motions on two layers: the strip drifts against the page on scroll
      (one transform on the track), while each cell rides its own sine phase
      (one transform per cell). The loop stops as soon as the band leaves the
@@ -2035,7 +1961,7 @@
   }
 
   /* ==========================================================================
-     10. Video stage
+     7. Video stage
      The film grows out of the page as it arrives (0.5 -> 1 on desktop,
      0.92 -> 1 on phones) and never plays on its own: the mint pill over the
      poster is the only way in, so the page stays quiet until the visitor asks
@@ -2190,7 +2116,7 @@
   }
 
   /* ==========================================================================
-     11. Footer letterform scrub
+     8. Footer letterform scrub
      The wordmark rises 60px as the footer enters, one letter after the next.
      ========================================================================== */
   function initFooterWordmark() {
@@ -2235,7 +2161,7 @@
   }
 
   /* ==========================================================================
-     12. Text written by the scroll
+     9. Text written by the scroll
      Every prose block is split once into word spans. One scroll pass then writes
      a single property per block, --wr-p, and each word derives its own opacity
      from it (see .wr-word). A line is therefore written as the visitor scrolls
@@ -2513,7 +2439,6 @@
     initCardInteractivity();
     initServiceWorker();
     initBackToTop();
-    initHeroTypewriter();
     initIconBand();
     initVideoStage();
     initFooterWordmark();

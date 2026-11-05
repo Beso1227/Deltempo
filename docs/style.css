@@ -3599,14 +3599,16 @@ html {
   position: relative;
 }
 
+/* The line's gradient is painted with background-clip:text on .hero-line, so a
+   character cannot be hidden with opacity - the parent would keep painting the
+   glyph. visibility does remove it from the text-clip mask, and keeps layout
+   untouched, which is exactly what the typewriter needs. */
 html.hero-intro .tw-char {
-  opacity: 0;
-  animation: tw-char 1ms linear forwards;
-  animation-delay: var(--tw-delay, 0ms);
+  visibility: hidden;
 }
 
-@keyframes tw-char {
-  to { opacity: 1; }
+html.hero-intro .tw-char.is-written {
+  visibility: visible;
 }
 
 .tw-cursor {
@@ -4095,7 +4097,7 @@ html.hero-intro .tw-char {
   }
 
   html.hero-intro .tw-char {
-    opacity: 1 !important;
+    visibility: visible !important;
     animation: none !important;
   }
 

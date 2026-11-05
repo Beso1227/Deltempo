@@ -54,14 +54,14 @@
   <link rel="preload" as="font" type="font/woff2" href="fonts/jetbrains-mono-latin.woff2" crossorigin>
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=3.9.29">
+  <link rel="stylesheet" href="style.css?v=3.9.37">
 
   <!-- Without scripting the film keeps its native controls, so the pill (which
        would be inert) is not shown at all. -->
   <noscript><style>.video-play{display:none}</style></noscript>
 
   <!-- Web App Manifest (PWA installability) -->
-  <link rel="manifest" href="manifest.json?v=3.9.29">
+  <link rel="manifest" href="manifest.json?v=3.9.37">
 
   <!-- Schema.org JSON-LD Structured Data (Google Knowledge Graph & Rich Results) -->
   <script type="application/ld+json">
@@ -345,9 +345,9 @@
     <script>
       /* Hero entrance. Runs synchronously while the hero is still parsing, so
          the first paint already carries the intro's start state and nothing
-         can flash. The rise/fade itself is CSS (@keyframes hero-rise) keyed off
-         html.hero-intro, so it runs even if motion.js is slow or blocked; only
-         the typewriter cursor needs JavaScript.
+         can flash. The rise/fade is CSS (@keyframes hero-rise) keyed off
+         html.hero-intro; the writing and its caret are driven here, off one
+         clock, so they cannot drift apart and neither waits on motion.js.
          The hero is above the fold by construction - no rect reads, no reflows.
          Reduced motion: nothing is armed, so the hero is simply visible. */
       (function () {
@@ -369,8 +369,9 @@
         if (reduce || !document.createElement) return;
 
         // Split each headline step into characters. Characters stay inline so
-        // the line breaks stay exactly where the markup puts them; opacity is
-        // the only property that changes.
+        // the line breaks stay exactly where the markup puts them; visibility
+        // is the only property that changes. One clock below writes the glyphs
+        // and drives the caret, so the two can never drift apart.
         var step = window.innerWidth <= 720 ? 13 : 22;
         var lines = hero.querySelectorAll('.hero-line');
         var chars = [];
@@ -385,23 +386,95 @@
             var span = document.createElement('span');
             span.className = 'tw-char';
             span.textContent = text.charAt(c);
-            span.style.setProperty('--tw-delay', (120 + chars.length * step) + 'ms');
             line.appendChild(span);
             chars.push(span);
           }
         }
 
         var h1 = hero.querySelector('.hero-headline');
-        if (h1 && chars.length) {
-          // Read the sentence from the markup rather than repeating it here, so
-          // the announced headline cannot drift from the one on screen.
-          h1.setAttribute('aria-label', spoken.join(' '));
-          h1.style.setProperty('--tw-step', step + 'ms');
-          // When the last character lands. The CTA row, the one-liner and the
-          // proof row are held behind this, so the hero hands over to its
-          // controls only once the headline has finished writing itself.
-          root.style.setProperty('--tw-end', (120 + chars.length * step) + 'ms');
-          root.classList.add('hero-intro');
+        if (!h1 || !chars.length) return;
+
+        // Read the sentence from the markup rather than repeating it here, so
+        // the announced headline cannot drift from the one on screen.
+        h1.setAttribute('aria-label', spoken.join(' '));
+        h1.style.setProperty('--tw-step', step + 'ms');
+        // When the last character lands. The CTA row, the one-liner and the
+        // proof row are held behind this, so the hero hands over to its
+        // controls only once the headline has finished writing itself.
+        var startAt = 120;
+        var endAt = startAt + chars.length * step;
+        root.style.setProperty('--tw-end', endAt + 'ms');
+        root.classList.add('hero-intro');
+
+        // The caret. It lives inside the line it is writing, so it inherits
+        // that line's slant. Positions come from transform-free offset*
+        // coordinates: getBoundingClientRect reports the axis-aligned box of a
+        // rotated line, which is exactly what used to knock the caret off the
+        // text. The glyphs and the caret share the headline as offsetParent,
+        // so a translate in that space lands precisely on the glyph.
+        var cursor = document.createElement('span');
+        cursor.className = 'tw-cursor';
+        cursor.setAttribute('aria-hidden', 'true');
+        h1.appendChild(cursor);
+
+        function place(index) {
+          var char = chars[Math.max(0, Math.min(chars.length - 1, index))];
+          var owner = char.parentNode;
+          if (cursor.parentNode !== owner) owner.appendChild(cursor);
+          var fontSize = parseFloat(getComputedStyle(h1).fontSize) || 64;
+          var bar = Math.round(fontSize * 0.72); // optical cap-height bar
+          var y = Math.round(char.offsetTop + (char.offsetHeight - bar) / 2);
+          // Before the first glyph has landed the caret waits at the line's
+          // start, not one character-width in.
+          var x = index < 0
+            ? Math.round(char.offsetLeft)
+            : Math.round(char.offsetLeft + char.offsetWidth + 4);
+          cursor.style.height = bar + 'px';
+          cursor.style.transform = 'translate3d(' + x + 'px, ' + y + 'px, 0)';
+        }
+
+        var written = 0;
+        var current = 0;
+        var gone = false;
+        var t0 = performance.now();
+        cursor.classList.add('tw-cursor-on');
+        place(-1);
+
+        function frame(now) {
+          var elapsed = now - t0;
+          // -1 keeps the first glyph unwritten during the opening beat.
+          var index = elapsed < startAt ? -1 : Math.floor((elapsed - startAt) / step);
+          if (index > chars.length - 1) index = chars.length - 1;
+          // Write every glyph the clock has passed, then park the caret after
+          // the newest letter.
+          while (written <= index) {
+            chars[written].classList.add('is-written');
+            written++;
+          }
+          current = index;
+          place(index);
+          if (elapsed < endAt + 420) {
+            requestAnimationFrame(frame);
+            return;
+          }
+          // Hold a beat, then let the caret blink out with the intro.
+          cursor.classList.add('tw-cursor-blink');
+          setTimeout(function () { // DevSkim: ignore DS172411
+            cursor.classList.remove('tw-cursor-on', 'tw-cursor-blink');
+            setTimeout(function () {
+              gone = true;
+              if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
+            }, 260);
+          }, 520);
+        }
+        requestAnimationFrame(frame);
+
+        // A late web font swaps glyph widths underneath the caret; re-place it
+        // where the clock currently is - never ahead of the text.
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(function () {
+            if (!gone) place(current);
+          });
         }
       })();
     </script>
@@ -896,6 +969,6 @@
 
   <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals, Mobile Menu, Scroll Spy) -->
   <script src="vendor/lenis.min.js" defer></script>
-  <script src="motion.js?v=3.9.29" defer></script>
+  <script src="motion.js?v=3.9.37" defer></script>
 </body>
 </html>
