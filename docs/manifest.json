@@ -3,7 +3,7 @@
   "short_name": "Deltempo",
   "id": "/Deltempo/",
   "description": "Portable, open-source Windows cleaner and NT kernel memory optimizer. Zero telemetry, fully local operation.",
-  "start_url": "./",
+  "start_url": "./?v=3.2.0",
   "scope": "./",
   "lang": "en",
   "dir": "ltr",

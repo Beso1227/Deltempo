@@ -50,7 +50,7 @@ public class DocumentationConsistencyTests
         "README.md",
         "scripts/benchmark.ps1",
         "scripts/run_tests_for_coverage.cmd",
-        "docs/superpowers/",               // historical plan logs - a record, not an instruction
+        ".internal/superpowers/",          // historical plan logs - local only, never published
         "CONTRIBUTING.md",                 // explains why dotnet test cannot be used
     };
 
@@ -646,7 +646,9 @@ public class DocumentationConsistencyTests
             var relative = loc[prefix.Length..].Trim('/');
             var file = string.IsNullOrEmpty(relative)
                 ? Path.Combine(root, "docs", "index.html")
-                : Path.Combine(root, "docs", relative.Replace('/', Path.DirectorySeparatorChar), "index.html");
+                : relative.EndsWith(".html", StringComparison.OrdinalIgnoreCase)
+                    ? Path.Combine(root, "docs", relative.Replace('/', Path.DirectorySeparatorChar))
+                    : Path.Combine(root, "docs", relative.Replace('/', Path.DirectorySeparatorChar), "index.html");
 
             Assert.True(File.Exists(file),
                 $"docs/sitemap.xml lists {loc} but {Path.GetRelativePath(root, file).Replace('\\', '/')} does not exist.");
@@ -784,7 +786,7 @@ public class DocumentationConsistencyTests
     private static IEnumerable<string> EnumerateInstructionFiles(string root)
     {
         var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".md", ".txt", ".yml", ".yaml", ".ps1", ".cmd" };
-        var skip = new[] { "\\bin\\", "\\obj\\", "\\.git\\", "\\artifacts\\", "\\docs\\superpowers\\" };
+        var skip = new[] { "\\bin\\", "\\obj\\", "\\.git\\", "\\artifacts\\", "\\.internal\\" };
 
         return Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories)
             .Where(f => extensions.Contains(Path.GetExtension(f)))

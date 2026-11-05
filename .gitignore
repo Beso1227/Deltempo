@@ -136,6 +136,10 @@ _ReSharper*/
 *.orig
 *.rej
 *~
+# Windows shortcut files and Office/WPS lock files left by editing docs.
+*.lnk
+~$*
+*.code-workspace
 
 # ==============================================================================
 # Operating System Generated Files
@@ -185,6 +189,11 @@ BenchmarkDotNet.Artifacts/
 .kiro/
 .lean-ctx/
 .cline/
+.opencode/
+# Internal working notes: security-audit drafts, plan logs, agent prompts.
+# Anything under docs/ is published to the site by the Pages workflow, so
+# these live here and stay local to the machine that wrote them.
+.internal/
 scratch/
 temp/
 tmp/
