@@ -54,14 +54,14 @@
   <link rel="preload" as="font" type="font/woff2" href="fonts/jetbrains-mono-latin.woff2" crossorigin>
 
   <!-- Core Design System -->
-  <link rel="stylesheet" href="style.css?v=3.9.37">
+  <link rel="stylesheet" href="style.css?v=3.9.41">
 
   <!-- Without scripting the film keeps its native controls, so the pill (which
        would be inert) is not shown at all. -->
   <noscript><style>.video-play{display:none}</style></noscript>
 
   <!-- Web App Manifest (PWA installability) -->
-  <link rel="manifest" href="manifest.json?v=3.9.37">
+  <link rel="manifest" href="manifest.json?v=3.9.41">
 
   <!-- Schema.org JSON-LD Structured Data (Google Knowledge Graph & Rich Results) -->
   <script type="application/ld+json">
@@ -717,7 +717,12 @@
           One portable file for <span class="cta-nowrap">Windows 10 / 11 (64-bit)</span>. Open source, free forever.
         </p>
 
-        <div class="cta-actions reveal-on-scroll stagger-3">
+        <!-- No scroll reveal on this row: the primary button has its own
+             handoff from the corner pill, and a row-level rise + fade kept
+             animating the button for ~0.4s after the shell had visibly landed.
+             The row is the landing pad; it must be still when the shell
+             arrives. -->
+        <div class="cta-actions">
           <a href="https://github.com/Beso1227/Deltempo/releases/latest/download/Deltempo.exe" class="btn-pill btn-pill-primary cta-primary">
             <span>Download Deltempo</span>
             <span class="btn-icon-bubble cta-primary-icon">
@@ -969,6 +974,6 @@
 
   <!-- Cybernetic Motion Engine (Cursor, Micro-tilt, Scroll reveals, Mobile Menu, Scroll Spy) -->
   <script src="vendor/lenis.min.js" defer></script>
-  <script src="motion.js?v=3.9.37" defer></script>
+  <script src="motion.js?v=3.9.41" defer></script>
 </body>
 </html>

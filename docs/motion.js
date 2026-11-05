@@ -158,46 +158,142 @@
       docEl.classList.add('cta-primary-hidden');
       let inSight = false;
       let docked = false;
-      let settleTimer = 0;
       let dockRevealTimer = 0;
+      // The scroll offset the pill was docked at. Two uses: it is the line the
+      // visitor has to cross upwards to send the shell home, and the one they
+      // have to come back down past before it may dive again.
+      let dockScrollY = 0;
+      // The pill's untransformed centre. The dive now launches while the page
+      // is still moving and re-aims the whole way down, so the launch point
+      // cannot be re-read from getBoundingClientRect mid-flight - it would
+      // follow the shell. It is measured once, at launch.
+      let dockBase = null;
+      let trackY = -1;
+      // The pill's untransformed rendered size. Measured once when the flight
+      // starts, because offsetWidth/offsetHeight are rounded to whole pixels:
+      // a 36.4px-tall pill scaled by 62/36 came out 62.7px tall, so the shell
+      // was half a pixel taller than the button it was supposed to become.
+      // Same source (fractional rects) for both boxes = the same box.
+      let pillRest = null;
 
       // The flight target: dead centre on the primary button - or, when the
       // actions stack into full-width columns on phones, the button's own
       // icon bubble, so icon meets icon and the label is never covered.
-      // s is the launch scale: the shell lands at the button's height, so
-      // the surface it presents is the size of the surface it is becoming.
-      // Measured in layout space: the hidden button ships translateY and
-      // scale, and getBoundingClientRect would bake both into the aim.
+      // Both the aim and the scale come from rendered rectangles, not from
+      // offsetWidth/offsetHeight (which round to whole pixels and left the
+      // shell ~0.6px taller than the button): the shell has to land on the
+      // button's exact box, down to the fractional pixel, or the surface
+      // changes size at the moment it hands over.
       function targetPoint() {
-        const p0 = layoutPos(dockTarget);
-        let cx = p0.x + dockTarget.offsetWidth / 2;
-        let cy = p0.y + dockTarget.offsetHeight / 2 - scrollState.y;
+        const b = dockTarget.getBoundingClientRect();
+        let cx = b.left + b.width / 2;
+        let cy = b.top + b.height / 2;
+        // Two-axis scale: a height-only scale left the shell ~18px narrower
+        // on each side, so the real button's edges appeared outside the shell
+        // during the handover and the button looked like it grew. The label is
+        // already gone by then, so the only thing stretched is the bare mint
+        // surface - and a capsule scaled on both axes is still a capsule of
+        // the new box.
+        let sx = b.width / (pillRest ? pillRest.w : navPill.offsetWidth);
+        let sy = b.height / (pillRest ? pillRest.h : navPill.offsetHeight);
         if (getComputedStyle(dockRow).flexDirection === 'column') {
+          // Phones stack the actions full-width, so the aim is the button's
+          // own icon bubble: icon meets icon and the label is never covered.
+          // The scale stays uniform there - a full-width button is not the
+          // shape the shell is becoming.
           const bubble = dockTarget.querySelector('.btn-icon-bubble');
           if (bubble) {
-            const b0 = layoutPos(bubble);
-            cx = b0.x + bubble.offsetWidth / 2;
-            cy = b0.y + bubble.offsetHeight / 2 - scrollState.y;
+            const r = bubble.getBoundingClientRect();
+            cx = r.left + r.width / 2;
+            cy = r.top + r.height / 2;
           }
+          const s = Math.min(1.75, Math.max(1, b.height / (pillRest ? pillRest.h : navPill.offsetHeight)));
+          sx = s;
+          sy = s;
         }
-        const s = Math.min(1.75, Math.max(1, dockTarget.offsetHeight / navPill.offsetHeight));
-        return { x: cx, y: cy, s: s };
+        return { x: cx, y: cy, sx: sx, sy: sy };
+      }
+
+      // The pill's size with its transform removed, so the scale means "the
+      // shell's CSS box becomes the button's CSS box" rather than "some
+      // multiple of the shell's current on-screen size".
+      function readPillRest() {
+        const p = navPill.getBoundingClientRect();
+        const tr = getComputedStyle(navPill).transform;
+        let kx = 1;
+        let ky = 1;
+        if (tr && tr !== 'none') {
+          const d = new DOMMatrixReadOnly(tr);
+          kx = Math.abs(d.a) || 1;
+          ky = Math.abs(d.d) || 1;
+        }
+        pillRest = { w: p.width / kx, h: p.height / ky };
+        return p;
       }
 
       // The offsets are relative to wherever the reference point claims the
       // shell is: the resting corner for a launch, or the pill's current
       // visual position for a return.
-      function writeAim(bx, by, t, s) {
+      function writeAim(bx, by, t) {
         docEl.style.setProperty('--dock-x', (t.x - bx).toFixed(1) + 'px');
         docEl.style.setProperty('--dock-y', (t.y - by).toFixed(1) + 'px');
-        docEl.style.setProperty('--dock-s', s.toFixed(3));
+        docEl.style.setProperty('--dock-sx', t.sx.toFixed(4));
+        docEl.style.setProperty('--dock-sy', t.sy.toFixed(4));
+      }
+
+      // The pill's corner position with its current transform removed. The
+      // entry "drop" can still be running when a fast scroll reaches the
+      // finale, and a raw rect would then measure the shell mid-drop - a
+      // ~9px error baked into every later aim, because the flight's offsets
+      // are relative to this base. The keyframes start from the untransformed
+      // corner, so that is the number they must be given.
+      function pillBase(p) {
+        const tr = getComputedStyle(navPill).transform;
+        let mx = 0;
+        let my = 0;
+        if (tr && tr !== 'none') {
+          const d = new DOMMatrixReadOnly(tr);
+          mx = d.e || 0;
+          my = d.f || 0;
+        }
+        return { x: p.left + p.width / 2 - mx, y: p.top + p.height / 2 - my };
       }
 
       function aim() {
-        const p = navPill.getBoundingClientRect();
+        const p = readPillRest();
         const t = targetPoint();
-        writeAim(p.left + p.width / 2, p.top + p.height / 2, t, t.s);
+        dockBase = pillBase(p);
+        writeAim(dockBase.x, dockBase.y, t);
       }
+
+      // The dive no longer waits for the page to stop, so the button is still
+      // climbing the viewport while the shell is in the air. Re-aiming on
+      // every scroll frame keeps the landing point on the live button instead
+      // of on the spot it occupied when the flight started. The CSS variables
+      // feed the keyframes directly, so moving them bends the flight without
+      // restarting it.
+      function trackDock() {
+        // Also runs while parked (.cta-docked): the shell is invisible there,
+        // but it is the point the return flight launches from, so it has to
+        // stay welded to the button even if the visitor keeps scrolling after
+        // the dive has ended.
+        if (!docked || !dockBase) return;
+        if (window.scrollY === trackY) return;
+        trackY = window.scrollY;
+        // The return leaves 12px above the deepest point the visitor reached
+        // while docked. The dive now starts mid-glide, so the launch offset is
+        // already stale by the time they stop; tracking the peak keeps "scroll
+        // up from where I am" true instead of asking them to climb back to
+        // wherever the shell happened to take off.
+        if (window.scrollY > dockScrollY) dockScrollY = window.scrollY;
+        // Re-measure the shell's rest size too: a resize or rotation between
+        // the dive and now would otherwise leave the scale aimed at the old
+        // pill, and the invisible shell would drift off the return's origin.
+        readPillRest();
+        const t = targetPoint();
+        writeAim(dockBase.x, dockBase.y, t);
+      }
+      onScrollFrame(trackDock);
 
       // The return flight must start from wherever the shell IS, not from
       // where it was aimed: layout can change between the dive and the
@@ -206,21 +302,22 @@
       // the launch point, scale and offsets are re-measured here, from the
       // transform the pill is genuinely carrying right now.
       function aimReturn() {
-        const p = navPill.getBoundingClientRect();
+        const p = readPillRest();
         const t = targetPoint();
         const tr = getComputedStyle(navPill).transform;
-        let mx = 0, my = 0, ms = 1;
+        let mx = 0, my = 0, sx = 1, sy = 1;
         if (tr && tr !== 'none') {
           const d = new DOMMatrixReadOnly(tr);
           mx = d.e || 0;
           my = d.f || 0;
-          ms = Math.max(0.05, d.a || 1);
+          sx = Math.max(0.05, d.a || 1);
+          sy = Math.max(0.05, d.d || 1);
         }
-        writeAim(p.left + p.width / 2 - mx, p.top + p.height / 2 - my, t, ms);
+        writeAim(p.left + p.width / 2 - mx, p.top + p.height / 2 - my, { x: t.x, y: t.y, sx: sx, sy: sy });
+        return t;
       }
 
       function dock() {
-        settleTimer = 0;
         // No hero, no drop: without nav-cta-live the pill is parked off-screen
         // and flying an invisible element would only write style for nothing.
         if (docked || !inSight || !docEl.classList.contains('nav-cta-live')) return;
@@ -229,81 +326,87 @@
         // shell to the corner before the new dive; letting the end handler
         // re-arm keeps every frame continuous.
         if (docEl.classList.contains('cta-undock')) return;
-        const t = targetPoint();
+        // Hysteresis: the return now leaves on the first upward scroll, so a
+        // visitor parked a few pixels above that departure point would
+        // otherwise be re-docked the moment the page stops again - a yo-yo.
+        // They have to come back down to where they left before the pill
+        // becomes the button again.
+        if (window.scrollY < dockScrollY - 12) return;
         aim();
+        trackY = window.scrollY;
+        dockScrollY = window.scrollY;
         docEl.classList.remove('cta-returned', 'cta-undock', 'cta-docked');
         // Restart from frame 0 when the pill docks again after a return.
         void navPill.offsetWidth;
         docEl.classList.add('cta-dock');
-        // The sky welds itself into the landing point.
-        spawnBurst(t.x, t.y, 1);
-        // The middle button materialises under the shell as it touches
-        // down, so the corner button visibly becomes it.
+        // The middle button materialises under the shell a beat after contact,
+        // so the corner button visibly becomes it. It has to be AFTER the
+        // shell has landed (56% of 0.58s is ~325ms) or the real button flashes
+        // beside the incoming shell - and BEFORE the shell starts to dissolve
+        // (74%, ~429ms) so the surface it burns through is already opaque.
+        // That overlap is the whole trick: two identical mint surfaces, the
+        // lower one solid, so the dissolve reveals the label with no dip in
+        // brightness and no size jump.
         dockRevealTimer = setTimeout(function () {
           docEl.classList.remove('cta-primary-hidden');
-        }, 300);
+        }, 340);
         docked = true;
       }
 
-      function scheduleDock() {
-        if (docked) return;
-        clearTimeout(settleTimer);
-        settleTimer = setTimeout(function () {
-          // One quiet sample is not enough on a long slow glide - three in
-          // a row means the page is actually parked. The aim locks before
-          // the dive, so docking during residual glide lands the shell
-          // short of the button.
-          const y = window.scrollY;
-          settleTimer = setTimeout(function () {
-            const y2 = window.scrollY;
-            if (Math.abs(y2 - y) > 2) {
-              scheduleDock();
-              return;
-            }
-            settleTimer = setTimeout(function () {
-              if (Math.abs(window.scrollY - y2) > 2) {
-                scheduleDock();
-                return;
-              }
-              dock();
-            }, 80);
-          }, 80);
-        }, 90);
+      // Undocking is not "wait until the button is half out of the viewport":
+      // that only happens near the end of the gesture, so the pill looked like
+      // it waited for the page to stop before it bothered to leave. The moment
+      // the visitor scrolls up off the docked spot, the button is already
+      // travelling away from the shell - the shell leaves with it.
+      function undock() {
+        if (!docked) return;
+        docked = false;
+        clearTimeout(dockRevealTimer);
+        dockRevealTimer = 0;
+        // Re-aim while the outgoing state is still applied: the read has to
+        // see the transform the shell is actually carrying (held on the
+        // button, or mid-flight), and must run before any class clears it.
+        aimReturn();
+        // The middle button un-exists the moment the shell commits to
+        // leaving; the CLI path remains for anyone mid-click.
+        docEl.classList.add('cta-primary-hidden');
+        docEl.classList.remove('cta-dock', 'cta-docked');
+        // Restart from frame 0 when the pill docks again after a return.
+        void navPill.offsetWidth;
+        docEl.classList.add('cta-undock');
+      }
+
+      function onScroll() {
+        // Launch the moment the button is in sight. The old version waited
+        // for three motionless 80ms samples, so the dive simply did not play
+        // until the visitor stopped scrolling - and restarted the wait every
+        // time they did not. Docking while the page is still moving is fine
+        // now: trackDock re-aims at the live button on every frame.
+        dock();
+        // 12px of upward travel is a real gesture, not inertia breathing at
+        // rest; anything smaller would fire on the tail of a downward scroll.
+        if (docked && dockScrollY - window.scrollY > 12) undock();
       }
 
       new IntersectionObserver(
         function (entries) {
-          inSight = entries[entries.length - 1].intersectionRatio >= 0.5;
+          // A quarter of the button is enough to commit: the shell is in the
+          // air before the section has finished arriving, and flies to the
+          // button rather than to where it happened to be at launch.
+          inSight = entries[entries.length - 1].intersectionRatio >= 0.25;
           if (!inSight) {
-            clearTimeout(settleTimer);
-            settleTimer = 0;
-            if (docked) {
-              docked = false;
-              clearTimeout(dockRevealTimer);
-              dockRevealTimer = 0;
-              // Re-aim while the outgoing state is still applied: the read has
-              // to see the transform the shell is actually carrying (held on
-              // the button, or mid-flight), and must run before any class
-              // clears it.
-              aimReturn();
-              // The middle button un-exists the moment the shell commits to
-              // leaving; the CLI path remains for anyone mid-click.
-              docEl.classList.add('cta-primary-hidden');
-              const t = targetPoint();
-              spawnBurst(t.x, t.y, -1);
-              docEl.classList.remove('cta-dock', 'cta-docked');
-              // Restart from frame 0 when the pill docks again after a return.
-              void navPill.offsetWidth;
-              docEl.classList.add('cta-undock');
-            }
+            // Backstop for the fast cases the 12px scroll rule cannot see -
+            // a resize, a jump, a rotation that lifts the button out of view
+            // without a scroll event.
+            undock();
           } else {
-            scheduleDock();
+            dock();
           }
         },
-        { threshold: [0, 0.5, 0.99] }
+        { threshold: [0, 0.25, 0.5, 0.99] }
       ).observe(dockTarget);
 
-      window.addEventListener('scroll', scheduleDock, { passive: true });
+      window.addEventListener('scroll', onScroll, { passive: true });
 
       navPill.addEventListener('animationend', function (event) {
         if (event.target !== navPill) return;
@@ -317,7 +420,7 @@
           // A dock may have been requested while the return was airborne
           // (visitor back inside the finale); re-arm it now that the shell
           // has landed.
-          if (inSight) scheduleDock();
+          if (inSight) dock();
         } else if (event.animationName === 'navCtaDock' && docEl.classList.contains('cta-dock')) {
           // Parked on the button: invisible, inert, and out of the tab order
           // until the finale leaves the viewport.
@@ -389,45 +492,6 @@
     window.addEventListener('scroll', paint, { passive: true });
     window.addEventListener('resize', paint, { passive: true });
     paint();
-  }
-
-  // --- Star bursts -----------------------------------------------------------
-  // The sky is the material the download button is made of. When the
-  // corner pill commits to becoming the middle button, a swarm of stars
-  // converges from all directions onto its landing point and welds the
-  // shape shut; when the visitor leaves the finale, the button exhales
-  // and the stars stream back into the sky. Colours follow the field:
-  // mostly mint, the odd ice-blue straggler. Shared between the scroll
-  // handlers (who fire it) and the starfield (who draws it), so it lives
-  // at the top level of the IIFE; viewport reads happen at call time.
-  const bursts = [];
-  const impacts = [];
-
-  function spawnBurst(x, y, dir) {
-    if (isReducedMotion) return;
-    // Any burst in flight is spent: re-entering supersedes an exhale,
-    // leaving kills an inbound swarm - the page must not weld a button
-    // that is no longer on screen.
-    bursts.length = 0;
-    const compact = window.innerWidth < 768;
-    const n = compact ? 22 : 34;
-    for (let i = 0; i < n; i++) {
-      const ang = Math.random() * Math.PI * 2;
-      const r0 = (compact ? 150 : 225) + Math.random() * (compact ? 160 : 300);
-      bursts.push({
-        x0: x + Math.cos(ang) * r0,
-        y0: y + Math.sin(ang) * r0,
-        px: x + Math.cos(ang) * r0,
-        py: y + Math.sin(ang) * r0,
-        tx: x,
-        ty: y,
-        age: -Math.random() * 22, // a third of a second of stagger, max
-        size: 1.1 + Math.random() * 1.9,
-        mint: Math.random() < 0.7,
-        seed: Math.random() * Math.PI * 2,
-        dir: dir,
-      });
-    }
   }
 
   /* ==========================================================================
@@ -1334,18 +1398,15 @@
       const wakeRadius = pointer.radius;
       const wakeRadiusSq = wakeRadius * wakeRadius;
 
-      // The constellation and the bursts live on a second sheet, above the
-      // content: the panel surfaces on a phone are almost opaque, and a
-      // welding swarm must be visible over the button itself. The sheet
-      // only exists while a shape or a burst is in play, and costs nothing
-      // at rest.
+      // The constellation lives on a second sheet, above the content: the
+      // panel surfaces on a phone are almost opaque. The sheet only exists
+      // while a shape is in play, and costs nothing at rest.
       const scopeOn = scopeState.presence > 0.002 && !!scopeCtx;
-      const burstActive = bursts.length > 0 || impacts.length > 0;
-      if (scopeCtx && (scopeOn || scopeWasLive || burstActive)) {
+      if (scopeCtx && (scopeOn || scopeWasLive)) {
         scopeCtx.clearRect(0, 0, width, height);
       }
       scopeWasLive = scopeOn;
-      const sheetOn = scopeOn || burstActive;
+      const sheetOn = scopeOn;
       if (scopeCanvas && sheetOn !== scopeLive) {
         scopeLive = sheetOn;
         scopeCanvas.classList.toggle('is-live', sheetOn);
@@ -1595,73 +1656,6 @@
           ctx.lineTo(s.x, s.y + arm);
           ctx.stroke();
         }
-      }
-
-      // 2.5 The star bursts: the sky welding itself into the button on the
-      // way in, and exhaling back out when the visitor leaves.
-      if (bursts.length || impacts.length) {
-        const sheet = scopeCtx || ctx;
-        for (let i = bursts.length - 1; i >= 0; i--) {
-          const p = bursts[i];
-          p.age += dt;
-          if (p.age < 0) continue;
-          const life = 52; // a touch under a second
-          const k = Math.min(1, p.age / life);
-          if (k >= 1) {
-            if (p.dir === 1) impacts.push({ x: p.tx, y: p.ty, age: 0 });
-            bursts.splice(i, 1);
-            continue;
-          }
-          // Inbound accelerates into the landing (power curve - the swarm
-          // is visible mid-flight instead of lurking at the edges); exhale
-          // launches hard and drifts off.
-          const ease = p.dir === 1 ? Math.pow(k, 1.6) : 1 - Math.pow(1 - k, 3);
-          const inv = 1 - ease;
-          const wob = Math.sin(k * Math.PI * 2.6 + p.seed) * 26 * (1 - k) * (p.dir === 1 ? 1 : 0.6);
-          const dxn = Math.cos(p.seed);
-          const dyn = Math.sin(p.seed);
-          const px = p.dir === 1
-            ? p.x0 * inv + p.tx * ease + dxn * wob
-            : p.tx * inv + p.x0 * ease + dxn * wob;
-          const py = p.dir === 1
-            ? p.y0 * inv + p.ty * ease + dyn * wob
-            : p.ty * inv + p.y0 * ease + dyn * wob;
-          // Every bead leaves a short trail along its flight line - a
-          // firework weld, not a sprinkle of dots.
-          const trailAlpha = Math.max(0, Math.min(1, (k < 0.15 ? k / 0.15 : 1)) * 0.5);
-          sheet.globalAlpha = trailAlpha;
-          sheet.strokeStyle = p.mint ? 'rgb(140, 255, 222)' : 'rgb(226, 238, 255)';
-          sheet.lineWidth = Math.max(0.7, p.size * 1.1);
-          sheet.beginPath();
-          sheet.moveTo(p.px, p.py);
-          sheet.lineTo(px, py);
-          sheet.stroke();
-          p.px = px;
-          p.py = py;
-          // Fade in fast, burn steady, fade out fast.
-          const env = k < 0.15 ? k / 0.15 : k > 0.78 ? (1 - k) / 0.22 : 1;
-          const size = (p.size + 0.9 + Math.sin(p.age * 0.35 + p.seed) * 0.35) * 3.1;
-          sheet.globalAlpha = Math.max(0, Math.min(1, env) * 0.95);
-          sheet.drawImage(p.mint ? sprites.mint : sprites.ice, px - size / 2, py - size / 2, size, size);
-        }
-        // Impact flashes: a quick expanding ring where the swarm lands.
-        for (let i = impacts.length - 1; i >= 0; i--) {
-          const f = impacts[i];
-          f.age += dt;
-          const k = f.age / 26;
-          if (k >= 1) {
-            impacts.splice(i, 1);
-            continue;
-          }
-          const ring = 4 + k * 46;
-          sheet.globalAlpha = (1 - k) * 0.7;
-          sheet.strokeStyle = 'rgb(140, 255, 222)';
-          sheet.lineWidth = Math.max(0.6, 2.4 * (1 - k));
-          sheet.beginPath();
-          sheet.arc(f.x, f.y, ring, 0, Math.PI * 2);
-          sheet.stroke();
-        }
-        sheet.globalAlpha = 1;
       }
 
       // 3. Idle shooting stars.

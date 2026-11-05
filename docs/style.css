@@ -670,9 +670,10 @@ h3 strong,
      away *through* the button, leaving the real one. Nothing ever sits beside
      the row: there is never a third pill.
 
-     motion.js writes --dock-x / --dock-y / --dock-s from the live rectangles
-     once the page has stopped moving, so the landing point is never a guess
-     at a target that is still drifting. */
+     motion.js writes --dock-x / --dock-y / --dock-sx / --dock-sy from the live
+     rectangles on every scroll frame, so the landing point is never a guess
+     at a target that is still drifting, and the shell lands on the button's
+     exact box rather than at its height only. */
   html.cta-dock .nav-download-btn {
     animation: navCtaDock 0.58s cubic-bezier(0.4, 0, 0.2, 1) both;
     pointer-events: none;
@@ -687,22 +688,23 @@ h3 strong,
   }
 
   /* Reverse fill: scrolling back out of the finale returns the pill to its
-     corner, landing with the same squash-and-settle as the original drop.
+     corner.
 
      0% is wherever the shell actually is: motion.js re-aims at the drop-out,
      reading the transform the pill is genuinely carrying, so a resize between
      the dive and the return - or an abort mid-flight - hands over to a
      seamless flight home instead of teleporting from a stale vector. */
   html.cta-undock .nav-download-btn {
-    animation: navCtaReturn 0.6s cubic-bezier(0.22, 1.09, 0.36, 1) both;
+    animation: navCtaReturn 0.6s cubic-bezier(0.45, 0.14, 0.18, 1) both;
     pointer-events: none;
   }
 
   /* The flight home is shell-only, mirroring the dive: the pill's words leave
      while it is airborne and return as it comes to rest, so it never travels
-     with a readable label. */
+     with a readable label. The label lands after the shell is solid and on its
+     final approach, so it does not ride the flight at 1.7x size. */
   html.cta-undock .nav-download-btn > span {
-    animation: navCtaLabelIn 0.24s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+    animation: navCtaLabelIn 0.18s cubic-bezier(0.22, 1, 0.36, 1) 0.26s both;
   }
 
   /* The return animation ends back at transform:none, so dropping the classes
@@ -718,12 +720,10 @@ h3 strong,
     visibility: hidden;
   }
 
-  /* The real button receives it: a mint ring that expands off its edge,
-     timed to the moment the flying pill reaches it - the peak (~0.42s)
-     lands just after contact (~0.40s). */
-  html.cta-dock .cta-primary {
-    animation: navCtaReceive 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
-  }
+  /* The real button receives it by simply being there. The old arrival ran a
+     shrinking halo ring and a press-like scale pop on the button; both read as
+     a click at the exact moment the flight should feel like it settled. The
+     shell's own dissolve is the handoff. */
 }
 
 @keyframes navCtaLabelOut {
@@ -768,80 +768,85 @@ h3 strong,
   /* One accelerated dive leg from the lift straight to the target: no mid
      waypoint to re-steer through, just one accelerating curve, which is
      what reads as "smoothing" instead of "steering". Contact: the shell
-     lands centred on the primary at the button's size, sinking the two
-     pixels a pressed button does. On phones, where the actions stack
-     full-width, the aim is the button's icon, so icon meets icon and the
-     flying shell never covers the label it is becoming. */
+     lands on the primary's exact box - same width, same height, same
+     centre. On phones, where the actions stack full-width, the aim is the
+     button's icon, so icon meets icon and the flying shell never covers the
+     label it is becoming.
+
+     No overshoot here. A 1.5% bounce looks like impact on a large object,
+     but at 269px wide it is 3.5px of extra shell hanging past the button
+     for two frames - a size wobble at the exact instant the two surfaces
+     are supposed to be indistinguishable. The dive's own deceleration is
+     the weight; the box never changes size once it has arrived. */
   56% {
     opacity: 1;
-    transform: translate3d(calc(var(--dock-x, 0px)), calc(var(--dock-y, 0px) + 2px), 0) scale(calc(var(--dock-s, 1) * 1.015));
-    animation-timing-function: cubic-bezier(0.34, 1.32, 0.64, 1);
+    transform: translate3d(var(--dock-x, 0px), var(--dock-y, 0px), 0) scale(var(--dock-sx, 1), var(--dock-sy, 1));
+    animation-timing-function: linear;
   }
-  /* The shell settles into its landing and holds a beat, so the eye reads it
-     as the button itself before the handover. */
+  /* Contact, held: the shell's box is the button's box, to the fractional
+     pixel, and it does not move or resize again until the dissolve is over.
+     A landing that is meant to be seamless cannot move at the moment it
+     hands over. */
   64% {
     opacity: 1;
-    transform: translate3d(calc(var(--dock-x, 0px)), calc(var(--dock-y, 0px) + 2px), 0) scale(var(--dock-s, 1));
+    transform: translate3d(var(--dock-x, 0px), var(--dock-y, 0px), 0) scale(var(--dock-sx, 1), var(--dock-sy, 1));
   }
-  /* It burns through: the surface fades out over the identical surface of the
-     real button sitting underneath it, so nothing new appears in the row and
-     nothing is ever parked in it. No transform frames after the settle -
-     opacity only - so the fade can never drag the shell off its mark. */
+  /* Hold, fully opaque, while the real button becomes opaque underneath it.
+     Nothing is visible here: the shell is a solid mint surface on top of a
+     solid mint surface. This is the beat that makes the dissolve safe - a
+     crossfade between two translucent copies dips, because two 50% layers
+     never add back up to one. The button is at 100% before the shell starts
+     to drop, so the composite stays opaque the whole way. */
   74% {
-    opacity: 0.5;
+    opacity: 1;
+    transform: translate3d(var(--dock-x, 0px), var(--dock-y, 0px), 0) scale(var(--dock-sx, 1), var(--dock-sy, 1));
   }
-  86%,
+  /* It burns through: the bare mint surface fades out over the identical,
+     fully opaque surface of the real button sitting underneath, so what
+     surfaces is its label - not a new rectangle appearing in the row. */
   100% {
     opacity: 0;
-    transform: translate3d(calc(var(--dock-x, 0px)), calc(var(--dock-y, 0px) + 2px), 0) scale(var(--dock-s, 1));
+    transform: translate3d(var(--dock-x, 0px), var(--dock-y, 0px), 0) scale(var(--dock-sx, 1), var(--dock-sy, 1));
   }
 }
 
 @keyframes navCtaReturn {
   0% {
     opacity: 0;
-    transform: translate3d(var(--dock-x, 0px), var(--dock-y, 0px), 0) scale(var(--dock-s, 1));
+    transform: translate3d(var(--dock-x, 0px), var(--dock-y, 0px), 0) scale(var(--dock-sx, 1), var(--dock-sy, 1));
+    /* One timing function for the whole climb. The old version placed
+       waypoints at 22 / 52 / 78% and let the animation-wide ease-out govern
+       every segment, so the shell spent most of each segment's clock already
+       parked on the next waypoint: four dead stops and four lunges in six
+       tenths of a second. That is what read as stutter. A single segment can
+       only decelerate once - it leaves the button, crosses the page, and
+       arrives in the corner without ever stopping in between.
+
+       The tail is long (80% of the distance is behind it by the halfway mark)
+       because the arrival is the part the eye watches: the last third of the
+       clock is a pure glide in. */
+    animation-timing-function: cubic-bezier(0.45, 0.14, 0.18, 1);
   }
-  12% {
+  /* Opacity rides the same curve as the distance, so the shell is exactly as
+     visible as it is far from the button: ~15% opaque at 26px out, ~80% at
+     170px. That is what keeps it from flashing on top of the button's ghost -
+     it is only fully solid once it is well clear of it. */
+  40% {
     opacity: 1;
-  }
-  22% {
-    /* The shell lifts clear of the button's ghost first - a small, honest
-       hop before it commits to the flight. */
-    transform: translate3d(var(--dock-x, 0px), calc(var(--dock-y, 0px) - 34px), 0) scale(calc(var(--dock-s, 1) * 0.97));
-  }
-  52% {
-    transform: translate3d(calc(var(--dock-x, 0px) * 0.45), calc(var(--dock-y, 0px) * 0.35 - 58px), 0) scale(calc(var(--dock-s, 1) * 0.6 + 0.4));
-  }
-  78% {
-    transform: translate3d(0, 6px, 0) scaleX(1.04) scaleY(0.96);
-  }
-  90% {
-    transform: translate3d(0, -3px, 0) scaleX(0.99) scaleY(1.01);
   }
   100% {
     opacity: 1;
+    /* Ends exactly on the resting corner; no late bounce. The arrival at the
+       corner is the quiet half of the story - the dive onto the button is the
+       moment worth watching - and a bounce here would fight the label
+       returning. The curve's own tail has already bled the speed to nothing,
+       so there is no dead stop to disguise. */
     transform: none;
   }
 }
 
-/* Impact halo on the primary button as the flying shell arrives on it.
-   0% and 100% are the button's own shadow, so the animation leaves no residue
-   when it is dropped. */
-@keyframes navCtaReceive {
-  0% {
-    transform: none;
-    box-shadow: inset 0 1px 0 rgba(0, 242, 176, 0.08);
-  }
-  30% {
-    transform: translate3d(-2px, 0, 0);
-    box-shadow: 0 0 0 2px rgba(0, 242, 176, 0.4), 0 0 22px rgba(0, 242, 176, 0.24), inset 0 1px 0 rgba(0, 242, 176, 0.34);
-  }
-  100% {
-    transform: none;
-    box-shadow: 0 0 0 12px rgba(0, 242, 176, 0), 0 0 22px rgba(0, 242, 176, 0), inset 0 1px 0 rgba(0, 242, 176, 0.08);
-  }
-}
+/* The real button's arrival is a plain fade (see the .cta-primary transition),
+   with no halo and no scale pop. */
 
 /* Reduced motion gets the CTA immediately, with no travel and no flourish. */
 @media (prefers-reduced-motion: reduce) {
@@ -2756,29 +2761,30 @@ main:has(> .cta-final) + .footer {
   html.cta-primary-hidden .cta-primary {
     opacity: 0;
     visibility: hidden;
-    transform: translateY(14px) scale(0.9);
     pointer-events: none;
-    /* The shell must be visibly off the button before its ghost lets go. */
-    transition: opacity 0.36s ease 0.12s, transform 0.4s cubic-bezier(0.34, 1.06, 0.64, 1) 0.12s, visibility 0s linear 0.36s;
+    /* No transform here: the button is already invisible, so a shrink adds
+       only a stale offset to reason about. The ghost fades in place while the
+       shell lifts off. */
+    transition: opacity 0.36s ease 0.12s, visibility 0s linear 0.36s;
   }
 
+  /* The same transition, declared on the state the button is IN when the
+     shell leaves. Declaring it only on the .cta-primary-hidden state does not
+     work: the transition property and the value it is meant to animate would
+     arrive in the same style change, and no transition is created, so the
+     real button snapped straight to opacity 0 and left a hole under the
+     fading shell for the first few frames. Here the before-change style
+     already knows how to fade.
+
+     The reveal itself is a cut, not a fade. It happens under an opaque shell,
+     so a fade is invisible anyway - but it is also what caused the dip: the
+     button was still climbing to full opacity while the shell was already
+     dissolving, so the row briefly lost brightness before the label arrived.
+     Opacity snaps to 1 in a single frame while the shell still covers it, and
+     the dissolve then reveals the label over a fully opaque surface. The
+     button's own hover transitions are preserved. */
   html:not(.cta-primary-hidden) .cta-primary {
-    animation: ctaPrimaryIn 0.42s cubic-bezier(0.34, 1.32, 0.64, 1) both;
-  }
-}
-
-@keyframes ctaPrimaryIn {
-  0% {
-    opacity: 0;
-    transform: translateY(14px) scale(0.9);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(-2px) scale(1.035);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
+    transition: opacity 0s linear 0s, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
   }
 }
 
