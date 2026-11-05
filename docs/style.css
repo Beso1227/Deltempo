@@ -474,6 +474,38 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   margin-bottom: 1rem;
 }
 
+/* ---- The two voices -------------------------------------------------------
+   One system runs the whole site: Instrument Serif carries every headline,
+   Plus Jakarta Sans carries everything else. The hero headline and the
+   footer ghost keep their Jakarta 900 voice on purpose; the italic is saved
+   for the hero's accent line and the finale. */
+h1:not(.hero-headline),
+h2,
+h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.release-version,
+.download-card-title,
+.download-oneliner-title,
+.doc-tier-title,
+.faq-question {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Instrument Serif ships one weight. Synthetic bolds smear high-contrast
+   faces; emphasis inside headlines is carried by colour and style. */
+h1:not(.hero-headline) strong,
+h2 strong,
+h3 strong,
+.faq-question strong {
+  font-weight: 400;
+}
+
 .section-subtitle {
   font-size: 1.125rem;
   color: var(--text-med);
@@ -1359,8 +1391,7 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1.12rem;
   text-align: left;
 }
 
@@ -2096,8 +2127,7 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 }
 
 .release-version {
-  font-size: 1.4rem;
-  font-weight: 800;
+  font-size: 1.5rem;
 }
 
 .release-tag {
@@ -2209,7 +2239,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 }
 
 .doc-tier-title {
-  font-weight: 700;
   margin-bottom: 0.25rem;
 }
 
@@ -2355,7 +2384,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 
 .download-card-title {
   font-size: 1.5rem;
-  font-weight: 800;
   margin-bottom: 0.5rem;
 }
 
@@ -2391,7 +2419,6 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 
 .download-oneliner-title {
   font-size: 1.25rem;
-  font-weight: 800;
 }
 
 .download-oneliner-row {
@@ -2481,8 +2508,7 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 }
 
 .faq-title {
-  font-size: clamp(2rem, 4vw, 2.75rem);
-  font-weight: 800;
+  font-size: clamp(2.2rem, 4.4vw, 3rem);
   letter-spacing: -0.02em;
   margin-bottom: 1rem;
 }
@@ -2496,8 +2522,7 @@ p, .section-subtitle, .card-desc, .faq-answer, .scope-desc {
 
 .faq-heading {
   margin: 0;
-  font-size: inherit;
-  font-weight: inherit;
+  /* The serif voice of the page; size and weight inherit from the button. */
 }
 
 .hero-dl-btn {
