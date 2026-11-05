@@ -1056,24 +1056,31 @@
       membersArmed = true;
     }
 
+    // Put one recruited star back exactly as it was drafted: the motion state
+    // comes back verbatim and membership is dropped. Position is the caller's
+    // business - the release glide lands it on its drafted spot, a jump lands
+    // it somewhere on the screen the visitor actually ended up looking at.
+    function restoreMember(s) {
+      const home = s.cseed.home;
+      s.vx = home.vx;
+      s.vy = home.vy;
+      s.gvx = 0;
+      s.gvy = 0;
+      s.streak = home.streak;
+      s.fx = home.fx;
+      s.fy = home.fy;
+      s.dirY = home.dirY;
+      s.cseed = null;
+    }
+
     // Put every recruited star back exactly where and how it was: restore
     // the motion state verbatim and drop membership, so the sky is
     // bit-identical to the sky that was never touched.
     function releaseMembers() {
       for (let i = 0; i < stars.length; i++) {
         const s = stars[i];
-        const seed = s.cseed;
-        if (!seed || !seed.home) continue;
-        const home = seed.home;
-        s.vx = home.vx;
-        s.vy = home.vy;
-        s.gvx = 0;
-        s.gvy = 0;
-        s.streak = home.streak;
-        s.fx = home.fx;
-        s.fy = home.fy;
-        s.dirY = home.dirY;
-        s.cseed = null;
+        if (!s.cseed || !s.cseed.home) continue;
+        restoreMember(s);
       }
       membersArmed = false;
     }
@@ -1391,6 +1398,10 @@
       const y = scrollState.y;
       const scrollDelta = y - lastScrollY;
       lastScrollY = y;
+      // A single frame that moves the page by more than a couple of screens is
+      // a jump, not travel: the corner logo, an in-page link, the browser
+      // restoring a position. Everything below treats it as a cut.
+      const jumped = Math.abs(scrollDelta) > 240;
 
       ctx.clearRect(0, 0, width, height);
 
@@ -1452,6 +1463,28 @@
           scopeTarget(seed, gather);
           targetX = scopeTX;
           targetY = scopeTY;
+          // The drawn glyph is part of the sky, so the pointer has to reach it
+          // too. The deflection is applied to the SLOT, not to the star: the
+          // slot is rebuilt from the glyph outline every frame, so letting go
+          // of the cursor simply removes the offset and the existing pull
+          // spring carries the point home. No extra state, no chance of an
+          // outline left bent after the pointer leaves.
+          if (pointer.active && gather > 0.02) {
+            const pdx = targetX - pointer.x;
+            const pdy = targetY - pointer.y;
+            const reach = pointer.radius * 0.66;
+            const d2 = pdx * pdx + pdy * pdy;
+            if (d2 < reach * reach) {
+              const d = Math.sqrt(d2) || 1;
+              const near = 1 - d / reach;
+              // Squared falloff keeps the deflected patch tight, and the
+              // amplitude is capped so the glyph deforms under the cursor
+              // instead of breaking apart.
+              const push = near * near * 24 * gather;
+              targetX += (pdx / d) * push;
+              targetY += (pdy / d) * push;
+            }
+          }
         }
         const free = 1 - gather;
 
@@ -1460,7 +1493,9 @@
         // the field rides the scroll; a point being carried is driven by the
         // shape instead.
         const parallax = (0.09 + s.z * 0.24) * free;
-        const my = -scrollDelta * parallax;
+        // The jump itself adds no parallax: the sky belongs to the screen the
+        // visitor is now looking at, it was not swept past them.
+        const my = jumped ? 0 : -scrollDelta * parallax;
 
         s.x += (s.driftX + s.vx) * dt * free;
         s.y += (s.driftY + s.vy) * dt * free;
@@ -1497,16 +1532,29 @@
           const hy = seed.home.docY - scrollState.y;
           const ddx = s.x - hx;
           const ddy = s.y - hy;
-          if (ddx * ddx + ddy * ddy < 25) {
-            s.vx = seed.home.vx;
-            s.vy = seed.home.vy;
-            s.gvx = 0;
-            s.gvy = 0;
-            s.streak = seed.home.streak;
-            s.fx = seed.home.fx;
-            s.fy = seed.home.fy;
-            s.dirY = seed.home.dirY;
-            s.cseed = null;
+          if (jumped) {
+            // The page cut to a different part of the story. Every member
+            // rejoins the sky on this screen at once, scattered rather than
+            // wrapped, or the glyph would reappear as a ghost of itself in
+            // whatever corner the old section used to occupy.
+            restoreMember(s);
+            s.x = Math.random() * width;
+            s.y = Math.random() * height;
+          } else if (ddx * ddx + ddy * ddy < 25) {
+            restoreMember(s);
+          } else if (hy < -height || hy > height * 2) {
+            // Safety net for a dash long enough to leave the drafted spot off
+            // this screen without ever tripping the jump test: the glide is
+            // aimed at a place the visitor cannot see, so the point simply
+            // rejoins the field where it currently is. One that has already
+            // been carried past the frame is scattered instead - wrapping a
+            // whole formation round the same edge in one frame draws a line
+            // of stars across the top of the sky.
+            restoreMember(s);
+            if (s.x < 0 || s.x > width || s.y < 0 || s.y > height) {
+              s.x = Math.random() * width;
+              s.y = Math.random() * height;
+            }
           }
         }
 
@@ -1514,15 +1562,19 @@
         // the same blend that took it to its slot, so the icon unpicks
         // itself into the exact sky that was there before it arrived.
 
-        // Wrap: a star that leaves the top re-enters from the bottom, keeping
-        // the sky density constant through any amount of scrolling. Members
-        // are exempt while any membership remains, or a member flying home
-        // could teleport to the other side mid-route.
+        // Wrap: a star that leaves the viewport re-enters from the opposite
+        // edge, keeping the sky density constant through any amount of
+        // scrolling. It lands just inside the frame rather than just outside
+        // it: these stars drift a few hundredths of a pixel per frame, so one
+        // parked past the edge would never find its way back into view.
+        // Members are exempt while any membership remains, or a member flying
+        // home could teleport to the other side mid-route.
         if (!seed) {
-          if (s.x < -20) s.x = width + 20;
-          else if (s.x > width + 20) s.x = -20;
-          if (s.y < -20) s.y = height + 20;
-          else if (s.y > height + 20) s.y = -20;
+          const edge = 2;
+          if (s.x < -edge) s.x = width - edge;
+          else if (s.x > width + edge) s.x = edge;
+          if (s.y < -edge) s.y = height - edge;
+          else if (s.y > height + edge) s.y = edge;
         }
 
         // Pointer: part the field gently and brighten what is close. The
@@ -1539,6 +1591,21 @@
             const push = near * near * (isReducedMotion ? 0 : 0.5) * s.z * free;
             s.vx += (dx / dist) * push;
             s.vy += (dy / dist) * push;
+          }
+        }
+        // A formed point answers the pointer as well: the stretch of the
+        // outline under the cursor burns brighter, so the glyph feels like
+        // touching the sky rather than pointing at a picture. Only the part
+        // near the cursor lights up, which keeps the shape legible.
+        if (pointer.active && gather > 0.02) {
+          const dx = s.x - pointer.x;
+          const dy = s.y - pointer.y;
+          const reach = pointer.radius * 0.8;
+          const distSq = dx * dx + dy * dy;
+          if (distSq < reach * reach) {
+            const near = 1 - Math.sqrt(distSq) / reach;
+            const lit = near * near * 0.95 * gather;
+            if (lit > hotTarget) hotTarget = lit;
           }
         }
 
@@ -1615,6 +1682,9 @@
 
         // Star head: soft halo, then a crisp core so the point reads as light.
         let size = ((s.streak > 6 ? 4.2 : 5.4) + s.r * 6.2) * (1 + 0.12 * gather);
+        // A point under the cursor swells a little as it lights up, so the
+        // interaction reads as touch rather than as a brightness slider.
+        size *= 1 + s.hot * 0.2;
         // A quorum of the members are drawn larger, which keeps the outline
         // from reading as an even string of identical beads.
         if (gather > 0.3 && seed && seed.big) size *= 1.4;
