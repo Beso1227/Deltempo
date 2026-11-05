@@ -1,12 +1,16 @@
 {
   "name": "Deltempo — Windows Cleaner & Memory Optimizer",
   "short_name": "Deltempo",
+  "id": "/Deltempo/",
   "description": "Portable, open-source Windows cleaner and NT kernel memory optimizer. Zero telemetry, fully local operation.",
-  "start_url": "./?v=3.2.0",
+  "start_url": "./",
   "scope": "./",
+  "lang": "en",
+  "dir": "ltr",
   "display": "standalone",
   "theme_color": "#00F2B0",
   "background_color": "#05080E",
+  "categories": ["utilities", "system", "productivity"],
   "icons": [
     {
       "src": "app_icon-192.png",

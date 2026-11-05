@@ -1,0 +1,66 @@
+# Security and cache headers for Cloudflare Pages / Netlify.
+# GitHub Pages cannot set response headers, so this file has no effect there.
+# The CSP in each page's <meta http-equiv> is the enforced policy on GitHub Pages.
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://beso1227.github.io; media-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), browsing-topics=()
+  Cross-Origin-Opener-Policy: same-origin
+  X-Permitted-Cross-Domain-Policies: none
+  X-DNS-Prefetch-Control: off
+
+/.well-known/security.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/sitemap.xml
+  Content-Type: application/xml; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/llms-full.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/ai-catalog.json
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.png
+  Cache-Control: public, max-age=604800, immutable
+
+/*.webp
+  Cache-Control: public, max-age=604800, immutable
+
+/*.mp4
+  Cache-Control: public, max-age=604800
+
+/*.vtt
+  Cache-Control: public, max-age=604800
+
+# Must stay last: the service worker script must never be served from cache.
+/sw.js
+  Cache-Control: no-cache

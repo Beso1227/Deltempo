@@ -1,26 +1,27 @@
 // Deltempo Documentation & Landing Page PWA Service Worker
-const CACHE_NAME = 'deltempo-cache-v3.9.43';
+const CACHE_NAME = 'deltempo-cache-v3.9.44';
 
 const PRECACHE_ASSETS = [
   './',
   'index.html',
-  'style.css?v=3.9.43',
+  'style.css?v=3.9.44',
   'fonts/plus-jakarta-sans-latin.woff2',
   'fonts/plus-jakarta-sans-latin-ext.woff2',
   'fonts/jetbrains-mono-latin.woff2',
   'fonts/jetbrains-mono-latin-ext.woff2',
   'vendor/lenis.min.js',
-  'motion.js?v=3.9.43',
-  'manifest.json?v=3.9.43',
+  'motion.js?v=3.9.44',
+  'manifest.json?v=3.9.44',
   'app_icon-192.png',
   'app_icon-64.png',
   'favicon-64.png',
-  'social-preview.png',
-  'banner.png',
   'docs/',
   'download/',
   'changelog/',
-  'faq/'
+  'faq/',
+  'compare/',
+  'alternatives/',
+  'privacy.html'
 ];
 
 // Install Event: Precaching App Shell
@@ -56,8 +57,8 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
-  // Skip cross-origin requests except Google Fonts
-  if (url.origin !== self.location.origin && !url.hostname.includes('fonts.gstatic.com') && !url.hostname.includes('fonts.googleapis.com')) {
+  // Same-origin only: every asset the site uses is self-hosted.
+  if (url.origin !== self.location.origin) {
     return;
   }
 

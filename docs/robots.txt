@@ -3,6 +3,9 @@
 
 User-agent: *
 Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /ai-catalog.json
 
 # AI / answer engines (explicitly permitted to crawl and cite)
 User-agent: GPTBot
@@ -31,10 +34,5 @@ Allow: /
 
 User-agent: Bytespider
 Allow: /
-
-# Machine-readable agent context
-Allow: /llms.txt
-Allow: /llms-full.txt
-Allow: /ai-catalog.json
 
 Sitemap: https://beso1227.github.io/Deltempo/sitemap.xml
