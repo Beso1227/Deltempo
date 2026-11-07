@@ -146,18 +146,18 @@
                             Click="OnRowRecycleClick" />
                     </StackPanel>
 
-                    <!-- Row 2: the AI explanation capsule, WPF's row 3
-                         (MainWindow.xaml:4822). Filled by ApplyOnlineReport; hidden
-                         until the row was verified online, with "Analyzing..."
-                         covering the fetch window like WPF's AskAiLargeFile_Click. -->
+                    <!-- Row 2: the full AI report capsule, WPF's row 3
+                         (MainWindow.xaml:4845). Filled by ApplyOnlineReport; shown for
+                         any applied report (IsAiAnalyzed), including a labelled fallback,
+                         with "Analyzing..." covering the fetch window. -->
                     <StackPanel Grid.Row="1">
                         <Border
                             Background="{ThemeResource SurfaceCardBrush}"
                             BorderBrush="{ThemeResource HairlineBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="6"
-                            Padding="8,5"
-                            Visibility="{Binding IsAiOnlineVerified, Converter={StaticResource BoolToVis}}">
+                            Padding="9,6"
+                            Visibility="{Binding IsAiAnalyzed, Converter={StaticResource BoolToVis}}">
                             <StackPanel Spacing="2">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <TextBlock
@@ -167,31 +167,127 @@
                                         Foreground="{ThemeResource TextHighBrush}"
                                         TextTrimming="CharacterEllipsis"
                                         VerticalAlignment="Center" />
-                                    <Border
+                                    <StackPanel
                                         Grid.Column="1"
-                                        Background="{ThemeResource SurfaceSubCardBrush}"
-                                        BorderBrush="{ThemeResource HairlineBorderBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="4"
-                                        Padding="6,1">
+                                        Orientation="Horizontal"
+                                        Spacing="4"
+                                        VerticalAlignment="Center">
                                         <TextBlock
-                                            Text="{Binding AiProviderLabel}"
+                                            Text="{Binding AiConfidenceLabel}"
                                             FontSize="9"
                                             Foreground="{ThemeResource TextMutedBrush}"
                                             VerticalAlignment="Center" />
-                                    </Border>
+                                        <Border
+                                            Background="{ThemeResource SurfaceSubCardBrush}"
+                                            BorderBrush="{ThemeResource HairlineBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            Padding="6,1">
+                                            <TextBlock
+                                                Text="{Binding AiProviderLabel}"
+                                                FontSize="9"
+                                                Foreground="{ThemeResource TextMutedBrush}"
+                                                VerticalAlignment="Center" />
+                                        </Border>
+                                    </StackPanel>
                                 </Grid>
+
+                                <!-- Unverified fallback notice: shown only when the
+                                     report came from the local engine after a
+                                     provider failure. -->
+                                <TextBlock
+                                    Text="⚠ Local fallback - not a verified AI answer. Analyze again to retry."
+                                    FontSize="10"
+                                    Foreground="{ThemeResource AmberWarningBrush}"
+                                    TextWrapping="Wrap"
+                                    Visibility="{Binding IsAiOnlineUnverified, Converter={StaticResource BoolToVis}}" />
+
+                                <!-- What it is -->
                                 <TextBlock
                                     Text="{Binding Explanation}"
                                     FontSize="10.5"
-                                    Foreground="{ThemeResource TextMediumBrush}"
+                                    Foreground="{ThemeResource TextHighBrush}"
                                     TextWrapping="Wrap" />
-                                <TextBlock
-                                    Text="{Binding AiRecommendation}"
-                                    FontSize="10"
-                                    Foreground="{ThemeResource SuccessTextBrightBrush}"
-                                    Margin="0,3,0,0"
-                                    TextWrapping="Wrap" />
+
+                                <!-- What it does -->
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4">
+                                    <TextBlock
+                                        Text="Role:"
+                                        FontSize="10.5"
+                                        FontWeight="SemiBold"
+                                        Foreground="{ThemeResource TextMediumBrush}" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="{Binding WhatItDoes}"
+                                        FontSize="10.5"
+                                        Foreground="{ThemeResource TextMediumBrush}"
+                                        TextWrapping="Wrap" />
+                                </Grid>
+
+                                <!-- Condition of the file -->
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4">
+                                    <TextBlock
+                                        Text="Condition:"
+                                        FontSize="10.5"
+                                        FontWeight="SemiBold"
+                                        Foreground="{ThemeResource TextMediumBrush}" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="{Binding AiCondition}"
+                                        FontSize="10.5"
+                                        Foreground="{ThemeResource TextMediumBrush}"
+                                        TextWrapping="Wrap" />
+                                </Grid>
+
+                                <!-- Evidence bullets -->
+                                <ItemsControl ItemsSource="{Binding AiEvidence}" Margin="0,2,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4">
+                                                <TextBlock
+                                                    Text="•"
+                                                    FontSize="10"
+                                                    Foreground="{ThemeResource TextMutedBrush}" />
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Text="{Binding}"
+                                                    FontSize="10"
+                                                    Foreground="{ThemeResource TextMutedBrush}"
+                                                    TextWrapping="Wrap" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Deletion impact -->
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4" Margin="0,2,0,0">
+                                    <TextBlock
+                                        Text="If deleted:"
+                                        FontSize="10.5"
+                                        FontWeight="SemiBold"
+                                        Foreground="{ThemeResource AmberWarningBrush}" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="{Binding Impact}"
+                                        FontSize="10.5"
+                                        Foreground="{ThemeResource AmberWarningBrush}"
+                                        TextWrapping="Wrap" />
+                                </Grid>
+
+                                <!-- Recommendation -->
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4" Margin="0,2,0,0">
+                                    <TextBlock
+                                        Text="Recommendation:"
+                                        FontSize="10"
+                                        FontWeight="SemiBold"
+                                        Foreground="{ThemeResource SuccessTextBrightBrush}" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="{Binding AiRecommendation}"
+                                        FontSize="10"
+                                        Foreground="{ThemeResource SuccessTextBrightBrush}"
+                                        TextWrapping="Wrap" />
+                                </Grid>
                             </StackPanel>
                         </Border>
                         <TextBlock

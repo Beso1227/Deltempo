@@ -57,6 +57,8 @@ public sealed class AiProviderException : Exception
             "Could not reach the local model server. Start Ollama and confirm it is running.",
         AiFailureKind.Timeout =>
             "The request timed out. A local model that is loading its weights can exceed the timeout on the first call - try again now it is warm.",
+        AiFailureKind.MalformedResponse =>
+            "The provider replied, but not in the JSON shape Deltempo asked for. Try again, or choose a model that follows JSON instructions.",
         _ => "The AI provider returned an unexpected error.",
     };
 }

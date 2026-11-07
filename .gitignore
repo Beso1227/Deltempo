@@ -14,6 +14,10 @@ dist/
 # contains a checksums.sha256, so the moment a non-binary lands in a sibling the
 # whole directory surfaces as untracked and a `git add -A` commits the binaries.
 dist_*/
+# Store packaging output (tools/build-store-package.ps1). Same accident shape as
+# dist_*: the directory is currently invisible only because every file in it matches
+# *.msix, so the first non-package file (a log, a manifest copy) would surface it.
+packaging/Store/out/
 TestResults/
 [Bb]uildLog.*
 *.binlog
@@ -287,6 +291,16 @@ live-protection.json
 live-labels.json
 
 # Understand-Anything: the committed graph lives in .ua/, scratch output does not.
+# Do NOT ignore .ua/ as a whole: knowledge-graph.json, meta.json, fingerprints.json,
+# config.json, .understandignore and ua-query.mjs are tracked, and the subdomain merge
+# is expected to add more *knowledge-graph*.json files that belong in git.
 .ua/intermediate/
 .ua/tmp/
 .ua/.trash-*/
+# merge-subdomain-graphs.py writes its dropped-edge report next to the graph. It is
+# read back on the next merge, never a source artifact.
+.ua/merge-report.json
+# Atomic-write leftovers from finalize-incremental.mjs / prepare-incremental.mjs /
+# validate-incremental-symbols.mjs: they write "<file>.tmp-<pid>-<ts>" and rename, so
+# a crash leaves a suffix that the global "*.tmp" rule does not match.
+.ua/*.tmp-*

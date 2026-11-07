@@ -72,6 +72,53 @@ public class LargeFileInfo : INotifyPropertyChanged
     public string Explanation { get => _explanation; set { _explanation = value; OnPropertyChanged(); } }
     public string AiExplanation { get => Explanation; set => Explanation = value; }
 
+    /// <summary>The file's runtime role: what reads it and when.</summary>
+    private string _whatItDoes = string.Empty;
+    public string WhatItDoes { get => _whatItDoes; set { _whatItDoes = value; OnPropertyChanged(); } }
+    public string AiWhatItDoes { get => WhatItDoes; set => WhatItDoes = value; }
+
+    /// <summary>Current state of the file: signed/unsigned, age, regenerable or not.</summary>
+    private string _aiCondition = string.Empty;
+    public string AiCondition { get => _aiCondition; set { _aiCondition = value; OnPropertyChanged(); } }
+
+    /// <summary>Short factual findings behind the verdict, shown as bullets.</summary>
+    private IReadOnlyList<string> _aiEvidence = Array.Empty<string>();
+    public IReadOnlyList<string> AiEvidence
+    {
+        get => _aiEvidence;
+        set
+        {
+            _aiEvidence = value ?? Array.Empty<string>();
+            OnPropertyChanged();
+        }
+    }
+
+    private string _aiConfidenceLabel = string.Empty;
+    public string AiConfidenceLabel
+    {
+        get => _aiConfidenceLabel;
+        set { _aiConfidenceLabel = value; OnPropertyChanged(); }
+    }
+
+    /// <summary>
+    /// True once any report has been applied, including a fallback. The row capsule
+    /// binds to this so a fallback is still explained; verification is separate.
+    /// </summary>
+    private bool _isAiAnalyzed;
+    public bool IsAiAnalyzed
+    {
+        get => _isAiAnalyzed;
+        set
+        {
+            if (_isAiAnalyzed != value)
+            {
+                _isAiAnalyzed = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsAiOnlineUnverified));
+            }
+        }
+    }
+
     private bool _isSafe;
     public bool IsSafe { get => _isSafe; set { _isSafe = value; OnPropertyChanged(); } }
     public bool IsAiSafe { get => IsSafe; set => IsSafe = value; }
@@ -88,8 +135,23 @@ public class LargeFileInfo : INotifyPropertyChanged
     public bool IsAiOnlineVerified
     {
         get => _isAiOnlineVerified;
-        set { if (_isAiOnlineVerified != value) { _isAiOnlineVerified = value; OnPropertyChanged(); } }
+        set
+        {
+            if (_isAiOnlineVerified != value)
+            {
+                _isAiOnlineVerified = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsAiOnlineUnverified));
+            }
+        }
     }
+
+    /// <summary>
+    /// True when the row carries a report that is not a verified answer (a local
+    /// fallback after a provider failure). The capsule shows it so the user can tell
+    /// an authoritative answer from a best-effort one, and retry.
+    /// </summary>
+    public bool IsAiOnlineUnverified => IsAiAnalyzed && !IsAiOnlineVerified;
 
     private string _aiRecommendation = string.Empty;
     public string AiRecommendation
@@ -126,9 +188,17 @@ public class LargeFileInfo : INotifyPropertyChanged
         Origin = report.Origin;
         Impact = report.ImpactIfDeleted;
         Explanation = report.WhatIsIt;
+        WhatItDoes = report.WhatItDoes;
+        AiCondition = report.Condition;
+        AiEvidence = report.Evidence;
+        AiConfidenceLabel = report.Confidence > 0 ? $"{report.Confidence}% confidence" : string.Empty;
         AiRecommendation = report.Recommendation;
         IsSafe = report.Verdict is OnlineSafetyVerdict.SafeToDelete;
-        IsAiOnlineVerified = true;
+
+        // A heuristic fallback after a provider error is shown, but it is not verified:
+        // the row must stay eligible for a retry and the cache must not keep it.
+        IsAiOnlineVerified = report.IsVerified;
+        IsAiAnalyzed = true;
         IsAiAnalyzing = false;
         AiProviderLabel = report.ProviderUsed;
 
@@ -145,10 +215,16 @@ public class LargeFileInfo : INotifyPropertyChanged
         OnPropertyChanged(nameof(AiImpact));
         OnPropertyChanged(nameof(Explanation));
         OnPropertyChanged(nameof(AiExplanation));
+        OnPropertyChanged(nameof(WhatItDoes));
+        OnPropertyChanged(nameof(AiWhatItDoes));
+        OnPropertyChanged(nameof(AiCondition));
+        OnPropertyChanged(nameof(AiEvidence));
+        OnPropertyChanged(nameof(AiConfidenceLabel));
         OnPropertyChanged(nameof(AiRecommendation));
         OnPropertyChanged(nameof(IsSafe));
         OnPropertyChanged(nameof(IsAiSafe));
         OnPropertyChanged(nameof(IsAiOnlineVerified));
+        OnPropertyChanged(nameof(IsAiAnalyzed));
         OnPropertyChanged(nameof(IsAiAnalyzing));
         OnPropertyChanged(nameof(AiProviderLabel));
         OnPropertyChanged(nameof(OnlineReport));
@@ -497,7 +573,11 @@ public static class LargeFileHunterService
             ".mp4" or ".mkv" or ".avi" or ".mov" or ".wmv" or ".flv" or ".webm" or ".m4v" => ("Video / Media", "\uE714"),
             ".zip" or ".rar" or ".7z" or ".tar" or ".gz" or ".bz2" or ".xz" or ".tgz" => ("Archive", "\uF012"),
             ".pak" or ".bundle" or ".assets" or ".obb" or ".wad" => ("Game Asset / Pak", "\uE7FC"),
-            ".gguf" or ".safetensors" or ".bin" or ".onnx" or ".pt" or ".pth" or ".ckpt" or ".model" => ("AI Model / Weights", "\uE943"),
+            ".gguf" or ".safetensors" or ".onnx" or ".pt" or ".pth" or ".ckpt" or ".model" => ("AI Model / Weights", "\uE943"),
+            // '.bin' is a generic binary container (disc image, firmware, game data,
+            // model weights). Claiming a category was a guess, and it contradicted the
+            // report engine, so it is surfaced honestly.
+            ".bin" => ("Binary / Data", "\uE8A5"),
             ".vmdk" or ".vhd" or ".vhdx" or ".qcow2" or ".img" or ".vdi" => ("Virtual Disk / Image", "\uEDA2"),
             ".dmp" or ".log" or ".bak" or ".old" or ".tmp" or ".part" or ".crdownload" => ("Dump / Temp / Download", "\uE9F9"),
             ".pdf" or ".psd" or ".ai" or ".blend" or ".prproj" or ".aep" or ".dwg" => ("Creative / Project", "\uE790"),
@@ -592,10 +672,23 @@ public static class LargeFileHunterService
             var report = await OnlineFileIntelligenceService.AnalyzeFileAsync(item.FilePath, ct);
             item.ApplyOnlineReport(report);
         }
+        catch (OperationCanceledException)
+        {
+            // Cancellation is not a failed analysis and must not be cached, but the row
+            // still has to stop saying "Analyzing..." forever.
+            item.IsAiAnalyzing = false;
+            item.AiProviderLabel = "Analysis cancelled";
+        }
         catch (Exception ex)
         {
+            // Provider failures are converted to fallback reports upstream, so reaching
+            // here means something unexpected (I/O, permissions). Show it on the row
+            // instead of failing silently behind a spinner.
             System.Diagnostics.Trace.WriteLine($"[Deltempo AI] Item analysis error: {ex.Message}");
             item.IsAiAnalyzing = false;
+            item.IsAiAnalyzed = true;
+            item.AiProviderLabel = "Analysis failed";
+            item.AiRecommendation = $"AI analysis could not complete: {ex.Message}";
         }
     }
 
@@ -653,6 +746,16 @@ public static class LargeFileHunterService
             }
         });
 
-        await Task.WhenAll(tasks).ConfigureAwait(false);
+        try
+        {
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancelling the scan is a normal user action, and each row already reports
+            // its own "Analysis cancelled" state. Letting the cancellation escape here
+            // reached async void click handlers, where it is an unhandled exception and
+            // takes the app down.
+        }
     }
 }

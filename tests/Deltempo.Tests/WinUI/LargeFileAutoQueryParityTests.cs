@@ -264,7 +264,11 @@ public class LargeFileAutoQueryParityTests
             RepoRoot(), "src", "Deltempo.App.WinUI", "Views", "LargeFilesWorkspaceView.xaml"));
 
         // WPF's row 3 capsule (AI Origin / Explanation / Recommendation), ported.
-        Assert.Contains("IsAiOnlineVerified", xaml);
+        // The capsule now shows for any applied report (IsAiAnalyzed) so a labelled
+        // fallback is still explained; IsAiOnlineUnverified carries the "not verified"
+        // notice, and IsAiOnlineVerified remains the retry signal in the ViewModel.
+        Assert.Contains("IsAiAnalyzed", xaml);
+        Assert.Contains("IsAiOnlineUnverified", xaml);
         Assert.Contains("IsAiAnalyzing", xaml);
         Assert.Contains("AiProviderLabel", xaml);
         Assert.Contains("Binding Origin", xaml);

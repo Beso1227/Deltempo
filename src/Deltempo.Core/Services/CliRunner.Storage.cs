@@ -264,11 +264,18 @@ public static partial class CliRunner
         var safety = FileSafetyEngine.Analyze(fi.FullName, fileName: fi.Name, category: category, sizeBytes: fi.Length, lastModified: fi.LastWriteTime);
 
         OnlineSafetyReport? aiReport = null;
+        string? aiError = null;
         try
         {
             aiReport = await OnlineFileIntelligenceService.AnalyzeFileAsync(fi.FullName);
         }
-        catch { }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            aiError = ex.Message;
+        }
 
         if (isJson)
         {
@@ -296,12 +303,18 @@ public static partial class CliRunner
                 {
                     aiReport.VerdictDisplay,
                     aiReport.SafetyScore,
+                    aiReport.Confidence,
+                    aiReport.IsVerified,
                     aiReport.Origin,
                     aiReport.WhatIsIt,
+                    aiReport.WhatItDoes,
+                    aiReport.Condition,
+                    aiReport.Evidence,
                     aiReport.ImpactIfDeleted,
                     aiReport.Recommendation,
                     aiReport.ProviderUsed
-                }
+                },
+                aiError
             }, new JsonSerializerOptions { WriteIndented = true }));
             return 0;
         }
@@ -321,14 +334,40 @@ public static partial class CliRunner
             Console.WriteLine($"\n  🤖 [AI & Online Intelligence ({aiReport.ProviderUsed})]");
             Console.ResetColor();
             Console.WriteLine($"  • What is it:      {aiReport.WhatIsIt}");
+            Console.WriteLine($"  • What it does:    {aiReport.WhatItDoes}");
             Console.WriteLine($"  • Parent Origin:   {aiReport.Origin}");
+            Console.WriteLine($"  • Condition:       {aiReport.Condition}");
             Console.Write("  • AI Verdict:      ");
             Console.ForegroundColor = aiReport.Verdict == OnlineSafetyVerdict.SafeToDelete ? ConsoleColor.Green : (aiReport.Verdict == OnlineSafetyVerdict.CriticalDoNotDelete ? ConsoleColor.Red : ConsoleColor.Yellow);
-            Console.WriteLine($"{aiReport.VerdictDisplay} (Score: {aiReport.SafetyScore}/100)");
+            Console.WriteLine($"{aiReport.VerdictDisplay} (Score: {aiReport.SafetyScore}/100, Confidence: {aiReport.Confidence}%)");
             Console.ResetColor();
             Console.WriteLine($"  • Deletion Impact: {aiReport.ImpactIfDeleted}");
+
+            if (aiReport.Evidence.Count > 0)
+            {
+                Console.WriteLine("  • Evidence:");
+                foreach (string finding in aiReport.Evidence)
+                {
+                    Console.WriteLine($"      - {finding}");
+                }
+            }
+
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine($"  • Recommendation:  {aiReport.Recommendation}");
+            Console.ResetColor();
+
+            if (!aiReport.IsVerified)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                Console.WriteLine("  • Note: this is a local fallback, not a verified AI answer. " +
+                    (OnlineFileIntelligenceService.LastProviderError?.UserMessage ?? "Run the inspection again to retry."));
+                Console.ResetColor();
+            }
+        }
+        else if (aiError != null)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.WriteLine($"\n  🤖 [AI & Online Intelligence] unavailable: {aiError}");
             Console.ResetColor();
         }
 

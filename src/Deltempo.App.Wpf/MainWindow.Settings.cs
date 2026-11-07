@@ -377,6 +377,13 @@ public partial class MainWindow
         });
 
         await LargeFileHunterService.BatchAnalyzeWithAiAsync(selected, progress, ct);
+
+        if (ct.IsCancellationRequested)
+        {
+            AddLog($"AI intelligence analysis cancelled after {selected.Count} queued files.", LogLevel.Info);
+            return;
+        }
+
         AddLog($"Completed AI intelligence analysis for {selected.Count} files.", LogLevel.Success);
         RefreshLargeFileHeroStats();
         UpdateLargeFileSelectionSummary();

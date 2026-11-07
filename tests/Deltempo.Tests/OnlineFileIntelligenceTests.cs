@@ -266,13 +266,15 @@ public class OnlineFileIntelligenceTests
             WhatIsIt = "Game textures",
             ImpactIfDeleted = "Re-download required",
             Recommendation = "Uninstall via Steam",
-            ProviderUsed = "Google Gemini (gemini-2.0-flash)"
+            ProviderUsed = "Google Gemini (gemini-2.0-flash)",
+            IsVerified = true
         };
         report.ApplyBadgeColors();
 
         item.ApplyOnlineReport(report);
 
         Assert.True(item.IsAiOnlineVerified);
+        Assert.True(item.IsAiAnalyzed);
         Assert.False(item.IsAiAnalyzing);
         Assert.Equal("SAFE IF UNUSED", item.AiVerdict);
         Assert.Equal(40, item.SafetyScore);

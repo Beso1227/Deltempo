@@ -4842,30 +4842,95 @@
                                                                         MaxWidth="500"
                                                                         Margin="0,1,0,3"/>
 
-                                                             <!-- Row 3: AI Explanation & Origin Capsule -->
+                                                             <!-- Row 3: Full AI report capsule - identity, runtime role,
+                                                                  condition, evidence, deletion impact and recommendation. -->
                                                              <Border Background="{DynamicResource SurfaceSubCardBrush}"
                                                                      BorderBrush="{DynamicResource HairlineBorderBrush}"
                                                                      BorderThickness="1"
                                                                      CornerRadius="6"
-                                                                     Padding="8,5"
+                                                                     Padding="9,6"
                                                                      HorizontalAlignment="Left"
-                                                                     MaxWidth="510">
+                                                                     MaxWidth="560"
+                                                                     Visibility="{Binding IsAiAnalyzed, Converter={StaticResource BoolToVisConverter}}">
                                                                  <StackPanel>
-                                                                     <TextBlock Text="{Binding AiOrigin}"
-                                                                                FontSize="10.5"
-                                                                                FontWeight="SemiBold"
-                                                                                Foreground="{DynamicResource ElectricCyanBrush}"
-                                                                                Margin="0,0,0,2"/>
+                                                                     <Grid>
+                                                                         <TextBlock Text="{Binding AiOrigin}"
+                                                                                    FontSize="10.5"
+                                                                                    FontWeight="SemiBold"
+                                                                                    Foreground="{DynamicResource ElectricCyanBrush}"
+                                                                                    TextTrimming="CharacterEllipsis"
+                                                                                    Margin="0,0,8,0"/>
+                                                                         <TextBlock Text="{Binding AiConfidenceLabel}"
+                                                                                    FontSize="10"
+                                                                                    Foreground="{DynamicResource TextMutedBrush}"
+                                                                                    HorizontalAlignment="Right"
+                                                                                    VerticalAlignment="Center"/>
+                                                                     </Grid>
+
+                                                                     <!-- Unverified fallback notice: shown only when the report
+                                                                          came from the local engine after a provider failure. -->
+                                                                     <TextBlock Text="⚠ Local fallback - not a verified AI answer. Analyze again to retry."
+                                                                                FontSize="10"
+                                                                                Foreground="{DynamicResource AmberWarningBrush}"
+                                                                                TextWrapping="Wrap"
+                                                                                Margin="0,2,0,0"
+                                                                                Visibility="{Binding IsAiOnlineUnverified, Converter={StaticResource BoolToVisConverter}}"/>
+
+                                                                     <!-- What it is -->
                                                                      <TextBlock Text="{Binding AiExplanation}"
                                                                                 FontSize="10.5"
+                                                                                Foreground="{DynamicResource TextHighBrush}"
+                                                                                TextWrapping="Wrap"
+                                                                                Margin="0,2,0,0"/>
+
+                                                                     <!-- What it does -->
+                                                                     <TextBlock FontSize="10.5"
                                                                                 Foreground="{DynamicResource TextMediumBrush}"
-                                                                                TextWrapping="Wrap"/>
+                                                                                TextWrapping="Wrap"
+                                                                                Margin="0,2,0,0">
+                                                                         <Run Text="Role: " FontWeight="SemiBold"/>
+                                                                         <Run Text="{Binding AiWhatItDoes, Mode=OneWay}"/>
+                                                                     </TextBlock>
+
+                                                                     <!-- Condition of the file -->
+                                                                     <TextBlock FontSize="10.5"
+                                                                                Foreground="{DynamicResource TextMediumBrush}"
+                                                                                TextWrapping="Wrap"
+                                                                                Margin="0,2,0,0">
+                                                                         <Run Text="Condition: " FontWeight="SemiBold"/>
+                                                                         <Run Text="{Binding AiCondition, Mode=OneWay}"/>
+                                                                     </TextBlock>
+
+                                                                     <!-- Evidence bullets -->
+                                                                     <ItemsControl ItemsSource="{Binding AiEvidence}" Margin="0,3,0,0">
+                                                                         <ItemsControl.ItemTemplate>
+                                                                             <DataTemplate>
+                                                                                 <TextBlock FontSize="10"
+                                                                                            Foreground="{DynamicResource TextMutedBrush}"
+                                                                                            TextWrapping="Wrap"
+                                                                                            Margin="0,0,0,1"
+                                                                                            Text="{Binding StringFormat='• {0}'}"/>
+                                                                             </DataTemplate>
+                                                                         </ItemsControl.ItemTemplate>
+                                                                     </ItemsControl>
+
+                                                                     <!-- Deletion impact -->
+                                                                     <TextBlock FontSize="10.5"
+                                                                                Foreground="{DynamicResource AmberWarningBrush}"
+                                                                                TextWrapping="Wrap"
+                                                                                Margin="0,3,0,0">
+                                                                         <Run Text="If deleted: " FontWeight="SemiBold"/>
+                                                                         <Run Text="{Binding AiImpact, Mode=OneWay}"/>
+                                                                     </TextBlock>
+
                                                                      <!-- AI Actionable Recommendation -->
-                                                                     <TextBlock Text="{Binding AiRecommendation}"
-                                                                                FontSize="10"
+                                                                     <TextBlock FontSize="10"
                                                                                 Foreground="{DynamicResource EmeraldGreenBrush}"
-                                                                                Margin="0,3,0,0"
-                                                                                TextWrapping="Wrap"/>
+                                                                                TextWrapping="Wrap"
+                                                                                Margin="0,3,0,0">
+                                                                         <Run Text="Recommendation: " FontWeight="SemiBold"/>
+                                                                         <Run Text="{Binding AiRecommendation, Mode=OneWay}"/>
+                                                                     </TextBlock>
                                                                  </StackPanel>
                                                              </Border>
                                                          </StackPanel>

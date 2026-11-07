@@ -681,7 +681,13 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
                 {
                     System.Diagnostics.Trace.WriteLine(
                         $"[Deltempo AI] Item analysis error: {ex.Message}");
-                    _post(() => item.IsAiAnalyzing = false);
+                    _post(() =>
+                    {
+                        item.IsAiAnalyzing = false;
+                        item.IsAiAnalyzed = true;
+                        item.AiProviderLabel = "Analysis failed";
+                        item.AiRecommendation = $"AI analysis could not complete: {ex.Message}";
+                    });
                 }
                 finally
                 {

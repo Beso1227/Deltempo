@@ -29,6 +29,13 @@ public class FileForensicProfile
     public string? EcosystemItemName { get; set; }
 
     /// <summary>
+    /// Privacy-safe version of the containing folder, with the user profile, drive
+    /// letter and account name generalized. Used in evidence lists shown to the user
+    /// and sent to a provider, so neither surface can echo a private path.
+    /// </summary>
+    public string GeneralizedLocation => GeneralizeFolderPath(DirectoryPath);
+
+    /// <summary>
     /// Generates an anonymized, privacy-safe summary of facts for AI and online lookup.
     /// Excludes user names or private paths while retaining actionable software context.
     /// </summary>
@@ -263,7 +270,11 @@ public static class FileForensicsService
         }
 
         // ISO / Disc Images
-        if (profile.Extension is ".iso" or ".img" or ".bin")
+        // '.bin' is deliberately excluded: it is a generic binary container shared by
+        // disc images, firmware, game data and model weights. Classifying every .bin as
+        // an OS image (while the report engine called the same file AI model weights)
+        // produced two contradictory answers for one file.
+        if (profile.Extension is ".iso" or ".img")
         {
             profile.DetectedEcosystem = "Operating System / Disc Image";
             return;
