@@ -28,7 +28,12 @@ jobs:
       - name: Run DevSkim scanner
         uses: microsoft/DevSkim-Action@734c6ed89671b1c7a5211ed334c79db261e3f221 # v1
         with:
-          ignore-globs: "**/.git/**,**/bin/**,**/obj/**,**/scripts/vendor/**,**/docs/vendor/**"
+          # The committed .ua/ knowledge graph is generated output: its JSON files
+          # store per-file SHA-256 fingerprints and the analyzed commit hash, which
+          # DS173237 reads as "token or key in source". They hold no credentials,
+          # and the graph is rebuilt by the /understand skill, so the JSON is
+          # skipped while .ua/ua-query.mjs (real code) stays in the scan.
+          ignore-globs: "**/.git/**,**/bin/**,**/obj/**,**/scripts/vendor/**,**/docs/vendor/**,**/.ua/fingerprints.json,**/.ua/knowledge-graph.json,**/.ua/meta.json"
           # -E makes devskim's exit code the NUMBER OF ISSUES the severity filter
           # admits, and the action's entrypoint passes that exit code straight
           # through to the step. Without it the scan always exits 0 and the check

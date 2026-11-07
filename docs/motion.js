@@ -832,7 +832,7 @@
       releasing: false,
     };
     const SCOPE_RAMP = 0.46; // viewport fraction the shape forms around
-    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const SVG_NS = 'http://www.w3.org/2000/svg'; // DevSkim: ignore DS137138 (SVG XML namespace - a fixed spec identifier, never fetched)
     const glyphCache = {};
 
     let scopeCanvas = null;
