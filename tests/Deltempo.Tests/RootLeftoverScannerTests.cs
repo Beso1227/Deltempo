@@ -190,8 +190,10 @@ public class RootLeftoverScannerTests
     [Fact]
     public async Task ScanAppTraces_WithSnapshot_IdentifiesDifferentialResiduals()
     {
-        // Create a temporary directory with a test file
-        string tempDir = Path.Combine(Path.GetTempPath(), $"DeltempoSnapTest_{Guid.NewGuid():N}");
+        // Create a temporary app-owned directory with a test file. The folder is named after
+        // the app because InstallLocation alone never proves ownership.
+        string tempRoot = Path.Combine(Path.GetTempPath(), $"DeltempoSnapTest_{Guid.NewGuid():N}");
+        string tempDir = Path.Combine(tempRoot, "SnapResidualApp");
         Directory.CreateDirectory(tempDir);
         string testFile = Path.Combine(tempDir, "unremoved_component.dll");
         File.WriteAllText(testFile, "test-content");
@@ -218,9 +220,9 @@ public class RootLeftoverScannerTests
         }
         finally
         {
-            if (Directory.Exists(tempDir))
+            if (Directory.Exists(tempRoot))
             {
-                Directory.Delete(tempDir, true);
+                Directory.Delete(tempRoot, true);
             }
         }
     }
@@ -261,4 +263,183 @@ public class RootLeftoverScannerTests
         Assert.NotNull(result);
         Assert.Equal(0, result.ItemsPurgedCount);
     }
+
+    /// <summary>
+    /// Regression: a user installs several unrelated apps into one folder (D:\Setups). The
+    /// registry InstallLocation points at that shared folder, so the scanner used to propose
+    /// the folder itself as "Main Installation Directory" and every file the uninstaller left
+    /// behind as a High-confidence residual. Select all + purge then deleted the whole folder.
+    /// The scan must propose only entries whose names prove they belong to the app.
+    /// </summary>
+    [Fact]
+    public async Task ScanAppTraces_SharedInstallContainer_ProposesOnlyAppOwnedEntries()
+    {
+        string container = Path.Combine(Path.GetTempPath(), $"DeltempoSharedContainer_{Guid.NewGuid():N}");
+        string appDir = Path.Combine(container, "Contoso Widget");
+        string appPayload = Path.Combine(appDir, "widget.dll");
+        string appInstaller = Path.Combine(container, "Contoso-Widget-Setup.exe");
+        string unrelatedInstaller = Path.Combine(container, "OtherApp-Setup.exe");
+        string unrelatedNotes = Path.Combine(container, "notes.txt");
+
+        Directory.CreateDirectory(appDir);
+        File.WriteAllText(appPayload, "payload");
+        File.WriteAllText(appInstaller, "installer");
+        File.WriteAllText(unrelatedInstaller, "unrelated");
+        File.WriteAllText(unrelatedNotes, "notes");
+
+        try
+        {
+            var app = new InstalledAppItem
+            {
+                DisplayName = "Contoso Widget",
+                InstallLocation = container
+            };
+
+            var snapshot = new AppTraceSnapshot
+            {
+                AppName = app.DisplayName,
+                InstallLocation = container
+            };
+            snapshot.ExistingFiles.Add(appPayload);
+            snapshot.ExistingFiles.Add(appInstaller);
+            snapshot.ExistingFiles.Add(unrelatedInstaller);
+            snapshot.ExistingFiles.Add(unrelatedNotes);
+
+            var result = await RootLeftoverScannerService.ScanAppTracesAsync(app, snapshot);
+
+            Assert.DoesNotContain(result.Items, i => PathEquals(i.PathOrKey, container));
+            Assert.Contains(result.Items, i => PathEquals(i.PathOrKey, appDir));
+            Assert.Contains(result.Items, i => PathEquals(i.PathOrKey, appPayload));
+            Assert.Contains(result.Items, i => PathEquals(i.PathOrKey, appInstaller));
+            Assert.DoesNotContain(result.Items, i => PathEquals(i.PathOrKey, unrelatedInstaller));
+            Assert.DoesNotContain(result.Items, i => PathEquals(i.PathOrKey, unrelatedNotes));
+        }
+        finally
+        {
+            if (Directory.Exists(container))
+            {
+                Directory.Delete(container, true);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Defense in depth for the same regression: even if a stale or hand-built list still
+    /// contains the shared container and an unrelated installer, purge must refuse them and
+    /// delete only the app-named folder.
+    /// </summary>
+    [Fact]
+    public async Task PurgeLeftovers_SharedInstallContainer_RefusesContainerAndUnrelatedFiles()
+    {
+        string container = Path.Combine(Path.GetTempPath(), $"DeltempoPurgeShared_{Guid.NewGuid():N}");
+        string appDir = Path.Combine(container, "Contoso Widget");
+        string appPayload = Path.Combine(appDir, "widget.dll");
+        string unrelatedInstaller = Path.Combine(container, "OtherApp-Setup.exe");
+
+        Directory.CreateDirectory(appDir);
+        File.WriteAllText(appPayload, "payload");
+        File.WriteAllText(unrelatedInstaller, "unrelated");
+
+        try
+        {
+            var app = new InstalledAppItem
+            {
+                DisplayName = "Contoso Widget",
+                InstallLocation = container
+            };
+
+            var items = new List<LeftoverItem>
+            {
+                new LeftoverItem { Type = LeftoverType.Directory, PathOrKey = container, IsSelected = true },
+                new LeftoverItem { Type = LeftoverType.File, PathOrKey = unrelatedInstaller, IsSelected = true },
+                new LeftoverItem { Type = LeftoverType.Directory, PathOrKey = appDir, IsSelected = true }
+            };
+
+            var result = await RootLeftoverPurgeService.PurgeLeftoversAsync(items, app);
+
+            Assert.True(Directory.Exists(container), "the shared install container must survive");
+            Assert.True(File.Exists(unrelatedInstaller), "unrelated installers must survive");
+            Assert.False(Directory.Exists(appDir), "the app-named folder should still be purged");
+            Assert.True(result.ErrorsCount >= 2);
+            Assert.True(result.ItemsPurgedCount >= 1);
+        }
+        finally
+        {
+            if (Directory.Exists(container))
+            {
+                Directory.Delete(container, true);
+            }
+        }
+    }
+
+    /// <summary>
+    /// The ownership guard must not block a folder that really is the app's own install
+    /// directory, otherwise legitimate leftover cleanup stops working.
+    /// </summary>
+    [Fact]
+    public async Task PurgeLeftovers_AppOwnedInstallFolder_IsPurged()
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"DeltempoOwnedPurge_{Guid.NewGuid():N}");
+        string appDir = Path.Combine(root, "Contoso Widget");
+        Directory.CreateDirectory(appDir);
+        File.WriteAllText(Path.Combine(appDir, "widget.dll"), "payload");
+
+        try
+        {
+            var app = new InstalledAppItem
+            {
+                DisplayName = "Contoso Widget",
+                InstallLocation = appDir
+            };
+
+            var items = new List<LeftoverItem>
+            {
+                new LeftoverItem { Type = LeftoverType.Directory, PathOrKey = appDir, IsSelected = true }
+            };
+
+            var result = await RootLeftoverPurgeService.PurgeLeftoversAsync(items, app);
+
+            Assert.False(Directory.Exists(appDir));
+            Assert.Equal(1, result.ItemsPurgedCount);
+            Assert.Equal(0, result.ErrorsCount);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData("PDFgear 1.2.3", "PDFgear", true)]
+    [InlineData("PDFgear 1.2.3", "PDFgearPortable", true)]
+    [InlineData("PDFgear 1.2.3", "Setups", false)]
+    [InlineData("Adobe Acrobat Reader", "Adobe", false)]
+    public void InstallLocationOwnership_DirectoryOwnership_IsNameBased(
+        string displayName, string folderName, bool expected)
+    {
+        string parent = Path.Combine(Path.GetTempPath(), $"DeltempoOwnership_{Guid.NewGuid():N}");
+        string candidate = Path.Combine(parent, folderName);
+        var app = new InstalledAppItem { DisplayName = displayName };
+
+        try
+        {
+            Assert.Equal(expected, InstallLocationOwnership.IsDirectoryOwnedByApp(app, candidate));
+        }
+        finally
+        {
+            if (Directory.Exists(parent))
+            {
+                Directory.Delete(parent, true);
+            }
+        }
+    }
+
+    private static bool PathEquals(string left, string right)
+        => string.Equals(
+            Path.GetFullPath(left).TrimEnd('\\', '/'),
+            Path.GetFullPath(right).TrimEnd('\\', '/'),
+            StringComparison.OrdinalIgnoreCase);
 }

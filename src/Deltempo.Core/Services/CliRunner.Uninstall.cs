@@ -216,7 +216,7 @@ public static partial class CliRunner
             Console.Write("  [4/4] Eradicating remnants... ");
         }
 
-        var purgeResult = await RootLeftoverPurgeService.PurgeLeftoversAsync(scanResult.Items);
+        var purgeResult = await RootLeftoverPurgeService.PurgeLeftoversAsync(scanResult.Items, targetApp);
 
         if (outputJson)
         {

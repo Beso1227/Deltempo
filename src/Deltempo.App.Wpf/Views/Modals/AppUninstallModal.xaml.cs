@@ -562,7 +562,7 @@ public partial class AppUninstallModal : UserControl
         StatusFooterText.Text = $"Eradicating selected root traces for {_currentInspectedApp?.DisplayName}...";
 
         var selected = _currentScanResult.Items.Where(i => i.IsSelected).ToList();
-        var purgeResult = await RootLeftoverPurgeService.PurgeLeftoversAsync(selected);
+        var purgeResult = await RootLeftoverPurgeService.PurgeLeftoversAsync(selected, _currentInspectedApp);
 
         SoundService.PlaySuccessSound();
         StatusFooterText.Text = $"Purged {purgeResult.ItemsPurgedCount} trace(s) ({purgeResult.FormattedReclaimed} reclaimed) in {purgeResult.ExecutionTimeMs}ms.";

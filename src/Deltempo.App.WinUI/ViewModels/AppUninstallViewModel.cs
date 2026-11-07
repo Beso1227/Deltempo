@@ -757,7 +757,7 @@ public sealed partial class AppUninstallViewModel : ObservableObject
         {
             StatusText = $"Eradicating selected root traces for {InspectedApp?.DisplayName}...";
 
-            PurgeResult purgeResult = await RootLeftoverPurgeService.PurgeLeftoversAsync(selected);
+            PurgeResult purgeResult = await RootLeftoverPurgeService.PurgeLeftoversAsync(selected, InspectedApp);
 
             SoundService.PlaySuccessSound();
             StatusText =

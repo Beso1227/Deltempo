@@ -127,6 +127,13 @@ public static class RootLeftoverScannerService
             {
                 try
                 {
+                    // InstallLocation is where the installer happened to write, not proof the app
+                    // owns the whole folder: users install unrelated apps into one shared folder
+                    // (D:\Setups). Recording every file there made each unrelated installer a
+                    // High-confidence "unremoved residual" once the uninstaller left it alone.
+                    // Only inventory files this app provably owns.
+                    bool installOwned = InstallLocationOwnership.IsDirectoryOwnedByApp(app, app.InstallLocation);
+
                     // Skip reparse points: the baseline snapshot is an inventory of files the app actually owns,
                     // and following a link would record files from a shared tree it does not own
                     // (duplicated once per link).
@@ -138,6 +145,13 @@ public static class RootLeftoverScannerService
                     }))
                     {
                         if (ct.IsCancellationRequested) break;
+
+                        if (!installOwned &&
+                            !InstallLocationOwnership.IsFileOwnedByApp(app, file, app.InstallLocation))
+                        {
+                            continue;
+                        }
+
                         snapshot.ExistingFiles.Add(file);
                     }
                 }
@@ -219,21 +233,35 @@ public static class RootLeftoverScannerService
 
     private static void ScanFileSystemLeftovers(InstalledAppItem app, List<LeftoverItem> items, AppTraceSnapshot? snapshot)
     {
-        // Vector 1A: Check explicit InstallLocation
+        // Vector 1A: Check explicit InstallLocation.
+        //
+        // The registry value says where the app was installed, not that the folder belongs to
+        // it. When the app lives directly in a shared container (D:\Setups and similar), the
+        // folder is the user's, not the app's: proposing it as "Main Installation Directory"
+        // made select all + purge delete every other app and installer in that folder. Only a
+        // name-proven folder may be proposed whole; inside a shared container, propose just the
+        // entries whose names prove they belong to this app.
         if (!string.IsNullOrWhiteSpace(app.InstallLocation) &&
             Directory.Exists(app.InstallLocation) &&
             InstalledAppService.IsSafeToDeleteResidual(app.InstallLocation))
         {
-            long size = CalculateDirectorySizeSafe(app.InstallLocation);
-            items.Add(new LeftoverItem
+            if (InstallLocationOwnership.IsDirectoryOwnedByApp(app, app.InstallLocation))
             {
-                Type = LeftoverType.Directory,
-                PathOrKey = app.InstallLocation,
-                Description = "Main Installation Directory",
-                SizeBytes = size,
-                Confidence = LeftoverConfidence.High,
-                IsSelected = true
-            });
+                long size = CalculateDirectorySizeSafe(app.InstallLocation);
+                items.Add(new LeftoverItem
+                {
+                    Type = LeftoverType.Directory,
+                    PathOrKey = app.InstallLocation,
+                    Description = "Main Installation Directory",
+                    SizeBytes = size,
+                    Confidence = LeftoverConfidence.High,
+                    IsSelected = true
+                });
+            }
+            else
+            {
+                ScanSharedInstallContainer(app, app.InstallLocation, items);
+            }
         }
 
         // Vector 1B: Search candidate roots
@@ -295,9 +323,27 @@ public static class RootLeftoverScannerService
         // Vector 1C: Snapshot differential comparison
         if (snapshot != null && snapshot.ExistingFiles.Count > 0)
         {
+            string snapshotInstall = !string.IsNullOrWhiteSpace(snapshot.InstallLocation)
+                ? snapshot.InstallLocation
+                : app.InstallLocation;
+
+            bool installOwned = !string.IsNullOrWhiteSpace(snapshotInstall) &&
+                                InstallLocationOwnership.IsDirectoryOwnedByApp(app, snapshotInstall);
+
             foreach (var snapFile in snapshot.ExistingFiles)
             {
-                if (File.Exists(snapFile) && !items.Any(i => string.Equals(i.PathOrKey, snapFile, StringComparison.OrdinalIgnoreCase)))
+                if (!File.Exists(snapFile)) continue;
+
+                // Defense in depth: a snapshot is only an inventory of app-owned files. If it
+                // was captured by an older build (or built by hand) it may still contain paths
+                // from a shared folder, so the ownership proof is re-applied here.
+                if (!installOwned &&
+                    !InstallLocationOwnership.IsFileOwnedByApp(app, snapFile, snapshotInstall))
+                {
+                    continue;
+                }
+
+                if (!items.Any(i => string.Equals(i.PathOrKey, snapFile, StringComparison.OrdinalIgnoreCase)))
                 {
                     long size = 0;
                     try { size = new FileInfo(snapFile).Length; } catch { }
@@ -314,6 +360,56 @@ public static class RootLeftoverScannerService
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Scans a shared install container (<c>D:\Setups</c>) without ever proposing the container
+    /// itself. Only direct children whose names prove they belong to the app are surfaced:
+    /// an app-named folder is High confidence and selected, an app-named file (typically the
+    /// setup executable) is Medium and left unselected for explicit review.
+    /// </summary>
+    private static void ScanSharedInstallContainer(InstalledAppItem app, string container, List<LeftoverItem> items)
+    {
+        try
+        {
+            foreach (var childDir in Directory.EnumerateDirectories(container))
+            {
+                if (!InstallLocationOwnership.IsDirectoryOwnedByApp(app, childDir)) continue;
+                if (!InstalledAppService.IsSafeToDeleteResidual(childDir)) continue;
+                if (items.Any(i => string.Equals(i.PathOrKey, childDir, StringComparison.OrdinalIgnoreCase))) continue;
+
+                long size = CalculateDirectorySizeSafe(childDir);
+                items.Add(new LeftoverItem
+                {
+                    Type = LeftoverType.Directory,
+                    PathOrKey = childDir,
+                    Description = "Application Folder (shared install location)",
+                    SizeBytes = size,
+                    Confidence = LeftoverConfidence.High,
+                    IsSelected = true
+                });
+            }
+
+            foreach (var childFile in Directory.EnumerateFiles(container))
+            {
+                if (!InstallLocationOwnership.IsFileOwnedByApp(app, childFile, container)) continue;
+                if (items.Any(i => string.Equals(i.PathOrKey, childFile, StringComparison.OrdinalIgnoreCase))) continue;
+
+                long size = 0;
+                try { size = new FileInfo(childFile).Length; } catch { }
+
+                items.Add(new LeftoverItem
+                {
+                    Type = LeftoverType.File,
+                    PathOrKey = childFile,
+                    Description = "Application File (shared install location)",
+                    SizeBytes = size,
+                    Confidence = LeftoverConfidence.Medium,
+                    IsSelected = false
+                });
+            }
+        }
+        catch { }
     }
 
     private static void CheckAndAddDirectory(string dirPath, string desc, LeftoverConfidence confidence, List<LeftoverItem> items)

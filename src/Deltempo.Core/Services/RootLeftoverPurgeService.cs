@@ -49,7 +49,7 @@ public static class RootLeftoverPurgeService
     /// </summary>
     public static async Task<PurgeResult> PurgeLeftoversAsync(
         IEnumerable<LeftoverItem> items,
-        string? appName = null,
+        InstalledAppItem? app = null,
         CancellationToken ct = default)
     {
         var sw = Stopwatch.StartNew();
@@ -65,6 +65,16 @@ public static class RootLeftoverPurgeService
 
                 try
                 {
+                    if (IsOutsideAppOwnership(item, app))
+                    {
+                        result.ErrorsCount++;
+                        result.ErrorMessages.Add(
+                            $"Safety shield blocked '{item.PathOrKey}': it is inside the app's install " +
+                            "location but is not named after the app, so it may belong to another " +
+                            "application sharing that folder.");
+                        continue;
+                    }
+
                     switch (item.Type)
                     {
                         case LeftoverType.File:
@@ -123,6 +133,45 @@ public static class RootLeftoverPurgeService
         sw.Stop();
         result.ExecutionTimeMs = sw.ElapsedMilliseconds;
         return result;
+    }
+
+    /// <summary>
+    /// True when a file/folder item sits at or under the app's install location but is not
+    /// provably owned by that app.
+    ///
+    /// The scanner no longer proposes these, so this is the second line of defence: a stale
+    /// scan result, a hand-built list, or a future scanner regression must not be able to turn
+    /// "purge leftovers" into "delete the shared folder every app was installed into". Items
+    /// outside the install location (AppData, registry, WER reports, Store containers) are
+    /// already name-scoped by the scanner and are not affected.
+    /// </summary>
+    private static bool IsOutsideAppOwnership(LeftoverItem item, InstalledAppItem? app)
+    {
+        if (app is null || string.IsNullOrWhiteSpace(app.InstallLocation))
+            return false;
+
+        if (item.Type is not (LeftoverType.Directory or LeftoverType.File or LeftoverType.Shortcut))
+            return false;
+
+        string install = app.InstallLocation;
+        string target = item.PathOrKey;
+        if (string.IsNullOrWhiteSpace(target))
+            return false;
+
+        // Only judge items that overlap the install location: the folder itself, something
+        // inside it, or one of its ancestors.
+        bool overlaps = InstallLocationOwnership.IsUnderOrEqual(install, target) ||
+                        InstallLocationOwnership.IsUnderOrEqual(target, install);
+        if (!overlaps) return false;
+
+        // A name-proven install folder owns everything beneath it.
+        if (InstallLocationOwnership.IsDirectoryOwnedByApp(app, install))
+            return false;
+
+        // Shared container: each entry has to prove itself.
+        return item.Type == LeftoverType.Directory
+            ? !InstallLocationOwnership.IsDirectoryOwnedByApp(app, target)
+            : !InstallLocationOwnership.IsFileOwnedByApp(app, target, install);
     }
 
     private static void PurgeFile(LeftoverItem item, PurgeResult res)
