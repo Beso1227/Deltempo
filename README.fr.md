@@ -479,8 +479,8 @@ dotnet format deltempo.sln --verify-no-changes --no-restore
 # xunit.v3 s'exécute sur Microsoft.Testing.Platform, que le `dotnet test` du SDK
 # .NET 10 ne peut pas prendre en charge ("Testing with VSTest target is no longer
 # supported"). Construire une fois, puis invoquer directement l'exécutable de tests.
-dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
-./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
+dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+./tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 
 # Packager les binaires de release autonomes en fichier unique (GUI et CLI)
 pwsh -ExecutionPolicy Bypass -File scripts/build_release_exe.ps1

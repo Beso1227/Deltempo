@@ -6,6 +6,14 @@ Everyone participating is expected to follow the [Code of Conduct](CODE_OF_CONDU
 If you need help using the project rather than changing it, see [SUPPORT.md](SUPPORT.md).
 Security vulnerabilities should never be opened as a public issue — see [SECURITY.md](SECURITY.md).
 
+## Read the map first
+
+[`PROJECT_MAP.md`](PROJECT_MAP.md) is the shortest path from "where does X live" to the
+file that owns X: the six projects, the layers, the entry points, and the invariants the
+suite enforces. Deeper background lives in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+(why the engine is shaped this way) and [`docs/TESTING.md`](docs/TESTING.md) (how the suite
+is organised and run).
+
 ## How to Contribute
 
 1. **Fork & Clone the Repository**: Click "Fork" on GitHub, then clone your copy and create a branch:
@@ -31,8 +39,8 @@ Security vulnerabilities should never be opened as a public issue — see [SECUR
    dotnet format deltempo.sln --verify-no-changes --no-restore
 
    # 3. Build and run the automated test suite
-   dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
-   ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
+   dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+   ./tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
    ```
 
    > **Why not `dotnet test`?** The suite uses xunit.v3, which runs on Microsoft.Testing.Platform. The .NET 10 SDK's `dotnet test` cannot drive it ("Testing with VSTest target is no longer supported"). Build once, then invoke the test executable directly. See [`docs/TESTING.md`](docs/TESTING.md).
@@ -57,8 +65,8 @@ reasoning is recorded in `.github/settings.yml` under the branch protection bloc
 
 If you are reviewing someone else's PR here, **your review is the only gate this
 project has.** That makes careful review unusually valuable here, particularly for
-anything touching `Core/Safety/`, `Core/Cleaning/`, the cache resolvers, or the
-release workflow.
+anything touching `src/Deltempo.Core/Safety/`, `src/Deltempo.Core/Cleaning/`, the cache
+resolvers, or the release workflow.
 
 ## Coding Guidelines
 
@@ -71,8 +79,12 @@ release workflow.
 
 These are enforced by CI, and each has caught a real defect on this repository:
 
-- **`dotnet format` against a single project.** The root project excludes the nested `Core`, `Services`, `Cli` and `Tests` folders, so this is strictly weaker than the solution-level gate. Seven files once shipped with a trailing-newline failure that a per-project check reported as clean.
+- **`dotnet format` against a single project.** The solution holds six projects
+  (`Deltempo.Core`, the WPF shell, the WinUI shell, the WinUI view models, the CLI and
+  the tests), so a per-project run covers a fraction of the code and passes while CI
+  fails. Seven files once shipped with a trailing-newline failure that a per-project
+  check reported as clean.
 - **Bumping the version anywhere but `Directory.Build.props`.** Version, `FileVersion` and `AssemblyVersion` are centralized there; individual `.csproj` files must not override them.
-- **Changing the published test count without changing the suite.** `DocumentationConsistencyTests` derives the real test count by reflection and fails if the README badge disagrees — and it checks the badge, the prose, and all eight translations.
+- **Changing the published test count without changing the suite.** `DocumentationConsistencyTests` derives the real test count by reflection and fails if the README badge disagrees — and it checks the badge, the prose, the eight translations, `SECURITY.md`, `docs/ai-catalog.json`, `docs/llms.txt`, `docs/llms-full.txt`, `docs/index.html` and the changelog's current card. Bump every current claim together, and never hand-write a number you have not measured.
 - **Adding a new cleanup scope without asking whether it is disposable.** See the [refusal table in the README](README.md#21-what-deltempo-refuses-to-delete). Several paths that look exactly like scratch (`%ProgramData%\Package Cache`, `%LOCALAPPDATA%\Microsoft\dotnet`, bare `C:\NVIDIA` roots) are load-bearing, and adding them as targets would delete things users cannot recover. New exclusions are denied twice: removed from the resolver *and* refused by `ProtectionPolicy`.
 - **Editing a translation independently.** `README.*.md` must stay structurally in sync with `README.md` — same headings, same table rows, same code blocks.

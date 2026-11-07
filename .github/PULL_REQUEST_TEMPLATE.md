@@ -31,11 +31,11 @@ skipped, and skipping it locally is how seven trailing-newline failures once shi
 
 - [ ] `dotnet build deltempo.sln -c Release` succeeds (GUI + CLI)
 - [ ] `dotnet format deltempo.sln --verify-no-changes --no-restore` is clean.
-      **Run it against the solution, never against a single project** — the root
-      The solution holds five projects (the WPF app, Core, the CLI, the WinUI shell and the
-      test project), so a per-project run silently covers only part of the solution and reports clean
-      while CI fails.
-- [ ] `dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release` then `./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"` passes
+      **Run it against the solution, never against a single project** — the solution
+      holds six projects (Core, the WPF shell, the WinUI shell, the WinUI view models,
+      the CLI and the test project), so a per-project run silently covers only part of
+      it and reports clean while CI fails.
+- [ ] `dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release` then `./tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"` passes
       (`dotnet test` cannot drive xunit.v3 on the .NET 10 SDK — see docs/TESTING.md §3.1)
 - [ ] New logic is covered by xUnit tests
 - [ ] No new compiler or analyzer warnings introduced

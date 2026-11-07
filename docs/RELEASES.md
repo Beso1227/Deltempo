@@ -51,7 +51,7 @@ Every official release artifact is verified through automated pipelines:
 
    ```powershell
    dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
-   ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
+   ./tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
    ```
 
 2. Verify zero high or critical NuGet vulnerabilities:

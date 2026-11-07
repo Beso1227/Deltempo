@@ -42,10 +42,10 @@ For **conduct or Code of Conduct** concerns, which are not vulnerabilities, see
 
 Deltempo runs with administrator privileges and deletes files, so the following areas carry the greatest security impact:
 
-- **Path & boundary security** (`Core/Safety/PathSecurity.cs`): directory traversal, symlink/junction redirection, UNC, and root-containment bypasses.
-- **Protection policy** (`Core/Safety/ProtectionPolicy.cs`): any bypass that would allow deletion of personal documents, credentials, source repositories, or OS components.
-- **Pre-deletion revalidation** (`Core/Cleaning/CleanupExecutor.cs`): TOCTOU race conditions between plan and delete.
-- **Update pipeline** (`Core/Update/`): manifest signature verification, SHA-256 integrity, host allowlisting, and transaction/rollback manipulation.
+- **Path & boundary security** (`src/Deltempo.Core/Safety/PathSecurity.cs`): directory traversal, symlink/junction redirection, UNC, and root-containment bypasses.
+- **Protection policy** (`src/Deltempo.Core/Safety/ProtectionPolicy.cs`): any bypass that would allow deletion of personal documents, credentials, source repositories, or OS components.
+- **Pre-deletion revalidation** (`src/Deltempo.Core/Cleaning/CleanupExecutor.cs`): TOCTOU race conditions between plan and delete.
+- **Update pipeline** (`src/Deltempo.Core/Update/`): manifest signature verification, SHA-256 integrity, host allowlisting, and transaction/rollback manipulation.
 
 ## Security Controls
 

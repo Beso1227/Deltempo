@@ -62,7 +62,7 @@ Before any release artifact is built or distributed:
 
    ```powershell
    dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
-   ./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
+   ./tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
    ```
 
    *Verification:* 100% tests must pass (0 failures, 0 skips).
@@ -174,8 +174,9 @@ error NETSDK1168: WPF is not supported or recommended with trimming enabled
 
 `UseWPF` was removed from the CLI project (it had zero `System.Windows.*` usings), which
 cleared NETSDK1168 and surfaced the real blocker: **61 IL3050/IL2026 trim warnings as
-errors across 18 files**, all reached because `Deltempo.Core.csproj` compiles
-`Services/**` via `<Compile Include="..\Services\**\*.cs" />`:
+errors across 18 files**, all reached through Core's services layer (at the time
+`Deltempo.Core.csproj` still compiled `Services/**` via a `<Compile Include>` link;
+those sources are physical in `src/Deltempo.Core/Services/` today):
 
 | Site | Count |
 |---|---|

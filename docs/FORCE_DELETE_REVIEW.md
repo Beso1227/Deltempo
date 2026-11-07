@@ -40,19 +40,19 @@
 
 ### 🔴 Critical Bugs
 
-- **`Core/Safety/ForceDeleteGate.cs:L135-L143`**
+- **`src/Deltempo.Core/Safety/ForceDeleteGate.cs:L135-L143`**
   - **Problem:** `lower == progFiles` (as well as `progFilesX86` and `progData`) escapes the `StartsWith(progFiles + "\\")` check. Root directories such as `C:\Program Files` or `C:\ProgramData` bypass the application directory check and evaluate as `Allowed` instead of `AbsoluteBlock`.
   - **Fix:** Explicitly check `lower == progFiles || lower.StartsWith(progFiles + "\\")` (and corresponding variables for x86 and ProgramData), and return `ForceDeleteTier.AbsoluteBlock` when targeting root directories.
 
-- **`Services/CliRunner.cs:L363-L369`**
+- **`src/Deltempo.Core/Services/CliRunner.cs:L363-L369`**
   - **Problem:** Positional target iteration consumes option argument values (e.g. `5` following `--retry 5`) into `targets`, attempting to delete `"5"` as a filesystem item.
   - **Fix:** Skip argument values when encountering options that accept parameters before collecting non-flag positional arguments.
 
-- **`Views/Modals/ForceDeleteModal.xaml.cs:L24`**
+- **`src/Deltempo.App.Wpf/Views/Modals/ForceDeleteModal.xaml.cs:L24`**
   - **Problem:** `IsSelected` property changes on staged items do not trigger `RefreshFooterState()`. Deselecting or selecting targets does not update `ExecuteBtn.IsEnabled` or summary counts.
   - **Fix:** Subscribe to `PropertyChanged` on added `ForceDeleteTargetItem` instances to trigger `RefreshFooterState()` on selection toggle.
 
-- **`Views/Modals/ForceDeleteModal.xaml.cs:L338-L345`**
+- **`src/Deltempo.App.Wpf/Views/Modals/ForceDeleteModal.xaml.cs:L338-L345`**
   - **Problem:** Targets scheduled for reboot deletion (`ForceDeleteStage.ScheduleReboot`) are not counted under `succeeded` and are displayed with status `"Failed"` in the UI.
   - **Fix:** Check `ForceDeleteStage.ScheduleReboot` in attempt results and set `item.StatusText = "Reboot Purge"`.
 
@@ -60,27 +60,27 @@
 
 ### 🟡 Fragile Risks
 
-- **`Core/Safety/ForceDeleteGate.cs:L107-L112`**
+- **`src/Deltempo.Core/Safety/ForceDeleteGate.cs:L107-L112`**
   - **Problem:** `lower.Contains(blocked)` matches substrings across arbitrary drives and non-system directories (e.g., `D:\repo\windows\system\file.txt`).
   - **Fix:** Anchor checks to `winDir` (e.g., `Path.Combine(winDir, blocked)`) with explicit directory separator boundaries.
 
-- **`Core/Cleaning/ForceDeleteEngine.cs:L270-L274`**
+- **`src/Deltempo.Core/Cleaning/ForceDeleteEngine.cs:L270-L274`**
   - **Problem:** `DryRun` increments `result.FilesDeleted` even when the target is a directory.
   - **Fix:** Branch on `Directory.Exists(normalized)` and increment `result.DirectoriesDeleted`.
 
-- **`Core/Cleaning/ForceDeleteEngine.cs:L306-L333`**
+- **`src/Deltempo.Core/Cleaning/ForceDeleteEngine.cs:L306-L333`**
   - **Problem:** `DeleteReparsePointLink` fails with `UnauthorizedAccessException` if the junction or symlink has ReadOnly or System attributes set on the link itself.
   - **Fix:** Call `StripAttributes(path)` prior to unlinking.
 
-- **`Core/Cleaning/ForceDeleteEngine.cs:L418-L433`**
+- **`src/Deltempo.Core/Cleaning/ForceDeleteEngine.cs:L418-L433`**
   - **Problem:** An unreadable subfolder during `di.EnumerateFiles()` or `di.EnumerateDirectories()` throws an exception and halts deletion of the entire parent directory and sibling files.
   - **Fix:** Wrap child entry enumeration in try/catch or configure `EnumerationOptions.IgnoreInaccessible = true`.
 
-- **`Views/Modals/ForceDeleteModal.xaml.cs:L86`**
+- **`src/Deltempo.App.Wpf/Views/Modals/ForceDeleteModal.xaml.cs:L86`**
   - **Problem:** `AddPaths` calls synchronous `CalculateDirectorySize` on the UI thread, freezing the interface when large directories are selected.
   - **Fix:** Dispatch size calculation and initial target profiling to a background worker task.
 
-- **`Services/CliRunner.cs:L454`**
+- **`src/Deltempo.Core/Services/CliRunner.cs:L454`**
   - **Problem:** `ExplicitOverrideConfirmed` is hardcoded to `true` in CLI mode, allowing `--yes` to delete Tier B items (`OverrideRequired`) without explicit operator consent.
   - **Fix:** Guard Tier B operations with an explicit `--force-override` CLI flag.
 
@@ -88,11 +88,11 @@
 
 ### 🔵 Nits & Polish
 
-- **`Core/Cleaning/ForceDeleteEngine.cs:L189`**
+- **`src/Deltempo.Core/Cleaning/ForceDeleteEngine.cs:L189`**
   - **Problem:** Mojibake `" â€¢ "` present in source string literal.
   - **Fix:** Replace with standard bullet `" • "`.
 
-- **`Views/Modals/ForceDeleteModal.xaml:L222-L228`**
+- **`src/Deltempo.App.Wpf/Views/Modals/ForceDeleteModal.xaml:L222-L228`**
   - **Problem:** Selection checkbox remains interactive for shielded targets (`AbsoluteBlock`), even though they are filtered out from purge execution.
   - **Fix:** Disable the checkbox (`IsEnabled="False"`) when `GateTier == ForceDeleteTier.AbsoluteBlock`.
 
@@ -100,5 +100,5 @@
 
 ### ❓ Architecture Questions
 
-- **`Views/Modals/ForceDeleteModal.xaml.cs:L253-L304`**
+- **`src/Deltempo.App.Wpf/Views/Modals/ForceDeleteModal.xaml.cs:L253-L304`**
   - **Question:** Why does `ConfirmDestructivePurge` omit a distinct warning section when staged targets contain `OverrideRequired` items?

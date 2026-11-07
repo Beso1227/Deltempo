@@ -18,7 +18,7 @@ Captured on SDK `10.0.401`, Windows, `-c Release`:
 ```powershell
 dotnet build deltempo.sln -c Release          # 0 Warning(s), 0 Error(s)
 # MTP: the .NET 10 SDK cannot drive xunit.v3 via `dotnet test`; invoke the test exe.
-./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
+./tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 ```
 
 | Metric | Baseline |
@@ -36,7 +36,7 @@ direction is a regression. Benchmarks are excluded from CI (`Category!=Benchmark
 run explicitly:
 
 ```powershell
-./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category=Benchmark"
+./tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category=Benchmark"
 ```
 
 Vulnerability and currency audits both run read-only in CI (`dotnet list package --vulnerable`,
@@ -49,7 +49,7 @@ Vulnerability and currency audits both run read-only in CI (`dotnet list package
 | `ProtectionPolicy`, `FileSafetyEngine`, `LargeFileHunterService` | 8 read-only `HashSet<string>` → `FrozenSet<string>` (`ToFrozenSet`, `OrdinalIgnoreCase`) | Locked mutable custom-exclusion sets stay `HashSet`; zero safety-tier behavior change (894 tests green) |
 | `DuplicateFileService` | Header + full hash use static `SHA256.HashData` (no per-file `SHA256` instance, pooled stream buffer) | Duplicate scan **0.43s → 0.28s (922 → 1,453 files/s)** on the 400-file synthetic corpus |
 | `VolumeScanCoordinator` | `SemaphoreSlim` + one `Task.Run` per item → `Parallel.ForEachAsync` bounded per volume | No per-item `Task` allocation; DOP-per-volume contract preserved (tests assert `≤ 2`) |
-| `Core/Update` | Reflection-based `JsonSerializer` → source-generated `UpdateJsonContext` | Compile-time serializer metadata; Core stays NativeAOT/trimming-friendly |
+| `src/Deltempo.Core/Update` | Reflection-based `JsonSerializer` → source-generated `UpdateJsonContext` | Compile-time serializer metadata; Core stays NativeAOT/trimming-friendly |
 
 #### BLAKE3 evaluation (rejected on measured evidence)
 

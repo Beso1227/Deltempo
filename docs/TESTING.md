@@ -43,7 +43,7 @@ test executable directly, exactly as `.github/workflows/ci.yml` does:
 
 ```powershell
 dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
-./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
+./tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 ```
 
 The style gate must be run the same way CI runs it, against the solution:
@@ -66,7 +66,7 @@ run reports clean while CI fails. This has happened.
 Run throughput and memory engine benchmarks explicitly:
 
 ```powershell
-./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category=Benchmark"
+./tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category=Benchmark"
 ```
 
 ### 3.3 Path Canonicalizer Fuzz Campaigns
@@ -91,9 +91,9 @@ not `dotnet test`:
 ```powershell
 dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
 # Standard campaign (100k cases, Category=Fuzz - also runs in CI via Category!=Benchmark)
-./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category=Fuzz"
+./tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category=Fuzz"
 # Deep campaign (1M cases, Category=FuzzDeep - local runs, excluded from CI)
-./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category=FuzzDeep"
+./tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category=FuzzDeep"
 ```
 
 ### 3.4 Running with Code Coverage
@@ -104,7 +104,7 @@ external tool install is involved:
 
 ```powershell
 dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release --no-restore
-./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe `
+./tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe `
   --filter "Category!=Benchmark" `
   --coverage `
   --coverage-output-format cobertura `

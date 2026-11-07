@@ -2,75 +2,70 @@
 
 ## 1. High-Level Architectural Overview
 
-Deltempo is built as a modular, high-reliability Windows maintenance, cache cleanup, and NT kernel memory optimization suite. The system strictly separates low-level system safety and deletion logic from UI presentation concerns.
+Deltempo is a modular Windows maintenance suite: cache cleanup, NT kernel memory
+optimization, startup intelligence, uninstall and leftover removal, and servicing-stack
+repair. One engine, three front ends — and the safety and deletion logic is separated
+from every one of them.
+
+Paths here are repository-relative. For the project list, the layer counts and the
+commands that gate a change, see [`PROJECT_MAP.md`](../PROJECT_MAP.md).
 
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│                        Presentation Layer                              │
-│   ┌───────────────────────────────┐   ┌────────────────────────────┐   │
-│   │   WPF Modern UI (net10.0)     │   │     Headless CLI Engine    │   │
-│   │   - MainWindow & Views        │   │     - Deltempo.Cli         │   │
-│   │   - ViewModels & Converters   │   │     - JSON/Automation APIs │   │
-│   └───────────────┬───────────────┘   └─────────────┬──────────────┘   │
-└───────────────────┼─────────────────────────────────┼──────────────────┘
-                    │                                 │
-┌───────────────────▼─────────────────────────────────▼──────────────────┐
-│                          Services Layer                                │
-│   ┌───────────────────────────────┐   ┌────────────────────────────┐   │
-│   │   MemoryOptimizerService      │   │   CleanerService           │   │
-│   │   - NT Kernel Working Sets    │   │   - Scope Resolution       │   │
-│   │   - Standby & Cache Purging   │   │   - Parallel Scanning      │   │
-│   └───────────────────────────────┘   └─────────────┬──────────────┘   │
-│   ┌───────────────────────────────┐   ┌─────────────▼──────────────┐   │
-│   │   SystemRepairService         │   │   UpdateService            │   │
-│   │   - SFC, DISM, WinSxS, CHKDSK │   │   - SHA256 Verify      │   │
-│   └───────────────────────────────┘   └────────────────────────────┘   │
-│   ┌───────────────────────────────┐   ┌────────────────────────────┐   │
-│   │   AppDataFootprintService     │   │   StoreAppOrphanResolver   │   │
-│   │   - Read-only measurement     │   │   - AppModel repo evidence │   │
-│   │   - No delete code path       │   │   - PFN + publisher match  │   │
-│   └───────────────────────────────┘   └────────────────────────────┘   │
-└─────────────────────────────────────────────────────┼──────────────────┘
-                    ┌─────────────────────────────────┘
-┌───────────────────▼────────────────────────────────────────────────────┐
-│                    Deltempo.Core Engine Layer                          │
-│   ┌───────────────────────────────┐   ┌────────────────────────────┐   │
-│   │   Core.Safety                 │   │   Core.Cleaning            │   │
-│   │   - PathSecurity (Canonical)  │   │   - CleanupPlanner         │   │
-│   │   - ProtectionPolicy (OS/User)│   │   - CleanupExecutor        │   │
-│   │   - FileSafetyEngine (Tiers)  │   │   - CleanupTransaction     │   │
-│   └───────────────────────────────┘   └────────────────────────────┘   │
-└────────────────────────────────────────────────────────────────────────┘
+  WPF shell        src/Deltempo.App.Wpf      ships as Deltempo.exe
+  WinUI 3 shell    src/Deltempo.App.WinUI    parity preview, not the shipped executable
+  CLI              src/Deltempo.Cli          deltempo_cli.exe: JSON output, exit codes
+                                |
+                                v
+  Deltempo.Core    src/Deltempo.Core         net10.0-windows (assembly WinTempCleaner)
+    Safety         PathSecurity, ProtectionPolicy, FileSafetyEngine
+    Cleaning       CleanupPlanner, CleanupExecutor, CleanupTransaction
+    Scanning       native and USN scanners, volume scan coordinator, top files
+    Discovery      multi-drive detection, rulepack engine, treemap layout
+    Services       CleanerService, MemoryOptimizerService, SystemRepairService,
+                   UpdateService, AppDataFootprintService, CliRunner
+    ViewModels     ViewModelBase (shared MVVM) + the WPF view models
+                                |
+                                v
+  Windows          NTFS volumes, registry hives, NT kernel, servicing tools
 ```
 
 ---
 
 ## 2. Layer Responsibilities & Isolation Invariants
 
-### 2.1 Core Engine (`Core/`)
+### 2.1 Core Engine (`src/Deltempo.Core/`)
 
-* **Zero UI Dependency**: Contains no references to WPF, `System.Windows`, or XAML controls. Compiles as pure net10.0 logic reusable across desktop, console, and background daemon agents.
+* **No Shell Dependency**: No cleaning, scanning, safety or update type references a window, a view or a XAML control, so the same code runs headless under the CLI and under automation. Core is not UI-free at the project level: it targets `net10.0-windows` with `UseWPF=true` because it hosts the shared MVVM types in `src/Deltempo.Core/ViewModels/` (`ViewModelBase` derives from CommunityToolkit.Mvvm and uses `System.Windows.Input.ICommand`) together with the two WPF view models. Deterministic rules never consult UI state, and no safety decision is reachable from a view model.
 * **Deterministic Execution**: All safety evaluations are algorithmic and rule-based. AI intelligence reports, heuristics, or external telemetry can flag files for review but can **never** override deterministic safety rules or whitelist policies.
 * **Fail-Closed Principle**: Unrecognized file formats, inaccessible paths, or ambiguous attributes default unconditionally to `SafetyRiskTier.Unknown` and are preserved.
 
-### 2.2 Services Layer (`Services/`)
+### 2.2 Services (`src/Deltempo.Core/Services/`)
 
 * **Memory Optimizer**: Ported and hardened from `WinMemoryCleaner`. Directly interfaces with Windows NT kernel APIs via `ntdll.dll!NtSetSystemInformation` and `psapi.dll!EmptyWorkingSet`. Employs fine-grained Windows token privilege elevation (`SeProfileSingleProcessPrivilege`, `SeIncreaseQuotaPrivilege`, `SeDebugPrivilege`) with automated post-operation privilege revocation.
 * **System Repair**: Automates servicing stack recovery (`SFC /scannow`, `DISM /Online /Cleanup-Image /RestoreHealth`, `WinSxS /StartComponentCleanup`, volume `CHKDSK /scan`).
 * **Update Verification**: Enforces cryptographic integrity on self-updates via HTTPS + host/path allowlisting and SHA-256 payload verification (plus size, PE-header and version checks) before anything is executed. An ECDSA P-256 manifest-signature verifier and an Authenticode verifier are both wired into the live update path and both fail closed; signed updates remain blocked until an operator provisions a trusted key - see `docs/THREAT_MODEL.md` §2.5.
 
-### 2.3 Presentation Layer (`ViewModels/`, `Views/`, `Cli/`)
+### 2.3 Presentation Layer (two desktop shells, one headless host)
+
+Three front ends sit on Core; only the WPF one is the shipped executable.
+
+| Shell | Path | Status |
+| :--- | :--- | :--- |
+| WPF Fluent | `src/Deltempo.App.Wpf` | **Shipped** — `scripts/build_release_exe.ps1` publishes it as `Deltempo.exe`, and `scripts/build_msix.ps1` stages that same published binary into the MSIX |
+| WinUI 3 | `src/Deltempo.App.WinUI` | **Parity preview** — kept behaviourally in step with the WPF shell, not published as the product executable |
+| CLI | `src/Deltempo.Cli` | Headless host; `Program.cs` dispatches into the `CliRunner*` partials in `src/Deltempo.Core/Services/` |
 
 * **MVVM Architecture**: ViewModels expose `ICommand` bindings, thread-safe observable collections, and immutable progress snapshots.
-* **Toolkit Base (Phase 2)**: `ViewModelBase` derives from CommunityToolkit.Mvvm's `ObservableObject`, which supplies `INotifyPropertyChanged` and the raise-only-on-change `SetProperty<T>` helper. `RelayCommand` / `AsyncRelayCommand` deliberately remain the hand-rolled types in `ViewModels/ViewModelBase.cs`: the toolkit's equivalents are `sealed`, expose no `Action<object?>` execute constructor, and name the refresh method `NotifyCanExecuteChanged()` rather than `RaiseCanExecuteChanged()` — all three are asserted by `ViewModelCommandTests`.
-* **Converters (Phase 2)**: `Converters/` is down to three files — `WidthConverters.cs` (the three title-bar compact-mode converters plus their shared `CompactThreshold` parser), `SubtractConverter.cs`, and `PercentWidthConverter.cs` (an `IMultiValueConverter`). The unreferenced `BoolToBrushConverter` and `BoolToThicknessConverter` were removed together with their `App.xaml` resources.
-* **Deferred — code-behind shrink**: the eight `MainWindow.*.cs` partials (~2,530 LOC) still own event wiring and direct control assignment. Moving that to bindings is staged as its own pass because binding failures surface only at runtime, where the headless unit-test suite cannot see them.
+* **Toolkit Base (Phase 2)**: `ViewModelBase` in `src/Deltempo.Core/ViewModels/ViewModelBase.cs` derives from CommunityToolkit.Mvvm's `ObservableObject`, which supplies `INotifyPropertyChanged` and the raise-only-on-change `SetProperty<T>` helper. `RelayCommand` / `AsyncRelayCommand` deliberately remain the hand-rolled types in that same file: the toolkit's equivalents are `sealed`, expose no `Action<object?>` execute constructor, and name the refresh method `NotifyCanExecuteChanged()` rather than `RaiseCanExecuteChanged()` — all three are asserted by `ViewModelCommandTests`.
+* **WinUI view models are their own assembly**: `src/Deltempo.App.WinUI.ViewModels` compiles `src/Deltempo.App.WinUI/ViewModels/*.cs` through a linked `<Compile Include>`, so the shell and `Deltempo.Tests` reference exactly one compilation — the code that ships is the code coverage measures. It is a plain `net10.0-windows` library: no Windows App SDK, no XAML compiler, no `Microsoft.UI` types.
+* **Converters (Phase 2)**: `src/Deltempo.App.Wpf/Converters/` is down to three files — `WidthConverters.cs` (the three title-bar compact-mode converters plus their shared `CompactThreshold` parser), `SubtractConverter.cs`, and `PercentWidthConverter.cs` (an `IMultiValueConverter`). The unreferenced `BoolToBrushConverter` and `BoolToThicknessConverter` were removed together with their `App.xaml` resources.
+* **Deferred — code-behind shrink**: the eight `MainWindow.*.cs` partials in `src/Deltempo.App.Wpf` (~2,530 LOC) still own event wiring and direct control assignment. Moving that to bindings is staged as its own pass because binding failures surface only at runtime, where the headless unit-test suite cannot see them.
 * **Non-Blocking Execution**: All I/O operations (scanning, cleaning, memory flushing, repair execution) run strictly asynchronously (`Task.Run` with bounded parallelism and `CancellationToken` support).
 * **CLI Parity**: `Deltempo.Cli` exposes full engine functionality headlessly, outputting structured JSON streams and deterministic process exit codes for integration into automated administration scripts and CI pipelines.
 
 ---
 
-## 3. Data Flow & The 5-Phase Safety Pipeline
+## 3. Data Flow & The 5-Phase Safety Pipeline <a id="safety-pipeline" name="safety-pipeline"></a>
 
 Every file evaluated for cleanup passes through an unbypassable sequential verification pipeline:
 
@@ -109,9 +104,9 @@ idea as an explicit, testable refusal list rather than as an ever-growing enumer
 
 Every non-disposable path is refused **twice, independently**:
 
-1. **Removed from the scope resolvers** (`Services/Providers/CacheResolvers/*.cs`), so it is never
+1. **Removed from the scope resolvers** (`src/Deltempo.Core/Services/Providers/CacheResolvers/*.cs`), so it is never
    offered as a candidate in the first place.
-2. **Denied by `Core/Safety/ProtectionPolicy.IsProtected`**, so a resolver regression, a
+2. **Denied by `ProtectionPolicy.IsProtected`** (`src/Deltempo.Core/Safety/ProtectionPolicy.cs`), so a resolver regression, a
    user-supplied rulepack, or a stale settings entry cannot reintroduce it.
 
 The second layer is the one that matters. The first is a performance and UX decision; the second
@@ -160,10 +155,10 @@ The walk is deliberately bounded and defensive:
 
 ### 4.4 The AppData footprint report is read-only by construction
 
-`Services/AppDataFootprintService.cs` measures what occupies `LOCALAPPDATA`, `APPDATA` and
+`src/Deltempo.Core/Services/AppDataFootprintService.cs` measures what occupies `LOCALAPPDATA`, `APPDATA` and
 `LocalLow` at depth 1 and returns immutable `AppDataFootprintEntry` records — deliberately *not*
 `TargetFolderInfo`, because it is not a cleanup target and must not be reachable from the
-deletion pipeline. `CliRunner.AppData.cs` exposes `appdata` / `appdata-report` / `footprint` with
+deletion pipeline. `src/Deltempo.Core/Services/CliRunner.AppData.cs` exposes `appdata` / `appdata-report` / `footprint` with
 `--json` and `--top N`, and intentionally provides **no** `--clean`, `--yes`, or delete path. The
 in-app `AppDataFootprintModal` is likewise a read-only overlay. Measurement runs off the UI
 thread and deliberately does not set `_isBusy`, so the report stays usable mid-scan.
@@ -178,7 +173,7 @@ Two correctness rules the report depends on:
 
 ### 4.5 Orphaned Store app detection uses binary evidence
 
-`Services/Providers/CacheResolvers/StoreAppOrphanResolver.cs` determines whether a
+`src/Deltempo.Core/Services/Providers/CacheResolvers/StoreAppOrphanResolver.cs` determines whether a
 `LOCALAPPDATA\Packages` subdirectory still has an installed MSIX package by reading the AppModel
 package repository from the registry — `HKCU\Software\Classes\Local Settings\Software\Microsoft\
 Windows\CurrentVersion\AppModel\Repository\Packages` and the `HKLM` equivalent — as **binary

@@ -479,8 +479,8 @@ dotnet format deltempo.sln --verify-no-changes --no-restore
 # xunit.v3 运行在 Microsoft.Testing.Platform 上，.NET 10 SDK 的 `dotnet test` 无法驱动它
 #（"Testing with VSTest target is no longer supported"）。请先构建一次，
 # 然后直接调用测试可执行文件。
-dotnet build Tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
-./Tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
+dotnet build tests/Deltempo.Tests/Deltempo.Tests.csproj -c Release
+./tests/Deltempo.Tests/bin/Release/net10.0-windows/Deltempo.Tests.exe --filter "Category!=Benchmark"
 
 # 打包独立的单文件发布二进制（GUI 与 CLI）
 pwsh -ExecutionPolicy Bypass -File scripts/build_release_exe.ps1

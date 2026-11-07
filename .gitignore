@@ -199,11 +199,11 @@ temp/
 tmp/
 .tmp_*.js
 .tmp_*
-# NOTE: scripts/vendor/ holds the vendored third-party browser bundle (force-graph.min.js) and is
-# SOURCE, not build output -- it must stay tracked. graphify-out/ below is ignored, so the committed
-# copy in scripts/vendor/ is the only thing that lets a fresh clone regenerate a graph that renders
-# with no network at all. If you ever ignore "vendor/" or "*.min.js", that offline guarantee silently
-# disappears and the page will still appear to work online because of the CDN fallback.
+# NOTE: graphify-out/ is output of the upstream `graphify` CLI (see PROJECT_MAP.md,
+# "Rebuilding"); it is regenerable, so it stays out of git. The page graphify emits loads
+# vis-network from a CDN, so a committed copy would not render offline anyway — there is no
+# vendored browser bundle to preserve, and scripts/generate_graphify.ps1 is now only a
+# wrapper around that CLI.
 graphify-out/
 GRAPHIFY.md
 vault/
@@ -285,3 +285,8 @@ nav-shots*/**
 live-repo.json
 live-protection.json
 live-labels.json
+
+# Understand-Anything: the committed graph lives in .ua/, scratch output does not.
+.ua/intermediate/
+.ua/tmp/
+.ua/.trash-*/

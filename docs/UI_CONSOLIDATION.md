@@ -68,7 +68,7 @@ limited to UI-adjacent pieces (ThemeService, DwmBackdropService — WPF-only vis
 The consolidation thesis in one line: **the WinUI head has an untested WPF twin whose domain
 behavior MIRROR does exist (the ViewModels); the WPF head carries all of its logic inside
 untestable partial-behind code.** Moving domain flow out of `MainWindow.*.cs` partials into
-Core-side ViewModels (like `Core/ViewModels/CleaningPipelineViewModel.cs` already does for one
+Core-side ViewModels (like `src/Deltempo.Core/ViewModels/CleaningPipelineViewModel.cs` already does for one
 surface) is the highest-leverage testability work available — irrespective of which head wins.
 
 ## 5. Dependency cost per head
