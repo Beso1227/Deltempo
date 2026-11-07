@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using WinTempCleaner.Models;
 
@@ -31,6 +32,18 @@ namespace WinTempCleaner.Services;
 public static class InstallLocationOwnership
 {
     private static readonly HashSet<string> StandardInstallRoots = BuildStandardInstallRoots();
+
+    /// <summary>
+    /// Suffixes that may follow an app's name without turning the match into a different
+    /// product: "PDFgearPortable" and "PDFgear Setup" are the same app, "Visual Studio Code"
+    /// is not "Visual Studio". Accepting any remainder would claim a neighbour's folder.
+    /// </summary>
+    private static readonly HashSet<string> AllowedNameSuffixes = new(StringComparer.Ordinal)
+    {
+        "portable", "setup", "installer", "install", "app", "desktop", "client", "player",
+        "viewer", "beta", "alpha", "insiders", "canary", "nightly", "stable", "x64", "x86",
+        "arm64", "win32", "win64", "msi"
+    };
 
     /// <summary>True when <paramref name="directoryPath"/> is provably this app's own folder.</summary>
     public static bool IsDirectoryOwnedByApp(InstalledAppItem? app, string? directoryPath)
@@ -147,10 +160,23 @@ public static class InstallLocationOwnership
             string known = Normalize(identity.Name);
             if (known.Length < 3) continue;
 
-            // Equality covers the normal case; the prefix check covers versioned and
-            // suffixed folders ("PDFgear 1.2.3", "PDFgearPortable").
-            if (normalized.Equals(known, StringComparison.Ordinal) ||
-                normalized.StartsWith(known, StringComparison.Ordinal))
+            // Equality covers the normal case. A prefix is only accepted when the remainder
+            // is a version number ("PDFgear 1.2.3" -> "pdfgear123") or a known distribution
+            // qualifier ("PDFgearPortable"). Any other remainder belongs to a different
+            // product that merely shares the prefix ("Visual Studio Code").
+            if (normalized.Equals(known, StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            if (!normalized.StartsWith(known, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            string remainder = normalized[known.Length..];
+            if (remainder.Length > 0 &&
+                (remainder.All(char.IsDigit) || AllowedNameSuffixes.Contains(remainder)))
             {
                 return true;
             }
@@ -175,6 +201,26 @@ public static class InstallLocationOwnership
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// True when <paramref name="path"/> is one of the standard install roots or lives beneath
+    /// one. Used to decide whether removing an empty parent folder is routine vendor cleanup
+    /// (inside Program Files) or the destruction of a user-owned shared container.
+    /// </summary>
+    public static bool IsUnderStandardInstallRoot(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return false;
+
+        try
+        {
+            return IsInsideStandardInstallRoot(Path.GetFullPath(path).TrimEnd('\\', '/'));
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static bool IsInsideStandardInstallRoot(string directory)
@@ -215,7 +261,9 @@ public static class InstallLocationOwnership
         var builder = new StringBuilder(value.Length);
         foreach (char c in value)
         {
-            if (char.IsLetterOrDigit(c))
+            // '+' and '#' are part of product names ("Notepad++", "C#"). Folding them away
+            // made "Notepad" own the "Notepad++" folder - a different application.
+            if (char.IsLetterOrDigit(c) || c == '+' || c == '#')
                 builder.Append(char.ToLowerInvariant(c));
         }
 

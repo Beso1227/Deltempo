@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -642,27 +643,38 @@ public static partial class CliRunner
         return 0;
     }
 
-    private static long ParseBytes(string? raw, long defaultVal)
+    internal static long ParseBytes(string? raw, long defaultVal)
     {
         if (string.IsNullOrWhiteSpace(raw)) return defaultVal;
         string clean = raw.Trim().ToUpperInvariant();
 
-        if (clean.EndsWith("GB") && double.TryParse(clean[..^2], out double gbs))
+        // Sizes are written with a dot in every document and in the app's own output, but
+        // double.TryParse defaults to the current culture: on a de-DE machine "1.5GB" parsed
+        // as 15 GB because '.' is the group separator there. Parse invariant first, then fall
+        // back to the user's culture so "1,5GB" still works locally.
+        if (clean.EndsWith("GB") && TryParseDecimal(clean[..^2], out double gbs))
             return (long)(gbs * 1024 * 1024 * 1024);
-        if (clean.EndsWith("G") && double.TryParse(clean[..^1], out double g))
+        if (clean.EndsWith("G") && TryParseDecimal(clean[..^1], out double g))
             return (long)(g * 1024 * 1024 * 1024);
-        if (clean.EndsWith("MB") && double.TryParse(clean[..^2], out double mbs))
+        if (clean.EndsWith("MB") && TryParseDecimal(clean[..^2], out double mbs))
             return (long)(mbs * 1024 * 1024);
-        if (clean.EndsWith("M") && double.TryParse(clean[..^1], out double m))
+        if (clean.EndsWith("M") && TryParseDecimal(clean[..^1], out double m))
             return (long)(m * 1024 * 1024);
-        if (clean.EndsWith("KB") && double.TryParse(clean[..^2], out double kbs))
+        if (clean.EndsWith("KB") && TryParseDecimal(clean[..^2], out double kbs))
             return (long)(kbs * 1024);
-        if (clean.EndsWith("K") && double.TryParse(clean[..^1], out double k))
+        if (clean.EndsWith("K") && TryParseDecimal(clean[..^1], out double k))
             return (long)(k * 1024);
-        if (long.TryParse(clean, out long bytes))
+        if (long.TryParse(clean, NumberStyles.Integer, CultureInfo.InvariantCulture, out long bytes) ||
+            long.TryParse(clean, NumberStyles.Integer, CultureInfo.CurrentCulture, out bytes))
             return bytes;
 
         return defaultVal;
+    }
+
+    private static bool TryParseDecimal(string text, out double value)
+    {
+        return double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value)
+            || double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
     }
 
     private static string GetProgressBar(double percentage, int width = 20)

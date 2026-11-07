@@ -83,7 +83,7 @@ public static class RootLeftoverPurgeService
                             break;
 
                         case LeftoverType.Directory:
-                            PurgeDirectory(item, result);
+                            PurgeDirectory(item, result, app);
                             break;
 
                         case LeftoverType.RegistryValue:
@@ -160,9 +160,15 @@ public static class RootLeftoverPurgeService
 
         // Only judge items that overlap the install location: the folder itself, something
         // inside it, or one of its ancestors.
-        bool overlaps = InstallLocationOwnership.IsUnderOrEqual(install, target) ||
-                        InstallLocationOwnership.IsUnderOrEqual(target, install);
-        if (!overlaps) return false;
+        bool targetUnderInstall = InstallLocationOwnership.IsUnderOrEqual(install, target);
+        bool targetContainsInstall = InstallLocationOwnership.IsUnderOrEqual(target, install);
+        if (!targetUnderInstall && !targetContainsInstall) return false;
+
+        // An ancestor of the install location is never the app's to delete. Without this,
+        // a name-owned install folder ("D:\Setups\PDFgear") would bless "D:\Setups" itself -
+        // the shared container the app merely lives in - and a recursive delete would take
+        // every other application with it.
+        if (!targetUnderInstall) return true;
 
         // A name-proven install folder owns everything beneath it.
         if (InstallLocationOwnership.IsDirectoryOwnedByApp(app, install))
@@ -172,6 +178,28 @@ public static class RootLeftoverPurgeService
         return item.Type == LeftoverType.Directory
             ? !InstallLocationOwnership.IsDirectoryOwnedByApp(app, target)
             : !InstallLocationOwnership.IsFileOwnedByApp(app, target, install);
+    }
+
+    /// <summary>
+    /// Decides whether an empty parent folder may be removed after its child was purged.
+    ///
+    /// The parent is routinely a publisher folder ("C:\Program Files\Vendor") and removing it
+    /// keeps the tree tidy. It can also be the app's install location itself - the shared
+    /// container the app happened to be installed into ("D:\Setups"). That folder belongs to
+    /// the user, so purging the app-named child must leave it in place even when it is empty.
+    /// </summary>
+    private static bool CanRemoveEmptyParent(string parentPath, InstalledAppItem? app)
+    {
+        if (app is null || string.IsNullOrWhiteSpace(app.InstallLocation))
+            return true;
+
+        bool parentIsInstallOrAncestor =
+            InstallLocationOwnership.IsUnderOrEqual(parentPath, app.InstallLocation);
+
+        // Outside the standard roots an ancestor is a user-owned container; inside Program
+        // Files / LocalAppData\Programs it is ordinary vendor cleanup.
+        return !parentIsInstallOrAncestor ||
+               InstallLocationOwnership.IsUnderStandardInstallRoot(parentPath);
     }
 
     private static void PurgeFile(LeftoverItem item, PurgeResult res)
@@ -309,7 +337,7 @@ public static class RootLeftoverPurgeService
         return found;
     }
 
-    private static void PurgeDirectory(LeftoverItem item, PurgeResult res)
+    private static void PurgeDirectory(LeftoverItem item, PurgeResult res, InstalledAppItem? app)
     {
         if (string.IsNullOrWhiteSpace(item.PathOrKey) || !Directory.Exists(item.PathOrKey)) return;
 
@@ -384,7 +412,8 @@ public static class RootLeftoverPurgeService
                 if (parent != null &&
                     parent.Exists &&
                     InstalledAppService.IsSafeToDeleteResidual(parent.FullName) &&
-                    !parent.EnumerateFileSystemInfos().Any())
+                    !parent.EnumerateFileSystemInfos().Any() &&
+                    CanRemoveEmptyParent(parent.FullName, app))
                 {
                     parent.Delete();
                 }

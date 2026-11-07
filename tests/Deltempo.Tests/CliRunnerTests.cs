@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using WinTempCleaner.Services;
 using Xunit;
@@ -230,5 +231,27 @@ public class CliRunnerTests : IDisposable
     {
         int exitCode = await CliRunner.RunAsync(new[] { "register", "--status" });
         Assert.Equal(0, exitCode);
+    }
+
+    /// <summary>
+    /// Sizes are written with a dot everywhere in the app and its documentation. On a de-DE
+    /// machine '.' is the group separator, so the old culture-sensitive parse read "1.5GB" as
+    /// 15 GB. The invariant parse must win regardless of the user's locale.
+    /// </summary>
+    [Fact]
+    public void CliRunner_ParseBytes_UsesInvariantDecimalSeparator()
+    {
+        CultureInfo original = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+
+            Assert.Equal((long)(1.5 * 1024 * 1024 * 1024), CliRunner.ParseBytes("1.5GB", 0));
+            Assert.Equal((long)(0.5 * 1024 * 1024), CliRunner.ParseBytes("0.5MB", 0));
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = original;
+        }
     }
 }

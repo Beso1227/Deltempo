@@ -373,6 +373,95 @@ public class RootLeftoverScannerTests
     }
 
     /// <summary>
+    /// A name-owned install folder must not bless its ancestors. When the app really does own
+    /// "D:\Setups\Contoso Widget", the scanner may propose that folder - but "D:\Setups" is
+    /// still the shared container every other app lives in, and a recursive delete of it would
+    /// destroy data this app never owned.
+    /// </summary>
+    [Fact]
+    public async Task PurgeLeftovers_AncestorOfAppOwnedInstallFolder_IsRefused()
+    {
+        string container = Path.Combine(Path.GetTempPath(), $"DeltempoAncestorPurge_{Guid.NewGuid():N}");
+        string appDir = Path.Combine(container, "Contoso Widget");
+        string unrelatedInstaller = Path.Combine(container, "OtherApp-Setup.exe");
+
+        Directory.CreateDirectory(appDir);
+        File.WriteAllText(Path.Combine(appDir, "widget.dll"), "payload");
+        File.WriteAllText(unrelatedInstaller, "unrelated");
+
+        try
+        {
+            var app = new InstalledAppItem
+            {
+                DisplayName = "Contoso Widget",
+                InstallLocation = appDir
+            };
+
+            var items = new List<LeftoverItem>
+            {
+                new LeftoverItem { Type = LeftoverType.Directory, PathOrKey = container, IsSelected = true }
+            };
+
+            var result = await RootLeftoverPurgeService.PurgeLeftoversAsync(items, app);
+
+            Assert.True(Directory.Exists(container), "the shared container must survive");
+            Assert.True(Directory.Exists(appDir), "the app's own install folder must survive an ancestor purge");
+            Assert.True(File.Exists(unrelatedInstaller), "unrelated installers must survive");
+            Assert.Equal(0, result.ItemsPurgedCount);
+            Assert.Equal(1, result.ErrorsCount);
+        }
+        finally
+        {
+            if (Directory.Exists(container))
+            {
+                Directory.Delete(container, true);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Purging the app-named child empties the shared container, but the container itself is
+    /// user-owned and must be left in place. The empty-parent sweep is meant for publisher
+    /// folders under Program Files, not for a folder the user chose as an install target.
+    /// </summary>
+    [Fact]
+    public async Task PurgeLeftovers_EmptySharedInstallContainer_SurvivesChildPurge()
+    {
+        string container = Path.Combine(Path.GetTempPath(), $"DeltempoEmptyShared_{Guid.NewGuid():N}");
+        string appDir = Path.Combine(container, "Contoso Widget");
+
+        Directory.CreateDirectory(appDir);
+        File.WriteAllText(Path.Combine(appDir, "widget.dll"), "payload");
+
+        try
+        {
+            var app = new InstalledAppItem
+            {
+                DisplayName = "Contoso Widget",
+                InstallLocation = container
+            };
+
+            var items = new List<LeftoverItem>
+            {
+                new LeftoverItem { Type = LeftoverType.Directory, PathOrKey = appDir, IsSelected = true }
+            };
+
+            var result = await RootLeftoverPurgeService.PurgeLeftoversAsync(items, app);
+
+            Assert.False(Directory.Exists(appDir), "the app-named folder should be purged");
+            Assert.True(Directory.Exists(container), "the shared container must survive even when empty");
+            Assert.Equal(1, result.ItemsPurgedCount);
+        }
+        finally
+        {
+            if (Directory.Exists(container))
+            {
+                Directory.Delete(container, true);
+            }
+        }
+    }
+
+    /// <summary>
     /// The ownership guard must not block a folder that really is the app's own install
     /// directory, otherwise legitimate leftover cleanup stops working.
     /// </summary>
@@ -415,8 +504,11 @@ public class RootLeftoverScannerTests
     [Theory]
     [InlineData("PDFgear 1.2.3", "PDFgear", true)]
     [InlineData("PDFgear 1.2.3", "PDFgearPortable", true)]
+    [InlineData("PDFgear 1.2.3", "PDFgear 1.2.3", true)]
     [InlineData("PDFgear 1.2.3", "Setups", false)]
     [InlineData("Adobe Acrobat Reader", "Adobe", false)]
+    [InlineData("Visual Studio", "Visual Studio Code", false)]
+    [InlineData("Notepad", "Notepad++", false)]
     public void InstallLocationOwnership_DirectoryOwnership_IsNameBased(
         string displayName, string folderName, bool expected)
     {
