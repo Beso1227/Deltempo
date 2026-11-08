@@ -41,6 +41,12 @@
     <ApplicationManifest Condition="'$(DeltempoMSIX)' == 'true'">app.store.manifest</ApplicationManifest>
     <ApplicationManifest Condition="'$(DeltempoMSIX)' != 'true'">app.manifest</ApplicationManifest>
 
+    <!-- The Store package is re-signed by Microsoft, so the About screen's
+         "this executable is not yet code-signed" note is false there. The
+         constant lets that one paragraph compile out of the Store flavor
+         without touching the portable/preview build. -->
+    <DefineConstants Condition="'$(DeltempoMSIX)' == 'true'">$(DefineConstants);DELTEMPO_MSIX</DefineConstants>
+
     <!-- Same .ico as the shipped WPF head: the exe carries it into Explorer,
          Task Manager, Alt-Tab and the taskbar before any window is shown. -->
     <ApplicationIcon>..\Deltempo.App.Wpf\app.ico</ApplicationIcon>

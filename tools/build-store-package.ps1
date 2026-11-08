@@ -9,32 +9,80 @@
 # on, so the package can be produced deterministically on this machine,
 # on CI, and on any contributor's box without installing VS.
 #
-# Output: packaging/Store/out/<arch>/*.msix (unsigned; the Store resigns
-# on submission, matching /p:AppxPackageSigningEnabled=false in the
-# documented Store workflow). Partner Center accepts the .msix directly.
+# Output: packaging/Store/out/<Identity>_<Version>_<arch>.msix (unsigned; the
+# Store resigns on submission, matching /p:AppxPackageSigningEnabled=false in
+# the documented Store workflow). Partner Center accepts the .msix directly.
+#
+# Identity and architecture are build inputs, not repo state: the committed
+# Package.appxmanifest is a template with visible placeholders, and this script
+# rewrites the STAGED copy. That way a real identity can never be mistaken for
+# the current one, and the same script serves the CI dry run, a local test
+# build, and the actual submission.
+#
+#   # CI / local dry run before the Partner Center account exists:
+#   .\tools\build-store-package.ps1 -AllowPlaceholder
+#
+#   # Real submission build (values copied from Partner Center):
+#   .\tools\build-store-package.ps1 -IdentityName 1234Publisher.Deltempo `
+#       -Publisher "CN=1A2B3C4D-..." -PublisherDisplayName "Your Name"
+#
+#   # Local install test (see tools/test-store-package.ps1, which passes these):
+#   .\tools\build-store-package.ps1 -IdentityName DeltempoStoreTest `
+#       -Publisher "CN=Deltempo Store Test"
 
 param(
-    # Publish folder to package. Defaults to the Store-flavor publish output.
-    # If it is empty and -SkipPublish is not set, the script publishes first.
+    # Publish folder to package. Defaults to the Store-flavor publish output for
+    # -Architecture. If it is empty and -SkipPublish is not set, the script
+    # publishes first.
     [string]$PublishDir = "",
 
     # Reuse an existing publish folder as-is.
-    [switch]$SkipPublish
+    [switch]$SkipPublish,
+
+    # Partner Center identity: the Name shown on the app-identity page. Defaults
+    # to the template placeholder, which requires -AllowPlaceholder.
+    [string]$IdentityName = "DeltempoWinUIPreview",
+
+    # Partner Center Publisher, exactly as shown (starts with "CN="). The
+    # package Publisher and the reserved identity must match or the upload is
+    # rejected - never guess this value.
+    [string]$Publisher = "CN=Placeholder-Publisher",
+
+    # Product name shown in the Store and in the package. Not the identity Name.
+    [string]$DisplayName = "Deltempo",
+
+    # Publisher display name (the seller name on the listing).
+    [string]$PublisherDisplayName = "Deltempo",
+
+    # Architecture of the payload. The package MUST declare one: an omitted
+    # ProcessorArchitecture means "neutral", which would offer an x64-only
+    # payload to ARM64 devices.
+    [ValidateSet("x64", "arm64")]
+    [string]$Architecture = "x64",
+
+    # CI produces a placeholder-identity artifact before the Partner Center
+    # account exists. It must be requested explicitly - a silently placeholder
+    # package is exactly the green build that must never be uploaded.
+    [switch]$AllowPlaceholder
 )
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 
+# Windows PowerShell 5.1 does not load System.Xml.Linq by default, and the
+# staged-manifest rewrite needs XDocument. No-op on PowerShell 7.
+Add-Type -AssemblyName System.Xml.Linq
+
 # --- 1. Ensure the Store-flavor publish payload exists.
 if (-not $PublishDir) {
     $PublishDir = Join-Path $repoRoot `
-        "src\Deltempo.App.WinUI\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish"
+        ("src\Deltempo.App.WinUI\bin\Release\net10.0-windows10.0.19041.0\win-{0}\publish" -f $Architecture)
 }
 if (-not (Test-Path (Join-Path $PublishDir "Deltempo.WinUI.exe"))) {
     if ($SkipPublish) {
         throw "No publish payload at $PublishDir; remove -SkipPublish to publish first."
     }
     dotnet publish (Join-Path $repoRoot "src\Deltempo.App.WinUI\Deltempo.App.WinUI.csproj") `
-        -c Release -r win-x64 --self-contained true -p:DeltempoMSIX=true
+        -c Release -r ("win-{0}" -f $Architecture) --self-contained true -p:DeltempoMSIX=true
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed ($LASTEXITCODE)." }
 }
 
@@ -97,7 +145,10 @@ if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $outDir, $staging | Out-Null
 
 Copy-Item (Join-Path $PublishDir "*") $staging -Recurse -Force
-Get-ChildItem $staging -Recurse -Include *.pdb -File |
+# Symbols are an optional submission add-on, never runtime payload. Logs are
+# run artifacts too: shell-startup.log is written next to the exe, so a publish
+# folder that has been launched once carries one - it must not ship.
+Get-ChildItem $staging -Recurse -File -Include *.pdb, *.log |
     Remove-Item -Force
 Copy-Item (Join-Path $repoRoot "src\Deltempo.App.WinUI\packaging\Store\Package.appxmanifest") `
     (Join-Path $staging "AppxManifest.xml")
@@ -113,13 +164,63 @@ if (-not (Test-Path (Join-Path $staging "Deltempo.WinUI.pri"))) {
     throw "Staging folder has no Deltempo.WinUI.pri; the package would crash on boot. Republish with the current csproj."
 }
 
-# --- 4. Read the identity version for the output file name.
-$manifestText = [IO.File]::ReadAllText((Join-Path $repoRoot "src\Deltempo.App.WinUI\packaging\Store\Package.appxmanifest"))
-$version = [regex]::Match($manifestText, 'Version\s*=\s*"([^"]+)"').Groups[1].Value
-$identity = [regex]::Match($manifestText, 'Name\s*=\s*"([^"]+)"').Groups[1].Value
-$output = Join-Path $outDir ("{0}_{1}_x64.msix" -f $identity, $version)
+# --- 4. Identity of record: rewrite the STAGED manifest only.
+#
+# The committed template keeps its placeholders on purpose. Everything below
+# touches the staging copy, so the repo can never carry a real identity that
+# has drifted from Partner Center.
+$stagedManifest = Join-Path $staging "AppxManifest.xml"
 
-# --- 5. Pack. makeappx validates the manifest (schema, references, sizes).
+# The package version comes from the same AssemblyVersion the shell's footer
+# shows, so the package and the UI cannot disagree.
+$version = [regex]::Match(
+    [IO.File]::ReadAllText((Join-Path $repoRoot "Directory.Build.props")),
+    '<AssemblyVersion>([\d.]+)</AssemblyVersion>').Groups[1].Value
+if ($version -notmatch '^\d+\.\d+\.\d+\.\d+$') {
+    throw "AssemblyVersion in Directory.Build.props is not a 4-part MSIX version (got '$version')."
+}
+
+if (-not $AllowPlaceholder) {
+    if ($IdentityName -eq "DeltempoWinUIPreview" -or $Publisher -eq "CN=Placeholder-Publisher") {
+        throw ("Refusing to pack a placeholder identity. Reserve the app name in Partner Center " +
+            "(docs/PUBLISHING_MICROSOFT_STORE.md section 1), then pass -IdentityName and -Publisher " +
+            "exactly as the app-identity page shows them. Use -AllowPlaceholder only for a CI dry run.")
+    }
+    if ($Publisher -notmatch '^CN=') {
+        throw "Publisher must be the full Partner Center value, which starts with 'CN=' (got '$Publisher')."
+    }
+}
+
+$doc = [System.Xml.Linq.XDocument]::Load(
+    $stagedManifest, [System.Xml.Linq.LoadOptions]::PreserveWhitespace)
+$fns = [System.Xml.Linq.XNamespace]::Get("http://schemas.microsoft.com/appx/manifest/foundation/windows10")
+$uapns = [System.Xml.Linq.XNamespace]::Get("http://schemas.microsoft.com/appx/manifest/uap/windows10")
+
+$identityNode = $doc.Root.Element($fns + "Identity")
+if ($null -eq $identityNode) { throw "Staged AppxManifest.xml has no Package/Identity element." }
+$identityNode.SetAttributeValue("Name", $IdentityName)
+$identityNode.SetAttributeValue("Publisher", $Publisher)
+$identityNode.SetAttributeValue("Version", $version)
+$identityNode.SetAttributeValue("ProcessorArchitecture", $Architecture)
+
+foreach ($node in $doc.Descendants($fns + "DisplayName")) { $node.Value = $DisplayName }
+foreach ($node in $doc.Descendants($fns + "PublisherDisplayName")) { $node.Value = $PublisherDisplayName }
+foreach ($node in $doc.Descendants($uapns + "VisualElements")) { $node.SetAttributeValue("DisplayName", $DisplayName) }
+
+$doc.Save($stagedManifest)
+
+Write-Host ("Identity: Name={0} Publisher={1} Version={2} Architecture={3}" -f `
+    $IdentityName, $Publisher, $version, $Architecture)
+
+# --- 5. The output name follows the identity and architecture, never a literal.
+$output = Join-Path $outDir ("{0}_{1}_{2}.msix" -f $IdentityName, $version, $Architecture)
+
+# One run produces one artifact. Leaving a previous run's package next to this
+# one is how a placeholder-identity build ends up uploaded by mistake.
+Get-ChildItem $outDir -Filter *.msix -File -ErrorAction SilentlyContinue |
+    Remove-Item -Force
+
+# --- 6. Pack. makeappx validates the manifest (schema, references, sizes).
 & $makeappx.FullName pack /o /p $output /d $staging | Out-Host
 if ($LASTEXITCODE -ne 0) {
     throw "makeappx pack failed ($LASTEXITCODE). Fix the manifest errors above; do not ship an .msix that only existed because validation was skipped."

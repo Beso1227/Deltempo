@@ -434,8 +434,13 @@ jobs:
         # runs makeappx pack from the Microsoft.Windows.SDK.BuildTools
         # NuGet (restored above). makeappx schema-validates the manifest;
         # the script fails closed on any packaging error.
+        #
+        # -AllowPlaceholder is explicit: until the Partner Center account
+        # exists this job can only prove the pipeline, and the artifact it
+        # uploads must never be mistaken for a submission. A real build
+        # omits the switch and the script then refuses placeholder identity.
         shell: pwsh
-        run: powershell -ExecutionPolicy Bypass -File tools/build-store-package.ps1 -SkipPublish
+        run: powershell -ExecutionPolicy Bypass -File tools/build-store-package.ps1 -SkipPublish -Architecture x64 -AllowPlaceholder
 
       - name: Verify the Signed-Submission Artifact Exists
         # Fail closed: a green job with no .msix is exactly the failure mode

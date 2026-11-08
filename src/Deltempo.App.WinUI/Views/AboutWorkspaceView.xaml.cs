@@ -20,6 +20,12 @@ public sealed partial class AboutWorkspaceView : UserControl
         InitializeComponent();
 
         VersionText.Text = BuildVersionLine();
+
+#if DELTEMPO_MSIX
+        // The Store re-signs the package with a Microsoft certificate, so the
+        // "not yet code-signed" note is only true for the portable download.
+        SmartScreenNote.Visibility = Visibility.Collapsed;
+#endif
     }
 
     private static string BuildVersionLine()

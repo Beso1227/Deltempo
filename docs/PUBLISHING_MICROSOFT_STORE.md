@@ -1,8 +1,14 @@
 # Publishing the Deltempo WinUI Shell to the Microsoft Store
 
-Status: **plan, not yet started.** The WPF head stays the GitHub release channel as
-shipped today; this plan is only about the WinUI 3 shell (`src/Deltempo.App.WinUI`,
-currently unpackaged `WindowsPackageType=None`).
+Status: **in progress (2026-11-08).** Gates 1–4 are done or done-with-a-manual-tail;
+the pipeline produces a schema-validated `.msix` that installs and launches under
+a test identity, and refuses a placeholder identity unless explicitly allowed.
+What remains is the free Partner Center account (name reservation → real identity
+values), pasting the listing copy and screenshots from section 7 into the
+submission form, and one human pass over the packaged UI. The WPF
+head stays the GitHub release channel as shipped today; this plan is only about
+the WinUI 3 shell (`src/Deltempo.App.WinUI`, `WindowsPackageType=None` — now
+proven to run inside a package, see section 6).
 
 The gate the plan exists to satisfy: the shell must keep sharing
 `Deltempo.Core` with the shipping app unchanged, must keep its own
@@ -12,12 +18,27 @@ workarounds.
 
 ## 1. Identity and signing (decide first, everything else follows)
 
+- **The account is free.** Both Individual and Company developer accounts have no
+  registration fee (individual fee removed 2025-09-10, company fee removed
+  2026-05-07); onboard at <https://storedeveloper.microsoft.com>, not through the
+  legacy Partner Center entry points. Individual onboarding needs a personal
+  Microsoft account plus government-ID + selfie verification; company onboarding
+  adds business verification. No credit card, no subscription.
+- **No certificate to buy.** MSIX/AppX packages submitted to the Store do not need
+  a CA-trusted signature - the Store re-signs every package with a Microsoft
+  certificate after certification. A paid certificate is only required for the
+  MSI/EXE submission path or for distributing the MSIX outside the Store. This is
+  why the pipeline produces an unsigned package on purpose.
 - Create the Store listing in Partner Center first, then copy the **Package/Properties
-  identity values** (Name, Publisher CN, PublisherId) — the `Publisher` in the package
+  identity values** (Name, Publisher CN, PublisherId) - the `Publisher` in the package
   manifest must equal whichever identity Partner Center assigns. Do not guess.
+  `tools/build-store-package.ps1` takes them as `-IdentityName` / `-Publisher` and
+  rewrites the staged manifest; the committed template keeps its placeholders.
 - Version scheme: `Major.Minor.Build.Rev` monotonically above the current WinUI shell
   version (`v{Assembly.Version} A·WinUI 3` in `MainWindow.xaml.cs:FooterVersion`), not
-  above the WPF release numbers; independent tracks on purpose.
+  above the WPF release numbers; independent tracks on purpose. The pack script reads
+  `AssemblyVersion` from `Directory.Build.props`, so the package and the footer cannot
+  disagree.
 - Store submissions are unsigned by us: remove any personal signing step for the
   Store flavor and let the Store resign. Keep the portable/GitHub flavor's signing
   posture untouched (THREAT_MODEL §2.5 checksum gate must keep verifying GitHub
@@ -61,14 +82,20 @@ the working pipeline is `tools/build-store-package.ps1`:
    worse than the honest script.
 3. **Winner — `tools/build-store-package.ps1`**: `dotnet publish` (Store flavor,
    `-p:DeltempoMSIX=true`) → staging (manifest lands as the package root's
-   `AppxManifest.xml`, generated logos in place, PDBs pruned) → `makeappx pack`
+   `AppxManifest.xml`, generated logos in place, PDBs and stray `*.log` run
+   artifacts pruned — `shell-startup.log` is written next to the exe, so a
+   publish folder that has been launched once would otherwise ship its log) →
+   `makeappx pack`
    resolved from the `Microsoft.Windows.SDK.BuildTools` NuGet the repo already
    depends on. makeappx schema-validates the manifest (it caught a parenthesised
    and an out-of-schema attribute during bring-up) and the script fails closed
    on any packaging error. No Visual Studio anywhere in the chain. Output:
-   `packaging/Store/out/<Identity>_<Version>_x64.msix`, unsigned — the Store
+   `packaging/Store/out/<Identity>_<Version>_<arch>.msix`, unsigned — the Store
    resigns after submission, matching `/p:AppxPackageSigningEnabled=false` in
-   the documented Store workflow.
+   the documented Store workflow. One run produces one artifact: the script
+   clears previous packages from `packaging/Store/out/` first, because a stale
+   placeholder-identity build next to a real one is how the wrong file gets
+   uploaded.
 
 Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`):
 
@@ -77,8 +104,18 @@ Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`)
   element**, and the package must carry the `runFullTrust` restricted capability.
   That capability is scope, not elevation — the Store flavor still starts
   unelevated per `app.store.manifest`.
-- Placeholders remain until Section 2's Partner Center copy step: identity
-  `DeltempoWinUIPreview` / `CN=Placeholder-Publisher`.
+- **Identity is a build input, not repo state.** The committed
+  `Package.appxmanifest` keeps `DeltempoWinUIPreview` / `CN=Placeholder-Publisher`
+  so a stale real identity can never be mistaken for the current one; the script
+  rewrites the **staged** copy from `-IdentityName` / `-Publisher` /
+  `-DisplayName` / `-PublisherDisplayName`, and refuses a placeholder identity
+  unless `-AllowPlaceholder` is passed (CI's dry run is the only caller that
+  does). Version comes from `AssemblyVersion` in `Directory.Build.props`.
+- **Architecture is declared, never implied.** `<Identity ProcessorArchitecture>`
+  is required: omitting it declares the package "neutral", which would offer an
+  x64-only self-contained payload to ARM64 devices. `-Architecture x64|arm64`
+  sets it and the output filename together — the old hardcoded `_x64.msix` was
+  cosmetic and is gone.
 
 - Keep `WindowsAppSDKSelfContained=true` and `SelfContained=true` — the Store
   package must not need a separate runtime installer.
@@ -142,7 +179,11 @@ Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`)
   pinned by `StorePackagingAssetTests`); 310 is not required for a Win32
   full-trust submission.
 - Screenshots at least 1366×768 — the shell's default window is 1360×840, so
-  maximise it for the capture.
+  maximise it for the capture. **Progress 2026-11-08:** four 1900×990 captures
+  of the Store flavor exist and are regenerated by
+  `tools/capture-store-screenshots.ps1` (see section 7); the PNGs themselves
+  stay in gitignored `.internal/store-listing/` because they are build output,
+  not source.
 - A privacy policy URL is mandatory; "zero telemetry, all local" (README claim,
   enforced in the repo) is the pitch, but the crash log `%LOCALAPPDATA%\Deltempo\crash.log`
   still contains paths — say so in the policy in one sentence so review never bounces.
@@ -205,6 +246,42 @@ Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`)
    schema-validated `.msix` with `tools/build-store-package.ps1` (makeappx
    from the SDK BuildTools NuGet; no Visual Studio), fail-closed-verifies the
    package blob and uploads it plus the publish folder as artifacts.
+   **Identity and architecture parameterised 2026-11-08:** the job now passes
+   `-Architecture x64 -AllowPlaceholder` explicitly, and a real build omits
+   `-AllowPlaceholder` so a placeholder package cannot be produced by accident.
+   **Install verification added 2026-11-08:** `tools/test-store-package.ps1`
+   builds a test-identity package, signs it with a self-signed cert trusted in
+   `TrustedPeople`, installs it with `Add-AppxPackage`, launches it, records
+   where the data folder lands and whether a new crash entry appeared, then
+   removes it. A self-signed certificate can carry any subject, so the same
+   script can later verify the exact Partner Center identity before submission.
+   **Verified 2026-11-08:** the test package builds and `signtool sign` succeeds
+   (`DeltempoStoreTest_3.2.0.0_x64.msix`, identity `DeltempoStoreTest` /
+   `CN=Deltempo Store Test`). The trust gate then stops with exit code 1 and
+   prints the one command that needs elevation, because `Add-AppxPackage`
+   accepts only `LocalMachine\TrustedPeople` — `CurrentUser\TrustedPeople` was
+   measured and is **not** enough (`0x800B0109`, "root certificate of the
+   signature must be trusted"). Developer Mode and sideloading are both off on
+   this machine, so there is no unelevated install path at all.
+   **Install run 2026-11-08 (after one elevated `Import-Certificate`):**
+   `Add-AppxPackage` accepted the signed package unelevated, the package
+   registered as `DeltempoStoreTest_3.2.0.0_x64__bcfvmjkqmxwsp` with
+   `Architecture = X64`, the shell launched from
+   `shell:AppsFolder\<PFN>!DeltempoWinUI` and stayed up for the 10 s
+   observation window, `crash.log` was unchanged, and `Remove-AppxPackage`
+   unregistered it cleanly. Two facts to carry forward:
+   - **No data redirection.** The packaged shell wrote to
+     `%LOCALAPPDATA%\Deltempo` exactly as the portable flavor does — not into
+     `%LOCALAPPDATA%\Packages\<PFN>\LocalCache`. The privacy-policy paths and
+     the "data survives uninstall" decision therefore stay valid for the Store
+     channel unchanged.
+   - **Uninstall leaves user data.** `Remove-AppxPackage` removed the package
+     and its container but left `%LOCALAPPDATA%\Deltempo` (settings, caches,
+     quarantine, crash log), matching the portable channel's documented
+     behaviour rather than silently deleting the user's settings.
+   Still open from the manual checklist: the tray icon/flyout on a real
+   taskbar, the unelevated scan/clean pass, and the two elevation prompts —
+   those need a human eye with the package installed (`-KeepInstalled`).
 3. **Store logos + policy text** in the package manifest and this repo's docs.
    **Done 2026-10-30:** the logo set (16/44/50/71/150/256) is generated from
    `app.ico` per section 3 and pinned by tests; the privacy policy page
@@ -222,7 +299,120 @@ Manifest facts locked in by this bring-up (pinned in `StorePackagingAssetTests`)
 6. **Store-resign + review**: no action from us; keep the GitHub flavor's updates
    pipeline intact and independent.
 
-## 7. What NOT to do
+## 7. Store listing copy (paste-ready)
+
+Everything Partner Center asks for, written here so the submission form is a
+copy job rather than an authoring task. Only the product name and the identity
+values depend on the account (section 1); the rest is settled.
+
+**Product name.** Reserve `Deltempo` in Partner Center. If it is taken, the
+fallback is `Deltempo Cleaner` - the package `DisplayName` in
+`src/Deltempo.App.WinUI/packaging/Store/Package.appxmanifest` must then be
+changed to match, because the Store shows the manifest name under the tile.
+Reservation is the user's step: it needs the MSA login and ID verification.
+
+**Category.** Utilities & tools -> PC management.
+
+**Short description** (256-character field):
+
+> Safety-first Windows maintenance: a precision storage cleaner, native memory
+> optimizer, startup manager, app uninstaller and system repair console. Open
+> source, zero telemetry, no ads and no upsells.
+
+**Description** (10,000-character field; this is ~2,300):
+
+> Deltempo is an open-source Windows maintenance suite built around one rule:
+> never delete something the user did not agree to lose.
+>
+> **Precision storage cleaner.** Scans disposable data across Windows, browser,
+> developer and gaming locations - temp folders, thumbnail and icon caches,
+> update leftovers, NuGet/npm/pip/Cargo/Gradle caches, GPU shader caches and
+> stale logs. Every candidate is classified into a risk tier and shown with its
+> size before anything is removed.
+>
+> **Safety architecture, not a promise.** Cleaning runs SCAN -> PLAN -> PROTECT
+> -> REVALIDATE -> CLEAN. Paths are bounded to authorised roots, revalidated
+> immediately before removal, and recorded in a transaction journal you can
+> read afterwards. Load-bearing caches that only look disposable - MSI source
+> caches, per-user .NET SDK installs, driver vendor roots, Cargo registry
+> sources - are refused by design.
+>
+> **Native memory optimizer.** Flushes standby page lists and trims inactive
+> working sets through the Windows NT kernel calls (NtSetSystemInformation,
+> EmptyWorkingSet) rather than a simulated "RAM boost".
+>
+> **Startup manager with verdicts.** Explains what happens if an entry is
+> disabled - safe, caution or risky - from offline heuristics, so a boot entry
+> is not a blind toggle.
+>
+> **App uninstaller and leftover sweeper.** Silent bulk uninstall, leftover
+> AppData/ProgramData/registry trace cleanup, and a forced wipe for apps whose
+> own uninstaller is broken.
+>
+> **System repair.** Runs SFC, DISM and CHKDSK from one console with the output
+> streamed live, and asks for elevation only for the steps that need it.
+>
+> **Large file and process views.** Finds the files actually occupying a drive
+> and shows which processes hold memory, with live icons and working-set sizes.
+>
+> **Built for long sessions.** Obsidian Dark and Porcelain Slate Light themes,
+> right-to-left layout for Arabic, and a system tray guardian with live RAM
+> telemetry and one-click boost.
+>
+> **Privacy.** Zero telemetry. No account, no ads, no analytics, no network
+> call during scan, clean, memory or uninstall operations. Everything the app
+> writes stays in %LOCALAPPDATA%\Deltempo and is listed in the privacy policy.
+>
+> Open source under the MIT licence; the full source is on GitHub.
+
+**What's new in this version** (1,500-character field):
+
+> First Microsoft Store release of the Deltempo desktop shell.
+>
+> - Runs as a standard user and asks for elevation only for the operations that
+>   require it (system repair, restore-point removal), instead of starting
+>   elevated.
+> - Native WinUI 3 interface with the same Deltempo.Core engine as the portable
+>   build, so scan, clean and memory behaviour is identical across channels.
+> - Full right-to-left layout for Arabic and the shell's shipped language set
+>   (English, Arabic, Spanish, French, German; the Cleaner workspace is fully
+>   translated, remaining workspaces follow).
+> - Store updates are delivered by the Store; the portable build keeps its own
+>   signed update channel.
+
+**Search terms** (seven, 30 characters each):
+
+`disk cleaner`, `storage cleanup`, `memory optimizer`, `app uninstaller`,
+`startup manager`, `sfc dism repair`, `open source utility`
+
+**Screenshots.** Four, 1900x990, in `.internal/store-listing/`
+(`01-cleaner.png`, `02-repair.png`, `03-settings.png`, `04-about.png`). They
+are gitignored scratch and are regenerated - not hand-edited - by
+`tools/capture-store-screenshots.ps1`, which launches the Store flavor
+(`-p:DeltempoMSIX=true`) so the About shot does not carry the portable build's
+"not yet code-signed" note. The Processes, Apps and Large Files views are
+deliberately absent: they show this machine's installed software and window
+titles, which is not the reviewer's business.
+
+**Age rating (IARC questionnaire).** No user-generated content, no chat, no
+advertising, no in-app purchases, no location or personal-data collection, no
+gambling, no violence, no mature content. Expected outcome: 3+ / Everyone.
+
+**System requirements.** Windows 10 version 2004 (build 19041) or later, x64
+(`TargetDeviceFamily` in the manifest is `Windows.Desktop`
+`MinVersion="10.0.19041.0"`). Self-contained: no separate .NET or Windows App
+SDK runtime install.
+
+**Privacy policy URL.** <https://beso1227.github.io/Deltempo/privacy.html> -
+the page section 4 already requires; it discloses the crash log's paths and
+the data folder that outlives uninstall (section 5).
+
+**Pricing and availability.** Free, no in-app purchases, no trial. Publish to
+all markets. The shell ships five languages (English, Arabic, Spanish, French,
+German) and Arabic gets native right-to-left flow; the localization is
+workspace-by-workspace, which is why the listing does not claim full coverage.
+
+## 8. What NOT to do
 
 - Do not merge the WPF and WinUI heads to "reuse the pipeline" — the parity tests
   and `docs/UI_CONSOLIDATION.md` retirement sequence are the planned convergence;

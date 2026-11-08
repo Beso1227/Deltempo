@@ -111,6 +111,7 @@
         </Border>
 
         <TextBlock Grid.Row="4"
+                   x:Name="SmartScreenNote"
                    Margin="0,10,0,0"
                    Text="If you see a Windows SmartScreen warning, it is because this executable is not yet code-signed with a trusted publisher certificate. The app is open source — you can inspect, build, and verify the code yourself at the link above."
                    FontSize="11"

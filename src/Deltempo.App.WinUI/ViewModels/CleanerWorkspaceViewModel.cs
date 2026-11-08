@@ -1,8 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using WinTempCleaner.Core.Scanning;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
 
@@ -444,18 +446,62 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
             TrackSelection(targets);
             ApplyTargets();
 
+            // Volume-partitioned scan: up to three folders per drive in flight, drives in
+            // parallel. WPF ran this exact coordinator (MainWindow.Cleaning.cs:54) and the
+            // preview's plain foreach was the last behavioural gap between the two heads -
+            // on a multi-drive machine the sequential loop walked each drive in turn.
+            //
+            // Partitioning keys on the volume the target's REAL directories live on rather
+            // than FolderPath: seventeen of the twenty-six default scopes carry a display
+            // string there ("Browser Web Caches", "VSS Shadow Storage (...)"), so keying on
+            // FolderPath would collapse them all into one partition and defeat the cap.
+            var velocity = new ScanVelocityTracker();
+            int totalTargets = targets.Count;
             int done = 0;
-            foreach (var target in targets)
-            {
-                token.ThrowIfCancellationRequested();
-                StatusText = $"Scanning ({done + 1}/{targets.Count}) {target.Name}...";
+            long lastUiUpdateTicks = Stopwatch.GetTimestamp();
 
-                await _cleanerService.ScanFolderAsync(target, Log, token, safeMode);
+            await VolumeScanCoordinator.ExecutePartitionedAsync(
+                targets,
+                target => VolumeScanCoordinator.ResolveVolumeKeyForTarget(
+                    target, CleanerService.ResolveDirectoriesForFolderPublic),
+                async (target, workerToken) =>
+                {
+                    await _cleanerService.ScanFolderAsync(target, Log, workerToken, safeMode);
+                    int completed = Interlocked.Increment(ref done);
+                    velocity.RecordProgress(target.SizeBytes, target.FileCount);
 
-                done++;
-                ProgressPercent = (double)done / targets.Count * DefaultScanShare;
-                ProgressText = $"{(int)ProgressPercent}%";
-            }
+                    // Four repaints a second is enough to read and cheap enough to skip;
+                    // the last target always paints so the bar cannot stop short of the
+                    // visible scan's share.
+                    long now = Stopwatch.GetTimestamp();
+                    if (completed != totalTargets &&
+                        Stopwatch.GetElapsedTime(Interlocked.Read(ref lastUiUpdateTicks), now).TotalMilliseconds < 250)
+                    {
+                        return;
+                    }
+
+                    Interlocked.Exchange(ref lastUiUpdateTicks, now);
+
+                    string rate = velocity.GetFormattedVelocity();
+                    TimeSpan? eta = velocity.EstimateRemaining(completed, totalTargets);
+                    string etaText = eta.HasValue && eta.Value.TotalSeconds >= 1
+                        ? $"  ETA: {eta.Value.TotalSeconds:N0}s"
+                        : string.Empty;
+                    double percent = (double)completed / totalTargets * DefaultScanShare;
+
+                    // Three folders can be in flight, so naming one of them would be a
+                    // lie; the count, throughput and ETA are what the WPF status line
+                    // carried too. The write crosses to the UI thread through the
+                    // injected marshaler, never inline from a worker.
+                    _post(() =>
+                    {
+                        StatusText = $"Scanning ({completed}/{totalTargets}) {rate}{etaText}";
+                        ProgressPercent = percent;
+                        ProgressText = $"{(int)percent}%";
+                    });
+                },
+                VolumeScanCoordinator.DefaultMaxParallelismPerVolume,
+                token);
 
             // Three more sets exist that the default categories cannot express, and
             // each costs a walk before it can report anything: app leftovers whose

@@ -54,6 +54,19 @@ limited to UI-adjacent pieces (ThemeService, DwmBackdropService — WPF-only vis
   binary remains WPF. The 9-feature batches landed to parity (commits `0d2ee15`, `abbb3ef`).
 - Remaining WinUI-only deltas: no `DwmBackdrop` transparency, no system-restore-point tray
   flow (WPF-only `MainWindow.xaml.cs` scaffolding).
+- **Update, 2026-11-08 — feature parity re-audited for the Store submission.** The scan
+  delta is closed: `CleanerWorkspaceViewModel.ScanAllAsync` now runs
+  `VolumeScanCoordinator.ExecutePartitionedAsync` (three folders per volume, volumes in
+  parallel) and reports throughput plus ETA from `ScanVelocityTracker`, the same call the
+  WPF head makes. Two functional deltas remain and are deliberate-or-open, not drift:
+  - **No CLI head.** `CliRunner` / `CliProvisioningService` / `CliRegistrationService` are
+    WPF-only; the WinUI `App.OnLaunched` does no argument dispatch. A packaged build would
+    need an `AppExecutionAlias` plus a console-subsystem shim.
+  - **No in-place update.** `UpdateOfferView` hands the download to the browser instead of
+    running `UpdateTransactionCoordinator` / `TransactionJournal` /
+    `UpdateRecoveryHelper`. Correct for an MSIX package, whose updates the Store owns.
+  Cosmetic-only: the title bar has no light/dark toggle (the switch lives in Settings and
+  drives `ElementTheme` directly, so `ThemeService` is unused here).
 - Source volume: WPF partials ~169 KB; WinUI views+VMs ~704 KB (XAML-heavy; the VM code is
   the near-equivalent of the partial-behind code).
 

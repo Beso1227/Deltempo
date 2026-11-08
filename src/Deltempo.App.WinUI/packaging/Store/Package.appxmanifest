@@ -2,11 +2,17 @@
 <!--
   Package manifest for the Deltempo MSIX/Store flavor of the WinUI shell.
 
-  Identity values are deliberately placeholders: the Store submission plan
-  (docs/PUBLISHING_MICROSOFT_STORE.md section 1) requires copying the real
-  Name / Publisher / PublisherId from Partner Center, and the manifest's
-  Publisher must equal the identity Partner Center assigns. Unsigned
-  build-sign only until that step is taken.
+  This file is a TEMPLATE, not the identity of record. tools/build-store-package.ps1
+  rewrites Identity/@Name, @Publisher, @Version, @ProcessorArchitecture and both
+  display names on the staged copy only; the placeholders below must survive in
+  the repo so a stale real identity can never be mistaken for the current one.
+  Real values come from Partner Center (docs/PUBLISHING_MICROSOFT_STORE.md
+  section 1): Name / Publisher / PublisherId, and Publisher must equal the
+  identity Partner Center assigns or the upload is rejected.
+
+  ProcessorArchitecture is the default (x64) and is overridden per build with
+  -Architecture. Omitting it declares the package "neutral", which would offer
+  an x64-only payload to ARM64 devices - never omit it.
 
   Version is stamped from the same source the shell's footer shows
   (Assembly version), so the package and the UI cannot disagree.
@@ -21,12 +27,13 @@
   <Identity
     Name="DeltempoWinUIPreview"
     Publisher="CN=Placeholder-Publisher"
-    Version="3.2.0.0" />
+    Version="3.2.0.0"
+    ProcessorArchitecture="x64" />
 
   <mp:PhoneIdentity PhoneProductId="9a6f4b30-3b1f-4b48-8e7a-5c1e2f8a7d90" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
   <Properties>
-    <DisplayName>Deltempo (WinUI Preview)</DisplayName>
+    <DisplayName>Deltempo</DisplayName>
     <PublisherDisplayName>Deltempo</PublisherDisplayName>
     <Logo>Assets\Store\Icon_44.png</Logo>
   </Properties>
@@ -51,7 +58,7 @@
                  Executable="Deltempo.WinUI.exe"
                  EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
-        DisplayName="Deltempo (WinUI Preview)"
+        DisplayName="Deltempo"
         Description="Disk &amp; memory cleaning util"
         Square150x150Logo="Assets\Store\Icon_150.png"
         Square44x44Logo="Assets\Store\Icon_44.png"
