@@ -195,6 +195,8 @@ public static class AiModelCatalog
         IReadOnlyList<AiModelOption> models,
         string? query)
     {
+        ArgumentNullException.ThrowIfNull(models);
+
         if (string.IsNullOrWhiteSpace(query))
         {
             return models;
@@ -238,6 +240,8 @@ public static class AiModelCatalog
         IReadOnlyList<AiModelOption> models,
         string? savedModelId)
     {
+        ArgumentNullException.ThrowIfNull(models);
+
         string saved = savedModelId?.Trim() ?? string.Empty;
         if (saved.Length == 0)
         {
@@ -330,6 +334,8 @@ public static class AiModelCatalog
         IReadOnlyList<AiModelOption> models,
         string? selectedModelId)
     {
+        ArgumentNullException.ThrowIfNull(models);
+
         if (models.Count == 0)
         {
             return $"{providerName} returned no models for this key. " +
