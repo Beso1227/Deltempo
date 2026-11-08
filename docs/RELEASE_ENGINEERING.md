@@ -199,6 +199,27 @@ dotnet publish src/Deltempo.Cli/Deltempo.Cli.csproj -c Release -r win-x64 -p:Pub
 
 The WPF head is never AOT'd — `WinTempCleaner` is not trimmable by design.
 
+### 3.7 Local Multi-Head Build Tree
+
+`scripts/build_all_archs.ps1` publishes the three heads for both architectures into one
+inspectable, gitignored tree and writes provenance beside the binaries:
+
+```text
+artifacts/
+  wpf/x64/Deltempo.exe               wpf/arm64/Deltempo-arm64.exe
+  cli/x64/deltempo_cli.exe           cli/arm64/deltempo_cli-arm64.exe
+  winui/x64/                         winui/arm64/
+  manifest.json  checksums.sha256  README.md
+```
+
+- The four single-file binaries are verified against their PE machine type
+  (`0x8664` x64, `0xAA64` ARM64) before the script reports success.
+- `manifest.json` records version, commit, dirty-tree flag, SDK, sizes and SHA-256.
+- It never writes the release pipeline's `publish*/dist*` paths, and it never writes a
+  Store `.msix`: a placeholder-identity package belongs nowhere near an artifact folder
+  that could be mistaken for a submission. Use `tools/build-store-package.ps1` once
+  Partner Center has issued the real identity.
+
 ---
 
 ## 4. Distribution Channels
