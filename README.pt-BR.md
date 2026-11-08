@@ -31,6 +31,11 @@
   </p>
 
   <p>
+    <a href="https://github.com/Beso1227/Deltempo/releases"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=TOTAL%20DOWNLOADS&color=00F2B0&logo=github&labelColor=16212B"><img alt="Downloads totais do Deltempo" src="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=TOTAL%20DOWNLOADS&color=00F2B0&logo=github&labelColor=16212B" height="28" /></picture></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/downloads/Beso1227/Deltempo/latest/total?style=for-the-badge&label=THIS%20RELEASE&color=8B5CF6&logo=github&labelColor=16212B"><img alt="Downloads da versão mais recente do Deltempo" src="https://img.shields.io/github/downloads/Beso1227/Deltempo/latest/total?style=for-the-badge&label=THIS%20RELEASE&color=8B5CF6&logo=github&labelColor=16212B" height="28" /></picture></a>
+  </p>
+
+  <p>
     <sub>Prefere o terminal? Uma única linha instala e verifica a versão mais recente &mdash;
       <code>irm https://beso1227.github.io/Deltempo/win | iex</code>
       &middot; Encontrou um bug ou tem uma ideia de funcionalidade? <a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>Abra uma issue</strong></a> &mdash; todo pedido é lido.
@@ -60,7 +65,6 @@
 
   <p>
     <a href="#quick-start"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/one--line_install-00F2B0?style=for-the-badge&label=SETUP&labelColor=16212B"><img alt="Instalação em uma linha" src="https://img.shields.io/badge/one--line_install-00F2B0?style=for-the-badge&label=SETUP" height="28" /></picture></a>
-    <a href="https://github.com/Beso1227/Deltempo/releases"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=DOWNLOADS&color=00F2B0&logo=github&labelColor=16212B"><img alt="Downloads do GitHub" src="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=DOWNLOADS&color=00F2B0&logo=github" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/Beso1227/Deltempo?style=for-the-badge&label=STARS&color=F59E0B&logo=github&labelColor=16212B"><img alt="Estrelas do GitHub" src="https://img.shields.io/github/stars/Beso1227/Deltempo?style=for-the-badge&label=STARS&color=F59E0B&logo=github" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/pulls"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/PRs_welcome-00F2B0?style=for-the-badge&label=CONTRIBUTING&labelColor=16212B"><img alt="PRs bem-vindos" src="https://img.shields.io/badge/PRs_welcome-00F2B0?style=for-the-badge&label=CONTRIBUTING" height="28" /></picture></a>
   </p>

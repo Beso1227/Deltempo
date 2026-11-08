@@ -31,6 +31,11 @@
   </p>
 
   <p>
+    <a href="https://github.com/Beso1227/Deltempo/releases"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=TOTAL%20DOWNLOADS&color=00F2B0&logo=github&labelColor=16212B"><img alt="إجمالي تنزيلات Deltempo" src="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=TOTAL%20DOWNLOADS&color=00F2B0&logo=github&labelColor=16212B" height="28" /></picture></a>
+    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/downloads/Beso1227/Deltempo/latest/total?style=for-the-badge&label=THIS%20RELEASE&color=8B5CF6&logo=github&labelColor=16212B"><img alt="تنزيلات أحدث إصدار من Deltempo" src="https://img.shields.io/github/downloads/Beso1227/Deltempo/latest/total?style=for-the-badge&label=THIS%20RELEASE&color=8B5CF6&logo=github&labelColor=16212B" height="28" /></picture></a>
+  </p>
+
+  <p>
     <sub>تفضّل الطرفية؟ سطر واحد يثبّت أحدث إصدار ويتحقّق منه &mdash;
       <code>irm https://beso1227.github.io/Deltempo/win | iex</code>
       &middot; وجدت خطأً أو فكرة لميزة جديدة؟ <a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>افتح تذكرة</strong></a> &mdash; كل طلب يُقرأ.
@@ -60,7 +65,6 @@
 
   <p>
     <a href="#quick-start"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/one--line_install-00F2B0?style=for-the-badge&label=SETUP&labelColor=16212B"><img alt="تثبيت بسطر واحد" src="https://img.shields.io/badge/one--line_install-00F2B0?style=for-the-badge&label=SETUP" height="28" /></picture></a>
-    <a href="https://github.com/Beso1227/Deltempo/releases"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=DOWNLOADS&color=00F2B0&logo=github&labelColor=16212B"><img alt="تنزيلات GitHub" src="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=DOWNLOADS&color=00F2B0&logo=github" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/Beso1227/Deltempo?style=for-the-badge&label=STARS&color=F59E0B&logo=github&labelColor=16212B"><img alt="نجوم GitHub" src="https://img.shields.io/github/stars/Beso1227/Deltempo?style=for-the-badge&label=STARS&color=F59E0B&logo=github" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/pulls"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/PRs_welcome-00F2B0?style=for-the-badge&label=CONTRIBUTING&labelColor=16212B"><img alt="طلبات الدمج مُرحَّب بها" src="https://img.shields.io/badge/PRs_welcome-00F2B0?style=for-the-badge&label=CONTRIBUTING" height="28" /></picture></a>
   </p>
