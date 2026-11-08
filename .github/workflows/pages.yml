@@ -6,6 +6,13 @@ on:
     paths:
       - 'docs/**'
       - '.github/workflows/pages.yml'
+  schedule:
+    # The README download chart is rendered from the releases API on every
+    # deploy, so a daily deploy is what keeps it current. It is published here
+    # rather than committed because main requires a green status check: a bot
+    # commit would be rejected by branch protection, while a Pages deploy
+    # publishes the same file with no commit at all.
+    - cron: "17 4 * * *"
   workflow_dispatch:
 
 permissions:
@@ -29,6 +36,14 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      # Re-render the README download chart from the live releases API before the
+      # site is uploaded. The READMEs point at the published URL, so this step is
+      # the only thing that makes the chart move between releases.
+      - name: Render the download chart
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/generate_downloads_chart.js
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

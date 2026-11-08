@@ -31,8 +31,10 @@
   </p>
 
   <p>
-    <a href="https://github.com/Beso1227/Deltempo/releases"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=TOTAL%20DOWNLOADS&color=00F2B0&logo=github&labelColor=16212B"><img alt="Deltempo の総ダウンロード数" src="https://img.shields.io/github/downloads/Beso1227/Deltempo/total?style=for-the-badge&label=TOTAL%20DOWNLOADS&color=00F2B0&logo=github&labelColor=16212B" height="28" /></picture></a>
-    <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/downloads/Beso1227/Deltempo/latest/total?style=for-the-badge&label=THIS%20RELEASE&color=8B5CF6&logo=github&labelColor=16212B"><img alt="最新リリースのダウンロード数" src="https://img.shields.io/github/downloads/Beso1227/Deltempo/latest/total?style=for-the-badge&label=THIS%20RELEASE&color=8B5CF6&logo=github&labelColor=16212B" height="28" /></picture></a>
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://beso1227.github.io/Deltempo/downloads-chart-dark.svg">
+      <img alt="Deltempo のダウンロード数：各 GitHub リリース後の累計" src="https://beso1227.github.io/Deltempo/downloads-chart-light.svg" width="100%">
+    </picture>
   </p>
 
   <p>
