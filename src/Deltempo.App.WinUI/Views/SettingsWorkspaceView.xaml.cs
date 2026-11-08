@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Media;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 using WinTempCleaner.Models;
+using WinTempCleaner.Services;
 
 namespace Deltempo.App.WinUI.Views;
 
@@ -22,6 +23,16 @@ public sealed partial class SettingsWorkspaceView : UserControl
     /// SelectionChanged handlers do not write a value back that they were just given.</summary>
     private bool _isSyncing;
 
+    /// <summary>True while the key box is being filled from the selected provider, so
+    /// PasswordChanged does not treat that as an edit.</summary>
+    private bool _syncingKeyBox;
+
+    /// <summary>Coalesces the keystrokes of a pasted API key into one model listing.</summary>
+    private readonly DispatcherTimer _aiModelRefreshTimer = new()
+    {
+        Interval = TimeSpan.FromMilliseconds(700),
+    };
+
     public SettingsWorkspaceView()
     {
         InitializeComponent();
@@ -34,6 +45,11 @@ public sealed partial class SettingsWorkspaceView : UserControl
         ViewModel.LogRequested += OnLog;
         ViewModel.ThemeChangeRequested += OnThemeChangeRequested;
         ViewModel.AlwaysOnTopRequested += OnAlwaysOnTopRequested;
+
+        // The view owns the timer because only it has a dispatcher; the view-model asks
+        // for a refresh whenever the provider, key or endpoint changes.
+        _aiModelRefreshTimer.Tick += OnAiModelRefreshTimerTick;
+        ViewModel.AiModelRefreshRequested += ScheduleAiModelRefresh;
 
         Refresh();
     }
@@ -68,15 +84,31 @@ public sealed partial class SettingsWorkspaceView : UserControl
             FillChoices();
             SelectCurrentChoices();
 
-            // Setting Password fires PasswordChanged, which would write the key straight
-            // back. Harmless but pointless, and it would defeat the "empty means leave
-            // the saved key alone" rule the field relies on.
+            // Setting Password fires PasswordChanged. It is already guarded while
+            // syncing, but keeping the fill explicit avoids a pointless write-back of
+            // the value that was just read from the store.
             AiApiKeyBox.Password = ViewModel.AiApiKey;
         }
         finally
         {
             _isSyncing = false;
         }
+
+        // Not at app startup: this panel is the only surface that shows the model list,
+        // so the provider is asked when the panel opens rather than on every launch.
+        ScheduleAiModelRefresh();
+    }
+
+    private void ScheduleAiModelRefresh()
+    {
+        _aiModelRefreshTimer.Stop();
+        _aiModelRefreshTimer.Start();
+    }
+
+    private void OnAiModelRefreshTimerTick(object? sender, object e)
+    {
+        _aiModelRefreshTimer.Stop();
+        _ = ViewModel.RefreshAiModelsAsync(force: false);
     }
 
     private void OnLog(string message, LogLevel level)
@@ -341,23 +373,61 @@ public sealed partial class SettingsWorkspaceView : UserControl
             return;
         }
 
-        if ((AiProviderCombo.SelectedItem as ComboBoxItem)?.Tag is string provider)
+        if ((AiProviderCombo.SelectedItem as ComboBoxItem)?.Tag is not string provider)
         {
-            ViewModel.AiProvider = provider;
+            return;
         }
+
+        // Stash what the box holds for the provider being left, then show the incoming
+        // provider's own key. One shared field used to hand the previous provider's key
+        // to the next one, which came back as a 401 that looked like an outage.
+        ViewModel.AiApiKey = AiApiKeyBox.Password;
+        ViewModel.AiProvider = provider;
+
+        string savedKey = ViewModel.GetAiApiKey(provider);
+
+        _syncingKeyBox = true;
+        try
+        {
+            AiApiKeyBox.Password = savedKey;
+        }
+        finally
+        {
+            _syncingKeyBox = false;
+        }
+
+        // Test and the request path read the view-model, not the box, so it has to
+        // follow the provider too; otherwise the newly selected provider would be
+        // tested with the key that was just stashed for the previous one.
+        ViewModel.AiApiKey = savedKey;
     }
 
     /// <summary>
-    /// The key field is write-only to the settings: an empty box means "leave the saved
-    /// key alone", which is how WPF's PasswordBox behaved. The stored key is pre-filled
-    /// here so an edit is explicit.
+    /// The key field writes through to the store for the selected provider. The saved key
+    /// is pre-filled here, so clearing it is an explicit removal.
     /// </summary>
     private void OnAiApiKeyChanged(object sender, RoutedEventArgs e)
     {
-        if (!_isSyncing)
+        if (!_isSyncing && !_syncingKeyBox)
         {
             ViewModel.AiApiKey = AiApiKeyBox.Password;
         }
+    }
+
+    private void OnRemoveAiApiKey(object sender, RoutedEventArgs e)
+    {
+        _syncingKeyBox = true;
+        try
+        {
+            AiApiKeyBox.Password = string.Empty;
+        }
+        finally
+        {
+            _syncingKeyBox = false;
+        }
+
+        ViewModel.RemoveAiApiKey();
+        ViewModel.AiTestStatusText = $"Saved key for {ViewModel.AiProvider} removed.";
     }
 
     // ---------------------------------------------------------------------

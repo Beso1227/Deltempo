@@ -209,8 +209,11 @@ public static class AppIntelligenceService
         }
 
         // Previously the key gated each provider arm, so a provider with a blank key fell
-        // through to the offline branch and reported success.
-        if (descriptor.RequiresApiKey && string.IsNullOrWhiteSpace(settings.AiApiKey))
+        // through to the offline branch and reported success. Resolved per provider so a
+        // provider switch cannot reuse another provider's credential.
+        string apiKey = settings.GetAiApiKey();
+
+        if (descriptor.RequiresApiKey && string.IsNullOrWhiteSpace(apiKey))
         {
             throw new AiProviderException(AiFailureKind.Authentication,
                 $"No API key configured for {settings.AiProvider}.");
@@ -220,11 +223,11 @@ public static class AppIntelligenceService
 
         string rawText = await AiProviderClient.CompleteAsync(new AiChatRequest(
             Provider: settings.AiProvider,
-            ApiKey: settings.AiApiKey,
+            ApiKey: apiKey,
             ModelId: model,
             SystemPrompt: "You are a Windows software safety expert. Output valid JSON only.",
             UserPrompt: BuildAppPrompt(app),
-            Endpoint: settings.AiOllamaEndpoint), ct);
+            OllamaEndpoint: settings.AiOllamaEndpoint), ct);
 
         LastProviderError = null;
 

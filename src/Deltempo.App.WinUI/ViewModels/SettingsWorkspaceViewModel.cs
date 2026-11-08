@@ -43,16 +43,24 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         ("de", "Deutsch"),
     };
 
-    /// <summary>The AI providers WPF offered, in its order, with its labels.</summary>
-    public static readonly (string Tag, string Label)[] AiProviders =
+    /// <summary>
+    /// The AI providers, in the order the settings show them. Built from Core's catalog
+    /// rather than a second hand-written list: the copy that lived here still labelled
+    /// OpenAI "GPT-4o-mini" long after the request path had moved to gpt-5.4-mini.
+    /// </summary>
+    public static readonly (string Tag, string Label)[] AiProviders = BuildAiProviders();
+
+    private static (string Tag, string Label)[] BuildAiProviders()
     {
-        ("BuiltIn", "Built-in Web Knowledge (Free, No Key)"),
-        ("OpenRouter", "OpenRouter (Universal / Multi-Model)"),
-        ("Gemini", "Google Gemini (Free API Key)"),
-        ("Groq", "Groq (Ultra-Fast Free Tier)"),
-        ("OpenAI", "OpenAI (GPT-4o-mini)"),
-        ("Ollama", "Ollama (Local & Private)"),
-    };
+        IReadOnlyList<AiProviderOption> options = AiModelCatalog.GetProviderOptions();
+        var providers = new (string Tag, string Label)[options.Count];
+        for (int i = 0; i < options.Count; i++)
+        {
+            providers[i] = (options[i].Id, options[i].Label);
+        }
+
+        return providers;
+    }
 
     /// <summary>The update channels WPF offered.</summary>
     public static readonly (string Tag, string Label)[] UpdateChannels =
@@ -130,6 +138,7 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         AddExcludedExtensionCommand = new RelayCommand(AddExcludedExtension);
         RemoveExcludedExtensionCommand = new RelayCommand(RemoveExcludedExtension);
         TestAiConnectionCommand = new AsyncRelayCommand(TestAiConnectionAsync);
+        RefreshAiModelsCommand = new AsyncRelayCommand(() => RefreshAiModelsAsync(force: true));
         ClearAiCacheCommand = new RelayCommand(ClearAiCache);
 
         LoadFromSettings();
@@ -353,6 +362,25 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
     [ObservableProperty]
     public partial string AiModelName { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Narrows the model picker. OpenRouter returns hundreds of rows and most are paid;
+    /// typing "free" is how a zero-credit account finds the ones that answer.
+    /// </summary>
+    [ObservableProperty]
+    public partial string AiModelSearchText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The row the picker shows as chosen. Separate from <see cref="AiModelName"/> because
+    /// filtering can hide the selected row: the search must not clear the saved id, and an
+    /// id the provider no longer lists must still survive the next settings write.
+    /// </summary>
+    [ObservableProperty]
+    public partial AiModelOption? SelectedAiModel { get; set; }
+
+    /// <summary>One line under the picker when a search matches nothing.</summary>
+    [ObservableProperty]
+    public partial string AiModelMatchText { get; set; } = string.Empty;
+
     [ObservableProperty]
     public partial string AiOllamaEndpoint { get; set; } = "http://localhost:11434";
 
@@ -365,6 +393,70 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsTestingAi { get; set; }
 
+    /// <summary>One line about where the selected provider sends the request.</summary>
+    public string AiProviderDescription => EnableOnlineAiSafety
+        ? AiModelCatalog.DescribeProvider(AiProvider)
+        : "OFF - large-file analysis uses the local knowledge base. Turn the switch above on (or pick a provider) to use this provider.";
+
+    /// <summary>
+    /// The rows the picker currently shows: the provider's own list (or the catalog until a
+    /// key arrives) narrowed by <see cref="AiModelSearchText"/>. A saved id that neither
+    /// list contains keeps its own row so a choice is never silently forgotten.
+    /// </summary>
+    public ObservableCollection<AiModelOption> AiModelSuggestions { get; } = [];
+
+    /// <summary>The full, unfiltered rows behind the picker, in provider order.</summary>
+    private IReadOnlyList<AiModelOption> _aiModelPickerSource = Array.Empty<AiModelOption>();
+
+    /// <summary>True when the rows came from the provider rather than the static catalog.</summary>
+    private bool _aiModelPickerFromProvider;
+
+    /// <summary>True while the visible rows are being replaced, so a transient null
+    /// selection cannot overwrite the saved model id.</summary>
+    private bool _isRebuildingAiModelPicker;
+
+    /// <summary>One line under the model picker: loading, how many models, or why not.</summary>
+    [ObservableProperty]
+    public partial string AiModelStatusText { get; set; } = string.Empty;
+
+    /// <summary>True while a model listing is in flight.</summary>
+    [ObservableProperty]
+    public partial bool IsLoadingAiModels { get; set; }
+
+    /// <summary>
+    /// Models the current key can actually call, as the provider reported them. Null means
+    /// "not asked yet", which is why the picker falls back to the catalog.
+    /// </summary>
+    private IReadOnlyList<AiModelOption>? _aiFetchedModels;
+
+    /// <summary>The provider+key+endpoint the fetched list belongs to.</summary>
+    private string? _aiFetchedFor;
+
+    /// <summary>Cancels the in-flight listing when the key, endpoint or provider changes.</summary>
+    private CancellationTokenSource? _aiModelRefreshCts;
+
+    /// <summary>Guards against an older listing overwriting a newer one.</summary>
+    private int _aiModelFetchGeneration;
+
+    /// <summary>
+    /// Raised when the key, endpoint or provider changed, so the view can debounce and ask
+    /// the provider for its model list. The view owns the timer because only it has a
+    /// dispatcher.
+    /// </summary>
+    public event Action? AiModelRefreshRequested;
+
+    /// <summary>True when the Refresh button should be clickable.</summary>
+    public bool CanRefreshAiModels => !IsLoadingAiModels && AiProvider != "BuiltIn";
+
+    /// <summary>
+    /// The master switch gates every AI control, so a user cannot configure a provider
+    /// that the scan path will never call.
+    /// </summary>
+    public bool CanEditAi => EnableOnlineAiSafety;
+
+    /// <summary>Test is only meaningful while AI is on and no other test is in flight.</summary>
+    public bool CanTestAi => EnableOnlineAiSafety && !IsTestingAi;
+
     /// <summary>
     /// WPF's UpdateAiSettingsUiVisibility: a key is only asked for from providers that
     /// need one, the endpoint only from Ollama, and neither shows a model field.
@@ -375,20 +467,44 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
 
     public bool ShowAiModelRow => ShowAiApiKeyRow || ShowAiOllamaRow;
 
+    /// <summary>The saved key for <paramref name="provider"/>, never another provider's.</summary>
+    public string GetAiApiKey(string provider) => SettingsService.Current.GetAiApiKey(provider);
+
+    /// <summary>
+    /// Forgets the saved key for the selected provider. An empty key is how the store
+    /// represents "no credential", so this is a real removal rather than a blank string
+    /// that would still be sent.
+    /// </summary>
+    public void RemoveAiApiKey()
+    {
+        AiApiKey = string.Empty;
+        Persist(s => s.SetAiApiKey(s.AiProvider, string.Empty));
+
+        // Without a key there is no live list; fall back to the catalog and say why.
+        ResetAiFetchedModels();
+        PopulateAiModelSuggestions(null);
+        AiModelStatusText = "Add an API key to load the models this account can use.";
+    }
+
     /// <summary>
     /// "Ask AI don't work" was often really "which model is actually being hit?".
-    /// This surfaces the catalog default next to the custom-model box so the
-    /// effective model is visible without reading the code. A typed name still
-    /// wins - the catalog suggestion is never a restriction.
+    /// This surfaces the model the next request will use - the saved pick, or the provider
+    /// default when nothing is chosen - so the effective model is visible without reading
+    /// the code or opening the drop-down.
     /// </summary>
     public string AiDefaultModelText
     {
         get
         {
-            string model = AiModelCatalog.ResolveModelId(AiProvider, userModelName: null);
-            return string.IsNullOrEmpty(model)
-                ? string.Empty
-                : $"Leave blank to use the provider default: {model}";
+            if (AiProvider == "BuiltIn")
+            {
+                return "The built-in engine answers without a model call.";
+            }
+
+            string fallback = AiModelCatalog.ResolveModelId(AiProvider, userModelName: null);
+            return string.IsNullOrWhiteSpace(AiModelName)
+                ? $"Pick a model. With none chosen the provider default is used: {fallback}."
+                : $"Requests use: {AiModelName.Trim()}";
         }
     }
 
@@ -409,6 +525,8 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
     public IRelayCommand RemoveExcludedExtensionCommand { get; }
 
     public IAsyncRelayCommand TestAiConnectionCommand { get; }
+
+    public IAsyncRelayCommand RefreshAiModelsCommand { get; }
 
     public IRelayCommand ClearAiCacheCommand { get; }
 
@@ -525,10 +643,18 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
 
         EnableOnlineAiSafety = s.EnableOnlineAiSafety;
         AiProvider = string.IsNullOrWhiteSpace(s.AiProvider) ? "BuiltIn" : s.AiProvider;
-        AiApiKey = s.AiApiKey;
+        AiApiKey = s.GetAiApiKey(AiProvider);
         AiModelName = s.AiModelName;
         AiOllamaEndpoint = string.IsNullOrWhiteSpace(s.AiOllamaEndpoint) ? "http://localhost:11434" : s.AiOllamaEndpoint;
-        AutoQueryAiForLargeFiles = s.AutoQueryAiForLargeFiles;
+        AutoQueryAiForLargeFiles = s.AutoQueryAiForLargeFiles && s.EnableOnlineAiSafety;
+
+        // Reopening the panel on a possibly different account: drop any list fetched
+        // earlier, clear the previous search, and let the view's open path ask again.
+        AiModelSearchText = string.Empty;
+        ResetAiFetchedModels();
+        PopulateAiModelSuggestions(null);
+        AiModelStatusText = string.Empty;
+        OnPropertyChanged(nameof(AiDefaultModelText));
 
         ExcludedPaths.Clear();
         foreach (string path in s.CustomPathExclusions)
@@ -549,6 +675,9 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowAiOllamaRow));
         OnPropertyChanged(nameof(ShowAiModelRow));
         OnPropertyChanged(nameof(AiDefaultModelText));
+        OnPropertyChanged(nameof(AiProviderDescription));
+        OnPropertyChanged(nameof(CanEditAi));
+        OnPropertyChanged(nameof(CanTestAi));
         OnPropertyChanged(nameof(CachedAiReportsText));
     }
 
@@ -586,6 +715,7 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
             s.EnableOnlineAiSafety = defaults.EnableOnlineAiSafety;
             s.AiProvider = defaults.AiProvider;
             s.AiApiKey = defaults.AiApiKey;
+            s.AiApiKeys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             s.AiModelName = defaults.AiModelName;
             s.AiOllamaEndpoint = defaults.AiOllamaEndpoint;
             s.AutoCleanOnIdle = defaults.AutoCleanOnIdle;
@@ -742,10 +872,173 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
     // AI
     // ---------------------------------------------------------------------
 
+    /// <summary>
+    /// Asks the provider for the models the current key can use and fills the picker with
+    /// them. Failure is reported but never fatal: the catalog list and the manual box stay
+    /// usable, which is what a provider outage or an unverified key looks like.
+    /// </summary>
+    public async Task RefreshAiModelsAsync(bool force)
+    {
+        string provider = AiProvider;
+        string key = AiApiKey?.Trim() ?? string.Empty;
+        string endpoint = AiOllamaEndpoint?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(provider) ||
+            provider.Equals("BuiltIn", StringComparison.OrdinalIgnoreCase))
+        {
+            ResetAiFetchedModels();
+            PopulateAiModelSuggestions(null);
+            AiModelStatusText = string.Empty;
+            return;
+        }
+
+        if (AiModelCatalog.TryGetProvider(provider, out var descriptor) &&
+            descriptor.RequiresApiKey && string.IsNullOrWhiteSpace(key))
+        {
+            // Nothing to ask with. Show the catalog and say so instead of firing a request
+            // that can only come back 401.
+            ResetAiFetchedModels();
+            PopulateAiModelSuggestions(null);
+            AiModelStatusText = "Add an API key to load the models this account can use.";
+            return;
+        }
+
+        string identity = $"{provider}|{key}|{endpoint}";
+        if (!force && _aiFetchedModels is not null &&
+            string.Equals(_aiFetchedFor, identity, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _aiModelRefreshCts?.Cancel();
+        _aiModelRefreshCts?.Dispose();
+        _aiModelRefreshCts = new CancellationTokenSource();
+        CancellationToken ct = _aiModelRefreshCts.Token;
+        int generation = ++_aiModelFetchGeneration;
+
+        IsLoadingAiModels = true;
+        AiModelStatusText = $"Loading models from {provider}...";
+
+        try
+        {
+            IReadOnlyList<AiModelOption> models =
+                await AiProviderClient.ListModelsAsync(provider, key, endpoint, ct);
+
+            if (generation != _aiModelFetchGeneration) return;
+
+            _aiFetchedModels = models;
+            _aiFetchedFor = identity;
+            PopulateAiModelSuggestions(models);
+
+            AiModelStatusText = AiModelCatalog.DescribeFetchedModels(provider, models, AiModelName);
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer request. Nothing to report.
+        }
+        catch (AiProviderException ex)
+        {
+            if (generation != _aiModelFetchGeneration) return;
+
+            ResetAiFetchedModels();
+            PopulateAiModelSuggestions(null);
+            AiModelStatusText = "Could not load models: " + ex.UserMessage;
+        }
+        catch (Exception ex)
+        {
+            if (generation != _aiModelFetchGeneration) return;
+
+            ResetAiFetchedModels();
+            PopulateAiModelSuggestions(null);
+            AiModelStatusText = "Could not load models: " + ex.Message;
+        }
+        finally
+        {
+            if (generation == _aiModelFetchGeneration)
+            {
+                IsLoadingAiModels = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Rebuilds the picker. The provider's own list wins over the catalog: the catalog is
+    /// only a starting point and a model it lists may be unavailable to this account. A
+    /// saved id missing from both keeps its own row so the choice survives the round trip.
+    /// </summary>
+    private void PopulateAiModelSuggestions(IReadOnlyList<AiModelOption>? models)
+    {
+        IReadOnlyList<AiModelOption> source =
+            models ?? _aiFetchedModels ?? AiModelCatalog.GetSuggestedModels(AiProvider);
+
+        _aiModelPickerSource = AiModelCatalog.WithSavedModel(source, AiModelName);
+        _aiModelPickerFromProvider = models is not null || _aiFetchedModels is not null;
+
+        ApplyAiModelFilter();
+    }
+
+    /// <summary>
+    /// Rebuilds the visible rows from the full set plus the current search. The saved model
+    /// is re-selected whenever its row survived; when the search hides it, the selection is
+    /// cleared but <see cref="AiModelName"/> keeps the value that will be sent.
+    /// </summary>
+    private void ApplyAiModelFilter()
+    {
+        string query = AiModelSearchText?.Trim() ?? string.Empty;
+        IReadOnlyList<AiModelOption> visible = AiModelCatalog.FilterModels(_aiModelPickerSource, query);
+
+        // Assigning SelectedAiModel while the collection is being replaced would let a
+        // transient null overwrite the saved id, so the flag keeps the two in step.
+        _isRebuildingAiModelPicker = true;
+        try
+        {
+            AiModelSuggestions.Clear();
+            foreach (AiModelOption option in visible)
+            {
+                AiModelSuggestions.Add(option);
+            }
+
+            SelectedAiModel = visible.FirstOrDefault(
+                option => string.Equals(option.Id, AiModelName, StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            _isRebuildingAiModelPicker = false;
+        }
+
+        AiModelMatchText = _aiModelPickerSource.Count > 0 && visible.Count == 0 && query.Length > 0
+            ? $"No model matches \"{query}\"."
+            : string.Empty;
+    }
+
+    private void ResetAiFetchedModels()
+    {
+        _aiModelFetchGeneration++;
+        _aiModelRefreshCts?.Cancel();
+        _aiFetchedModels = null;
+        _aiFetchedFor = null;
+    }
+
     private async Task TestAiConnectionAsync()
     {
         if (IsTestingAi)
         {
+            return;
+        }
+
+        // Validate locally first. A missing key used to spend a network round trip only
+        // to come back as "connection failed", which read like an outage.
+        IReadOnlyList<AiSettingsIssue> issues = AiSettingsValidator.Validate(
+            AiProvider,
+            AiApiKey,
+            AiOllamaEndpoint,
+            AiModelName,
+            EnableOnlineAiSafety,
+            AutoQueryAiForLargeFiles);
+
+        if (!AiSettingsValidator.IsValid(issues))
+        {
+            AiTestStatusText = "⚠ " + AiSettingsValidator.Describe(issues);
             return;
         }
 
@@ -772,8 +1065,10 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
 
     private void ClearAiCache()
     {
-        OnlineFileIntelligenceService.ClearCache();
-        AiTestStatusText = "AI reports cache cleared (0 items).";
+        int removed = OnlineFileIntelligenceService.ClearCache();
+        AiTestStatusText = removed == 0
+            ? "AI reports cache was already empty."
+            : $"AI reports cache cleared ({removed} {(removed == 1 ? "item" : "items")}).";
         OnPropertyChanged(nameof(CachedAiReportsText));
     }
 
@@ -1077,7 +1372,19 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         => Persist(s => s.AggressiveEmptyFolderPrune = value);
 
     partial void OnEnableOnlineAiSafetyChanged(bool value)
-        => Persist(s => s.EnableOnlineAiSafety = value);
+    {
+        Persist(s => s.EnableOnlineAiSafety = value);
+        OnPropertyChanged(nameof(CanEditAi));
+        OnPropertyChanged(nameof(CanTestAi));
+        OnPropertyChanged(nameof(AiProviderDescription));
+
+        // Auto-query is gated on this switch in the scan path, so leaving it on while AI
+        // is off would promise a batch that can never run.
+        if (!_isLoading && !value && AutoQueryAiForLargeFiles)
+        {
+            AutoQueryAiForLargeFiles = false;
+        }
+    }
 
     partial void OnAiProviderChanged(string value)
     {
@@ -1085,32 +1392,100 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowAiOllamaRow));
         OnPropertyChanged(nameof(ShowAiModelRow));
         OnPropertyChanged(nameof(AiDefaultModelText));
+        OnPropertyChanged(nameof(AiProviderDescription));
+
+        // Choosing a provider IS the opt-in to using it. Leaving the master switch off made
+        // the choice inert: Large Files answered from the local knowledge base and the row
+        // said "Local Intelligence (Offline)", which reads as if the provider was ignored.
+        if (!_isLoading &&
+            !string.IsNullOrWhiteSpace(value) &&
+            !value.Equals("BuiltIn", StringComparison.OrdinalIgnoreCase) &&
+            !EnableOnlineAiSafety)
+        {
+            EnableOnlineAiSafety = true;
+            Log($"Online file intelligence enabled for {value}.", LogLevel.Info);
+        }
+
+        // The suggestion list follows the provider. A new provider is a different account
+        // and a different model namespace: the id chosen for the previous one is not a
+        // valid id here, so it is cleared along with the fetched list.
+        if (!_isLoading)
+        {
+            AiModelName = string.Empty;
+            AiModelSearchText = string.Empty;
+        }
+
+        ResetAiFetchedModels();
+        PopulateAiModelSuggestions(null);
+        OnPropertyChanged(nameof(CanRefreshAiModels));
 
         if (!string.IsNullOrWhiteSpace(value))
         {
             Persist(s => s.AiProvider = value);
         }
+
+        if (!_isLoading)
+        {
+            AiModelStatusText = string.Empty;
+            AiModelRefreshRequested?.Invoke();
+        }
     }
 
     partial void OnAiApiKeyChanged(string value)
     {
-        // Stored through SettingsService, which DPAPI-protects it at the persistence
-        // boundary. Empty means "leave the saved key alone", matching WPF's
-        // PasswordBox check; the field is pre-filled with the real key so an edit is
-        // explicit.
-        if (!string.IsNullOrEmpty(value))
+        // The box is pre-filled from GetAiApiKey(provider), so an empty value means the
+        // user cleared it and a removal is intended. The store keeps one key per
+        // provider, so switching providers can no longer send the wrong credential.
+        Persist(s => s.SetAiApiKey(s.AiProvider, value));
+
+        // A different key is a different account, so any fetched list is now a lie.
+        if (!_isLoading)
         {
-            Persist(s => s.AiApiKey = value);
+            ResetAiFetchedModels();
+            AiModelRefreshRequested?.Invoke();
         }
     }
 
+    partial void OnIsLoadingAiModelsChanged(bool value)
+        => OnPropertyChanged(nameof(CanRefreshAiModels));
+
+    partial void OnIsTestingAiChanged(bool value) => OnPropertyChanged(nameof(CanTestAi));
+
     partial void OnAiModelNameChanged(string value)
-        => Persist(s => s.AiModelName = value.Trim());
+    {
+        Persist(s => s.AiModelName = value.Trim());
+        OnPropertyChanged(nameof(AiDefaultModelText));
+    }
+
+    /// <summary>
+    /// The picker's chosen row is the only place a new model id comes from. A null
+    /// selection happens while the search hides the saved row, and must not erase it.
+    /// </summary>
+    partial void OnSelectedAiModelChanged(AiModelOption? value)
+    {
+        if (_isRebuildingAiModelPicker || value is null)
+        {
+            return;
+        }
+
+        if (!string.Equals(AiModelName, value.Id, StringComparison.Ordinal))
+        {
+            AiModelName = value.Id;
+        }
+    }
+
+    partial void OnAiModelSearchTextChanged(string value) => ApplyAiModelFilter();
 
     partial void OnAiOllamaEndpointChanged(string value)
     {
         string endpoint = string.IsNullOrWhiteSpace(value) ? "http://localhost:11434" : value.Trim();
         Persist(s => s.AiOllamaEndpoint = endpoint);
+
+        if (!_isLoading)
+        {
+            ResetAiFetchedModels();
+            AiModelRefreshRequested?.Invoke();
+        }
     }
 
     partial void OnAutoQueryAiForLargeFilesChanged(bool value)

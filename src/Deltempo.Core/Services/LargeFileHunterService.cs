@@ -662,6 +662,108 @@ public static class LargeFileHunterService
         catch { }
     }
 
+    /// <summary>Whether an Ask-AI request can run, and why not when it cannot.</summary>
+    public enum AiReadiness
+    {
+        /// <summary>The configured provider can be called.</summary>
+        Ready,
+        /// <summary>BuiltIn: the local knowledge base answers, which is a valid outcome.</summary>
+        BuiltInLocal,
+        /// <summary>A cloud provider is selected but the master switch is off.</summary>
+        SwitchOff,
+        /// <summary>A cloud provider is selected but no key is saved for it.</summary>
+        MissingKey,
+    }
+
+    /// <summary>
+    /// Classifies why an Ask-AI request cannot run, so a surface can act on the reason
+    /// instead of only printing it.
+    /// </summary>
+    /// <remarks>
+    /// Without this, pressing Ask AI while the master switch was off produced a fully
+    /// rendered "Local Intelligence (Offline)" verdict with no explanation, so a user who
+    /// had just chosen OpenRouter in Settings concluded their provider was being ignored.
+    /// The switch, not the provider, was off.
+    /// </remarks>
+    public static AiReadiness GetAiReadiness(out string? reason)
+    {
+        AppSettings settings = SettingsService.Current;
+
+        if (string.IsNullOrWhiteSpace(settings.AiProvider) ||
+            settings.AiProvider.Equals("BuiltIn", StringComparison.OrdinalIgnoreCase))
+        {
+            // BuiltIn is a valid choice, just not an online one: it answers from the local
+            // knowledge base, so there is nothing to block and nothing to warn about.
+            reason = null;
+            return AiReadiness.BuiltInLocal;
+        }
+
+        if (!settings.EnableOnlineAiSafety)
+        {
+            reason = "Online file intelligence is off, so nothing was sent to a provider. " +
+                     "Turn on 'AI & Online File Intelligence' in Settings to use " +
+                     $"{settings.AiProvider} for large-file analysis.";
+            return AiReadiness.SwitchOff;
+        }
+
+        if (AiModelCatalog.TryGetProvider(settings.AiProvider, out var descriptor) &&
+            descriptor.RequiresApiKey &&
+            string.IsNullOrWhiteSpace(settings.GetAiApiKey()))
+        {
+            reason = $"No API key is saved for {settings.AiProvider}. Add one in Settings and press Test to verify it.";
+            return AiReadiness.MissingKey;
+        }
+
+        reason = null;
+        return AiReadiness.Ready;
+    }
+
+    /// <summary>
+    /// Why an Ask-AI request cannot run right now, or <c>null</c> when it can.
+    /// </summary>
+    public static string? GetAiUnavailableReason() =>
+        GetAiReadiness(out string? reason) is AiReadiness.Ready or AiReadiness.BuiltInLocal
+            ? null
+            : reason;
+
+    /// <summary>
+    /// Turns the master switch on when, and only when, the user has explicitly asked for an
+    /// AI answer and a cloud provider is already configured with a key.
+    /// </summary>
+    /// <remarks>
+    /// Pressing "Ask AI" is the consent; the switch is a second gate in front of an intent
+    /// the user just expressed twice (they chose the provider, they saved the key, they
+    /// pressed the button). Requiring them to go back to Settings first is what made a
+    /// correctly configured provider look ignored. This is called ONLY from that gesture -
+    /// never at startup, never on a background scan - so nothing leaves the machine without
+    /// the click that asked for it.
+    /// </remarks>
+    public static bool TryEnableConfiguredProvider()
+    {
+        AppSettings settings = SettingsService.Current;
+
+        if (settings.EnableOnlineAiSafety)
+        {
+            return true;
+        }
+
+        if (string.IsNullOrWhiteSpace(settings.AiProvider) ||
+            settings.AiProvider.Equals("BuiltIn", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (AiModelCatalog.TryGetProvider(settings.AiProvider, out var descriptor) &&
+            descriptor.RequiresApiKey &&
+            string.IsNullOrWhiteSpace(settings.GetAiApiKey()))
+        {
+            return false;
+        }
+
+        SettingsService.Update(s => s.EnableOnlineAiSafety = true);
+        return true;
+    }
+
     public static async Task AnalyzeItemWithAiAsync(LargeFileInfo item, CancellationToken ct = default)
     {
         if (item == null || string.IsNullOrWhiteSpace(item.FilePath)) return;

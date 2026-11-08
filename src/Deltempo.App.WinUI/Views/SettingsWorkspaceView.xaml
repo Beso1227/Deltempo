@@ -21,6 +21,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:converters="using:Deltempo.App.WinUI.Converters"
+    xmlns:services="using:WinTempCleaner.Services"
     xmlns:vm="using:Deltempo.App.WinUI.ViewModels"
     mc:Ignorable="d"
     x:DataType="vm:SettingsWorkspaceViewModel"
@@ -763,7 +764,11 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="AI Intelligence Provider" Style="{StaticResource RowLabel}" />
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="AI Intelligence Provider" Style="{StaticResource RowLabel}" />
+                                    <TextBlock Text="{x:Bind ViewModel.AiProviderDescription, Mode=OneWay}"
+                                               Style="{StaticResource RowHint}" />
+                                </StackPanel>
                                 <ComboBox Grid.Column="1"
                                           x:Name="AiProviderCombo"
                                           Width="240"
@@ -780,14 +785,22 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                     <TextBlock Text="API Key" Style="{StaticResource RowLabel}" />
-                                    <TextBlock Text="Encrypted with Windows DPAPI before it touches disk" Style="{StaticResource RowHint}" />
+                                    <TextBlock Text="Stored with Windows DPAPI on this PC. Each provider keeps its own key."
+                                               Style="{StaticResource RowHint}" />
                                 </StackPanel>
-                                <PasswordBox Grid.Column="1"
-                                             x:Name="AiApiKeyBox"
-                                             Width="240"
-                                             PasswordRevealMode="Peek"
-                                             PasswordChanged="OnAiApiKeyChanged"
-                                             AutomationProperties.Name="AI provider API key" />
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <PasswordBox x:Name="AiApiKeyBox"
+                                                 Width="200"
+                                                 PasswordRevealMode="Peek"
+                                                 IsEnabled="{x:Bind ViewModel.CanEditAi, Mode=OneWay}"
+                                                 PasswordChanged="OnAiApiKeyChanged"
+                                                 AutomationProperties.Name="AI provider API key" />
+                                    <Button Content="Remove"
+                                            Style="{StaticResource SmallButton}"
+                                            IsEnabled="{x:Bind ViewModel.CanEditAi, Mode=OneWay}"
+                                            Click="OnRemoveAiApiKey"
+                                            AutomationProperties.Name="Remove saved API key" />
+                                </StackPanel>
                             </Grid>
 
                             <Grid Style="{StaticResource SettingRow}"
@@ -796,10 +809,14 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Ollama Endpoint" Style="{StaticResource RowLabel}" />
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Ollama Endpoint" Style="{StaticResource RowLabel}" />
+                                    <TextBlock Text="Leave blank to use http://localhost:11434" Style="{StaticResource RowHint}" />
+                                </StackPanel>
                                 <TextBox Grid.Column="1"
                                          Width="240"
                                          Text="{x:Bind ViewModel.AiOllamaEndpoint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{x:Bind ViewModel.CanEditAi, Mode=OneWay}"
                                          AutomationProperties.Name="Ollama endpoint" />
                             </Grid>
 
@@ -810,15 +827,76 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                    <TextBlock Text="Custom Model Name (Optional)" Style="{StaticResource RowLabel}" />
-                                    <!--/provider-default hint so users can see which model the provider will actually call -->
+                                    <TextBlock Text="Model" Style="{StaticResource RowLabel}" />
+                                    <!-- Which model a request will actually use, not just the provider default. -->
                                     <TextBlock Text="{x:Bind ViewModel.AiDefaultModelText, Mode=OneWay}"
                                                Style="{StaticResource RowHint}" />
+                                    <TextBlock Text="{x:Bind ViewModel.AiModelStatusText, Mode=OneWay}"
+                                               Style="{StaticResource RowHint}"
+                                               TextWrapping="Wrap"
+                                               MaxWidth="380"
+                                               Margin="0,2,0,0" />
+                                    <TextBlock Text="{x:Bind ViewModel.AiModelMatchText, Mode=OneWay}"
+                                               Style="{StaticResource RowHint}"
+                                               Foreground="{ThemeResource AmberWarningBrush}"
+                                               Margin="0,2,0,0" />
                                 </StackPanel>
-                                <TextBox Grid.Column="1"
-                                         Width="240"
-                                         Text="{x:Bind ViewModel.AiModelName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         AutomationProperties.Name="Custom model name" />
+                                <StackPanel Grid.Column="1" Width="290" Spacing="4" VerticalAlignment="Center">
+                                    <TextBox Text="{x:Bind ViewModel.AiModelSearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             PlaceholderText="Search models - try &quot;free&quot;"
+                                             IsEnabled="{x:Bind ViewModel.CanEditAi, Mode=OneWay}"
+                                             AutomationProperties.Name="Search models"
+                                             ToolTipService.ToolTip="Filter the model list by name, id or FREE" />
+                                    <Grid ColumnSpacing="6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ComboBox Grid.Column="0"
+                                                  x:Name="AiModelSuggestionCombo"
+                                                  ItemsSource="{x:Bind ViewModel.AiModelSuggestions, Mode=OneWay}"
+                                                  SelectedItem="{x:Bind ViewModel.SelectedAiModel, Mode=TwoWay}"
+                                                  PlaceholderText="Pick a model"
+                                                  IsEnabled="{x:Bind ViewModel.CanEditAi, Mode=OneWay}"
+                                                  AutomationProperties.Name="Models available to this key"
+                                                  ToolTipService.ToolTip="Models the selected provider offers to this API key">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate x:DataType="services:AiModelOption">
+                                                    <Grid ColumnSpacing="6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0"
+                                                                   Text="{x:Bind DisplayName}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   VerticalAlignment="Center" />
+                                                        <Border Grid.Column="1"
+                                                                Background="{ThemeResource FreeBadgeBgBrush}"
+                                                                BorderBrush="{ThemeResource FreeBadgeBorderBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="4"
+                                                                Padding="6,1"
+                                                                VerticalAlignment="Center"
+                                                                Visibility="{x:Bind IsFree, Converter={StaticResource BoolToVis}}">
+                                                            <TextBlock Text="FREE"
+                                                                       FontSize="10"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="{ThemeResource FreeBadgeTextBrush}" />
+                                                        </Border>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <Button Grid.Column="1"
+                                                Content="Refresh"
+                                                Style="{StaticResource SmallButton}"
+                                                IsEnabled="{x:Bind ViewModel.CanRefreshAiModels, Mode=OneWay}"
+                                                Command="{x:Bind ViewModel.RefreshAiModelsCommand}"
+                                                AutomationProperties.Name="Reload the model list from the provider"
+                                                ToolTipService.ToolTip="Ask the provider for the models this key can use" />
+                                    </Grid>
+                                </StackPanel>
                             </Grid>
 
                             <Grid Style="{StaticResource SettingRow}">
@@ -833,13 +911,14 @@
                                 <ToggleSwitch Grid.Column="1"
                                               Style="{StaticResource SettingSwitch}"
                                               IsOn="{x:Bind ViewModel.AutoQueryAiForLargeFiles, Mode=TwoWay}"
+                                              IsEnabled="{x:Bind ViewModel.EnableOnlineAiSafety, Mode=OneWay}"
                                               AutomationProperties.Name="Analyze large files automatically" />
                             </Grid>
 
                             <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
                                 <Button Content="Test connection"
                                         Style="{StaticResource SmallButton}"
-                                        IsEnabled="{x:Bind ViewModel.IsTestingAi, Mode=OneWay, Converter={StaticResource NotBool}}"
+                                        IsEnabled="{x:Bind ViewModel.CanTestAi, Mode=OneWay}"
                                         Command="{x:Bind ViewModel.TestAiConnectionCommand}" />
                                 <Button Content="Clear AI cache"
                                         Style="{StaticResource SmallButton}"
@@ -847,7 +926,8 @@
                                 <TextBlock Text="{x:Bind ViewModel.AiTestStatusText, Mode=OneWay}"
                                            Style="{StaticResource RowHint}"
                                            VerticalAlignment="Center"
-                                           MaxWidth="420" />
+                                           MaxWidth="420"
+                                           TextWrapping="Wrap" />
                             </StackPanel>
 
                             <TextBlock Text="{x:Bind ViewModel.CachedAiReportsText, Mode=OneWay}"

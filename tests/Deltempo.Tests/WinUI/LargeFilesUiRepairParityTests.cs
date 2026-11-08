@@ -216,7 +216,9 @@ public class LargeFilesUiRepairParityTests
         Assert.Equal("gemini-3.5-flash", AiModelCatalog.ResolveModelId("Gemini", null));
         Assert.Equal("gpt-5.4-mini", AiModelCatalog.ResolveModelId("OpenAI", null));
         Assert.Equal("openai/gpt-oss-120b", AiModelCatalog.ResolveModelId("Groq", null));
-        Assert.Equal("meta-llama/llama-3.3-70b-instruct", AiModelCatalog.ResolveModelId("OpenRouter", null));
+        // OpenRouter's default is a FREE model: a brand-new key with no credit answers a
+        // paid model with HTTP 402, which read as "unexpected error" on a fresh install.
+        Assert.Equal("google/gemma-4-31b-it:free", AiModelCatalog.ResolveModelId("OpenRouter", null));
         Assert.Equal("llama3.2", AiModelCatalog.ResolveModelId("Ollama", null));
     }
 

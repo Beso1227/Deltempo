@@ -208,8 +208,11 @@ public static class StartupIntelligenceService
         }
 
         // Previously the key gated each provider arm, so a provider with a blank key fell
-        // through to the offline branch and reported success.
-        if (descriptor.RequiresApiKey && string.IsNullOrWhiteSpace(settings.AiApiKey))
+        // through to the offline branch and reported success. Resolved per provider so a
+        // provider switch cannot reuse another provider's credential.
+        string apiKey = settings.GetAiApiKey();
+
+        if (descriptor.RequiresApiKey && string.IsNullOrWhiteSpace(apiKey))
         {
             throw new AiProviderException(AiFailureKind.Authentication,
                 $"No API key configured for {settings.AiProvider}.");
@@ -219,11 +222,11 @@ public static class StartupIntelligenceService
 
         string rawText = await AiProviderClient.CompleteAsync(new AiChatRequest(
             Provider: settings.AiProvider,
-            ApiKey: settings.AiApiKey,
+            ApiKey: apiKey,
             ModelId: model,
             SystemPrompt: BuildSystemPrompt(),
             UserPrompt: BuildUserMessage(item),
-            Endpoint: settings.AiOllamaEndpoint,
+            OllamaEndpoint: settings.AiOllamaEndpoint,
             Temperature: 0.2), ct);
 
         LastProviderError = null;

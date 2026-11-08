@@ -73,6 +73,11 @@
         <SolidColorBrush x:Key="WarningBadgeBorderBrush" Color="#F59E0B"/>
         <SolidColorBrush x:Key="WarningBadgeTextBrush" Color="#F59E0B"/>
 
+        <!-- Free-model pill: filled, so "free" is the first thing seen in a long list. -->
+        <SolidColorBrush x:Key="FreeBadgeBgBrush" Color="#00F2B0"/>
+        <SolidColorBrush x:Key="FreeBadgeBorderBrush" Color="#00F2B0"/>
+        <SolidColorBrush x:Key="FreeBadgeTextBrush" Color="#04120E"/>
+
         <!-- Modals -->
         <SolidColorBrush x:Key="ModalSurfaceBrush" Color="#0B0F14"/>
         <SolidColorBrush x:Key="ModalBackdropBrush" Color="#77030608"/>

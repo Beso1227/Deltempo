@@ -621,23 +621,7 @@ public partial class MainWindow : Window
         }
 
         // AI & Online Intelligence
-        SettingsEnableAiCheckBox.IsChecked = SettingsService.Current.EnableOnlineAiSafety;
-        SettingsAutoQueryAiCheckBox.IsChecked = SettingsService.Current.AutoQueryAiForLargeFiles;
-        foreach (ComboBoxItem pItem in SettingsAiProviderComboBox.Items)
-        {
-            if (pItem.Tag is string pTag && string.Equals(pTag, SettingsService.Current.AiProvider, StringComparison.OrdinalIgnoreCase))
-            {
-                SettingsAiProviderComboBox.SelectedItem = pItem;
-                break;
-            }
-        }
-        SettingsAiApiKeyPasswordBox.Password = SettingsService.Current.AiApiKey;
-        SettingsAiModelBox.Text = SettingsService.Current.AiModelName;
-        SettingsAiOllamaEndpointBox.Text = string.IsNullOrWhiteSpace(SettingsService.Current.AiOllamaEndpoint)
-            ? "http://localhost:11434" // DevSkim: ignore DS162092
-            : SettingsService.Current.AiOllamaEndpoint;
-        UpdateAiSettingsUiVisibility();
-        SettingsAiTestStatusText.Text = $"Ready. Cached local AI reports: {OnlineFileIntelligenceService.GetCacheCount()} files.";
+        LoadAiSettingsIntoUi();
 
         ApplyMemorySettingsToWindow();
     }
@@ -876,6 +860,7 @@ public partial class MainWindow : Window
             case "settings":
                 LoadSettingsIntoUI();
                 SettingsModalOverlay.Visibility = Visibility.Visible;
+                ScheduleAiModelRefresh();
                 break;
             case "about":
                 AboutModalOverlay.Visibility = Visibility.Visible;

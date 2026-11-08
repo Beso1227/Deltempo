@@ -96,6 +96,9 @@
             <SolidColorBrush x:Key="WarningBadgeBgBrush" Color="#261C0D" />
             <SolidColorBrush x:Key="WarningBadgeBorderBrush" Color="#F59E0B" />
             <SolidColorBrush x:Key="WarningBadgeTextBrush" Color="#F59E0B" />
+            <SolidColorBrush x:Key="FreeBadgeBgBrush" Color="#00F2B0" />
+            <SolidColorBrush x:Key="FreeBadgeBorderBrush" Color="#00F2B0" />
+            <SolidColorBrush x:Key="FreeBadgeTextBrush" Color="#04120E" />
             <SolidColorBrush x:Key="ElectricCyanBrush" Color="#00F2B0" />
             <SolidColorBrush x:Key="AccentBlueBrush" Color="#0DD3BA" />
             <SolidColorBrush x:Key="AccentIndigoBrush" Color="#06B6D4" />
@@ -296,6 +299,11 @@
             <SolidColorBrush x:Key="WarningBadgeBgBrush" Color="#FEF3C7" />
             <SolidColorBrush x:Key="WarningBadgeBorderBrush" Color="#D97706" />
             <SolidColorBrush x:Key="WarningBadgeTextBrush" Color="#B45309" />
+
+            <!-- Free-model pill: solid teal with white text, the same signal as dark mode. -->
+            <SolidColorBrush x:Key="FreeBadgeBgBrush" Color="#0D9488" />
+            <SolidColorBrush x:Key="FreeBadgeBorderBrush" Color="#0F766E" />
+            <SolidColorBrush x:Key="FreeBadgeTextBrush" Color="#FFFFFF" />
 
             <!-- The accent, deepened: fills, borders, the rail's selection bar and
                  accent-filled buttons all read from ElectricCyanBrush, and at teal it

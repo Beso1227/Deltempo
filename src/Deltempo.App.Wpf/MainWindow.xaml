@@ -3528,11 +3528,17 @@
                                                           Style="{DynamicResource ModernSwitchCheckBox}"
                                                           FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                           IsChecked="True"
+                                                          AutomationProperties.Name="Enable online file intelligence"
+                                                          Checked="SettingsEnableAiCheckBox_Changed"
+                                                          Unchecked="SettingsEnableAiCheckBox_Changed"
                                                           VerticalAlignment="Center"/>
                                             </Grid>
 
-                                            <!-- Provider Selection -->
-                                            <Grid Margin="0,6,0,6">
+                                            <!-- Provider Selection. The items are filled from
+                                                 AiModelCatalog.GetProviderOptions() so this list
+                                                 cannot drift from the one WinUI and the request
+                                                 path use. -->
+                                            <Grid Margin="0,6,0,2">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
@@ -3545,21 +3551,22 @@
                                                 <ComboBox Grid.Column="1"
                                                           x:Name="SettingsAiProviderComboBox"
                                                           Style="{DynamicResource ModernComboBox}"
-                                                          Width="220" Height="26"
-                                                          SelectionChanged="SettingsAiProviderComboBox_SelectionChanged">
-                                                    <ComboBoxItem Content="Built-in Web Knowledge (Free, No Key)" Tag="BuiltIn" IsSelected="True"/>
-                                                    <ComboBoxItem Content="OpenRouter (Universal / Multi-Model)" Tag="OpenRouter"/>
-                                                    <ComboBoxItem Content="Google Gemini (Free API Key)" Tag="Gemini"/>
-                                                    <ComboBoxItem Content="Groq (Ultra-Fast Free Tier)" Tag="Groq"/>
-                                                    <ComboBoxItem Content="OpenAI (GPT-4o-mini)" Tag="OpenAI"/>
-                                                    <ComboBoxItem Content="Ollama (Local &amp; Private)" Tag="Ollama"/>
-                                                </ComboBox>
+                                                          Width="240" Height="26"
+                                                          AutomationProperties.Name="AI intelligence provider"
+                                                          SelectionChanged="SettingsAiProviderComboBox_SelectionChanged"/>
                                             </Grid>
+                                            <TextBlock x:Name="SettingsAiProviderDescription"
+                                                       FontSize="10"
+                                                       Foreground="{DynamicResource TextMutedBrush}"
+                                                       TextWrapping="Wrap"
+                                                       Margin="0,0,0,6"/>
 
                                             <!-- Auto-query switch. AppSettings had this toggle but no
                                                  code acted on it, so the setting was a dead switch: the
                                                  WinUI settings card promised it and neither app honored
-                                                 it; here it is made real alongside the WinUI one. -->
+                                                 it; here it is made real alongside the WinUI one. It is
+                                                 disabled while AI is off because the batch is gated on
+                                                 EnableOnlineAiSafety and would silently never run. -->
                                             <Grid Margin="0,4,0,6">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
@@ -3575,28 +3582,46 @@
                                                            Style="{DynamicResource ModernSwitchCheckBox}"
                                                            FocusVisualStyle="{DynamicResource AccessibleFocusVisualStyle}"
                                                            IsChecked="False"
+                                                           AutomationProperties.Name="Analyze unverified large files automatically"
                                                            ToolTip="Requires AI and Online File Intelligence to be enabled"
                                                            VerticalAlignment="Center"/>
                                             </Grid>
 
-                                            <!-- API Key Row (for Gemini, OpenAI, Groq) -->
+                                            <!-- API Key Row (for Gemini, OpenAI, Groq, OpenRouter) -->
                                             <Grid x:Name="SettingsAiApiKeyRow" Margin="0,4,0,6" Visibility="Collapsed">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0"
-                                                           Text="API Key"
-                                                           FontSize="11.5"
-                                                           Foreground="{DynamicResource TextMediumBrush}"
-                                                           VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                    <TextBlock Text="API Key"
+                                                               FontSize="11.5"
+                                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                                    <TextBlock Text="Stored with Windows DPAPI on this PC. Use Remove to forget it."
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextMutedBrush}"
+                                                               TextWrapping="Wrap"/>
+                                                </StackPanel>
                                                 <PasswordBox Grid.Column="1"
                                                              x:Name="SettingsAiApiKeyPasswordBox"
                                                              Width="220" Height="26"
                                                              Background="{DynamicResource SurfaceCardBrush}"
                                                              Foreground="{DynamicResource TextHighBrush}"
                                                              BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                             Padding="6,3"/>
+                                                             Padding="6,3"
+                                                             PasswordChanged="SettingsAiApiKeyPasswordBox_PasswordChanged"
+                                                             AutomationProperties.Name="AI provider API key"/>
+                                                <Button Grid.Column="2"
+                                                        x:Name="SettingsAiClearKeyBtn"
+                                                        Content="Remove"
+                                                        Style="{DynamicResource PillButton}"
+                                                        Padding="9,3"
+                                                        FontSize="10"
+                                                        Margin="6,0,0,0"
+                                                        AutomationProperties.Name="Remove saved API key"
+                                                        ToolTip="Forget the saved key for this provider"
+                                                        Click="SettingsAiClearKey_Click"/>
                                             </Grid>
 
                                             <!-- Ollama Endpoint Row -->
@@ -3605,11 +3630,15 @@
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0"
-                                                           Text="Ollama Endpoint"
-                                                           FontSize="11.5"
-                                                           Foreground="{DynamicResource TextMediumBrush}"
-                                                           VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                    <TextBlock Text="Ollama Endpoint"
+                                                               FontSize="11.5"
+                                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                                    <TextBlock Text="Leave blank to use http://localhost:11434"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextMutedBrush}"
+                                                               TextWrapping="Wrap"/>
+                                                </StackPanel>
                                                 <TextBox Grid.Column="1"
                                                          x:Name="SettingsAiOllamaEndpointBox"
                                                          Text="http://localhost:11434"
@@ -3617,27 +3646,114 @@
                                                          Background="{DynamicResource SurfaceCardBrush}"
                                                          Foreground="{DynamicResource TextHighBrush}"
                                                          BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                         Padding="6,3"/>
+                                                         Padding="6,3"
+                                                         TextChanged="SettingsAiOllamaEndpointBox_TextChanged"
+                                                         AutomationProperties.Name="Ollama endpoint"/>
                                             </Grid>
 
-                                            <!-- Model Override Row -->
+                                            <!-- Model picker row. The list is what the provider
+                                                 reports for this key; search narrows it, and a
+                                                 free model carries a green FREE pill. -->
                                             <Grid x:Name="SettingsAiModelRow" Margin="0,4,0,8" Visibility="Collapsed">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0"
-                                                           Text="Custom Model Name (Optional)"
-                                                           FontSize="11.5"
-                                                           Foreground="{DynamicResource TextMediumBrush}"
-                                                           VerticalAlignment="Center"/>
-                                                <TextBox Grid.Column="1"
-                                                         x:Name="SettingsAiModelBox"
-                                                         Width="220" Height="26"
-                                                         Background="{DynamicResource SurfaceCardBrush}"
-                                                         Foreground="{DynamicResource TextHighBrush}"
-                                                         BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                         Padding="6,3"/>
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                    <TextBlock Text="Model"
+                                                               FontSize="11.5"
+                                                               Foreground="{DynamicResource TextMediumBrush}"/>
+                                                    <TextBlock x:Name="SettingsAiModelHint"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextMutedBrush}"
+                                                               TextWrapping="Wrap"/>
+                                                    <TextBlock x:Name="SettingsAiModelStatusText"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextMutedBrush}"
+                                                               TextWrapping="Wrap"
+                                                               Margin="0,2,0,0"/>
+                                                    <TextBlock x:Name="SettingsAiModelMatchText"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource AmberWarningBrush}"
+                                                               TextWrapping="Wrap"
+                                                               Margin="0,2,0,0"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Width="290">
+                                                    <Grid>
+                                                        <TextBox x:Name="SettingsAiModelSearchBox"
+                                                                 Height="26"
+                                                                 Background="{DynamicResource SurfaceCardBrush}"
+                                                                 Foreground="{DynamicResource TextHighBrush}"
+                                                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                                                 Padding="8,3"
+                                                                 TextChanged="SettingsAiModelSearchBox_TextChanged"
+                                                                 AutomationProperties.Name="Search models"
+                                                                 ToolTip="Filter the model list by name, id or FREE"/>
+                                                        <TextBlock x:Name="SettingsAiModelSearchPlaceholder"
+                                                                   Text="Search models - try &quot;free&quot;"
+                                                                   FontSize="10.5"
+                                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                                   VerticalAlignment="Center"
+                                                                   Margin="10,0"
+                                                                   IsHitTestVisible="False"/>
+                                                    </Grid>
+                                                    <Grid Margin="0,4,0,0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <ComboBox x:Name="SettingsAiModelSuggestionComboBox"
+                                                                  Grid.Column="0"
+                                                                  Style="{DynamicResource ModernComboBox}"
+                                                                  Height="26"
+                                                                  IsTextSearchEnabled="False"
+                                                                  AutomationProperties.Name="Models available to this key"
+                                                                  ToolTip="Models the selected provider offers to this API key"
+                                                                  SelectionChanged="SettingsAiModelSuggestionComboBox_SelectionChanged">
+                                                            <ComboBox.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Grid>
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="*"/>
+                                                                            <ColumnDefinition Width="Auto"/>
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Grid.Column="0"
+                                                                                   Text="{Binding DisplayName}"
+                                                                                   FontSize="11"
+                                                                                   Foreground="{DynamicResource TextHighBrush}"
+                                                                                   TextTrimming="CharacterEllipsis"
+                                                                                   VerticalAlignment="Center"
+                                                                                   ToolTip="{Binding Note}"/>
+                                                                        <Border Grid.Column="1"
+                                                                                Background="{DynamicResource FreeBadgeBgBrush}"
+                                                                                BorderBrush="{DynamicResource FreeBadgeBorderBrush}"
+                                                                                BorderThickness="1"
+                                                                                CornerRadius="4"
+                                                                                Padding="6,1"
+                                                                                Margin="6,0,0,0"
+                                                                                VerticalAlignment="Center"
+                                                                                Visibility="{Binding IsFree, Converter={StaticResource BoolToVisConverter}}">
+                                                                            <TextBlock Text="FREE"
+                                                                                       FontSize="{DynamicResource TextSizeMicro}"
+                                                                                       FontWeight="Bold"
+                                                                                       Foreground="{DynamicResource FreeBadgeTextBrush}"/>
+                                                                        </Border>
+                                                                    </Grid>
+                                                                </DataTemplate>
+                                                            </ComboBox.ItemTemplate>
+                                                        </ComboBox>
+                                                        <Button Grid.Column="1"
+                                                                x:Name="SettingsAiModelRefreshBtn"
+                                                                Content="Refresh"
+                                                                Style="{DynamicResource PillButton}"
+                                                                Padding="8,2"
+                                                                FontSize="10"
+                                                                Margin="6,0,0,0"
+                                                                AutomationProperties.Name="Reload the model list from the provider"
+                                                                ToolTip="Ask the provider for the models this key can use"
+                                                                Click="SettingsAiModelRefresh_Click"/>
+                                                    </Grid>
+                                                </StackPanel>
                                             </Grid>
 
                                             <!-- Test & Cache Actions -->
@@ -3653,7 +3769,8 @@
                                                            FontSize="10.5"
                                                            Foreground="{DynamicResource TextMutedBrush}"
                                                            VerticalAlignment="Center"
-                                                           TextTrimming="CharacterEllipsis"/>
+                                                           TextTrimming="CharacterEllipsis"
+                                                           ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                                                 <Button Grid.Column="1"
                                                         x:Name="SettingsTestAiBtn"
                                                         Content="Test Connection"
@@ -3661,6 +3778,7 @@
                                                         Padding="10,4"
                                                         FontSize="10.5"
                                                         Margin="0,0,6,0"
+                                                        AutomationProperties.Name="Test AI connection"
                                                         Click="SettingsTestAi_Click"/>
                                                 <Button Grid.Column="2"
                                                         x:Name="SettingsClearAiCacheBtn"
@@ -3668,6 +3786,7 @@
                                                         Style="{DynamicResource PillButton}"
                                                         Padding="10,4"
                                                         FontSize="10.5"
+                                                        AutomationProperties.Name="Clear AI report cache"
                                                         Click="SettingsClearAiCache_Click"/>
                                             </Grid>
                                         </StackPanel>

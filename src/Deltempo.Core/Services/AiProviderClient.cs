@@ -17,6 +17,8 @@ public enum AiFailureKind
     ModelUnavailable,
     /// <summary>Provider rate limit. Retry later; not the user's fault.</summary>
     RateLimited,
+    /// <summary>The account has no credit, or its plan does not cover the request.</summary>
+    PaymentRequired,
     /// <summary>Local provider (Ollama) not running or unreachable.</summary>
     ProviderUnreachable,
     /// <summary>The request exceeded its timeout - most often a cold local model.</summary>
@@ -53,24 +55,34 @@ public sealed class AiProviderException : Exception
             "The provider does not recognise that model name. Pick a current model in Settings - this one has most likely been retired upstream.",
         AiFailureKind.RateLimited =>
             "The provider is rate limiting this key. Wait a moment and try again.",
+        AiFailureKind.PaymentRequired =>
+            "The provider says this account has no credit, or its plan does not cover that model. " +
+            "Pick a model marked FREE in the model list, top up the account, or choose another provider.",
         AiFailureKind.ProviderUnreachable =>
             "Could not reach the local model server. Start Ollama and confirm it is running.",
         AiFailureKind.Timeout =>
             "The request timed out. A local model that is loading its weights can exceed the timeout on the first call - try again now it is warm.",
         AiFailureKind.MalformedResponse =>
             "The provider replied, but not in the JSON shape Deltempo asked for. Try again, or choose a model that follows JSON instructions.",
-        _ => "The AI provider returned an unexpected error.",
+        // The provider's own words are the only actionable part of an unclassified
+        // failure; dropping them left the user with "unexpected error" and no cause.
+        _ => $"The AI provider returned an unexpected error: {Message}",
     };
 }
 
 /// <summary>A provider-agnostic chat request.</summary>
+/// <remarks>
+/// <paramref name="OllamaEndpoint"/> is only meaningful for Ollama. Hosted providers own
+/// their endpoint, and every caller passes the settings value here, so a transport that
+/// honoured it for all providers sent OpenAI/Groq/OpenRouter traffic to localhost.
+/// </remarks>
 public sealed record AiChatRequest(
     string Provider,
     string? ApiKey,
     string ModelId,
     string SystemPrompt,
     string UserPrompt,
-    string? Endpoint = null,
+    string? OllamaEndpoint = null,
     double Temperature = 0.1);
 
 /// <summary>
@@ -126,26 +138,34 @@ public static class AiProviderClient
         using var timeoutCts = new CancellationTokenSource(AiModelCatalog.ResolveTimeout(request.Provider));
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
 
+        HttpResponseMessage? response = null;
         try
         {
-            HttpResponseMessage response = request.Provider.ToLowerInvariant() switch
+            response = request.Provider.ToLowerInvariant() switch
             {
                 "gemini" => await SendGeminiAsync(request, linked.Token),
                 "ollama" => await SendOllamaAsync(request, linked.Token),
                 _ => await SendOpenAiCompatibleAsync(request, linked.Token),
             };
 
-            using (response)
+            string body = await response.Content.ReadAsStringAsync(linked.Token);
+
+            // A 400 that names response_format means the model does not implement
+            // OpenAI's structured-output flag. The rest of the request is valid, so retry
+            // once without it rather than failing every OpenRouter model that predates it.
+            if (ShouldRetryWithoutJsonMode(request, response.StatusCode, body))
             {
-                string body = await response.Content.ReadAsStringAsync(linked.Token);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw ClassifyFailure(response.StatusCode, body, request.Provider);
-                }
-
-                return ExtractText(response.IsSuccessStatusCode, body, request.Provider);
+                response.Dispose();
+                response = await SendOpenAiCompatibleAsync(request, linked.Token, jsonMode: false);
+                body = await response.Content.ReadAsStringAsync(linked.Token);
             }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw ClassifyFailure(response.StatusCode, body, request.Provider);
+            }
+
+            return ExtractText(body, request.Provider);
         }
         catch (AiProviderException)
         {
@@ -172,6 +192,10 @@ public static class AiProviderClient
         {
             throw new AiProviderException(AiFailureKind.Unknown,
                 $"Unexpected error talking to {request.Provider}: {ex.Message}", ex);
+        }
+        finally
+        {
+            response?.Dispose();
         }
     }
 
@@ -201,9 +225,15 @@ public static class AiProviderClient
         return await HttpClient.PostAsync(url, content, ct);
     }
 
-    private static async Task<HttpResponseMessage> SendOpenAiCompatibleAsync(AiChatRequest request, CancellationToken ct)
+    private static async Task<HttpResponseMessage> SendOpenAiCompatibleAsync(
+        AiChatRequest request,
+        CancellationToken ct,
+        bool jsonMode = true)
     {
-        string endpoint = request.Endpoint ?? ResolveOpenAiEndpoint(request.Provider);
+        // The endpoint belongs to the provider, never to the caller: every caller passes
+        // the Ollama host on every request, so trusting it here routed OpenAI, Groq and
+        // OpenRouter to http://localhost:11434 and failed as an unreachable provider.
+        string endpoint = ResolveOpenAiEndpoint(request);
 
         using var message = new HttpRequestMessage(HttpMethod.Post, endpoint);
         if (!string.IsNullOrWhiteSpace(request.ApiKey))
@@ -217,17 +247,22 @@ public static class AiProviderClient
             message.Headers.Add("X-Title", "Deltempo");
         }
 
-        var payload = new
+        // A dictionary, not an anonymous type, because response_format is conditional:
+        // JSON mode is a request we can drop and retry, never a hard requirement.
+        var payload = new Dictionary<string, object?>
         {
-            model = request.ModelId,
-            messages = new[]
+            ["model"] = request.ModelId,
+            ["messages"] = new[]
             {
                 new { role = "system", content = request.SystemPrompt },
                 new { role = "user", content = request.UserPrompt }
             },
-            temperature = request.Temperature,
-            response_format = new { type = "json_object" }
+            ["temperature"] = request.Temperature,
         };
+        if (jsonMode)
+        {
+            payload["response_format"] = new { type = "json_object" };
+        }
 
         message.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
         return await HttpClient.SendAsync(message, ct);
@@ -235,11 +270,11 @@ public static class AiProviderClient
 
     private static async Task<HttpResponseMessage> SendOllamaAsync(AiChatRequest request, CancellationToken ct)
     {
-        string host = string.IsNullOrWhiteSpace(request.Endpoint)
+        string host = string.IsNullOrWhiteSpace(request.OllamaEndpoint)
             // Ollama binds to loopback by design: it is the provider a user picks
             // specifically so nothing leaves the machine. Not debug code.
             ? "http://localhost:11434" // DevSkim: ignore DS162092
-            : request.Endpoint.TrimEnd('/');
+            : request.OllamaEndpoint.TrimEnd('/');
 
         // Normalised onto /api/chat + messages. The previous copies disagreed: two used
         // /api/generate with a single flat prompt, one used /api/chat. Only the OpenAI
@@ -263,14 +298,381 @@ public static class AiProviderClient
         return await HttpClient.PostAsync(url, content, ct);
     }
 
-    private static string ResolveOpenAiEndpoint(string provider) => provider.ToLowerInvariant() switch
+    /// <summary>
+    /// The chat-completions URL for an OpenAI-compatible provider. Internal rather than
+    /// private so a test can pin the routing table: the previous bug was a caller-supplied
+    /// endpoint winning over this table, which no unit test observed.
+    /// </summary>
+    internal static string ResolveOpenAiEndpoint(string provider) => provider.ToLowerInvariant() switch
     {
         "groq" => "https://api.groq.com/openai/v1/chat/completions",
         "openrouter" => "https://openrouter.ai/api/v1/chat/completions",
         _ => "https://api.openai.com/v1/chat/completions",
     };
 
-    private static string ExtractText(bool success, string body, string provider)
+    /// <summary>
+    /// The endpoint an OpenAI-compatible request is actually sent to. Deliberately ignores
+    /// <see cref="AiChatRequest.OllamaEndpoint"/>; the overload exists so a test can prove
+    /// that a caller carrying the local host cannot redirect a hosted provider.
+    /// </summary>
+    internal static string ResolveOpenAiEndpoint(AiChatRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return ResolveOpenAiEndpoint(request.Provider);
+    }
+
+    /// <summary>
+    /// The models endpoint for an OpenAI-compatible provider. Same routing table as the
+    /// chat endpoint, minus the operation.
+    /// </summary>
+    internal static string ResolveModelsEndpoint(string provider) => provider.ToLowerInvariant() switch
+    {
+        "groq" => "https://api.groq.com/openai/v1/models",
+        "openrouter" => "https://openrouter.ai/api/v1/models",
+        _ => "https://api.openai.com/v1/models",
+    };
+
+    /// <summary>
+    /// Lists the models the supplied key can actually use, straight from the provider.
+    /// </summary>
+    /// <remarks>
+    /// The catalog's suggestion lists go stale between releases - every hardcoded default
+    /// this app has replaced was already retired upstream when it was found. Asking the
+    /// provider turns "type the model id and hope" into a list of what this account can
+    /// call right now. A failure here is reported, never fatal: the manual box still works.
+    /// </remarks>
+    /// <exception cref="AiProviderException">The provider could not be asked.</exception>
+    public static async Task<IReadOnlyList<AiModelOption>> ListModelsAsync(
+        string provider,
+        string? apiKey,
+        string? ollamaEndpoint,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(provider) ||
+            provider.Equals("BuiltIn", StringComparison.OrdinalIgnoreCase))
+        {
+            return Array.Empty<AiModelOption>();
+        }
+
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
+
+        HttpResponseMessage? response = null;
+        try
+        {
+            response = provider.ToLowerInvariant() switch
+            {
+                "gemini" => await GetGeminiModelsAsync(apiKey, linked.Token),
+                "ollama" => await GetOllamaModelsAsync(ollamaEndpoint, linked.Token),
+                _ => await GetOpenAiModelsAsync(provider, apiKey, linked.Token),
+            };
+
+            string body = await response.Content.ReadAsStringAsync(linked.Token);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw ClassifyFailure(response.StatusCode, body, provider);
+            }
+
+            return ParseModelList(provider, body);
+        }
+        catch (AiProviderException)
+        {
+            throw;
+        }
+        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !ct.IsCancellationRequested)
+        {
+            throw new AiProviderException(AiFailureKind.Timeout,
+                $"Listing models from {provider} timed out.");
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new AiProviderException(AiFailureKind.ProviderUnreachable,
+                $"Could not reach {provider}: {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new AiProviderException(AiFailureKind.Unknown,
+                $"Unexpected error listing models from {provider}: {ex.Message}", ex);
+        }
+        finally
+        {
+            response?.Dispose();
+        }
+    }
+
+    private static async Task<HttpResponseMessage> GetGeminiModelsAsync(string? apiKey, CancellationToken ct)
+    {
+        string url =
+            "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000" +
+            $"&key={Uri.EscapeDataString(apiKey ?? string.Empty)}";
+        return await HttpClient.GetAsync(url, ct);
+    }
+
+    private static async Task<HttpResponseMessage> GetOllamaModelsAsync(string? ollamaEndpoint, CancellationToken ct)
+    {
+        string host = string.IsNullOrWhiteSpace(ollamaEndpoint)
+            ? "http://localhost:11434" // DevSkim: ignore DS162092
+            : ollamaEndpoint.TrimEnd('/');
+        return await HttpClient.GetAsync($"{host}/api/tags", ct);
+    }
+
+    private static async Task<HttpResponseMessage> GetOpenAiModelsAsync(
+        string provider,
+        string? apiKey,
+        CancellationToken ct)
+    {
+        string endpoint = ResolveModelsEndpoint(provider);
+        using var message = new HttpRequestMessage(HttpMethod.Get, endpoint);
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        }
+
+        if (endpoint.Contains("openrouter.ai", StringComparison.OrdinalIgnoreCase))
+        {
+            message.Headers.Add("HTTP-Referer", "https://github.com/Beso1227/Deltempo");
+            message.Headers.Add("X-Title", "Deltempo");
+        }
+
+        return await HttpClient.SendAsync(message, ct);
+    }
+
+    /// <summary>
+    /// Reads the three model-list shapes into one list. Internal so the parsing is pinned
+    /// by tests without a network round trip.
+    /// </summary>
+    internal static IReadOnlyList<AiModelOption> ParseModelList(string provider, string body)
+    {
+        var models = new List<AiModelOption>();
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            JsonElement root = doc.RootElement;
+            string normalized = provider.ToLowerInvariant();
+
+            if (normalized == "gemini")
+            {
+                if (root.TryGetProperty("models", out var geminiModels) &&
+                    geminiModels.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (JsonElement item in geminiModels.EnumerateArray())
+                    {
+                        // Embedding-only and legacy models cannot answer a chat request;
+                        // offering them produced a 400 the moment the user picked one.
+                        if (!item.TryGetProperty("supportedGenerationMethods", out var methods) ||
+                            methods.ValueKind != JsonValueKind.Array ||
+                            !methods.EnumerateArray().Any(m =>
+                                m.ValueKind == JsonValueKind.String &&
+                                string.Equals(m.GetString(), "generateContent", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            continue;
+                        }
+
+                        if (!item.TryGetProperty("name", out var name) || name.ValueKind != JsonValueKind.String)
+                        {
+                            continue;
+                        }
+
+                        string id = (name.GetString() ?? string.Empty).Replace("models/", string.Empty, StringComparison.Ordinal);
+                        if (string.IsNullOrWhiteSpace(id))
+                        {
+                            continue;
+                        }
+
+                        string display = item.TryGetProperty("displayName", out var displayName) &&
+                            displayName.ValueKind == JsonValueKind.String
+                            ? displayName.GetString() ?? id
+                            : id;
+                        models.Add(new AiModelOption(id, display));
+                    }
+                }
+            }
+            else if (normalized == "ollama")
+            {
+                if (root.TryGetProperty("models", out var ollamaModels) &&
+                    ollamaModels.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (JsonElement item in ollamaModels.EnumerateArray())
+                    {
+                        string? id = item.TryGetProperty("name", out var name) && name.ValueKind == JsonValueKind.String
+                            ? name.GetString()
+                            : item.TryGetProperty("model", out var model) && model.ValueKind == JsonValueKind.String
+                                ? model.GetString()
+                                : null;
+                        if (!string.IsNullOrWhiteSpace(id))
+                        {
+                            models.Add(new AiModelOption(id!, id!));
+                        }
+                    }
+                }
+            }
+            else if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement item in data.EnumerateArray())
+                {
+                    if (!item.TryGetProperty("id", out var idElement) || idElement.ValueKind != JsonValueKind.String)
+                    {
+                        continue;
+                    }
+
+                    string id = idElement.GetString() ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(id))
+                    {
+                        continue;
+                    }
+
+                    // OpenAI and Groq list every model they host, including the ones that
+                    // cannot answer a chat request. Offering text-embedding-3-small or
+                    // whisper-1 in a chat picker guaranteed a 400 the moment it was chosen.
+                    if (!IsChatCapableId(id))
+                    {
+                        continue;
+                    }
+
+                    // OpenRouter's :batch variants are asynchronous jobs, not chat
+                    // completions; a chat request against one is rejected.
+                    if (normalized == "openrouter" && id.EndsWith(":batch", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    // OpenRouter states the modality. A model that cannot emit text cannot
+                    // answer this app's JSON request, so it does not belong in the picker.
+                    if (item.TryGetProperty("architecture", out var architecture) &&
+                        architecture.ValueKind == JsonValueKind.Object &&
+                        architecture.TryGetProperty("output_modalities", out var outputs) &&
+                        outputs.ValueKind == JsonValueKind.Array &&
+                        !outputs.EnumerateArray().Any(m =>
+                            m.ValueKind == JsonValueKind.String &&
+                            string.Equals(m.GetString(), "text", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        continue;
+                    }
+
+                    // OpenRouter carries a human label; OpenAI and Groq only an id.
+                    string display = item.TryGetProperty("name", out var name) && name.ValueKind == JsonValueKind.String
+                        ? name.GetString() ?? id
+                        : id;
+
+                    models.Add(BuildOpenAiCompatibleOption(id, display, item));
+                }
+            }
+        }
+        catch (JsonException ex)
+        {
+            throw new AiProviderException(AiFailureKind.MalformedResponse,
+                $"{provider} returned a model list that was not valid JSON.", ex);
+        }
+
+        // OpenRouter is ordered free-first: a zero-credit account can only call those, and
+        // the picker is the one place a user can see which is which before pressing Test.
+        return provider.Equals("openrouter", StringComparison.OrdinalIgnoreCase)
+            ? models
+                .DistinctBy(model => model.Id, StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(model => string.Equals(model.Badge, "FREE", StringComparison.Ordinal))
+                .ThenBy(model => model.Id, StringComparer.OrdinalIgnoreCase)
+                .ToList()
+            : models
+                .DistinctBy(model => model.Id, StringComparer.OrdinalIgnoreCase)
+                .OrderBy(model => model.Id, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+    }
+
+    /// <summary>
+    /// True when a model id can answer a chat request. OpenAI and Groq publish their whole
+    /// catalogue on /models - embeddings, speech, image and moderation models included - and
+    /// a picker built from it offered entries that fail on selection.
+    /// </summary>
+    internal static bool IsChatCapableId(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return false;
+        }
+
+        ReadOnlySpan<string> excluded =
+        [
+            "embed", "whisper", "tts", "dall-e", "moderation", "transcribe",
+            "realtime", "rerank", "similarity", "audio", "image", "search", "guard",
+        ];
+
+        foreach (string marker in excluded)
+        {
+            if (id.Contains(marker, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Builds the picker entry for an OpenAI-compatible model, reading OpenRouter's pricing
+    /// when it is there. Free models are badged so the list is readable at a glance.
+    /// </summary>
+    private static AiModelOption BuildOpenAiCompatibleOption(string id, string display, JsonElement item)
+    {
+        if (!item.TryGetProperty("pricing", out var pricing) || pricing.ValueKind != JsonValueKind.Object)
+        {
+            return new AiModelOption(id, display);
+        }
+
+        double prompt = ReadPrice(pricing, "prompt");
+        double completion = ReadPrice(pricing, "completion");
+
+        if (prompt <= 0 && completion <= 0)
+        {
+            return new AiModelOption(id, display, "No credit needed", "FREE");
+        }
+
+        // Per-million-token figures: the API quotes per-token strings.
+        string note = $"${prompt * 1_000_000:0.###}/M in, ${completion * 1_000_000:0.###}/M out";
+        return new AiModelOption(id, display, note);
+    }
+
+    private static double ReadPrice(JsonElement pricing, string property)
+    {
+        if (!pricing.TryGetProperty(property, out var value))
+        {
+            return 0;
+        }
+
+        return value.ValueKind switch
+        {
+            JsonValueKind.Number => value.GetDouble(),
+            JsonValueKind.String when double.TryParse(
+                value.GetString(),
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out double parsed) => parsed,
+            _ => 0,
+        };
+    }
+
+    private static bool ShouldRetryWithoutJsonMode(AiChatRequest request, HttpStatusCode status, string body)
+    {
+        if (status != HttpStatusCode.BadRequest)
+        {
+            return false;
+        }
+
+        if (request.Provider.Equals("gemini", StringComparison.OrdinalIgnoreCase) ||
+            request.Provider.Equals("ollama", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return body.Contains("response_format", StringComparison.OrdinalIgnoreCase) ||
+            body.Contains("json_object", StringComparison.OrdinalIgnoreCase) ||
+            body.Contains("structured output", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ExtractText(string body, string provider)
     {
         try
         {
@@ -352,6 +754,7 @@ public static class AiProviderClient
         AiFailureKind kind = status switch
         {
             HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => AiFailureKind.Authentication,
+            HttpStatusCode.PaymentRequired => AiFailureKind.PaymentRequired,
             HttpStatusCode.NotFound => AiFailureKind.ModelUnavailable,
             HttpStatusCode.TooManyRequests => AiFailureKind.RateLimited,
             HttpStatusCode.BadRequest when mentionsModel => AiFailureKind.ModelUnavailable,

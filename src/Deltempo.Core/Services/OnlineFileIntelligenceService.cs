@@ -124,10 +124,16 @@ public static class OnlineFileIntelligenceService
 
     public static int GetCacheCount() => MemoryCache.Count;
 
-    public static void ClearCache()
+    /// <summary>
+    /// Drops every cached report and persists the empty cache. Returns how many entries
+    /// were removed so a surface can say what it did instead of guessing "0 items".
+    /// </summary>
+    public static int ClearCache()
     {
+        int removed = MemoryCache.Count;
         MemoryCache.Clear();
         SaveCache();
+        return removed;
     }
 
     /// <summary>
@@ -275,10 +281,13 @@ public static class OnlineFileIntelligenceService
         }
 
         // The key used to gate each provider arm, so a provider with a blank key silently
-        // fell through to the offline branch and reported success.
+        // fell through to the offline branch and reported success. The key is resolved
+        // per provider: switching providers used to reuse whichever key was last typed.
+        string apiKey = settings.GetAiApiKey();
+
         if (AiModelCatalog.TryGetProvider(settings.AiProvider, out var descriptor) &&
             descriptor.RequiresApiKey &&
-            string.IsNullOrWhiteSpace(settings.AiApiKey))
+            string.IsNullOrWhiteSpace(apiKey))
         {
             throw new AiProviderException(AiFailureKind.Authentication,
                 $"No API key configured for {settings.AiProvider}.");
@@ -288,11 +297,11 @@ public static class OnlineFileIntelligenceService
 
         string rawText = await AiProviderClient.CompleteAsync(new AiChatRequest(
             Provider: settings.AiProvider,
-            ApiKey: settings.AiApiKey,
+            ApiKey: apiKey,
             ModelId: model,
             SystemPrompt: "You are a senior Windows file-safety analyst. You reply with one valid JSON object and nothing else.",
             UserPrompt: BuildAnalysisPrompt(profile),
-            Endpoint: settings.AiOllamaEndpoint), ct);
+            OllamaEndpoint: settings.AiOllamaEndpoint), ct);
 
         LastProviderError = null;
 
@@ -987,7 +996,7 @@ VERDICT RULES:
                 ModelId: model,
                 SystemPrompt: "You reply with valid JSON only.",
                 UserPrompt: "Return exactly this object and nothing else: {\"ok\": true}",
-                Endpoint: endpoint), cts.Token);
+                OllamaEndpoint: endpoint), cts.Token);
 
             return (true, $"Connected to {provider} ({model}).{(string.IsNullOrWhiteSpace(text) ? "" : " JSON response verified.")}");
         }

@@ -581,6 +581,15 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
             return;
         }
 
+        // Say why instead of quietly producing an offline verdict: the row used to read
+        // "Local Intelligence (Offline)" with no hint that the master switch was off.
+        if (!TryPrepareAiForUserRequest(out string? reason))
+        {
+            StatusText = reason!;
+            LogRequested?.Invoke($"[LargeFiles] Ask AI skipped: {reason}", LogLevel.Warning);
+            return;
+        }
+
         SoundService.PlayClickSound();
         LogRequested?.Invoke(
             $"[LargeFiles] Ask AI requested for '{item.FileName}'...",
@@ -629,8 +638,43 @@ public sealed partial class LargeFilesWorkspaceViewModel : ObservableObject
             return;
         }
 
+        if (!TryPrepareAiForUserRequest(out string? reason))
+        {
+            StatusText = reason!;
+            LogRequested?.Invoke($"[LargeFiles] Ask AI skipped: {reason}", LogLevel.Warning);
+            return;
+        }
+
         SoundService.PlayClickSound();
         await RunBatchAnalyzeCoreAsync(selected);
+    }
+
+    /// <summary>
+    /// Turns "the user pressed Ask AI" into a request that can actually run.
+    /// </summary>
+    /// <remarks>
+    /// A cloud provider plus a saved key plus a click on Ask AI is unambiguous intent, but
+    /// the master switch sat in front of it: the click produced an offline verdict and the
+    /// row read "Local Intelligence (Offline)". When the only obstacle is that switch, it is
+    /// turned on here - in the click path only, never at startup or in the post-scan batch -
+    /// and the log records it so the change is visible and reversible in Settings.
+    /// </remarks>
+    private bool TryPrepareAiForUserRequest(out string? reason)
+    {
+        var readiness = LargeFileHunterService.GetAiReadiness(out reason);
+
+        if (readiness == LargeFileHunterService.AiReadiness.SwitchOff &&
+            LargeFileHunterService.TryEnableConfiguredProvider())
+        {
+            string provider = SettingsService.Current.AiProvider;
+            LogRequested?.Invoke(
+                $"[LargeFiles] Online AI was off; enabled {provider} because you asked AI about a file.",
+                LogLevel.Info);
+            readiness = LargeFileHunterService.GetAiReadiness(out reason);
+        }
+
+        return readiness is LargeFileHunterService.AiReadiness.Ready
+            or LargeFileHunterService.AiReadiness.BuiltInLocal;
     }
 
     /// <summary>

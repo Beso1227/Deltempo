@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
 
@@ -19,6 +20,70 @@ namespace WinTempCleaner;
 // Settings hub: categorized navigation, update choices, AI provider configuration.
 public partial class MainWindow
 {
+    /// <summary>
+    /// Plaintext keys for every provider while the settings modal is open. A single
+    /// password box cannot represent six providers: switching from Gemini to Groq used to
+    /// leave the Gemini key in the box and send it to Groq, which answered 401. Keys are
+    /// stashed here on switch and written back on save.
+    /// </summary>
+    private Dictionary<string, string> _pendingAiApiKeys = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The provider the password box currently represents, so a switch can stash
+    /// the outgoing key before the incoming one is loaded.</summary>
+    private string _lastAiProvider = "BuiltIn";
+
+    /// <summary>True while the provider list or the selected item is being set from code,
+    /// so the SelectionChanged handler does not treat that as a user switch.</summary>
+    private bool _suppressAiProviderChange;
+
+    /// <summary>True while the model suggestion list is being repopulated.</summary>
+    private bool _suppressAiModelSuggestion;
+
+    /// <summary>The provider combo is filled once, from the shared catalog.</summary>
+    private bool _aiProvidersPopulated;
+
+    /// <summary>
+    /// Models the current key can actually call, as the provider reported them. Null means
+    /// "not asked yet", which is why the card falls back to the static catalog rather than
+    /// showing an empty list while the first request is in flight.
+    /// </summary>
+    private IReadOnlyList<AiModelOption>? _aiFetchedModels;
+
+    /// <summary>
+    /// The provider+key+endpoint the fetched list belongs to. Typing a different key makes
+    /// the old list a lie about a different account, so it is discarded and refetched.
+    /// </summary>
+    private string? _aiFetchedFor;
+
+    /// <summary>Coalesces the keystrokes of a pasted API key into one request.</summary>
+    private DispatcherTimer? _aiModelRefreshTimer;
+
+    /// <summary>Cancels the in-flight listing when the user types again or switches provider.</summary>
+    private CancellationTokenSource? _aiModelRefreshCts;
+
+    /// <summary>Guards against an older listing overwriting a newer one.</summary>
+    private int _aiModelFetchGeneration;
+
+    /// <summary>True while the model list is being rebuilt, so the picker does not fire
+    /// SelectionChanged for every item it adds.</summary>
+    private bool _isRefreshingAiModels;
+
+    /// <summary>
+    /// The model id the card will save. Kept apart from the combo's SelectedItem because
+    /// filtering the list hides rows: a search must not silently clear the saved choice,
+    /// and an id the provider no longer lists still has to survive a Save.
+    /// </summary>
+    private string _aiSelectedModelId = string.Empty;
+
+    /// <summary>The full, unfiltered rows behind the picker, in provider order.</summary>
+    private IReadOnlyList<AiModelOption> _aiModelPickerSource = Array.Empty<AiModelOption>();
+
+    /// <summary>True when the picker rows came from the provider rather than the catalog.</summary>
+    private bool _aiModelPickerFromProvider;
+
+    /// <summary>Mirrors the master switch, so the search handler can re-enable the picker
+    /// without recomputing the card's visibility rules.</summary>
+    private bool _aiModelPickerEnabled;
 
     private void SettingsTab_Checked(object sender, RoutedEventArgs e)
     {
@@ -93,6 +158,7 @@ public partial class MainWindow
             s.AutoQueryAiForLargeFiles = defaults.AutoQueryAiForLargeFiles;
             s.AiProvider = defaults.AiProvider;
             s.AiApiKey = defaults.AiApiKey;
+            s.AiApiKeys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             s.AiModelName = defaults.AiModelName;
             s.AiOllamaEndpoint = defaults.AiOllamaEndpoint;
             s.AutoCleanOnIdle = defaults.AutoCleanOnIdle;
@@ -141,6 +207,10 @@ public partial class MainWindow
         LoadSettingsIntoUI();
         SettingsModalOverlay.Visibility = Visibility.Visible;
         SoundService.PlayClickSound();
+
+        // Not at startup: the modal is the only surface that shows the model list, so the
+        // provider is asked when it opens rather than on every app launch.
+        ScheduleAiModelRefresh();
     }
 
     private void CloseSettings_Click(object sender, RoutedEventArgs e)
@@ -151,6 +221,32 @@ public partial class MainWindow
 
     private void SaveSettings_Click(object sender, RoutedEventArgs e)
     {
+        // Validate the AI card before writing anything. Saving a provider with no key used
+        // to succeed silently and only fail later, inside the large-file batch, as a line
+        // that looked like a network outage.
+        string aiProvider = SelectedAiProviderId();
+        string aiApiKey = SettingsAiApiKeyPasswordBox?.Password?.Trim() ?? string.Empty;
+        string aiOllamaEndpoint = SettingsAiOllamaEndpointBox?.Text?.Trim() ?? string.Empty;
+        string aiModel = SelectedAiModelId();
+        bool aiEnabled = SettingsEnableAiCheckBox?.IsChecked == true;
+        bool autoQueryAi = SettingsAutoQueryAiCheckBox?.IsChecked == true;
+
+        var aiIssues = AiSettingsValidator.Validate(
+            aiProvider,
+            aiApiKey,
+            aiOllamaEndpoint,
+            aiModel,
+            aiEnabled,
+            autoQueryAi);
+
+        if (!AiSettingsValidator.IsValid(aiIssues))
+        {
+            string message = AiSettingsValidator.Describe(aiIssues);
+            SettingsAiTestStatusText.Text = "⚠ " + message;
+            MessageBox.Show(message, "AI settings need attention", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
         SettingsService.Update(s =>
         {
             s.EnableAutoPilot = SettingsAutoPilotCheckBox.IsChecked == true;
@@ -204,20 +300,21 @@ public partial class MainWindow
                 s.MemoryAutoOptimizeFreeRamThresholdPercent = tval;
             }
 
-            s.EnableOnlineAiSafety = SettingsEnableAiCheckBox.IsChecked == true;
-            s.AutoQueryAiForLargeFiles = SettingsAutoQueryAiCheckBox.IsChecked == true;
-            if (SettingsAiProviderComboBox.SelectedItem is ComboBoxItem provItem && provItem.Tag is string provTag)
+            s.EnableOnlineAiSafety = aiEnabled;
+            s.AutoQueryAiForLargeFiles = aiEnabled && autoQueryAi;
+            s.AiProvider = aiProvider;
+            s.AiModelName = aiModel;
+            s.AiOllamaEndpoint = aiOllamaEndpoint;
+
+            // Rebuild the per-provider map from the modal's working copy so a key removed
+            // for a provider the user visited is actually removed, then let the box for the
+            // selected provider win over whatever was stashed for it.
+            s.AiApiKeys.Clear();
+            foreach (var pair in _pendingAiApiKeys)
             {
-                s.AiProvider = provTag;
+                s.SetAiApiKey(pair.Key, pair.Value);
             }
-            if (!string.IsNullOrEmpty(SettingsAiApiKeyPasswordBox.Password))
-            {
-                s.AiApiKey = SettingsAiApiKeyPasswordBox.Password;
-            }
-            s.AiModelName = SettingsAiModelBox.Text.Trim();
-            s.AiOllamaEndpoint = string.IsNullOrWhiteSpace(SettingsAiOllamaEndpointBox.Text)
-                ? "http://localhost:11434" // DevSkim: ignore DS162092
-                : SettingsAiOllamaEndpointBox.Text.Trim();
+            s.SetAiApiKey(aiProvider, aiApiKey);
 
             if (SettingsIdleCleanCheckBox != null)
             {
@@ -277,52 +374,603 @@ public partial class MainWindow
 
     private void SettingsAiProviderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_suppressAiProviderChange) return;
+
+        // Stash the key the user was looking at for the provider being left, then load
+        // the incoming provider's own key. Without this, the box kept one provider's
+        // secret and handed it to the next provider on save.
+        if (!string.IsNullOrEmpty(_lastAiProvider) && SettingsAiApiKeyPasswordBox != null)
+        {
+            string outgoing = SettingsAiApiKeyPasswordBox.Password;
+            if (string.IsNullOrWhiteSpace(outgoing))
+            {
+                _pendingAiApiKeys.Remove(_lastAiProvider);
+            }
+            else
+            {
+                _pendingAiApiKeys[_lastAiProvider] = outgoing.Trim();
+            }
+        }
+
+        _lastAiProvider = SelectedAiProviderId();
+        if (SettingsAiApiKeyPasswordBox != null)
+        {
+            SettingsAiApiKeyPasswordBox.Password = _pendingAiApiKeys.TryGetValue(_lastAiProvider, out string? stored)
+                ? stored
+                : string.Empty;
+        }
+
+        // A new provider is a different account and a different model namespace: the list
+        // fetched for the previous one would offer ids that cannot be called here, and the
+        // model id chosen for the previous provider is not a valid id here either.
+        ResetAiFetchedModels();
+        _aiSelectedModelId = string.Empty;
+
+        // Choosing a provider IS the opt-in to using it. Leaving the master switch off made
+        // the choice inert: Large Files then answered from the local knowledge base and the
+        // row said "Local Intelligence (Offline)", which reads as if the provider was
+        // ignored. Turn the switch on and let the description state the state.
+        if (_lastAiProvider != "BuiltIn" && SettingsEnableAiCheckBox?.IsChecked != true)
+        {
+            SettingsEnableAiCheckBox!.IsChecked = true;
+            AddLog($"Online file intelligence enabled for {_lastAiProvider}.", LogLevel.Info);
+        }
+
+        UpdateAiSettingsUiVisibility();
+        ScheduleAiModelRefresh();
+    }
+
+    private void SettingsEnableAiCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        // Auto-query cannot run while the master switch is off. Unchecking it now keeps
+        // the card from showing a promise that Save would silently drop.
+        if (SettingsEnableAiCheckBox?.IsChecked != true &&
+            SettingsAutoQueryAiCheckBox?.IsChecked == true)
+        {
+            SettingsAutoQueryAiCheckBox.IsChecked = false;
+        }
+
         UpdateAiSettingsUiVisibility();
     }
 
+    private void SettingsAiModelSuggestionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_suppressAiModelSuggestion || _isRefreshingAiModels) return;
+
+        if (SettingsAiModelSuggestionComboBox.SelectedItem is AiModelOption option)
+        {
+            // The picker is the only place the model id comes from now. Remember it apart
+            // from the selection so a search that hides the row cannot clear the choice.
+            _aiSelectedModelId = option.Id;
+            UpdateAiModelHint();
+        }
+    }
+
+    /// <summary>
+    /// Narrows the picker as the user types. A provider like OpenRouter returns hundreds of
+    /// rows, most of them unusable on a zero-credit account; the search is how "free" or a
+    /// family name becomes a two-second lookup instead of a scroll.
+    /// </summary>
+    private void SettingsAiModelSearchBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_suppressAiModelSuggestion || _suppressAiProviderChange) return;
+
+        UpdateAiModelSearchPlaceholder();
+        ApplyAiModelFilter();
+    }
+
+    private void UpdateAiModelSearchPlaceholder()
+    {
+        if (SettingsAiModelSearchPlaceholder == null || SettingsAiModelSearchBox == null) return;
+
+        SettingsAiModelSearchPlaceholder.Visibility = string.IsNullOrEmpty(SettingsAiModelSearchBox.Text)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    /// <summary>
+    /// Rebuilds the picker from the full row set plus the current search. The saved model
+    /// stays selected whenever its row survived the filter; when the search hides it, the
+    /// selection is cleared but <see cref="_aiSelectedModelId"/> keeps the value Save writes.
+    /// </summary>
+    private void ApplyAiModelFilter()
+    {
+        if (SettingsAiModelSuggestionComboBox == null) return;
+
+        string query = SettingsAiModelSearchBox?.Text?.Trim() ?? string.Empty;
+        IReadOnlyList<AiModelOption> visible = AiModelCatalog.FilterModels(_aiModelPickerSource, query);
+        bool hasRows = _aiModelPickerSource.Count > 0;
+
+        _suppressAiModelSuggestion = true;
+        _isRefreshingAiModels = true;
+        try
+        {
+            SettingsAiModelSuggestionComboBox.ItemsSource = visible;
+            SettingsAiModelSuggestionComboBox.SelectedItem = visible.FirstOrDefault(
+                option => string.Equals(option.Id, _aiSelectedModelId, StringComparison.OrdinalIgnoreCase));
+
+            SettingsAiModelSuggestionComboBox.Visibility = hasRows ? Visibility.Visible : Visibility.Collapsed;
+            SettingsAiModelSuggestionComboBox.IsEnabled = _aiModelPickerEnabled && visible.Count > 0;
+            SettingsAiModelSuggestionComboBox.ToolTip = _aiModelPickerFromProvider
+                ? "Models this API key can use, as reported by the provider"
+                : "Known models for this provider. Add a key to load the live list.";
+        }
+        finally
+        {
+            _isRefreshingAiModels = false;
+            _suppressAiModelSuggestion = false;
+        }
+
+        if (SettingsAiModelMatchText != null)
+        {
+            SettingsAiModelMatchText.Text = hasRows && visible.Count == 0 && query.Length > 0
+                ? $"No model matches \"{query}\"."
+                : string.Empty;
+        }
+    }
+
+    /// <summary>The model id the card will save, or empty when the provider default applies.</summary>
+    private string SelectedAiModelId() => _aiSelectedModelId.Trim();
+
+    /// <summary>
+    /// Says which model a request will actually use. The old hint only named the provider
+    /// default, which stopped being the whole truth once the picker became the only way to
+    /// choose: a user could not see the saved id anywhere in the card.
+    /// </summary>
+    private void UpdateAiModelHint()
+    {
+        if (SettingsAiModelHint == null) return;
+
+        string provider = SelectedAiProviderId();
+        if (provider == "BuiltIn")
+        {
+            SettingsAiModelHint.Text = "The built-in engine answers without a model call.";
+            return;
+        }
+
+        string fallback = AiModelCatalog.ResolveModelId(provider, null);
+        SettingsAiModelHint.Text = string.IsNullOrWhiteSpace(_aiSelectedModelId)
+            ? $"Pick a model. With none chosen the provider default is used: {fallback}."
+            : $"Requests use: {_aiSelectedModelId}";
+    }
+
+    /// <summary>
+    /// The key changed. Stash it for the provider it belongs to and, once the user stops
+    /// typing, ask that provider which models the key can use.
+    /// </summary>
+    private void SettingsAiApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+    {
+        // LoadAiSettingsIntoUi and the provider switch set the box from code; the value is
+        // already in the working copy and the switch schedules its own refresh.
+        if (_suppressAiProviderChange) return;
+
+        string provider = SelectedAiProviderId();
+        string key = SettingsAiApiKeyPasswordBox?.Password?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(key))
+        {
+            _pendingAiApiKeys.Remove(provider);
+        }
+        else
+        {
+            _pendingAiApiKeys[provider] = key;
+        }
+
+        ScheduleAiModelRefresh();
+    }
+
+    /// <summary>A local Ollama host change is a different model list.</summary>
+    private void SettingsAiOllamaEndpointBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_suppressAiProviderChange) return;
+        ScheduleAiModelRefresh();
+    }
+
+    private void SettingsAiModelRefresh_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        _ = RefreshAiModelsAsync(force: true);
+    }
+
+    /// <summary>
+    /// Debounces discovery. Typing a key character by character used to be one request per
+    /// keystroke if it fired on every change, and a pasted key fires once.
+    /// </summary>
+    private void ScheduleAiModelRefresh()
+    {
+        if (SelectedAiProviderId() == "BuiltIn") return;
+
+        _aiModelRefreshTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
+        _aiModelRefreshTimer.Tick -= AiModelRefreshTimer_Tick;
+        _aiModelRefreshTimer.Tick += AiModelRefreshTimer_Tick;
+        _aiModelRefreshTimer.Stop();
+        _aiModelRefreshTimer.Start();
+    }
+
+    private void AiModelRefreshTimer_Tick(object? sender, EventArgs e)
+    {
+        _aiModelRefreshTimer?.Stop();
+        _ = RefreshAiModelsAsync(force: false);
+    }
+
+    /// <summary>
+    /// Asks the provider for the models the current key can use and fills the picker with
+    /// them. Failure is reported but never fatal: the catalog list and the manual box stay
+    /// usable, which is what a provider outage or an unverified key looks like.
+    /// </summary>
+    private async Task RefreshAiModelsAsync(bool force)
+    {
+        string provider = SelectedAiProviderId();
+        string key = SettingsAiApiKeyPasswordBox?.Password?.Trim() ?? string.Empty;
+        string endpoint = SettingsAiOllamaEndpointBox?.Text?.Trim() ?? string.Empty;
+
+        if (provider == "BuiltIn")
+        {
+            ResetAiFetchedModels();
+            UpdateAiSettingsUiVisibility();
+            return;
+        }
+
+        if (AiModelCatalog.TryGetProvider(provider, out var descriptor) &&
+            descriptor.RequiresApiKey && string.IsNullOrWhiteSpace(key))
+        {
+            // Nothing to ask with. Show the catalog and say so instead of firing a request
+            // that can only come back 401.
+            ResetAiFetchedModels();
+            SetAiModelStatus(provider, "Add an API key to load the models this account can use.");
+            UpdateAiSettingsUiVisibility();
+            return;
+        }
+
+        string identity = $"{provider}|{key}|{endpoint}";
+        if (!force && _aiFetchedModels is not null && string.Equals(_aiFetchedFor, identity, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _aiModelRefreshCts?.Cancel();
+        _aiModelRefreshCts?.Dispose();
+        _aiModelRefreshCts = new CancellationTokenSource();
+        CancellationToken ct = _aiModelRefreshCts.Token;
+        int generation = ++_aiModelFetchGeneration;
+
+        SetAiModelStatus(provider, $"Loading models from {provider}...");
+
+        try
+        {
+            IReadOnlyList<AiModelOption> models =
+                await AiProviderClient.ListModelsAsync(provider, key, endpoint, ct);
+
+            if (generation != _aiModelFetchGeneration) return;
+
+            _aiFetchedModels = models;
+            _aiFetchedFor = identity;
+            UpdateAiSettingsUiVisibility();
+
+            SetAiModelStatus(provider, AiModelCatalog.DescribeFetchedModels(
+                provider, models, _aiSelectedModelId));
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer request or the modal closed. Nothing to report.
+        }
+        catch (AiProviderException ex)
+        {
+            if (generation != _aiModelFetchGeneration) return;
+
+            ResetAiFetchedModels();
+            UpdateAiSettingsUiVisibility();
+            SetAiModelStatus(provider, "Could not load models: " + ex.UserMessage);
+        }
+        catch (Exception ex)
+        {
+            if (generation != _aiModelFetchGeneration) return;
+
+            ResetAiFetchedModels();
+            UpdateAiSettingsUiVisibility();
+            SetAiModelStatus(provider, "Could not load models: " + ex.Message);
+        }
+    }
+
+    private void ResetAiFetchedModels()
+    {
+        _aiModelFetchGeneration++;
+        _aiModelRefreshCts?.Cancel();
+        _aiFetchedModels = null;
+        _aiFetchedFor = null;
+    }
+
+    private void SetAiModelStatus(string provider, string message)
+    {
+        if (SettingsAiModelStatusText == null) return;
+        SettingsAiModelStatusText.Text = message;
+        SettingsAiModelStatusText.ToolTip = message;
+    }
+
+    private void SettingsAiClearKey_Click(object sender, RoutedEventArgs e)
+    {
+        string provider = SelectedAiProviderId();
+        _pendingAiApiKeys.Remove(provider);
+        SettingsAiApiKeyPasswordBox?.Clear();
+        SettingsAiTestStatusText.Text = $"Saved key for {provider} removed. Save to apply.";
+
+        // Without a key there is no live list; fall back to the catalog and say why.
+        ResetAiFetchedModels();
+        UpdateAiSettingsUiVisibility();
+        SetAiModelStatus(provider, "Add an API key to load the models this account can use.");
+        SoundService.PlayClickSound();
+    }
+
+    /// <summary>The provider id behind the combo selection.</summary>
+    private string SelectedAiProviderId() =>
+        (SettingsAiProviderComboBox?.SelectedItem as ComboBoxItem)?.Tag as string ?? "BuiltIn";
+
+    /// <summary>
+    /// Fills the provider list once from <see cref="AiModelCatalog.GetProviderOptions"/>.
+    /// The labels used to be six static ComboBoxItems in XAML, which is how they drifted
+    /// from WinUI's copy and still advertised a model OpenAI had retired.
+    /// </summary>
+    private void EnsureAiProvidersPopulated()
+    {
+        if (_aiProvidersPopulated || SettingsAiProviderComboBox == null) return;
+
+        _suppressAiProviderChange = true;
+        try
+        {
+            SettingsAiProviderComboBox.Items.Clear();
+            foreach (AiProviderOption option in AiModelCatalog.GetProviderOptions())
+            {
+                SettingsAiProviderComboBox.Items.Add(new ComboBoxItem
+                {
+                    Content = option.Label,
+                    Tag = option.Id,
+                    ToolTip = option.Description,
+                });
+            }
+
+            _aiProvidersPopulated = true;
+        }
+        finally
+        {
+            _suppressAiProviderChange = false;
+        }
+    }
+
+    private void SelectAiProvider(string providerId)
+    {
+        if (SettingsAiProviderComboBox == null) return;
+
+        foreach (ComboBoxItem item in SettingsAiProviderComboBox.Items)
+        {
+            if (item.Tag is string tag && string.Equals(tag, providerId, StringComparison.OrdinalIgnoreCase))
+            {
+                SettingsAiProviderComboBox.SelectedItem = item;
+                return;
+            }
+        }
+
+        if (SettingsAiProviderComboBox.Items.Count > 0)
+        {
+            SettingsAiProviderComboBox.SelectedIndex = 0;
+        }
+    }
+
+    /// <summary>
+    /// Loads the AI card from the saved settings. Replaces the inline block in
+    /// LoadSettingsIntoUI so the modal, the reset path and the startup path all read the
+    /// same state.
+    /// </summary>
+    private void LoadAiSettingsIntoUi()
+    {
+        var settings = SettingsService.Current;
+
+        EnsureAiProvidersPopulated();
+
+        // The modal is reopened on a possibly different account: drop any list fetched
+        // earlier in this session and let the open path ask again.
+        ResetAiFetchedModels();
+
+        _pendingAiApiKeys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var pair in settings.AiApiKeys)
+        {
+            _pendingAiApiKeys[pair.Key] = pair.Value;
+        }
+
+        _suppressAiProviderChange = true;
+        try
+        {
+            if (SettingsEnableAiCheckBox != null)
+            {
+                SettingsEnableAiCheckBox.IsChecked = settings.EnableOnlineAiSafety;
+            }
+
+            if (SettingsAutoQueryAiCheckBox != null)
+            {
+                // Never show a checked auto-query while the master switch is off: the scan
+                // path gates the batch on both, so the toggle would promise work that cannot
+                // run. Old settings files can still carry the inconsistent pair.
+                SettingsAutoQueryAiCheckBox.IsChecked =
+                    settings.AutoQueryAiForLargeFiles && settings.EnableOnlineAiSafety;
+            }
+
+            SelectAiProvider(string.IsNullOrWhiteSpace(settings.AiProvider) ? "BuiltIn" : settings.AiProvider);
+            _lastAiProvider = SelectedAiProviderId();
+
+            if (SettingsAiApiKeyPasswordBox != null)
+            {
+                SettingsAiApiKeyPasswordBox.Password = settings.GetAiApiKey(_lastAiProvider);
+            }
+
+            _aiSelectedModelId = settings.AiModelName?.Trim() ?? string.Empty;
+
+            if (SettingsAiModelSearchBox != null)
+            {
+                SettingsAiModelSearchBox.Text = string.Empty;
+            }
+
+            if (SettingsAiOllamaEndpointBox != null)
+            {
+                SettingsAiOllamaEndpointBox.Text = string.IsNullOrWhiteSpace(settings.AiOllamaEndpoint)
+                    ? "http://localhost:11434" // DevSkim: ignore DS162092
+                    : settings.AiOllamaEndpoint;
+            }
+        }
+        finally
+        {
+            _suppressAiProviderChange = false;
+        }
+
+        UpdateAiSettingsUiVisibility();
+
+        if (SettingsAiTestStatusText != null)
+        {
+            SettingsAiTestStatusText.Text =
+                $"Ready. Cached local AI reports: {OnlineFileIntelligenceService.GetCacheCount()} files.";
+        }
+    }
+
+    /// <summary>
+    /// Shows the rows the selected provider actually uses, disables the whole card while
+    /// the master switch is off, and keeps the model hint and suggestion list in step.
+    /// </summary>
     private void UpdateAiSettingsUiVisibility()
     {
-        if (SettingsAiProviderComboBox == null || SettingsAiApiKeyRow == null || SettingsAiOllamaRow == null || SettingsAiModelRow == null) return;
+        if (SettingsAiProviderComboBox == null || SettingsAiApiKeyRow == null ||
+            SettingsAiOllamaRow == null || SettingsAiModelRow == null)
+        {
+            return;
+        }
 
-        string prov = (SettingsAiProviderComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "BuiltIn";
-        bool needsKey = prov is "Gemini" or "Groq" or "OpenAI" or "OpenRouter";
-        bool isOllama = prov == "Ollama";
+        string provider = SelectedAiProviderId();
+        bool enabled = SettingsEnableAiCheckBox?.IsChecked == true;
+        bool needsKey = provider is "Gemini" or "Groq" or "OpenAI" or "OpenRouter";
+        bool isOllama = provider == "Ollama";
+        bool usesModel = needsKey || isOllama;
 
         SettingsAiApiKeyRow.Visibility = needsKey ? Visibility.Visible : Visibility.Collapsed;
         SettingsAiOllamaRow.Visibility = isOllama ? Visibility.Visible : Visibility.Collapsed;
-        SettingsAiModelRow.Visibility = (needsKey || isOllama) ? Visibility.Visible : Visibility.Collapsed;
+        SettingsAiModelRow.Visibility = usesModel ? Visibility.Visible : Visibility.Collapsed;
+
+        // The provider list stays clickable while the master switch is off: choosing a
+        // provider is how a user says "use this one", and it turns the switch on. Disabling
+        // the list left the choice unchangeable and looked like the provider was ignored.
+        SettingsAiProviderComboBox.IsEnabled = true;
+        if (SettingsAutoQueryAiCheckBox != null)
+        {
+            // Auto-query is gated on the master switch in the scan path, so leaving it
+            // clickable while AI is off would let the user promise something that can
+            // never run.
+            SettingsAutoQueryAiCheckBox.IsEnabled = enabled;
+            SettingsAutoQueryAiCheckBox.ToolTip = enabled
+                ? "Analyze unverified large files automatically after a scan"
+                : "Enable Online file intelligence first";
+        }
+
+        if (SettingsAiApiKeyPasswordBox != null) SettingsAiApiKeyPasswordBox.IsEnabled = enabled;
+        if (SettingsAiClearKeyBtn != null) SettingsAiClearKeyBtn.IsEnabled = enabled;
+        if (SettingsAiOllamaEndpointBox != null) SettingsAiOllamaEndpointBox.IsEnabled = enabled;
+        if (SettingsAiModelSearchBox != null) SettingsAiModelSearchBox.IsEnabled = enabled;
+        if (SettingsAiModelRefreshBtn != null) SettingsAiModelRefreshBtn.IsEnabled = enabled;
+        if (SettingsTestAiBtn != null) SettingsTestAiBtn.IsEnabled = enabled;
+
+        if (!usesModel && SettingsAiModelStatusText != null)
+        {
+            SettingsAiModelStatusText.Text = string.Empty;
+        }
+
+        if (!usesModel && SettingsAiModelMatchText != null)
+        {
+            SettingsAiModelMatchText.Text = string.Empty;
+        }
+
+        if (SettingsAiProviderDescription != null)
+        {
+            SettingsAiProviderDescription.Text = enabled
+                ? AiModelCatalog.DescribeProvider(provider)
+                : "OFF - large-file analysis uses the local knowledge base. " +
+                  "Turn the switch above on (or pick a provider) to use this provider.";
+        }
+
+        UpdateAiModelHint();
+        UpdateAiModelSearchPlaceholder();
+
+        PopulateAiModelSuggestions(provider, enabled);
+    }
+
+    private void PopulateAiModelSuggestions(string provider, bool enabled, IReadOnlyList<AiModelOption>? models = null)
+    {
+        if (SettingsAiModelSuggestionComboBox == null) return;
+
+        // Prefer what the provider just told us over the static catalog. The catalog is
+        // only a starting point: it goes stale, and a model it lists may be unavailable to
+        // this account while a model it omits may be the right choice.
+        IReadOnlyList<AiModelOption> options = models ?? _aiFetchedModels ?? AiModelCatalog.GetSuggestedModels(provider);
+
+        // A saved id that neither list contains keeps its own row. Dropping it would make
+        // the card look like it forgot the user's choice, and Save would write an empty id.
+        _aiModelPickerSource = AiModelCatalog.WithSavedModel(options, _aiSelectedModelId);
+        _aiModelPickerFromProvider = models is not null || _aiFetchedModels is not null;
+        _aiModelPickerEnabled = enabled;
+
+        ApplyAiModelFilter();
     }
 
     private async void SettingsTestAi_Click(object sender, RoutedEventArgs e)
     {
+        string provider = SelectedAiProviderId();
+        string key = SettingsAiApiKeyPasswordBox?.Password?.Trim() ?? string.Empty;
+        string endpoint = SettingsAiOllamaEndpointBox?.Text?.Trim() ?? string.Empty;
+        string model = SelectedAiModelId();
+
+        // Validate locally first. A missing key used to spend a network round trip (up to
+        // 45 seconds against a hosted provider) only to come back as "connection failed".
+        var issues = AiSettingsValidator.Validate(provider, key, endpoint, model);
+        if (!AiSettingsValidator.IsValid(issues))
+        {
+            SettingsAiTestStatusText.Text = "⚠ " + AiSettingsValidator.Describe(issues);
+            return;
+        }
+
         SettingsTestAiBtn.IsEnabled = false;
         SettingsAiTestStatusText.Text = "Connecting & verifying provider...";
         try
         {
-            string prov = (SettingsAiProviderComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "BuiltIn";
-            string key = SettingsAiApiKeyPasswordBox.Password;
-            string end = SettingsAiOllamaEndpointBox.Text;
-            string model = SettingsAiModelBox.Text;
-
-            var (ok, msg) = await OnlineFileIntelligenceService.TestConnectionAsync(prov, key, end, model);
+            var (ok, msg) = await OnlineFileIntelligenceService.TestConnectionAsync(provider, key, endpoint, model);
             SettingsAiTestStatusText.Text = ok ? $"✅ {msg}" : $"❌ {msg}";
+        }
+        catch (Exception ex)
+        {
+            SettingsAiTestStatusText.Text = $"❌ {ex.Message}";
         }
         finally
         {
-            SettingsTestAiBtn.IsEnabled = true;
+            UpdateAiSettingsUiVisibility();
         }
     }
 
     private void SettingsClearAiCache_Click(object sender, RoutedEventArgs e)
     {
-        OnlineFileIntelligenceService.ClearCache();
-        SettingsAiTestStatusText.Text = "AI reports cache cleared (0 items).";
+        int removed = OnlineFileIntelligenceService.ClearCache();
+        SettingsAiTestStatusText.Text = removed == 0
+            ? "AI reports cache was already empty."
+            : $"AI reports cache cleared ({removed} {(removed == 1 ? "item" : "items")}).";
+        AddLog($"AI report cache cleared: {removed} entries removed.", LogLevel.Info);
+        SoundService.PlayClickSound();
     }
 
     private async void AskAiLargeFile_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.DataContext is LargeFileInfo info)
         {
+            // Say why instead of quietly producing an offline verdict: the row used to read
+            // "Local Intelligence (Offline)" with no hint that the master switch was off.
+            if (!TryPrepareAiForUserRequest(out string? reason))
+            {
+                info.AiProviderLabel = "AI unavailable";
+                AddLog($"AI analysis skipped: {reason}", LogLevel.Warning);
+                MessageBox.Show(reason, "AI Intelligence", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
             btn.IsEnabled = false;
             info.AiProviderLabel = "⚡ Analyzing...";
             try
@@ -338,6 +986,38 @@ public partial class MainWindow
         }
     }
 
+    /// <summary>
+    /// Turns "the user pressed Ask AI" into a request that can actually run.
+    /// </summary>
+    /// <remarks>
+    /// A cloud provider plus a saved key plus a click on Ask AI is unambiguous intent, but
+    /// the master switch sat in front of it: the click produced an offline verdict and the
+    /// row read "Local Intelligence (Offline)", which is exactly the report a user reads as
+    /// "my provider is being ignored". When the only obstacle is that switch, it is turned
+    /// on here - in the click path only, never at startup or in a background scan - and the
+    /// log records it so the change is visible and reversible in Settings.
+    /// </remarks>
+    private bool TryPrepareAiForUserRequest(out string? reason)
+    {
+        var readiness = LargeFileHunterService.GetAiReadiness(out reason);
+
+        if (readiness == LargeFileHunterService.AiReadiness.SwitchOff &&
+            LargeFileHunterService.TryEnableConfiguredProvider())
+        {
+            string provider = SettingsService.Current.AiProvider;
+            if (SettingsEnableAiCheckBox != null)
+            {
+                SettingsEnableAiCheckBox.IsChecked = true;
+            }
+
+            AddLog($"Online AI was off; enabled {provider} because you asked AI about a file.", LogLevel.Info);
+            readiness = LargeFileHunterService.GetAiReadiness(out reason);
+        }
+
+        return readiness is LargeFileHunterService.AiReadiness.Ready
+            or LargeFileHunterService.AiReadiness.BuiltInLocal;
+    }
+
     private async void AskAiSelectedLargeFiles_Click(object sender, RoutedEventArgs e)
     {
         var selected = LargeFileHunterService.SelectAnalyzeTargets(_largeFiles);
@@ -345,6 +1025,13 @@ public partial class MainWindow
         if (selected.Count == 0)
         {
             MessageBox.Show("No files need AI analysis. Select files or scan a folder.", "AI Intelligence", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        if (!TryPrepareAiForUserRequest(out string? reason))
+        {
+            AddLog($"AI analysis skipped: {reason}", LogLevel.Warning);
+            MessageBox.Show(reason, "AI Intelligence", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 

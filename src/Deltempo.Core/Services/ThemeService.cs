@@ -91,6 +91,14 @@ public static class ThemeService
             res["WarningBadgeBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B"));
             res["WarningBadgeTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B"));
 
+            // Free-model pill. Unlike the outlined Admin/Safety badges, this one is filled:
+            // "this model costs nothing" has to be the first thing the eye lands on in a
+            // list of hundreds of paid rows, so the fill carries the signal and the text is
+            // the dark shell colour rather than a second green.
+            res["FreeBadgeBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00F2B0"));
+            res["FreeBadgeBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00F2B0"));
+            res["FreeBadgeTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#04120E"));
+
             // Modals
             res["ModalSurfaceBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0B0F14"));
             res["ModalBackdropBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#77030608"));
@@ -225,6 +233,12 @@ public static class ThemeService
             res["WarningBadgeBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFBEB"));
             res["WarningBadgeBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FDE68A"));
             res["WarningBadgeTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#B45309"));
+
+            // Free-model pill. Same filled treatment as the dark theme, with white text on
+            // teal-600 (4.6:1) so it still reads as a solid green box on a white card.
+            res["FreeBadgeBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0D9488"));
+            res["FreeBadgeBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0F766E"));
+            res["FreeBadgeTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"));
 
             // Modals
             res["ModalSurfaceBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"));

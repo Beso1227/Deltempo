@@ -320,16 +320,20 @@ public class LargeFileAutoQueryParityTests
             RepoRoot(), "src", "Deltempo.App.Wpf", "MainWindow.Settings.cs"));
         string largeFiles = File.ReadAllText(Path.Combine(
             RepoRoot(), "src", "Deltempo.App.Wpf", "MainWindow.LargeFiles.cs"));
-        string shell = File.ReadAllText(Path.Combine(
-            RepoRoot(), "src", "Deltempo.App.Wpf", "MainWindow.xaml.cs"));
 
         // The settings modal gets the toggle the WinUI card already had.
         Assert.Contains("SettingsAutoQueryAiCheckBox", wpf);
         Assert.Contains("Ask AI about unverified files after every scan", wpf);
-        Assert.Contains("SettingsAutoQueryAiCheckBox.IsChecked", shell);
 
-        // Persistence, the factory reset and the post-scan hook stay wired.
-        Assert.Contains("s.AutoQueryAiForLargeFiles = SettingsAutoQueryAiCheckBox.IsChecked == true", settings);
+        // The load moved with the rest of the AI card into MainWindow.Settings.cs, so
+        // the checkbox is still filled from the saved value on every open, gated on the
+        // master switch so a stale pair cannot show a promise the scan path will drop.
+        Assert.Contains("SettingsAutoQueryAiCheckBox.IsChecked =", settings);
+        Assert.Contains("settings.AutoQueryAiForLargeFiles && settings.EnableOnlineAiSafety", settings);
+
+        // Persistence, the factory reset and the post-scan hook stay wired. Auto-query is
+        // saved only while AI is on, because the scan path gates the batch on that switch.
+        Assert.Contains("s.AutoQueryAiForLargeFiles = aiEnabled && autoQueryAi", settings);
         Assert.Contains("s.AutoQueryAiForLargeFiles = defaults.AutoQueryAiForLargeFiles", settings);
         Assert.Contains("SelectAnalyzeTargets", settings);
         Assert.Contains("AutoQueryLargeFilesAfterScanAsync", largeFiles);

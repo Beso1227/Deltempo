@@ -9,9 +9,10 @@
 #   .\scripts\build_msix.ps1 -PayloadDir .\publish -Architecture arm64 `
 #       -Publisher "CN=Contoso, O=Contoso, C=US" -SignCertPath .\cert.pfx -SignCertPassword pw
 #
-# Requires makeappx.exe (Windows SDK), which ships on the GitHub `windows-latest`
-# runner where packaging runs. Use -StageOnly on machines without the SDK to stop
-# after staging and manifest validation.
+# makeappx.exe comes from the Windows SDK when installed, otherwise from the
+# Microsoft.Windows.SDK.BuildTools NuGet package the repo already restores - so
+# packaging runs on the GitHub `windows-latest` runner and on a plain dev box
+# alike. Use -StageOnly to stop after staging without packing.
 # ==============================================================================
 
 [CmdletBinding()]
@@ -41,7 +42,10 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$iconPath = Join-Path $projectRoot 'app.ico'
+# The brand icon lives with the WPF head (moved there in c4300bb); the repo root
+# no longer carries app.ico. This is the same source of truth that
+# tools/generate-store-logos.ps1 reads.
+$iconPath = Join-Path $projectRoot 'src\Deltempo.App.Wpf\app.ico'
 $manifestTemplate = Join-Path $projectRoot 'packaging\msix\AppxManifest.xml'
 
 if (-not $OutputDir) { $OutputDir = Join-Path $projectRoot 'dist' }
@@ -84,9 +88,43 @@ function Find-WindowsSdkTool([string]$Name) {
     return $null
 }
 
+# makeappx.exe and signtool.exe also ship in the Microsoft.Windows.SDK.BuildTools
+# NuGet package this repo already depends on, so packaging works on machines
+# without a machine-wide Windows SDK (the CI runner and dev boxes alike).
+# Resolution mirrors tools/build-store-package.ps1.
+function Find-SdkBuildTools([string]$Name) {
+    $roots = @()
+    $folders = dotnet msbuild (Join-Path $projectRoot 'src\Deltempo.App.WinUI\Deltempo.App.WinUI.csproj') `
+        -getProperty:NuGetPackageFolders -nologo 2>$null
+    if ($LASTEXITCODE -eq 0 -and $folders) {
+        $roots += (($folders -join "`n") -split ';' | Where-Object { $_ })
+    }
+    if ($env:NUGET_PACKAGES) { $roots += $env:NUGET_PACKAGES }
+    $locals = dotnet nuget locals global-packages --list 2>$null
+    if ($LASTEXITCODE -eq 0 -and $locals) {
+        $roots += (($locals | Select-Object -First 1) -replace '^global-packages:\s*', '')
+    }
+    $roots += (Join-Path $env:USERPROFILE '.nuget\packages')
+    $roots += (Join-Path $projectRoot '.nuget\packages')
+
+    foreach ($root in ($roots | Where-Object { $_ } | Select-Object -Unique)) {
+        $buildTools = Get-ChildItem (Join-Path $root 'microsoft.windows.sdk.buildtools') `
+            -Directory -ErrorAction SilentlyContinue |
+            Sort-Object Name | Select-Object -Last 1
+        if (-not $buildTools) { continue }
+        $hit = Get-ChildItem (Join-Path $buildTools.FullName 'bin') -Recurse -Filter $Name `
+            -ErrorAction SilentlyContinue |
+            Where-Object { $_.Directory.Name -eq 'x64' } | Select-Object -First 1
+        if ($hit) { return $hit.FullName }
+    }
+
+    return $null
+}
+
 $makeappx = Find-WindowsSdkTool 'makeappx.exe'
+if (-not $makeappx) { $makeappx = Find-SdkBuildTools 'makeappx.exe' }
 if (-not $makeappx -and -not $StageOnly) {
-    throw "makeappx.exe not found (Windows SDK). Install the Windows SDK, or re-run with -StageOnly."
+    throw "makeappx.exe not found (Windows SDK or the Microsoft.Windows.SDK.BuildTools NuGet package). Install the Windows SDK, restore the repo, or re-run with -StageOnly."
 }
 
 # ----------------------------------------------------------------------- Stage
@@ -168,7 +206,7 @@ Write-Host "  $stageDir"
 Write-Host "  Identity: Version=$Version | Publisher=$Publisher | Arch=$Architecture"
 
 if ($StageOnly) {
-    Write-Host 'STAGE ONLY: skipped makeappx pack (no Windows SDK on this machine).' -ForegroundColor Yellow
+    Write-Host 'STAGE ONLY: skipped makeappx pack.' -ForegroundColor Yellow
     return
 }
 
@@ -181,15 +219,20 @@ Write-Host ">>> Packing $msixPath" -ForegroundColor Cyan
 & $makeappx pack /d $stageDir /p $msixPath /o
 if ($LASTEXITCODE -ne 0) { throw "makeappx pack failed with exit code $LASTEXITCODE." }
 
-& $makeappx validate /p $msixPath
-if ($LASTEXITCODE -ne 0) { throw "makeappx validate failed with exit code $LASTEXITCODE." }
+# makeappx has no separate `validate` verb: `pack` validates the manifest, the
+# payload references and the asset sizes, and fails closed. Assert instead that
+# the package it claims to have written exists and is not an empty stamp.
+if (-not (Test-Path $msixPath) -or (Get-Item $msixPath).Length -eq 0) {
+    throw "makeappx reported success but produced no package at $msixPath."
+}
 
 # ----------------------------------------------------------------------- Sign
 if ($SignCertPath) {
     if (-not (Test-Path $SignCertPath)) { throw "Signing certificate not found: $SignCertPath" }
 
     $signtool = Find-WindowsSdkTool 'signtool.exe'
-    if (-not $signtool) { throw 'signtool.exe not found (Windows SDK); cannot sign the MSIX.' }
+    if (-not $signtool) { $signtool = Find-SdkBuildTools 'signtool.exe' }
+    if (-not $signtool) { throw 'signtool.exe not found (Windows SDK or the Microsoft.Windows.SDK.BuildTools NuGet package); cannot sign the MSIX.' }
 
     $signArgs = @('sign', '/f', $SignCertPath, '/fd', 'SHA256',
                   '/tr', 'https://timestamp.digicert.com', '/td', 'SHA256')
