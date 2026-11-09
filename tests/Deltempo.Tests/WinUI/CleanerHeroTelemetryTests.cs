@@ -49,8 +49,11 @@ public class CleanerHeroTelemetryTests
         Assert.False(string.IsNullOrEmpty(vm.DriveDetailsText),
             "details line must show the free-of-total breakdown");
 
-        Assert.StartsWith("SSD ", vm.DriveHealthText);
-        Assert.Matches(@"^SSD \d+(\.\d+)?%$", vm.DriveHealthText);
+        // The old "SSD 99%" badge is gone: the card now opens an all-drives report,
+        // so its label is the localized button copy and its colour is the worst
+        // verdict Windows reports across the connected drives.
+        Assert.Equal(LocalizationService.Get("DrivesHealth"), vm.DriveHealthText);
+        Assert.DoesNotMatch(@"^SSD \d+(\.\d+)?%$", vm.DriveHealthText);
 
         Assert.Matches(@"^#[0-9A-Fa-f]{6}$", vm.DriveHealthColor);
     }
@@ -74,7 +77,7 @@ public class CleanerHeroTelemetryTests
         // any refresh, and the port did not copy that defect.
         Assert.Equal("#94A3B8", vm.GameBoostIconColor);
         Assert.False(vm.IsGameBoostBusy);
-        Assert.Equal("Speed Test", vm.BenchmarkText);
+        Assert.Equal(LocalizationService.Get("DriveSpeedTest"), vm.BenchmarkText);
         Assert.False(vm.IsBenchmarking);
     }
 

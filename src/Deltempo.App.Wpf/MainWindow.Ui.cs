@@ -147,6 +147,8 @@ public partial class MainWindow
         HeroGameBoostBtnText.Text = LocalizationService.Get("HeroGameBoost");
         HeroWinUtilBtnText.Text = LocalizationService.Get("HeroWinUtil");
         DriveTelemetryLargeFilesText.Text = LocalizationService.Get("DriveLargeFiles");
+        DrivesHealthBtnText.Text = LocalizationService.Get("DrivesHealth");
+        DriveBenchmarkBtnText.Text = LocalizationService.Get("DriveSpeedTest");
         HeroRamLabel.Text = LocalizationService.Get("HeroRamLabel");
         HeroRamBtnText.Text = LocalizationService.Get("HeroRamBtn");
         HeroBoostRamBtn.Content = LocalizationService.Get("HeroBoostRam");

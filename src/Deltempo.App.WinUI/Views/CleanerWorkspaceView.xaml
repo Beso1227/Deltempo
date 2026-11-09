@@ -285,19 +285,22 @@
                                        Foreground="{ThemeResource TextMediumBrush}"
                                        VerticalAlignment="Center"
                                        TextTrimming="CharacterEllipsis" />
-                            <Border Grid.Column="1"
-                                    Background="{ThemeResource SuccessSurfaceBrush}"
+                            <Button Grid.Column="1"
+                                    loc:Loc.Key="DrivesHealth"
+                                    Content="Drives Health"
+                                    FontSize="10"
+                                    FontWeight="SemiBold"
+                                    Padding="8,2.5"
+                                    Margin="0,0,6,0"
+                                    CornerRadius="12"
+                                    Background="{ThemeResource PillButtonBgBrush}"
                                     BorderBrush="{ThemeResource HairlineBorderBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="5"
-                                    Padding="5,1"
-                                    VerticalAlignment="Center"
-                                    ToolTipService.ToolTip="NVMe / SSD S.M.A.R.T. Health Status"
-                                    AutomationProperties.Name="Drive S.M.A.R.T. Health Status">
-                                <TextBlock Text="{x:Bind ViewModel.DriveHealthText, Mode=OneWay}"
-                                           FontSize="10" FontWeight="Bold"
-                                           Foreground="{x:Bind ViewModel.DriveHealthColor, Mode=OneWay, Converter={StaticResource HexToBrush}}" />
-                            </Border>
+                                    Foreground="{x:Bind ViewModel.DriveHealthColor, Mode=OneWay, Converter={StaticResource HexToBrush}}"
+                                    ToolTipService.ToolTip="Health status of every drive connected to this device"
+                                    AutomationProperties.Name="Open the drives health report"
+                                    Click="OnDrivesHealthClick"
+                                    VerticalAlignment="Center" />
                             <Button Grid.Column="2"
                                     loc:Loc.Key="DriveSpeedTest"
                                     Content="Speed Test"
@@ -310,8 +313,8 @@
                                     BorderThickness="1"
                                     Foreground="{ThemeResource TextHighBrush}"
                                     IsEnabled="{x:Bind ViewModel.IsBenchmarking, Mode=OneWay, Converter={StaticResource NotBool}}"
-                                    ToolTipService.ToolTip="Run non-destructive sequential read speed test"
-                                    AutomationProperties.Name="Run non-destructive sequential read speed test"
+                                    ToolTipService.ToolTip="Measure real read and write speed on every connected drive"
+                                    AutomationProperties.Name="Measure read and write speed on every connected drive"
                                     Click="OnSpeedTestClick"
                                     VerticalAlignment="Center" />
                         </Grid>

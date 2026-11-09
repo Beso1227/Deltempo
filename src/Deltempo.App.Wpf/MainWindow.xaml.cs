@@ -63,6 +63,8 @@ public partial class MainWindow : Window
         AppDataFootprintModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
         ForceDeleteModalOverlay.LogRequested += AddLog;
         ForceDeleteModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
+        DrivesModalOverlay.LogRequested += AddLog;
+        DrivesModalOverlay.Closed += () => SwitchWorkspaceView(WorkspaceView.Cleaner);
 
         // Keep the most recently opened overlay painted on top, regardless of the order the
         // overlays are declared in the XAML. Without this, a modal declared late (Force Delete)
@@ -72,7 +74,7 @@ public partial class MainWindow : Window
                  {
                      SettingsModalOverlay, ConfirmModalOverlay, CelebrationModalOverlay,
                      InspectorModalOverlay, AboutModalOverlay, UpdateModalOverlay, LockedFilesModalOverlay,
-                      AppDataFootprintModalOverlay
+                      AppDataFootprintModalOverlay, DrivesModalOverlay
                  })
         {
             KeepNewestOverlayOnTop(overlay);
@@ -682,14 +684,27 @@ public partial class MainWindow : Window
         DriveTelemetryDetails.Text = $"{telemetry.FormattedFree} {LocalizationService.Get("DriveOf")} {telemetry.FormattedTotal}";
         DriveUsageBar.Value = telemetry.UsedPercentage;
 
-        // Update S.M.A.R.T. Health Pill
+        // The health pill is gone: this button opens a report for every drive, so its
+        // colour reflects the worst verdict Windows reports across all of them. The
+        // enumeration runs on the UI thread only when it is cheap - it reads WMI, so
+        // it stays inside the existing try/catch and falls back to the last paint.
         try
         {
-            var health = DriveHealthService.GetDriveHealthSnapshot(telemetry.DriveLetter);
-            DriveHealthText.Text = $"SSD {health.HealthScore}%";
-            if (new BrushConverter().ConvertFromString(health.HealthColor) is Brush healthBrush)
+            var drives = DriveHealthService.GetAllDriveHealth();
+            var worst = DriveHealthInfo.Worst(drives);
+            DrivesHealthBtnText.Text = LocalizationService.Get("DrivesHealth");
+            DrivesHealthBtn.ToolTip = drives.Count switch
             {
-                DriveHealthText.Foreground = healthBrush;
+                0 => "No fixed or removable drives were found.",
+                1 => $"{drives[0].DisplayName}: {drives[0].HealthStatus}",
+                _ => worst is null
+                    ? $"{drives.Count} drives connected. Windows reported no health verdict."
+                    : $"{drives.Count} drives connected. Worst: {worst.DisplayName} - {worst.HealthStatus}"
+            };
+
+            if (new BrushConverter().ConvertFromString(worst?.HealthColor ?? "#94A3B8") is Brush healthBrush)
+            {
+                DrivesHealthBtnIcon.Foreground = healthBrush;
             }
         }
         catch { }
@@ -703,29 +718,26 @@ public partial class MainWindow : Window
         TrayService.CheckLowDiskSpaceAndNotify(telemetry);
     }
 
-    private async void DriveBenchmarkBtn_Click(object sender, RoutedEventArgs e)
+    /// <summary>
+    /// Opens the read-only all-drives health report. Nothing is written or deleted.
+    /// </summary>
+    private void DrivesHealthBtn_Click(object sender, RoutedEventArgs e)
     {
         SoundService.PlayClickSound();
-        DriveBenchmarkBtn.IsEnabled = false;
-        DriveBenchmarkBtn.Content = "Testing...";
-        AddLog("[Storage Benchmark] Running non-destructive sequential read speed test on OS drive...", LogLevel.Info);
+        DrivesModalOverlay.Open(DriveReportMode.Health);
+        RaiseOverlayToFront(DrivesModalOverlay);
+    }
 
-        try
-        {
-            var res = await DriveHealthService.RunQuickReadBenchmarkAsync("C:", null, CancellationToken.None);
-            DriveBenchmarkBtn.Content = res.FormattedSpeed;
-            AddLog($"[Storage Benchmark] Complete: {res.FormattedSpeed} sustained read on {res.DriveLetter} ({res.ExecutionTimeMs}ms).", LogLevel.Success);
-            SoundService.PlaySuccessSound();
-        }
-        catch (Exception ex)
-        {
-            DriveBenchmarkBtn.Content = "Retry";
-            AddLog($"[Storage Benchmark Error] {ex.Message}", LogLevel.Warning);
-        }
-        finally
-        {
-            DriveBenchmarkBtn.IsEnabled = true;
-        }
+    /// <summary>
+    /// Opens the drive report in speed-test mode. The test writes one temporary file
+    /// per drive, reads it back with unbuffered I/O and deletes it - the button no
+    /// longer reports a fabricated read number.
+    /// </summary>
+    private void DriveBenchmarkBtn_Click(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        DrivesModalOverlay.Open(DriveReportMode.SpeedTest);
+        RaiseOverlayToFront(DrivesModalOverlay);
     }
 
     private async void HeroGameBoostBtn_Click(object sender, RoutedEventArgs e)
@@ -1061,6 +1073,11 @@ public partial class MainWindow : Window
                 AppDataFootprintModalOverlay.CloseModal();
                 e.Handled = true;
             }
+            else if (DrivesModalOverlay.Visibility == Visibility.Visible)
+            {
+                DrivesModalOverlay.CloseModal();
+                e.Handled = true;
+            }
             else if (ForceDeleteModalOverlay.Visibility == Visibility.Visible)
             {
                 ForceDeleteModalOverlay.CloseModal();
@@ -1084,6 +1101,7 @@ public partial class MainWindow : Window
             else if (AppUninstallModalOverlay.Visibility == Visibility.Visible) activeModal = AppUninstallModalOverlay;
             else if (LockedFilesModalOverlay.Visibility == Visibility.Visible) activeModal = LockedFilesModalOverlay;
             else if (AppDataFootprintModalOverlay.Visibility == Visibility.Visible) activeModal = AppDataFootprintModalOverlay;
+            else if (DrivesModalOverlay.Visibility == Visibility.Visible) activeModal = DrivesModalOverlay;
             else if (ForceDeleteModalOverlay.Visibility == Visibility.Visible) activeModal = ForceDeleteModalOverlay;
             else if (AboutModalOverlay.Visibility == Visibility.Visible) activeModal = AboutModalOverlay;
 
@@ -1184,6 +1202,7 @@ public partial class MainWindow : Window
         yield return SystemRepairModalOverlay;
         yield return AppUninstallModalOverlay;
         yield return ForceDeleteModalOverlay;
+        yield return DrivesModalOverlay;
     }
 
     /// <summary>

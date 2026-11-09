@@ -168,9 +168,9 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     [ObservableProperty]
     public partial string DriveDetailsText { get; set; } = "Calculating disk space...";
 
-    /// <summary>"SSD 99%".</summary>
+    /// <summary>Button label for the all-drive health report ("Drives Health").</summary>
     [ObservableProperty]
-    public partial string DriveHealthText { get; set; } = "SSD --";
+    public partial string DriveHealthText { get; set; } = "Drives Health";
 
     /// <summary>Hex colour from DriveHealthInfo.HealthColor, through the shared
     /// HexToBrush converter in the view.</summary>
@@ -640,12 +640,15 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         OnPropertyChanged(nameof(SessionFreedText));
 
         // WPF swallowed snapshot failures the same way: the card falls back to its
-        // last painted values rather than taking the workspace down.
+        // last painted values rather than taking the workspace down. The button now
+        // opens a full report; its colour reflects the worst connected drive.
         try
         {
-            var health = DriveHealthService.GetDriveHealthSnapshot(telemetry.DriveLetter);
-            DriveHealthText = $"SSD {health.HealthScore}%";
-            DriveHealthColor = health.HealthColor;
+            DriveHealthText = LocalizationService.Get("DrivesHealth");
+            var drives = DriveHealthService.GetAllDriveHealth();
+            var worst = DriveHealthInfo.Worst(drives);
+            DriveHealthColor = worst?.HealthColor ?? "#94A3B8";
+            BenchmarkText = LocalizationService.Get("DriveSpeedTest");
         }
         catch
         {
@@ -653,35 +656,51 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Port of WPF's DriveBenchmarkBtn_Click: non-destructive sequential read speed
-    /// test. Deletes nothing; it reads and reports. The button label doubles as last
-    /// result ("4,213 MB/s") or "Retry" after a failure, exactly as WPF did.
+    /// Real sequential write + read benchmark across every connected fixed/removable
+    /// drive. Deletes nothing; it writes one temporary file per drive, reads it with
+    /// unbuffered I/O so the number is the drive and not the page cache, and removes
+    /// it again. Returns the rows the view renders in its report dialog.
     /// </summary>
-    public async Task RunDriveBenchmarkAsync()
+    public async Task<IReadOnlyList<DriveBenchmarkResult>> RunDriveBenchmarkAsync()
     {
-        if (IsBenchmarking) return;
+        if (IsBenchmarking) return Array.Empty<DriveBenchmarkResult>();
 
         IsBenchmarking = true;
         BenchmarkText = "Testing...";
         LogRequested?.Invoke(
-            "[Storage Benchmark] Running non-destructive sequential read speed test on OS drive...",
+            "[Storage Benchmark] Measuring sequential write + unbuffered read on every connected drive...",
             WinTempCleaner.Models.LogLevel.Info);
 
         try
         {
-            // WPF hardcoded "C:" here; the card it sits in always shows the system
-            // drive anyway, so passing the refreshed letter keeps the two honest.
-            var res = await DriveHealthService.RunQuickReadBenchmarkAsync(_driveLetter, null, CancellationToken.None);
-            BenchmarkText = res.FormattedSpeed;
+            var results = await DriveHealthService.RunBenchmarkForAllDrivesAsync(
+                options: null,
+                onDriveCompleted: r => LogRequested?.Invoke(
+                    r.Success
+                        ? $"[Storage Benchmark] {r.DriveLetter} ({r.MediaType}): read {r.FormattedReadSpeed}, write {r.FormattedWriteSpeed}."
+                        : $"[Storage Benchmark] {r.DriveLetter} could not be tested: {r.ErrorMessage}",
+                    r.Success ? WinTempCleaner.Models.LogLevel.Info : WinTempCleaner.Models.LogLevel.Warning),
+                ct: CancellationToken.None);
+
+            bool allSucceeded = results.Count > 0 && results.All(r => r.Success);
+            BenchmarkText = allSucceeded ? LocalizationService.Get("DriveSpeedTest") : "Retry";
+
             LogRequested?.Invoke(
-                $"[Storage Benchmark] Complete: {res.FormattedSpeed} sustained read on {res.DriveLetter} ({res.ExecutionTimeMs}ms).",
-                WinTempCleaner.Models.LogLevel.Success);
-            SoundService.PlaySuccessSound();
+                $"[Storage Benchmark] Complete: {results.Count(r => r.Success)}/{results.Count} drives measured.",
+                allSucceeded ? WinTempCleaner.Models.LogLevel.Success : WinTempCleaner.Models.LogLevel.Warning);
+
+            if (allSucceeded)
+            {
+                SoundService.PlaySuccessSound();
+            }
+
+            return results;
         }
         catch (Exception ex)
         {
             BenchmarkText = "Retry";
             LogRequested?.Invoke($"[Storage Benchmark Error] {ex.Message}", WinTempCleaner.Models.LogLevel.Warning);
+            return Array.Empty<DriveBenchmarkResult>();
         }
         finally
         {

@@ -144,13 +144,177 @@ public sealed partial class CleanerWorkspaceView : UserControl
     }
 
     /// <summary>
-    /// Non-destructive read benchmark on the OS drive. The ViewModel serializes runs
-    /// through its IsBenchmarking latch; the button is also disabled for the duration.
+    /// Read-only health report for every drive connected to the device. Rows come
+    /// from DriveHealthService (Windows Storage WMI); nothing is written.
     /// </summary>
-    private void OnSpeedTestClick(object sender, RoutedEventArgs e)
+    private async void OnDrivesHealthClick(object sender, RoutedEventArgs e)
     {
         SoundService.PlayClickSound();
-        _ = ViewModel.RunDriveBenchmarkAsync();
+        if (_reportDialogOpen) return;
+
+        try
+        {
+            var drives = await Task.Run(DriveHealthService.GetAllDriveHealth);
+            ViewModel.Log(
+                $"[Drive Health] Opened the report for {drives.Count} drive(s) (read only).",
+                LogLevel.Info);
+
+            await ShowDriveReportAsync("Drives Health", BuildHealthBody(drives));
+        }
+        catch (Exception ex)
+        {
+            ViewModel.Log($"Drive health report failed: {ex.Message}", LogLevel.Warning);
+        }
+    }
+
+    /// <summary>
+    /// Real sequential write + unbuffered read on every drive, then a report of the
+    /// measured numbers. The ViewModel serializes runs through IsBenchmarking; the
+    /// button is also disabled for the duration.
+    /// </summary>
+    private async void OnSpeedTestClick(object sender, RoutedEventArgs e)
+    {
+        SoundService.PlayClickSound();
+        if (ViewModel.IsBenchmarking || _reportDialogOpen) return;
+
+        var results = await ViewModel.RunDriveBenchmarkAsync();
+        if (results.Count == 0)
+        {
+            ViewModel.Log("Drive speed test produced no results.", LogLevel.Warning);
+            return;
+        }
+
+        await ShowDriveReportAsync("Drive Speed Test", BuildSpeedBody(results));
+    }
+
+    private bool _reportDialogOpen;
+
+    private async Task ShowDriveReportAsync(string title, UIElement body)
+    {
+        _reportDialogOpen = true;
+        try
+        {
+            var dialog = new ContentDialog
+            {
+                XamlRoot = XamlRoot,
+                Title = title,
+                Content = new ScrollViewer { Content = body, MaxHeight = 460 },
+                CloseButtonText = "Close",
+                DefaultButton = ContentDialogButton.Close,
+            };
+
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            ViewModel.Log($"Drive report dialog failed: {ex.Message}", LogLevel.Warning);
+        }
+        finally
+        {
+            _reportDialogOpen = false;
+        }
+    }
+
+    private static StackPanel BuildHealthBody(IReadOnlyList<DriveHealthInfo> drives)
+    {
+        var panel = new StackPanel { Spacing = 10 };
+
+        if (drives.Count == 0)
+        {
+            panel.Children.Add(new TextBlock
+            {
+                Text = "No fixed or removable drives were found.",
+                TextWrapping = TextWrapping.Wrap,
+            });
+            return panel;
+        }
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = "Health, model, media type and serial come from the Windows Storage provider. "
+                + "Temperature, wear and power-on hours need elevation; they read 'Not reported' "
+                + "rather than a guess when unavailable.",
+            TextWrapping = TextWrapping.Wrap,
+            Opacity = 0.75,
+            FontSize = 12,
+        });
+
+        foreach (var drive in drives)
+        {
+            var row = new StackPanel { Spacing = 2 };
+            row.Children.Add(new TextBlock
+            {
+                Text = $"{drive.DisplayName} - {drive.HealthStatus}"
+                    + (drive.HealthScore.HasValue ? $" ({drive.HealthScore.Value}%)" : string.Empty),
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                TextWrapping = TextWrapping.Wrap,
+            });
+            row.Children.Add(new TextBlock
+            {
+                Text = $"{drive.MediaType} · {drive.BusType} · {drive.FormattedCapacity}",
+                Opacity = 0.8,
+                FontSize = 12,
+                TextWrapping = TextWrapping.Wrap,
+            });
+            row.Children.Add(new TextBlock
+            {
+                Text = $"Temp {drive.FormattedTemperature} · Wear {drive.FormattedWear} · "
+                    + $"Power-on {drive.FormattedPowerOnHours} · {drive.FormattedFreeSpace}",
+                Opacity = 0.8,
+                FontSize = 12,
+                TextWrapping = TextWrapping.Wrap,
+            });
+            row.Children.Add(new TextBlock
+            {
+                Text = drive.Recommendation
+                    + (drive.ReliabilityCountersAvailable ? string.Empty : " Reliability counters need elevation."),
+                Opacity = 0.7,
+                FontSize = 12,
+                TextWrapping = TextWrapping.Wrap,
+            });
+            panel.Children.Add(row);
+        }
+
+        return panel;
+    }
+
+    private static StackPanel BuildSpeedBody(IReadOnlyList<DriveBenchmarkResult> results)
+    {
+        var panel = new StackPanel { Spacing = 10 };
+        panel.Children.Add(new TextBlock
+        {
+            Text = "Each drive is tested one at a time: a temporary file is written with "
+                + "write-through, read back with unbuffered I/O, then deleted.",
+            TextWrapping = TextWrapping.Wrap,
+            Opacity = 0.75,
+            FontSize = 12,
+        });
+
+        foreach (var result in results)
+        {
+            var row = new StackPanel { Spacing = 2 };
+            row.Children.Add(new TextBlock
+            {
+                Text = result.Success
+                    ? $"{result.DriveName} - read {result.FormattedReadSpeed}, write {result.FormattedWriteSpeed}"
+                    : $"{result.DriveName} - could not be tested",
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                TextWrapping = TextWrapping.Wrap,
+            });
+            row.Children.Add(new TextBlock
+            {
+                Text = result.Success
+                    ? $"{result.MediaType} · {result.FormattedTestSize} test file · "
+                      + $"{result.ReadPasses} read pass(es) · {result.ElapsedMs:N0} ms"
+                    : result.ErrorMessage ?? "This drive could not be tested.",
+                Opacity = 0.8,
+                FontSize = 12,
+                TextWrapping = TextWrapping.Wrap,
+            });
+            panel.Children.Add(row);
+        }
+
+        return panel;
     }
 
     /// <summary>

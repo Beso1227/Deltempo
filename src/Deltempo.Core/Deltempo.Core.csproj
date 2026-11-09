@@ -44,6 +44,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="System.Management" />
   </ItemGroup>
 
   <ItemGroup>

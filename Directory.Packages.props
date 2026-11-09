@@ -15,6 +15,11 @@
          docs/BENCHMARKS.md §0). -->
     <PackageVersion Include="Blake3" Version="3.0.2" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <!-- Storage health + reliability counters come from the Windows Storage WMI
+         provider (root\Microsoft\Windows\Storage). System.Management is the supported
+         managed client for it; PowerShell child processes per telemetry refresh would
+         cost a second of UI latency and a process per call. -->
+    <PackageVersion Include="System.Management" Version="10.0.14" />
     <PackageVersion Include="coverlet.collector" Version="10.1.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.403" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
