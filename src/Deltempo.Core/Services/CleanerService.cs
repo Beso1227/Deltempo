@@ -119,6 +119,27 @@ public partial class CleanerService
                 IsSelected = isAdmin
             },
 
+            // 4b. Windows Update Cleanup — the component-store scope Disk Cleanup offers
+            // after an update. Irreversible, so it is never pre-selected and never runs
+            // automatically; the user must tick it (or name it on the CLI).
+            new TargetFolderInfo
+            {
+                Id = "WinUpdateCleanup",
+                Name = "Windows Update Cleanup (Component Store)",
+                Category = "System & OS",
+                CategoryColor = "#EC4899",
+                SafetyBadge = "⚠ REVIEW • Irreversible",
+                SafetyBadgeColor = "#F59E0B",
+                Description = "Superseded update payloads in WinSxS reclaimed via DISM /StartComponentCleanup /ResetBase. Installed updates can no longer be uninstalled.",
+                FolderPath = "Component Store (WinSxS) & servicing stack",
+                IconGlyph = "\uE896",
+                RequiresAdmin = true,
+                HasAccess = isAdmin,
+                IsSelected = false,
+                IsSafeModeEligible = false,
+                IrreversibleWarning = "Windows Update Cleanup permanently removes superseded update payloads: installed updates can no longer be uninstalled after this runs."
+            },
+
             // 5. Windows Upgrade & Setup Leftovers (PC Manager Deep Match)
             new TargetFolderInfo
             {
@@ -179,7 +200,7 @@ public partial class CleanerService
                 CategoryColor = "#10B981",
                 SafetyBadge = "✓ SAFE • Drivers",
                 SafetyBadgeColor = "#10B981",
-                Description = "NVIDIA App/GeForce OTA driver packages, AMD & Intel installer caches, DriverStore temp",
+                Description = "Superseded & never-installed DriverStore packages (pnputil), NVIDIA App/GeForce OTA packages, AMD & Intel installer caches",
                 FolderPath = "Device Driver Packages Pool",
                 IconGlyph = "\uEA86",
                 RequiresAdmin = true,
@@ -595,6 +616,13 @@ public partial class CleanerService
                 return;
             }
 
+            if (folder.Id == "WinUpdateCleanup")
+            {
+                await ScanWindowsUpdateCleanupAsync(folder, logAction, ct).ConfigureAwait(false);
+                UiInvoke(() => folder.IsScanning = false);
+                return;
+            }
+
             if (folder.Id == "DeviceDriverPackages")
             {
                 var targetDirs = ResolveDirectoriesForFolder(folder);
@@ -625,10 +653,21 @@ public partial class CleanerService
                                 });
                             }
                             folder.TopFiles = currentTop.OrderByDescending(f => f.SizeBytes).Take(30).ToList();
-                            folder.StatusMessage = $"Ready: {TargetFolderInfo.FormatBytes(folder.SizeBytes)}";
+                            folder.StatusMessage = driverStoreResult.SupersededPackages.Any(p => p.State == DriverPackageState.Staged)
+                                ? $"Ready: {TargetFolderInfo.FormatBytes(folder.SizeBytes)} ({driverStoreResult.SupersededPackageCount} obsolete/never-installed packages)"
+                                : $"Ready: {TargetFolderInfo.FormatBytes(folder.SizeBytes)} ({driverStoreResult.SupersededPackageCount} superseded packages)";
                         });
 
-                        logAction($"DriverStore Analysis: Found {driverStoreResult.SupersededPackageCount:N0} superseded driver packages ({TargetFolderInfo.FormatBytes(driverStoreResult.TotalSupersededBytes)})", LogLevel.Info);
+                        logAction(
+                            $"DriverStore Analysis: {driverStoreResult.SupersededPackageCount:N0} reclaimable packages " +
+                            $"({driverStoreResult.StagedPackageCount:N0} never installed, {TargetFolderInfo.FormatBytes(driverStoreResult.TotalSupersededBytes)}). " +
+                            $"Retained {driverStoreResult.BoundPackageCount:N0} active and {driverStoreResult.InstalledPackageCount:N0} installed packages.",
+                            LogLevel.Info);
+                    }
+                    else
+                    {
+                        UiInvoke(() => folder.StatusMessage =
+                            $"Ready: {TargetFolderInfo.FormatBytes(folder.SizeBytes)} ({driverStoreResult.BoundPackageCount + driverStoreResult.InstalledPackageCount} drivers active)");
                     }
                 }
                 catch (Exception ex)
@@ -854,6 +893,75 @@ public partial class CleanerService
         }
     }
 
+    /// <summary>
+    /// Advertises exactly what DISM reports as reclaimable, using the same analysis Disk
+    /// Cleanup runs before it offers "Windows Update Cleanup". Nothing here deletes.
+    /// </summary>
+    private static async Task ScanWindowsUpdateCleanupAsync(
+        TargetFolderInfo folder,
+        Action<string, LogLevel> logAction,
+        CancellationToken ct)
+    {
+        try
+        {
+            var analysis = await DismComponentStoreAnalyzer.AnalyzeAsync(ct).ConfigureAwait(false);
+            if (analysis == null || !analysis.HasData)
+            {
+                UiInvoke(() =>
+                {
+                    folder.SizeBytes = 0;
+                    folder.FileCount = 0;
+                    folder.FolderCount = 0;
+                    folder.TopFiles = new List<JunkFileItem>();
+                    folder.HasError = true;
+                    folder.ErrorMessage = "DISM component-store analysis returned no data.";
+                    folder.StatusMessage = "Analysis Unavailable";
+                });
+                logAction("Windows Update Cleanup: DISM component-store analysis returned no data.", LogLevel.Warning);
+                return;
+            }
+
+            long reclaimable = Math.Max(0, analysis.EstimatedReclaimableBytes);
+            int packages = Math.Max(0, analysis.ReclaimablePackageCount);
+
+            UiInvoke(() =>
+            {
+                folder.SizeBytes = reclaimable;
+                folder.FileCount = packages;
+                folder.FolderCount = 0;
+                folder.TopFiles = new List<JunkFileItem>
+                {
+                    new()
+                    {
+                        FileName = "Superseded component-store payloads",
+                        FilePath = "WinSxS — DISM /StartComponentCleanup /ResetBase",
+                        SizeBytes = reclaimable,
+                        LastModified = analysis.LastCleanupUtc?.ToLocalTime() ?? DateTime.Now
+                    }
+                };
+                folder.StatusMessage = reclaimable > 0
+                    ? $"Ready: {TargetFolderInfo.FormatBytes(reclaimable)} reclaimable ({packages} packages)"
+                    : "Clean (no reclaimable update payloads)";
+            });
+
+            logAction(
+                $"Windows Update Cleanup analysis: {TargetFolderInfo.FormatBytes(reclaimable)} reclaimable across {packages} packages " +
+                $"(store {TargetFolderInfo.FormatBytes(analysis.ActualSizeBytes)}, cleanup recommended: {analysis.CleanupRecommended}).",
+                LogLevel.Info);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            UiInvoke(() => folder.StatusMessage = "Scan Error");
+            UiInvoke(() => folder.HasError = true);
+            UiInvoke(() => folder.ErrorMessage = ex.Message);
+            logAction($"Error analysing the Windows component store: {ex.Message}", LogLevel.Warning);
+        }
+    }
+
     public async Task<(long freedBytes, int filesDeleted, int foldersDeleted, int filesSkipped, int filesFailed)> CleanFolderAsync(
         TargetFolderInfo folder,
         bool safeMode24Hours,
@@ -941,6 +1049,56 @@ public partial class CleanerService
                     UiInvoke(() => folder.HasError = true);
                     UiInvoke(() => folder.ErrorMessage = ex.Message);
                     logAction($"Error cleaning restore points: {ex.Message}", LogLevel.Warning);
+                }
+                finally
+                {
+                    UiInvoke(() => folder.IsCleaning = false);
+                }
+                return;
+            }
+
+            if (folder.Id == "WinUpdateCleanup")
+            {
+                try
+                {
+                    var (ok, reclaimed, message) = await RunDismComponentCleanupAsync(logAction, ct, resetBase: true).ConfigureAwait(false);
+                    if (ok)
+                    {
+                        freedBytes = reclaimed;
+                        filesDeleted = 1;
+                        UiInvoke(() =>
+                        {
+                            folder.SizeBytes = 0;
+                            folder.FileCount = 0;
+                            folder.StatusMessage = reclaimed > 0
+                                ? $"Reclaimed: {TargetFolderInfo.FormatBytes(reclaimed)}"
+                                : "Cleaned (0 B reclaimed)";
+                        });
+                        logAction(message, LogLevel.Success);
+                    }
+                    else
+                    {
+                        UiInvoke(() =>
+                        {
+                            folder.StatusMessage = "Cleanup Failed";
+                            folder.HasError = true;
+                            folder.ErrorMessage = message;
+                        });
+                        filesFailed++;
+                        logAction(message, LogLevel.Warning);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    UiInvoke(() => folder.StatusMessage = "Cleanup Failed");
+                    UiInvoke(() => folder.HasError = true);
+                    UiInvoke(() => folder.ErrorMessage = ex.Message);
+                    filesFailed++;
+                    logAction($"Error cleaning the Windows component store: {ex.Message}", LogLevel.Warning);
                 }
                 finally
                 {
@@ -1337,6 +1495,7 @@ public partial class CleanerService
         var dirs = new List<string>();
 
         if (folder.Id == "WinUpgradeLeftovers") dirs.AddRange(GetUpgradeLeftoverDirectories());
+        else if (folder.Id == "WinUpdateCleanup") { /* DISM component-store scope: no filesystem root to enumerate. */ }
         else if (folder.Id == "WinComponentCaches") dirs.AddRange(GetComponentCacheDirectories());
         else if (folder.Id == "WinStoreAppCaches") dirs.AddRange(GetStoreAppCacheDirectories());
         else if (folder.Id == "DeviceDriverPackages") dirs.AddRange(GetDeviceDriverDirectories());

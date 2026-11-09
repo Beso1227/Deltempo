@@ -397,6 +397,29 @@ public class UpdatePipelineSecurityTests
         if (!expected) Assert.False(string.IsNullOrEmpty(reason));
     }
 
+    [Fact]
+    public void UpdateSecurityValidator_EvaluatesAHostileLengthPath_WithoutThrowingOrBlocking()
+    {
+        // Regression for a CI failure where the 100 ms wall-clock regex timeout fired on an
+        // ordinary release URL because the agent was loaded, and the RegexMatchTimeoutException
+        // escaped the validator. The traversal match now runs in non-backtracking mode, so the
+        // cost is linear in the path length, and any residual timeout is caught and treated as
+        // a rejection: a path the validator cannot evaluate is never a path it trusts.
+        string url = "https://github.com/Beso1227/Deltempo/releases/download/" +
+                     new string('a', 40_000) + "/Deltempo.exe";
+
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        for (int i = 0; i < 200; i++)
+        {
+            // Must return, never throw, on every pass.
+            UpdateSecurityValidator.IsValidDownloadUrl(url, out _);
+        }
+        stopwatch.Stop();
+
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(10),
+            $"400,000 characters through the traversal check blocked for {stopwatch.Elapsed}.");
+    }
+
     [Theory]
     [InlineData("http://github.com/Beso1227/Deltempo/releases/download/v2.0.0/Deltempo.exe")] // plain HTTP // DevSkim: ignore DS137138
     [InlineData("https://evil.com/Beso1227/Deltempo/releases/download/v2.0.0/Deltempo.exe")] // disallowed host

@@ -3,15 +3,34 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Win32;
 using WinTempCleaner.Core.Abstractions;
 using WinTempCleaner.Models;
 
 namespace WinTempCleaner.Services;
+
+/// <summary>
+/// Why a published driver package is or is not reclaimable.
+/// </summary>
+public enum DriverPackageState
+{
+    /// <summary>At least one device currently binds to this package. Never touched.</summary>
+    Bound,
+
+    /// <summary>Not bound right now, but still installed (an oem*.inf copy exists in
+    /// %WinDir%\INF). The device may simply be disconnected, so this is kept.</summary>
+    Installed,
+
+    /// <summary>Not bound, and a newer package with the same original INF name exists.
+    /// This is the classic "old GPU/Bluetooth driver" leftover.</summary>
+    Superseded,
+
+    /// <summary>Not bound, not installed, and never claimed a device: staging residue
+    /// left behind by an interrupted or replaced driver install.</summary>
+    Staged
+}
 
 public class SupersededDriverPackage
 {
@@ -24,13 +43,28 @@ public class SupersededDriverPackage
     public Version? ParsedVersion { get; set; }
     public long EstimatedSizeBytes { get; set; }
     public string FolderPath { get; set; } = string.Empty;
+    public DriverPackageState State { get; set; } = DriverPackageState.Installed;
 }
 
 public class DriverStoreScanResult
 {
     public long TotalSupersededBytes { get; set; }
+
+    /// <summary>Reclaimable packages: superseded plus staged (see
+    /// <see cref="DriverPackageState"/>). The name is kept for compatibility with the
+    /// scan summary the UI has always consumed.</summary>
     public int SupersededPackageCount { get; set; }
+
     public List<SupersededDriverPackage> SupersededPackages { get; set; } = new();
+
+    /// <summary>Packages currently bound to a device and therefore never targeted.</summary>
+    public int BoundPackageCount { get; set; }
+
+    /// <summary>Unbound packages retained because they are still installed.</summary>
+    public int InstalledPackageCount { get; set; }
+
+    /// <summary>Reclaimable packages that were never installed at all.</summary>
+    public int StagedPackageCount { get; set; }
 }
 
 public record DriverMaintenanceResult(bool Success, long BytesFreed, int PackagesPurged, string Message)
@@ -63,12 +97,14 @@ public record DriverMaintenanceResult(bool Success, long BytesFreed, int Package
 
 /// <summary>
 /// Service managing Windows Plug-and-Play (PnP) driver package discovery and maintenance.
-/// Enforces Deltempo's proprietary, high-performance, non-destructive cleaning of superseded driver packages from DriverStore:
-/// - Strictly identifies older duplicate versions of installed OEM drivers (retaining newest driver for every device).
-/// - Cross-references active hardware device bindings to ensure no in-use driver is ever targeted.
-/// - Purges obsolete packages directly via Windows PnP utility without force flag (Windows kernel validates safety).
+/// - Classifies every published package as bound / installed / superseded / staged.
+/// - Reclaims only packages that are NOT bound to hardware and are either superseded by
+///   a newer version of the same INF or were never installed at all.
+/// - Deletes through <c>pnputil /delete-driver</c> with no force flag, so the Windows
+///   driver store itself performs the final safety check.
+/// - Never deletes a FileRepository folder directly: the store owns that layout.
 /// - Purges DriverStore staging/temp areas and DriverState caches directly.
-/// - Measures exact disk space reclaimed before and after execution without relying on Windows cleanmgr.
+/// - Measures exact disk space reclaimed before and after execution.
 /// </summary>
 public static class WindowsDriverMaintenanceService
 {
@@ -119,6 +155,11 @@ public static class WindowsDriverMaintenanceService
         }
 
         return Path.Combine(winDir, "System32", "DriverState");
+    }
+
+    private static string GetInfDirectoryPath()
+    {
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "INF");
     }
 
     public static long GetDriverStoreFileRepositorySize()
@@ -174,7 +215,7 @@ public static class WindowsDriverMaintenanceService
             using var proc = Process.Start(psi);
             if (proc == null) return activeInfs;
 
-            string output = SystemProcessRunner.DrainOutput(proc, TimeSpan.FromSeconds(10));
+            string output = SystemProcessRunner.DrainOutput(proc, TimeSpan.FromSeconds(30));
 
             using var reader = new StringReader(output);
             string? line;
@@ -200,119 +241,199 @@ public static class WindowsDriverMaintenanceService
     }
 
     /// <summary>
-    /// Scans DriverStore for third-party OEM driver packages that are superseded by newer versions.
-    /// Does not require elevation to scan.
+    /// Published packages that still have an oem*.inf copy in %WinDir%\INF, i.e. Windows
+    /// considers them installed even when no device is bound to them right now.
     /// </summary>
-    public static async Task<DriverStoreScanResult> ScanSupersededDriverPackagesAsync(CancellationToken ct = default)
+    public static HashSet<string> GetInstalledOemInfNames()
     {
-        return await Task.Run(() =>
+        var installed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        try
         {
-            var result = new DriverStoreScanResult();
-            try
+            string infDir = GetInfDirectoryPath();
+            if (!Directory.Exists(infDir)) return installed;
+
+            foreach (string file in Directory.EnumerateFiles(infDir, "oem*.inf", SearchOption.TopDirectoryOnly))
             {
-                if (ct.IsCancellationRequested) return result;
-
-                string pnpUtil = GetPnpUtilPath();
-                if (!File.Exists(pnpUtil)) return result;
-
-                var psi = new ProcessStartInfo
-                {
-                    FileName = pnpUtil,
-                    Arguments = "/enum-drivers",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
-
-                using var proc = Process.Start(psi);
-                if (proc == null) return result;
-
-                string output = SystemProcessRunner.DrainOutput(proc, TimeSpan.FromSeconds(15));
-
-                if (ct.IsCancellationRequested) return result;
-
-                var allPackages = ParsePnpUtilOutput(output);
-                if (allPackages.Count == 0) return result;
-
-                // Group packages by OriginalName (case-insensitive)
-                var groups = allPackages.GroupBy(p => p.OriginalName, StringComparer.OrdinalIgnoreCase)
-                                        .Where(g => g.Count() > 1);
-
-                string repoDir = GetDriverStoreRepositoryPath();
-                var subCheckOpt = new EnumerationOptions { IgnoreInaccessible = true };
-
-                foreach (var g in groups)
-                {
-                    if (ct.IsCancellationRequested) break;
-
-                    // Sort by DriverDate descending, then ParsedVersion descending
-                    var sorted = g.OrderByDescending(p => p.DriverDate ?? DateTime.MinValue)
-                                  .ThenByDescending(p => p.ParsedVersion ?? new Version(0, 0))
-                                  .ToList();
-
-                    // Index 0 is the newest/active keeper package - NEVER superseded!
-                    // Index 1.. are the older superseded packages
-                    var supersededList = sorted.Skip(1).ToList();
-
-                    // Find matching FileRepository folders: <OriginalName>_*
-                    List<string> matchingDirs = new();
-                    if (Directory.Exists(repoDir))
-                    {
-                        try
-                        {
-                            matchingDirs = Directory.GetDirectories(repoDir, $"{g.Key}*")
-                                .OrderByDescending(d => new DirectoryInfo(d).LastWriteTimeUtc)
-                                .ToList();
-                        }
-                        catch { }
-                    }
-
-                    for (int i = 0; i < supersededList.Count; i++)
-                    {
-                        var pkg = supersededList[i];
-                        long size = 0;
-                        string folderPath = string.Empty;
-
-                        if (matchingDirs.Count > i + 1)
-                        {
-                            folderPath = matchingDirs[i + 1];
-                            size = CalculateDirectorySize(folderPath);
-                        }
-                        else if (matchingDirs.Count > 0)
-                        {
-                            folderPath = matchingDirs[0];
-                            size = CalculateDirectorySize(folderPath);
-                        }
-                        else
-                        {
-                            size = 15 * 1024 * 1024; // Sensible 15 MB fallback estimate
-                        }
-
-                        pkg.EstimatedSizeBytes = size;
-                        pkg.FolderPath = folderPath;
-                        result.SupersededPackages.Add(pkg);
-                        result.TotalSupersededBytes += size;
-                    }
-                }
-
-                result.SupersededPackageCount = result.SupersededPackages.Count;
+                installed.Add(Path.GetFileName(file));
             }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"[Deltempo] ScanSupersededDriverPackagesAsync exception: {ex.Message}");
-            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] GetInstalledOemInfNames error: {ex.Message}");
+        }
 
-            return result;
-        }, ct).ConfigureAwait(false);
+        return installed;
     }
 
     /// <summary>
-    /// Executes Deltempo's proprietary high-performance DriverStore maintenance:
-    /// 1. Queries active hardware device bindings to guard all in-use drivers.
-    /// 2. Purges obsolete superseded driver packages directly via PnPUtil (without force flag, keeping safety 100% intact).
+    /// Assigns a <see cref="DriverPackageState"/> to every published package.
+    /// </summary>
+    /// <remarks>
+    /// The ordering matters: an active binding always wins, because deleting the driver
+    /// for connected hardware is never acceptable. Only then is superseded-ness and
+    /// installation state consulted. A package whose device is merely unplugged stays
+    /// <see cref="DriverPackageState.Installed"/> and is retained.
+    /// </remarks>
+    public static List<SupersededDriverPackage> ClassifyDriverPackages(
+        IEnumerable<SupersededDriverPackage> packages,
+        ISet<string> activeInfs,
+        ISet<string> installedInfs)
+    {
+        ArgumentNullException.ThrowIfNull(packages);
+        ArgumentNullException.ThrowIfNull(activeInfs);
+        ArgumentNullException.ThrowIfNull(installedInfs);
+
+        var list = packages.ToList();
+        var groups = list
+            .Where(p => !string.IsNullOrWhiteSpace(p.OriginalName))
+            .GroupBy(p => p.OriginalName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
+
+        foreach (var package in list)
+        {
+            if (string.IsNullOrWhiteSpace(package.PublishedName))
+            {
+                package.State = DriverPackageState.Installed;
+                continue;
+            }
+
+            if (activeInfs.Contains(package.PublishedName))
+            {
+                package.State = DriverPackageState.Bound;
+                continue;
+            }
+
+            bool newerExists = groups.TryGetValue(package.OriginalName, out var siblings) &&
+                               siblings.Any(s => !ReferenceEquals(s, package) && IsNewer(s, package));
+            if (newerExists)
+            {
+                package.State = DriverPackageState.Superseded;
+                continue;
+            }
+
+            package.State = installedInfs.Contains(package.PublishedName)
+                ? DriverPackageState.Installed
+                : DriverPackageState.Staged;
+        }
+
+        return list;
+    }
+
+    /// <summary>True when <paramref name="candidate"/> carries a later driver date, or an
+    /// equal date and a later parsed version.</summary>
+    private static bool IsNewer(SupersededDriverPackage candidate, SupersededDriverPackage reference)
+    {
+        DateTime candidateDate = candidate.DriverDate ?? DateTime.MinValue;
+        DateTime referenceDate = reference.DriverDate ?? DateTime.MinValue;
+
+        if (candidateDate != referenceDate) return candidateDate > referenceDate;
+
+        Version candidateVersion = candidate.ParsedVersion ?? new Version(0, 0);
+        Version referenceVersion = reference.ParsedVersion ?? new Version(0, 0);
+        return candidateVersion > referenceVersion;
+    }
+
+    /// <summary>
+    /// Scans DriverStore for third-party OEM driver packages that can be reclaimed:
+    /// superseded versions and packages that were never installed. Does not require
+    /// elevation to scan.
+    /// </summary>
+    public static async Task<DriverStoreScanResult> ScanSupersededDriverPackagesAsync(CancellationToken ct = default)
+    {
+        return await Task.Run(() => ScanInternal(ct), ct).ConfigureAwait(false);
+    }
+
+    private static DriverStoreScanResult ScanInternal(CancellationToken ct)
+    {
+        var result = new DriverStoreScanResult();
+        try
+        {
+            if (ct.IsCancellationRequested) return result;
+
+            string pnpUtil = GetPnpUtilPath();
+            if (!File.Exists(pnpUtil)) return result;
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = pnpUtil,
+                Arguments = "/enum-drivers",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            using var proc = Process.Start(psi);
+            if (proc == null) return result;
+
+            string output = SystemProcessRunner.DrainOutput(proc, TimeSpan.FromSeconds(45));
+
+            if (ct.IsCancellationRequested) return result;
+
+            var allPackages = ParsePnpUtilOutput(output);
+            if (allPackages.Count == 0) return result;
+
+            var activeInfs = GetActiveDeviceDriverInfs();
+            var installedInfs = GetInstalledOemInfNames();
+
+            var classified = ClassifyDriverPackages(allPackages, activeInfs, installedInfs);
+
+            result.BoundPackageCount = classified.Count(p => p.State == DriverPackageState.Bound);
+            result.InstalledPackageCount = classified.Count(p => p.State == DriverPackageState.Installed);
+            result.StagedPackageCount = classified.Count(p => p.State == DriverPackageState.Staged);
+
+            var candidates = classified
+                .Where(p => p.State is DriverPackageState.Superseded or DriverPackageState.Staged)
+                .Where(p => !string.IsNullOrWhiteSpace(p.PublishedName))
+                .OrderBy(p => p.OriginalName, StringComparer.OrdinalIgnoreCase)
+                .ThenByDescending(p => p.DriverDate ?? DateTime.MinValue)
+                .ToList();
+
+            if (candidates.Count == 0) return result;
+
+            string repoDir = GetDriverStoreRepositoryPath();
+            var index = BuildRepositoryIndex(repoDir, ct);
+            var assignedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var folderSizes = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var package in candidates)
+            {
+                if (ct.IsCancellationRequested) break;
+
+                string? folder = ResolvePackageFolder(package, repoDir, index, installedInfs, assignedFolders, ct);
+                if (folder != null)
+                {
+                    assignedFolders.Add(folder);
+                    if (!folderSizes.TryGetValue(folder, out long size))
+                    {
+                        size = CalculateDirectorySize(folder);
+                        folderSizes[folder] = size;
+                    }
+
+                    package.FolderPath = folder;
+                    package.EstimatedSizeBytes = size;
+                }
+
+                result.SupersededPackages.Add(package);
+                result.TotalSupersededBytes += package.EstimatedSizeBytes;
+            }
+
+            result.SupersededPackageCount = result.SupersededPackages.Count;
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] ScanSupersededDriverPackagesAsync exception: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Executes Deltempo's DriverStore maintenance:
+    /// 1. Queries active hardware bindings to guard all in-use drivers.
+    /// 2. Deletes superseded and never-installed packages via PnPUtil (no force flag).
     /// 3. Purges DriverStore Temp and DriverState staging areas.
-    /// 4. Measures exact disk space reclaimed before and after execution.
+    /// 4. Measures exact disk space reclaimed and verifies what remains.
     /// Requires administrator privileges.
     /// </summary>
     public static async Task<DriverMaintenanceResult> RunPnpDriverCleanAsync(
@@ -325,7 +446,7 @@ public static class WindowsDriverMaintenanceService
             return new DriverMaintenanceResult(false, 0, 0, "Administrator privileges required to execute Windows PnP driver maintenance.");
         }
 
-        return await Task.Run(() =>
+        return await Task.Run(async () =>
         {
             try
             {
@@ -334,106 +455,139 @@ public static class WindowsDriverMaintenanceService
                     return new DriverMaintenanceResult(false, 0, 0, "Operation cancelled.");
                 }
 
-                logAction?.Invoke("Starting Deltempo Native DriverStore & Obsolete Driver Package maintenance...", LogLevel.Info);
+                logAction?.Invoke("Starting Deltempo Native DriverStore & obsolete driver package maintenance...", LogLevel.Info);
 
                 long initialRepoBytes = GetDriverStoreFileRepositorySize();
+
+                var scan = ScanInternal(ct);
+                logAction?.Invoke(
+                    $"DriverStore inventory: {scan.BoundPackageCount} active, {scan.InstalledPackageCount} installed (device may be disconnected), " +
+                    $"{scan.SupersededPackages.Count} reclaimable ({scan.StagedPackageCount} never installed).",
+                    LogLevel.Info);
+
+                string pnpUtil = GetPnpUtilPath();
                 int purgedCount = 0;
                 long estimatedPurgedBytes = 0;
 
-                string pnpUtil = GetPnpUtilPath();
-
-                // 1. Hard Guardrail: Identify all driver INFs currently bound to active devices
+                // Re-read bindings immediately before deletion: a device could have been
+                // connected between the scan and now, which would make a candidate live.
                 var activeDeviceInfs = GetActiveDeviceDriverInfs();
-                if (activeDeviceInfs.Count > 0)
-                {
-                    logAction?.Invoke($"Protected {activeDeviceInfs.Count} driver packages actively bound to connected hardware devices.", LogLevel.Info);
-                }
 
-                // 2. Identify superseded driver packages
-                var scanResult = ScanSupersededDriverPackagesInternal(ct);
-                if (scanResult.SupersededPackages.Count > 0)
+                foreach (var pkg in scan.SupersededPackages)
                 {
-                    logAction?.Invoke($"Identified {scanResult.SupersededPackages.Count} superseded driver packages in DriverStore. Purging obsolete versions...", LogLevel.Info);
+                    if (ct.IsCancellationRequested) break;
+                    if (string.IsNullOrWhiteSpace(pkg.PublishedName)) continue;
 
-                    foreach (var pkg in scanResult.SupersededPackages)
+                    if (activeDeviceInfs.Contains(pkg.PublishedName))
                     {
-                        if (ct.IsCancellationRequested) break;
-                        if (string.IsNullOrWhiteSpace(pkg.PublishedName)) continue;
+                        logAction?.Invoke($"Preserved active hardware driver {pkg.PublishedName} ({pkg.OriginalName}): bound to current device", LogLevel.Info);
+                        continue;
+                    }
 
-                        // Double check: if currently bound to active hardware, strictly skip
-                        if (activeDeviceInfs.Contains(pkg.PublishedName))
+                    try
+                    {
+                        var result = await SystemProcessRunner.Instance.RunAsync(
+                            pnpUtil,
+                            $"/delete-driver \"{pkg.PublishedName}\"",
+                            TimeSpan.FromMinutes(2),
+                            ct).ConfigureAwait(false);
+
+                        if (result.ExitCode == 0)
                         {
-                            logAction?.Invoke($"Preserved active hardware driver {pkg.PublishedName} ({pkg.OriginalName}): bound to current device", LogLevel.Info);
-                            continue;
+                            purgedCount++;
+                            estimatedPurgedBytes += pkg.EstimatedSizeBytes;
+                            logAction?.Invoke(
+                                $"Purged obsolete driver package: {pkg.PublishedName} ({pkg.OriginalName} {pkg.DriverVersion}, {pkg.State})",
+                                LogLevel.Info);
                         }
-
-                        try
+                        else
                         {
-                            var psi = new ProcessStartInfo
-                            {
-                                FileName = pnpUtil,
-                                Arguments = $"/delete-driver {pkg.PublishedName}",
-                                UseShellExecute = false,
-                                RedirectStandardOutput = true,
-                                RedirectStandardError = true,
-                                CreateNoWindow = true
-                            };
-
-                            using var proc = Process.Start(psi);
-                            if (proc != null)
-                            {
-                                string outText = SystemProcessRunner.DrainOutput(proc, TimeSpan.FromSeconds(10));
-
-                                if (proc.ExitCode == 0 || outText.Contains("Driver package deleted successfully", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    purgedCount++;
-                                    estimatedPurgedBytes += pkg.EstimatedSizeBytes;
-                                    logAction?.Invoke($"Purged superseded driver package: {pkg.PublishedName} ({pkg.OriginalName} {pkg.DriverVersion})", LogLevel.Info);
-                                }
-                                else
-                                {
-                                    // Windows rejected deletion because driver is boot-critical or referenced - safely preserved
-                                    logAction?.Invoke($"Preserved driver package {pkg.PublishedName} ({pkg.OriginalName}): protected or system-referenced", LogLevel.Info);
-                                }
-                            }
+                            string detail = FirstMeaningfulLine(result.StandardOutput, result.StandardError);
+                            logAction?.Invoke(
+                                $"Preserved driver package {pkg.PublishedName} ({pkg.OriginalName}): " +
+                                $"{(result.TimedOut ? "timed out" : $"Windows refused removal (exit {result.ExitCode})")}" +
+                                (detail.Length > 0 ? $" - {detail}" : string.Empty),
+                                LogLevel.Info);
                         }
-                        catch (Exception ex)
-                        {
-                            Trace.WriteLine($"[Deltempo] PnPUtil delete failed for {pkg.PublishedName}: {ex.Message}");
-                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.WriteLine($"[Deltempo] PnPUtil delete failed for {pkg.PublishedName}: {ex.Message}");
                     }
                 }
 
-                // 3. Purge DriverStore Temp and DriverState staging areas directly
+                // Purge DriverStore Temp and DriverState staging areas directly
                 long stagingFreed = PurgeDriverStagingDirectories(logAction, ct);
 
-                // 4. Measure exact DriverStore disk space reclaimed
+                // Measure exact DriverStore disk space reclaimed
                 long finalRepoBytes = GetDriverStoreFileRepositorySize();
                 long actualRepoFreedBytes = Math.Max(0, initialRepoBytes - finalRepoBytes);
-
                 long effectiveFreedBytes = actualRepoFreedBytes + stagingFreed;
                 if (effectiveFreedBytes == 0 && purgedCount > 0)
                 {
+                    // The deletion succeeded but Windows kept the payload referenced by a
+                    // pending reboot; report the package's measured size rather than 0.
                     effectiveFreedBytes = estimatedPurgedBytes;
                 }
 
-                if (purgedCount > 0 || effectiveFreedBytes > 0)
+                var remaining = ScanInternal(ct);
+                int remainingCount = remaining.SupersededPackages.Count;
+
+                if (purgedCount > 0)
                 {
-                    logAction?.Invoke($"Deltempo Driver Maintenance completed: {TargetFolderInfo.FormatBytes(effectiveFreedBytes)} reclaimed ({purgedCount} obsolete driver packages purged).", LogLevel.Success);
-                    return new DriverMaintenanceResult(true, effectiveFreedBytes, purgedCount, $"Purged {purgedCount} superseded driver packages ({TargetFolderInfo.FormatBytes(effectiveFreedBytes)} reclaimed).");
+                    logAction?.Invoke(
+                        $"Deltempo Driver Maintenance completed: {TargetFolderInfo.FormatBytes(effectiveFreedBytes)} reclaimed " +
+                        $"({purgedCount} obsolete driver packages purged, {remainingCount} still pending).",
+                        LogLevel.Success);
+                    return new DriverMaintenanceResult(
+                        true,
+                        effectiveFreedBytes,
+                        purgedCount,
+                        $"Purged {purgedCount} obsolete driver packages ({TargetFolderInfo.FormatBytes(effectiveFreedBytes)} reclaimed)." +
+                        (remainingCount > 0 ? $" {remainingCount} package(s) need a reboot or are still in use." : string.Empty));
                 }
-                else
-                {
-                    logAction?.Invoke("Deltempo Driver Maintenance completed: All installed drivers are currently active and up to date.", LogLevel.Info);
-                    return new DriverMaintenanceResult(true, 0, 0, "DriverStore is already clean. All packages active.");
-                }
+
+                logAction?.Invoke(
+                    effectiveFreedBytes > 0
+                        ? $"Deltempo Driver Maintenance completed: {TargetFolderInfo.FormatBytes(effectiveFreedBytes)} of staging cache reclaimed. No obsolete driver packages to remove."
+                        : "Deltempo Driver Maintenance completed: All installed drivers are active or still required by a device.",
+                    LogLevel.Info);
+
+                return new DriverMaintenanceResult(
+                    true,
+                    effectiveFreedBytes,
+                    0,
+                    effectiveFreedBytes > 0
+                        ? $"Reclaimed {TargetFolderInfo.FormatBytes(effectiveFreedBytes)} of driver staging cache."
+                        : "Driver store is already clean. All packages are active or required.");
+            }
+            catch (OperationCanceledException)
+            {
+                return new DriverMaintenanceResult(false, 0, 0, "Operation cancelled.");
             }
             catch (Exception ex)
             {
                 logAction?.Invoke($"Driver Maintenance note: {ex.Message}", LogLevel.Warning);
                 return new DriverMaintenanceResult(false, 0, 0, ex.Message);
             }
-        }, ct);
+        }, ct).ConfigureAwait(false);
+    }
+
+    private static string FirstMeaningfulLine(string stdout, string stderr)
+    {
+        foreach (string raw in (stdout + "\n" + stderr).Split('\n'))
+        {
+            string line = raw.Trim();
+            if (line.Length == 0) continue;
+            if (line.Equals("Microsoft PnP Utility", StringComparison.OrdinalIgnoreCase)) continue;
+            return line.Length > 220 ? line[..220] : line;
+        }
+
+        return string.Empty;
     }
 
     private static long PurgeDriverStagingDirectories(Action<string, LogLevel>? logAction, CancellationToken ct)
@@ -486,97 +640,198 @@ public static class WindowsDriverMaintenanceService
         return freedBytes;
     }
 
+    // ─── Repository mapping ─────────────────────────────────────────────
+    //
+    // PnPUtil reports a published (oemNN.inf) name, while the disk payload lives in
+    // DriverStore\FileRepository\<original>.inf_<arch>_<hash>. A published package's
+    // folder is resolved in two ways:
+    //   1. Installed packages: %WinDir%\INF\oemNN.inf is byte-identical to the store's
+    //      INF, so a SHA-256 match maps the package to exactly one folder.
+    //   2. Anything else: match the INF's DriverVer against each candidate folder.
 
-
-    private static DriverStoreScanResult ScanSupersededDriverPackagesInternal(CancellationToken ct)
+    private sealed class RepositoryIndex
     {
-        var result = new DriverStoreScanResult();
-        string pnpUtil = GetPnpUtilPath();
-        if (!File.Exists(pnpUtil)) return result;
+        public Dictionary<string, string> FolderByInfHash { get; } = new(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, List<string>> FoldersByOriginalName { get; } = new(StringComparer.OrdinalIgnoreCase);
+    }
 
+    private static RepositoryIndex BuildRepositoryIndex(string repoDir, CancellationToken ct)
+    {
+        var index = new RepositoryIndex();
+        if (!Directory.Exists(repoDir)) return index;
+
+        IEnumerable<string> folders;
         try
         {
-            var psi = new ProcessStartInfo
-            {
-                FileName = pnpUtil,
-                Arguments = "/enum-drivers",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            };
-
-            using var proc = Process.Start(psi);
-            if (proc == null) return result;
-
-            string output = SystemProcessRunner.DrainOutput(proc, TimeSpan.FromSeconds(15));
-
-            var allPackages = ParsePnpUtilOutput(output);
-            if (allPackages.Count == 0) return result;
-
-            var groups = allPackages.GroupBy(p => p.OriginalName, StringComparer.OrdinalIgnoreCase)
-                                    .Where(g => g.Count() > 1);
-
-            string repoDir = GetDriverStoreRepositoryPath();
-
-            foreach (var g in groups)
-            {
-                if (ct.IsCancellationRequested) break;
-
-                var sorted = g.OrderByDescending(p => p.DriverDate ?? DateTime.MinValue)
-                              .ThenByDescending(p => p.ParsedVersion ?? new Version(0, 0))
-                              .ToList();
-
-                var supersededList = sorted.Skip(1).ToList();
-
-                List<string> matchingDirs = new();
-                if (Directory.Exists(repoDir))
-                {
-                    try
-                    {
-                        matchingDirs = Directory.GetDirectories(repoDir, $"{g.Key}*")
-                            .OrderByDescending(d => new DirectoryInfo(d).LastWriteTimeUtc)
-                            .ToList();
-                    }
-                    catch { }
-                }
-
-                for (int i = 0; i < supersededList.Count; i++)
-                {
-                    var pkg = supersededList[i];
-                    long size = 0;
-                    string folderPath = string.Empty;
-
-                    if (matchingDirs.Count > i + 1)
-                    {
-                        folderPath = matchingDirs[i + 1];
-                        size = CalculateDirectorySize(folderPath);
-                    }
-                    else if (matchingDirs.Count > 0)
-                    {
-                        folderPath = matchingDirs[0];
-                        size = CalculateDirectorySize(folderPath);
-                    }
-                    else
-                    {
-                        size = 15 * 1024 * 1024;
-                    }
-
-                    pkg.EstimatedSizeBytes = size;
-                    pkg.FolderPath = folderPath;
-                    result.SupersededPackages.Add(pkg);
-                    result.TotalSupersededBytes += size;
-                }
-            }
-
-            result.SupersededPackageCount = result.SupersededPackages.Count;
+            folders = Directory.EnumerateDirectories(repoDir);
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"[Deltempo] ScanSupersededDriverPackagesInternal error: {ex.Message}");
+            Trace.WriteLine($"[Deltempo] BuildRepositoryIndex enumeration failed: {ex.Message}");
+            return index;
         }
 
-        return result;
+        foreach (string folder in folders)
+        {
+            if (ct.IsCancellationRequested) break;
+
+            string folderName = Path.GetFileName(folder);
+            int underscore = folderName.IndexOf('_');
+            if (underscore <= 0) continue;
+
+            string originalName = folderName[..underscore];
+            if (!index.FoldersByOriginalName.TryGetValue(originalName, out var list))
+            {
+                list = new List<string>();
+                index.FoldersByOriginalName[originalName] = list;
+            }
+            list.Add(folder);
+
+            string infPath = Path.Combine(folder, originalName);
+            if (!File.Exists(infPath))
+            {
+                try
+                {
+                    infPath = Directory.EnumerateFiles(folder, "*.inf", SearchOption.TopDirectoryOnly).FirstOrDefault() ?? string.Empty;
+                }
+                catch
+                {
+                    infPath = string.Empty;
+                }
+            }
+
+            if (infPath.Length > 0)
+            {
+                string? hash = TryHashFile(infPath);
+                if (hash != null) index.FolderByInfHash[hash] = folder;
+            }
+        }
+
+        return index;
+    }
+
+    private static string? ResolvePackageFolder(
+        SupersededDriverPackage package,
+        string repoDir,
+        RepositoryIndex index,
+        ISet<string> installedInfs,
+        ISet<string> assignedFolders,
+        CancellationToken ct)
+    {
+        if (!Directory.Exists(repoDir)) return null;
+
+        // 1. Installed package: hash the oemNN.inf copy Windows keeps for uninstall/repair.
+        if (installedInfs.Contains(package.PublishedName))
+        {
+            string oemInf = Path.Combine(GetInfDirectoryPath(), package.PublishedName);
+            string? hash = TryHashFile(oemInf);
+            if (hash != null &&
+                index.FolderByInfHash.TryGetValue(hash, out string? mapped) &&
+                !assignedFolders.Contains(mapped))
+            {
+                return mapped;
+            }
+        }
+
+        // 2. Match the package's DriverVer against the store INF of each same-named folder.
+        if (!index.FoldersByOriginalName.TryGetValue(package.OriginalName, out var candidates))
+        {
+            return null;
+        }
+
+        foreach (string folder in candidates)
+        {
+            if (ct.IsCancellationRequested) break;
+            if (assignedFolders.Contains(folder)) continue;
+
+            string infPath = Path.Combine(folder, package.OriginalName);
+            if (!File.Exists(infPath))
+            {
+                try
+                {
+                    infPath = Directory.EnumerateFiles(folder, "*.inf", SearchOption.TopDirectoryOnly).FirstOrDefault() ?? string.Empty;
+                }
+                catch
+                {
+                    infPath = string.Empty;
+                }
+            }
+
+            if (infPath.Length == 0) continue;
+            if (!TryReadDriverVer(infPath, out DateTime date, out Version? version)) continue;
+
+            bool dateMatches = package.DriverDate == null || date.Date == package.DriverDate.Value.Date;
+            bool versionMatches = package.ParsedVersion == null || (version != null && version == package.ParsedVersion);
+
+            if (dateMatches && versionMatches) return folder;
+        }
+
+        // A single candidate is unambiguous even if its DriverVer could not be parsed.
+        if (candidates.Count == 1 && !assignedFolders.Contains(candidates[0]))
+        {
+            return candidates[0];
+        }
+
+        return null;
+    }
+
+    private static bool TryReadDriverVer(string infPath, out DateTime date, out Version? version)
+    {
+        date = DateTime.MinValue;
+        version = null;
+
+        try
+        {
+            if (!File.Exists(infPath)) return false;
+
+            // DriverVer sits in the [Version] section near the top; no need to read the
+            // whole file for multi-megabyte .inf packages.
+            foreach (string raw in File.ReadLines(infPath).Take(200))
+            {
+                string line = raw.Trim();
+                if (!line.StartsWith("DriverVer", StringComparison.OrdinalIgnoreCase)) continue;
+
+                int equals = line.IndexOf('=');
+                if (equals < 0) return false;
+
+                string value = line[(equals + 1)..].Trim();
+                string[] parts = value.Split(',', StringSplitOptions.TrimEntries);
+                if (parts.Length > 0 && DateTime.TryParse(parts[0], System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                {
+                    date = parsedDate;
+                }
+                if (parts.Length > 1)
+                {
+                    if (Version.TryParse(parts[1], out Version? parsedVersion))
+                    {
+                        version = parsedVersion;
+                    }
+                }
+
+                return date != DateTime.MinValue || version != null;
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[Deltempo] TryReadDriverVer failed for {infPath}: {ex.Message}");
+        }
+
+        return false;
+    }
+
+    private static string? TryHashFile(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return null;
+            using var stream = File.OpenRead(path);
+            byte[] hash = SHA256.HashData(stream);
+            return Convert.ToHexString(hash);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public static List<SupersededDriverPackage> ParsePnpUtilOutput(string output)

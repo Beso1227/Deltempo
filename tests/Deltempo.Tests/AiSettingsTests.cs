@@ -294,10 +294,48 @@ public class AiSettingsTests
     }
 
     [Fact]
+    public void Catalog_ProviderLabelsNeverNameAModel()
+    {
+        // A model in a provider label is stale the day it retires; the picker beside it
+        // already lists the provider's live models.
+        foreach (AiProviderOption option in AiModelCatalog.GetProviderOptions())
+        {
+            Assert.True(
+                AiModelCatalog.TryGetProvider(option.Id, out AiProviderDescriptor descriptor),
+                $"Provider option '{option.Id}' has no catalog descriptor.");
+
+            if (!string.IsNullOrEmpty(descriptor.DefaultModelId))
+            {
+                Assert.DoesNotContain(descriptor.DefaultModelId, option.Label, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+    }
+
+    [Fact]
+    public void Catalog_KeyRequirementMatchesTheProvider()
+    {
+        foreach (string provider in new[] { "BuiltIn", "Ollama" })
+        {
+            Assert.True(AiModelCatalog.TryGetProvider(provider, out AiProviderDescriptor descriptor));
+            Assert.False(descriptor.RequiresApiKey, $"{provider} is local and must not ask for a key.");
+        }
+
+        foreach (string provider in new[]
+        {
+            "OpenAI", "Anthropic", "Gemini", "xAI", "OpenRouter", "Groq",
+            "Mistral", "Cerebras", "DeepSeek", "GitHubModels", "HuggingFace", "Together",
+        })
+        {
+            Assert.True(AiModelCatalog.TryGetProvider(provider, out AiProviderDescriptor descriptor));
+            Assert.True(descriptor.RequiresApiKey, $"{provider} is hosted and must ask for a key.");
+        }
+    }
+
+    [Fact]
     public void Catalog_DescribeProviderAndModelAgreeWithTheCatalog()
     {
         Assert.Equal(
-            "Paid, highest quality. The file summary is sent to OpenAI.",
+            "GPT models. Paid per use. The file summary is sent to OpenAI.",
             AiModelCatalog.DescribeProvider("OpenAI"));
         Assert.Equal(string.Empty, AiModelCatalog.DescribeProvider("NotAProvider"));
 
@@ -313,13 +351,43 @@ public class AiSettingsTests
     [Theory]
     [InlineData("OpenAI", "api.openai.com")]
     [InlineData("openai", "api.openai.com")]
+    [InlineData("Anthropic", "api.anthropic.com")]
+    [InlineData("xAI", "api.x.ai")]
     [InlineData("Groq", "api.groq.com")]
     [InlineData("OpenRouter", "openrouter.ai")]
+    [InlineData("Mistral", "api.mistral.ai")]
+    [InlineData("Cerebras", "api.cerebras.ai")]
+    [InlineData("DeepSeek", "api.deepseek.com")]
+    [InlineData("GitHubModels", "models.github.ai")]
+    [InlineData("HuggingFace", "router.huggingface.co")]
+    [InlineData("Together", "api.together.xyz")]
     public void Transport_HostedProvidersResolveToTheirOwnHost(string provider, string host)
     {
         Assert.Contains(
             host,
             AiProviderClient.ResolveOpenAiEndpoint(provider),
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("OpenAI", "api.openai.com")]
+    [InlineData("Anthropic", "api.anthropic.com")]
+    [InlineData("xAI", "api.x.ai")]
+    [InlineData("Groq", "api.groq.com")]
+    [InlineData("OpenRouter", "openrouter.ai")]
+    [InlineData("Mistral", "api.mistral.ai")]
+    [InlineData("Cerebras", "api.cerebras.ai")]
+    [InlineData("DeepSeek", "api.deepseek.com")]
+    [InlineData("GitHubModels", "models.github.ai")]
+    [InlineData("HuggingFace", "router.huggingface.co")]
+    [InlineData("Together", "api.together.xyz")]
+    public void Transport_ModelListsComeFromTheSameProviderHost(string provider, string host)
+    {
+        // A chat endpoint on the right host with a model list on another host is how a
+        // picker offers models the account cannot actually call.
+        Assert.Contains(
+            host,
+            AiProviderClient.ResolveModelsEndpoint(provider),
             StringComparison.OrdinalIgnoreCase);
     }
 
@@ -360,6 +428,9 @@ public class AiSettingsTests
         IReadOnlyList<AiModelOption> models = AiProviderClient.ParseModelList("OpenAI", body);
 
         Assert.Equal(["gpt-4o-mini", "gpt-5.4-mini"], models.Select(m => m.Id).ToArray());
+
+        // OpenAI's /models returns ids only. The picker must read like a name list, not wire data.
+        Assert.Equal(["GPT-4o mini", "GPT-5.4 mini"], models.Select(m => m.DisplayName).ToArray());
     }
 
     [Fact]
@@ -411,6 +482,83 @@ public class AiSettingsTests
         IReadOnlyList<AiModelOption> models = AiProviderClient.ParseModelList("Ollama", body);
 
         Assert.Equal(["llama3.2:latest", "qwen2.5:7b"], models.Select(m => m.Id).ToArray());
+
+        // The ":latest" tag is noise in a label; the catalog name wins where it knows the id.
+        Assert.Equal(["Llama 3.2", "Qwen2.5 7B"], models.Select(m => m.DisplayName).ToArray());
+    }
+
+    [Fact]
+    public void ModelList_AnthropicShape_ReadsDisplayName()
+    {
+        // Anthropic's /v1/models wraps rows in "data" and spells the label display_name.
+        const string body = """
+            {"data":[
+              {"type":"model","id":"claude-sonnet-4-5","display_name":"Claude Sonnet 4.5"},
+              {"type":"model","id":"claude-haiku-4-5","display_name":"Claude Haiku 4.5"}
+            ],"has_more":false}
+            """;
+
+        IReadOnlyList<AiModelOption> models = AiProviderClient.ParseModelList("Anthropic", body);
+
+        Assert.Equal(
+            ["claude-haiku-4-5", "claude-sonnet-4-5"],
+            models.Select(m => m.Id).ToArray());
+        Assert.Equal(
+            ["Claude Haiku 4.5", "Claude Sonnet 4.5"],
+            models.Select(m => m.DisplayName).ToArray());
+    }
+
+    [Fact]
+    public void ModelList_GitHubModelsShape_ReadsABareArray()
+    {
+        // GitHub Models answers with a top-level array, not {"data":[...]}.
+        const string body = """
+            [
+              {"id":"openai/gpt-4o-mini","name":"GPT-4o mini","publisher":"OpenAI",
+               "supported_output_modalities":["text"]},
+              {"id":"openai/text-embedding-3-small","name":"Text Embedding 3 Small","publisher":"OpenAI"}
+            ]
+            """;
+
+        IReadOnlyList<AiModelOption> models = AiProviderClient.ParseModelList("GitHubModels", body);
+
+        AiModelOption only = Assert.Single(models);
+        Assert.Equal("openai/gpt-4o-mini", only.Id);
+        Assert.Equal("GPT-4o mini", only.DisplayName);
+    }
+
+    [Fact]
+    public void ModelList_TogetherShape_ReadsABareArrayAndDropsNonChatTypes()
+    {
+        const string body = """
+            [
+              {"id":"meta-llama/Llama-3.3-70B-Instruct-Turbo","type":"chat",
+               "display_name":"Llama 3.3 70B Instruct Turbo"},
+              {"id":"BAAI/bge-large-en-v1.5","type":"embedding","display_name":"BGE Large EN"}
+            ]
+            """;
+
+        IReadOnlyList<AiModelOption> models = AiProviderClient.ParseModelList("Together", body);
+
+        AiModelOption only = Assert.Single(models);
+        Assert.Equal("meta-llama/Llama-3.3-70B-Instruct-Turbo", only.Id);
+        Assert.Equal("Llama 3.3 70B Instruct Turbo", only.DisplayName);
+    }
+
+    [Fact]
+    public void ModelList_NonOpenRouterPricingIsNotGuessed()
+    {
+        // Together quotes per million tokens, OpenRouter per token. Reading both as
+        // per-token produced "$880000/M" labels, so only OpenRouter's pricing is read.
+        const string body = """
+            [{"id":"some-chat-model","type":"chat","pricing":{"input":0.88,"output":0.88}}]
+            """;
+
+        IReadOnlyList<AiModelOption> models = AiProviderClient.ParseModelList("Together", body);
+
+        AiModelOption only = Assert.Single(models);
+        Assert.Null(only.Badge);
+        Assert.Null(only.Note);
     }
 
     [Fact]
@@ -561,7 +709,9 @@ public class AiSettingsTests
 
         string status = AiModelCatalog.DescribeFetchedModels("OpenRouter", models, "paid-model");
 
-        Assert.Contains("2 models available", status, StringComparison.Ordinal);
+        // The picker hides the paid row, so the line counts what is actually offered and
+        // explains why the saved choice is no longer in the list.
+        Assert.Contains("1 free model available", status, StringComparison.Ordinal);
         Assert.Contains("paid", status, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("FREE", status, StringComparison.Ordinal);
     }
@@ -575,17 +725,16 @@ public class AiSettingsTests
             new("paid-model", "Paid Model", "$1/M in"),
         ];
 
-        Assert.DoesNotContain(
-            "paid",
-            AiModelCatalog.DescribeFetchedModels("OpenRouter", models, "free-model"),
-            StringComparison.OrdinalIgnoreCase);
+        string freeStatus = AiModelCatalog.DescribeFetchedModels("OpenRouter", models, "free-model");
+        Assert.Contains("1 free model available", freeStatus, StringComparison.Ordinal);
+        Assert.DoesNotContain("saved model is paid", freeStatus, StringComparison.OrdinalIgnoreCase);
 
-        // An id the provider did not return may still be callable; guessing "paid" would
-        // be wrong more often than right.
-        Assert.DoesNotContain(
-            "paid",
-            AiModelCatalog.DescribeFetchedModels("OpenRouter", models, "some-other-model"),
-            StringComparison.OrdinalIgnoreCase);
+        // An id the provider did not return is not called paid; the line says it is not in
+        // the free list instead, which is the only thing the provider actually proved.
+        string unknownStatus =
+            AiModelCatalog.DescribeFetchedModels("OpenRouter", models, "some-other-model");
+        Assert.DoesNotContain("saved model is paid", unknownStatus, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("not in this list", unknownStatus, StringComparison.Ordinal);
     }
 
     // -----------------------------------------------------------------
@@ -907,53 +1056,41 @@ public class AiSettingsTests
     }
 
     [Fact]
-    public void FilterModels_BlankQueryReturnsTheSameListInstance()
+    public void FriendlyName_HumanisesIdOnlyProvidersWithoutInventingNames()
     {
-        // Filtering is a view over the provider order; rebuilding on a blank query would
-        // be a needless copy and could drop the free-first ordering if it ever changed.
-        AiModelOption[] models =
-        [
-            new("google/gemma-4-31b-it:free", "Gemma 4 31B", Badge: "FREE"),
-            new("meta-llama/llama-3.3-70b-instruct", "Llama 3.3 70B", "$0.59/M in"),
-        ];
+        // OpenAI and Groq answer /models with ids only. Before this, every row in their
+        // pickers read as wire data ("gpt-5.4-mini", "openai/gpt-oss-120b"), which looked
+        // broken next to the hand-written catalog names. A catalog entry always wins;
+        // otherwise the id is humanised by rule so an unfamiliar model still has a label.
+        var cases = new (string Provider, string Id, string Expected)[]
+        {
+            ("OpenAI", "gpt-5.4-mini", "GPT-5.4 mini"),
+            ("OpenAI", "gpt-4o", "GPT-4o"),
+            ("OpenAI", "o3-mini", "o3 mini"),
+            ("Groq", "openai/gpt-oss-120b", "GPT-OSS 120B"),
+            ("Groq", "llama-3.3-70b-versatile", "Llama 3.3 70B"), // curated catalog entry wins
+            ("Groq", "llama-3.1-8b-instant", "Llama 3.1 8B Instant"), // not in the catalog, humanised
+            ("Groq", "moonshotai/kimi-k2-instruct", "Kimi K2 Instruct"),
+            ("Groq", "deepseek-r1-distill-llama-70b", "DeepSeek R1 Distill Llama 70B"),
+            ("Groq", "gemma2-9b-it", "Gemma 2 9B IT"),
+            ("Ollama", "llama3.2:latest", "Llama 3.2"),
+            ("Ollama", "qwen2.5:7b", "Qwen2.5 7B"),
+            ("OpenRouter", "google/gemma-4-31b-it:free", "Gemma 4 31B"),
+            ("OpenRouter", "some/unknown-model-7b", "Unknown Model 7B"),
+        };
 
-        Assert.Same(models, AiModelCatalog.FilterModels(models, null));
-        Assert.Same(models, AiModelCatalog.FilterModels(models, "   "));
-    }
+        foreach ((string provider, string id, string expected) in cases)
+        {
+            Assert.Equal(expected, AiModelCatalog.GetFriendlyName(provider, id));
+        }
 
-    [Fact]
-    public void FilterModels_EveryTokenMustMatchIdNameNoteOrBadge()
-    {
-        AiModelOption[] models =
-        [
-            new("google/gemma-4-31b-it:free", "Gemma 4 31B", "No credit needed", "FREE"),
-            new("meta-llama/llama-3.3-70b-instruct", "Llama 3.3 70B", "$0.59/M in", null),
-        ];
-
-        // Both tokens have to hit, so this cannot match the paid Llama row.
-        IReadOnlyList<AiModelOption> freeGemma = AiModelCatalog.FilterModels(models, "free gemma");
-        Assert.Single(freeGemma);
-        Assert.Equal("google/gemma-4-31b-it:free", freeGemma[0].Id);
-
-        // The note is searchable too: a price fragment finds the paid row.
-        IReadOnlyList<AiModelOption> priced = AiModelCatalog.FilterModels(models, "0.59");
-        Assert.Single(priced);
-        Assert.Equal("meta-llama/llama-3.3-70b-instruct", priced[0].Id);
-
-        // ...and the badge alone is enough to list every free row.
-        Assert.Single(AiModelCatalog.FilterModels(models, "FREE"));
-    }
-
-    [Fact]
-    public void FilterModels_IsCaseInsensitiveAndReportsNoMatchAsEmpty()
-    {
-        AiModelOption[] models =
-        [
-            new("google/gemma-4-31b-it:free", "Gemma 4 31B", Badge: "FREE"),
-        ];
-
-        Assert.Single(AiModelCatalog.FilterModels(models, "GEMMA"));
-        Assert.Empty(AiModelCatalog.FilterModels(models, "gpt-9"));
+        // The hint names the model the request will use, and still shows the id that is sent.
+        Assert.Equal(
+            "GPT-5.4 mini (gpt-5.4-mini)",
+            AiModelCatalog.DescribeChosenModel("OpenAI", "gpt-5.4-mini"));
+        Assert.Equal(
+            "Unknown Model 7B (some/unknown-model-7b)",
+            AiModelCatalog.DescribeChosenModel("OpenRouter", "some/unknown-model-7b"));
     }
 
     [Fact]
@@ -967,11 +1104,12 @@ public class AiSettingsTests
         ];
 
         IReadOnlyList<AiModelOption> merged =
-            AiModelCatalog.WithSavedModel(models, "my-private-fine-tune");
+            AiModelCatalog.WithSavedModel(models, "my-private-fine-tune", "OpenAI");
 
         Assert.Equal(2, merged.Count);
         Assert.Equal("my-private-fine-tune", merged[0].Id);
-        Assert.Equal("my-private-fine-tune", merged[0].DisplayName);
+        // The saved id keeps its row and reads as a name, not as the raw identifier.
+        Assert.Equal("My Private Fine Tune", merged[0].DisplayName);
         Assert.Contains("Saved in settings", merged[0].Note!, StringComparison.Ordinal);
         Assert.False(merged[0].IsFree);
         Assert.Equal("google/gemma-4-31b-it:free", merged[1].Id);
@@ -998,6 +1136,65 @@ public class AiSettingsTests
 
         Assert.Same(models, AiModelCatalog.WithSavedModel(models, null));
         Assert.Same(models, AiModelCatalog.WithSavedModel(models, "   "));
+    }
+
+    [Fact]
+    public void FreeModelsOnly_HidesPaidRowsWhenTheProviderPublishesPricing()
+    {
+        AiModelOption[] models =
+        [
+            new("google/gemma-4-31b-it:free", "Gemma 4 31B", "No credit needed", "FREE"),
+            new("meta-llama/llama-3.3-70b-instruct", "Llama 3.3 70B", "$0.59/M in"),
+            new("xingchen-agi/xing4.0-29b-a4b:free", "Xing4.0 29B A4B", "No credit needed", "FREE"),
+        ];
+
+        IReadOnlyList<AiModelOption> free = AiModelCatalog.FreeModelsOnly(models);
+
+        Assert.Equal(2, free.Count);
+        Assert.All(free, model => Assert.True(model.IsFree));
+        Assert.Equal(models[0].Id, free[0].Id);
+        Assert.Equal(models[2].Id, free[1].Id);
+    }
+
+    [Fact]
+    public void FreeModelsOnly_KeepsTheWholeListWhenNoPricingIsPublished()
+    {
+        // OpenAI, Groq, Gemini and Ollama answer with ids and no prices. Treating "no FREE
+        // badge" as "paid" would empty those pickers and leave nothing to choose.
+        AiModelOption[] models =
+        [
+            new("gpt-5.4-mini", "GPT-5.4 mini"),
+            new("gpt-5.4-nano", "GPT-5.4 nano"),
+        ];
+
+        Assert.Same(models, AiModelCatalog.FreeModelsOnly(models));
+    }
+
+    [Fact]
+    public void IsSameModelSet_ComparesByIdNameNoteAndBadge()
+    {
+        AiModelOption[] first =
+        [
+            new("google/gemma-4-31b-it:free", "Gemma 4 31B", "No credit needed", "FREE"),
+            new("meta-llama/llama-3.3-70b-instruct", "Llama 3.3 70B", "$0.59/M in"),
+        ];
+
+        // A refresh always builds a new list; equal values must not rebuild the picker.
+        Assert.True(AiModelCatalog.IsSameModelSet(first, first.ToArray()));
+
+        // A pricing change reaches the picker even when the ids are unchanged.
+        AiModelOption[] repriced =
+        [
+            first[0],
+            new("meta-llama/llama-3.3-70b-instruct", "Llama 3.3 70B", "$0.49/M in"),
+        ];
+        Assert.False(AiModelCatalog.IsSameModelSet(first, repriced));
+
+        // So does a row appearing or disappearing.
+        Assert.False(AiModelCatalog.IsSameModelSet(first, [first[0]]));
+        Assert.False(AiModelCatalog.IsSameModelSet(first, null));
+        Assert.False(AiModelCatalog.IsSameModelSet(null, first));
+        Assert.True(AiModelCatalog.IsSameModelSet(null, null));
     }
 
     [Fact]

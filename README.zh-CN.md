@@ -38,16 +38,9 @@
   </p>
 
   <p>
-    <sub>更喜欢终端？一行命令即可安装并校验最新版本 &mdash;
-      <code>irm https://beso1227.github.io/Deltempo/win | iex</code>
-      &middot; 发现了 bug 或有功能建议？<a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>提交 Issue</strong></a> &mdash; 每一条反馈都会被阅读。
-      如果 Deltempo 帮你找回了磁盘空间，一个 <a href="https://github.com/Beso1227/Deltempo"><strong>星标</strong></a> 真的能帮助更多人发现它。</sub>
-  </p>
-
-  <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="最新版本" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI 构建状态" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1638_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="测试：1638 通过，0 失败" src="https://img.shields.io/badge/tests-1638_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1709_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="测试：1709 通过，0 失败" src="https://img.shields.io/badge/tests-1709_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="许可证：MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -99,11 +92,11 @@
 | :--- | :--- |
 | **官方网站** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **平台** | Windows 10 与 11（64 位 / x64） |
-| **版本** | v3.2.0（正式发布版） |
+| **版本** | v3.3.0（正式发布版） |
 | **许可证** | 开源（[MIT](LICENSE)） |
 | **界面** | 现代桌面 GUI（WPF Fluent）与无界面终端 CLI |
 | **分发方式** | 便携式单文件可执行程序（自包含，无需安装程序） |
-| **测试覆盖** | 1638 项自动化测试（100% 通过率，0 失败，0 跳过），对抗性文件系统模糊测试 |
+| **测试覆盖** | 1709 项自动化测试（100% 通过率，0 失败，0 跳过），对抗性文件系统模糊测试 |
 | **CLI 可用性** | `deltempo` 命令在 GUI 首次启动时自动自安装 —— 无需手动配置 |
 | **遥测** | 零遥测。扫描、清理、内存与卸载操作 100% 离线执行 |
 | **安全引擎** | 两阶段规划（`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`），含 5 级风险分层与事务日志 |
@@ -230,7 +223,7 @@ Deltempo 面向系统、开发与游戏环境中的可丢弃数据，绝不触�
   * 🔴 **EssentialKeep**：安全套件、云同步备份代理或关键硬件驱动。
 * **双通道智能管线**：
   * **离线启发式**：基于数字签名、已验证的发布者身份、二进制路径与已知进程数据库，即时给出确定性分类。
-  * **可选多提供商 AI**：按需生成详细运行摘要，支持 OpenAI、Anthropic Claude、Google Gemini、Groq、OpenRouter 以及本地离线模型（Ollama、LM Studio）。
+  * **可选多提供商 AI**：按需生成详细运行摘要，支持 OpenAI、Anthropic Claude、Google Gemini、Groq、OpenRouter、Mistral、Cerebras、DeepSeek、GitHub Models、Hugging Face、Together AI 以及本地离线模型（Ollama）。
 * **100% 可逆的注册表开关**：被禁用的项目会安全地保存在 `Run_Deltempo_Disabled` 注册表项中。任何项目都可以一键重新启用。
 
 ---
@@ -481,7 +474,7 @@ dotnet build deltempo.sln -c Release
 # 因此按单个项目检查只会静默地漏掉解决方案的其余部分。
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# 执行自动化测试套件（1638 个通过的单元与集成测试）
+# 执行自动化测试套件（1709 个通过的单元与集成测试）
 # xunit.v3 运行在 Microsoft.Testing.Platform 上，.NET 10 SDK 的 `dotnet test` 无法驱动它
 #（"Testing with VSTest target is no longer supported"）。请先构建一次，
 # 然后直接调用测试可执行文件。

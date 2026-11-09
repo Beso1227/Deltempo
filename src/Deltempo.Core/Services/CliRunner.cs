@@ -193,7 +193,7 @@ public static partial class CliRunner
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("  CLEANUP & CACHE COMMANDS:");
         Console.ResetColor();
-        PrintCmdRow("deep-clean", "Autonomous 1-click full OS cleanup: RAM, DISM, 26 scopes & VSS");
+        PrintCmdRow("deep-clean", $"Autonomous 1-click full OS cleanup: RAM, DISM, {CleanerService.GetDefaultTargets().Count} scopes & VSS");
         PrintCmdRow("smart-clean", "1-click safe cleanup: purges 100% safe disposable caches only");
         PrintCmdRow("restore-points", "Inspect & purge old System Restore Points (--clean, --all)");
         PrintCmdRow("scan [category]", "Scan temporary files and cache targets");

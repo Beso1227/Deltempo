@@ -3,7 +3,7 @@
 Read this before grepping. It is the shortest path from "where does X live" to the
 file that owns X, plus the rules that must not be broken while you are there.
 
-Verified at commit `2572c31` (2026-11-07), app version **3.2.0**.
+Verified at commit `0713664` (2026-11-09), app version **3.3.0** (release prep; tag pending).
 Nothing here is aspirational: every path and count below is checkable, and the
 place to check is `.ua/knowledge-graph.json` (see *Querying*).
 

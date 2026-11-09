@@ -38,16 +38,9 @@
   </p>
 
   <p>
-    <sub>Vous préférez le terminal ? Une ligne installe et vérifie la dernière version &mdash;
-      <code>irm https://beso1227.github.io/Deltempo/win | iex</code>
-      &middot; Un bug ou une idée de fonctionnalité ? <a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>Ouvrez une issue</strong></a> &mdash; chaque demande est lue.
-      Si Deltempo vous a rendu de l'espace disque, une <a href="https://github.com/Beso1227/Deltempo"><strong>étoile</strong></a> aide réellement d'autres personnes à le découvrir.</sub>
-  </p>
-
-  <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Dernière version" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="État du build CI" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1638_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests : 1638 réussis, 0 échec" src="https://img.shields.io/badge/tests-1638_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1709_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests : 1709 réussis, 0 échec" src="https://img.shields.io/badge/tests-1709_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="Licence : MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -99,11 +92,11 @@
 | :--- | :--- |
 | **Site officiel** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **Plateforme** | Windows 10 & 11 (64 bits / x64) |
-| **Version** | v3.2.0 (version de production) |
+| **Version** | v3.3.0 (version de production) |
 | **Licence** | Open source ([MIT](LICENSE)) |
 | **Interfaces** | Interface graphique de bureau moderne (WPF Fluent) et CLI en terminal sans interface |
 | **Distribution** | Exécutable portable en fichier unique (autonome, sans installateur) |
-| **Couverture des tests** | 1638 tests automatisés (100 % de réussite, 0 échec, 0 ignoré), fuzzing adversarial du système de fichiers |
+| **Couverture des tests** | 1709 tests automatisés (100 % de réussite, 0 échec, 0 ignoré), fuzzing adversarial du système de fichiers |
 | **Disponibilité de la CLI** | La commande `deltempo` s'auto-installe au premier lancement de l'interface — aucune configuration manuelle |
 | **Télémétrie** | Zéro télémétrie. Les opérations de scan, de nettoyage, de mémoire et de désinstallation s'exécutent 100 % hors ligne |
 | **Moteur de sécurité** | Planification en deux phases (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) avec 5 niveaux de risque et journalisation des transactions |
@@ -230,7 +223,7 @@ Ne vous demandez plus quels programmes ralentissent le démarrage de votre PC :
   * 🔴 **EssentialKeep** : suites de sécurité, agents de sauvegarde et de synchronisation dans le cloud ou pilotes matériels essentiels.
 * **Pipeline d'intelligence double** :
   * **Heuristiques hors ligne** : classification déterministe instantanée basée sur les signatures numériques, l'identité vérifiée des éditeurs, les chemins des exécutables et les bases de données de processus connues.
-  * **IA multi-fournisseurs facultative** : résumés opérationnels détaillés à la demande, prenant en charge OpenAI, Anthropic Claude, Google Gemini, Groq, OpenRouter et les modèles locaux hors ligne (Ollama, LM Studio).
+  * **IA multi-fournisseurs facultative** : résumés opérationnels détaillés à la demande, prenant en charge OpenAI, Anthropic Claude, Google Gemini, Groq, OpenRouter, Mistral, Cerebras, DeepSeek, GitHub Models, Hugging Face, Together AI et les modèles locaux hors ligne (Ollama).
 * **Activation/désactivation dans le registre, 100 % réversible** : les éléments désactivés sont stockés en toute sécurité dans les clés de registre `Run_Deltempo_Disabled`. Tout élément peut être réactivé en un seul clic.
 
 ---
@@ -481,7 +474,7 @@ dotnet build deltempo.sln -c Release
 # le shell WinUI et le projet de tests, si bien qu'une vérification par projet ne couvre qu'une partie de la solution.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# Exécuter la suite de tests automatisés (1638 tests unitaires et d'intégration réussis)
+# Exécuter la suite de tests automatisés (1709 tests unitaires et d'intégration réussis)
 # xunit.v3 s'exécute sur Microsoft.Testing.Platform, que le `dotnet test` du SDK
 # .NET 10 ne peut pas prendre en charge ("Testing with VSTest target is no longer
 # supported"). Construire une fois, puis invoquer directement l'exécutable de tests.

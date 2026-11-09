@@ -18,10 +18,18 @@ public static class UpdateSecurityValidator
 
     /// <summary>
     /// Percent-encoded path traversal sequences that must be rejected even after decoding.
+    ///
+    /// <para>
+    /// <see cref="RegexOptions.NonBacktracking"/> makes the match linear in the length of the
+    /// path, so a hostile URL can never burn wall-clock time however the path is crafted. The
+    /// timeout is a defence-in-depth backstop only; it used to be the primary limit, and a
+    /// loaded CI agent could miss the 100 ms budget on a perfectly ordinary release URL,
+    /// which surfaced as a <see cref="RegexMatchTimeoutException"/> escaping the validator.
+    /// </para>
     /// </summary>
     private static readonly Regex TraversalPattern = new(
         @"(%2e%2e|%2e%2e%2f|%2e%2e%5c|\.\.|/\\\.\\\.|\\\.\.)",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.NonBacktracking,
         TimeSpan.FromMilliseconds(100));
 
     public static bool IsValidDownloadUrl(string url, out string reason)
@@ -107,7 +115,7 @@ public static class UpdateSecurityValidator
             decodedPath = path;
         }
 
-        if (TraversalPattern.IsMatch(path) || TraversalPattern.IsMatch(decodedPath))
+        if (ContainsTraversal(path) || ContainsTraversal(decodedPath))
         {
             reason = "URL path contains traversal sequences.";
             return false;
@@ -130,5 +138,22 @@ public static class UpdateSecurityValidator
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// True when the path contains a traversal sequence. A match that cannot be evaluated
+    /// within the backstop timeout is treated as a match: a path the validator cannot read
+    /// is a path it must not trust.
+    /// </summary>
+    private static bool ContainsTraversal(string path)
+    {
+        try
+        {
+            return TraversalPattern.IsMatch(path);
+        }
+        catch (RegexMatchTimeoutException)
+        {
+            return true;
+        }
     }
 }

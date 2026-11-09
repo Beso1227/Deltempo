@@ -101,6 +101,65 @@ public class CleaningPipelineViewModelTests
         Assert.Equal(7L, preview.EstimatedFileCount);
     }
 
+    [Fact]
+    public void BuildConfirmationPreview_AppendsIrreversibleWarning()
+    {
+        var selected = new[]
+        {
+            MakeTarget("User Temp", sizeBytes: 1024, fileCount: 2),
+            new TargetFolderInfo
+            {
+                Id = "WinUpdateCleanup",
+                Name = "Windows Update Cleanup",
+                FileCount = 1,
+                IsSelected = true,
+                IrreversibleWarning = "Installed updates can no longer be uninstalled."
+            }
+        };
+
+        var preview = CleaningPipelineViewModel.BuildConfirmationPreview(selected, safeMode: true, recycleBin: true);
+
+        Assert.Contains("Installed updates can no longer be uninstalled.", preview.CategorySummary);
+        Assert.Contains("2 selected categories", preview.CategorySummary);
+    }
+
+    [Fact]
+    public void BuildConfirmationPreview_DeduplicatesIdenticalWarnings()
+    {
+        const string warning = "This cannot be undone.";
+        var selected = new[]
+        {
+            new TargetFolderInfo { Id = "A", Name = "A", IrreversibleWarning = warning },
+            new TargetFolderInfo { Id = "B", Name = "B", IrreversibleWarning = "  " + warning + "  " }
+        };
+
+        var preview = CleaningPipelineViewModel.BuildConfirmationPreview(selected, safeMode: true, recycleBin: true);
+
+        int first = preview.CategorySummary.IndexOf(warning, StringComparison.Ordinal);
+        Assert.True(first >= 0);
+        Assert.Equal(-1, preview.CategorySummary.IndexOf(warning, first + warning.Length, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void SelectSafeTargets_SkipsOrphanedAndIrreversibleScopes()
+    {
+        var deselectedSafe = MakeTarget("Windows Prefetch Cache", isSelected: false);
+        var irreversible = new TargetFolderInfo
+        {
+            Id = "WinUpdateCleanup",
+            Name = "Windows Update Cleanup",
+            IsSelected = true,
+            IsSafeModeEligible = false
+        };
+        var orphan = MakeTarget("Orphaned App Data", isOrphanedAppFolder: true);
+
+        CleaningPipelineViewModel.SelectSafeTargets(new[] { deselectedSafe, irreversible, orphan });
+
+        Assert.True(deselectedSafe.IsSelected);
+        Assert.False(irreversible.IsSelected);
+        Assert.False(orphan.IsSelected);
+    }
+
     [Theory]
     [InlineData(true, true, "Safety Shield: Active", "Recycle Bin Protection: Active")]
     [InlineData(true, false, "Safety Shield: Active", "Permanent Deletion: Active")]

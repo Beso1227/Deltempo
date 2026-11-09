@@ -38,16 +38,9 @@
   </p>
 
   <p>
-    <sub>ターミナルがお好みですか？1 行で最新リリースをインストールして検証できます &mdash;
-      <code>irm https://beso1227.github.io/Deltempo/win | iex</code>
-      &middot; バグや機能のアイデアを見つけましたか？<a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>Issue を開いてください</strong></a> &mdash; すべてのリクエストに目を通します。
-      Deltempo がディスク容量を回収してくれたなら、<a href="https://github.com/Beso1227/Deltempo"><strong>star</strong></a> は他の人に見つけてもらうための大きな助けになります。</sub>
-  </p>
-
-  <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="Latest Release" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI Build Status" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1638_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 1638 passed, 0 failed" src="https://img.shields.io/badge/tests-1638_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1709_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="Tests: 1709 passed, 0 failed" src="https://img.shields.io/badge/tests-1709_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="License: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -99,11 +92,11 @@
 | :--- | :--- |
 | **公式サイト** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **プラットフォーム** | Windows 10 & 11（64 ビット / x64） |
-| **バージョン** | v3.2.0（本番リリース） |
+| **バージョン** | v3.3.0（本番リリース） |
 | **ライセンス** | オープンソース（[MIT](LICENSE)） |
 | **インターフェース** | モダンなデスクトップ GUI（WPF Fluent）とヘッドレスのターミナル CLI |
 | **配布形態** | ポータブルな単一ファイル実行ファイル（自己完結、インストーラー不要） |
-| **テストカバレッジ** | 1638 件の自動テスト（合格率 100%、失敗 0、スキップ 0）、ファイルシステムに対する敵対的ファズィング |
+| **テストカバレッジ** | 1709 件の自動テスト（合格率 100%、失敗 0、スキップ 0）、ファイルシステムに対する敵対的ファズィング |
 | **CLI の利用** | `deltempo` コマンドは GUI 初回起動時に自動インストール — 手動設定は不要 |
 | **テレメトリ** | テレメトリゼロ。スキャン、クリーンアップ、メモリ、アンインストーラーの操作は 100% オフラインで実行されます |
 | **セーフティエンジン** | 2 段階の計画（`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`）、5 段階のリスクティア、トランザクションジャーナリング |
@@ -230,7 +223,7 @@ Deltempo は、系统・開発・ゲームの各環境にまたがる使い捨�
   * 🔴 **EssentialKeep**: セキュリティスイート、クラウド同期バックアップエージェント、必須のハードウェアドライバー。
 * **デュアルインテリジェンスピプライン**:
   * **オフラインヒューリスティクス**: デジタル署名、検証済みのベンダー ID、バイナリパス、既知のプロセスデータベースに基づく、即座かつ決定論的な分類。
-  * **オプションのマルチプロバイダー AI**: 必要に応じて詳細な動作サマリーを表示します。OpenAI、Anthropic Claude、Google Gemini、Groq、OpenRouter、およびローカルオフラインモデル（Ollama、LM Studio）に対応。
+  * **オプションのマルチプロバイダー AI**: 必要に応じて詳細な動作サマリーを表示します。OpenAI、Anthropic Claude、Google Gemini、Groq、OpenRouter、Mistral、Cerebras、DeepSeek、GitHub Models、Hugging Face、Together AI、およびローカルオフラインモデル（Ollama）に対応。
 * **100% 可逆なレジストリトグル**: 無効化した項目は `Run_Deltempo_Disabled` レジストリキーに安全に保存されます。どの項目も 1 クリックで再有効化できます。
 
 ---
@@ -481,7 +474,7 @@ dotnet build deltempo.sln -c Release
 # テストプロジェクトが含まれます。プロジェクトごとのチェックではソリューションの一部しか検証されません。
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# 自動テストスイートを実行（ユニットテスト・統合テスト 1638 件合格）
+# 自動テストスイートを実行（ユニットテスト・統合テスト 1709 件合格）
 # xunit.v3 は Microsoft.Testing.Platform 上で動作し、.NET 10 SDK の `dotnet test` では
 # 実行できません（"Testing with VSTest target is no longer supported"）。一度ビルドしてから、
 # テスト実行ファイルを直接呼び出してください。

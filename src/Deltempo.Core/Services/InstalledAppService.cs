@@ -747,6 +747,15 @@ public static class InstalledAppService
         });
     }
 
+    /// <summary>
+    /// Windows Installer and uninstaller exit codes that mean the uninstall completed.
+    /// 0 is the normal success code, 3010 means success but a reboot is required, and
+    /// 1641 means success and the reboot was already started. Any other non-zero code
+    /// means the uninstaller failed or the user cancelled it.
+    /// </summary>
+    public static bool IsSuccessfulUninstallerExit(int exitCode)
+        => exitCode is 0 or 3010 or 1641;
+
     public static async Task<bool> UninstallAppAsync(InstalledAppItem app, bool silent = false, int timeoutMs = 180000)
     {
         ArgumentNullException.ThrowIfNull(app);
@@ -833,12 +842,24 @@ public static class InstalledAppService
                 };
 
                 using var proc = Process.Start(psi);
-                if (proc != null)
+                if (proc is null) return false;
+
+                // A timeout is NOT success: the uninstaller may still be running, may
+                // have handed off to an elevated helper, or may be waiting on a modal
+                // prompt. Returning true here made the caller announce a completed
+                // uninstall, scan a still-installed app, and offer to purge it.
+                if (!proc.WaitForExit(timeoutMs)) return false;
+
+                try
                 {
-                    proc.WaitForExit(timeoutMs);
+                    return IsSuccessfulUninstallerExit(proc.ExitCode);
+                }
+                catch
+                {
+                    // Some shell-executed uninstallers detach before we can read an exit
+                    // code. The process did exit, so keep the historical success result.
                     return true;
                 }
-                return false;
             }
             catch
             {

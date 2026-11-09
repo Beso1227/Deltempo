@@ -18,6 +18,7 @@ public partial class AppUninstallModal : UserControl
     private RootScanResult? _currentScanResult;
     private string _currentAppFilter = "All";
     private string _currentDrawerFilter = "All";
+    private bool _isBusy;
 
     public event Action<string, LogLevel>? LogRequested;
     public event Action? Closed;
@@ -352,67 +353,131 @@ public partial class AppUninstallModal : UserControl
 
     #region Trace Scanning & Root Leftovers Drawer
 
+    /// <summary>
+    /// Single busy flag for every destructive or expensive action. The handlers guard on it,
+    /// the purge button is disabled while it is set, and a small indeterminate bar shows the
+    /// app is working instead of leaving the user to click again.
+    /// </summary>
+    private void SetBusy(bool busy, string? status = null)
+    {
+        _isBusy = busy;
+        BusyProgressBar.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            StatusFooterText.Text = status;
+        }
+
+        int selectedCount = _currentScanResult?.Items.Count(i => i.IsSelected) ?? 0;
+        PurgeRootTracesBtn.IsEnabled = !busy && selectedCount > 0;
+    }
+
     private async void ScanTracesBtn_Click(object sender, RoutedEventArgs e)
     {
         SoundService.PlayClickSound();
-        if (sender is Button btn && btn.DataContext is InstalledAppItem app)
+        if (_isBusy || sender is not Button btn || btn.DataContext is not InstalledAppItem app) return;
+
+        SetBusy(true, $"Scanning registry, user profile, and system folders for {app.DisplayName}...");
+        try
         {
             await InspectAppTracesAsync(app);
+        }
+        catch (Exception ex)
+        {
+            StatusFooterText.Text = $"Trace scan failed for {app.DisplayName}: {ex.Message}";
+            LogRequested?.Invoke($"[App Uninstaller] Trace scan failed: {ex.Message}", LogLevel.Error);
+        }
+        finally
+        {
+            SetBusy(false);
         }
     }
 
     private async void ForceRootCleanBtn_Click(object sender, RoutedEventArgs e)
     {
         SoundService.PlayClickSound();
-        if (sender is Button btn && btn.DataContext is InstalledAppItem app)
+        if (_isBusy || sender is not Button btn || btn.DataContext is not InstalledAppItem app) return;
+
+        // This button only opens the inspector. The purge is a separate, confirmed action,
+        // so the prompt must not promise that clicking it deletes anything.
+        var confirm = MessageBox.Show(
+            $"Force Root Clean will scan for file, registry, and shortcut remnants of:\n\n{app.DisplayName}\n\n" +
+            "Nothing is deleted until you review the results and confirm the purge. " +
+            "Use this when the official uninstaller is broken or missing. Continue?",
+            "Force Root Clean", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+
+        if (confirm != MessageBoxResult.Yes) return;
+
+        SetBusy(true, $"Scanning roots for {app.DisplayName}...");
+        try
         {
-            var confirm = MessageBox.Show(
-                $"Force Root Clean will scan and directly purge all file, registry, and shortcut remnants of:\n\n{app.DisplayName}\n\nUse this when the official uninstaller is broken or missing. Proceed?",
-                "Force Root Clean", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (confirm != MessageBoxResult.Yes) return;
-
             await InspectAppTracesAsync(app);
+        }
+        catch (Exception ex)
+        {
+            StatusFooterText.Text = $"Trace scan failed for {app.DisplayName}: {ex.Message}";
+            LogRequested?.Invoke($"[App Uninstaller] Trace scan failed: {ex.Message}", LogLevel.Error);
+        }
+        finally
+        {
+            SetBusy(false);
         }
     }
 
     private async void DeepUninstallBtn_Click(object sender, RoutedEventArgs e)
     {
         SoundService.PlayClickSound();
-        if (sender is Button btn && btn.DataContext is InstalledAppItem app)
-        {
-            if (string.IsNullOrWhiteSpace(app.UninstallString) && string.IsNullOrWhiteSpace(app.QuietUninstallString))
-            {
-                var forceConfirm = MessageBox.Show(
-                    $"No official uninstaller was detected for {app.DisplayName}.\n\nWould you like to perform a Force Root Clean instead?",
-                    "Uninstaller Not Found", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (_isBusy || sender is not Button btn || btn.DataContext is not InstalledAppItem app) return;
 
-                if (forceConfirm == MessageBoxResult.Yes)
+        if (string.IsNullOrWhiteSpace(app.UninstallString) && string.IsNullOrWhiteSpace(app.QuietUninstallString))
+        {
+            var forceConfirm = MessageBox.Show(
+                $"No official uninstaller was detected for {app.DisplayName}.\n\nWould you like to scan for root remnants instead?",
+                "Uninstaller Not Found", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+
+            if (forceConfirm == MessageBoxResult.Yes)
+            {
+                SetBusy(true, $"Scanning roots for {app.DisplayName}...");
+                try
                 {
                     await InspectAppTracesAsync(app);
                 }
-                return;
+                catch (Exception ex)
+                {
+                    StatusFooterText.Text = $"Trace scan failed for {app.DisplayName}: {ex.Message}";
+                    LogRequested?.Invoke($"[App Uninstaller] Trace scan failed: {ex.Message}", LogLevel.Error);
+                }
+                finally
+                {
+                    SetBusy(false);
+                }
             }
+            return;
+        }
 
-            bool shouldCreateRestorePoint = CreateRestorePointCheckBox.IsChecked == true;
-            string rpText = shouldCreateRestorePoint
-                ? "• System Restore Point: Enabled (Checkpoint will be created)\n"
-                : "• System Restore Point: Disabled (Optional checkpoint skipped)\n";
+        bool shouldCreateRestorePoint = CreateRestorePointCheckBox.IsChecked == true;
+        string rpText = shouldCreateRestorePoint
+            ? "• System Restore Point: Enabled (Checkpoint will be created)\n"
+            : "• System Restore Point: Disabled (Optional checkpoint skipped)\n";
 
-            var confirm = MessageBox.Show(
-                $"Deep Uninstall will:\n" +
-                $"1. Terminate running processes for {app.DisplayName}\n" +
-                $"2. Run the official uninstaller ({app.UninstallEngine})\n" +
-                $"3. Perform a Deep Root Scan to eradicate leftover traces\n\n" +
-                rpText + "\n" +
-                $"Proceed with uninstallation?",
-                "Deep Root Uninstall", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        var confirm = MessageBox.Show(
+            $"Deep Uninstall will:\n" +
+            $"1. Terminate running processes for {app.DisplayName}\n" +
+            $"2. Run the official uninstaller ({app.UninstallEngine})\n" +
+            $"3. Scan for leftover traces so you can review and purge them\n\n" +
+            rpText + "\n" +
+            $"Proceed with uninstallation?",
+            "Deep Root Uninstall", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
 
-            if (confirm != MessageBoxResult.Yes) return;
+        if (confirm != MessageBoxResult.Yes) return;
 
+        SetBusy(true, $"Preparing deep uninstall for {app.DisplayName}...");
+
+        try
+        {
             if (shouldCreateRestorePoint)
             {
-                StatusFooterText.Text = $"Creating System Restore Point checkpoint...";
+                StatusFooterText.Text = "Creating System Restore Point checkpoint...";
                 LogRequested?.Invoke($"[App Uninstaller] Creating System Restore Point checkpoint for {app.DisplayName}...", LogLevel.Info);
                 var restoreResult = await WinTempCleaner.Core.Safety.SystemRestorePointService.CreateRestorePointAsync($"Pre-Uninstall {app.DisplayName}");
                 if (restoreResult.Success)
@@ -422,6 +487,20 @@ public partial class AppUninstallModal : UserControl
                 else
                 {
                     LogRequested?.Invoke($"[App Uninstaller] System Restore Point skipped or unavailable: {restoreResult.Message}", LogLevel.Warning);
+
+                    // The user explicitly asked for a safety net. Do not silently uninstall
+                    // without one; let them decide whether to continue.
+                    var proceed = MessageBox.Show(
+                        $"A System Restore Point could not be created:\n\n{restoreResult.Message}\n\n" +
+                        "Continue with the uninstall without a restore point?",
+                        "Restore Point Not Created", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+
+                    if (proceed != MessageBoxResult.Yes)
+                    {
+                        StatusFooterText.Text = "Uninstall cancelled because no restore point was created.";
+                        LogRequested?.Invoke("[App Uninstaller] Uninstall cancelled: restore point unavailable.", LogLevel.Warning);
+                        return;
+                    }
                 }
             }
 
@@ -434,15 +513,34 @@ public partial class AppUninstallModal : UserControl
             bool success = await InstalledAppService.UninstallAppAsync(app, silent: false);
             if (success)
             {
-                StatusFooterText.Text = $"Official uninstaller finished. Scanning roots for leftover traces...";
-                LogRequested?.Invoke($"[App Uninstaller] Uninstaller process exited. Scanning root remnants...", LogLevel.Info);
+                StatusFooterText.Text = "Official uninstaller finished. Scanning roots for leftover traces...";
+                LogRequested?.Invoke("[App Uninstaller] Uninstaller process exited. Scanning root remnants...", LogLevel.Info);
                 await InspectAppTracesAsync(app, snapshot);
             }
             else
             {
-                StatusFooterText.Text = $"Uninstaller could not be completed or timed out.";
-                LogRequested?.Invoke($"[App Uninstaller] Uninstallation failed or was cancelled.", LogLevel.Warning);
+                // UninstallAppAsync now reports a timeout or a non-zero exit code as failure.
+                // Do not scan and offer to purge a still-installed app as if it were gone.
+                StatusFooterText.Text = "Uninstaller did not complete (cancelled, timed out, or failed). No leftovers were scanned.";
+                LogRequested?.Invoke("[App Uninstaller] Uninstallation failed, was cancelled, or timed out.", LogLevel.Warning);
+                MessageBox.Show(
+                    $"The uninstaller for {app.DisplayName} did not report success.\n\n" +
+                    "It may have been cancelled, may still be running, or may have failed. " +
+                    "Nothing was purged. You can run a Trace scan to review the app's remnants.",
+                    "Uninstall Did Not Complete", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+        catch (Exception ex)
+        {
+            StatusFooterText.Text = $"Uninstall failed: {ex.Message}";
+            LogRequested?.Invoke($"[App Uninstaller] Deep uninstall aborted: {ex.Message}", LogLevel.Error);
+            MessageBox.Show(
+                $"The uninstall of {app.DisplayName} could not be completed.\n\n{ex.Message}",
+                "Uninstall Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            SetBusy(false);
         }
     }
 
@@ -545,7 +643,7 @@ public partial class AppUninstallModal : UserControl
         long selectedSize = _currentScanResult.Items.Where(i => i.IsSelected).Sum(i => i.SizeBytes);
 
         RootDrawerSelectionSummary.Text = $"{selectedCount} of {_currentScanResult.Items.Count} trace(s) selected ({TargetFolderInfo.FormatBytes(selectedSize)}).";
-        PurgeRootTracesBtn.IsEnabled = selectedCount > 0;
+        PurgeRootTracesBtn.IsEnabled = !_isBusy && selectedCount > 0;
     }
 
     private void CloseRootDrawer_Click(object sender, RoutedEventArgs e)
@@ -555,21 +653,166 @@ public partial class AppUninstallModal : UserControl
 
     private async void PurgeRootTracesBtn_Click(object sender, RoutedEventArgs e)
     {
-        if (_currentScanResult == null || !_currentScanResult.Items.Any(i => i.IsSelected)) return;
-
-        SoundService.PlayClickSound();
-        PurgeRootTracesBtn.IsEnabled = false;
-        StatusFooterText.Text = $"Eradicating selected root traces for {_currentInspectedApp?.DisplayName}...";
+        if (_isBusy || _currentScanResult == null) return;
 
         var selected = _currentScanResult.Items.Where(i => i.IsSelected).ToList();
-        var purgeResult = await RootLeftoverPurgeService.PurgeLeftoversAsync(selected, _currentInspectedApp);
+        if (selected.Count == 0) return;
 
-        SoundService.PlaySuccessSound();
-        StatusFooterText.Text = $"Purged {purgeResult.ItemsPurgedCount} trace(s) ({purgeResult.FormattedReclaimed} reclaimed) in {purgeResult.ExecutionTimeMs}ms.";
-        LogRequested?.Invoke($"[Deep Root Purge] Eradicated {purgeResult.ItemsPurgedCount} traces ({purgeResult.FormattedReclaimed}) for {_currentInspectedApp?.DisplayName}.", LogLevel.Success);
+        string appName = _currentInspectedApp?.DisplayName ?? "this application";
+        string selectedSize = TargetFolderInfo.FormatBytes(selected.Sum(i => i.SizeBytes));
 
-        RootLeftoversDrawer.Visibility = Visibility.Collapsed;
+        // The WPF surface used to delete on the first click. Every other destructive action
+        // in this modal is confirmed, and this one also touches registry keys, services,
+        // scheduled tasks, and PATH entries, so it gets the same gate.
+        var confirm = MessageBox.Show(
+            $"Permanently erase {selected.Count} selected leftover trace(s) ({selectedSize}) for:\n\n{appName}\n\n" +
+            "This removes files, folders, registry keys and values, services, scheduled tasks, " +
+            "and environment PATH entries.\n\nThis action CANNOT be undone. Proceed?",
+            "Eradicate Root Traces", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+
+        if (confirm != MessageBoxResult.Yes)
+        {
+            LogRequested?.Invoke("[Deep Root Purge] Cancelled by user.", LogLevel.Warning);
+            return;
+        }
+
+        SoundService.PlayClickSound();
+        SetBusy(true, $"Eradicating selected root traces for {appName}...");
+
+        PurgeResult purgeResult;
+        try
+        {
+            purgeResult = await RootLeftoverPurgeService.PurgeLeftoversAsync(selected, _currentInspectedApp);
+        }
+        catch (Exception ex)
+        {
+            SetBusy(false);
+            StatusFooterText.Text = $"Root purge failed: {ex.Message}";
+            LogRequested?.Invoke($"[Deep Root Purge] Purge aborted: {ex.Message}", LogLevel.Error);
+            MessageBox.Show(
+                $"The root purge could not be completed.\n\n{ex.Message}",
+                "Root Purge Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        bool hadErrors = purgeResult.ErrorsCount > 0;
+
+        // A success sound after a failed delete is a lie: use the warning cue when anything
+        // was blocked or left behind.
+        if (hadErrors) SoundService.PlayWarningSound();
+        else SoundService.PlaySuccessSound();
+
+        string summary =
+            $"Purged {purgeResult.ItemsPurgedCount} trace(s) ({purgeResult.FormattedReclaimed} reclaimed) " +
+            $"in {purgeResult.ExecutionTimeMs}ms.";
+
+        if (purgeResult.RebootScheduledCount > 0)
+        {
+            summary += $" {purgeResult.RebootScheduledCount} locked item(s) will be deleted on the next reboot.";
+        }
+
+        if (hadErrors)
+        {
+            summary += $" {purgeResult.ErrorsCount} item(s) could not be purged.";
+        }
+
+        if (hadErrors)
+        {
+            LogRequested?.Invoke(
+                $"[Deep Root Purge] Eradicated {purgeResult.ItemsPurgedCount} traces ({purgeResult.FormattedReclaimed}); " +
+                $"{purgeResult.ErrorsCount} item(s) could not be purged for {appName}.",
+                LogLevel.Warning);
+        }
+        else
+        {
+            LogRequested?.Invoke(
+                $"[Deep Root Purge] Eradicated {purgeResult.ItemsPurgedCount} traces ({purgeResult.FormattedReclaimed}) for {appName}.",
+                LogLevel.Success);
+        }
+
+        if (purgeResult.RebootScheduledCount > 0)
+        {
+            LogRequested?.Invoke(
+                $"[Deep Root Purge] {purgeResult.RebootScheduledCount} locked item(s) registered for automatic deletion " +
+                "on the next Windows reboot.",
+                LogLevel.Warning);
+            foreach (string path in purgeResult.RebootScheduledItems)
+            {
+                LogRequested?.Invoke($"[Deep Root Purge] Reboot deletion: {path}", LogLevel.Info);
+            }
+        }
+
+        foreach (string error in purgeResult.ErrorMessages)
+        {
+            LogRequested?.Invoke($"[Deep Root Purge] {error}", LogLevel.Warning);
+        }
+
+        // Re-scan so the drawer shows only what actually survived. This also keeps the list
+        // honest when some items were blocked or are waiting for a reboot.
+        if (_currentInspectedApp != null)
+        {
+            try
+            {
+                await InspectAppTracesAsync(_currentInspectedApp);
+            }
+            catch (Exception ex)
+            {
+                // Without a fresh result the drawer would still show items that are already
+                // gone. Drop the stale list rather than present it as current.
+                _currentScanResult = null;
+                LogRequested?.Invoke($"[Deep Root Purge] Post-purge rescan failed: {ex.Message}", LogLevel.Warning);
+            }
+        }
+
+        // LoadAppsAsync writes its own status line; restore the purge outcome afterwards.
         await LoadAppsAsync();
+        StatusFooterText.Text = summary;
+        SetBusy(false);
+
+        if (_currentScanResult == null || _currentScanResult.Items.Count == 0)
+        {
+            RootLeftoversDrawer.Visibility = Visibility.Collapsed;
+        }
+
+        if (hadErrors || purgeResult.RebootScheduledCount > 0)
+        {
+            var detail = new System.Text.StringBuilder();
+            detail.AppendLine(summary);
+            detail.AppendLine();
+
+            if (purgeResult.RebootScheduledCount > 0)
+            {
+                detail.AppendLine("These locked items will be removed automatically on the next reboot:");
+                foreach (string path in purgeResult.RebootScheduledItems.Take(8))
+                {
+                    detail.AppendLine($"• {path}");
+                }
+                if (purgeResult.RebootScheduledItems.Count > 8)
+                {
+                    detail.AppendLine($"… and {purgeResult.RebootScheduledItems.Count - 8} more");
+                }
+                detail.AppendLine();
+            }
+
+            if (hadErrors)
+            {
+                detail.AppendLine("These items could not be purged and are still on the system:");
+                foreach (string error in purgeResult.ErrorMessages.Take(8))
+                {
+                    detail.AppendLine($"• {error}");
+                }
+                if (purgeResult.ErrorMessages.Count > 8)
+                {
+                    detail.AppendLine($"… and {purgeResult.ErrorMessages.Count - 8} more");
+                }
+            }
+
+            MessageBox.Show(
+                detail.ToString().TrimEnd(),
+                hadErrors ? "Root Purge Completed With Issues" : "Some Items Scheduled for Reboot",
+                MessageBoxButton.OK,
+                hadErrors ? MessageBoxImage.Warning : MessageBoxImage.Information);
+        }
     }
 
     #endregion

@@ -547,11 +547,10 @@ public partial class MainWindow
 
     private void SelectSafeOnlyButton_Click(object sender, RoutedEventArgs e)
     {
-        foreach (var target in _targets)
-        {
-            // Select all 100% Safe caches, leave orphaned app leftovers for user review
-            target.IsSelected = !target.IsOrphanedAppFolder;
-        }
+        // Selects only 100% safe caches. Shared with the WinUI shell so "safe" means
+        // the same thing on both: orphaned app leftovers and irreversible scopes
+        // (DISM /ResetBase) stay unticked.
+        CleaningPipelineViewModel.SelectSafeTargets(_targets);
         RecalculateTotals();
         AddLog("Selected all 100% safe cache categories.", LogLevel.Info);
     }

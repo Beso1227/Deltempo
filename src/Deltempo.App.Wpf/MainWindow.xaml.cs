@@ -837,12 +837,13 @@ public partial class MainWindow : Window
     internal void PopulateTargetsForScreenshots(IEnumerable<TargetFolderInfo> targets)
     {
         _targets.Clear();
-        foreach (var target in targets)
+        var materialized = targets as IList<TargetFolderInfo> ?? targets.ToList();
+        foreach (var target in materialized)
         {
             _targets.Add(target);
         }
         HeroSizeText.Text = "14.8 GB";
-        HeroSubtext.Text = "14.8 GB Reclaimable across 25 scopes • 0 Credentials Touched";
+        HeroSubtext.Text = $"14.8 GB Reclaimable across {materialized.Count} scopes • 0 Credentials Touched";
         UpdateDriveTelemetry();
         UpdateLayout();
     }
@@ -878,6 +879,7 @@ public partial class MainWindow : Window
     /// <summary>Closes whatever <see cref="ShowModalForScreenshots"/> opened.</summary>
     internal void HideAllModalsForScreenshots()
     {
+        StopAiModelAutoRefresh();
         SettingsModalOverlay.Visibility = Visibility.Collapsed;
         AboutModalOverlay.Visibility = Visibility.Collapsed;
         CelebrationModalOverlay.Visibility = Visibility.Collapsed;

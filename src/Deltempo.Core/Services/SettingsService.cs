@@ -42,7 +42,7 @@ public class AppSettings
 
     // ─── AI & Online File Intelligence ──────────────────────────────────
     public bool EnableOnlineAiSafety { get; set; } = false;
-    public string AiProvider { get; set; } = "BuiltIn"; // "BuiltIn", "Gemini", "OpenAI", "Groq", "OpenRouter", "Ollama"
+    public string AiProvider { get; set; } = "BuiltIn"; // Provider ids come from AiModelCatalog.GetProviderOptions().
 
     /// <summary>
     /// The key of the currently selected provider, mirrored from <see cref="AiApiKeys"/>

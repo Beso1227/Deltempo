@@ -799,6 +799,33 @@ public static class LocalizationService
                 };
                 break;
 
+            case "WinUpdateCleanup":
+                target.Name = CurrentLanguage switch
+                {
+                    "ar" => "تنظيف تحديثات ويندوز (مخزن المكونات)",
+                    "es" => "Limpieza de Windows Update (almacén de componentes)",
+                    "fr" => "Nettoyage de Windows Update (magasin de composants)",
+                    "de" => "Windows Update-Bereinigung (Komponentenspeicher)",
+                    _ => "Windows Update Cleanup (Component Store)"
+                };
+                target.Category = CurrentLanguage switch
+                {
+                    "ar" => "النظام والتحديثات",
+                    "es" => "Sistema y SO",
+                    "fr" => "Système & OS",
+                    "de" => "System & OS",
+                    _ => "System & OS"
+                };
+                target.Description = CurrentLanguage switch
+                {
+                    "ar" => "حزم تحديثات قديمة في WinSxS تُحذف عبر DISM /StartComponentCleanup /ResetBase. لن يمكن إلغاء تثبيت التحديثات المثبتة بعد ذلك.",
+                    "es" => "Cargas de actualizaciones reemplazadas en WinSxS recuperadas con DISM /StartComponentCleanup /ResetBase. Las actualizaciones instaladas ya no se podrán desinstalar.",
+                    "fr" => "Charges de mises à jour remplacées dans WinSxS récupérées via DISM /StartComponentCleanup /ResetBase. Les mises à jour installées ne pourront plus être désinstallées.",
+                    "de" => "Ersetzte Update-Pakete in WinSxS, entfernt über DISM /StartComponentCleanup /ResetBase. Installierte Updates können danach nicht mehr deinstalliert werden.",
+                    _ => "Superseded update payloads in WinSxS reclaimed via DISM /StartComponentCleanup /ResetBase. Installed updates can no longer be uninstalled."
+                };
+                break;
+
             case "WinUpgradeLeftovers":
                 target.Name = CurrentLanguage switch
                 {
@@ -899,11 +926,11 @@ public static class LocalizationService
                 };
                 target.Description = CurrentLanguage switch
                 {
-                    "ar" => "حزم تحديثات NVIDIA App و AMD و Intel وكاش DriverStore المؤقت",
-                    "es" => "Paquetes OTA de NVIDIA App, instaladores AMD e Intel, temp DriverStore",
-                    "fr" => "Packages OTA NVIDIA App, installateurs AMD/Intel, DriverStore temp",
-                    "de" => "NVIDIA App/GeForce OTA-Treiberpakete, AMD- & Intel-Caches, DriverStore temp",
-                    _ => "NVIDIA App/GeForce OTA driver packages, AMD & Intel installer caches, DriverStore temp"
+                    "ar" => "حزم DriverStore القديمة وغير المثبتة عبر pnputil، وحزم NVIDIA App، وكاشات تثبيت AMD و Intel",
+                    "es" => "Paquetes DriverStore obsoletos y nunca instalados (pnputil), paquetes OTA de NVIDIA App, instaladores AMD e Intel",
+                    "fr" => "Packages DriverStore obsolètes ou jamais installés (pnputil), packages OTA NVIDIA App, installateurs AMD/Intel",
+                    "de" => "Veraltete & nie installierte DriverStore-Pakete (pnputil), NVIDIA App OTA-Pakete, AMD- & Intel-Caches",
+                    _ => "Superseded & never-installed DriverStore packages (pnputil), NVIDIA App/GeForce OTA packages, AMD & Intel installer caches"
                 };
                 break;
 

@@ -144,6 +144,7 @@ public static class AiProviderClient
             response = request.Provider.ToLowerInvariant() switch
             {
                 "gemini" => await SendGeminiAsync(request, linked.Token),
+                "anthropic" => await SendAnthropicAsync(request, linked.Token),
                 "ollama" => await SendOllamaAsync(request, linked.Token),
                 _ => await SendOpenAiCompatibleAsync(request, linked.Token),
             };
@@ -223,6 +224,38 @@ public static class AiProviderClient
 
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
         return await HttpClient.PostAsync(url, content, ct);
+    }
+
+    /// <summary>
+    /// Anthropic's Messages API. Claude does not accept the OpenAI chat shape: the key
+    /// travels in <c>x-api-key</c>, the version is pinned by header, the system prompt is a
+    /// top-level field, and <c>max_tokens</c> is mandatory.
+    /// </summary>
+    private static async Task<HttpResponseMessage> SendAnthropicAsync(AiChatRequest request, CancellationToken ct)
+    {
+        using var message = new HttpRequestMessage(
+            HttpMethod.Post, ResolveOpenAiEndpoint("Anthropic"));
+
+        if (!string.IsNullOrWhiteSpace(request.ApiKey))
+        {
+            message.Headers.TryAddWithoutValidation("x-api-key", request.ApiKey);
+        }
+
+        message.Headers.TryAddWithoutValidation("anthropic-version", "2023-06-01");
+
+        // A dictionary because the shape is Anthropic's, not OpenAI's: there is no
+        // response_format to ask for, so the system prompt carries the JSON instruction.
+        var payload = new Dictionary<string, object?>
+        {
+            ["model"] = request.ModelId,
+            ["max_tokens"] = 4096,
+            ["temperature"] = request.Temperature,
+            ["system"] = request.SystemPrompt,
+            ["messages"] = new[] { new { role = "user", content = request.UserPrompt } },
+        };
+
+        message.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+        return await HttpClient.SendAsync(message, ct);
     }
 
     private static async Task<HttpResponseMessage> SendOpenAiCompatibleAsync(
@@ -307,6 +340,16 @@ public static class AiProviderClient
     {
         "groq" => "https://api.groq.com/openai/v1/chat/completions",
         "openrouter" => "https://openrouter.ai/api/v1/chat/completions",
+        "xai" => "https://api.x.ai/v1/chat/completions",
+        "mistral" => "https://api.mistral.ai/v1/chat/completions",
+        "cerebras" => "https://api.cerebras.ai/v1/chat/completions",
+        "deepseek" => "https://api.deepseek.com/v1/chat/completions",
+        "githubmodels" => "https://models.github.ai/inference/chat/completions",
+        "huggingface" => "https://router.huggingface.co/v1/chat/completions",
+        "together" => "https://api.together.xyz/v1/chat/completions",
+        // Anthropic is routed to its own transport; the entry exists so the host a request
+        // would reach is still pinned by a test instead of silently defaulting to OpenAI.
+        "anthropic" => "https://api.anthropic.com/v1/messages",
         _ => "https://api.openai.com/v1/chat/completions",
     };
 
@@ -329,6 +372,14 @@ public static class AiProviderClient
     {
         "groq" => "https://api.groq.com/openai/v1/models",
         "openrouter" => "https://openrouter.ai/api/v1/models",
+        "xai" => "https://api.x.ai/v1/models",
+        "mistral" => "https://api.mistral.ai/v1/models",
+        "cerebras" => "https://api.cerebras.ai/v1/models",
+        "deepseek" => "https://api.deepseek.com/v1/models",
+        "githubmodels" => "https://models.github.ai/catalog/models",
+        "huggingface" => "https://router.huggingface.co/v1/models",
+        "together" => "https://api.together.xyz/v1/models",
+        "anthropic" => "https://api.anthropic.com/v1/models?limit=1000",
         _ => "https://api.openai.com/v1/models",
     };
 
@@ -363,6 +414,7 @@ public static class AiProviderClient
             response = provider.ToLowerInvariant() switch
             {
                 "gemini" => await GetGeminiModelsAsync(apiKey, linked.Token),
+                "anthropic" => await GetAnthropicModelsAsync(apiKey, linked.Token),
                 "ollama" => await GetOllamaModelsAsync(ollamaEndpoint, linked.Token),
                 _ => await GetOpenAiModelsAsync(provider, apiKey, linked.Token),
             };
@@ -420,6 +472,22 @@ public static class AiProviderClient
         return await HttpClient.GetAsync($"{host}/api/tags", ct);
     }
 
+    private static async Task<HttpResponseMessage> GetAnthropicModelsAsync(
+        string? apiKey,
+        CancellationToken ct)
+    {
+        using var message = new HttpRequestMessage(
+            HttpMethod.Get, ResolveModelsEndpoint("Anthropic"));
+
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            message.Headers.TryAddWithoutValidation("x-api-key", apiKey);
+        }
+
+        message.Headers.TryAddWithoutValidation("anthropic-version", "2023-06-01");
+        return await HttpClient.SendAsync(message, ct);
+    }
+
     private static async Task<HttpResponseMessage> GetOpenAiModelsAsync(
         string provider,
         string? apiKey,
@@ -438,12 +506,22 @@ public static class AiProviderClient
             message.Headers.Add("X-Title", "Deltempo");
         }
 
+        // GitHub Models gates its catalog behind the GitHub REST media type, not only the
+        // bearer token. Without this header the catalog answers 404 rather than 401.
+        if (provider.Equals("githubmodels", StringComparison.OrdinalIgnoreCase))
+        {
+            message.Headers.TryAddWithoutValidation("Accept", "application/vnd.github+json");
+            message.Headers.TryAddWithoutValidation("X-GitHub-Api-Version", "2022-11-28");
+        }
+
         return await HttpClient.SendAsync(message, ct);
     }
 
     /// <summary>
-    /// Reads the three model-list shapes into one list. Internal so the parsing is pinned
-    /// by tests without a network round trip.
+    /// Reads the model-list shapes this catalog talks to into one list: Gemini's
+    /// <c>models</c>, Ollama's <c>models</c>, and the OpenAI-compatible
+    /// <c>data</c>/bare-array shapes. Internal so the parsing is pinned by tests without a
+    /// network round trip.
     /// </summary>
     internal static IReadOnlyList<AiModelOption> ParseModelList(string provider, string body)
     {
@@ -486,7 +564,7 @@ public static class AiProviderClient
                         string display = item.TryGetProperty("displayName", out var displayName) &&
                             displayName.ValueKind == JsonValueKind.String
                             ? displayName.GetString() ?? id
-                            : id;
+                            : AiModelCatalog.GetFriendlyName(provider, id);
                         models.Add(new AiModelOption(id, display));
                     }
                 }
@@ -505,61 +583,23 @@ public static class AiProviderClient
                                 : null;
                         if (!string.IsNullOrWhiteSpace(id))
                         {
-                            models.Add(new AiModelOption(id!, id!));
+                            models.Add(new AiModelOption(
+                                id!, AiModelCatalog.GetFriendlyName(provider, id!)));
                         }
                     }
                 }
             }
-            else if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
+            else if (root.ValueKind == JsonValueKind.Object &&
+                     root.TryGetProperty("data", out var data) &&
+                     data.ValueKind == JsonValueKind.Array)
             {
-                foreach (JsonElement item in data.EnumerateArray())
-                {
-                    if (!item.TryGetProperty("id", out var idElement) || idElement.ValueKind != JsonValueKind.String)
-                    {
-                        continue;
-                    }
-
-                    string id = idElement.GetString() ?? string.Empty;
-                    if (string.IsNullOrWhiteSpace(id))
-                    {
-                        continue;
-                    }
-
-                    // OpenAI and Groq list every model they host, including the ones that
-                    // cannot answer a chat request. Offering text-embedding-3-small or
-                    // whisper-1 in a chat picker guaranteed a 400 the moment it was chosen.
-                    if (!IsChatCapableId(id))
-                    {
-                        continue;
-                    }
-
-                    // OpenRouter's :batch variants are asynchronous jobs, not chat
-                    // completions; a chat request against one is rejected.
-                    if (normalized == "openrouter" && id.EndsWith(":batch", StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    // OpenRouter states the modality. A model that cannot emit text cannot
-                    // answer this app's JSON request, so it does not belong in the picker.
-                    if (item.TryGetProperty("architecture", out var architecture) &&
-                        architecture.ValueKind == JsonValueKind.Object &&
-                        architecture.TryGetProperty("output_modalities", out var outputs) &&
-                        outputs.ValueKind == JsonValueKind.Array &&
-                        !outputs.EnumerateArray().Any(m =>
-                            m.ValueKind == JsonValueKind.String &&
-                            string.Equals(m.GetString(), "text", StringComparison.OrdinalIgnoreCase)))
-                    {
-                        continue;
-                    }
-
-                    // OpenRouter carries a human label; OpenAI and Groq only an id.
-                    string display = item.TryGetProperty("name", out var name) && name.ValueKind == JsonValueKind.String
-                        ? name.GetString() ?? id
-                        : id;
-
-                    models.Add(BuildOpenAiCompatibleOption(id, display, item));
-                }
+                AddOpenAiCompatibleModels(data, normalized, models);
+            }
+            else if (root.ValueKind == JsonValueKind.Array)
+            {
+                // GitHub Models and Together answer with a bare array instead of
+                // {"data":[...]}. Same fields once each entry is read.
+                AddOpenAiCompatibleModels(root, normalized, models);
             }
         }
         catch (JsonException ex)
@@ -581,6 +621,98 @@ public static class AiProviderClient
                 .OrderBy(model => model.Id, StringComparer.OrdinalIgnoreCase)
                 .ToList();
     }
+
+    /// <summary>
+    /// Reads one model array (OpenAI's <c>data</c>, or a bare array from GitHub Models and
+    /// Together) into picker rows, dropping entries that cannot answer a chat request.
+    /// </summary>
+    private static void AddOpenAiCompatibleModels(
+        JsonElement array,
+        string provider,
+        List<AiModelOption> models)
+    {
+        foreach (JsonElement item in array.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object ||
+                !item.TryGetProperty("id", out var idElement) ||
+                idElement.ValueKind != JsonValueKind.String)
+            {
+                continue;
+            }
+
+            string id = idElement.GetString() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                continue;
+            }
+
+            // OpenAI and Groq list every model they host, including the ones that
+            // cannot answer a chat request. Offering text-embedding-3-small or
+            // whisper-1 in a chat picker guaranteed a 400 the moment it was chosen.
+            if (!IsChatCapableId(id))
+            {
+                continue;
+            }
+
+            // Together labels the modality on the entry ("chat", "embedding", "image").
+            // Anything that is not a chat model cannot answer this app's request.
+            // Anthropic uses "type":"model", so this filter is Together-only.
+            if (provider == "together" &&
+                item.TryGetProperty("type", out var typeElement) &&
+                typeElement.ValueKind == JsonValueKind.String &&
+                !IsChatModelType(typeElement.GetString()))
+            {
+                continue;
+            }
+
+            // OpenRouter's :batch variants are asynchronous jobs, not chat
+            // completions; a chat request against one is rejected.
+            if (provider == "openrouter" && id.EndsWith(":batch", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            // OpenRouter states the modality. A model that cannot emit text cannot
+            // answer this app's JSON request, so it does not belong in the picker.
+            if (item.TryGetProperty("architecture", out var architecture) &&
+                architecture.ValueKind == JsonValueKind.Object &&
+                architecture.TryGetProperty("output_modalities", out var outputs) &&
+                outputs.ValueKind == JsonValueKind.Array &&
+                !outputs.EnumerateArray().Any(m =>
+                    m.ValueKind == JsonValueKind.String &&
+                    string.Equals(m.GetString(), "text", StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            // OpenRouter, Together and Anthropic carry a human label (display_name or
+            // name); OpenAI and Groq publish only an id, which is humanised so the picker
+            // never reads like raw wire data.
+            string display = ReadModelDisplayName(item) ?? AiModelCatalog.GetFriendlyName(provider, id);
+
+            models.Add(BuildOpenAiCompatibleOption(provider, id, display, item));
+        }
+    }
+
+    private static string? ReadModelDisplayName(JsonElement item)
+    {
+        foreach (string property in new[] { "display_name", "displayName", "name", "friendly_name" })
+        {
+            if (item.TryGetProperty(property, out var value) &&
+                value.ValueKind == JsonValueKind.String &&
+                !string.IsNullOrWhiteSpace(value.GetString()))
+            {
+                return value.GetString();
+            }
+        }
+
+        return null;
+    }
+
+    private static bool IsChatModelType(string? type) =>
+        string.IsNullOrWhiteSpace(type) ||
+        string.Equals(type, "chat", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(type, "language", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// True when a model id can answer a chat request. OpenAI and Groq publish their whole
@@ -612,12 +744,19 @@ public static class AiProviderClient
     }
 
     /// <summary>
-    /// Builds the picker entry for an OpenAI-compatible model, reading OpenRouter's pricing
-    /// when it is there. Free models are badged so the list is readable at a glance.
+    /// Builds the picker entry for an OpenAI-compatible model. OpenRouter publishes
+    /// per-token pricing, which is read here so free rows can be badged; no other provider
+    /// in this catalog states a price in the same units, and guessing would mislabel rows.
     /// </summary>
-    private static AiModelOption BuildOpenAiCompatibleOption(string id, string display, JsonElement item)
+    private static AiModelOption BuildOpenAiCompatibleOption(
+        string provider,
+        string id,
+        string display,
+        JsonElement item)
     {
-        if (!item.TryGetProperty("pricing", out var pricing) || pricing.ValueKind != JsonValueKind.Object)
+        if (provider != "openrouter" ||
+            !item.TryGetProperty("pricing", out var pricing) ||
+            pricing.ValueKind != JsonValueKind.Object)
         {
             return new AiModelOption(id, display);
         }
@@ -662,6 +801,7 @@ public static class AiProviderClient
         }
 
         if (request.Provider.Equals("gemini", StringComparison.OrdinalIgnoreCase) ||
+            request.Provider.Equals("anthropic", StringComparison.OrdinalIgnoreCase) ||
             request.Provider.Equals("ollama", StringComparison.OrdinalIgnoreCase))
         {
             return false;
@@ -702,6 +842,27 @@ public static class AiProviderClient
 
                 throw new AiProviderException(AiFailureKind.MalformedResponse,
                     $"{provider} returned no usable text part.");
+            }
+
+            // Anthropic's Messages API answers with content blocks. A "thinking" block is
+            // reasoning prose, so only a text block is the answer.
+            if (root.TryGetProperty("content", out var anthropicContent) &&
+                anthropicContent.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var block in anthropicContent.EnumerateArray())
+                {
+                    if (block.TryGetProperty("type", out var blockType) &&
+                        blockType.ValueKind == JsonValueKind.String &&
+                        !string.Equals(blockType.GetString(), "text", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (block.TryGetProperty("text", out var text) && text.ValueKind == JsonValueKind.String)
+                    {
+                        return text.GetString() ?? "{}";
+                    }
+                }
             }
 
             if (root.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)

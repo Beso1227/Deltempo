@@ -26,7 +26,7 @@ public static partial class CliRunner
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine(@"  [Deltempo 1-Click Deep Clean]");
             Console.ForegroundColor = ConsoleColor.Gray;
-            Console.WriteLine(@"  Autonomous full-system optimization: RAM flush, 26 disk scopes, DISM & VSS.");
+            Console.WriteLine($"  Autonomous full-system optimization: RAM flush, {CleanerService.GetDefaultTargets().Count} disk scopes, DISM & VSS.");
             Console.ResetColor();
             Console.WriteLine();
         }
@@ -374,6 +374,10 @@ public static partial class CliRunner
                     return MatchesFilter(t, filter);
                 }
 
+                // An irreversible scope (DISM /ResetBase) must be named explicitly. Without
+                // this, `clean --all` or a plain `clean` would silently remove the ability
+                // to uninstall Windows updates.
+                if (!t.IsSafeModeEligible) return false;
                 if (t.IsOrphanedAppFolder && !cleanAll) return false;
                 if (t.IsSpecialShellTarget && !cleanAll && !emptyRecycleBin) return false;
                 if (t.Id == "SystemRestorePoints" && !cleanAll) return false;

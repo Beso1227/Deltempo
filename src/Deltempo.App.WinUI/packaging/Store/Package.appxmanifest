@@ -27,7 +27,7 @@
   <Identity
     Name="DeltempoWinUIPreview"
     Publisher="CN=Placeholder-Publisher"
-    Version="3.2.0.0"
+    Version="3.3.0.0"
     ProcessorArchitecture="x64" />
 
   <mp:PhoneIdentity PhoneProductId="9a6f4b30-3b1f-4b48-8e7a-5c1e2f8a7d90" PhonePublisherId="00000000-0000-0000-0000-000000000000" />

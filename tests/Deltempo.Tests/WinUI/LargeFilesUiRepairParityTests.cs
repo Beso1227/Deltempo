@@ -196,10 +196,9 @@ public class LargeFilesUiRepairParityTests
         string vm = File.ReadAllText(Path.Combine(
             RepoRoot(), "src", "Deltempo.App.WinUI", "ViewModels", "SettingsWorkspaceViewModel.cs"));
 
-        Assert.Contains(
-            "ShowAiApiKeyRow => AiProvider is \"Gemini\" or \"Groq\" or \"OpenAI\" or \"OpenRouter\"",
-            vm,
-            StringComparison.Ordinal);
+        Assert.Contains("ShowAiApiKeyRow =>", vm, StringComparison.Ordinal);
+        Assert.Contains("AiModelCatalog.TryGetProvider(AiProvider, out AiProviderDescriptor descriptor)", vm, StringComparison.Ordinal);
+        Assert.Contains("descriptor.RequiresApiKey", vm, StringComparison.Ordinal);
         Assert.Contains("ShowAiOllamaRow => AiProvider == \"Ollama\"", vm, StringComparison.Ordinal);
         Assert.Contains("AiDefaultModelText", vm, StringComparison.Ordinal);
         Assert.Contains("AiModelCatalog.ResolveModelId(AiProvider, userModelName: null)", vm, StringComparison.Ordinal);
@@ -219,6 +218,14 @@ public class LargeFilesUiRepairParityTests
         // OpenRouter's default is a FREE model: a brand-new key with no credit answers a
         // paid model with HTTP 402, which read as "unexpected error" on a fresh install.
         Assert.Equal("google/gemma-4-31b-it:free", AiModelCatalog.ResolveModelId("OpenRouter", null));
+        Assert.Equal("claude-sonnet-4-5", AiModelCatalog.ResolveModelId("Anthropic", null));
+        Assert.Equal("grok-4", AiModelCatalog.ResolveModelId("xAI", null));
+        Assert.Equal("mistral-large-latest", AiModelCatalog.ResolveModelId("Mistral", null));
+        Assert.Equal("llama-3.3-70b", AiModelCatalog.ResolveModelId("Cerebras", null));
+        Assert.Equal("deepseek-chat", AiModelCatalog.ResolveModelId("DeepSeek", null));
+        Assert.Equal("openai/gpt-5.4-mini", AiModelCatalog.ResolveModelId("GitHubModels", null));
+        Assert.Equal("meta-llama/Llama-3.3-70B-Instruct", AiModelCatalog.ResolveModelId("HuggingFace", null));
+        Assert.Equal("meta-llama/Llama-3.3-70B-Instruct-Turbo", AiModelCatalog.ResolveModelId("Together", null));
         Assert.Equal("llama3.2", AiModelCatalog.ResolveModelId("Ollama", null));
     }
 

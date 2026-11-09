@@ -53,6 +53,14 @@ public class TargetFolderInfo : INotifyPropertyChanged
     public bool IsSpecialShellTarget { get; set; }
     public bool IsSafeModeEligible { get; set; } = true;
     public bool IsOrphanedAppFolder { get; set; }
+
+    /// <summary>
+    /// Non-empty when cleaning this scope cannot be undone by any means (for example the
+    /// DISM component-store reset, after which installed updates can no longer be
+    /// uninstalled). The confirmation dialog appends it verbatim so the irreversible
+    /// consequence is stated before the user commits.
+    /// </summary>
+    public string? IrreversibleWarning { get; set; }
     public List<string>? ResolvedDirectoriesOverride { get; set; }
     public WinTempCleaner.Core.Cleaning.CleanupTransactionResult? LastTransactionResult { get; set; }
 

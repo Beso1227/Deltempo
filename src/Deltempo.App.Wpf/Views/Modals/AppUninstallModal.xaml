@@ -449,7 +449,7 @@
                                                 <Button Style="{DynamicResource PillButton}"
                                                         Padding="7,3"
                                                         Margin="0,0,5,0"
-                                                        ToolTip="Force wipe all files, registry entries, and shortcuts without running official uninstaller"
+                                                        ToolTip="Scan for all files, registry entries, and shortcuts without running the official uninstaller. Nothing is deleted until you review and confirm."
                                                         Click="ForceRootCleanBtn_Click">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="&#xE74D;" FontFamily="{DynamicResource IconFont}" FontSize="10.5" Foreground="{DynamicResource AmberWarningBrush}" Margin="0,0,3,0" VerticalAlignment="Center"/>
@@ -460,7 +460,7 @@
                                                 <!-- Deep Uninstall -->
                                                 <Button Style="{DynamicResource HeroCTAButton}"
                                                         Padding="9,3"
-                                                        ToolTip="Terminate locked processes, launch uninstaller, and automatically purge all leftover traces"
+                                                        ToolTip="Terminate locked processes, run the official uninstaller, then scan leftover traces for your review"
                                                         Click="DeepUninstallBtn_Click">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="&#xE71D;" FontFamily="{DynamicResource IconFont}" FontSize="10.5" Foreground="#FFFFFF" Margin="0,0,3,0" VerticalAlignment="Center"/>
@@ -867,6 +867,7 @@
                                         Style="{DynamicResource HeroCTAButton}"
                                         Padding="14,6"
                                         HorizontalAlignment="Right"
+                                        IsEnabled="False"
                                         Click="PurgeRootTracesBtn_Click">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="&#xE74D;" FontFamily="{DynamicResource IconFont}" FontSize="11" Foreground="#FFFFFF" Margin="0,0,6,0" VerticalAlignment="Center"/>
@@ -879,22 +880,40 @@
 
                     <!-- 4: Footer -->
                     <Grid Grid.Row="4" Margin="0,10,0,0">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <CheckBox x:Name="CreateRestorePointCheckBox"
-                                      IsChecked="False"
-                                      Content="Create System Restore Point checkpoint before uninstall"
-                                      FontSize="11"
-                                      Foreground="{DynamicResource TextMediumBrush}"
-                                      VerticalAlignment="Center"
-                                      Margin="0,0,16,0"
-                                      ToolTip="Optional safety checkpoint: Creates a Windows System Restore Point prior to launching uninstallation. Turned off by default."/>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <CheckBox x:Name="CreateRestorePointCheckBox"
+                                  Grid.Column="0"
+                                  IsChecked="False"
+                                  Content="Create System Restore Point checkpoint before uninstall"
+                                  FontSize="11"
+                                  Foreground="{DynamicResource TextMediumBrush}"
+                                  VerticalAlignment="Center"
+                                  Margin="0,0,16,0"
+                                  ToolTip="Optional safety checkpoint: Creates a Windows System Restore Point prior to launching uninstallation. Turned off by default."/>
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,12,0">
+                            <ProgressBar x:Name="BusyProgressBar"
+                                         Width="80"
+                                         Height="4"
+                                         IsIndeterminate="True"
+                                         Visibility="Collapsed"
+                                         VerticalAlignment="Center"
+                                         Margin="0,0,10,0"/>
                             <TextBlock x:Name="StatusFooterText"
                                        Text="Ready to inspect and safely uninstall applications from their roots."
                                        FontSize="11"
                                        Foreground="{DynamicResource TextMutedBrush}"
-                                       VerticalAlignment="Center"/>
+                                       VerticalAlignment="Center"
+                                       TextWrapping="Wrap"/>
                         </StackPanel>
-                        <Button Style="{DynamicResource PillButton}"
+                        <Button Grid.Column="2"
+                                Style="{DynamicResource PillButton}"
                                 Padding="16,6"
                                 HorizontalAlignment="Right"
                                 Content="Done"

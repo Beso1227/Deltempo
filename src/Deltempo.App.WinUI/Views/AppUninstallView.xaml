@@ -371,7 +371,7 @@
                                                         Click="OnRowScanTracesClick" />
 
                                                 <Button Content="Force Clean"
-                                                        ToolTipService.ToolTip="Scan and purge all remnants. Use when the official uninstaller is broken."
+                                                        ToolTipService.ToolTip="Scan for remnants and review them. Nothing is deleted until you confirm the purge. Use when the official uninstaller is broken."
                                                         Background="{ThemeResource PillButtonBgBrush}"
                                                         BorderBrush="{ThemeResource WarningBadgeBorderBrush}"
                                                         BorderThickness="1"
@@ -382,7 +382,7 @@
                                                         Click="OnRowForceRootCleanClick" />
 
                                                 <Button Content="Uninstall"
-                                                        ToolTipService.ToolTip="Run the official uninstaller, then eradicate leftover traces"
+                                                        ToolTipService.ToolTip="Run the official uninstaller, then scan leftover traces for your review"
                                                         Background="{StaticResource DestructiveRedBrush}"
                                                         Foreground="White"
                                                         BorderThickness="0"
@@ -700,6 +700,7 @@
                 <Grid Grid.Row="4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
@@ -714,7 +715,16 @@
                               VerticalAlignment="Center"
                               Margin="0,0,14,0" />
 
-                    <TextBlock Grid.Column="1"
+                    <!-- Long scans and purges show they are still working instead of
+                         leaving the user to click a second time. -->
+                    <ProgressRing Grid.Column="1"
+                                  Width="14"
+                                  Height="14"
+                                  IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                                  VerticalAlignment="Center"
+                                  Margin="0,0,8,0" />
+
+                    <TextBlock Grid.Column="2"
                                Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
                                FontSize="11"
                                Foreground="{ThemeResource TextMutedBrush}"

@@ -836,17 +836,8 @@
                                                TextWrapping="Wrap"
                                                MaxWidth="380"
                                                Margin="0,2,0,0" />
-                                    <TextBlock Text="{x:Bind ViewModel.AiModelMatchText, Mode=OneWay}"
-                                               Style="{StaticResource RowHint}"
-                                               Foreground="{ThemeResource AmberWarningBrush}"
-                                               Margin="0,2,0,0" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Width="290" Spacing="4" VerticalAlignment="Center">
-                                    <TextBox Text="{x:Bind ViewModel.AiModelSearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                             PlaceholderText="Search models - try &quot;free&quot;"
-                                             IsEnabled="{x:Bind ViewModel.CanEditAi, Mode=OneWay}"
-                                             AutomationProperties.Name="Search models"
-                                             ToolTipService.ToolTip="Filter the model list by name, id or FREE" />
                                     <Grid ColumnSpacing="6">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
@@ -870,7 +861,8 @@
                                                         <TextBlock Grid.Column="0"
                                                                    Text="{x:Bind DisplayName}"
                                                                    TextTrimming="CharacterEllipsis"
-                                                                   VerticalAlignment="Center" />
+                                                                   VerticalAlignment="Center"
+                                                                   ToolTipService.ToolTip="{x:Bind Detail}" />
                                                         <Border Grid.Column="1"
                                                                 Background="{ThemeResource FreeBadgeBgBrush}"
                                                                 BorderBrush="{ThemeResource FreeBadgeBorderBrush}"

@@ -22,9 +22,9 @@ public partial class MainWindow
 {
     /// <summary>
     /// Plaintext keys for every provider while the settings modal is open. A single
-    /// password box cannot represent six providers: switching from Gemini to Groq used to
-    /// leave the Gemini key in the box and send it to Groq, which answered 401. Keys are
-    /// stashed here on switch and written back on save.
+    /// password box cannot represent more than one provider: switching from Gemini to Groq
+    /// used to leave the Gemini key in the box and send it to Groq, which answered 401.
+    /// Keys are stashed here on switch and written back on save.
     /// </summary>
     private Dictionary<string, string> _pendingAiApiKeys = new(StringComparer.OrdinalIgnoreCase);
 
@@ -58,6 +58,14 @@ public partial class MainWindow
     /// <summary>Coalesces the keystrokes of a pasted API key into one request.</summary>
     private DispatcherTimer? _aiModelRefreshTimer;
 
+    /// <summary>
+    /// Re-asks the provider while the settings modal stays open. Models are added and
+    /// retired without notice, and a list fetched once when the modal opened is stale by
+    /// the time a long settings session ends; two minutes is quiet enough to go unnoticed
+    /// and frequent enough that the picker follows the provider.
+    /// </summary>
+    private DispatcherTimer? _aiModelAutoRefreshTimer;
+
     /// <summary>Cancels the in-flight listing when the user types again or switches provider.</summary>
     private CancellationTokenSource? _aiModelRefreshCts;
 
@@ -70,18 +78,18 @@ public partial class MainWindow
 
     /// <summary>
     /// The model id the card will save. Kept apart from the combo's SelectedItem because
-    /// filtering the list hides rows: a search must not silently clear the saved choice,
+    /// the list can drop rows: a refresh must not silently clear the saved choice,
     /// and an id the provider no longer lists still has to survive a Save.
     /// </summary>
     private string _aiSelectedModelId = string.Empty;
 
-    /// <summary>The full, unfiltered rows behind the picker, in provider order.</summary>
+    /// <summary>The full rows behind the picker, in provider order.</summary>
     private IReadOnlyList<AiModelOption> _aiModelPickerSource = Array.Empty<AiModelOption>();
 
     /// <summary>True when the picker rows came from the provider rather than the catalog.</summary>
     private bool _aiModelPickerFromProvider;
 
-    /// <summary>Mirrors the master switch, so the search handler can re-enable the picker
+    /// <summary>Mirrors the master switch, so a rebuild can re-enable the picker
     /// without recomputing the card's visibility rules.</summary>
     private bool _aiModelPickerEnabled;
 
@@ -211,13 +219,35 @@ public partial class MainWindow
         // Not at startup: the modal is the only surface that shows the model list, so the
         // provider is asked when it opens rather than on every app launch.
         ScheduleAiModelRefresh();
+        StartAiModelAutoRefresh();
     }
 
     private void CloseSettings_Click(object sender, RoutedEventArgs e)
     {
+        StopAiModelAutoRefresh();
         SettingsModalOverlay.Visibility = Visibility.Collapsed;
         SoundService.PlayClickSound();
     }
+
+    /// <summary>
+    /// Starts the slow re-ask that keeps the model list live while the modal is open.
+    /// It is a separate timer from the 700 ms typing debounce: that one coalesces edits,
+    /// this one notices the provider changing its catalog during a long session.
+    /// </summary>
+    private void StartAiModelAutoRefresh()
+    {
+        if (_aiModelAutoRefreshTimer is null)
+        {
+            _aiModelAutoRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(2) };
+            _aiModelAutoRefreshTimer.Tick += (_, _) =>
+                _ = RefreshAiModelsAsync(force: true, quiet: true);
+        }
+
+        _aiModelAutoRefreshTimer.Stop();
+        _aiModelAutoRefreshTimer.Start();
+    }
+
+    private void StopAiModelAutoRefresh() => _aiModelAutoRefreshTimer?.Stop();
 
     private void SaveSettings_Click(object sender, RoutedEventArgs e)
     {
@@ -367,6 +397,7 @@ public partial class MainWindow
             }
         }
 
+        StopAiModelAutoRefresh();
         SettingsModalOverlay.Visibility = Visibility.Collapsed;
         SoundService.PlayClickSound();
         AddLog("Preferences & Auto-Pilot Guardian settings saved.", LogLevel.Success);
@@ -440,45 +471,22 @@ public partial class MainWindow
         if (SettingsAiModelSuggestionComboBox.SelectedItem is AiModelOption option)
         {
             // The picker is the only place the model id comes from now. Remember it apart
-            // from the selection so a search that hides the row cannot clear the choice.
+            // from the selection so a rebuild that drops the row cannot clear the choice.
             _aiSelectedModelId = option.Id;
             UpdateAiModelHint();
         }
     }
 
     /// <summary>
-    /// Narrows the picker as the user types. A provider like OpenRouter returns hundreds of
-    /// rows, most of them unusable on a zero-credit account; the search is how "free" or a
-    /// family name becomes a two-second lookup instead of a scroll.
+    /// Rebuilds the picker from the full row set. The saved model stays selected whenever
+    /// its row is present; when the provider no longer lists it, the selection is cleared
+    /// but <see cref="_aiSelectedModelId"/> keeps the value Save writes.
     /// </summary>
-    private void SettingsAiModelSearchBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        if (_suppressAiModelSuggestion || _suppressAiProviderChange) return;
-
-        UpdateAiModelSearchPlaceholder();
-        ApplyAiModelFilter();
-    }
-
-    private void UpdateAiModelSearchPlaceholder()
-    {
-        if (SettingsAiModelSearchPlaceholder == null || SettingsAiModelSearchBox == null) return;
-
-        SettingsAiModelSearchPlaceholder.Visibility = string.IsNullOrEmpty(SettingsAiModelSearchBox.Text)
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-    }
-
-    /// <summary>
-    /// Rebuilds the picker from the full row set plus the current search. The saved model
-    /// stays selected whenever its row survived the filter; when the search hides it, the
-    /// selection is cleared but <see cref="_aiSelectedModelId"/> keeps the value Save writes.
-    /// </summary>
-    private void ApplyAiModelFilter()
+    private void RebuildAiModelPicker()
     {
         if (SettingsAiModelSuggestionComboBox == null) return;
 
-        string query = SettingsAiModelSearchBox?.Text?.Trim() ?? string.Empty;
-        IReadOnlyList<AiModelOption> visible = AiModelCatalog.FilterModels(_aiModelPickerSource, query);
+        IReadOnlyList<AiModelOption> visible = _aiModelPickerSource;
         bool hasRows = _aiModelPickerSource.Count > 0;
 
         _suppressAiModelSuggestion = true;
@@ -499,13 +507,6 @@ public partial class MainWindow
         {
             _isRefreshingAiModels = false;
             _suppressAiModelSuggestion = false;
-        }
-
-        if (SettingsAiModelMatchText != null)
-        {
-            SettingsAiModelMatchText.Text = hasRows && visible.Count == 0 && query.Length > 0
-                ? $"No model matches \"{query}\"."
-                : string.Empty;
         }
     }
 
@@ -530,8 +531,9 @@ public partial class MainWindow
 
         string fallback = AiModelCatalog.ResolveModelId(provider, null);
         SettingsAiModelHint.Text = string.IsNullOrWhiteSpace(_aiSelectedModelId)
-            ? $"Pick a model. With none chosen the provider default is used: {fallback}."
-            : $"Requests use: {_aiSelectedModelId}";
+            ? "Pick a model. With none chosen the provider default is used: " +
+              $"{AiModelCatalog.DescribeChosenModel(provider, fallback)}."
+            : $"Requests use: {AiModelCatalog.DescribeChosenModel(provider, _aiSelectedModelId)}";
     }
 
     /// <summary>
@@ -597,7 +599,13 @@ public partial class MainWindow
     /// them. Failure is reported but never fatal: the catalog list and the manual box stay
     /// usable, which is what a provider outage or an unverified key looks like.
     /// </summary>
-    private async Task RefreshAiModelsAsync(bool force)
+    /// <param name="force">Ask even when the key/endpoint identity has not changed.</param>
+    /// <param name="quiet">
+    /// A background re-ask. It does not show "Loading...", does not clear the list on
+    /// failure, and only rebuilds the picker when the provider actually answered with a
+    /// different set - rebuilding closes an open dropdown for no reason.
+    /// </param>
+    private async Task RefreshAiModelsAsync(bool force, bool quiet = false)
     {
         string provider = SelectedAiProviderId();
         string key = SettingsAiApiKeyPasswordBox?.Password?.Trim() ?? string.Empty;
@@ -605,6 +613,8 @@ public partial class MainWindow
 
         if (provider == "BuiltIn")
         {
+            if (quiet) return;
+
             ResetAiFetchedModels();
             UpdateAiSettingsUiVisibility();
             return;
@@ -613,6 +623,8 @@ public partial class MainWindow
         if (AiModelCatalog.TryGetProvider(provider, out var descriptor) &&
             descriptor.RequiresApiKey && string.IsNullOrWhiteSpace(key))
         {
+            if (quiet) return;
+
             // Nothing to ask with. Show the catalog and say so instead of firing a request
             // that can only come back 401.
             ResetAiFetchedModels();
@@ -633,7 +645,10 @@ public partial class MainWindow
         CancellationToken ct = _aiModelRefreshCts.Token;
         int generation = ++_aiModelFetchGeneration;
 
-        SetAiModelStatus(provider, $"Loading models from {provider}...");
+        if (!quiet)
+        {
+            SetAiModelStatus(provider, $"Loading models from {provider}...");
+        }
 
         try
         {
@@ -642,12 +657,18 @@ public partial class MainWindow
 
             if (generation != _aiModelFetchGeneration) return;
 
+            bool changed = !AiModelCatalog.IsSameModelSet(_aiFetchedModels, models);
             _aiFetchedModels = models;
             _aiFetchedFor = identity;
-            UpdateAiSettingsUiVisibility();
 
-            SetAiModelStatus(provider, AiModelCatalog.DescribeFetchedModels(
-                provider, models, _aiSelectedModelId));
+            // A quiet answer that matches what is already shown is left alone: assigning a
+            // new ItemsSource would close the dropdown the user may be reading.
+            if (!quiet || changed)
+            {
+                UpdateAiSettingsUiVisibility();
+                SetAiModelStatus(provider, AiModelCatalog.DescribeFetchedModels(
+                    provider, models, _aiSelectedModelId));
+            }
         }
         catch (OperationCanceledException)
         {
@@ -657,6 +678,13 @@ public partial class MainWindow
         {
             if (generation != _aiModelFetchGeneration) return;
 
+            if (quiet)
+            {
+                SetAiModelStatus(provider, "Could not refresh models: " + ex.UserMessage +
+                    " Showing the last list.");
+                return;
+            }
+
             ResetAiFetchedModels();
             UpdateAiSettingsUiVisibility();
             SetAiModelStatus(provider, "Could not load models: " + ex.UserMessage);
@@ -664,6 +692,13 @@ public partial class MainWindow
         catch (Exception ex)
         {
             if (generation != _aiModelFetchGeneration) return;
+
+            if (quiet)
+            {
+                SetAiModelStatus(provider, "Could not refresh models: " + ex.Message +
+                    " Showing the last list.");
+                return;
+            }
 
             ResetAiFetchedModels();
             UpdateAiSettingsUiVisibility();
@@ -802,11 +837,6 @@ public partial class MainWindow
 
             _aiSelectedModelId = settings.AiModelName?.Trim() ?? string.Empty;
 
-            if (SettingsAiModelSearchBox != null)
-            {
-                SettingsAiModelSearchBox.Text = string.Empty;
-            }
-
             if (SettingsAiOllamaEndpointBox != null)
             {
                 SettingsAiOllamaEndpointBox.Text = string.IsNullOrWhiteSpace(settings.AiOllamaEndpoint)
@@ -842,7 +872,10 @@ public partial class MainWindow
 
         string provider = SelectedAiProviderId();
         bool enabled = SettingsEnableAiCheckBox?.IsChecked == true;
-        bool needsKey = provider is "Gemini" or "Groq" or "OpenAI" or "OpenRouter";
+        // Key/model visibility comes from the catalog descriptor, so adding a provider does
+        // not require a second hand-written list here that silently omits it.
+        bool needsKey = AiModelCatalog.TryGetProvider(provider, out var descriptor) &&
+            descriptor.RequiresApiKey;
         bool isOllama = provider == "Ollama";
         bool usesModel = needsKey || isOllama;
 
@@ -868,18 +901,12 @@ public partial class MainWindow
         if (SettingsAiApiKeyPasswordBox != null) SettingsAiApiKeyPasswordBox.IsEnabled = enabled;
         if (SettingsAiClearKeyBtn != null) SettingsAiClearKeyBtn.IsEnabled = enabled;
         if (SettingsAiOllamaEndpointBox != null) SettingsAiOllamaEndpointBox.IsEnabled = enabled;
-        if (SettingsAiModelSearchBox != null) SettingsAiModelSearchBox.IsEnabled = enabled;
         if (SettingsAiModelRefreshBtn != null) SettingsAiModelRefreshBtn.IsEnabled = enabled;
         if (SettingsTestAiBtn != null) SettingsTestAiBtn.IsEnabled = enabled;
 
         if (!usesModel && SettingsAiModelStatusText != null)
         {
             SettingsAiModelStatusText.Text = string.Empty;
-        }
-
-        if (!usesModel && SettingsAiModelMatchText != null)
-        {
-            SettingsAiModelMatchText.Text = string.Empty;
         }
 
         if (SettingsAiProviderDescription != null)
@@ -891,7 +918,6 @@ public partial class MainWindow
         }
 
         UpdateAiModelHint();
-        UpdateAiModelSearchPlaceholder();
 
         PopulateAiModelSuggestions(provider, enabled);
     }
@@ -907,11 +933,17 @@ public partial class MainWindow
 
         // A saved id that neither list contains keeps its own row. Dropping it would make
         // the card look like it forgot the user's choice, and Save would write an empty id.
-        _aiModelPickerSource = AiModelCatalog.WithSavedModel(options, _aiSelectedModelId);
+        // The rows are then narrowed to the free ones when the provider publishes pricing,
+        // so OpenRouter never offers a row that answers 402 on a zero-credit account; a
+        // provider with no pricing keeps its full list. A saved paid row is therefore
+        // dropped too - the status line says so - while the hint still names what a
+        // request would use.
+        _aiModelPickerSource = AiModelCatalog.FreeModelsOnly(
+            AiModelCatalog.WithSavedModel(options, _aiSelectedModelId, provider));
         _aiModelPickerFromProvider = models is not null || _aiFetchedModels is not null;
         _aiModelPickerEnabled = enabled;
 
-        ApplyAiModelFilter();
+        RebuildAiModelPicker();
     }
 
     private async void SettingsTestAi_Click(object sender, RoutedEventArgs e)

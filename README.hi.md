@@ -38,16 +38,9 @@
   </p>
 
   <p>
-    <sub>टर्मिनल पसंद है? एक ही लाइन नवीनतम रिलीज़ इंस्टॉल और सत्यापित कर देती है &mdash;
-      <code>irm https://beso1227.github.io/Deltempo/win | iex</code>
-      &middot; बग या फ़ीचर आइडिया मिला? <a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>issue खोलें</strong></a> &mdash; हर अनुरोध पढ़ा जाता है।
-      अगर Deltempo ने आपको कुछ डिस्क स्पेस वापस दिलाया, तो एक <a href="https://github.com/Beso1227/Deltempo"><strong>स्टार</strong></a> सचमुच दूसरों को इसे खोजने में मदद करता है।</sub>
-  </p>
-
-  <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="नवीनतम रिलीज़" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="CI बिल्ड स्थिति" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1638_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="परीक्षण: 1638 पास, 0 विफल" src="https://img.shields.io/badge/tests-1638_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1709_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="परीक्षण: 1709 पास, 0 विफल" src="https://img.shields.io/badge/tests-1709_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="लाइसेंस: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -99,11 +92,11 @@
 | :--- | :--- |
 | **आधिकारिक वेबसाइट** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **प्लेटफ़ॉर्म** | Windows 10 और 11 (64-बिट / x64) |
-| **संस्करण** | v3.2.0 (उत्पादन रिलीज़) |
+| **संस्करण** | v3.3.0 (उत्पादन रिलीज़) |
 | **लाइसेंस** | ओपन-सोर्स ([MIT](LICENSE)) |
 | **इंटरफ़ेस** | आधुनिक डेस्कटॉप GUI (WPF Fluent) और हेडलेस टर्मिनल CLI |
 | **वितरण** | पोर्टेबल सिंगल-फ़ाइल एक्ज़ीक्यूटेबल (स्व-निहित, इंस्टॉलर की आवश्यकता नहीं) |
-| **परीक्षण कवरेज** | 1638 स्वचालित परीक्षण (100% पास दर, 0 विफल, 0 छोड़े गए), प्रतिकूल फ़ाइलसिस्टम फ़ज़िंग |
+| **परीक्षण कवरेज** | 1709 स्वचालित परीक्षण (100% पास दर, 0 विफल, 0 छोड़े गए), प्रतिकूल फ़ाइलसिस्टम फ़ज़िंग |
 | **CLI उपलब्धता** | `deltempo` कमांड पहली GUI लॉन्च पर स्वयं इंस्टॉल हो जाता है — कोई मैनुअल सेटअप नहीं |
 | **टेलीमेट्री** | शून्य टेलीमेट्री। स्कैन, सफ़ाई, मेमोरी और अनइंस्टॉलर के सभी संचालन 100% ऑफ़लाइन होते हैं |
 | **सुरक्षा इंजन** | दो-चरण योजना (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) — 5 जोखिम स्तर और लेन-देन जर्नलिंग के साथ |
@@ -230,7 +223,7 @@ Deltempo सिस्टम, डेवलपर और गेमिंग वा
   * 🔴 **EssentialKeep**: सुरक्षा सूट, क्लाउड सिंक बैकअप एजेंट या आवश्यक हार्डवेयर ड्राइवर।
 * **दोहरी इंटेलिजेंस पाइपलाइन**:
   * **ऑफ़लाइन ह्यूरिस्टिक्स**: डिजिटल हस्ताक्षर, सत्यापित विक्रेता पहचान, बाइनरी पाथ और ज्ञात प्रोसेस डेटाबेस के आधार पर तत्काल निर्धारण वर्गीकरण।
-  * **वैकल्पिक मल्टी-प्रोवाइडर AI**: माँग पर विस्तृत संचालन सारांश — OpenAI, Anthropic Claude, Google Gemini, Groq, OpenRouter और स्थानीय ऑफ़लाइन मॉडल (Ollama, LM Studio) का समर्थन।
+  * **वैकल्पिक मल्टी-प्रोवाइडर AI**: माँग पर विस्तृत संचालन सारांश — OpenAI, Anthropic Claude, Google Gemini, Groq, OpenRouter, Mistral, Cerebras, DeepSeek, GitHub Models, Hugging Face, Together AI और स्थानीय ऑफ़लाइन मॉडल (Ollama) का समर्थन।
 * **100% प्रतिवर्ती रजिस्ट्री टॉगल**: अक्षम आइटम `Run_Deltempo_Disabled` रजिस्ट्री कुंजियों में सुरक्षित रूप से संग्रहित होते हैं। किसी भी आइटम को एक क्लिक में फिर से सक्षम किया जा सकता है।
 
 ---
@@ -481,7 +474,7 @@ dotnet build deltempo.sln -c Release
 # प्रोजेक्ट शामिल हैं, इसलिए प्रति-प्रोजेक्ट जाँच समाधान का हिस्सा ही कवर करती है।
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# स्वचालित परीक्षण सूट निष्पादित करें (1638 पासिंग यूनिट और इंटीग्रेशन परीक्षण)
+# स्वचालित परीक्षण सूट निष्पादित करें (1709 पासिंग यूनिट और इंटीग्रेशन परीक्षण)
 # xunit.v3 Microsoft.TestingPlatform पर चलता है, जिसे .NET 10 SDK का `dotnet test`
 # चला नहीं सकता ("Testing with VSTest target is no longer supported")। एक बार बिल्ड करें,
 # फिर टेस्ट एक्ज़ीक्यूटेबल को सीधे कॉल करें।

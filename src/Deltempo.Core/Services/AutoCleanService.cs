@@ -115,8 +115,12 @@ public static class AutoCleanService
         {
             var targets = CleanerService.GetDefaultTargets();
 
-            // Only clean safe targets
-            var safeTargets = targets.Where(t => !t.IsOrphanedAppFolder).ToList();
+            // Only clean safe targets. IsSafeModeEligible=false marks scopes that require
+            // explicit consent (irreversible DISM /ResetBase cleanup, uninstalled-app
+            // folders), which a timer must never decide on the user's behalf.
+            var safeTargets = targets
+                .Where(t => !t.IsOrphanedAppFolder && t.IsSafeModeEligible)
+                .ToList();
             // Previously this CTS was never cancelled, so the token threaded into
             // CleanFolderAsync was inert and a background auto-clean could not be stopped.
             // It is now published so StopAutoClean can cancel it, and the loop honours it.

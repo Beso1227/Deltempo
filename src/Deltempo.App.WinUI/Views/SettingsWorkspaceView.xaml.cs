@@ -33,6 +33,16 @@ public sealed partial class SettingsWorkspaceView : UserControl
         Interval = TimeSpan.FromMilliseconds(700),
     };
 
+    /// <summary>
+    /// Re-asks the provider while the settings workspace stays open, so a catalog change
+    /// (a model retired, a new free one added) reaches a picker that was filled earlier
+    /// rather than surviving as a stale list until the panel is reopened.
+    /// </summary>
+    private readonly DispatcherTimer _aiModelAutoRefreshTimer = new()
+    {
+        Interval = TimeSpan.FromMinutes(2),
+    };
+
     public SettingsWorkspaceView()
     {
         InitializeComponent();
@@ -49,7 +59,12 @@ public sealed partial class SettingsWorkspaceView : UserControl
         // The view owns the timer because only it has a dispatcher; the view-model asks
         // for a refresh whenever the provider, key or endpoint changes.
         _aiModelRefreshTimer.Tick += OnAiModelRefreshTimerTick;
+        _aiModelAutoRefreshTimer.Tick += OnAiModelAutoRefreshTimerTick;
         ViewModel.AiModelRefreshRequested += ScheduleAiModelRefresh;
+
+        // The shell shows and hides this panel instead of navigating and calls Refresh()
+        // whenever it shows it; Unloaded is the only teardown hook a timed refresh needs.
+        Unloaded += (_, _) => _aiModelAutoRefreshTimer.Stop();
 
         Refresh();
     }
@@ -97,6 +112,7 @@ public sealed partial class SettingsWorkspaceView : UserControl
         // Not at app startup: this panel is the only surface that shows the model list,
         // so the provider is asked when the panel opens rather than on every launch.
         ScheduleAiModelRefresh();
+        StartAiModelAutoRefresh();
     }
 
     private void ScheduleAiModelRefresh()
@@ -109,6 +125,30 @@ public sealed partial class SettingsWorkspaceView : UserControl
     {
         _aiModelRefreshTimer.Stop();
         _ = ViewModel.RefreshAiModelsAsync(force: false);
+    }
+
+    /// <summary>
+    /// Starts the slow re-ask that keeps the list live while the panel is on screen. A
+    /// separate timer from the 700 ms typing debounce: that one coalesces edits, this one
+    /// notices the provider changing its catalog during a long session.
+    /// </summary>
+    private void StartAiModelAutoRefresh()
+    {
+        _aiModelAutoRefreshTimer.Stop();
+        _aiModelAutoRefreshTimer.Start();
+    }
+
+    private void OnAiModelAutoRefreshTimerTick(object? sender, object e)
+    {
+        // The shell hides this panel instead of tearing it down, so a hidden panel must
+        // not keep asking the provider. Refresh() restarts the timer when it is shown.
+        if (Visibility != Visibility.Visible)
+        {
+            _aiModelAutoRefreshTimer.Stop();
+            return;
+        }
+
+        _ = ViewModel.RefreshAiModelsAsync(force: true, quiet: true);
     }
 
     private void OnLog(string message, LogLevel level)

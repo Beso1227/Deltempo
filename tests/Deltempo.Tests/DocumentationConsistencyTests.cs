@@ -332,8 +332,18 @@ public class DocumentationConsistencyTests
     }
 
     /// <summary>
-    /// Counts the cases the CI run executes: one per [Fact], and one per [InlineData] row for
-    /// each [Theory] (a [Theory] with no inline rows is counted as a single case).
+    /// Counts the cases the CI run executes: one per [Fact], one per [InlineData] row for
+    /// each [Theory], and one per row of a [MemberData] source. A theory with no rows at all
+    /// is counted as a single case.
+    ///
+    /// <para>
+    /// The [MemberData] expansion is not optional. <c>SyncOverAsyncGuardTests</c> drives five
+    /// cases from a data member, so a counter that treated that theory as one case published
+    /// 1680 while CI executed 1684 - the exact "badge drifts from the suite" failure this
+    /// test exists to prevent, hiding behind its own blind spot. Fail closed for any data
+    /// source that cannot be resolved, so a future [ClassData] cannot reintroduce the drift
+    /// silently.
+    /// </para>
     /// </summary>
     private static int CountRunnableTestCases(Assembly assembly)
     {
@@ -344,6 +354,7 @@ public class DocumentationConsistencyTests
         // Categories that are run by a scheduled job rather than by the pull-request gate.
         // A test excluded here must NOT be advertised in the published count, otherwise the
         // badge would promise coverage that an ordinary pull request never exercises.
+        // Must stay in sync with the CI filter "Category!=Benchmark&Category!=FuzzDeep".
         var gateExcludedCategories = new[] { "Benchmark", "FuzzDeep" };
 
         int total = 0;
@@ -366,11 +377,82 @@ public class DocumentationConsistencyTests
 
                 int rows = attributes.OfType<InlineDataAttribute>().Count();
 
+                foreach (MemberDataAttribute memberData in attributes.OfType<MemberDataAttribute>())
+                {
+                    rows += CountMemberDataRows(type, memberData);
+                }
+
+                if (attributes.OfType<ClassDataAttribute>().Any())
+                {
+                    throw new NotSupportedException(
+                        $"{type.Name}.{method.Name} uses [ClassData], which this counter cannot expand. " +
+                        "Teach CountRunnableTestCases to expand it before adding such a theory, otherwise " +
+                        "the published test count silently undercounts the suite.");
+                }
+
                 total += Math.Max(1, rows);
             }
         }
 
         return total;
+    }
+
+    /// <summary>
+    /// Expands a [MemberData] source into its row count. The source is invoked exactly as
+    /// xunit would invoke it, so the number is the number of cases the runner reports.
+    /// </summary>
+    private static int CountMemberDataRows(Type declaringType, MemberDataAttribute memberData)
+    {
+        const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic |
+                                   BindingFlags.Static | BindingFlags.FlattenHierarchy;
+
+        Type sourceType = memberData.MemberType ?? declaringType;
+        object? source;
+
+        FieldInfo? field = sourceType.GetField(memberData.MemberName, flags);
+        if (field is not null)
+        {
+            source = field.GetValue(null);
+        }
+        else
+        {
+            PropertyInfo? property = sourceType.GetProperty(memberData.MemberName, flags);
+            if (property is not null)
+            {
+                source = property.GetValue(null);
+            }
+            else
+            {
+                MethodInfo? method = sourceType.GetMethod(memberData.MemberName, flags);
+                if (method is null)
+                {
+                    throw new InvalidOperationException(
+                        $"could not resolve [MemberData] source {sourceType.Name}.{memberData.MemberName}.");
+                }
+
+                if (method.GetParameters().Length > 0)
+                {
+                    throw new NotSupportedException(
+                        $"[MemberData] source {sourceType.Name}.{memberData.MemberName} takes arguments. " +
+                        "Teach CountRunnableTestCases to pass them before adding such a theory, otherwise " +
+                        "the published test count silently undercounts the suite.");
+                }
+
+                source = method.Invoke(null, null);
+            }
+        }
+
+        if (source is not System.Collections.IEnumerable rows)
+        {
+            throw new InvalidOperationException(
+                $"[MemberData] source {sourceType.Name}.{memberData.MemberName} is not enumerable, " +
+                "so the published test count cannot be derived from it.");
+        }
+
+        int count = 0;
+        foreach (object? _ in rows) count++;
+
+        return Math.Max(1, count);
     }
 
     /// <summary>

@@ -223,19 +223,21 @@ public static partial class CliRunner
             Console.WriteLine(JsonSerializer.Serialize(new
             {
                 appName = targetApp.DisplayName,
-                success = true,
+                success = purgeResult.ErrorsCount == 0,
                 purgedItems = purgeResult.ItemsPurgedCount,
                 failedItems = purgeResult.ErrorsCount,
                 rebootScheduledItems = purgeResult.RebootScheduledCount,
                 reclaimedBytes = purgeResult.TotalReclaimedBytes,
                 formattedReclaimed = purgeResult.FormattedReclaimed,
-                executionTimeMs = purgeResult.ExecutionTimeMs
+                executionTimeMs = purgeResult.ExecutionTimeMs,
+                errors = purgeResult.ErrorMessages,
+                rebootScheduledPaths = purgeResult.RebootScheduledItems
             }, new JsonSerializerOptions { WriteIndented = true }));
         }
         else
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Done!");
+            Console.ForegroundColor = purgeResult.ErrorsCount == 0 ? ConsoleColor.Green : ConsoleColor.Yellow;
+            Console.WriteLine(purgeResult.ErrorsCount == 0 ? "Done!" : "Completed with issues.");
             Console.ResetColor();
 
             Console.WriteLine();
@@ -247,9 +249,23 @@ public static partial class CliRunner
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine($"  ⚠ Reboot Scheduled:    {purgeResult.RebootScheduledCount} locked files will be deleted on next system reboot");
             }
+            if (purgeResult.ErrorsCount > 0)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"  ✖ Could Not Purge:     {purgeResult.ErrorsCount}");
+                foreach (string error in purgeResult.ErrorMessages.Take(10))
+                {
+                    Console.WriteLine($"      • {error}");
+                }
+                if (purgeResult.ErrorMessages.Count > 10)
+                {
+                    Console.WriteLine($"      … and {purgeResult.ErrorMessages.Count - 10} more");
+                }
+            }
             Console.ResetColor();
         }
 
-        return 0;
+        // Partial failure must be visible to scripts too, not just in the printed text.
+        return purgeResult.ErrorsCount == 0 ? 0 : 2;
     }
 }

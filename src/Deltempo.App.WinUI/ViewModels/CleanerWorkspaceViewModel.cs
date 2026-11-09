@@ -871,10 +871,9 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
 
     private void SelectSafeOnly()
     {
-        foreach (var t in _allTargets)
-        {
-            t.IsSelected = !t.IsOrphanedAppFolder;
-        }
+        // Shared rule with WPF: irreversible scopes (IsSafeModeEligible = false) and
+        // orphaned app folders are never treated as "safe" by a one-click action.
+        CleaningPipelineViewModel.SelectSafeTargets(_allTargets);
         RecalculateTotals();
         LogRequested?.Invoke("[Cleaner] Selected all safe categories", WinTempCleaner.Models.LogLevel.Info);
     }

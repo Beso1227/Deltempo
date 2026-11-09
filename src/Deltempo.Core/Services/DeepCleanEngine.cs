@@ -152,10 +152,11 @@ public static class DeepCleanEngine
             Report("Component Store Cleanup", 0.80, "Scavenging superseded Windows updates via DISM (WinSxS)...");
             try
             {
-                var (ok, msg) = await CleanerService.RunDismComponentCleanupAsync(logAction, ct);
+                var (ok, dismReclaimed, msg) = await CleanerService.RunDismComponentCleanupAsync(logAction, ct);
                 result.DismCleaned = ok;
                 if (ok)
                 {
+                    result.DiskFreedBytes += dismReclaimed;
                     result.SummaryHighlights.Add("📦 Windows Component Store (WinSxS) superseded packages purged.");
                 }
             }

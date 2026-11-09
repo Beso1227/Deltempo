@@ -55,6 +55,22 @@ public class CleanerServiceTests : IDisposable
         Assert.Contains(targets, t => t.Id == "SystemUsageTraces");
         Assert.Contains(targets, t => t.Id == "SystemRestorePoints");
         Assert.Contains(targets, t => t.Id == "RecycleBin");
+        Assert.Contains(targets, t => t.Id == "WinUpdateCleanup");
+    }
+
+    [Fact]
+    public void GetDefaultTargets_WindowsUpdateCleanup_RequiresExplicitOptIn()
+    {
+        // DISM /StartComponentCleanup /ResetBase is irreversible: after it runs, installed
+        // updates can never be uninstalled. It must therefore be unselected, ineligible for
+        // timer/safe-mode runs, and carry the warning the confirmation dialog prints.
+        var target = CleanerService.GetDefaultTargets().Single(t => t.Id == "WinUpdateCleanup");
+
+        Assert.True(target.RequiresAdmin);
+        Assert.False(target.IsSelected);
+        Assert.False(target.IsSafeModeEligible);
+        Assert.False(string.IsNullOrWhiteSpace(target.IrreversibleWarning));
+        Assert.Contains("uninstalled", target.IrreversibleWarning!, StringComparison.OrdinalIgnoreCase);
     }
 
     [Theory]

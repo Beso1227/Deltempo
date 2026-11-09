@@ -111,7 +111,7 @@
                                         <!-- Design-time placeholder; runtime value is assigned from BuildInfo in MainWindow_Loaded -->
                                         <TextBlock x:Name="AppVersionHeaderBadge"
                                                    Visibility="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WidthToCompactVisibilityConverter}, ConverterParameter=1440}"
-                                                   Text="v3.2.0"
+                                                   Text="v3.3.0"
                                                    FontSize="10"
                                                    FontWeight="Bold"
                                                    Foreground="{DynamicResource ElectricCyanBrush}"
@@ -3587,7 +3587,7 @@
                                                            VerticalAlignment="Center"/>
                                             </Grid>
 
-                                            <!-- API Key Row (for Gemini, OpenAI, Groq, OpenRouter) -->
+                                            <!-- API Key Row (for every provider whose descriptor requires a key) -->
                                             <Grid x:Name="SettingsAiApiKeyRow" Margin="0,4,0,6" Visibility="Collapsed">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
@@ -3652,8 +3652,9 @@
                                             </Grid>
 
                                             <!-- Model picker row. The list is what the provider
-                                                 reports for this key; search narrows it, and a
-                                                 free model carries a green FREE pill. -->
+                                                 reports for this key, narrowed to the free
+                                                 models when the provider publishes pricing;
+                                                 a free model carries a green FREE pill. -->
                                             <Grid x:Name="SettingsAiModelRow" Margin="0,4,0,8" Visibility="Collapsed">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
@@ -3672,32 +3673,9 @@
                                                                Foreground="{DynamicResource TextMutedBrush}"
                                                                TextWrapping="Wrap"
                                                                Margin="0,2,0,0"/>
-                                                    <TextBlock x:Name="SettingsAiModelMatchText"
-                                                               FontSize="10"
-                                                               Foreground="{DynamicResource AmberWarningBrush}"
-                                                               TextWrapping="Wrap"
-                                                               Margin="0,2,0,0"/>
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="1" Width="290">
                                                     <Grid>
-                                                        <TextBox x:Name="SettingsAiModelSearchBox"
-                                                                 Height="26"
-                                                                 Background="{DynamicResource SurfaceCardBrush}"
-                                                                 Foreground="{DynamicResource TextHighBrush}"
-                                                                 BorderBrush="{DynamicResource HairlineBorderBrush}"
-                                                                 Padding="8,3"
-                                                                 TextChanged="SettingsAiModelSearchBox_TextChanged"
-                                                                 AutomationProperties.Name="Search models"
-                                                                 ToolTip="Filter the model list by name, id or FREE"/>
-                                                        <TextBlock x:Name="SettingsAiModelSearchPlaceholder"
-                                                                   Text="Search models - try &quot;free&quot;"
-                                                                   FontSize="10.5"
-                                                                   Foreground="{DynamicResource TextMutedBrush}"
-                                                                   VerticalAlignment="Center"
-                                                                   Margin="10,0"
-                                                                   IsHitTestVisible="False"/>
-                                                    </Grid>
-                                                    <Grid Margin="0,4,0,0">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
@@ -3723,7 +3701,7 @@
                                                                                    Foreground="{DynamicResource TextHighBrush}"
                                                                                    TextTrimming="CharacterEllipsis"
                                                                                    VerticalAlignment="Center"
-                                                                                   ToolTip="{Binding Note}"/>
+                                                                                   ToolTip="{Binding Detail}"/>
                                                                         <Border Grid.Column="1"
                                                                                 Background="{DynamicResource FreeBadgeBgBrush}"
                                                                                 BorderBrush="{DynamicResource FreeBadgeBorderBrush}"

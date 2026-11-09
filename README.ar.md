@@ -38,16 +38,9 @@
   </p>
 
   <p>
-    <sub>تفضّل الطرفية؟ سطر واحد يثبّت أحدث إصدار ويتحقّق منه &mdash;
-      <code>irm https://beso1227.github.io/Deltempo/win | iex</code>
-      &middot; وجدت خطأً أو فكرة لميزة جديدة؟ <a href="https://github.com/Beso1227/Deltempo/issues/new/choose"><strong>افتح تذكرة</strong></a> &mdash; كل طلب يُقرأ.
-      إن أعاد لك Deltempo بعض مساحة القرص، فإن <a href="https://github.com/Beso1227/Deltempo"><strong>نجمة</strong></a> تساعد فعلًا غيرك على العثور عليه.</sub>
-  </p>
-
-  <p>
     <a href="https://github.com/Beso1227/Deltempo/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0&labelColor=16212B"><img alt="أحدث إصدار" src="https://img.shields.io/github/v/release/Beso1227/Deltempo?style=for-the-badge&label=RELEASE&color=00F2B0" height="28" /></picture></a>
     <a href="https://github.com/Beso1227/Deltempo/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github&labelColor=16212B"><img alt="حالة بناء التكامل المستمر" src="https://img.shields.io/github/actions/workflow/status/Beso1227/Deltempo/ci.yml?style=for-the-badge&label=CI&logo=github" height="28" /></picture></a>
-    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1638_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبارات: 1638 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-1638_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
+    <a href="docs/TESTING.md"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/tests-1709_passed-00F2B0?style=for-the-badge&label=QUALITY&labelColor=16212B"><img alt="الاختبارات: 1709 ناجحة، 0 فاشلة" src="https://img.shields.io/badge/tests-1709_passed-00F2B0?style=for-the-badge&label=QUALITY" height="28" /></picture></a>
     <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github&labelColor=16212B"><img alt="الترخيص: MIT" src="https://img.shields.io/github/license/Beso1227/Deltempo?style=for-the-badge&label=LICENSE&color=00F2B0&logo=github" height="28" /></picture></a>
   </p>
 
@@ -99,11 +92,11 @@
 | :--- | :--- |
 | **الموقع الرسمي** | [beso1227.github.io/Deltempo](https://beso1227.github.io/Deltempo/) |
 | **المنصّة** | ويندوز 10 و11 (64-بت / x64) |
-| **الإصدار** | v3.2.0 (إصدار إنتاج) |
+| **الإصدار** | v3.3.0 (إصدار إنتاج) |
 | **الترخيص** | مفتوح المصدر ([MIT](LICENSE)) |
 | **الواجهات** | واجهة سطح مكتب رسومية حديثة (WPF Fluent)، وطرفية أوامر تعمل بلا واجهة |
 | **التوزيع** | ملف تنفيذي محمول مفرد (كامل بذاته، لا يحتاج إلى مُثبِّت) |
-| **تغطية الاختبارات** | 1638 اختبارًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 مُتخطّى)، وفحص تبدّل عشوائي معارِض لنظام الملفات |
+| **تغطية الاختبارات** | 1709 اختبارًا آليًا (نسبة نجاح 100%، 0 فاشل، 0 مُتخطّى)، وفحص تبدّل عشوائي معارِض لنظام الملفات |
 | **توافر الطرفية** | أمر `deltempo` يُثبّت نفسه عند أول تشغيل للواجهة — دون إعداد يدوي |
 | **بيانات الاتّصال** | صفر بيانات اتّصال. عمليات الفحص والتنظيف والذاكرة وإلغاء التثبيت تعمل 100% دون اتصال |
 | **محرّك الأمان** | تخطيط على مرحلتين (`SCAN → PLAN → PROTECT → REVALIDATE → CLEAN`) مع 5 مستويات للمخاطر وسجلّ معاملات |
@@ -230,7 +223,7 @@ Deltempo مفتوح المصدر بالكامل، ويحتوي على صفر ب�
   * 🔴 **EssentialKeep**: حزم الأمان، أو وكلاء مزامنة ونسخ احتياطي سحابية، أو تعريفات أجهزة أساسية.
 * **خطّان للذكاء**:
   * **استنتاجات دون اتصال**: تصنيف حتمي فوري استنادًا إلى التوقيعات الرقمية، وهويات الناشرين المُتحقَّق منها، ومسارات الملفات الثنائية، وقواعد بيانات العمليات المعروفة.
-  * **ذكاء اصطناعي اختياري متعدّد المزوّدين**: ملخّصات تشغيلية مفصّلة عند الطلب تدعم OpenAI وAnthropic Claude وGoogle Gemini وGroq وOpenRouter والنماذج المحلية دون اتصال (Ollama وLM Studio).
+  * **ذكاء اصطناعي اختياري متعدّد المزوّدين**: ملخّصات تشغيلية مفصّلة عند الطلب تدعم OpenAI وAnthropic Claude وGoogle Gemini وGroq وOpenRouter وMistral وCerebras وDeepSeek وGitHub Models وHugging Face وTogether AI والنماذج المحلية دون اتصال (Ollama).
 * **مفاتيح سجلّية قابلة للتراجع 100%**: تُخزَّن العناصر المعطّلة بأمان في مفاتيح سجلّ `Run_Deltempo_Disabled`. يمكن إعادة تفعيل أي عنصر بنقرة واحدة.
 
 ---
@@ -481,7 +474,7 @@ dotnet build deltempo.sln -c Release
 # الاختبارات، لذا يغطي الفحص لكل مشروع جزءًا فقط من الحل دون أن يُعلن ذلك.
 dotnet format deltempo.sln --verify-no-changes --no-restore
 
-# تنفيذ مجموعة الاختبارات الآلية (1638 اختبار وحدة وتكامل ناجحًا)
+# تنفيذ مجموعة الاختبارات الآلية (1709 اختبار وحدة وتكامل ناجحًا)
 # يعمل xunit.v3 على Microsoft.Testing.Platform، وهو ما لا يستطيع `dotnet test` في
 # حزمة .NET 10 SDK تشغيله ("Testing with VSTest target is no longer supported"). ابنِ
 # المشروع مرة واحدة، ثم استدعِ الملف التنفيذي للاختبارات مباشرةً.

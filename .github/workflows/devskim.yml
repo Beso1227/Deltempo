@@ -62,10 +62,20 @@ jobs:
           # UpdatePipelineSecurityTests.cs reproduce without their same-line
           # "// DevSkim: ignore DS<id>" comments when the suppression comments
           # removed (verified against this action's pinned CLI version 1.0.90).
+          #
+          # The action's Dockerfile pins DevSkim 1.0.90. A plain
+          # `dotnet tool install Microsoft.CST.DevSkim.Cli` gets 1.0.100, which also
+          # reports DS126858 on the base64 PNG in tools/social_preview_template.html
+          # and DS173238 on the fixture key tests/Deltempo.Tests/Fixtures/
+          # test-update-signing-key.pem. Those are version deltas, not CI findings:
+          # reproduce this gate with 1.0.90 before concluding that it is red.
           extra-options: "-E -s Critical,Important,Moderate"
 
       - name: Upload DevSkim scan results to GitHub Security tab
-        if: hashFiles('devskim-results.sarif') != ''
+        # The scan step fails on purpose when it finds issues, so this upload must run on
+        # failure too: a red gate with no uploaded results sends the reader to the Security
+        # tab and shows them nothing. `always()` is required because `if:` implies success().
+        if: always() && hashFiles('devskim-results.sarif') != ''
         uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           sarif_file: devskim-results.sarif

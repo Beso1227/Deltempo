@@ -193,8 +193,8 @@ if (-not $AllowPlaceholder) {
 
 $doc = [System.Xml.Linq.XDocument]::Load(
     $stagedManifest, [System.Xml.Linq.LoadOptions]::PreserveWhitespace)
-$fns = [System.Xml.Linq.XNamespace]::Get("http://schemas.microsoft.com/appx/manifest/foundation/windows10")
-$uapns = [System.Xml.Linq.XNamespace]::Get("http://schemas.microsoft.com/appx/manifest/uap/windows10")
+$fns = [System.Xml.Linq.XNamespace]::Get("http://schemas.microsoft.com/appx/manifest/foundation/windows10") # DevSkim: ignore DS137138 (XML namespace identifier, never dereferenced)
+$uapns = [System.Xml.Linq.XNamespace]::Get("http://schemas.microsoft.com/appx/manifest/uap/windows10") # DevSkim: ignore DS137138 (XML namespace identifier, never dereferenced)
 
 $identityNode = $doc.Root.Element($fns + "Identity")
 if ($null -eq $identityNode) { throw "Staged AppxManifest.xml has no Package/Identity element." }

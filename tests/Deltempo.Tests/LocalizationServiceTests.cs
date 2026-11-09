@@ -239,7 +239,7 @@ public class LocalizationServiceTests
     {
         // Exercise every target case across every language — covers the full switch
         string[] targets = {
-            "UserTemp", "WinTemp", "WinPrefetch", "WinUpdateCache", "WinUpgradeLeftovers",
+            "UserTemp", "WinTemp", "WinPrefetch", "WinUpdateCache", "WinUpdateCleanup", "WinUpgradeLeftovers",
             "WinDeliveryOpt", "WinComponentCaches", "DeviceDriverPackages", "DefenderAntivirus",
             "WinSystemLogs", "SystemDumps", "TemporaryInternetFiles", "GpuShaderCaches",
             "GamingLaunchers", "MediaCreatorCaches", "AppCacheSweeper", "WinStoreAppCaches",

@@ -35,6 +35,12 @@ public sealed record AiModelOption(
     /// the visibility rule can never disagree.
     /// </summary>
     public bool IsFree => string.Equals(Badge, "FREE", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// The wire id plus its caveat, for a row tooltip. The picker rows show the human name,
+    /// so the id a request actually sends has to stay reachable somewhere.
+    /// </summary>
+    public string Detail => string.IsNullOrWhiteSpace(Note) ? Id : $"{Id} - {Note}";
 }
 
 /// <summary>
@@ -69,8 +75,8 @@ public sealed record AiProviderOption(string Id, string Label, string Descriptio
 /// The settings surface offers a picker rather than a free-text box: the provider's own
 /// model list fills it once a key is present, the catalog is the offline fallback, and a
 /// saved id that is missing from both is kept as its own row instead of being dropped.
-/// A catalog can go stale between releases; a picker fed by the provider cannot, and the
-/// search box still narrows hundreds of OpenRouter rows to the handful worth reading.
+/// A catalog can go stale between releases; a picker fed by the provider cannot, and it
+/// refreshes quietly while the settings stay open.
 ///
 /// VERIFY IDs BEFORE A RELEASE. Retirement dates move. `IsRetiring` and `Note` exist so a
 /// scheduled deprecation is visible in the UI rather than discovered as a hard failure.
@@ -91,8 +97,13 @@ public static class AiModelCatalog
         new Dictionary<string, AiProviderDescriptor>(StringComparer.OrdinalIgnoreCase)
         {
             ["BuiltIn"] = new("BuiltIn", RequiresApiKey: false, DefaultModelId: string.Empty, HostedModelTimeout),
-            ["Gemini"] = new("Gemini", RequiresApiKey: true, DefaultModelId: "gemini-3.5-flash", HostedModelTimeout),
             ["OpenAI"] = new("OpenAI", RequiresApiKey: true, DefaultModelId: "gpt-5.4-mini", HostedModelTimeout),
+            // Claude speaks its own Messages API, not the OpenAI chat shape. The default is
+            // only a fallback for an offline first run; the settings picker replaces it with
+            // whatever /v1/models reports for the key.
+            ["Anthropic"] = new("Anthropic", RequiresApiKey: true, DefaultModelId: "claude-sonnet-4-5", HostedModelTimeout),
+            ["Gemini"] = new("Gemini", RequiresApiKey: true, DefaultModelId: "gemini-3.5-flash", HostedModelTimeout),
+            ["xAI"] = new("xAI", RequiresApiKey: true, DefaultModelId: "grok-4", HostedModelTimeout),
             // gpt-oss-120b is the verified production default: llama-3.3-70b-versatile
             // answers only on Groq's Enterprise tier, so an ordinary API key got a 403.
             ["Groq"] = new("Groq", RequiresApiKey: true, DefaultModelId: "openai/gpt-oss-120b", HostedModelTimeout),
@@ -101,6 +112,12 @@ public static class AiModelCatalog
             // account with HTTP 402 - which the old build reported as "unexpected error".
             // A free default means "paste key, press Test" goes green on a brand-new account.
             ["OpenRouter"] = new("OpenRouter", RequiresApiKey: true, DefaultModelId: "google/gemma-4-31b-it:free", HostedModelTimeout),
+            ["Mistral"] = new("Mistral", RequiresApiKey: true, DefaultModelId: "mistral-large-latest", HostedModelTimeout),
+            ["Cerebras"] = new("Cerebras", RequiresApiKey: true, DefaultModelId: "llama-3.3-70b", HostedModelTimeout),
+            ["DeepSeek"] = new("DeepSeek", RequiresApiKey: true, DefaultModelId: "deepseek-chat", HostedModelTimeout),
+            ["GitHubModels"] = new("GitHubModels", RequiresApiKey: true, DefaultModelId: "openai/gpt-5.4-mini", HostedModelTimeout),
+            ["HuggingFace"] = new("HuggingFace", RequiresApiKey: true, DefaultModelId: "meta-llama/Llama-3.3-70B-Instruct", HostedModelTimeout),
+            ["Together"] = new("Together", RequiresApiKey: true, DefaultModelId: "meta-llama/Llama-3.3-70B-Instruct-Turbo", HostedModelTimeout),
             ["Ollama"] = new("Ollama", RequiresApiKey: false, DefaultModelId: "llama3.2", LocalModelTimeout, "http://localhost:11434"), // DevSkim: ignore DS162092
         }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
@@ -171,6 +188,53 @@ public static class AiModelCatalog
                 new AiModelOption("openai/gpt-oss-120b", "GPT-OSS 120B", "Paid - open weights"),
                 new AiModelOption("qwen/qwen3-32b", "Qwen3 32B", "Paid - strong multilingual"),
             },
+            "anthropic" => new[]
+            {
+                new AiModelOption("claude-sonnet-4-5", "Claude Sonnet 4.5", "Default - balanced quality and cost"),
+                new AiModelOption("claude-opus-4-1", "Claude Opus 4.1", "Highest quality"),
+                new AiModelOption("claude-haiku-4-5", "Claude Haiku 4.5", "Fastest"),
+            },
+            "xai" => new[]
+            {
+                new AiModelOption("grok-4", "Grok 4", "Default - flagship reasoning"),
+                new AiModelOption("grok-4-fast", "Grok 4 Fast", "Cheaper, lower latency"),
+                new AiModelOption("grok-3-mini", "Grok 3 mini", "Smallest"),
+            },
+            "mistral" => new[]
+            {
+                new AiModelOption("mistral-large-latest", "Mistral Large", "Default - flagship"),
+                new AiModelOption("mistral-small-latest", "Mistral Small", "Cheaper"),
+                new AiModelOption("open-mistral-nemo", "Mistral Nemo", "Open weights"),
+            },
+            "cerebras" => new[]
+            {
+                new AiModelOption("llama-3.3-70b", "Llama 3.3 70B", "Default - fast, strong JSON"),
+                new AiModelOption("llama3.1-8b", "Llama 3.1 8B", "Smallest and quickest"),
+                new AiModelOption("qwen-3-32b", "Qwen3 32B", "Strong multilingual"),
+            },
+            "deepseek" => new[]
+            {
+                new AiModelOption("deepseek-chat", "DeepSeek Chat", "Default - general purpose"),
+                new AiModelOption("deepseek-reasoner", "DeepSeek Reasoner", "Reasoning-first"),
+            },
+            "githubmodels" => new[]
+            {
+                new AiModelOption("openai/gpt-5.4-mini", "GPT-5.4 mini", "Default - free within rate limits"),
+                new AiModelOption("openai/gpt-5.2", "GPT-5.2", "Higher quality"),
+                new AiModelOption("meta/Llama-3.3-70B-Instruct", "Llama 3.3 70B", "Open weights"),
+            },
+            "huggingface" => new[]
+            {
+                new AiModelOption("meta-llama/Llama-3.3-70B-Instruct", "Llama 3.3 70B", "Default - open weights"),
+                new AiModelOption("Qwen/Qwen2.5-72B-Instruct", "Qwen2.5 72B", "Strong multilingual"),
+                new AiModelOption("mistralai/Mistral-7B-Instruct-v0.3", "Mistral 7B", "Small and quick"),
+            },
+            "together" => new[]
+            {
+                new AiModelOption("meta-llama/Llama-3.3-70B-Instruct-Turbo", "Llama 3.3 70B Turbo", "Default - fast open weights"),
+                new AiModelOption("Qwen/Qwen2.5-72B-Instruct-Turbo", "Qwen2.5 72B Turbo", "Strong multilingual"),
+                new AiModelOption("mistralai/Mixtral-8x7B-Instruct-v0.1", "Mixtral 8x7B", "MoE open weights"),
+            },
             "ollama" => new[]
             {
                 new AiModelOption("llama3.2", "Llama 3.2", "Default - runs on most laptops"),
@@ -181,49 +245,264 @@ public static class AiModelCatalog
         };
 
     /// <summary>
-    /// Narrows a model list to the rows that match what the user typed in the picker's
-    /// search box. Every whitespace-separated token must appear somewhere in the row - the
-    /// wire id, the human name, the pricing note or the FREE badge - so "free gemma" finds
-    /// the free Gemma entry without the user knowing the exact id.
+    /// A readable label for a model id. OpenAI and Groq publish only wire ids, so the picker
+    /// offered "gpt-5.4-mini" and "openai/gpt-oss-120b" beside hand-written catalog names.
+    /// A curated catalog name wins when one exists; otherwise the id is humanised by rule,
+    /// never guessed, so an unfamiliar model still reads as a name.
+    /// </summary>
+    public static string GetFriendlyName(string? providerName, string modelId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(modelId);
+
+        string id = modelId.Trim();
+
+        // Ollama tags its default weight set ":latest"; the catalog lists the bare name.
+        string bare = id.EndsWith(":latest", StringComparison.OrdinalIgnoreCase)
+            ? id[..^":latest".Length]
+            : id;
+
+        foreach (AiModelOption option in GetSuggestedModels(providerName))
+        {
+            if (string.Equals(option.Id, id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(option.Id, bare, StringComparison.OrdinalIgnoreCase))
+            {
+                return option.DisplayName;
+            }
+        }
+
+        return HumanizeModelId(bare);
+    }
+
+    /// <summary>
+    /// Turns a wire id into a label: vendor prefix and a ":latest" tag dropped, separators
+    /// become spaces, known acronyms and parameter sizes are uppercased, and "GPT" hyphenates
+    /// onto its version ("gpt-5.4-mini" -> "GPT-5.4 mini", "openai/gpt-oss-120b" -> "GPT-OSS 120B").
+    /// </summary>
+    private static string HumanizeModelId(string modelId)
+    {
+        int slash = modelId.LastIndexOf('/');
+        string core = slash >= 0 && slash < modelId.Length - 1 ? modelId[(slash + 1)..] : modelId;
+
+        string[] tokens = core.Split(['-', '_', ':', '/', ' '], StringSplitOptions.RemoveEmptyEntries);
+        var parts = new List<string>(tokens.Length);
+        foreach (string token in tokens)
+        {
+            // The OpenAI o-series is written lowercase and as one word ("o3-mini"), so it
+            // must not be split into "o" + "3" like a version suffix.
+            string lowered = token.ToLowerInvariant();
+            if (lowered is "o1" or "o3" or "o4")
+            {
+                parts.Add(lowered);
+                continue;
+            }
+
+            foreach (string piece in SplitLettersAndDigits(token))
+            {
+                parts.Add(FormatNameToken(piece));
+            }
+        }
+
+        if (parts.Count == 0)
+        {
+            return modelId;
+        }
+
+        var label = new System.Text.StringBuilder();
+        for (int i = 0; i < parts.Count; i++)
+        {
+            if (i > 0)
+            {
+                // A version split across tokens keeps its dot: "claude-haiku-4-5" reads
+                // "Claude Haiku 4.5", not "Claude Haiku 4 5".
+                bool versionDot = parts[i].All(char.IsDigit) &&
+                    char.IsDigit(parts[i - 1][^1]) &&
+                    !string.Equals(parts[i - 1], "GPT", StringComparison.Ordinal);
+
+                // GPT is written with a hyphen onto its generation, not a space.
+                bool hyphenate = string.Equals(parts[i - 1], "GPT", StringComparison.Ordinal) &&
+                    (string.Equals(parts[i], "OSS", StringComparison.OrdinalIgnoreCase) ||
+                     char.IsDigit(parts[i][0]));
+
+                label.Append(versionDot ? '.' : hyphenate ? '-' : ' ');
+            }
+
+            label.Append(parts[i]);
+        }
+
+        return label.ToString();
+    }
+
+    /// <summary>"llama3.2" -> "llama", "3.2"; "120b" stays whole so it can uppercase as a size.</summary>
+    /// <remarks>
+    /// A single leading letter is a designation, not a word in front of a version, so "k2"
+    /// and "r1" stay whole ("Kimi K2", "DeepSeek R1") while "gemma2" still splits.
+    /// </remarks>
+    private static IEnumerable<string> SplitLettersAndDigits(string token)
+    {
+        int start = 0;
+        for (int i = 1; i < token.Length; i++)
+        {
+            if (char.IsLetter(token[i - 1]) && char.IsDigit(token[i]) && i - start >= 2)
+            {
+                yield return token[start..i];
+                start = i;
+            }
+        }
+
+        yield return token[start..];
+    }
+
+    private static string FormatNameToken(string token)
+    {
+        if (token.Length == 0)
+        {
+            return token;
+        }
+
+        if (char.IsDigit(token[0]))
+        {
+            // Parameter sizes ("70b", "1.5b", "8x7b") carry an uppercase unit; version
+            // numbers ("5.4"), o-series ("4o") and dated ids ("002") stay as written.
+            int last = token.Length - 1;
+            char unit = char.ToLowerInvariant(token[last]);
+            if (char.IsLetter(token[last]) &&
+                unit is 'b' or 'm' &&
+                token[..last].All(c => char.IsDigit(c) || c is '.' or 'x'))
+            {
+                return token[..last] + char.ToUpperInvariant(token[last]);
+            }
+
+            return token;
+        }
+
+        string lower = token.ToLowerInvariant();
+        if (AcronymTokens.Contains(lower))
+        {
+            return lower.ToUpperInvariant();
+        }
+
+        if (LowercaseTokens.Contains(lower))
+        {
+            return lower;
+        }
+
+        if (BrandTokens.TryGetValue(lower, out string? brand))
+        {
+            return brand;
+        }
+
+        return char.ToUpperInvariant(token[0]) + token[1..].ToLowerInvariant();
+    }
+
+    private static readonly FrozenSet<string> AcronymTokens = new[]
+    {
+        "gpt", "oss", "ai", "it", "vl", "llm", "moe", "api", "glm",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    /// <summary>Descriptors OpenAI writes in lowercase after the size ("GPT-4o mini").</summary>
+    private static readonly FrozenSet<string> LowercaseTokens = new[]
+    {
+        "mini", "nano", "micro", "lite",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenDictionary<string, string> BrandTokens =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["deepseek"] = "DeepSeek",
+            ["chatgpt"] = "ChatGPT",
+            ["openai"] = "OpenAI",
+            ["xai"] = "xAI",
+            ["anthropic"] = "Anthropic",
+            ["claude"] = "Claude",
+            ["sonnet"] = "Sonnet",
+            ["opus"] = "Opus",
+            ["haiku"] = "Haiku",
+            ["grok"] = "Grok",
+            ["mistral"] = "Mistral",
+            ["mixtral"] = "Mixtral",
+            ["cerebras"] = "Cerebras",
+            ["together"] = "Together",
+            ["hugging"] = "Hugging",
+            ["face"] = "Face",
+            ["github"] = "GitHub",
+            ["llama"] = "Llama",
+            ["qwen"] = "Qwen",
+            ["gemma"] = "Gemma",
+            ["phi"] = "Phi",
+        }.ToFrozenDictionary(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Narrows a list to the rows the provider charges nothing for, when the provider says
+    /// anything about pricing at all.
     /// </summary>
     /// <remarks>
-    /// A blank query returns the same list instance: filtering is a view, not a rebuild, and
-    /// the picker must keep its free-first order. Kept in Core so WPF and WinUI cannot
-    /// disagree about what a search matches.
+    /// Only OpenRouter publishes per-model pricing, and that is the one provider where a
+    /// paid row fails on a zero-credit account (HTTP 402). OpenAI, Groq, Gemini and Ollama
+    /// return ids with no pricing, so treating "no FREE badge" as "paid" would empty their
+    /// pickers and leave the user unable to choose anything. The rule is therefore "free
+    /// only where pricing exists": with at least one FREE row the paid rows are dropped;
+    /// with none the list is returned untouched.
     /// </remarks>
-    public static IReadOnlyList<AiModelOption> FilterModels(
-        IReadOnlyList<AiModelOption> models,
-        string? query)
+    public static IReadOnlyList<AiModelOption> FreeModelsOnly(IReadOnlyList<AiModelOption> models)
     {
         ArgumentNullException.ThrowIfNull(models);
 
-        if (string.IsNullOrWhiteSpace(query))
+        if (!models.Any(model => model.IsFree))
         {
             return models;
         }
 
-        string[] tokens = query.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
-        var matches = new List<AiModelOption>();
+        var free = new List<AiModelOption>(models.Count);
         foreach (AiModelOption model in models)
         {
-            string haystack = $"{model.Id} {model.DisplayName} {model.Note} {model.Badge}";
-            bool all = true;
-            foreach (string token in tokens)
+            if (model.IsFree)
             {
-                if (!haystack.Contains(token, StringComparison.OrdinalIgnoreCase))
-                {
-                    all = false;
-                    break;
-                }
-            }
-
-            if (all)
-            {
-                matches.Add(model);
+                free.Add(model);
             }
         }
 
-        return matches;
+        return free;
+    }
+
+    /// <summary>
+    /// True when two listings describe the same models in the same order, so a quiet
+    /// background refresh can leave the open picker alone when the provider answered with
+    /// what it already showed.
+    /// </summary>
+    /// <remarks>
+    /// Compared by value rather than by instance: every refresh builds a new list, and
+    /// rebuilding a bound <c>ItemsSource</c> (or a WinUI collection) closes whatever the
+    /// user has open. Names and badges are part of the comparison, so a pricing change or
+    /// a corrected label still reaches the picker.
+    /// </remarks>
+    public static bool IsSameModelSet(
+        IReadOnlyList<AiModelOption>? left,
+        IReadOnlyList<AiModelOption>? right)
+    {
+        if (ReferenceEquals(left, right))
+        {
+            return true;
+        }
+
+        if (left is null || right is null || left.Count != right.Count)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < left.Count; i++)
+        {
+            AiModelOption a = left[i];
+            AiModelOption b = right[i];
+            if (!string.Equals(a.Id, b.Id, StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(a.DisplayName, b.DisplayName, StringComparison.Ordinal) ||
+                !string.Equals(a.Badge, b.Badge, StringComparison.Ordinal) ||
+                !string.Equals(a.Note, b.Note, StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -233,12 +512,13 @@ public static class AiModelCatalog
     /// through another route) and the next Save would write an empty model.
     /// </summary>
     /// <remarks>
-    /// The synthesized row carries the id as its name and says where it came from, so it
-    /// reads as "your saved choice", not as something the provider advertised.
+    /// The synthesized row carries the readable name of the id and says where it came from,
+    /// so it reads as "your saved choice", not as something the provider advertised.
     /// </remarks>
     public static IReadOnlyList<AiModelOption> WithSavedModel(
         IReadOnlyList<AiModelOption> models,
-        string? savedModelId)
+        string? savedModelId,
+        string? providerName = null)
     {
         ArgumentNullException.ThrowIfNull(models);
 
@@ -258,7 +538,8 @@ public static class AiModelCatalog
 
         var merged = new List<AiModelOption>(models.Count + 1)
         {
-            new(saved, saved, "Saved in settings - not in the list this key returned."),
+            new(saved, GetFriendlyName(providerName, saved),
+                "Saved in settings - not in the list this key returned."),
         };
         merged.AddRange(models);
         return merged;
@@ -271,6 +552,10 @@ public static class AiModelCatalog
     /// One list means a provider or a default can never be current in one app and stale in
     /// the other.
     /// </summary>
+    /// <remarks>
+    /// Labels name the provider, never a model: a model name in a provider label is stale
+    /// the day it retires, and the model list beside it already comes live from the API.
+    /// </remarks>
     public static IReadOnlyList<AiProviderOption> GetProviderOptions() => new[]
     {
         new AiProviderOption(
@@ -278,21 +563,53 @@ public static class AiModelCatalog
             "Built-in Web Knowledge (Free, No Key)",
             "Offline heuristics and a curated catalog. Nothing leaves this PC."),
         new AiProviderOption(
-            "OpenRouter",
-            "OpenRouter (Universal / Multi-Model)",
-            "One key, many hosted models. The file summary is sent to OpenRouter."),
+            "OpenAI",
+            "OpenAI (API Key)",
+            "GPT models. Paid per use. The file summary is sent to OpenAI."),
+        new AiProviderOption(
+            "Anthropic",
+            "Anthropic Claude (API Key)",
+            "Claude models via the Messages API. The file summary is sent to Anthropic."),
         new AiProviderOption(
             "Gemini",
-            "Google Gemini (Free API Key)",
-            "Google AI Studio free tier. The file summary is sent to Google."),
+            "Google Gemini (Free Tier)",
+            "Google AI Studio key with a free tier. The file summary is sent to Google."),
+        new AiProviderOption(
+            "xAI",
+            "xAI Grok (API Key)",
+            "Grok models. The file summary is sent to xAI."),
+        new AiProviderOption(
+            "OpenRouter",
+            "OpenRouter (Free Models + Paid)",
+            "One key, hundreds of hosted models, free ones badged. The file summary is sent to OpenRouter."),
         new AiProviderOption(
             "Groq",
             "Groq (Ultra-Fast Free Tier)",
-            "Very fast free tier. The file summary is sent to Groq."),
+            "Very fast inference with a free tier. The file summary is sent to Groq."),
         new AiProviderOption(
-            "OpenAI",
-            "OpenAI (GPT-5.4 mini)",
-            "Paid, highest quality. The file summary is sent to OpenAI."),
+            "Mistral",
+            "Mistral AI (API Key)",
+            "Mistral and open-weight models. The file summary is sent to Mistral."),
+        new AiProviderOption(
+            "Cerebras",
+            "Cerebras (Free Tier)",
+            "Very fast inference with a free tier. The file summary is sent to Cerebras."),
+        new AiProviderOption(
+            "DeepSeek",
+            "DeepSeek (Low-Cost)",
+            "Low-cost DeepSeek chat models. The file summary is sent to DeepSeek."),
+        new AiProviderOption(
+            "GitHubModels",
+            "GitHub Models (Free Tier)",
+            "Models hosted by GitHub, free within rate limits. The file summary is sent to GitHub."),
+        new AiProviderOption(
+            "HuggingFace",
+            "Hugging Face (Free Credits)",
+            "Open-weight models through the HF router. The file summary is sent to Hugging Face."),
+        new AiProviderOption(
+            "Together",
+            "Together AI (Free Models)",
+            "Open-weight models, some free. The file summary is sent to Together AI."),
         new AiProviderOption(
             "Ollama",
             "Ollama (Local & Private)",
@@ -317,14 +634,30 @@ public static class AiModelCatalog
     }
 
     /// <summary>
+    /// The label for the model a request will actually use: the readable name, with the
+    /// wire id in brackets when the two differ, so "GPT-5.4 mini" never hides what is sent.
+    /// </summary>
+    public static string DescribeChosenModel(string? providerName, string modelId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(modelId);
+
+        string id = modelId.Trim();
+        string name = GetFriendlyName(providerName, id);
+        return string.Equals(name, id, StringComparison.OrdinalIgnoreCase) ? id : $"{name} ({id})";
+    }
+
+    /// <summary>
     /// The status line a settings surface shows after asking the provider for its models.
     /// </summary>
     /// <remarks>
     /// The count alone was not enough. OpenRouter answers a zero-credit account with HTTP
     /// 402 for every paid model, so a user whose saved model was paid saw "460 models
     /// available to this key" and then a failed Test with no connection between the two.
-    /// When the provider returned free models AND the model that is about to be used is
-    /// one of the paid ones, the line says so and points at the FREE rows.
+    ///
+    /// The picker now hides paid rows whenever the provider publishes pricing, so the line
+    /// counts what is actually offered (the FREE rows) and says the paid ones are hidden.
+    /// A saved model that the filter therefore dropped is called out instead of vanishing
+    /// silently: the hint above still names it, because that is what a request would use.
     ///
     /// Deliberately a hint, not a rewrite: the saved model is the user's choice, and
     /// silently swapping it would hide which model actually answered.
@@ -342,25 +675,45 @@ public static class AiModelCatalog
                    "Check the key's permissions, then press Refresh.";
         }
 
-        string status = $"{models.Count} model{(models.Count == 1 ? string.Empty : "s")} available to this key.";
+        int freeCount = 0;
+        foreach (AiModelOption model in models)
+        {
+            if (model.IsFree)
+            {
+                freeCount++;
+            }
+        }
 
-        bool hasFree = models.Any(model => string.Equals(model.Badge, "FREE", StringComparison.Ordinal));
-        if (!hasFree || string.IsNullOrWhiteSpace(selectedModelId))
+        // No pricing published: every row stays selectable, so the plain count is the truth.
+        if (freeCount == 0)
+        {
+            return $"{models.Count} model{(models.Count == 1 ? string.Empty : "s")} available to this key.";
+        }
+
+        string status = freeCount == models.Count
+            ? $"{freeCount} free model{(freeCount == 1 ? string.Empty : "s")} available to this key."
+            : $"{freeCount} free model{(freeCount == 1 ? string.Empty : "s")} available to this key " +
+              "(paid models are hidden).";
+
+        string saved = selectedModelId?.Trim() ?? string.Empty;
+        if (saved.Length == 0)
         {
             return status;
         }
 
         AiModelOption? selected = models.FirstOrDefault(
-            model => string.Equals(model.Id, selectedModelId.Trim(), StringComparison.OrdinalIgnoreCase));
+            model => string.Equals(model.Id, saved, StringComparison.OrdinalIgnoreCase));
 
-        // Unknown ids are not called out: they may be a model this key can use through
-        // another route, and guessing "paid" would be wrong more often than right.
-        if (selected is null || string.Equals(selected.Badge, "FREE", StringComparison.Ordinal))
+        if (selected is null)
         {
-            return status;
+            // The saved id may be retired or callable through another route. Saying it is
+            // not in the list is factual; guessing what it costs would not be.
+            return status + " The saved model is not in this list; pick a FREE row to replace it.";
         }
 
-        return status + " The selected model is paid; rows marked FREE need no credit.";
+        return selected.IsFree
+            ? status
+            : status + " The saved model is paid and hidden; pick a FREE row to use no credit.";
     }
 
     /// <summary>

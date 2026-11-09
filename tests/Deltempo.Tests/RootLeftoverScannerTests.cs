@@ -111,6 +111,30 @@ public class RootLeftoverScannerTests
         Assert.False(InstalledAppService.IsSafeToDeleteResidual(path));
     }
 
+    /// <summary>
+    /// Leftover candidates under Documents, Public, Common Documents, and Saved Games are
+    /// the user's data. They may still be reported, but they must be classified as
+    /// review-only so neither Select Recommended nor an unreviewed purge can delete them.
+    /// </summary>
+    [Fact]
+    public void IsUserDocumentRoot_RecognizesUserDocumentFolders()
+    {
+        string profile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        Assert.True(RootLeftoverScannerService.IsUserDocumentRoot(
+            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
+        Assert.True(RootLeftoverScannerService.IsUserDocumentRoot(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments)));
+        Assert.True(RootLeftoverScannerService.IsUserDocumentRoot(Path.Combine(profile, "Public")));
+        Assert.True(RootLeftoverScannerService.IsUserDocumentRoot(Path.Combine(profile, "Saved Games")));
+
+        Assert.False(RootLeftoverScannerService.IsUserDocumentRoot(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)));
+        Assert.False(RootLeftoverScannerService.IsUserDocumentRoot(
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs")));
+        Assert.False(RootLeftoverScannerService.IsUserDocumentRoot(null));
+    }
+
     [Fact]
     public void CalculateDirectorySizeSafe_NonExistent_ReturnsZero()
     {

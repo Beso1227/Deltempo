@@ -363,23 +363,12 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
     public partial string AiModelName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Narrows the model picker. OpenRouter returns hundreds of rows and most are paid;
-    /// typing "free" is how a zero-credit account finds the ones that answer.
-    /// </summary>
-    [ObservableProperty]
-    public partial string AiModelSearchText { get; set; } = string.Empty;
-
-    /// <summary>
     /// The row the picker shows as chosen. Separate from <see cref="AiModelName"/> because
-    /// filtering can hide the selected row: the search must not clear the saved id, and an
+    /// a refresh can drop the selected row: it must not clear the saved id, and an
     /// id the provider no longer lists must still survive the next settings write.
     /// </summary>
     [ObservableProperty]
     public partial AiModelOption? SelectedAiModel { get; set; }
-
-    /// <summary>One line under the picker when a search matches nothing.</summary>
-    [ObservableProperty]
-    public partial string AiModelMatchText { get; set; } = string.Empty;
 
     [ObservableProperty]
     public partial string AiOllamaEndpoint { get; set; } = "http://localhost:11434";
@@ -400,12 +389,12 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
 
     /// <summary>
     /// The rows the picker currently shows: the provider's own list (or the catalog until a
-    /// key arrives) narrowed by <see cref="AiModelSearchText"/>. A saved id that neither
-    /// list contains keeps its own row so a choice is never silently forgotten.
+    /// key arrives). A saved id that neither list contains keeps its own row so a choice is
+    /// never silently forgotten.
     /// </summary>
     public ObservableCollection<AiModelOption> AiModelSuggestions { get; } = [];
 
-    /// <summary>The full, unfiltered rows behind the picker, in provider order.</summary>
+    /// <summary>The full rows behind the picker, in provider order.</summary>
     private IReadOnlyList<AiModelOption> _aiModelPickerSource = Array.Empty<AiModelOption>();
 
     /// <summary>True when the rows came from the provider rather than the static catalog.</summary>
@@ -461,7 +450,9 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
     /// WPF's UpdateAiSettingsUiVisibility: a key is only asked for from providers that
     /// need one, the endpoint only from Ollama, and neither shows a model field.
     /// </summary>
-    public bool ShowAiApiKeyRow => AiProvider is "Gemini" or "Groq" or "OpenAI" or "OpenRouter";
+    public bool ShowAiApiKeyRow =>
+        AiModelCatalog.TryGetProvider(AiProvider, out AiProviderDescriptor descriptor) &&
+        descriptor.RequiresApiKey;
 
     public bool ShowAiOllamaRow => AiProvider == "Ollama";
 
@@ -503,8 +494,9 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
 
             string fallback = AiModelCatalog.ResolveModelId(AiProvider, userModelName: null);
             return string.IsNullOrWhiteSpace(AiModelName)
-                ? $"Pick a model. With none chosen the provider default is used: {fallback}."
-                : $"Requests use: {AiModelName.Trim()}";
+                ? "Pick a model. With none chosen the provider default is used: " +
+                  $"{AiModelCatalog.DescribeChosenModel(AiProvider, fallback)}."
+                : $"Requests use: {AiModelCatalog.DescribeChosenModel(AiProvider, AiModelName)}";
         }
     }
 
@@ -649,8 +641,7 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         AutoQueryAiForLargeFiles = s.AutoQueryAiForLargeFiles && s.EnableOnlineAiSafety;
 
         // Reopening the panel on a possibly different account: drop any list fetched
-        // earlier, clear the previous search, and let the view's open path ask again.
-        AiModelSearchText = string.Empty;
+        // earlier and let the view's open path ask again.
         ResetAiFetchedModels();
         PopulateAiModelSuggestions(null);
         AiModelStatusText = string.Empty;
@@ -877,7 +868,14 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
     /// them. Failure is reported but never fatal: the catalog list and the manual box stay
     /// usable, which is what a provider outage or an unverified key looks like.
     /// </summary>
-    public async Task RefreshAiModelsAsync(bool force)
+    /// <param name="force">Ask even when the key/endpoint identity has not changed.</param>
+    /// <param name="quiet">
+    /// A background re-ask. It does not show "Loading...", does not clear the list on
+    /// failure, and only rebuilds the picker when the provider actually answered with a
+    /// different set - replacing the bound collection closes an open dropdown for no
+    /// reason.
+    /// </param>
+    public async Task RefreshAiModelsAsync(bool force, bool quiet = false)
     {
         string provider = AiProvider;
         string key = AiApiKey?.Trim() ?? string.Empty;
@@ -886,6 +884,11 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(provider) ||
             provider.Equals("BuiltIn", StringComparison.OrdinalIgnoreCase))
         {
+            if (quiet)
+            {
+                return;
+            }
+
             ResetAiFetchedModels();
             PopulateAiModelSuggestions(null);
             AiModelStatusText = string.Empty;
@@ -895,6 +898,11 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         if (AiModelCatalog.TryGetProvider(provider, out var descriptor) &&
             descriptor.RequiresApiKey && string.IsNullOrWhiteSpace(key))
         {
+            if (quiet)
+            {
+                return;
+            }
+
             // Nothing to ask with. Show the catalog and say so instead of firing a request
             // that can only come back 401.
             ResetAiFetchedModels();
@@ -916,8 +924,11 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         CancellationToken ct = _aiModelRefreshCts.Token;
         int generation = ++_aiModelFetchGeneration;
 
-        IsLoadingAiModels = true;
-        AiModelStatusText = $"Loading models from {provider}...";
+        if (!quiet)
+        {
+            IsLoadingAiModels = true;
+            AiModelStatusText = $"Loading models from {provider}...";
+        }
 
         try
         {
@@ -926,11 +937,17 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
 
             if (generation != _aiModelFetchGeneration) return;
 
+            bool changed = !AiModelCatalog.IsSameModelSet(_aiFetchedModels, models);
             _aiFetchedModels = models;
             _aiFetchedFor = identity;
-            PopulateAiModelSuggestions(models);
 
-            AiModelStatusText = AiModelCatalog.DescribeFetchedModels(provider, models, AiModelName);
+            // A quiet answer that matches what is already shown is left alone: rebuilding
+            // the collection would close the dropdown the user may be reading.
+            if (!quiet || changed)
+            {
+                PopulateAiModelSuggestions(models);
+                AiModelStatusText = AiModelCatalog.DescribeFetchedModels(provider, models, AiModelName);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -940,6 +957,13 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         {
             if (generation != _aiModelFetchGeneration) return;
 
+            if (quiet)
+            {
+                AiModelStatusText = "Could not refresh models: " + ex.UserMessage +
+                    " Showing the last list.";
+                return;
+            }
+
             ResetAiFetchedModels();
             PopulateAiModelSuggestions(null);
             AiModelStatusText = "Could not load models: " + ex.UserMessage;
@@ -947,6 +971,13 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         catch (Exception ex)
         {
             if (generation != _aiModelFetchGeneration) return;
+
+            if (quiet)
+            {
+                AiModelStatusText = "Could not refresh models: " + ex.Message +
+                    " Showing the last list.";
+                return;
+            }
 
             ResetAiFetchedModels();
             PopulateAiModelSuggestions(null);
@@ -971,21 +1002,25 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         IReadOnlyList<AiModelOption> source =
             models ?? _aiFetchedModels ?? AiModelCatalog.GetSuggestedModels(AiProvider);
 
-        _aiModelPickerSource = AiModelCatalog.WithSavedModel(source, AiModelName);
+        // A saved id that neither list contains keeps its own row so the choice survives a
+        // round trip; the rows are then narrowed to the free ones when the provider
+        // publishes pricing. OpenRouter therefore never offers a row that answers 402 on a
+        // zero-credit account, while a provider with no pricing keeps its full list.
+        _aiModelPickerSource = AiModelCatalog.FreeModelsOnly(
+            AiModelCatalog.WithSavedModel(source, AiModelName, AiProvider));
         _aiModelPickerFromProvider = models is not null || _aiFetchedModels is not null;
 
-        ApplyAiModelFilter();
+        RebuildAiModelPicker();
     }
 
     /// <summary>
-    /// Rebuilds the visible rows from the full set plus the current search. The saved model
-    /// is re-selected whenever its row survived; when the search hides it, the selection is
-    /// cleared but <see cref="AiModelName"/> keeps the value that will be sent.
+    /// Rebuilds the visible rows from the full set. The saved model is re-selected whenever
+    /// its row is present; when the provider no longer lists it, the selection is cleared
+    /// but <see cref="AiModelName"/> keeps the value that will be sent.
     /// </summary>
-    private void ApplyAiModelFilter()
+    private void RebuildAiModelPicker()
     {
-        string query = AiModelSearchText?.Trim() ?? string.Empty;
-        IReadOnlyList<AiModelOption> visible = AiModelCatalog.FilterModels(_aiModelPickerSource, query);
+        IReadOnlyList<AiModelOption> visible = _aiModelPickerSource;
 
         // Assigning SelectedAiModel while the collection is being replaced would let a
         // transient null overwrite the saved id, so the flag keeps the two in step.
@@ -1005,10 +1040,6 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         {
             _isRebuildingAiModelPicker = false;
         }
-
-        AiModelMatchText = _aiModelPickerSource.Count > 0 && visible.Count == 0 && query.Length > 0
-            ? $"No model matches \"{query}\"."
-            : string.Empty;
     }
 
     private void ResetAiFetchedModels()
@@ -1412,7 +1443,6 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
         if (!_isLoading)
         {
             AiModelName = string.Empty;
-            AiModelSearchText = string.Empty;
         }
 
         ResetAiFetchedModels();
@@ -1459,7 +1489,7 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
 
     /// <summary>
     /// The picker's chosen row is the only place a new model id comes from. A null
-    /// selection happens while the search hides the saved row, and must not erase it.
+    /// selection happens while a refresh drops the saved row, and must not erase it.
     /// </summary>
     partial void OnSelectedAiModelChanged(AiModelOption? value)
     {
@@ -1473,8 +1503,6 @@ public sealed partial class SettingsWorkspaceViewModel : ObservableObject
             AiModelName = value.Id;
         }
     }
-
-    partial void OnAiModelSearchTextChanged(string value) => ApplyAiModelFilter();
 
     partial void OnAiOllamaEndpointChanged(string value)
     {

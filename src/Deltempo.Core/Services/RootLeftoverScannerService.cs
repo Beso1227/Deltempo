@@ -102,6 +102,47 @@ public static class RootLeftoverScannerService
         "Microsoft Visual Studio", "Package Cache", "Microsoft SDKs", "Windows Kits"
     };
 
+    /// <summary>
+    /// Folders that belong to the user rather than to an application. A match under one of
+    /// these roots is still worth showing - apps do leave folders in Documents - but it must
+    /// never be pre-selected: "Select Recommended" and an unreviewed purge would otherwise
+    /// delete the user's documents, saves, or shared Public files.
+    /// </summary>
+    private static readonly HashSet<string> UserDocumentRoots = BuildUserDocumentRoots();
+
+    internal static bool IsUserDocumentRoot(string? root)
+    {
+        if (string.IsNullOrWhiteSpace(root)) return false;
+
+        try
+        {
+            return UserDocumentRoots.Contains(Path.GetFullPath(root).TrimEnd('\\', '/'));
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static HashSet<string> BuildUserDocumentRoots()
+    {
+        var roots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        string profile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        void Add(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return;
+            try { roots.Add(Path.GetFullPath(path).TrimEnd('\\', '/')); } catch { }
+        }
+
+        Add(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+        Add(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments));
+        Add(Path.Combine(profile, "Public"));
+        Add(Path.Combine(profile, "Saved Games"));
+
+        return roots;
+    }
+
     private static readonly HashSet<string> ProtectedRegistryRootNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "Microsoft", "Windows", "Classes", "Clients", "Policies", "RegisteredApplications",
@@ -264,7 +305,13 @@ public static class RootLeftoverScannerService
             }
         }
 
-        // Vector 1B: Search candidate roots
+        // Vector 1B: Search candidate roots.
+        //
+        // A folder under Documents/Public/Saved Games is the user's data, not the
+        // app's private cache: apps legitimately keep projects, saves and exports
+        // there. Those roots are still scanned so a real leftover is visible, but
+        // every hit is forced to Low confidence and left unticked, so neither
+        // "Select Recommended" nor the default purge can delete user documents.
         var candidateRoots = new List<string>
         {
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -289,6 +336,7 @@ public static class RootLeftoverScannerService
         foreach (var root in candidateRoots)
         {
             if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root)) continue;
+            bool reviewOnly = IsUserDocumentRoot(root);
 
             // Pattern: Root\<App>. The DisplayName is a marketing string, so "PDFgear 1.2.3" ships a
             // folder called "PDFgear" and an exact join would miss it. Probe every folder name the
@@ -301,7 +349,8 @@ public static class RootLeftoverScannerService
                     Path.Combine(root, candidate.Name),
                     candidate.IsWeak ? "Possible Application Data Folder" : "Application Cache/Data Folder",
                     candidate.IsWeak ? LeftoverConfidence.Low : LeftoverConfidence.Medium,
-                    items);
+                    items,
+                    reviewOnly: reviewOnly);
             }
 
             // Pattern: Root\<Publisher>\<App>
@@ -315,7 +364,8 @@ public static class RootLeftoverScannerService
                         Path.Combine(root, app.Publisher, candidate.Name),
                         candidate.IsWeak ? "Possible Publisher Application Folder" : "Publisher Application Data Folder",
                         candidate.IsWeak ? LeftoverConfidence.Low : LeftoverConfidence.High,
-                        items);
+                        items,
+                        reviewOnly: reviewOnly);
                 }
             }
         }
@@ -412,7 +462,12 @@ public static class RootLeftoverScannerService
         catch { }
     }
 
-    private static void CheckAndAddDirectory(string dirPath, string desc, LeftoverConfidence confidence, List<LeftoverItem> items)
+    private static void CheckAndAddDirectory(
+        string dirPath,
+        string desc,
+        LeftoverConfidence confidence,
+        List<LeftoverItem> items,
+        bool reviewOnly = false)
     {
         try
         {
@@ -426,10 +481,12 @@ public static class RootLeftoverScannerService
                     {
                         Type = LeftoverType.Directory,
                         PathOrKey = dirPath,
-                        Description = desc,
+                        Description = reviewOnly
+                            ? $"{desc} - user documents, review before deleting"
+                            : desc,
                         SizeBytes = size,
-                        Confidence = confidence,
-                        IsSelected = confidence != LeftoverConfidence.Low
+                        Confidence = reviewOnly ? LeftoverConfidence.Low : confidence,
+                        IsSelected = !reviewOnly && confidence != LeftoverConfidence.Low
                     });
                 }
             }

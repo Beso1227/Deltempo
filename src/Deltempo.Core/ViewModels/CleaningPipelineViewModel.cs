@@ -95,6 +95,23 @@ public sealed class CleaningPipelineViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Ticks exactly the scopes Smart Clean / Select Safe may run without further
+    /// consent: safe-mode eligible and not an orphaned app folder. &#34;Safe&#34; must not
+    /// mean &#34;everything that is not an orphan&#34; — the irreversible DISM
+    /// component-store scope reports <see cref="TargetFolderInfo.IsSafeModeEligible"/> =
+    /// false, and a one-click Smart Clean must never opt the user into it.
+    /// </summary>
+    public static void SelectSafeTargets(IEnumerable<TargetFolderInfo> targets)
+    {
+        ArgumentNullException.ThrowIfNull(targets);
+
+        foreach (var target in targets)
+        {
+            target.IsSelected = !target.IsOrphanedAppFolder && target.IsSafeModeEligible;
+        }
+    }
+
+    /// <summary>
     /// Builds the confirmation modal content: estimated size, safety-shield state,
     /// deletion mode (Recycle Bin vs permanent), and the category summary sentence.
     /// </summary>
@@ -116,6 +133,21 @@ public sealed class CleaningPipelineViewModel : ObservableObject
         string categorySummary =
             $"Cleaning {selectedTargets.Count} selected categories ({totalEstimatedFiles:N0} estimated files). " +
             $"Categories: {categoryList}. System integrity, user credentials, and personal files remain 100% protected.";
+
+        // Irreversible scopes state their consequence in the same dialog the user confirms,
+        // rather than only in a tooltip they may never open.
+        var irreversibleWarnings = selectedTargets
+            .Select(t => t.IrreversibleWarning)
+            .OfType<string>()
+            .Where(w => !string.IsNullOrWhiteSpace(w))
+            .Select(w => w.Trim())
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        if (irreversibleWarnings.Count > 0)
+        {
+            categorySummary += " " + string.Join(" ", irreversibleWarnings);
+        }
 
         return new ConfirmationPreview(
             TargetFolderInfo.FormatBytes(totalEstimatedBytes),

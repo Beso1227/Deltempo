@@ -34,6 +34,7 @@ public sealed partial class AppUninstallView : UserControl
         InitializeComponent();
 
         ViewModel.FatalError += OnFatalError;
+        ViewModel.NoticeRequested += OnNotice;
     }
 
     public AppUninstallViewModel ViewModel { get; }
@@ -164,6 +165,33 @@ public sealed partial class AppUninstallView : UserControl
             XamlRoot = XamlRoot,
             Title = title,
             Content = new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
+            CloseButtonText = "Close",
+        };
+
+        await dialog.ShowAsync();
+    }
+
+    /// <summary>
+    /// Partial purge or reboot-scheduled items. Not fatal, but the user must see it:
+    /// the alternative is a success-sounding status line over items that survived.
+    /// </summary>
+    private async void OnNotice(string title, string message)
+    {
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = title,
+            Content = new ScrollViewer
+            {
+                MaxHeight = 360,
+                Content = new TextBlock
+                {
+                    Text = message,
+                    TextWrapping = TextWrapping.Wrap,
+                    IsTextSelectionEnabled = true,
+                    FontSize = 13,
+                },
+            },
             CloseButtonText = "Close",
         };
 
