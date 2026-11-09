@@ -50,9 +50,11 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
-      # Re-render the README download chart from the live releases API before the
-      # site is uploaded. The READMEs point at the published URL, so this step is
-      # the only thing that makes the chart move between releases.
+      # Re-render the README download chart and the JSON snapshot from the live
+      # releases API before the site is uploaded. The READMEs point at the
+      # published SVG; /downloads/ reads the API directly and falls back to the
+      # JSON when the API is rate-limited. This step is what keeps both current
+      # between releases.
       - name: Render the download chart
         env:
           GITHUB_TOKEN: ${{ github.token }}

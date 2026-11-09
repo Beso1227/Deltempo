@@ -31,10 +31,12 @@
   </p>
 
   <p>
-    <picture>
+    <a href="https://beso1227.github.io/Deltempo/downloads/"><picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://beso1227.github.io/Deltempo/downloads-chart-dark.svg">
       <img alt="Deltempo downloads: cumulative total after each GitHub release" src="https://beso1227.github.io/Deltempo/downloads-chart-light.svg" width="100%">
-    </picture>
+    </picture></a>
+    <br>
+    <a href="https://beso1227.github.io/Deltempo/downloads/">Live, interactive download chart &rarr;</a>
   </p>
 
   <p>

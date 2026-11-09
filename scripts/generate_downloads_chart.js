@@ -24,11 +24,15 @@
  *
  * OUTPUT
  * ------
- * docs/downloads-chart-light.svg and docs/downloads-chart-dark.svg. Two files
- * because a README cannot restyle one image per theme; each carries a palette
- * that reads on GitHub's light and dark backgrounds. No <style>, no <script>,
- * no external fonts or images: GitHub renders SVGs through its camo proxy, which
- * strips all of those anyway.
+ * docs/downloads-chart-light.svg and docs/downloads-chart-dark.svg, plus
+ * docs/downloads.json. Two SVGs because a README cannot restyle one image per
+ * theme; each carries a palette that reads on GitHub's light and dark
+ * backgrounds. No <style>, no <script>, no external fonts or images: GitHub
+ * renders SVGs through its camo proxy, which strips all of those anyway.
+ *
+ * docs/downloads.json is the same data in machine-readable form. The live chart
+ * on /downloads/ reads the API directly and falls back to this snapshot when the
+ * API is rate-limited, so the published site always has a chart to show.
  *
  * USAGE
  * -----
@@ -48,6 +52,7 @@ const ROOT = path.resolve(__dirname, '..');
 const OUT = {
   light: path.join(ROOT, 'docs', 'downloads-chart-light.svg'),
   dark: path.join(ROOT, 'docs', 'downloads-chart-dark.svg'),
+  json: path.join(ROOT, 'docs', 'downloads.json'),
 };
 
 const THEMES = {
@@ -147,6 +152,10 @@ function summarize(releases) {
         (sum, asset) => sum + (Number(asset.download_count) || 0),
         0,
       ),
+      assets: (release.assets || []).map((asset) => ({
+        name: asset.name,
+        downloads: Number(asset.download_count) || 0,
+      })),
     }))
     .sort((a, b) => new Date(a.published) - new Date(b.published));
 }
@@ -302,6 +311,35 @@ function render(series, themeName) {
 `;
 }
 
+/**
+ * The machine-readable twin of the SVGs. The live page recomputes cumulative
+ * totals from `downloads`, but ships them too so any other consumer can read the
+ * curve without redoing the arithmetic.
+ */
+function snapshotReleases(series) {
+  return series.map((release) => ({
+    tag: release.tag,
+    published: release.published,
+    downloads: release.downloads,
+    cumulative: release.cumulative,
+    assets: release.assets,
+  }));
+}
+
+function renderSnapshot(series, total, generatedAt) {
+  return `${JSON.stringify(
+    {
+      schema: 1,
+      repo: REPO,
+      generatedAt: generatedAt || new Date().toISOString(),
+      total,
+      releases: snapshotReleases(series),
+    },
+    null,
+    2,
+  )}\n`;
+}
+
 async function main() {
   const inputIndex = process.argv.indexOf('--input');
   const releases =
@@ -317,22 +355,51 @@ async function main() {
   const total = series[series.length - 1].cumulative;
 
   // GitHub counts only ever rise. A lower total means a truncated API response,
-  // not news, so keep the chart that is already published.
+  // not news, so keep the chart that is already published. Check both the SVG
+  // and the JSON snapshot so neither can be rewound by a bad run.
+  let previousTotal = null;
+  let previousSnapshot = null;
   if (fs.existsSync(OUT.light)) {
     const previous = fs.readFileSync(OUT.light, 'utf8').match(/data-total="(\d+)"/);
-    if (previous && total < Number(previous[1])) {
-      console.log(
-        `Refusing to write: the API reports ${total} downloads but the chart already shows ${previous[1]}.`,
-      );
-      return;
+    if (previous) previousTotal = Number(previous[1]);
+  }
+  if (fs.existsSync(OUT.json)) {
+    try {
+      const snapshot = JSON.parse(fs.readFileSync(OUT.json, 'utf8'));
+      previousSnapshot = snapshot;
+      if (Number.isFinite(Number(snapshot.total))) {
+        previousTotal = Math.max(previousTotal ?? 0, Number(snapshot.total));
+      }
+    } catch {
+      // A corrupt snapshot should not block a fresh, valid render.
     }
+  }
+  if (previousTotal !== null && total < previousTotal) {
+    console.log(
+      `Refusing to write: the API reports ${total} downloads but the published data already shows ${previousTotal}.`,
+    );
+    return;
+  }
+
+  // Keep the deployed snapshot byte-identical when the numbers have not moved,
+  // so re-running the generator (locally or in CI) only dirties the tree when
+  // there is something new to publish.
+  let generatedAt = new Date().toISOString();
+  if (
+    previousSnapshot &&
+    previousSnapshot.repo === REPO &&
+    Number(previousSnapshot.total) === total &&
+    JSON.stringify(previousSnapshot.releases) === JSON.stringify(snapshotReleases(series))
+  ) {
+    generatedAt = previousSnapshot.generatedAt || generatedAt;
   }
 
   fs.mkdirSync(path.dirname(OUT.light), { recursive: true });
   fs.writeFileSync(OUT.light, render(series, 'light'), 'utf8');
   fs.writeFileSync(OUT.dark, render(series, 'dark'), 'utf8');
+  fs.writeFileSync(OUT.json, renderSnapshot(series, total, generatedAt), 'utf8');
   console.log(
-    `Wrote ${path.relative(ROOT, OUT.light)} and ${path.relative(ROOT, OUT.dark)}: ${formatCount(total)} downloads, ${series.length} releases.`,
+    `Wrote ${path.relative(ROOT, OUT.light)}, ${path.relative(ROOT, OUT.dark)} and ${path.relative(ROOT, OUT.json)}: ${formatCount(total)} downloads, ${series.length} releases.`,
   );
 }
 

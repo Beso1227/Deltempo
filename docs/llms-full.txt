@@ -271,5 +271,6 @@ Yes. An optional safety shield exempts any file created or modified within the l
 - Comparison (vs CCleaner, BleachBit, BCU): https://beso1227.github.io/Deltempo/compare/
 - Best free CCleaner alternatives: https://beso1227.github.io/Deltempo/alternatives/
 - Changelog: https://beso1227.github.io/Deltempo/changelog/
+- Live download statistics (GitHub Releases API, no visitor tracking): https://beso1227.github.io/Deltempo/downloads/
 - Issues: https://github.com/Beso1227/Deltempo/issues
 - Machine-readable catalog: https://beso1227.github.io/Deltempo/ai-catalog.json

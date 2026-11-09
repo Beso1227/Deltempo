@@ -31,10 +31,12 @@
   </p>
 
   <p>
-    <picture>
+    <a href="https://beso1227.github.io/Deltempo/downloads/"><picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://beso1227.github.io/Deltempo/downloads-chart-dark.svg">
       <img alt="Deltempo डाउनलोड: प्रत्येक GitHub रिलीज़ के बाद कुल संचयी" src="https://beso1227.github.io/Deltempo/downloads-chart-light.svg" width="100%">
-    </picture>
+    </picture></a>
+    <br>
+    <a href="https://beso1227.github.io/Deltempo/downloads/">लाइव, इंटरैक्टिव डाउनलोड चार्ट &rarr;</a>
   </p>
 
   <p>

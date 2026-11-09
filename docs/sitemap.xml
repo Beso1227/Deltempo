@@ -44,6 +44,14 @@
     </image:image>
   </url>
 
+  <!-- Live download statistics -->
+  <url>
+    <loc>https://beso1227.github.io/Deltempo/downloads/</loc>
+    <lastmod>2026-11-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.70</priority>
+  </url>
+
   <!-- Head-to-head comparison (search + answer-engine landing page) -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/compare/</loc>

@@ -5,6 +5,7 @@
 - [Official Website](https://beso1227.github.io/Deltempo/): Primary homepage, interactive simulator, and downloads
 - [GitHub Repository](https://github.com/Beso1227/Deltempo): Source code, issues, and community contributions
 - [Download](https://beso1227.github.io/Deltempo/download/): Standalone executable and one-line PowerShell install
+- [Download statistics](https://beso1227.github.io/Deltempo/downloads/): Live cumulative GitHub release download chart, per-release bars, and the full table
 - [Documentation](https://beso1227.github.io/Deltempo/docs/): Technical guide to 26+ scopes, safety tiers, and CLI commands
 - [FAQ](https://beso1227.github.io/Deltempo/faq/): Common questions on safety, GPU caches, NT memory, duplicate finder, and app uninstallation
 - [Comparison](https://beso1227.github.io/Deltempo/compare/): Head-to-head table vs CCleaner, BleachBit, and Bulk Crap Uninstaller

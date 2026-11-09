@@ -31,10 +31,12 @@
   </p>
 
   <p>
-    <picture>
+    <a href="https://beso1227.github.io/Deltempo/downloads/"><picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://beso1227.github.io/Deltempo/downloads-chart-dark.svg">
       <img alt="Deltempo 下载量：每个 GitHub 版本发布后的累计总数" src="https://beso1227.github.io/Deltempo/downloads-chart-light.svg" width="100%">
-    </picture>
+    </picture></a>
+    <br>
+    <a href="https://beso1227.github.io/Deltempo/downloads/">实时交互式下载图表 &rarr;</a>
   </p>
 
   <p>

@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "repo": "Beso1227/Deltempo",
+  "generatedAt": "2026-11-09T01:06:50.780Z",
+  "total": 427,
+  "releases": [
+    {
+      "tag": "v1.6.1",
+      "published": "2026-09-10T22:07:51Z",
+      "downloads": 7,
+      "cumulative": 7,
+      "assets": [
+        {
+          "name": "Deltempo.exe",
+          "downloads": 5
+        },
+        {
+          "name": "deltempo_cli.exe",
+          "downloads": 2
+        }
+      ]
+    },
+    {
+      "tag": "v1.6.5",
+      "published": "2026-09-11T23:28:31Z",
+      "downloads": 6,
+      "cumulative": 13,
+      "assets": [
+        {
+          "name": "Deltempo.exe",
+          "downloads": 3
+        },
+        {
+          "name": "deltempo_cli.exe",
+          "downloads": 3
+        }
+      ]
+    },
+    {
+      "tag": "v1.7.0",
+      "published": "2026-09-13T10:24:48Z",
+      "downloads": 4,
+      "cumulative": 17,
+      "assets": [
+        {
+          "name": "Deltempo.exe",
+          "downloads": 4
+        },
+        {
+          "name": "deltempo_cli.exe",
+          "downloads": 0
+        }
+      ]
+    },
+    {
+      "tag": "v1.8.0.1",
+      "published": "2026-09-24T18:21:05Z",
+      "downloads": 4,
+      "cumulative": 21,
+      "assets": [
+        {
+          "name": "Deltempo.exe",
+          "downloads": 4
+        },
+        {
+          "name": "deltempo_cli.exe",
+          "downloads": 0
+        }
+      ]
+    },
+    {
+      "tag": "2.0.0",
+      "published": "2026-09-25T20:57:27Z",
+      "downloads": 58,
+      "cumulative": 79,
+      "assets": [
+        {
+          "name": "Deltempo.exe",
+          "downloads": 57
+        },
+        {
+          "name": "deltempo_cli.exe",
+          "downloads": 1
+        }
+      ]
+    },
+    {
+      "tag": "v3.0.0",
+      "published": "2026-09-28T17:15:33Z",
+      "downloads": 40,
+      "cumulative": 119,
+      "assets": [
+        {
+          "name": "Deltempo.exe",
+          "downloads": 32
+        },
+        {
+          "name": "deltempo_cli.exe",
+          "downloads": 8
+        }
+      ]
+    },
+    {
+      "tag": "v3.1.0",
+      "published": "2026-10-10T23:28:34Z",
+      "downloads": 308,
+      "cumulative": 427,
+      "assets": [
+        {
+          "name": "checksums.sha256",
+          "downloads": 169
+        },
+        {
+          "name": "Deltempo-arm64.exe",
+          "downloads": 8
+        },
+        {
+          "name": "Deltempo.exe",
+          "downloads": 77
+        },
+        {
+          "name": "deltempo_cli-arm64.exe",
+          "downloads": 3
+        },
+        {
+          "name": "deltempo_cli.exe",
+          "downloads": 47
+        },
+        {
+          "name": "winget-manifests-3.1.0.zip",
+          "downloads": 4
+        }
+      ]
+    }
+  ]
+}

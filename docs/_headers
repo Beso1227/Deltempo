@@ -1,9 +1,12 @@
 # Security and cache headers for Cloudflare Pages / Netlify.
 # GitHub Pages cannot set response headers, so this file has no effect there.
 # The CSP in each page's <meta http-equiv> is the enforced policy on GitHub Pages.
+#
+# connect-src includes https://api.github.com for the live chart on /downloads/.
+# It is a single public API origin; no other page uses it.
 
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://beso1227.github.io; media-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://beso1227.github.io; media-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
