@@ -26,6 +26,7 @@ public static partial class DriveHealthService
     private const uint GenericRead = 0x80000000;
     private const uint FileShareRead = 0x00000001;
     private const uint OpenExisting = 3;
+    private const uint FileBegin = 0;
     private const uint FileFlagNoBuffering = 0x20000000;
     private const uint FileFlagSequentialScan = 0x08000000;
     private const uint CacheAlignment = 4096;
@@ -51,6 +52,14 @@ public static partial class DriveHealthService
         uint nNumberOfBytesToRead,
         out uint lpNumberOfBytesRead,
         IntPtr lpOverlapped);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetFilePointerEx(
+        SafeFileHandle hFile,
+        long liDistanceToMove,
+        out long lpNewFilePointer,
+        uint dwMoveMethod);
 
     /// <summary>
     /// Real sequential write + read benchmark on one drive.
@@ -273,6 +282,15 @@ public static partial class DriveHealthService
             for (int pass = 0; pass < options.ReadPasses; pass++)
             {
                 ct.ThrowIfCancellationRequested();
+
+                // Each pass is a fresh sequential read. Without this rewind the
+                // handle stays at EOF after pass one and the next pass reads zero
+                // bytes, which used to look like a truncated test file.
+                if (!SetFilePointerEx(handle, 0, out _, FileBegin))
+                {
+                    error = new Win32Exception(Marshal.GetLastWin32Error()).Message;
+                    return false;
+                }
 
                 long passBytes = 0;
                 var watch = Stopwatch.StartNew();

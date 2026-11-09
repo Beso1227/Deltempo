@@ -31,6 +31,13 @@ public class DriveBenchmarkServiceTests
             Assert.False(string.IsNullOrWhiteSpace(d.ModelName));
             Assert.False(string.IsNullOrWhiteSpace(d.VolumesLabel));
             Assert.Contains(d.HealthStatus, new[] { "Healthy", "Warning", "Unhealthy", "Unknown" });
+            Assert.False(string.IsNullOrWhiteSpace(d.HealthScoreBasis));
+
+            // Elevation only "helps" when the provider actually denied access.
+            if (d.ReliabilityCountersNeedElevation)
+            {
+                Assert.False(d.ReliabilityCountersAvailable);
+            }
 
             if (d.HealthScore.HasValue)
             {
@@ -77,6 +84,14 @@ public class DriveBenchmarkServiceTests
             Assert.Single(drives, d =>
                 d.VolumeLetters.Contains(letter, StringComparer.OrdinalIgnoreCase));
         }
+
+        // The 0-100 score never pretends to include wear it did not receive.
+        var verdictOnly = new DriveHealthInfo { HealthStatus = "Healthy", HealthScore = 100 };
+        Assert.Contains("verdict", verdictOnly.HealthScoreBasis, StringComparison.Ordinal);
+        Assert.Contains("wear is not reported", verdictOnly.HealthScoreBasis, StringComparison.Ordinal);
+        verdictOnly.WearPercent = 4;
+        verdictOnly.HealthScore = 96;
+        Assert.Contains("reported wear", verdictOnly.HealthScoreBasis, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -121,8 +136,12 @@ public class DriveBenchmarkServiceTests
         string pattern = "DeltempoSpeedTest_*.tmp";
         var before = Directory.GetFiles(root, pattern);
 
+        // Two read passes, the shipping default: the second pass must rewind the
+        // unbuffered handle instead of reading zero bytes at EOF.
+        var options = new DriveBenchmarkOptions(FileSizeBytes: 16L * 1024 * 1024, ReadPasses: 2);
+
         var result = await DriveHealthService.RunReadWriteBenchmarkAsync(
-            "C:", DriveBenchmarkOptions.Quick, CancellationToken.None);
+            "C:", options, CancellationToken.None);
 
         Assert.Equal("C:", result.DriveLetter);
         Assert.True(result.ElapsedMs >= 0);
@@ -131,14 +150,16 @@ public class DriveBenchmarkServiceTests
         {
             Assert.True(result.ReadSpeedMBs > 0, "a successful run must report a measured read speed");
             Assert.True(result.WriteSpeedMBs > 0, "a successful run must report a measured write speed");
-            Assert.True(result.ReadPasses >= 1);
-            Assert.Equal(DriveBenchmarkOptions.Quick.FileSizeBytes, result.TestSizeBytes);
+            Assert.Equal(2, result.ReadPasses);
+            Assert.Equal(options.FileSizeBytes, result.TestSizeBytes);
         }
         else
         {
             // A refusal is allowed (disk full, locked volume, virtual disk), but it
-            // must explain itself rather than report a made-up number.
+            // must explain itself rather than report a made-up number - and it must
+            // never be the truncated-file false positive the rewind bug produced.
             Assert.False(string.IsNullOrWhiteSpace(result.ErrorMessage));
+            Assert.DoesNotContain("fewer bytes", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
             Assert.Equal(0, result.ReadSpeedMBs);
         }
 

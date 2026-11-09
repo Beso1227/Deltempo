@@ -235,8 +235,8 @@ public sealed partial class CleanerWorkspaceView : UserControl
         {
             Text = "One row per physical device: a disk with C: and D: is a single row. "
                 + "Health, model, media type and serial come from the Windows Storage provider. "
-                + "Temperature, wear and power-on hours need elevation; they read 'Not reported' "
-                + "rather than a guess when unavailable.",
+                + "Temperature, wear and power-on hours are read from the device firmware when "
+                + "Windows exposes them; they read 'Not reported' rather than a guess when unavailable.",
             TextWrapping = TextWrapping.Wrap,
             Opacity = 0.75,
             FontSize = 12,
@@ -270,7 +270,12 @@ public sealed partial class CleanerWorkspaceView : UserControl
             row.Children.Add(new TextBlock
             {
                 Text = drive.Recommendation
-                    + (drive.ReliabilityCountersAvailable ? string.Empty : " Reliability counters need elevation."),
+                    + (drive.ReliabilityCountersNeedElevation
+                        ? " Reliability counters need elevation."
+                        : drive.ReliabilityCountersAvailable
+                            ? string.Empty
+                            : " This device does not expose reliability counters.")
+                    + " " + drive.HealthScoreBasis,
                 Opacity = 0.7,
                 FontSize = 12,
                 TextWrapping = TextWrapping.Wrap,

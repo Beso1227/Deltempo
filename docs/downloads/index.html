@@ -111,23 +111,7 @@
 
     .dl-hero {
       max-width: 780px;
-    }
-
-    .dl-eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 1.1rem;
-      padding: 0.4rem 0.8rem;
-      border: 1px solid var(--accent-cyan-border);
-      border-radius: var(--radius-pill);
-      background: var(--accent-cyan-bg);
-      color: var(--accent-cyan);
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
+      margin-bottom: 1.5rem;
     }
 
     .dl-hero .section-title {
@@ -150,74 +134,10 @@
       gap: 0.75rem 1rem;
     }
 
-    .dl-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.42rem 0.8rem;
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-pill);
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--text-med);
-      font-size: 0.78rem;
-      font-weight: 600;
-    }
-
-    .dl-dot {
-      width: 0.45rem;
-      height: 0.45rem;
-      border-radius: 50%;
-      background: var(--accent-cyan);
-      box-shadow: 0 0 0 4px var(--accent-cyan-bg);
-    }
-
-    .dl-status[data-state="live"] .dl-dot {
-      animation: dl-pulse 2.4s ease-in-out infinite;
-    }
-
-    .dl-status[data-state="checking"] .dl-dot {
-      animation: dl-pulse 1.1s ease-in-out infinite;
-    }
-
-    .dl-status[data-state="snapshot"] {
-      border-color: var(--accent-amber-border);
-      color: var(--accent-amber);
-    }
-
-    .dl-status[data-state="snapshot"] .dl-dot {
-      background: var(--accent-amber);
-      box-shadow: 0 0 0 4px var(--accent-amber-bg);
-    }
-
-    .dl-status[data-state="stale"] {
-      border-color: var(--accent-amber-border);
-      color: var(--accent-amber);
-    }
-
-    .dl-status[data-state="stale"] .dl-dot {
-      background: var(--accent-amber);
-      box-shadow: 0 0 0 4px var(--accent-amber-bg);
-    }
-
-    .dl-status[data-state="error"] {
-      border-color: rgba(248, 113, 113, 0.4);
-      color: #FCA5A5;
-    }
-
-    .dl-status[data-state="error"] .dl-dot {
-      background: #F87171;
-      box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.14);
-    }
-
     .dl-updated {
       color: var(--text-low);
       font-family: var(--font-mono);
       font-size: 0.74rem;
-    }
-
-    @keyframes dl-pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.55; transform: scale(0.82); }
     }
 
     .dl-refresh {
@@ -672,59 +592,6 @@
       text-align: right;
     }
 
-    .dl-methods {
-      margin: 4rem 0 2.5rem;
-    }
-
-    .dl-methods-heading {
-      margin: 0 0 1.5rem;
-      font-size: clamp(1.6rem, 3.4vw, 2.2rem);
-    }
-
-    .dl-method-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1rem;
-    }
-
-    .dl-method {
-      padding: 1.5rem 1.4rem;
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      background: linear-gradient(160deg, rgba(18, 26, 29, 0.7) 0%, rgba(12, 17, 19, 0.85) 100%);
-    }
-
-    .dl-method-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 2.1rem;
-      height: 2.1rem;
-      margin-bottom: 0.9rem;
-      border: 1px solid var(--accent-cyan-border);
-      border-radius: 50%;
-      background: var(--accent-cyan-bg);
-      color: var(--accent-cyan);
-    }
-
-    .dl-method-icon svg {
-      width: 1rem;
-      height: 1rem;
-    }
-
-    .dl-method h3 {
-      margin: 0 0 0.5rem;
-      font-size: 1.12rem;
-    }
-
-    .dl-method p {
-      margin: 0;
-      color: var(--text-med);
-      font-size: 0.82rem;
-      font-weight: 500;
-      line-height: 1.65;
-    }
-
     .dl-cta {
       display: flex;
       flex-wrap: wrap;
@@ -745,10 +612,6 @@
     @media (max-width: 900px) {
       .dl-stats {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .dl-method-grid {
-        grid-template-columns: 1fr;
       }
     }
 
@@ -790,8 +653,6 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .dl-status[data-state="live"] .dl-dot,
-      .dl-status[data-state="checking"] .dl-dot,
       .dl-refresh.is-loading svg {
         animation: none;
       }
@@ -808,9 +669,6 @@
   <svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
     <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></symbol>
-    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
-    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.7 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.5 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></symbol>
-    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></symbol>
     <symbol id="i-github" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></symbol>
     <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></symbol>
     <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5"/><path d="m6 11 6-6 6 6"/></symbol>
@@ -834,29 +692,15 @@
       </picture>
       <span>Deltempo</span>
     </a>
-    <div class="nav-actions">
-      <a href="../download/" class="btn-pill btn-pill-primary nav-download-btn" aria-label="Download Deltempo">
-        <span>Download</span>
-        <span class="btn-icon-bubble">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        </span>
-      </a>
-    </div>
   </header>
 
   <main id="main" class="container dl-main">
     <div class="section-header dl-hero reveal-on-scroll">
-      <span class="dl-eyebrow"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-activity"></use></svg> Public download counter</span>
       <h1 class="section-title">Every download, counted live</h1>
-      <p class="section-subtitle">A real download counter for a tool with zero telemetry. The numbers below are read from GitHub&rsquo;s public Releases API, so a download from this website, the README or GitHub itself all land in the same place.</p>
     </div>
 
     <div class="dl-toolbar reveal-on-scroll">
       <div class="dl-live">
-        <span class="dl-status" id="dlStatus" data-state="checking">
-          <span class="dl-dot" aria-hidden="true"></span>
-          <span id="dlStatusText">Connecting&hellip;</span>
-        </span>
         <span class="dl-updated" id="dlUpdated">Reading the public releases API&hellip;</span>
       </div>
       <button type="button" class="dl-refresh" id="dlRefresh" title="Check GitHub now">
@@ -958,27 +802,6 @@
             </table>
           </div>
         </details>
-      </div>
-    </section>
-
-    <section class="dl-methods reveal-on-scroll" aria-labelledby="dlMethodsHeading">
-      <h2 class="dl-methods-heading" id="dlMethodsHeading">How the number is made</h2>
-      <div class="dl-method-grid">
-        <article class="dl-method">
-          <span class="dl-method-icon" aria-hidden="true"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-shield"></use></svg></span>
-          <h3>Read, not tracked</h3>
-          <p>This page asks GitHub for public release counters. It sets no cookie, loads no analytics and sends nothing about you to Deltempo. The request goes from your browser to GitHub.</p>
-        </article>
-        <article class="dl-method">
-          <span class="dl-method-icon" aria-hidden="true"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-globe"></use></svg></span>
-          <h3>One counter for both paths</h3>
-          <p>Downloads from this website, from the README badges and from the GitHub Releases page all increment the same asset counters. There is no separate website tally to reconcile.</p>
-        </article>
-        <article class="dl-method">
-          <span class="dl-method-icon" aria-hidden="true"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-refresh"></use></svg></span>
-          <h3>Refreshed while you watch</h3>
-          <p>The tab re-checks every two minutes while it is visible. If GitHub rate-limits the request, the page falls back to the snapshot published with the site instead of showing an empty chart.</p>
-        </article>
       </div>
     </section>
 

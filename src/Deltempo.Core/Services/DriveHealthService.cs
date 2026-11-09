@@ -93,7 +93,25 @@ public sealed class DriveHealthInfo
     public long? PowerOnHours { get; set; }
     public long? ReadErrorsUncorrected { get; set; }
     public long? WriteErrorsUncorrected { get; set; }
+
+    /// <summary>True when the reliability class answered; false when it was denied or empty.</summary>
     public bool ReliabilityCountersAvailable { get; set; }
+
+    /// <summary>
+    /// True only when the provider refused the reliability class with access denied or
+    /// privilege not held - the case where running elevated would actually help.
+    /// </summary>
+    public bool ReliabilityCountersNeedElevation { get; set; }
+
+    /// <summary>
+    /// What the 0-100 score is actually based on, so a verdict-derived number is
+    /// never mistaken for a measured wear percentage.
+    /// </summary>
+    public string HealthScoreBasis => !HealthScore.HasValue
+        ? "Windows gave no health verdict."
+        : WearPercent.HasValue
+            ? "Score uses Windows' health verdict plus reported wear."
+            : "Score is Windows' health verdict; wear is not reported.";
 
     public string MediaType => MediaKind switch
     {
@@ -162,8 +180,10 @@ public sealed class DriveBenchmarkResult
     public int ReadPasses { get; set; }
     public long ElapsedMs { get; set; }
 
-    public string FormattedReadSpeed => Success && ReadSpeedMBs > 0 ? $"{ReadSpeedMBs:F0} MB/s" : "Unavailable";
-    public string FormattedWriteSpeed => Success && WriteSpeedMBs > 0 ? $"{WriteSpeedMBs:F0} MB/s" : "Unavailable";
+    // A measured leg is reported even when the other one failed: a run that wrote
+    // the file but could not read it back still has an honest write number.
+    public string FormattedReadSpeed => ReadSpeedMBs > 0 ? $"{ReadSpeedMBs:F0} MB/s" : "Unavailable";
+    public string FormattedWriteSpeed => WriteSpeedMBs > 0 ? $"{WriteSpeedMBs:F0} MB/s" : "Unavailable";
     public string FormattedTestSize => TestSizeBytes > 0 ? TargetFolderInfo.FormatBytes(TestSizeBytes) : "-";
 }
 
@@ -408,6 +428,7 @@ public static partial class DriveHealthService
         public long? ReadErrorsUncorrected { get; init; }
         public long? WriteErrorsUncorrected { get; init; }
         public bool ReliabilityAvailable { get; init; }
+        public bool ReliabilityAccessDenied { get; init; }
     }
 
     private static Dictionary<uint, List<string>> QueryPartitionLetters()
@@ -455,7 +476,7 @@ public static partial class DriveHealthService
     private static Dictionary<uint, DiskRecord> QueryDisks()
     {
         var mediaByDisk = QueryPhysicalMedia();
-        var reliabilityByDisk = QueryReliabilityCounters();
+        var reliabilityByDisk = QueryReliabilityCounters(out bool reliabilityAccessDenied);
         var disks = new Dictionary<uint, DiskRecord>();
 
         try
@@ -490,7 +511,8 @@ public static partial class DriveHealthService
                         PowerOnHours = reliability?.PowerOnHours,
                         ReadErrorsUncorrected = reliability?.ReadErrorsUncorrected,
                         WriteErrorsUncorrected = reliability?.WriteErrorsUncorrected,
-                        ReliabilityAvailable = reliability is not null
+                        ReliabilityAvailable = reliability is not null,
+                        ReliabilityAccessDenied = reliabilityAccessDenied
                     };
                 }
             }
@@ -542,14 +564,16 @@ public static partial class DriveHealthService
         public long? WriteErrorsUncorrected { get; init; }
     }
 
-    private static Dictionary<uint, ReliabilityRecord> QueryReliabilityCounters()
+    private static Dictionary<uint, ReliabilityRecord> QueryReliabilityCounters(out bool accessDenied)
     {
         var counters = new Dictionary<uint, ReliabilityRecord>();
+        accessDenied = false;
         try
         {
             // Standard users get "Access to a CIM resource was not available" here;
-            // the catch below keeps the row honest (fields stay null) instead of
-            // guessing temperature or wear.
+            // the catches below keep the row honest (fields stay null) instead of
+            // guessing temperature or wear, and only an actual access denial is
+            // reported as something elevation would fix.
             using var searcher = new ManagementObjectSearcher(
                 StorageNamespace,
                 "SELECT DeviceId, Temperature, Wear, PowerOnHours, " +
@@ -573,6 +597,15 @@ public static partial class DriveHealthService
                 }
             }
         }
+        catch (ManagementException ex) when (
+            ex.ErrorCode is ManagementStatus.AccessDenied or ManagementStatus.PrivilegeNotHeld)
+        {
+            accessDenied = true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            accessDenied = true;
+        }
         catch (Exception)
         {
         }
@@ -590,6 +623,7 @@ public static partial class DriveHealthService
         info.BusType = BusName(disk.BusType);
         info.IsSystemDrive = disk.IsSystem;
         info.ReliabilityCountersAvailable = disk.ReliabilityAvailable;
+        info.ReliabilityCountersNeedElevation = disk.ReliabilityAccessDenied;
         info.TemperatureCelsius = disk.TemperatureCelsius;
         info.WearPercent = disk.WearPercent;
         info.PowerOnHours = disk.PowerOnHours;

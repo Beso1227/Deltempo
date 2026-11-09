@@ -237,10 +237,16 @@ public partial class DrivesModal : UserControl
         }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
         string detail = drive.Recommendation;
-        if (!drive.ReliabilityCountersAvailable)
+        if (drive.ReliabilityCountersNeedElevation)
         {
             detail += " Reliability counters need elevation.";
         }
+        else if (!drive.ReliabilityCountersAvailable)
+        {
+            detail += " This device does not expose reliability counters.";
+        }
+
+        detail += " " + drive.HealthScoreBasis;
 
         return new DriveRow(
             drive.DisplayName,
@@ -260,7 +266,7 @@ public partial class DrivesModal : UserControl
             : result.MediaType;
 
         string detail = result.Success
-            ? $"Read is the best of {result.ReadPasses} unbuffered pass{(result.ReadPasses == 1 ? string.Empty : "es")}; the file is deleted afterwards."
+            ? $"Write-through, flushed to disk; read unbuffered (cache bypassed), best of {result.ReadPasses} pass{(result.ReadPasses == 1 ? string.Empty : "es")}; the file is deleted afterwards."
             : result.ErrorMessage ?? "This device could not be tested.";
 
         return new DriveSpeedRow(
