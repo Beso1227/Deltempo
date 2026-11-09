@@ -47,7 +47,7 @@
                                            FontWeight="Bold"
                                            Foreground="{DynamicResource TextHighBrush}"/>
                                 <TextBlock x:Name="SubtitleText"
-                                           Text="Every drive connected to this device"
+                                           Text="Every storage device connected to this PC"
                                            FontSize="11.5"
                                            Foreground="{DynamicResource TextMediumBrush}"/>
                             </StackPanel>
@@ -70,13 +70,13 @@
                             Margin="0,0,0,10">
                         <StackPanel>
                             <TextBlock x:Name="SummaryText"
-                                       Text="Reading drive health from the Windows Storage provider..."
+                                       Text="Reading storage device health from the Windows Storage provider..."
                                        FontSize="12.5"
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource TextHighBrush}"
                                        TextWrapping="Wrap"/>
                             <TextBlock x:Name="SourceNoteText"
-                                       Text="Health, model, media type and serial come from MSFT_Disk / MSFT_PhysicalDisk. Temperature, wear and power-on hours come from MSFT_StorageReliabilityCounter, which Windows only exposes to an elevated process - they read 'Not reported' rather than a guess when unavailable. The speed test writes one temporary file per drive, reads it back with unbuffered I/O and deletes it."
+                                       Text="One row is one physical device: a disk with C: and D: is a single row, labelled with both letters. Health, model, media type and serial come from MSFT_Disk / MSFT_PhysicalDisk. Temperature, wear and power-on hours come from MSFT_StorageReliabilityCounter, which Windows only exposes to an elevated process - they read 'Not reported' rather than a guess when unavailable. The speed test writes one temporary file per device, reads it back with unbuffered I/O and deletes it."
                                        FontSize="10.5"
                                        TextWrapping="Wrap"
                                        Foreground="{DynamicResource TextMutedBrush}"

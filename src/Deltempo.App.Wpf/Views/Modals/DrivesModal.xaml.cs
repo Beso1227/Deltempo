@@ -13,16 +13,19 @@ using WinTempCleaner.Services;
 namespace WinTempCleaner.Views.Modals;
 
 /// <summary>
-/// READ-ONLY report for every drive connected to this machine.
+/// READ-ONLY report for every storage device connected to this machine.
+///
+/// One row is one physical device (SSD, HDD, USB stick, SD card), not one volume:
+/// a disk split into C: and D: is a single row labelled with both letters.
 ///
 /// Two modes share one surface:
 ///   * Health - what Windows can prove about each physical disk (model, media,
 ///     bus, HealthStatus, and the reliability counters when the provider allows).
-///   * Speed Test - a real sequential write plus unbuffered read on every drive,
-///     one at a time.
+///   * Speed Test - a real sequential write plus unbuffered read on every device,
+///     one at a time, through its roomiest volume.
 ///
 /// Nothing here deletes anything. The speed test writes one temporary file per
-/// drive, reads it back with FILE_FLAG_NO_BUFFERING and always removes it again.
+/// device, reads it back with FILE_FLAG_NO_BUFFERING and always removes it again.
 /// When the provider denies a fact (temperature, wear) the row says "Not
 /// reported" instead of inventing a number.
 /// </summary>
@@ -97,16 +100,16 @@ public partial class DrivesModal : UserControl
 
         TitleText.Text = speed ? "Drive Speed Test" : "Drives Health";
         SubtitleText.Text = speed
-            ? "Real sequential write + read on every connected drive"
-            : "Every drive connected to this device";
+            ? "Real sequential write + read on every storage device"
+            : "Every storage device connected to this PC";
 
         HealthScroll.Visibility = speed ? Visibility.Collapsed : Visibility.Visible;
         SpeedScroll.Visibility = speed ? Visibility.Visible : Visibility.Collapsed;
 
         SummaryText.Text = speed
-            ? "Every drive is tested one at a time with a temporary file, so one drive's I/O cannot distort another's result."
+            ? "Every storage device is tested once, one at a time, with a temporary file, so one device's I/O cannot distort another's result."
             : string.IsNullOrEmpty(SummaryText.Text) || SummaryText.Text.StartsWith("Reading", StringComparison.Ordinal)
-                ? "Reading drive health from the Windows Storage provider..."
+                ? "Reading storage device health from the Windows Storage provider..."
                 : SummaryText.Text;
 
         ActionBtn.Content = speed ? "Re-run Speed Test" : "Run Speed Test";
@@ -133,21 +136,21 @@ public partial class DrivesModal : UserControl
 
             if (drives.Count == 0)
             {
-                SummaryText.Text = "No fixed or removable drives were found.";
+                SummaryText.Text = "No storage devices were found.";
                 return;
             }
 
             int unknown = drives.Count(d => !d.HealthScore.HasValue);
             SummaryText.Text = unknown == 0
-                ? $"{drives.Count} drive{(drives.Count == 1 ? string.Empty : "s")} reported by Windows Storage"
-                : $"{drives.Count} drive{(drives.Count == 1 ? string.Empty : "s")} found, {unknown} without a health verdict";
+                ? $"{drives.Count} storage device{(drives.Count == 1 ? string.Empty : "s")} reported by Windows Storage"
+                : $"{drives.Count} storage device{(drives.Count == 1 ? string.Empty : "s")} found, {unknown} without a health verdict";
 
             foreach (var drive in drives)
             {
                 if (drive.HealthStatus is "Warning" or "Unhealthy")
                 {
                     LogRequested?.Invoke(
-                        $"[Drive Health] {drive.DriveLetter} ({drive.ModelName}) reports {drive.HealthStatus}.",
+                        $"[Drive Health] {drive.DisplayName} reports {drive.HealthStatus}.",
                         LogLevel.Warning);
                 }
             }
@@ -174,7 +177,7 @@ public partial class DrivesModal : UserControl
         var ct = _benchmarkCts.Token;
 
         _speedRows.Clear();
-        StatusText.Text = "Testing every drive, one at a time...";
+        StatusText.Text = "Testing every storage device, one at a time...";
         ActionBtn.Content = "Cancel";
         ActionBtn.IsEnabled = true;
 
@@ -185,20 +188,20 @@ public partial class DrivesModal : UserControl
                 onDriveCompleted: result => Dispatcher.Invoke(() =>
                 {
                     _speedRows.Add(BuildSpeedRow(result));
-                    StatusText.Text = $"Measured {_speedRows.Count} drive{(_speedRows.Count == 1 ? string.Empty : "s")}...";
+                    StatusText.Text = $"Measured {_speedRows.Count} storage device{(_speedRows.Count == 1 ? string.Empty : "s")}...";
 
                     LogRequested?.Invoke(
                         result.Success
-                            ? $"[Drive Speed] {result.DriveLetter} ({result.MediaType}): read {result.FormattedReadSpeed}, write {result.FormattedWriteSpeed} over {result.FormattedTestSize}."
-                            : $"[Drive Speed] {result.DriveLetter} could not be tested: {result.ErrorMessage}",
+                            ? $"[Drive Speed] {result.DriveName} ({result.MediaType}): read {result.FormattedReadSpeed}, write {result.FormattedWriteSpeed} on {result.DriveLetter} over {result.FormattedTestSize}."
+                            : $"[Drive Speed] {result.DriveName} could not be tested: {result.ErrorMessage}",
                         result.Success ? LogLevel.Info : LogLevel.Warning);
                 }),
                 ct: ct);
 
             int ok = results.Count(r => r.Success);
             StatusText.Text = results.Count == 0
-                ? "No drivable volumes were found."
-                : $"Completed: {ok}/{results.Count} drives measured.";
+                ? "No storage devices were found."
+                : $"Completed: {ok}/{results.Count} storage devices measured.";
 
             if (ok > 0 && ok == results.Count)
             {
@@ -253,12 +256,12 @@ public partial class DrivesModal : UserControl
     private static DriveSpeedRow BuildSpeedRow(DriveBenchmarkResult result)
     {
         string subtitle = result.Success
-            ? $"{result.MediaType}  ·  {result.FormattedTestSize} test file  ·  {result.ElapsedMs:N0} ms"
+            ? $"{result.MediaType}  ·  {result.FormattedTestSize} test file  ·  tested on {result.DriveLetter}  ·  {result.ElapsedMs:N0} ms"
             : result.MediaType;
 
         string detail = result.Success
             ? $"Read is the best of {result.ReadPasses} unbuffered pass{(result.ReadPasses == 1 ? string.Empty : "es")}; the file is deleted afterwards."
-            : result.ErrorMessage ?? "This drive could not be tested.";
+            : result.ErrorMessage ?? "This device could not be tested.";
 
         return new DriveSpeedRow(
             result.DriveName,

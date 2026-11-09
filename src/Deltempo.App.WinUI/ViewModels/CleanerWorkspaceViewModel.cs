@@ -656,10 +656,11 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Real sequential write + read benchmark across every connected fixed/removable
-    /// drive. Deletes nothing; it writes one temporary file per drive, reads it with
-    /// unbuffered I/O so the number is the drive and not the page cache, and removes
-    /// it again. Returns the rows the view renders in its report dialog.
+    /// Real sequential write + read benchmark across every connected storage device,
+    /// one row per physical disk. Deletes nothing; it writes one temporary file per
+    /// device (through the volume with the most free space), reads it with unbuffered
+    /// I/O so the number is the device and not the page cache, and removes it again.
+    /// Returns the rows the view renders in its report dialog.
     /// </summary>
     public async Task<IReadOnlyList<DriveBenchmarkResult>> RunDriveBenchmarkAsync()
     {
@@ -668,7 +669,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
         IsBenchmarking = true;
         BenchmarkText = "Testing...";
         LogRequested?.Invoke(
-            "[Storage Benchmark] Measuring sequential write + unbuffered read on every connected drive...",
+            "[Storage Benchmark] Measuring sequential write + unbuffered read on every connected storage device...",
             WinTempCleaner.Models.LogLevel.Info);
 
         try
@@ -677,8 +678,8 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
                 options: null,
                 onDriveCompleted: r => LogRequested?.Invoke(
                     r.Success
-                        ? $"[Storage Benchmark] {r.DriveLetter} ({r.MediaType}): read {r.FormattedReadSpeed}, write {r.FormattedWriteSpeed}."
-                        : $"[Storage Benchmark] {r.DriveLetter} could not be tested: {r.ErrorMessage}",
+                        ? $"[Storage Benchmark] {r.DriveName} ({r.MediaType}, tested on {r.DriveLetter}): read {r.FormattedReadSpeed}, write {r.FormattedWriteSpeed}."
+                        : $"[Storage Benchmark] {r.DriveName} could not be tested: {r.ErrorMessage}",
                     r.Success ? WinTempCleaner.Models.LogLevel.Info : WinTempCleaner.Models.LogLevel.Warning),
                 ct: CancellationToken.None);
 
@@ -686,7 +687,7 @@ public sealed partial class CleanerWorkspaceViewModel : ObservableObject
             BenchmarkText = allSucceeded ? LocalizationService.Get("DriveSpeedTest") : "Retry";
 
             LogRequested?.Invoke(
-                $"[Storage Benchmark] Complete: {results.Count(r => r.Success)}/{results.Count} drives measured.",
+                $"[Storage Benchmark] Complete: {results.Count(r => r.Success)}/{results.Count} storage devices measured.",
                 allSucceeded ? WinTempCleaner.Models.LogLevel.Success : WinTempCleaner.Models.LogLevel.Warning);
 
             if (allSucceeded)

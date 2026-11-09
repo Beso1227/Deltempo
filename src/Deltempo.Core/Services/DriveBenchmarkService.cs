@@ -73,8 +73,11 @@ public static partial class DriveHealthService
     }
 
     /// <summary>
-    /// Benchmarks every ready fixed/removable volume, one at a time (concurrent
-    /// tests would measure each other's I/O and report nonsense).
+    /// Benchmarks every physical storage device once, one at a time (concurrent
+    /// tests would measure each other's I/O and report nonsense). A device with
+    /// several volumes is tested through its roomiest volume; a device with no
+    /// mounted volume reports that there is nowhere to write instead of being
+    /// silently skipped.
     /// </summary>
     public static async Task<IReadOnlyList<DriveBenchmarkResult>> RunBenchmarkForAllDrivesAsync(
         DriveBenchmarkOptions? options = null,
@@ -86,10 +89,28 @@ public static partial class DriveHealthService
         {
             ct.ThrowIfCancellationRequested();
 
-            var result = await RunReadWriteBenchmarkAsync(drive.DriveLetter, options, ct)
-                .ConfigureAwait(false);
-            result.DriveName = drive.DisplayName;
-            result.MediaType = drive.MediaType;
+            DriveBenchmarkResult result;
+            if (!drive.HasMountedVolume || string.IsNullOrWhiteSpace(drive.DriveLetter))
+            {
+                result = new DriveBenchmarkResult
+                {
+                    DriveLetter = string.Empty,
+                    DriveName = drive.DisplayName,
+                    MediaType = drive.MediaType,
+                    DiskNumber = drive.DiskNumber,
+                    Success = false,
+                    ErrorMessage = "This device has no mounted volume, so there is nowhere to write the test file."
+                };
+            }
+            else
+            {
+                result = await RunReadWriteBenchmarkAsync(drive.DriveLetter, options, ct)
+                    .ConfigureAwait(false);
+                result.DriveName = drive.DisplayName;
+                result.MediaType = drive.MediaType;
+                result.DiskNumber = drive.DiskNumber;
+            }
+
             results.Add(result);
             onDriveCompleted?.Invoke(result);
         }

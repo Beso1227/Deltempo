@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -10,25 +11,25 @@ namespace Deltempo.Tests;
 
 /// <summary>
 /// Covers the honest-data contract of the drive report:
-///   * every connected volume is listed, and a fact Windows refuses to give is
-///     left null instead of being invented;
+///   * every physical storage device is listed once, with its volume letters, and
+///     a fact Windows refuses to give is left null instead of being invented;
 ///   * the speed test reports measured numbers, or an explicit failure - never a
-///     fabricated floor;
+///     fabricated floor - and tests each device once, not once per volume;
 ///   * the temporary test file does not survive, on any path.
 /// </summary>
 public class DriveBenchmarkServiceTests
 {
     [Fact]
-    public void GetAllDriveHealth_ReturnsConnectedDrives_WithoutFabricatedCounters()
+    public void GetAllDriveHealth_ReturnsOneRowPerPhysicalDevice_WithoutFabricatedCounters()
     {
         var drives = DriveHealthService.GetAllDriveHealth();
 
         Assert.NotEmpty(drives);
         Assert.All(drives, d =>
         {
-            Assert.False(string.IsNullOrWhiteSpace(d.DriveLetter));
-            Assert.Matches(@"^[A-Za-z]:$", d.DriveLetter);
+            Assert.False(string.IsNullOrWhiteSpace(d.DisplayName));
             Assert.False(string.IsNullOrWhiteSpace(d.ModelName));
+            Assert.False(string.IsNullOrWhiteSpace(d.VolumesLabel));
             Assert.Contains(d.HealthStatus, new[] { "Healthy", "Warning", "Unhealthy", "Unknown" });
 
             if (d.HealthScore.HasValue)
@@ -44,24 +45,56 @@ public class DriveBenchmarkServiceTests
                 Assert.Null(d.WearPercent);
                 Assert.Null(d.PowerOnHours);
             }
+
+            if (d.HasMountedVolume)
+            {
+                Assert.NotEmpty(d.VolumeLetters);
+                Assert.All(d.VolumeLetters, letter => Assert.Matches(@"^[A-Za-z]:$", letter));
+                Assert.Contains(d.DriveLetter, d.VolumeLetters);
+            }
+            else
+            {
+                Assert.Empty(d.VolumeLetters);
+                Assert.Equal(string.Empty, d.DriveLetter);
+                Assert.Equal("No mounted volume", d.FormattedFreeSpace);
+            }
         });
 
-        // The OS drive is always present and is sorted first.
-        Assert.Contains(drives, d => d.IsSystemDrive || d.DriveLetter == "C:");
+        // The OS device is always present and is sorted first.
+        Assert.Contains(drives, d => d.IsSystemDrive);
+        Assert.True(drives[0].IsSystemDrive);
+
+        // A disk number never appears twice: two volumes on one SSD are one row.
+        var diskNumbers = drives
+            .Where(d => d.DiskNumber.HasValue)
+            .Select(d => d.DiskNumber!.Value)
+            .ToList();
+        Assert.Equal(diskNumbers.Count, diskNumbers.Distinct().Count());
+
+        // Every ready fixed/removable volume belongs to exactly one device row.
+        foreach (string letter in ReadyVolumeLetters())
+        {
+            Assert.Single(drives, d =>
+                d.VolumeLetters.Contains(letter, StringComparer.OrdinalIgnoreCase));
+        }
     }
 
     [Fact]
-    public void GetDriveHealthSnapshot_SystemDrive_AgreesWithTheFullReport()
+    public void GetDriveHealthSnapshot_VolumeOnADisk_ReturnsThatDevicesRow()
     {
+        string letter = ReadyVolumeLetters().First();
         var all = DriveHealthService.GetAllDriveHealth();
-        var system = all.FirstOrDefault(d => d.IsSystemDrive) ?? all[0];
+        var owner = all.Single(d =>
+            d.VolumeLetters.Contains(letter, StringComparer.OrdinalIgnoreCase));
 
-        var snapshot = DriveHealthService.GetDriveHealthSnapshot(system.DriveLetter);
+        var snapshot = DriveHealthService.GetDriveHealthSnapshot(letter);
 
-        Assert.Equal(system.DriveLetter, snapshot.DriveLetter);
-        Assert.Equal(system.HealthStatus, snapshot.HealthStatus);
-        Assert.Equal(system.HealthScore, snapshot.HealthScore);
-        Assert.Equal(system.TotalBytes, snapshot.TotalBytes);
+        Assert.Equal(owner.DiskNumber, snapshot.DiskNumber);
+        Assert.Equal(owner.DisplayName, snapshot.DisplayName);
+        Assert.Equal(owner.HealthStatus, snapshot.HealthStatus);
+        Assert.Equal(owner.HealthScore, snapshot.HealthScore);
+        Assert.Equal(owner.TotalBytes, snapshot.TotalBytes);
+        Assert.Contains(letter, snapshot.VolumeLetters);
     }
 
     [Fact]
@@ -137,14 +170,51 @@ public class DriveBenchmarkServiceTests
     }
 
     [Fact]
-    public async Task RunBenchmarkForAllDrives_ReportsOneRowPerConnectedDrive()
+    public async Task RunBenchmarkForAllDrives_ReportsOneRowPerPhysicalDevice()
     {
-        var expected = DriveHealthService.GetAllDriveHealth().Count;
+        var devices = DriveHealthService.GetAllDriveHealth();
 
         var results = await DriveHealthService.RunBenchmarkForAllDrivesAsync(
             DriveBenchmarkOptions.Quick, ct: CancellationToken.None);
 
-        Assert.Equal(expected, results.Count);
+        Assert.Equal(devices.Count, results.Count);
+        Assert.Equal(
+            devices.Select(d => d.DiskNumber).ToList(),
+            results.Select(r => r.DiskNumber).ToList());
         Assert.All(results, r => Assert.False(string.IsNullOrWhiteSpace(r.DriveName)));
+
+        foreach (var (device, result) in devices.Zip(results))
+        {
+            if (device.HasMountedVolume)
+            {
+                // Tested once, through the volume the report chose for that device.
+                Assert.Equal(device.DriveLetter, result.DriveLetter);
+                Assert.Equal(device.DisplayName, result.DriveName);
+            }
+            else
+            {
+                Assert.False(result.Success);
+                Assert.False(string.IsNullOrWhiteSpace(result.ErrorMessage));
+            }
+        }
+    }
+
+    private static List<string> ReadyVolumeLetters()
+    {
+        var letters = new List<string>();
+        foreach (var volume in DriveInfo.GetDrives())
+        {
+            try
+            {
+                if (!volume.IsReady) continue;
+                if (volume.DriveType is not (DriveType.Fixed or DriveType.Removable)) continue;
+                letters.Add(volume.Name.TrimEnd('\\'));
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        return letters;
     }
 }

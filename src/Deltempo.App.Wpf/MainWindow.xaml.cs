@@ -695,11 +695,11 @@ public partial class MainWindow : Window
             DrivesHealthBtnText.Text = LocalizationService.Get("DrivesHealth");
             DrivesHealthBtn.ToolTip = drives.Count switch
             {
-                0 => "No fixed or removable drives were found.",
+                0 => "No storage devices were found.",
                 1 => $"{drives[0].DisplayName}: {drives[0].HealthStatus}",
                 _ => worst is null
-                    ? $"{drives.Count} drives connected. Windows reported no health verdict."
-                    : $"{drives.Count} drives connected. Worst: {worst.DisplayName} - {worst.HealthStatus}"
+                    ? $"{drives.Count} storage devices connected. Windows reported no health verdict."
+                    : $"{drives.Count} storage devices connected. Worst: {worst.DisplayName} - {worst.HealthStatus}"
             };
 
             if (new BrushConverter().ConvertFromString(worst?.HealthColor ?? "#94A3B8") is Brush healthBrush)

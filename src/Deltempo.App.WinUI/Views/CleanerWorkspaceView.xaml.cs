@@ -144,8 +144,9 @@ public sealed partial class CleanerWorkspaceView : UserControl
     }
 
     /// <summary>
-    /// Read-only health report for every drive connected to the device. Rows come
-    /// from DriveHealthService (Windows Storage WMI); nothing is written.
+    /// Read-only health report for every storage device connected to the PC, one row
+    /// per physical disk (its volume letters are shown on the row). Rows come from
+    /// DriveHealthService (Windows Storage WMI); nothing is written.
     /// </summary>
     private async void OnDrivesHealthClick(object sender, RoutedEventArgs e)
     {
@@ -156,7 +157,7 @@ public sealed partial class CleanerWorkspaceView : UserControl
         {
             var drives = await Task.Run(DriveHealthService.GetAllDriveHealth);
             ViewModel.Log(
-                $"[Drive Health] Opened the report for {drives.Count} drive(s) (read only).",
+                $"[Drive Health] Opened the report for {drives.Count} storage device(s) (read only).",
                 LogLevel.Info);
 
             await ShowDriveReportAsync("Drives Health", BuildHealthBody(drives));
@@ -168,9 +169,10 @@ public sealed partial class CleanerWorkspaceView : UserControl
     }
 
     /// <summary>
-    /// Real sequential write + unbuffered read on every drive, then a report of the
-    /// measured numbers. The ViewModel serializes runs through IsBenchmarking; the
-    /// button is also disabled for the duration.
+    /// Real sequential write + unbuffered read on every storage device (each device
+    /// once, through its roomiest volume), then a report of the measured numbers.
+    /// The ViewModel serializes runs through IsBenchmarking; the button is also
+    /// disabled for the duration.
     /// </summary>
     private async void OnSpeedTestClick(object sender, RoutedEventArgs e)
     {
@@ -223,7 +225,7 @@ public sealed partial class CleanerWorkspaceView : UserControl
         {
             panel.Children.Add(new TextBlock
             {
-                Text = "No fixed or removable drives were found.",
+                Text = "No storage devices were found.",
                 TextWrapping = TextWrapping.Wrap,
             });
             return panel;
@@ -231,7 +233,8 @@ public sealed partial class CleanerWorkspaceView : UserControl
 
         panel.Children.Add(new TextBlock
         {
-            Text = "Health, model, media type and serial come from the Windows Storage provider. "
+            Text = "One row per physical device: a disk with C: and D: is a single row. "
+                + "Health, model, media type and serial come from the Windows Storage provider. "
                 + "Temperature, wear and power-on hours need elevation; they read 'Not reported' "
                 + "rather than a guess when unavailable.",
             TextWrapping = TextWrapping.Wrap,
@@ -283,7 +286,7 @@ public sealed partial class CleanerWorkspaceView : UserControl
         var panel = new StackPanel { Spacing = 10 };
         panel.Children.Add(new TextBlock
         {
-            Text = "Each drive is tested one at a time: a temporary file is written with "
+            Text = "Each storage device is tested once, one at a time: a temporary file is written with "
                 + "write-through, read back with unbuffered I/O, then deleted.",
             TextWrapping = TextWrapping.Wrap,
             Opacity = 0.75,
@@ -304,9 +307,9 @@ public sealed partial class CleanerWorkspaceView : UserControl
             row.Children.Add(new TextBlock
             {
                 Text = result.Success
-                    ? $"{result.MediaType} · {result.FormattedTestSize} test file · "
+                    ? $"{result.MediaType} · {result.FormattedTestSize} test file · tested on {result.DriveLetter} · "
                       + $"{result.ReadPasses} read pass(es) · {result.ElapsedMs:N0} ms"
-                    : result.ErrorMessage ?? "This drive could not be tested.",
+                    : result.ErrorMessage ?? "This device could not be tested.",
                 Opacity = 0.8,
                 FontSize = 12,
                 TextWrapping = TextWrapping.Wrap,

@@ -23,27 +23,46 @@ public enum DriveReportMode
 }
 
 /// <summary>
-/// One connected volume and the health facts Windows can prove about the physical
-/// disk behind it.
+/// One physical storage device (SSD, HDD, USB stick, SD card) and the health facts
+/// Windows can prove about it. Volumes such as C: and D: are properties of the
+/// device, not separate rows: two volumes on one SSD are one device.
 ///
 /// Data sources, in order of trust:
 /// 1. <c>MSFT_Disk</c> / <c>MSFT_PhysicalDisk</c> (root\Microsoft\Windows\Storage):
-///    model, serial, bus, media type and <c>HealthStatus</c>. Health status is
-///    available to a standard user.
-/// 2. <c>MSFT_StorageReliabilityCounter</c>: temperature, wear, power-on hours and
+///    model, serial, bus, media type, capacity and <c>HealthStatus</c>. Health
+///    status is available to a standard user.
+/// 2. <c>MSFT_Partition</c>: which volume letters live on which disk number.
+/// 3. <c>MSFT_StorageReliabilityCounter</c>: temperature, wear, power-on hours and
 ///    uncorrected error counters. The provider denies this class to a standard user,
 ///    so <see cref="ReliabilityCountersAvailable"/> is false there and the affinity
 ///    fields stay null rather than being invented.
-/// 3. <see cref="DriveInfo"/>: capacity and free space, always.
+/// 4. <see cref="DriveInfo"/>: per-volume free space, always.
 ///
-/// When the disk cannot be matched to the volume (Storage Spaces, some virtual
-/// disks) the volume is still listed with <see cref="HealthStatus"/> "Unknown"
-/// instead of a fabricated 100 %.
+/// When the storage provider is unavailable the row degrades to a volume-only
+/// fallback with <see cref="HealthStatus"/> "Unknown" instead of a fabricated 100 %.
 /// </summary>
 public sealed class DriveHealthInfo
 {
-    public string DriveLetter { get; set; } = "C:";
-    public string DisplayName { get; set; } = "C:";
+    /// <summary><c>MSFT_Disk.Number</c>; null when the row is a volume-only fallback.</summary>
+    public uint? DiskNumber { get; set; }
+
+    /// <summary>
+    /// The mounted volume the speed test writes to (the one with the most free
+    /// space). Empty when the device has no mounted volume at all.
+    /// </summary>
+    public string DriveLetter { get; set; } = string.Empty;
+
+    /// <summary>Every mounted volume letter on this device, e.g. ["C:", "D:"].</summary>
+    public List<string> VolumeLetters { get; } = new();
+
+    /// <summary>"C:, D:" or "No mounted volume" - for display next to the model.</summary>
+    public string VolumesLabel => VolumeLetters.Count == 0
+        ? "No mounted volume"
+        : string.Join(", ", VolumeLetters);
+
+    public bool HasMountedVolume => VolumeLetters.Count > 0;
+
+    public string DisplayName { get; set; } = "Unknown drive";
     public string ModelName { get; set; } = "Unknown drive";
     public string Manufacturer { get; set; } = string.Empty;
     public string SerialNumber { get; set; } = string.Empty;
@@ -86,9 +105,11 @@ public sealed class DriveHealthInfo
 
     public string FormattedCapacity => TotalBytes > 0 ? TargetFolderInfo.FormatBytes(TotalBytes) : "Unavailable";
 
-    public string FormattedFreeSpace => TotalBytes > 0
-        ? $"{TargetFolderInfo.FormatBytes(FreeBytes)} free of {TargetFolderInfo.FormatBytes(TotalBytes)}"
-        : "Unavailable";
+    public string FormattedFreeSpace => !HasMountedVolume
+        ? "No mounted volume"
+        : TotalBytes > 0
+            ? $"{TargetFolderInfo.FormatBytes(FreeBytes)} free of {TargetFolderInfo.FormatBytes(TotalBytes)}"
+            : "Unavailable";
 
     public string FormattedTemperature => TemperatureCelsius.HasValue
         ? $"{TemperatureCelsius.Value:F0} °C"
@@ -124,11 +145,14 @@ public sealed class DriveHealthInfo
             .FirstOrDefault();
 }
 
-/// <summary>One drive's measured sequential throughput. No estimates, no floors.</summary>
+/// <summary>One storage device's measured sequential throughput. No estimates, no floors.</summary>
 public sealed class DriveBenchmarkResult
 {
+    /// <summary>The volume the test file was written to, e.g. "C:".</summary>
     public string DriveLetter { get; set; } = "C:";
     public string DriveName { get; set; } = "C:";
+    /// <summary>The physical device under test; null for a volume-only fallback row.</summary>
+    public uint? DiskNumber { get; set; }
     public string MediaType { get; set; } = "Unknown";
     public bool Success { get; set; }
     public string? ErrorMessage { get; set; }
@@ -148,68 +172,79 @@ public static partial class DriveHealthService
     private const string StorageNamespace = @"root\Microsoft\Windows\Storage";
 
     /// <summary>
-    /// Enumerates every ready fixed and removable volume and reports the health
-    /// facts Windows can prove about the physical disk behind each one.
+    /// Enumerates every physical storage device (SSD, HDD, USB, SD) and reports the
+    /// health facts Windows can prove about it. Two volumes on one disk are one row,
+    /// not two. Devices with no mounted volume are still listed so a bare disk is
+    /// visible; their speed test reports that there is nowhere to write.
     /// Never throws: an inaccessible provider degrades to DriveInfo-only rows.
     /// </summary>
     public static IReadOnlyList<DriveHealthInfo> GetAllDriveHealth()
     {
-        Dictionary<string, uint> volumeToDisk = QueryVolumeDiskMap();
         Dictionary<uint, DiskRecord> disks = QueryDisks();
+        Dictionary<uint, List<string>> lettersByDisk = QueryPartitionLetters();
 
         var results = new List<DriveHealthInfo>();
+        var claimedVolumes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        DriveInfo[] volumes;
-        try
+        foreach (DiskRecord disk in disks.Values)
         {
-            volumes = DriveInfo.GetDrives();
-        }
-        catch (Exception)
-        {
-            return results;
-        }
-
-        foreach (var volume in volumes)
-        {
-            try
+            var info = new DriveHealthInfo
             {
-                if (!volume.IsReady) continue;
-                if (volume.DriveType is not (DriveType.Fixed or DriveType.Removable)) continue;
+                DiskNumber = disk.Number,
+                TotalBytes = disk.Size
+            };
 
-                string letter = volume.Name.TrimEnd('\\');
-                var info = new DriveHealthInfo
-                {
-                    DriveLetter = letter,
-                    IsRemovable = volume.DriveType == DriveType.Removable,
-                    TotalBytes = volume.TotalSize,
-                    FreeBytes = volume.AvailableFreeSpace
-                };
+            ApplyDisk(info, disk);
 
-                if (volumeToDisk.TryGetValue(letter, out uint diskNumber) &&
-                    disks.TryGetValue(diskNumber, out DiskRecord? disk))
-                {
-                    ApplyDisk(info, disk);
-                }
-
-                info.DisplayName = $"{letter} — {info.ModelName}";
-                results.Add(info);
-            }
-            catch (Exception)
+            if (lettersByDisk.TryGetValue(disk.Number, out List<string>? letters))
             {
-                // A volume can disappear between enumeration and query (USB unplug).
-                // Skip it rather than failing the whole report.
+                CollectVolumes(info, letters, claimedVolumes);
             }
+
+            // A virtual or file-backed disk with no mounted volume is storage
+            // plumbing, not a device the user can act on.
+            if (!info.HasMountedVolume && disk.BusType is 14 or 15) continue;
+
+            if (info.TotalBytes <= 0 && info.VolumeLetters.Count > 0)
+            {
+                info.TotalBytes = SumVolumeCapacity(info.VolumeLetters);
+            }
+
+            info.DisplayName = $"{info.ModelName} — {info.VolumesLabel}";
+            results.Add(info);
+        }
+
+        // Provider unavailable (or a volume the partition map missed): list each
+        // unclaimed ready volume once rather than returning an empty report.
+        foreach (var volume in EnumerateReadyVolumes())
+        {
+            string letter = volume.Name.TrimEnd('\\');
+            if (claimedVolumes.Contains(letter)) continue;
+
+            var info = new DriveHealthInfo
+            {
+                TotalBytes = volume.TotalSize,
+                FreeBytes = volume.AvailableFreeSpace,
+                IsRemovable = volume.DriveType == DriveType.Removable
+            };
+
+            info.VolumeLetters.Add(letter);
+            info.DriveLetter = letter;
+            info.IsSystemDrive = IsSystemVolume(letter);
+            info.DisplayName = $"{info.ModelName} — {letter}";
+            results.Add(info);
         }
 
         return results
             .OrderByDescending(d => d.IsSystemDrive)
-            .ThenBy(d => d.DriveLetter, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(d => d.DriveLetter.Length > 0 ? d.DriveLetter : "~", StringComparer.OrdinalIgnoreCase)
+            .ThenBy(d => d.DiskNumber ?? uint.MaxValue)
             .ToList();
     }
 
     /// <summary>
-    /// Compatibility accessor for one drive. Returns a DriveInfo-only row when the
-    /// storage provider cannot map the volume, with health "Unknown".
+    /// Compatibility accessor for one volume. Returns the physical device that hosts
+    /// it, or a DriveInfo-only row when the storage provider cannot map the volume.
     /// </summary>
     public static DriveHealthInfo GetDriveHealthSnapshot(string driveLetter = "C:")
     {
@@ -217,11 +252,12 @@ public static partial class DriveHealthService
 
         string letter = NormalizeDriveLetter(driveLetter);
         var all = GetAllDriveHealth();
-        var match = all.FirstOrDefault(d =>
-            string.Equals(d.DriveLetter, letter, StringComparison.OrdinalIgnoreCase));
+        var match = all.FirstOrDefault(d => d.VolumeLetters.Contains(letter, StringComparer.OrdinalIgnoreCase))
+            ?? all.FirstOrDefault(d => string.Equals(d.DriveLetter, letter, StringComparison.OrdinalIgnoreCase));
         if (match is not null) return match;
 
         var fallback = new DriveHealthInfo { DriveLetter = letter };
+        fallback.VolumeLetters.Add(letter);
         try
         {
             var drive = new DriveInfo(letter + "\\");
@@ -239,7 +275,8 @@ public static partial class DriveHealthService
         {
         }
 
-        fallback.DisplayName = $"{letter} — {fallback.ModelName}";
+        fallback.IsSystemDrive = IsSystemVolume(letter);
+        fallback.DisplayName = $"{fallback.ModelName} — {fallback.VolumesLabel}";
         return fallback;
     }
 
@@ -250,6 +287,107 @@ public static partial class DriveHealthService
     {
         string letter = driveLetter.TrimEnd('\\');
         return letter.EndsWith(':') ? letter : letter + ":";
+    }
+
+    /// <summary>Adds every ready fixed/removable volume on a disk to its row.</summary>
+    private static void CollectVolumes(
+        DriveHealthInfo info,
+        IEnumerable<string> letters,
+        HashSet<string> claimed)
+    {
+        long bestFree = -1;
+
+        foreach (string letter in letters)
+        {
+            DriveInfo? volume = TryGetReadyVolume(letter);
+            if (volume is null) continue;
+
+            if (!info.VolumeLetters.Contains(letter, StringComparer.OrdinalIgnoreCase))
+            {
+                info.VolumeLetters.Add(letter);
+            }
+
+            info.FreeBytes += volume.AvailableFreeSpace;
+            info.IsRemovable |= volume.DriveType == DriveType.Removable;
+            claimed.Add(letter);
+
+            // Test the volume with the most room; the device is the same either way.
+            if (volume.AvailableFreeSpace > bestFree)
+            {
+                bestFree = volume.AvailableFreeSpace;
+                info.DriveLetter = letter;
+            }
+        }
+
+        info.IsSystemDrive |= info.VolumeLetters.Any(IsSystemVolume);
+        info.VolumeLetters.Sort(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static List<DriveInfo> EnumerateReadyVolumes()
+    {
+        var ready = new List<DriveInfo>();
+        try
+        {
+            foreach (var volume in DriveInfo.GetDrives())
+            {
+                try
+                {
+                    if (!volume.IsReady) continue;
+                    if (volume.DriveType is not (DriveType.Fixed or DriveType.Removable)) continue;
+                    ready.Add(volume);
+                }
+                catch (Exception)
+                {
+                    // A volume can disappear between enumeration and query (USB unplug).
+                }
+            }
+        }
+        catch (Exception)
+        {
+        }
+
+        return ready;
+    }
+
+    private static DriveInfo? TryGetReadyVolume(string letter)
+    {
+        try
+        {
+            var volume = new DriveInfo(letter + "\\");
+            if (!volume.IsReady) return null;
+            return volume.DriveType is DriveType.Fixed or DriveType.Removable ? volume : null;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    private static long SumVolumeCapacity(IEnumerable<string> letters)
+    {
+        long total = 0;
+        foreach (string letter in letters)
+        {
+            DriveInfo? volume = TryGetReadyVolume(letter);
+            if (volume is not null) total += volume.TotalSize;
+        }
+
+        return total;
+    }
+
+    private static bool IsSystemVolume(string letter)
+    {
+        string? root = null;
+        try
+        {
+            root = Path.GetPathRoot(Environment.SystemDirectory);
+        }
+        catch (Exception)
+        {
+        }
+
+        return !string.IsNullOrEmpty(root) &&
+            string.Equals(root.TrimEnd('\\'), letter, StringComparison.OrdinalIgnoreCase);
     }
 
     private sealed class DiskRecord
@@ -263,6 +401,7 @@ public static partial class DriveHealthService
         public uint BusType { get; init; }
         public ushort HealthStatus { get; init; } = 5;
         public bool IsSystem { get; init; }
+        public long Size { get; init; }
         public int? WearPercent { get; init; }
         public ushort? TemperatureCelsius { get; init; }
         public long? PowerOnHours { get; init; }
@@ -271,9 +410,9 @@ public static partial class DriveHealthService
         public bool ReliabilityAvailable { get; init; }
     }
 
-    private static Dictionary<string, uint> QueryVolumeDiskMap()
+    private static Dictionary<uint, List<string>> QueryPartitionLetters()
     {
-        var map = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
+        var map = new Dictionary<uint, List<string>>();
         try
         {
             using var searcher = new ManagementObjectSearcher(
@@ -290,7 +429,18 @@ public static partial class DriveHealthService
                     if (string.IsNullOrWhiteSpace(letter)) continue;
 
                     uint diskNumber = Convert.ToUInt32(partition["DiskNumber"], System.Globalization.CultureInfo.InvariantCulture);
-                    map[$"{letter.Trim()}:"] = diskNumber;
+                    string normalized = $"{letter.Trim()}:";
+
+                    if (!map.TryGetValue(diskNumber, out List<string>? letters))
+                    {
+                        letters = new List<string>();
+                        map[diskNumber] = letters;
+                    }
+
+                    if (!letters.Contains(normalized, StringComparer.OrdinalIgnoreCase))
+                    {
+                        letters.Add(normalized);
+                    }
                 }
             }
         }
@@ -313,7 +463,7 @@ public static partial class DriveHealthService
             using var searcher = new ManagementObjectSearcher(
                 StorageNamespace,
                 "SELECT Number, FriendlyName, Model, Manufacturer, SerialNumber, FirmwareVersion, " +
-                "HealthStatus, BusType, IsSystem FROM MSFT_Disk");
+                "HealthStatus, BusType, IsSystem, Size FROM MSFT_Disk");
             using ManagementObjectCollection rows = searcher.Get();
             foreach (ManagementObject row in rows)
             {
@@ -334,6 +484,7 @@ public static partial class DriveHealthService
                         BusType = ToUInt32(row["BusType"]),
                         HealthStatus = (ushort)ToUInt32(row["HealthStatus"], 5),
                         IsSystem = ToUInt32(row["IsSystem"]) != 0,
+                        Size = ToNullableLong(row["Size"]) ?? 0,
                         WearPercent = reliability?.WearPercent,
                         TemperatureCelsius = reliability?.TemperatureCelsius,
                         PowerOnHours = reliability?.PowerOnHours,
