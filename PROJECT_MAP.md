@@ -95,6 +95,18 @@ pwsh -ExecutionPolicy Bypass -File scripts\build_release_exe.ps1   # publish\Del
 | `.megamemory/` (MCP `megamemory`) | decisions, hard-won patterns, why things are the way they are | per concept |
 | `CONTEXT.md` | canonical domain vocabulary | manual |
 | `docs/` | the published site (source, not notes) | — |
+| `site-root/` | the files GitHub serves from the **domain root** (`robots.txt`, sitemap index, redirect) — rendered from `docs/` by `scripts/render_host_root.js` | `--check` fails CI if the committed copy is stale |
+
+`site-root/` exists because of how GitHub Pages works, not because the content
+belongs in two places. Pages serves the domain root of an account from exactly
+one repository — the one named after the account — and every other
+repository's site from a sub-path, so Deltempo's site lives at
+`beso1227.github.io/Deltempo/` while the bare domain is served from
+`Beso1227/Beso1227.github.io`. That repository holds no hand-written content:
+it is a mirror, rendered by a workflow in that repository which checks this one
+out and runs `scripts/render_host_root.js` here, daily and on demand. The
+canonical copy lives here, CI proves it is current, and the two cannot drift.
+When `site-root/` changes, the mirror catches up.
 
 `.archify/` is the only one of these that is **gitignored**: it is agent output from the
 `archify` skill (no CLI, nothing on `PATH` — invoke the skill). The artifact that matters is
