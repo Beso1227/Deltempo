@@ -304,3 +304,9 @@ live-labels.json
 # validate-incremental-symbols.mjs: they write "<file>.tmp-<pid>-<ts>" and rename, so
 # a crash leaves a suffix that the global "*.tmp" rule does not match.
 .ua/*.tmp-*
+
+# The npm runtime-validation harness writes "<phase>-result.json" next to its
+# eval-plan.json. Each one records a single machine's run (process ids, timing,
+# resolved node/npm paths), so it is evidence for that run, not a source
+# artifact: eval-plan.json stays tracked, the results do not.
+.tsupgrader/runtime-validation/*-result.json
