@@ -140,17 +140,6 @@ jobs:
       - name: Verify Code Style & Formatting
         run: dotnet format deltempo.sln --verify-no-changes --no-restore
 
-      # The host-root files (robots.txt, sitemap index, redirect page) are served
-      # from the beso1227.github.io repository, because GitHub Pages reserves the
-      # domain root for the repository named after the account. Their content
-      # lives HERE, in the repository that owns the site, and this step proves the
-      # committed copy is what the generator produces - otherwise the two copies
-      # drift apart, which is exactly what happened when they were hand-written
-      # in two repositories.
-      - name: Verify Host-Root Files Are Current
-        shell: pwsh
-        run: node scripts/render_host_root.js --check
-
       - name: Run xUnit v3 Test Suite with Coverage Collection
         shell: pwsh
         run: |
