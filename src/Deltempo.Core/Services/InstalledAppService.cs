@@ -780,7 +780,7 @@ public static class InstalledAppService
 
         if (string.IsNullOrWhiteSpace(cmd)) return false;
 
-        bool result = await Task.Run(() =>
+        bool result = await Task.Run(async () =>
         {
             try
             {
@@ -848,7 +848,27 @@ public static class InstalledAppService
                 // have handed off to an elevated helper, or may be waiting on a modal
                 // prompt. Returning true here made the caller announce a completed
                 // uninstall, scan a still-installed app, and offer to purge it.
-                if (!proc.WaitForExit(timeoutMs)) return false;
+                //
+                // WaitForExit(timeoutMs) is not a deadline for a shell-executed process.
+                // On a non-interactive session (a CI runner, a service) the handle .NET
+                // waits on is not necessarily the uninstaller itself, so the wait can
+                // block until the child exits on its own - measured at 10.3 s on a
+                // runner whose identical pre-work took 1.5 s - and a late exit could
+                // even be reported as a completed uninstall. The deadline is therefore
+                // enforced here: when it passes, the wait is abandoned and the uninstall
+                // is reported as unfinished, exactly as a timeout is meant to be.
+                Task<bool> exitWait = Task.Run(() =>
+                {
+                    try { return proc.WaitForExit(timeoutMs); }
+                    catch { return false; }
+                });
+
+                if (await Task.WhenAny(exitWait, Task.Delay(timeoutMs)) != exitWait)
+                {
+                    return false;
+                }
+
+                if (!await exitWait) return false;
 
                 try
                 {
