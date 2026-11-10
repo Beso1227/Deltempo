@@ -202,20 +202,19 @@ public class RestartManagerSessionTests : IDisposable
     {
         string file = MakeFile("memoized.tmp");
 
-        long before = RestartManagerService.QueriesServedFromCache;
+        using var scope = RestartManagerService.BeginQueryScope();
+        long before = scope.QueriesServedFromCache;
 
-        using (RestartManagerService.BeginQueryScope())
-        {
-            RestartManagerService.GetLockingProcesses(file);
-            RestartManagerService.GetLockingProcesses(file);
-            RestartManagerService.GetLockingProcesses(file);
-        }
+        RestartManagerService.GetLockingProcesses(file);
+        RestartManagerService.GetLockingProcesses(file);
+        RestartManagerService.GetLockingProcesses(file);
 
-        // Three identical asks, so at least two came from the memo. Asserted as a floor on
-        // the process-wide counter because the suite runs other cleanups concurrently and
-        // those can only ADD hits, never remove them.
+        // Three identical asks, so at least two came from the memo. Counted on the scope
+        // that asked, not on the process-wide counter: the memo is shared with every other
+        // scan running beside this test, and a counter any of them can move cannot answer
+        // "did MY three asks come from the memo".
         Assert.True(
-            RestartManagerService.QueriesServedFromCache - before >= 2,
+            scope.QueriesServedFromCache - before >= 2,
             "Repeat questions about the same file were not memoized.");
     }
 
@@ -225,21 +224,19 @@ public class RestartManagerSessionTests : IDisposable
         var files = new List<string>();
         for (int i = 0; i < 8; i++) files.Add(MakeFile($"distinct_{i}.tmp"));
 
-        long before = RestartManagerService.QueriesServedFromCache;
+        using var scope = RestartManagerService.BeginQueryScope();
+        long before = scope.QueriesServedFromCache;
 
-        using (RestartManagerService.BeginQueryScope())
+        foreach (string file in files)
         {
-            foreach (string file in files)
-            {
-                // Each file asked twice, exactly as the executor's failure path does.
-                RestartManagerService.GetLockingProcesses(file);
-                RestartManagerService.GetLockingProcesses(file);
-            }
+            // Each file asked twice, exactly as the executor's failure path does.
+            RestartManagerService.GetLockingProcesses(file);
+            RestartManagerService.GetLockingProcesses(file);
         }
 
         // 16 asks over 8 distinct paths: at least 8 must have come from the memo.
         Assert.True(
-            RestartManagerService.QueriesServedFromCache - before >= 8,
+            scope.QueriesServedFromCache - before >= 8,
             "The memo did not halve the queries for repeat asks on distinct files.");
     }
 
@@ -307,12 +304,12 @@ public class RestartManagerSessionTests : IDisposable
     {
         using var scope = RestartManagerService.BeginQueryScope();
 
-        long before = RestartManagerService.QueriesServedFromCache;
+        long before = scope.QueriesServedFromCache;
 
         Assert.Empty(RestartManagerService.GetLockingProcesses(""));
         Assert.Empty(RestartManagerService.GetLockingProcesses("   "));
         Assert.Empty(RestartManagerService.GetLockingProcesses(Path.Combine(_sandbox, "ghost.tmp")));
 
-        Assert.Equal(before, RestartManagerService.QueriesServedFromCache);
+        Assert.Equal(before, scope.QueriesServedFromCache);
     }
 }

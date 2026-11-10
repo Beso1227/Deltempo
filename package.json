@@ -1,5 +1,13 @@
 {
+  "name": "deltempo",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test --test-reporter=tap"
+  },
   "dependencies": {
-    "@plannotator/opencode": "^0.28.46"
+    "@plannotator/opencode": "^0.28.55"
   }
 }

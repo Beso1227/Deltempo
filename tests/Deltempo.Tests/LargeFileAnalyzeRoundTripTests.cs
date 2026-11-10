@@ -17,17 +17,44 @@ namespace Deltempo.Tests;
 /// layer (an ElementName command binding inside a DataTemplate never fires in
 /// WinUI 3); that half is pinned by LargeFilesUiRepairParityTests.
 ///
-/// Reads-only settings; bails out if online safety is enabled so the run can
-/// never hit the network.
+/// Reads-only settings; the online-AI switch is forced off for the duration of the
+/// run and restored afterwards, so the offline branch is exercised on every machine
+/// and the run can never hit the network.
 /// </summary>
+[Collection("SettingsService")]
 public class LargeFileAnalyzeRoundTripTests
 {
     [Fact]
     public async Task AnalyzeItemWithAi_Offline_UpdatesTheRow()
     {
+        // A machine that has the online-AI switch on used to fail this test outright,
+        // even though the offline branch is exactly what the test is about. Forcing
+        // the switch off for the run makes the outcome depend on the code under test
+        // instead of on the machine's settings; the original value is restored below.
+        bool originalOnlineSafety = SettingsService.Current.EnableOnlineAiSafety;
+        if (originalOnlineSafety)
+        {
+            SettingsService.Update(s => s.EnableOnlineAiSafety = false);
+        }
+
+        try
+        {
+            await AnalyzeItemWithAi_Offline_UpdatesTheRowCore();
+        }
+        finally
+        {
+            if (originalOnlineSafety)
+            {
+                SettingsService.Update(s => s.EnableOnlineAiSafety = originalOnlineSafety);
+            }
+        }
+    }
+
+    private static async Task AnalyzeItemWithAi_Offline_UpdatesTheRowCore()
+    {
         var settings = SettingsService.Current;
         Assert.False(settings.EnableOnlineAiSafety,
-            "online safety is enabled on this machine; aborting to guarantee no network");
+            "online safety must be off for this run to guarantee no network");
 
         string dir = Path.Combine(Path.GetTempPath(), "deltempo-ai-repro");
         Directory.CreateDirectory(dir);

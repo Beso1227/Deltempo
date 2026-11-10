@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
+using WinTempCleaner.Services;
 
 namespace WinTempCleaner.Models;
 
@@ -36,6 +38,16 @@ public enum DriveReportMode
 ///    uncorrected error counters. The provider denies this class to a standard user,
 ///    so <see cref="ReliabilityCountersAvailable"/> is false there and the affinity
 ///    fields stay null rather than being invented.
+/// 3b. The drive's own NVMe SMART / Health log page (<see cref="StorageSmartReader"/>)
+///    when Windows' reliability row is missing or carries an empty Temperature/Wear.
+///    Those are the controller's counters, read from the device with
+///    <c>IOCTL_STORAGE_QUERY_PROPERTY</c> / <c>IOCTL_STORAGE_PROTOCOL_COMMAND</c>.
+/// 3c. The storage driver's ATA-style SMART attribute table (<c>root\wmi</c>,
+///    <c>MSStorageDriver_ATAPISmartData</c>). This still answers when the NVMe
+///    protocol query is rejected (Intel RST / VMD); it normally requires an
+///    administrator, so an access denial becomes an elevation offer. Only the
+///    attributes with an unambiguous meaning are read (190/194 temperature, 9
+///    power-on hours, 231/233 remaining life).
 /// 4. <see cref="DriveInfo"/>: per-volume free space, always.
 ///
 /// When the storage provider is unavailable the row degrades to a volume-only
@@ -94,7 +106,7 @@ public sealed class DriveHealthInfo
     public long? ReadErrorsUncorrected { get; set; }
     public long? WriteErrorsUncorrected { get; set; }
 
-    /// <summary>True when the reliability class answered; false when it was denied or empty.</summary>
+    /// <summary>True when at least one real counter (temperature, wear, power-on or errors) arrived.</summary>
     public bool ReliabilityCountersAvailable { get; set; }
 
     /// <summary>
@@ -102,6 +114,18 @@ public sealed class DriveHealthInfo
     /// privilege not held - the case where running elevated would actually help.
     /// </summary>
     public bool ReliabilityCountersNeedElevation { get; set; }
+
+    /// <summary>
+    /// Where the temperature, wear and power-on values actually came from. Empty when
+    /// nothing answered, so the row never implies a source it did not use.
+    /// </summary>
+    public string ReliabilitySource { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Why the counters are missing, in concrete terms (access denial vs a device that
+    /// does not expose them). Empty when the counters are present.
+    /// </summary>
+    public string ReliabilityUnavailableReason { get; set; } = string.Empty;
 
     /// <summary>
     /// What the 0-100 score is actually based on, so a verdict-derived number is
@@ -190,6 +214,7 @@ public sealed class DriveBenchmarkResult
 public static partial class DriveHealthService
 {
     private const string StorageNamespace = @"root\Microsoft\Windows\Storage";
+    private const uint NvmeBusType = 17;
 
     /// <summary>
     /// Enumerates every physical storage device (SSD, HDD, USB, SD) and reports the
@@ -423,12 +448,14 @@ public static partial class DriveHealthService
         public bool IsSystem { get; init; }
         public long Size { get; init; }
         public int? WearPercent { get; init; }
-        public ushort? TemperatureCelsius { get; init; }
+        public double? TemperatureCelsius { get; init; }
         public long? PowerOnHours { get; init; }
         public long? ReadErrorsUncorrected { get; init; }
         public long? WriteErrorsUncorrected { get; init; }
         public bool ReliabilityAvailable { get; init; }
         public bool ReliabilityAccessDenied { get; init; }
+        public string ReliabilitySource { get; init; } = string.Empty;
+        public string ReliabilityUnavailableReason { get; init; } = string.Empty;
     }
 
     private static Dictionary<uint, List<string>> QueryPartitionLetters()
@@ -477,6 +504,8 @@ public static partial class DriveHealthService
     {
         var mediaByDisk = QueryPhysicalMedia();
         var reliabilityByDisk = QueryReliabilityCounters(out bool reliabilityAccessDenied);
+        var wmiSmartByDisk = StorageSmartReader.ReadWmiSmartCounters(
+            out string? wmiSmartFailure, out bool wmiSmartAccessDenied);
         var disks = new Dictionary<uint, DiskRecord>();
 
         try
@@ -494,25 +523,100 @@ public static partial class DriveHealthService
                     mediaByDisk.TryGetValue(number, out DriveMediaKind media);
                     reliabilityByDisk.TryGetValue(number, out ReliabilityRecord? reliability);
 
+                    uint busType = ToUInt32(row["BusType"]);
+                    string model = FirstNonEmpty(row["Model"], row["FriendlyName"], "Unknown drive");
+
+                    double? temperature = reliability?.TemperatureCelsius;
+                    int? wear = reliability?.WearPercent;
+                    long? powerOnHours = reliability?.PowerOnHours;
+                    long? readErrors = reliability?.ReadErrorsUncorrected;
+                    long? writeErrors = reliability?.WriteErrorsUncorrected;
+
+                    // Windows' reliability row is allowed to exist with an empty
+                    // Temperature/Wear; the firmware log page is the second real source.
+                    bool usedCounters = reliability is not null;
+                    bool usedFirmware = false;
+                    bool firmwareAttempted = false;
+                    string? firmwareFailure = null;
+                    SmartReadOutcome firmwareOutcome = SmartReadOutcome.Failed;
+                    if (busType == NvmeBusType && (temperature is null || wear is null))
+                    {
+                        firmwareAttempted = true;
+                        if (StorageSmartReader.TryReadNvmeSmart(
+                                number, out NvmeSmartHealth? smart, out firmwareOutcome, out firmwareFailure) &&
+                            smart is { } firmware)
+                        {
+                            temperature ??= firmware.TemperatureCelsius;
+                            wear ??= firmware.WearPercent;
+                            powerOnHours ??= firmware.PowerOnHours;
+                            usedFirmware = true;
+                        }
+                    }
+
+                    // The storage driver's ATA-style SMART table is the third real
+                    // source. It still answers through root\wmi when the NVMe protocol
+                    // query is rejected (Intel RST / VMD) and the reliability row is
+                    // empty, and it needs no elevation.
+                    bool usedDriverSmart = false;
+                    if ((temperature is null || wear is null || powerOnHours is null) &&
+                        wmiSmartByDisk.TryGetValue(number, out WmiSmartCounters driverSmart))
+                    {
+                        double? driverTemperature = temperature ?? driverSmart.TemperatureCelsius;
+                        int? driverWear = wear ?? driverSmart.WearPercent;
+                        long? driverPowerOn = powerOnHours ?? driverSmart.PowerOnHours;
+                        usedDriverSmart = driverTemperature != temperature ||
+                            driverWear != wear ||
+                            driverPowerOn != powerOnHours;
+                        temperature = driverTemperature;
+                        wear = driverWear;
+                        powerOnHours = driverPowerOn;
+                    }
+
+                    bool anyCounter = temperature.HasValue || wear.HasValue || powerOnHours.HasValue ||
+                        readErrors.HasValue || writeErrors.HasValue;
+
+                    string source = JoinSources(
+                        usedCounters ? "Windows Storage reliability counters" : null,
+                        usedFirmware ? "the drive's NVMe SMART log" : null,
+                        usedDriverSmart ? "the storage driver's SMART attributes" : null);
+
+                    (bool needElevation, string reason) = anyCounter
+                        ? (false, string.Empty)
+                        : DescribeMissingCounters(
+                            firmwareAttempted, firmwareOutcome, reliabilityAccessDenied, wmiSmartAccessDenied);
+
+                    Trace.WriteLine(
+                        $"[Drive Health] disk {number} ({model}, {BusName(busType)}, elevated={ElevationService.IsRunAsAdmin()}): " +
+                        $"reliability={(reliability is null ? "no row" : "row")} " +
+                        $"temperature={(temperature.HasValue ? temperature.Value.ToString("F0", System.Globalization.CultureInfo.InvariantCulture) : "null")} " +
+                        $"wear={(wear.HasValue ? wear.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "null")} " +
+                        $"firmware={(usedFirmware ? "read" : firmwareAttempted ? firmwareOutcome.ToString() : "not attempted")} " +
+                        $"driverSmart={(usedDriverSmart ? "used" : wmiSmartByDisk.ContainsKey(number) ? "available" : "none")} " +
+                        $"needElevation={needElevation}" +
+                        (usedFirmware || !firmwareAttempted ? string.Empty : $" detail={firmwareFailure}") +
+                        (wmiSmartFailure is null ? string.Empty : $" wmi={wmiSmartFailure}"));
+
                     disks[number] = new DiskRecord
                     {
                         Number = number,
-                        Model = FirstNonEmpty(row["Model"], row["FriendlyName"], "Unknown drive"),
+                        Model = model,
                         Manufacturer = FirstNonEmpty(row["Manufacturer"], string.Empty),
                         SerialNumber = FirstNonEmpty(row["SerialNumber"], string.Empty).Trim(),
                         FirmwareVersion = FirstNonEmpty(row["FirmwareVersion"], string.Empty),
                         MediaKind = media,
-                        BusType = ToUInt32(row["BusType"]),
+                        BusType = busType,
                         HealthStatus = (ushort)ToUInt32(row["HealthStatus"], 5),
                         IsSystem = ToUInt32(row["IsSystem"]) != 0,
                         Size = ToNullableLong(row["Size"]) ?? 0,
-                        WearPercent = reliability?.WearPercent,
-                        TemperatureCelsius = reliability?.TemperatureCelsius,
-                        PowerOnHours = reliability?.PowerOnHours,
-                        ReadErrorsUncorrected = reliability?.ReadErrorsUncorrected,
-                        WriteErrorsUncorrected = reliability?.WriteErrorsUncorrected,
-                        ReliabilityAvailable = reliability is not null,
-                        ReliabilityAccessDenied = reliabilityAccessDenied
+                        WearPercent = wear,
+                        TemperatureCelsius = temperature,
+                        PowerOnHours = powerOnHours,
+                        ReadErrorsUncorrected = readErrors,
+                        WriteErrorsUncorrected = writeErrors,
+                        ReliabilityAvailable = anyCounter,
+                        ReliabilityAccessDenied = needElevation,
+                        ReliabilitySource = source,
+                        ReliabilityUnavailableReason = reason
                     };
                 }
             }
@@ -522,6 +626,93 @@ public static partial class DriveHealthService
         }
 
         return disks;
+    }
+
+    /// <summary>
+    /// Joins the sources that actually contributed a value. Keeping this as a join
+    /// rather than a switch means a row can honestly say "Windows Storage reliability
+    /// counters and the storage driver's SMART attributes" when it used both.
+    /// </summary>
+    private static string JoinSources(params string?[] sources)
+    {
+        var used = new List<string>(sources.Length);
+        foreach (string? source in sources)
+        {
+            if (!string.IsNullOrEmpty(source)) used.Add(source);
+        }
+
+        return used.Count switch
+        {
+            0 => string.Empty,
+            1 => used[0],
+            _ => string.Join(", ", used.GetRange(0, used.Count - 1)) + " and " + used[^1]
+        };
+    }
+
+    /// <summary>
+    /// Explains in the row itself why the counters are missing and whether elevation
+    /// could change that. These are genuinely different situations and must not be
+    /// collapsed into one "needs administrator rights" sentence:
+    ///   * the driver answered the documented SMART query with "incorrect function" or
+    ///     "not supported" - an administrator gets the same answer, which is typical
+    ///     when Intel RST / RAID / VMD owns the drive;
+    ///   * the provider refused this process - elevation is the documented fix;
+    ///   * a request ran and simply returned nothing.
+    /// </summary>
+    private static (bool NeedElevation, string Reason) DescribeMissingCounters(
+        bool firmwareAttempted,
+        SmartReadOutcome firmwareOutcome,
+        bool reliabilityAccessDenied,
+        bool driverSmartAccessDenied)
+    {
+        bool alreadyElevated = ElevationService.IsRunAsAdmin();
+
+        if (driverSmartAccessDenied)
+        {
+            // The driver's SMART attribute table is a real source that answered here
+            // and simply refused this process, so an administrator relaunch is the
+            // documented fix - but only when this process is not one already.
+            return alreadyElevated
+                ? (false,
+                    "The storage driver denied its SMART attribute table even to an administrator, " +
+                    "so temperature, wear and power-on hours cannot be read on this system.")
+                : (true,
+                    "Windows requires administrator rights to read this drive's SMART attribute table; " +
+                    "relaunching as administrator exposes temperature, power-on hours and wear.");
+        }
+
+        if (firmwareAttempted && firmwareOutcome == SmartReadOutcome.NotSupported)
+        {
+            return (false,
+                "The storage driver does not expose this drive's SMART / Health log to Windows " +
+                "(common when the drive is managed by Intel RST, RAID or VMD), so temperature and " +
+                "wear cannot be read even as administrator.");
+        }
+
+        if (firmwareAttempted && firmwareOutcome == SmartReadOutcome.AccessDenied)
+        {
+            return alreadyElevated
+                ? (false,
+                    "Windows still denied this drive's reliability counters after an administrator " +
+                    "relaunch, so they cannot be read on this system.")
+                : (true,
+                    "Windows requires administrator rights to read this drive's temperature, wear and " +
+                    "power-on counters; relaunching as administrator exposes them.");
+        }
+
+        if (reliabilityAccessDenied)
+        {
+            return alreadyElevated
+                ? (false,
+                    "Windows still denied the temperature, wear and power-on counters after an " +
+                    "administrator relaunch, so they cannot be read on this system.")
+                : (true,
+                    "Windows denied the temperature, wear and power-on counters to a standard user; " +
+                    "relaunching as administrator exposes them.");
+        }
+
+        return (false,
+            "Windows and the drive firmware did not report temperature or wear for this device.");
     }
 
     private static Dictionary<uint, DriveMediaKind> QueryPhysicalMedia()
@@ -558,7 +749,7 @@ public static partial class DriveHealthService
     private sealed class ReliabilityRecord
     {
         public int? WearPercent { get; init; }
-        public ushort? TemperatureCelsius { get; init; }
+        public double? TemperatureCelsius { get; init; }
         public long? PowerOnHours { get; init; }
         public long? ReadErrorsUncorrected { get; init; }
         public long? WriteErrorsUncorrected { get; init; }
@@ -588,7 +779,7 @@ public static partial class DriveHealthService
 
                     counters[number] = new ReliabilityRecord
                     {
-                        TemperatureCelsius = ToNullableUShort(row["Temperature"]),
+                        TemperatureCelsius = ToNullableDouble(row["Temperature"]),
                         WearPercent = ToNullableInt(row["Wear"]),
                         PowerOnHours = ToNullableLong(row["PowerOnHours"]),
                         ReadErrorsUncorrected = ToNullableLong(row["ReadErrorsUncorrected"]),
@@ -624,6 +815,8 @@ public static partial class DriveHealthService
         info.IsSystemDrive = disk.IsSystem;
         info.ReliabilityCountersAvailable = disk.ReliabilityAvailable;
         info.ReliabilityCountersNeedElevation = disk.ReliabilityAccessDenied;
+        info.ReliabilitySource = disk.ReliabilitySource;
+        info.ReliabilityUnavailableReason = disk.ReliabilityUnavailableReason;
         info.TemperatureCelsius = disk.TemperatureCelsius;
         info.WearPercent = disk.WearPercent;
         info.PowerOnHours = disk.PowerOnHours;
@@ -712,12 +905,12 @@ public static partial class DriveHealthService
         }
     }
 
-    private static ushort? ToNullableUShort(object? value)
+    private static double? ToNullableDouble(object? value)
     {
         if (value is null) return null;
         try
         {
-            return Convert.ToUInt16(value, System.Globalization.CultureInfo.InvariantCulture);
+            return Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception)
         {
