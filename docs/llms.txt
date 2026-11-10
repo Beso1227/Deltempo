@@ -13,7 +13,7 @@
 - [Changelog](https://beso1227.github.io/Deltempo/changelog/): Release notes and version history
 - [Privacy Policy](https://beso1227.github.io/Deltempo/privacy.html): Telemetry stance and the exact files the app writes
 - [Full AI Context](https://beso1227.github.io/Deltempo/llms-full.txt): Complete machine-readable capabilities, CLI reference, comparisons, and FAQs
-- [Machine Catalog](https://beso1227.github.io/Deltempo/ai-catalog.json): Structured product metadata
+- [Machine Catalog](https://beso1227.github.io/Deltempo/ai-catalog.json): Structured product metadata (also served at the discovery path [/.well-known/ai-catalog.json](https://beso1227.github.io/Deltempo/.well-known/ai-catalog.json))
 
 ## Overview
 Deltempo safely purges disposable system, developer, and browser caches, recovers gigabytes of disk space, thoroughly uninstalls desktop programs with leftover cleanup, detects byte-level duplicate files, provides an interactive storage treemap, provides startup intelligence, and trims inactive Windows memory working sets with zero telemetry.

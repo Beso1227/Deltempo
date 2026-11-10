@@ -439,6 +439,18 @@ function main() {
     if (!files.some((f) => urlOf(f) === url)) fail('sitemap.xml', `${url} is in the sitemap but not on disk`);
   }
 
+  // The AI catalog is also served from the discovery path some agent crawlers
+  // look at first. The copy has to be the same file, or the two disagree.
+  const wellKnown = path.join(docsDir, '.well-known', 'ai-catalog.json');
+  const catalog = path.join(docsDir, 'ai-catalog.json');
+  if (!fs.existsSync(wellKnown)) {
+    fail('.well-known/ai-catalog.json', 'missing; agent crawlers look for the AI catalog here');
+  } else if (!fs.existsSync(catalog)) {
+    fail('ai-catalog.json', 'missing');
+  } else if (fs.readFileSync(wellKnown, 'utf8') !== fs.readFileSync(catalog, 'utf8')) {
+    fail('.well-known/ai-catalog.json', 'the copy differs from ai-catalog.json; they must be the same file');
+  }
+
   // robots.txt
   const robots = fs.readFileSync(path.join(docsDir, 'robots.txt'), 'utf8');
   if (!/^User-agent:\s*\*$/m.test(robots)) fail('robots.txt', 'no rule for every crawler');
