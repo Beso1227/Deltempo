@@ -24,7 +24,7 @@
   var MANUAL_COOLDOWN_MS = 20000;
   var RELATIVE_TICK_MS = 5000;
 
-  var SVG_NS = 'http://www.w3.org/2000/svg';
+  var SVG_NS = 'http://www.w3.org/2000/svg'; // DevSkim: ignore DS137138 (SVG XML namespace - a fixed spec identifier, never fetched)
 
   var numberFormat = new Intl.NumberFormat('en-US');
   var dateFormat = new Intl.DateTimeFormat('en-US', {

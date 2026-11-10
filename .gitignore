@@ -177,6 +177,14 @@ coverage/
 *.coveragexml
 *.cobertura.xml
 BenchmarkDotNet.Artifacts/
+# Security-scanner output written into the workspace root by this repository's own
+# workflows: devskim.yml writes devskim-results.sarif (its output-directory is
+# GITHUB_WORKSPACE), checkmarx-one.yml writes cx_result.sarif (--output-path .)
+# and codacy.yml writes results.sarif. The same tools write the same files when
+# they are run locally - reproduced with the pinned DevSkim 1.0.90 CLI, which
+# left devskim-results.sarif untracked in the repository root. A `git add -A`
+# would then commit a scan result as if it were source. No SARIF file is tracked.
+*.sarif
 
 # ==============================================================================
 # Local Automation, AI Tools & Workspace Scratch
@@ -271,6 +279,10 @@ fix*.py
 # rules only catch a local or manual run at the repository root.
 checksums.sha256
 sbom-packages.json
+# The second half of the pair scripts/generate_checksums.ps1 writes: the SHA-256
+# digest and the SHA-512 integrity manifest land side by side, so the digest was
+# already ignored at the repository root and this one was not.
+integrity.json
 
 # WPF markup-compile temporaries. An interrupted or cancelled `dotnet build` can
 # leave `<Project>_<hash>_wpftmp[_*].csproj` behind at the repository root, and the
@@ -304,3 +316,17 @@ live-labels.json
 # validate-incremental-symbols.mjs: they write "<file>.tmp-<pid>-<ts>" and rename, so
 # a crash leaves a suffix that the global "*.tmp" rule does not match.
 .ua/*.tmp-*
+
+# The npm runtime-validation harness writes "<phase>-result.json" next to its
+# eval-plan.json. Each one records a single machine's run (process ids, timing,
+# resolved node/npm paths), so it is evidence for that run, not a source
+# artifact: eval-plan.json stays tracked, the results do not.
+.tsupgrader/runtime-validation/*-result.json
+
+# GitHub Copilot Modernization writes its assessment, plan.md, tasks.md and the
+# per-task files under .github/upgrades/. They are the output of a tool run -
+# rewritten on every assessment, and full of machine-specific detail (resolved
+# paths, restore/build output, package data) - so they are not source. This
+# matches .github/modernize/, the sibling directory the earlier Copilot
+# code-migration run wrote, which its own .gitignore already excludes.
+.github/upgrades/
