@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-11-09T04:28:00Z",
+  "generatedOnPlatform": "win32",
+  "projectType": "other",
+  "setup": [
+    {
+      "command": "npm",
+      "args": [
+        "ci"
+      ]
+    }
+  ],
+  "assertions": [
+    {
+      "name": "tests-pass",
+      "kind": "process",
+      "command": "npm",
+      "args": [
+        "test"
+      ],
+      "verificationMethod": "output-contains",
+      "expected": "# pass 1",
+      "timeoutSeconds": 300
+    }
+  ]
+}
