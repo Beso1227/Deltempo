@@ -25,7 +25,7 @@ public static class RestartManagerService
 
     // The scope currently in force, so a cache hit can be attributed to the run that
     // earned it. Per-scope counters stay exact even when several scans overlap.
-    private static QueryScope? _currentScope;
+    private static readonly System.Threading.AsyncLocal<QueryScope?> AmbientScope = new();
 
     private static int _openScopes;
 
@@ -177,14 +177,23 @@ public static class RestartManagerService
     public sealed class QueryScope : IDisposable
     {
         private long _queriesServedFromCache;
+        private readonly QueryScope? _previousScope;
 
         public QueryScope()
         {
+            // The scope in effect for the CALLING context. A cache hit is charged to the
+            // scope that asked the question, not to whichever scope happened to open the
+            // cache first: the memo is shared, but a counter that any other scan can move
+            // is not per-scope, and a test that asserts an exact count then fails on
+            // whatever ran beside it. The value flows across awaits, so the executor's
+            // calls are charged to the scope it opened.
+            _previousScope = AmbientScope.Value;
+            AmbientScope.Value = this;
+
             // A nested scope is free and shares the outer's state, so an inner dispose
             // cannot blank entries the outer run still needs.
             if (Interlocked.Increment(ref _openScopes) == 1)
             {
-                _currentScope = this;
                 QueryCache = new System.Collections.Concurrent.ConcurrentDictionary<string, List<LockingProcessInfo>>(
                     StringComparer.OrdinalIgnoreCase);
             }
@@ -201,9 +210,13 @@ public static class RestartManagerService
 
         public void Dispose()
         {
+            if (AmbientScope.Value == this)
+            {
+                AmbientScope.Value = _previousScope;
+            }
+
             if (Interlocked.Decrement(ref _openScopes) > 0) return;
             QueryCache = null;
-            _currentScope = null;
         }
     }
 
@@ -229,7 +242,7 @@ public static class RestartManagerService
 
         if (cache != null && cache.TryGetValue(filePath, out List<LockingProcessInfo>? cached))
         {
-            _currentScope?.NoteCacheHit();
+            AmbientScope.Value?.NoteCacheHit();
             Interlocked.Increment(ref _queriesCached);
             return cached;
         }
