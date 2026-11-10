@@ -60,7 +60,7 @@
                                 Click="Close_Click"/>
                     </Grid>
 
-                    <!-- 1. Summary + honesty note about where the numbers come from -->
+                    <!-- 1. Summary -->
                     <Border Grid.Row="1"
                             Background="{DynamicResource SurfaceSubCardBrush}"
                             BorderBrush="{DynamicResource HairlineBorderBrush}"
@@ -68,20 +68,12 @@
                             CornerRadius="10"
                             Padding="14,10"
                             Margin="0,0,0,10">
-                        <StackPanel>
-                            <TextBlock x:Name="SummaryText"
-                                       Text="Reading storage device health from the Windows Storage provider..."
-                                       FontSize="12.5"
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextHighBrush}"
-                                       TextWrapping="Wrap"/>
-                            <TextBlock x:Name="SourceNoteText"
-                                       Text="One row is one physical device: a disk with C: and D: is a single row, labelled with both letters. Health, model, media type and serial come from MSFT_Disk / MSFT_PhysicalDisk. Temperature, wear and power-on hours come from MSFT_StorageReliabilityCounter, which Windows only exposes to an elevated process - they read 'Not reported' rather than a guess when unavailable. The speed test writes one temporary file per device, reads it back with unbuffered I/O and deletes it."
-                                       FontSize="10.5"
-                                       TextWrapping="Wrap"
-                                       Foreground="{DynamicResource TextMutedBrush}"
-                                       Margin="0,4,0,0"/>
-                        </StackPanel>
+                        <TextBlock x:Name="SummaryText"
+                                   Text="Reading storage device health from the Windows Storage provider..."
+                                   FontSize="12.5"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextHighBrush}"
+                                   TextWrapping="Wrap"/>
                     </Border>
 
                     <!-- 2. Status line -->
@@ -245,6 +237,16 @@
                                    TextTrimming="CharacterEllipsis"
                                    Margin="0,0,180,0"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button x:Name="ElevateBtn"
+                                    Content="Restart as Administrator"
+                                    Style="{DynamicResource PillButton}"
+                                    Padding="14,6"
+                                    FontSize="11"
+                                    FontWeight="SemiBold"
+                                    Margin="0,0,8,0"
+                                    Visibility="Collapsed"
+                                    AutomationProperties.Name="Relaunch Deltempo as administrator to read drive temperature and wear"
+                                    Click="Elevate_Click"/>
                             <Button x:Name="ActionBtn"
                                     Content="Run Speed Test"
                                     Style="{DynamicResource PillButton}"

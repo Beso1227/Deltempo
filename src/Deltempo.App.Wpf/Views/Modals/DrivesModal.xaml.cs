@@ -75,6 +75,25 @@ public partial class DrivesModal : UserControl
 
     private void Close_Click(object sender, RoutedEventArgs e) => CloseModal();
 
+    private void Elevate_Click(object sender, RoutedEventArgs e)
+    {
+        if (ElevationService.IsRunAsAdmin()) return;
+
+        MessageBoxResult result = MessageBox.Show(
+            "Relaunch Deltempo as Administrator?\n\n" +
+            "Windows withholds a drive's SMART attribute table from a standard user. Relaunching " +
+            "as administrator reads its temperature, power-on hours and wear on the next report. " +
+            "Values the drive does not publish stay \"Not reported\" instead of being guessed.",
+            "Read drive temperature and wear",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (result == MessageBoxResult.Yes)
+        {
+            ElevationService.RestartAsAdmin();
+        }
+    }
+
     private void Action_Click(object sender, RoutedEventArgs e)
     {
         if (_mode == DriveReportMode.Health)
@@ -114,6 +133,11 @@ public partial class DrivesModal : UserControl
 
         ActionBtn.Content = speed ? "Re-run Speed Test" : "Run Speed Test";
         ActionBtn.IsEnabled = true;
+        if (speed)
+        {
+            ElevateBtn.Visibility = Visibility.Collapsed;
+            FooterText.Margin = new Thickness(0, 0, 180, 0);
+        }
         FooterText.Text = speed
             ? "The temporary test file is deleted on every path, including cancel."
             : "Health is read-only. Nothing is written or deleted.";
@@ -137,8 +161,18 @@ public partial class DrivesModal : UserControl
             if (drives.Count == 0)
             {
                 SummaryText.Text = "No storage devices were found.";
+                ElevateBtn.Visibility = Visibility.Collapsed;
+                FooterText.Margin = new Thickness(0, 0, 180, 0);
                 return;
             }
+
+            // Only offered when the provider actually refused the counters; a device
+            // that simply does not expose them gains nothing from elevation.
+            bool needsElevation = drives.Any(d => d.ReliabilityCountersNeedElevation);
+            ElevateBtn.Visibility = needsElevation && _mode == DriveReportMode.Health
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            FooterText.Margin = new Thickness(0, 0, needsElevation ? 375 : 180, 0);
 
             int unknown = drives.Count(d => !d.HealthScore.HasValue);
             SummaryText.Text = unknown == 0
@@ -237,13 +271,13 @@ public partial class DrivesModal : UserControl
         }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
         string detail = drive.Recommendation;
-        if (drive.ReliabilityCountersNeedElevation)
+        if (!string.IsNullOrWhiteSpace(drive.ReliabilitySource))
         {
-            detail += " Reliability counters need elevation.";
+            detail += $" Reported by {drive.ReliabilitySource}.";
         }
-        else if (!drive.ReliabilityCountersAvailable)
+        else if (!string.IsNullOrWhiteSpace(drive.ReliabilityUnavailableReason))
         {
-            detail += " This device does not expose reliability counters.";
+            detail += " " + drive.ReliabilityUnavailableReason;
         }
 
         detail += " " + drive.HealthScoreBasis;

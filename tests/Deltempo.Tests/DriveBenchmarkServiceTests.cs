@@ -220,6 +220,129 @@ public class DriveBenchmarkServiceTests
         }
     }
 
+    [Fact]
+    public void NvmeSmartLogPage_RealPage_ReportsTheFirmwareCounters()
+    {
+        // A page shaped like a real controller response: 313 K, 7 % used, 12345 h,
+        // 2 media errors. The parser must read the specification's offsets, not
+        // the offsets of some other log page.
+        var page = new byte[512];
+        page[1] = 313 & 0xFF;
+        page[2] = 313 >> 8;
+        page[5] = 7;
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(page.AsSpan(128, 8), 12345);
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(page.AsSpan(160, 8), 2);
+
+        Assert.True(StorageSmartReader.TryParseNvmeSmartLog(page, out var health));
+        Assert.True(health.HasValue);
+        var value = health!.Value;
+
+        Assert.InRange(value.TemperatureCelsius, 39.8, 39.9);
+        Assert.Equal(7, value.WearPercent);
+        Assert.Equal(12345, value.PowerOnHours);
+        Assert.Equal(2, value.MediaErrors);
+    }
+
+    [Fact]
+    public void NvmeSmartLogPage_AllZeroPage_IsRejectedInsteadOfReportedAsZero()
+    {
+        var page = new byte[512];
+
+        Assert.False(StorageSmartReader.TryParseNvmeSmartLog(page, out var health));
+        Assert.False(health.HasValue);
+    }
+
+    [Fact]
+    public void NvmeSmartLogPage_ImpossibleTemperature_IsRejected()
+    {
+        // 0 K is not a temperature a controller reports; it means the read failed.
+        var page = new byte[512];
+        page[5] = 3;
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(page.AsSpan(128, 8), 500);
+
+        Assert.False(StorageSmartReader.TryParseNvmeSmartLog(page, out var health));
+        Assert.False(health.HasValue);
+    }
+
+    [Fact]
+    public void SmartReadOutcome_UnsupportedDriverQuery_IsNotTreatedAsAnElevationProblem()
+    {
+        // Intel RST VMD answers the documented NVMe property query with
+        // ERROR_INVALID_FUNCTION (1) and the pass-through with ERROR_NOT_SUPPORTED
+        // (50). Elevation cannot make an unimplemented query work, so the report must
+        // say the driver does not expose the log instead of offering a UAC prompt.
+        Assert.Equal(SmartReadOutcome.NotSupported, StorageSmartReader.Classify(new[] { 1, 50 }));
+        Assert.Equal(SmartReadOutcome.NotSupported, StorageSmartReader.Classify(new[] { 1, 1, 5 }));
+    }
+
+    [Fact]
+    public void SmartReadOutcome_AccessDenied_StillOffersElevation()
+    {
+        // Only a refusal is something elevation is documented to fix; any other error
+        // must stay a plain failure rather than claiming a permission problem.
+        Assert.Equal(SmartReadOutcome.AccessDenied, StorageSmartReader.Classify(new[] { 5, 5, 5 }));
+        Assert.Equal(SmartReadOutcome.Failed, StorageSmartReader.Classify(new[] { 87 }));
+    }
+
+    [Fact]
+    public void SmartAttributeTable_RealShapedPage_ReportsTemperatureWearAndPowerOnHours()
+    {
+        // Shaped like the table an Intel RST VMD-managed NVMe disk returns through
+        // root\wmi: 190 = 39 °C (normalized = 100 - raw), 9 = 3808 h, 231 = 96 %
+        // remaining life (so 4 % used). The parser must read these exact fields.
+        var page = new byte[362];
+        WriteSmartAttribute(page, 0, id: 190, normalized: 61, raw: 39);
+        WriteSmartAttribute(page, 1, id: 9, normalized: 100, raw: 3808);
+        WriteSmartAttribute(page, 2, id: 231, normalized: 96, raw: 0);
+
+        Assert.True(StorageSmartReader.TryParseSmartAttributes(page, out WmiSmartCounters counters));
+
+        Assert.Equal(39d, counters.TemperatureCelsius);
+        Assert.Equal(4, counters.WearPercent);
+        Assert.Equal(3808, counters.PowerOnHours);
+    }
+
+    [Fact]
+    public void SmartAttributeTable_AllZeroPage_IsRejectedInsteadOfReportedAsZero()
+    {
+        Assert.False(StorageSmartReader.TryParseSmartAttributes(new byte[362], out WmiSmartCounters counters));
+        Assert.Null(counters.TemperatureCelsius);
+        Assert.Null(counters.WearPercent);
+        Assert.Null(counters.PowerOnHours);
+    }
+
+    [Fact]
+    public void SmartAttributeTable_AttributeFive_IsNotTreatedAsWear()
+    {
+        // Attribute 5 officially means "Reallocated Sector Count". Some drivers
+        // synthesize a value for it on NVMe, but it cannot be proven to be
+        // Percentage Used, so a table carrying only attribute 5 has no wear to report.
+        var page = new byte[362];
+        WriteSmartAttribute(page, 0, id: 5, normalized: 86, raw: 0);
+
+        Assert.False(StorageSmartReader.TryParseSmartAttributes(page, out WmiSmartCounters counters));
+        Assert.Null(counters.WearPercent);
+    }
+
+    [Fact]
+    public void SmartAttributeTable_Attribute194_IsUsedWhen190IsAbsent()
+    {
+        var page = new byte[362];
+        WriteSmartAttribute(page, 0, id: 194, normalized: 55, raw: 45);
+
+        Assert.True(StorageSmartReader.TryParseSmartAttributes(page, out WmiSmartCounters counters));
+        Assert.Equal(45d, counters.TemperatureCelsius);
+        Assert.Null(counters.WearPercent);
+    }
+
+    private static void WriteSmartAttribute(byte[] page, int index, byte id, byte normalized, uint raw)
+    {
+        int at = 2 + (index * 12);
+        page[at] = id;
+        page[at + 3] = normalized;
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32LittleEndian(page.AsSpan(at + 5, 4), raw);
+    }
+
     private static List<string> ReadyVolumeLetters()
     {
         var letters = new List<string>();
