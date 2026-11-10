@@ -160,7 +160,10 @@ public sealed partial class CleanerWorkspaceView : UserControl
                 $"[Drive Health] Opened the report for {drives.Count} storage device(s) (read only).",
                 LogLevel.Info);
 
-            await ShowDriveReportAsync("Drives Health", BuildHealthBody(drives));
+            await ShowDriveReportAsync(
+                "Drives Health",
+                BuildHealthBody(drives),
+                offerElevation: drives.Any(d => d.ReliabilityCountersNeedElevation));
         }
         catch (Exception ex)
         {
@@ -191,7 +194,7 @@ public sealed partial class CleanerWorkspaceView : UserControl
 
     private bool _reportDialogOpen;
 
-    private async Task ShowDriveReportAsync(string title, UIElement body)
+    private async Task ShowDriveReportAsync(string title, UIElement body, bool offerElevation = false)
     {
         _reportDialogOpen = true;
         try
@@ -201,11 +204,22 @@ public sealed partial class CleanerWorkspaceView : UserControl
                 XamlRoot = XamlRoot,
                 Title = title,
                 Content = new ScrollViewer { Content = body, MaxHeight = 460 },
+                PrimaryButtonText = offerElevation ? "Restart as Administrator" : string.Empty,
                 CloseButtonText = "Close",
-                DefaultButton = ContentDialogButton.Close,
+                DefaultButton = offerElevation
+                    ? ContentDialogButton.Primary
+                    : ContentDialogButton.Close,
             };
 
-            await dialog.ShowAsync();
+            var result = await dialog.ShowAsync();
+            if (offerElevation
+                && result == ContentDialogResult.Primary
+                && !ElevationService.IsRunAsAdmin())
+            {
+                // The provider refused these counters to a standard user; Windows exposes
+                // them to an elevated process.
+                ElevationService.RestartAsAdmin();
+            }
         }
         catch (Exception ex)
         {
@@ -230,17 +244,6 @@ public sealed partial class CleanerWorkspaceView : UserControl
             });
             return panel;
         }
-
-        panel.Children.Add(new TextBlock
-        {
-            Text = "One row per physical device: a disk with C: and D: is a single row. "
-                + "Health, model, media type and serial come from the Windows Storage provider. "
-                + "Temperature, wear and power-on hours are read from the device firmware when "
-                + "Windows exposes them; they read 'Not reported' rather than a guess when unavailable.",
-            TextWrapping = TextWrapping.Wrap,
-            Opacity = 0.75,
-            FontSize = 12,
-        });
 
         foreach (var drive in drives)
         {
@@ -270,11 +273,11 @@ public sealed partial class CleanerWorkspaceView : UserControl
             row.Children.Add(new TextBlock
             {
                 Text = drive.Recommendation
-                    + (drive.ReliabilityCountersNeedElevation
-                        ? " Reliability counters need elevation."
-                        : drive.ReliabilityCountersAvailable
-                            ? string.Empty
-                            : " This device does not expose reliability counters.")
+                    + (!string.IsNullOrWhiteSpace(drive.ReliabilitySource)
+                        ? $" Reported by {drive.ReliabilitySource}."
+                        : !string.IsNullOrWhiteSpace(drive.ReliabilityUnavailableReason)
+                            ? " " + drive.ReliabilityUnavailableReason
+                            : string.Empty)
                     + " " + drive.HealthScoreBasis,
                 Opacity = 0.7,
                 FontSize = 12,
