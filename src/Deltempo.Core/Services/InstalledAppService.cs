@@ -729,22 +729,7 @@ public static class InstalledAppService
 
     public static async Task<int> TerminateAppProcessesAsync(InstalledAppItem app)
     {
-        return await Task.Run(() =>
-        {
-            var procs = GetRunningProcesses(app);
-            int count = 0;
-            foreach (var p in procs)
-            {
-                try
-                {
-                    p.Kill(entireProcessTree: true);
-                    p.WaitForExit(1500);
-                    count++;
-                }
-                catch { }
-            }
-            return count;
-        });
+        return await Task.Run(() => TerminateAppProcesses(app));
     }
 
     /// <summary>
@@ -760,12 +745,12 @@ public static class InstalledAppService
     {
         ArgumentNullException.ThrowIfNull(app);
 
-        // First terminate any running instances of the app so uninstaller isn't blocked
-        await TerminateAppProcessesAsync(app);
-
         // Modern Windows Store / AppX / MSIX Package uninstallation
         if (app.IsWindowsStoreApp && !string.IsNullOrWhiteSpace(app.PackageFullName))
         {
+            // First terminate any running instances of the app so uninstaller isn't blocked
+            await TerminateAppProcessesAsync(app);
+
             bool appxSuccess = await UninstallAppxPackageAsync(app.PackageFullName);
             if (appxSuccess)
             {
@@ -780,128 +765,43 @@ public static class InstalledAppService
 
         if (string.IsNullOrWhiteSpace(cmd)) return false;
 
-        bool result = await Task.Run(() =>
+        // The attempt runs on a dedicated thread and the caller waits on a kernel
+        // event with its own deadline. Two failures forced that shape, both measured
+        // on a CI runner:
+        //
+        // - The thread pool must not be able to delay the call. The attempt used to
+        //   be entered through Task.Run, and a saturated pool delayed it by seconds:
+        //   a 500 ms timeout was measured at 9 s, and the wait had not even started
+        //   yet. A dedicated thread does not queue behind the rest of the suite.
+        // - The deadline must cover the whole attempt, the scan of the running
+        //   processes included, so the caller returns on time even when that scan is
+        //   slow. The attempt may still be running when the caller gives up, and so
+        //   may the uninstaller - and a timeout is not a completed uninstall.
+        var completed = new ManualResetEventSlim(false);
+        bool result = false;
+        var abandoned = new CancellationTokenSource();
+
+        var worker = new Thread(() =>
         {
-            try
+            try { result = RunUninstallAttempt(app, cmd, silent, timeoutMs, abandoned.Token); }
+            catch { result = false; }
+            finally
             {
-                // Parse binary and arguments
-                string fileName;
-                string args = string.Empty;
-
-                cmd = cmd.Trim();
-                if (cmd.StartsWith("\""))
-                {
-                    int quoteClose = cmd.IndexOf('\"', 1);
-                    if (quoteClose > 0)
-                    {
-                        fileName = cmd.Substring(1, quoteClose - 1);
-                        args = cmd.Substring(quoteClose + 1).Trim();
-                    }
-                    else
-                    {
-                        fileName = cmd.Trim('\"');
-                    }
-                }
-                else
-                {
-                    int spaceIdx = cmd.IndexOf(' ');
-                    if (spaceIdx > 0)
-                    {
-                        fileName = cmd.Substring(0, spaceIdx);
-                        args = cmd.Substring(spaceIdx + 1).Trim();
-                    }
-                    else
-                    {
-                        fileName = cmd;
-                    }
-                }
-
-                // If silent was requested and no quiet string was available, inject known silent switches based on engine
-                if (silent && string.IsNullOrWhiteSpace(app.QuietUninstallString))
-                {
-                    string engine = app.UninstallEngine;
-                    if (engine == "Inno Setup" && !args.Contains("/VERYSILENT", StringComparison.OrdinalIgnoreCase))
-                    {
-                        args = $"{args} /VERYSILENT /SUPPRESSMSGBOXES /NORESTART".Trim();
-                    }
-                    else if (engine == "NSIS" && !args.Contains("/S", StringComparison.OrdinalIgnoreCase))
-                    {
-                        args = $"{args} /S".Trim();
-                    }
-                    else if (engine == "MSI" && !args.Contains("/qn", StringComparison.OrdinalIgnoreCase))
-                    {
-                        args = $"{args} /qn /norestart".Trim();
-                    }
-                }
-
-                var psi = new ProcessStartInfo
-                {
-                    FileName = fileName,
-                    Arguments = args,
-                    UseShellExecute = true
-                };
-
-                // A timeout is NOT success: the uninstaller may still be running, may
-                // have handed off to an elevated helper, or may be waiting on a modal
-                // prompt. Returning true here made the caller announce a completed
-                // uninstall, scan a still-installed app, and offer to purge it.
-                //
-                // The deadline has to cover the WHOLE attempt, and it cannot be left to
-                // Process.WaitForExit(timeoutMs). For a shell-executed process on a
-                // non-interactive session (a CI runner, a service) neither the start nor
-                // the wait is bounded the way the API suggests: the call blocked for
-                // 11.2 s against a 500 ms timeout on a runner whose identical pre-work
-                // took 1.5 s, which is the lifetime of the child the test launched. A
-                // late exit could even be reported as a completed uninstall - the exact
-                // failure the comment above warns about.
-                //
-                // So the whole start-and-wait sequence runs on a dedicated thread and the
-                // caller waits on a kernel event with its own deadline. The caller's
-                // timeout then holds no matter which part of the sequence blocks, and it
-                // does not depend on the thread pool - resuming an awaited continuation
-                // would need a pool thread, and the blocked call holds one.
-                var exited = new ManualResetEventSlim(false);
-                bool didExit = false;
-                bool exitCodeUnknown = false;
-                int exitCode = 0;
-
-                var worker = new Thread(() =>
-                {
-                    try
-                    {
-                        using var proc = Process.Start(psi);
-                        if (proc is null) return;
-
-                        if (!proc.WaitForExit(timeoutMs)) return;
-
-                        didExit = true;
-                        try { exitCode = proc.ExitCode; }
-                        catch { exitCodeUnknown = true; }
-                    }
-                    catch { }
-                    finally
-                    {
-                        // The caller may already have given up and returned.
-                        try { exited.Set(); } catch { }
-                    }
-                })
-                { IsBackground = true };
-                worker.Start();
-
-                if (!exited.Wait(timeoutMs)) return false;
-                if (!didExit) return false;
-
-                // Some shell-executed uninstallers detach before we can read an exit
-                // code. The process did exit, so keep the historical success result.
-                if (exitCodeUnknown) return true;
-
-                return IsSuccessfulUninstallerExit(exitCode);
+                // The caller may already have given up and returned.
+                try { completed.Set(); } catch { }
             }
-            catch
-            {
-                return false;
-            }
-        });
+        })
+        { IsBackground = true };
+        worker.Start();
+
+        if (!completed.Wait(timeoutMs))
+        {
+            // The caller is out of time: the attempt must not go on to launch an
+            // uninstaller behind its back. A scan already in progress cannot be
+            // interrupted, but nothing is started after this point.
+            abandoned.Cancel();
+            return false;
+        }
 
         // Terminate any lingering background helper/updater/tray processes left behind by the uninstaller
         if (result)
@@ -910,6 +810,126 @@ public static class InstalledAppService
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// The uninstall attempt itself, run on the caller's dedicated thread: terminate the
+    /// app's running processes, start the uninstaller, and wait for it.
+    ///
+    /// A timeout is NOT success: the uninstaller may still be running, may have handed
+    /// off to an elevated helper, or may be waiting on a modal prompt. Returning true
+    /// there made the caller announce a completed uninstall, scan a still-installed app,
+    /// and offer to purge it. A late exit could be reported the same way, which is the
+    /// same failure seen from the other side.
+    /// </summary>
+    private static bool RunUninstallAttempt(InstalledAppItem app, string cmd, bool silent, int timeoutMs, CancellationToken abandoned)
+    {
+        // The caller gave up before this attempt even started.
+        if (abandoned.IsCancellationRequested) return false;
+
+        // First terminate any running instances of the app so uninstaller isn't blocked
+        TerminateAppProcesses(app);
+
+        // Parse binary and arguments
+        string fileName;
+        string args = string.Empty;
+
+        cmd = cmd.Trim();
+        if (cmd.StartsWith("\""))
+        {
+            int quoteClose = cmd.IndexOf('\"', 1);
+            if (quoteClose > 0)
+            {
+                fileName = cmd.Substring(1, quoteClose - 1);
+                args = cmd.Substring(quoteClose + 1).Trim();
+            }
+            else
+            {
+                fileName = cmd.Trim('\"');
+            }
+        }
+        else
+        {
+            int spaceIdx = cmd.IndexOf(' ');
+            if (spaceIdx > 0)
+            {
+                fileName = cmd.Substring(0, spaceIdx);
+                args = cmd.Substring(spaceIdx + 1).Trim();
+            }
+            else
+            {
+                fileName = cmd;
+            }
+        }
+
+        // If silent was requested and no quiet string was available, inject known silent switches based on engine
+        if (silent && string.IsNullOrWhiteSpace(app.QuietUninstallString))
+        {
+            string engine = app.UninstallEngine;
+            if (engine == "Inno Setup" && !args.Contains("/VERYSILENT", StringComparison.OrdinalIgnoreCase))
+            {
+                args = $"{args} /VERYSILENT /SUPPRESSMSGBOXES /NORESTART".Trim();
+            }
+            else if (engine == "NSIS" && !args.Contains("/S", StringComparison.OrdinalIgnoreCase))
+            {
+                args = $"{args} /S";
+            }
+            else if (engine == "MSI" && !args.Contains("/qn", StringComparison.OrdinalIgnoreCase))
+            {
+                args = $"{args} /qn /norestart";
+            }
+        }
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = fileName,
+            Arguments = args,
+            UseShellExecute = true
+        };
+
+        // The caller may have given up while the scan was running. Starting the
+        // uninstaller now would leave it running with nobody waiting for it.
+        if (abandoned.IsCancellationRequested) return false;
+
+        using var proc = Process.Start(psi);
+        if (proc is null) return false;
+
+        // The caller's deadline has already bounded the call, so this wait may run past
+        // it: the caller has returned by then, and the uninstaller may still be running.
+        if (!proc.WaitForExit(timeoutMs)) return false;
+
+        try
+        {
+            return IsSuccessfulUninstallerExit(proc.ExitCode);
+        }
+        catch
+        {
+            // Some shell-executed uninstallers detach before we can read an exit
+            // code. The process did exit, so keep the historical success result.
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Terminate the app's running processes, on the calling thread. The uninstall
+    /// attempt runs on a dedicated thread, and a thread-pool hop in the middle of it
+    /// would put the caller's deadline back at the mercy of a saturated pool.
+    /// </summary>
+    private static int TerminateAppProcesses(InstalledAppItem app)
+    {
+        var procs = GetRunningProcesses(app);
+        int count = 0;
+        foreach (var p in procs)
+        {
+            try
+            {
+                p.Kill(entireProcessTree: true);
+                p.WaitForExit(1500);
+                count++;
+            }
+            catch { }
+        }
+        return count;
     }
 
     public static async Task<bool> UninstallAppxPackageAsync(string packageFullName)
