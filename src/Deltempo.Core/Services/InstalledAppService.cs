@@ -780,7 +780,7 @@ public static class InstalledAppService
 
         if (string.IsNullOrWhiteSpace(cmd)) return false;
 
-        bool result = await Task.Run(async () =>
+        bool result = await Task.Run(() =>
         {
             try
             {
@@ -841,45 +841,61 @@ public static class InstalledAppService
                     UseShellExecute = true
                 };
 
-                using var proc = Process.Start(psi);
-                if (proc is null) return false;
-
                 // A timeout is NOT success: the uninstaller may still be running, may
                 // have handed off to an elevated helper, or may be waiting on a modal
                 // prompt. Returning true here made the caller announce a completed
                 // uninstall, scan a still-installed app, and offer to purge it.
                 //
-                // WaitForExit(timeoutMs) is not a deadline for a shell-executed process.
-                // On a non-interactive session (a CI runner, a service) the handle .NET
-                // waits on is not necessarily the uninstaller itself, so the wait can
-                // block until the child exits on its own - measured at 10.3 s on a
-                // runner whose identical pre-work took 1.5 s - and a late exit could
-                // even be reported as a completed uninstall. The deadline is therefore
-                // enforced here: when it passes, the wait is abandoned and the uninstall
-                // is reported as unfinished, exactly as a timeout is meant to be.
-                Task<bool> exitWait = Task.Run(() =>
-                {
-                    try { return proc.WaitForExit(timeoutMs); }
-                    catch { return false; }
-                });
+                // The deadline has to cover the WHOLE attempt, and it cannot be left to
+                // Process.WaitForExit(timeoutMs). For a shell-executed process on a
+                // non-interactive session (a CI runner, a service) neither the start nor
+                // the wait is bounded the way the API suggests: the call blocked for
+                // 11.2 s against a 500 ms timeout on a runner whose identical pre-work
+                // took 1.5 s, which is the lifetime of the child the test launched. A
+                // late exit could even be reported as a completed uninstall - the exact
+                // failure the comment above warns about.
+                //
+                // So the whole start-and-wait sequence runs on a dedicated thread and the
+                // caller waits on a kernel event with its own deadline. The caller's
+                // timeout then holds no matter which part of the sequence blocks, and it
+                // does not depend on the thread pool - resuming an awaited continuation
+                // would need a pool thread, and the blocked call holds one.
+                var exited = new ManualResetEventSlim(false);
+                bool didExit = false;
+                bool exitCodeUnknown = false;
+                int exitCode = 0;
 
-                if (await Task.WhenAny(exitWait, Task.Delay(timeoutMs)) != exitWait)
+                var worker = new Thread(() =>
                 {
-                    return false;
-                }
+                    try
+                    {
+                        using var proc = Process.Start(psi);
+                        if (proc is null) return;
 
-                if (!await exitWait) return false;
+                        if (!proc.WaitForExit(timeoutMs)) return;
 
-                try
-                {
-                    return IsSuccessfulUninstallerExit(proc.ExitCode);
-                }
-                catch
-                {
-                    // Some shell-executed uninstallers detach before we can read an exit
-                    // code. The process did exit, so keep the historical success result.
-                    return true;
-                }
+                        didExit = true;
+                        try { exitCode = proc.ExitCode; }
+                        catch { exitCodeUnknown = true; }
+                    }
+                    catch { }
+                    finally
+                    {
+                        // The caller may already have given up and returned.
+                        try { exited.Set(); } catch { }
+                    }
+                })
+                { IsBackground = true };
+                worker.Start();
+
+                if (!exited.Wait(timeoutMs)) return false;
+                if (!didExit) return false;
+
+                // Some shell-executed uninstallers detach before we can read an exit
+                // code. The process did exit, so keep the historical success result.
+                if (exitCodeUnknown) return true;
+
+                return IsSuccessfulUninstallerExit(exitCode);
             }
             catch
             {
