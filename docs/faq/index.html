@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Deltempo FAQ — Windows Cleaner &amp; Memory Optimizer Guide</title>
   <meta name="description" content="Frequently asked questions about Deltempo: deterministic safety architecture, NT kernel memory optimization, GPU shader caches, privacy, and zero telemetry.">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <meta name="author" content="Beso1227">
   <meta name="application-name" content="Deltempo">
   <meta name="theme-color" content="#04060B">
@@ -52,7 +53,7 @@
 
   <!-- Schema.org FAQPage JSON-LD -->
   <script type="application/ld+json">
-  {
+{
     "@context": "https://schema.org",
     "@graph": [
       {
@@ -64,23 +65,15 @@
             "name": "What is Deltempo?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Deltempo is a portable, open-source Windows cleaner and NT memory optimizer application for Windows 10 and 11. It safely reclaims disposable caches, GPU shader caches, and temporary files while flushing unreferenced memory working sets."
+              "text": "Deltempo is an open-source, portable Windows utility that safely cleans disposable cache files and flushes unreferenced memory. It is designed to replace opaque PC cleaning tools with transparent, deterministic code."
             }
           },
           {
             "@type": "Question",
-            "name": "Is Deltempo safe to use?",
+            "name": "Does Deltempo delete personal files?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. Deltempo incorporates a deterministic 5-tier safety engine with pre-deletion revalidation (TOCTOU protection). Critical OS files, user documents, and browser passwords are mathematically protected by an immutable exclusion policy."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Does Deltempo delete personal files or browser passwords?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Deltempo's protection policies strictly exclude personal files, documents, code repositories, browser login databases, and messaging app credentials from cleanup."
+              "text": "Deltempo's protection policies are designed to exclude personal directories (Documents, Desktop, Pictures, Videos, Music, code repositories), browser saved passwords and cookies, and cloud/developer credentials (.ssh, AWS, GPG keys) from cleanup."
             }
           },
           {
@@ -88,15 +81,39 @@
             "name": "How does the 24-Hour Safety Shield work?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Files created or modified within the last 24 hours in temporary directories are marked as protected by default. This prevents deleting files actively used by running installers, background updates, or uncommitted edits."
+              "text": "Files modified within the last 24 hours in temporary directories are flagged as \"Review Required\" and excluded from automatic deletion to avoid interrupting active installers, in-progress updates, or open work."
             }
           },
           {
             "@type": "Question",
-            "name": "Does Deltempo delete browser passwords or history?",
+            "name": "How does the NT memory optimizer work?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "No. Deltempo never touches personal folders (Documents, Desktop, Pictures), browser saved credentials, cookies, or session databases."
+              "text": "Deltempo utilizes native Windows NT kernel APIs ( NtSetSystemInformation with memory list class 80 and EmptyWorkingSet ) to flush standby list pages left behind by closed applications and trim idle process working sets. It does not terminate active programs."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Deltempo require administrator privileges?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Standard user profile cache cleaning runs without elevation. Cleaning system-level temporary files (e.g. Windows Update leftovers, Delivery Optimization) and flushing system memory standby lists requires Windows administrator privileges."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Deltempo collect telemetry or phone home?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Deltempo contains no analytics SDKs, tracking pixels, or advertising beacons. Routine scan and clean operations run entirely offline. Network activity only occurs if you explicitly request an update check or download patch builds from GitHub."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I automate Deltempo via command line?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Both Deltempo.exe and deltempo_cli.exe support command-line arguments. You can run deltempo clean temp --dry-run to simulate cleanups or deltempo status --json for automated monitoring."
             }
           },
           {
@@ -104,7 +121,7 @@
             "name": "How does Deltempo handle locked or in-use files?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Deltempo uses the native Win32 Restart Manager API (rstrtmgr.dll) to detect lock holders, attempts up to 3 non-destructive retry passes, and safely skips in-use files without force-terminating apps."
+              "text": "Deltempo utilizes the native Win32 Restart Manager API ( rstrtmgr.dll ) to identify exactly which process holds an exclusive lock on a file. It performs up to 3 non-destructive retry passes with exponential backoff. If the file remains locked by an active process, Deltempo skips it safely rather than force-terminating running applications."
             }
           },
           {
@@ -112,7 +129,7 @@
             "name": "What are the 8 integrated workspaces in Deltempo?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Deltempo includes 8 dedicated workspaces: System Cleaner, RAM Optimizer, Large File Explorer, Startup Manager (with AI Safety Verdicts), Process Monitor, System Repair, Deep Root App Uninstaller (BCU engine), and Terminal CLI."
+              "text": "Deltempo provides 8 dedicated operational workspaces within a single portable binary: System Cleaner (26+ scopes), RAM Optimizer (NT kernel working set & standby flusher), Large File Explorer (deep disk hog discovery), Startup Manager (with multi-provider AI safety verdicts), Process Monitor (resource consumption tracker), System Repair (SFC/DISM health orchestration), Deep Root App Uninstaller (BCU engine with silent batch removal & leftover trace sweeper), and Terminal CLI (scriptable console automation)."
             }
           },
           {
@@ -120,7 +137,15 @@
             "name": "Does Deltempo create system restore points automatically during app uninstallation?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "No. Deltempo respects your choice and system resources. In the Deep Root App Uninstaller, restore point creation is an optional toggle that is turned off by default. If you prefer to have a checkpoint before removing an app, simply check the box in the GUI or pass the '--restore-point' flag in the CLI."
+              "text": "No. Deltempo respects your system resources and personal choice. In the Deep Root App Uninstaller, restore point creation is an optional toggle that is turned off by default. If you prefer to have a system checkpoint before removing an application, simply check the box in the GUI or pass the --restore-point flag in the terminal CLI."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does Deltempo compare to CCleaner, BleachBit, and Bulk Crap Uninstaller?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Deltempo combines the best aspects of all three while remaining 100% open source under MIT. Unlike CCleaner, it has zero telemetry and no paid upsells. Unlike BleachBit, it features a modern Fluent UI, native NT kernel memory optimization, and an app uninstaller. Unlike BCU, it includes an integrated 26+ scope disk cleaner, large file hunter, system repair tools, and a high-DPI tray monitor."
             }
           },
           {
@@ -157,14 +182,6 @@
           },
           {
             "@type": "Question",
-            "name": "How does Deltempo compare to CCleaner, BleachBit, and Bulk Crap Uninstaller?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Deltempo combines the best aspects of all three while remaining 100% open source under MIT. Unlike CCleaner, it has zero telemetry and no paid upsells. Unlike BleachBit, it features a modern Fluent UI, native NT kernel memory optimization, and an app uninstaller. Unlike BCU, it includes an integrated 26+ scope disk cleaner, large file hunter, system repair tools, and a high-DPI tray monitor."
-            }
-          },
-          {
-            "@type": "Question",
             "name": "Does Deltempo support Arabic and other international languages?",
             "acceptedAnswer": {
               "@type": "Answer",
@@ -176,7 +193,7 @@
             "name": "How thoroughly is Deltempo tested and verified?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Deltempo is backed by more than a thousand automated tests spanning unit, integration, benchmark, and adversarial filesystem security test suites, all passing with zero warnings. The live count is published on the repository's README badge."
+              "text": "Every release is gated by more than a thousand automated verification tests spanning unit tests, integration tests, timing benchmarks, and an adversarial filesystem security test suite (validating symlink traps, junction loop containment, and directory traversal immunity). All builds enforce a 0-warning compilation standard. The live count is always published on the repository README badge , so this page never goes stale."
             }
           }
         ]
@@ -198,10 +215,25 @@
             "item": "https://beso1227.github.io/Deltempo/faq/"
           }
         ]
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://beso1227.github.io/Deltempo/faq/#webpage",
+        "url": "https://beso1227.github.io/Deltempo/faq/",
+        "name": "Deltempo FAQ — Windows Cleaner & Memory Optimizer Guide",
+        "description": "Frequently asked questions about Deltempo: deterministic safety architecture, NT kernel memory optimization, GPU shader caches, privacy, and zero telemetry.",
+        "inLanguage": "en",
+        "isPartOf": {
+          "@id": "https://beso1227.github.io/Deltempo/#website"
+        },
+        "primaryImageOfPage": {
+          "@type": "ImageObject",
+          "url": "https://beso1227.github.io/Deltempo/social-preview.png"
+        }
       }
     ]
   }
-  </script>
+</script>
   <!-- Machine-readable context for AI agents -->
   <link rel="alternate" type="text/plain" href="../llms.txt" title="llms.txt - LLM context for Deltempo">
   <link rel="alternate" type="application/json" href="../ai-catalog.json" title="AI Agent Catalog">

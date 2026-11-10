@@ -2957,8 +2957,14 @@ main:has(> .cta-final) + .footer {
 }
 .footer-version-tag {
   font-weight: 400;
-  color: var(--text-low);
+  color: var(--text-med);
   margin-left: 0.5rem;
+}
+/* The version tag is small, dim, secondary text - the one place on the page
+   where the scrub's fade would push it under the contrast floor. It keeps the
+   rise and gives up the fade. */
+.footer-version-tag .wr-word {
+  opacity: 1;
 }
 .footer-copy-text {
   font-size: 0.8rem;
@@ -4045,7 +4051,25 @@ html.hero-intro .tw-char.is-written {
   --wr-x: clamp(0, calc((var(--wr-p, 1) * (var(--wr-n, 1) + 1.4) - var(--wr-i, 0)) * 2.6), 1);
   position: relative;
   top: calc((1 - var(--wr-x)) * 0.14em);
-  opacity: calc(0.1 + var(--wr-x) * 0.9);
+  /* The fade cannot take the text below the contrast floor. At 0.1 the words
+     were unreadable - 1.1:1 against the canvas - which failed the colour
+     contrast audit on every page, and left the footer links effectively
+     invisible until the page was scrolled to the bottom. 0.75 keeps the
+     dimmest colour the site uses (--text-low, which needs 0.721 to stay above
+     4.5:1 on the canvas) legible at the dimmest point of the scrub. */
+  opacity: calc(0.75 + var(--wr-x) * 0.25);
+}
+
+/* Display type is --text-high (19.4:1 on its own) and carries the effect the
+   eye actually follows, so it can fade deeper without losing legibility:
+   0.4 still measures 4.6:1. */
+h1 .wr-word,
+h2 .wr-word,
+h3 .wr-word,
+.hero-headline .wr-word,
+.hero-title-main .wr-word,
+.section-title .wr-word {
+  opacity: calc(0.4 + var(--wr-x) * 0.6);
 }
 
 /* --- 6. Footer: letterform scrub ---------------------------------------- */

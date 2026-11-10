@@ -140,6 +140,16 @@ jobs:
       - name: Verify Code Style & Formatting
         run: dotnet format deltempo.sln --verify-no-changes --no-restore
 
+      # The published site has to stay ready for search and for answer engines.
+      # This checks what a crawler reads: one structured-data block per page that
+      # parses, a WebPage node that agrees with the page's own canonical, a
+      # FAQ schema that matches the questions the page actually shows, an H1, a
+      # title, a description, a viewport, a language, social cards, alt text on
+      # every image, a sitemap that covers every page, and a robots.txt that
+      # allows the site.
+      - name: Verify the Published Site Is Search-Ready
+        run: node scripts/validate_seo.js
+
       - name: Run xUnit v3 Test Suite with Coverage Collection
         shell: pwsh
         run: |
