@@ -8,8 +8,12 @@ namespace Deltempo.Tests;
 
 /// <summary>
 /// The AI settings rules both settings surfaces share, and the per-provider key store
-/// they write to. These are pure: no network, no settings file, no DPAPI.
+/// they write to. No network and no DPAPI, but the readiness cases do read and write the
+/// real settings file, so this class shares the "SettingsService" collection with the
+/// other settings-mutating classes: two classes rewriting that file in parallel is how
+/// the readiness case read another test's switch state and failed.
 /// </summary>
+[Collection("SettingsService")]
 public class AiSettingsTests
 {
     // -----------------------------------------------------------------

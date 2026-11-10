@@ -98,6 +98,13 @@ public class InstalledAppServiceTests
     /// never kills a process it did not start: an earlier version killed every process named
     /// PING, which raced <see cref="SystemProcessRunnerTests"/> running its own ping child in
     /// parallel and made that test's child vanish before its timeout.
+    ///
+    /// The timeout check is measured against a baseline call, not against a fixed wall-clock
+    /// bound. The call scans every running process (reading each one's main module) before it
+    /// starts the uninstaller, and that scan costs seconds on a loaded machine - a fixed bound
+    /// measured the machine's load, not the timeout. The baseline pays exactly the same scan
+    /// cost, so the difference between the two calls is the wait itself: honouring the 500 ms
+    /// timeout leaves ~0.5 s, ignoring it leaves the child's full ~7 s.
     /// </summary>
     [Fact]
     public async Task UninstallAppAsync_Timeout_IsNotReportedAsSuccess()
@@ -109,13 +116,25 @@ public class InstalledAppServiceTests
             UninstallString = "cmd.exe /c ping -n 8 127.0.0.1 >nul"
         };
 
+        var baseline = new InstalledAppItem
+        {
+            DisplayName = "Deltempo Uninstall Harness",
+            Publisher = "Deltempo Tests",
+            UninstallString = "cmd.exe /c exit 0"
+        };
+
+        var baselineWatch = System.Diagnostics.Stopwatch.StartNew();
+        await InstalledAppService.UninstallAppAsync(baseline, silent: false, timeoutMs: 500);
+        baselineWatch.Stop();
+
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         bool result = await InstalledAppService.UninstallAppAsync(app, silent: false, timeoutMs: 500);
         stopwatch.Stop();
 
         Assert.False(result, "a child that outlived the timeout must not be reported as uninstalled");
-        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(6),
-            $"the wait did not honour the 500 ms timeout; it blocked for {stopwatch.Elapsed}.");
+        Assert.True(
+            stopwatch.Elapsed < baselineWatch.Elapsed + TimeSpan.FromSeconds(3),
+            $"the wait did not honour the 500 ms timeout; it blocked for {stopwatch.Elapsed} against a {baselineWatch.Elapsed} baseline.");
     }
 
     [Fact]
