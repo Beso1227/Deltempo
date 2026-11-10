@@ -322,3 +322,11 @@ live-labels.json
 # resolved node/npm paths), so it is evidence for that run, not a source
 # artifact: eval-plan.json stays tracked, the results do not.
 .tsupgrader/runtime-validation/*-result.json
+
+# GitHub Copilot Modernization writes its assessment, plan.md, tasks.md and the
+# per-task files under .github/upgrades/. They are the output of a tool run -
+# rewritten on every assessment, and full of machine-specific detail (resolved
+# paths, restore/build output, package data) - so they are not source. This
+# matches .github/modernize/, the sibling directory the earlier Copilot
+# code-migration run wrote, which its own .gitignore already excludes.
+.github/upgrades/
