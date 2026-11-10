@@ -294,7 +294,14 @@ footer,
 .aurora-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(100px);
+  /* The blur used to be 100px on an 800px disc. A Gaussian of that radius is
+     painted over the disc expanded by roughly three radii, and every pixel of
+     that costs a kernel tap: on a mid-range machine the three orbs were one
+     196 ms task, which was the whole of the site's total blocking time and
+     three points of its performance score. The falloff is in the gradient
+     instead, so the orb is soft for free and the blur only has to take the
+     edge off the gradient's own stops. */
+  filter: blur(28px);
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -326,7 +333,7 @@ footer,
   height: 55vw;
   max-width: 800px;
   max-height: 800px;
-  background: radial-gradient(circle, #00F2B0 0%, rgba(0, 242, 176, 0) 70%);
+  background: radial-gradient(circle, #00F2B0 0%, rgba(0, 242, 176, 0.30) 30%, rgba(0, 242, 176, 0.08) 56%, rgba(0, 242, 176, 0) 82%);
   animation: aurora-drift-1 26s ease-in-out infinite alternate;
   opacity: 0.055;
 }
@@ -338,7 +345,7 @@ footer,
   height: 60vw;
   max-width: 900px;
   max-height: 900px;
-  background: radial-gradient(circle, #1E3A8A 0%, rgba(30, 58, 138, 0) 70%);
+  background: radial-gradient(circle, #1E3A8A 0%, rgba(30, 58, 138, 0.32) 30%, rgba(30, 58, 138, 0.09) 56%, rgba(30, 58, 138, 0) 82%);
   animation: aurora-drift-2 30s ease-in-out infinite alternate;
   opacity: 0.18;
 }
@@ -350,7 +357,7 @@ footer,
   height: 50vw;
   max-width: 750px;
   max-height: 750px;
-  background: radial-gradient(circle, #0E7490 0%, rgba(14, 116, 144, 0) 70%);
+  background: radial-gradient(circle, #0E7490 0%, rgba(14, 116, 144, 0.30) 30%, rgba(14, 116, 144, 0.08) 56%, rgba(14, 116, 144, 0) 82%);
   animation: aurora-drift-3 34s ease-in-out infinite alternate;
   opacity: 0.1;
 }
