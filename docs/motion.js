@@ -942,17 +942,12 @@
         const anchor = el.querySelector('.cap-visual-anchor');
         const glyphId = el.getAttribute('data-scope-glyph');
         const symbol = glyphId ? document.querySelector('#' + glyphId) : null;
+        const rgb = window.getComputedStyle(anchor || el).color.match(/[\d.]+/g) || [];
         scopes.push({
           el: el,
           icon: anchor,
           glyphEl: symbol,
-          // The accent colour is read when the band is measured, not here. Reading
-          // a computed style forces the browser to recalculate the styles of the
-          // whole document, and this section is two thousand pixels down the page:
-          // the calculation belongs with the measurement, which now waits for the
-          // band to come into range.
-          accentEl: anchor || el,
-          accent: null,
+          accent: [Number(rgb[0]) || 0, Number(rgb[1]) || 242, Number(rgb[2]) || 176],
           left: 0,
           top: 0,
           width: 0,
@@ -971,10 +966,6 @@
       for (let i = 0; i < scopes.length; i++) {
         const sc = scopes[i];
         const el = sc.el;
-        if (!sc.accent) {
-          const rgb = window.getComputedStyle(sc.accentEl).color.match(/[\d.]+/g) || [];
-          sc.accent = [Number(rgb[0]) || 0, Number(rgb[1]) || 242, Number(rgb[2]) || 176];
-        }
         const pos = layoutPos(el);
         sc.left = pos.x;
         sc.top = pos.y;
