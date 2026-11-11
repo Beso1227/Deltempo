@@ -38,8 +38,22 @@ const docsDir = path.join(repoRoot, 'docs');
  */
 const SITE_ASSETS = /(style\.css|motion\.js|manifest\.json|sw\.js|app_icon\.png|favicon[\w-]*\.png|favicon\.ico|apple-touch-icon\.png)\?v=\d+\.\d+\.\d+/g;
 
-/** The version query, for reading what a file currently declares. */
+/**
+ * The version query, for reading what a file currently declares.
+ */
 const VERSION_RE = /\?v=\d+\.\d+\.\d+/g;
+
+/**
+ * Compare two texts without being confused by line endings.
+ *
+ * Git checks this repository out with CRLF on Windows and LF everywhere else.
+ * The version lives in the text, not in the line endings, so the comparison
+ * has to ignore them - otherwise a file that is correct on one platform
+ * looks stale on the other.
+ */
+function sameText(a, b) {
+  return a.replace(/\r\n/g, '\n') === b.replace(/\r\n/g, '\n');
+}
 
 /** The files that carry the version, and the version they must agree on. */
 function versionedFiles() {
@@ -123,7 +137,7 @@ function main() {
     const updated = text
       .replace(SITE_ASSETS, (match) => match.replace(VERSION_RE, `?v=${arg}`))
       .replace(/deltempo-cache-v\d+\.\d+\.\d+/, `deltempo-cache-v${arg}`);
-    if (updated === text) continue;
+    if (sameText(updated, text)) continue;
     fs.writeFileSync(file, updated, 'utf8');
     console.log(`${path.relative(repoRoot, file)}: version set to ${arg}`);
     changed += 1;

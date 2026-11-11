@@ -123,6 +123,32 @@ function findIconRun(html) {
 }
 
 /**
+ * The line ending the file already uses.
+ *
+ * Git checks this repository out with CRLF on Windows and LF everywhere else,
+ * so a script that writes LF unconditionally leaves a Windows checkout with
+ * mixed line endings, and then reports the file it just wrote as stale on the
+ * next run. The file's own ending is used instead, so the script leaves the
+ * file exactly as it found it apart from the lines it means to change.
+ */
+function lineEnding(text) {
+  const crlf = (text.match(/\r\n/g) || []).length;
+  const lf = (text.match(/\n/g) || []).length - crlf;
+  return crlf > lf ? '\r\n' : '\n';
+}
+
+/**
+ * Compare two texts without being confused by line endings.
+ *
+ * The comparison has to be this forgiving for the same reason: a file checked
+ * out on Linux has LF and the same file checked out on Windows has CRLF, and
+ * the committed content is the same either way.
+ */
+function sameText(a, b) {
+  return a.replace(/\r\n/g, '\n') === b.replace(/\r\n/g, '\n');
+}
+
+/**
  * Bring the manifest link's version query up to date, wherever the page
  * declares it. The link is matched on its own so that nothing around it
  * moves.
@@ -155,11 +181,11 @@ function main() {
     const depth = relative.split(path.sep).length - 1;
     const prefix = isErrorPage ? '/Deltempo/' : depth === 0 ? '' : '../'.repeat(depth);
 
-    const block = iconLinks(prefix, run.indent).join('\n') + '\n';
+    const block = iconLinks(prefix, run.indent).join(lineEnding(html)) + lineEnding(html);
     let updated = html.slice(0, run.start) + block + html.slice(run.end);
     updated = updateManifestVersion(updated);
 
-    if (updated === html) continue;
+    if (sameText(updated, html)) continue;
 
     if (check) {
       problems.push(`${relative}: icon declarations are stale`);

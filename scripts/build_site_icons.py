@@ -17,16 +17,19 @@ favicon.ico
     see. The frames are rendered straight from the master, so each one is a
     single clean downscale.
 
-favicon-32.png, favicon-48.png, favicon-64.png
-    The per-size PNGs the pages declare. 32px was missing entirely, so a
-    browser that preferred PNG had nothing between 16 and 48.
+favicon-32.png
+    A 32px PNG for the icon set. Browsers pick the closest declared size, and
+    there was nothing between 16 and 48.
+
+favicon-48.png, favicon-64.png
+    The sizes a bookmark list and a high-density desktop ask for.
 
 app_icon-64.png, app_icon-192.png
-    The sizes the pages use for the in-page logo.
+    The sizes the pages use for the in-page logo and a PWA installer.
 
 app_icon-64.webp
-    The WebP variant the pages use in <picture> sources for the in-page logo,
-    with app_icon-64.png as the fallback.
+    The WebP variant the pages use in <picture> sources, with
+    app_icon-64.png as the fallback.
 
 apple-touch-icon.png
     iOS requires PNG for apple-touch-icon. The pages pointed it at
@@ -48,10 +51,16 @@ app_icon.png
     logo and the URL the sitemap lists as the site's image, so it is worth
     making a fraction of that size. The pixels are unchanged.
 
-DETERMINISM
------------
-The output depends only on docs/app_icon.png, so re-running produces the same
-bytes. That is what lets CI prove the committed icons are current.
+HOW THE CHECK WORKS
+-------------------
+The check compares the committed files with what this script renders, and it
+compares PIXELS rather than bytes. That distinction matters: the PNG and ICO
+encoders change between Pillow releases, so the same image encodes to
+different bytes on different machines. Comparing pixels answers the question
+that actually matters - "is the published icon the icon this script renders?"
+- and it answers it the same way on every machine. It is why the check pins
+nothing: it passes with whatever Pillow the runner has, as long as the
+committed icons are the right picture.
 
 USAGE
 -----
@@ -59,10 +68,11 @@ USAGE
     python scripts/build_site_icons.py --check   fail if the committed icons
                                                  are not what this produces
 """
+import io
 import os
 import sys
 
-from PIL import Image
+from PIL import Image, ImageChops
 
 DOCS = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "docs"))
 MASTER = os.path.join(DOCS, "app_icon.png")
@@ -77,27 +87,27 @@ BACKGROUND = (3, 18, 31, 255)
 # centre, so the artwork's side is 0.8 * sqrt(2) * canvas / 2 to fit.
 MASKABLE_SIDE = 0.8 * (2 ** 0.5) / 2
 
-master = Image.open(MASTER).convert("RGBA")
-if master.size != (512, 512):
-    raise SystemExit("The master icon is expected to be 512x512, found %s" % (master.size,))
-
 # In --check mode nothing is written: the icons are rendered into memory and
 # compared with the committed files, so CI can prove the committed set is what
 # this script produces without touching the working tree.
 CHECK = "--check" in sys.argv
 
-# The files this script owns, and the bytes it produces for each.
+master = Image.open(MASTER).convert("RGBA")
+if master.size != (512, 512):
+    raise SystemExit("The master icon is expected to be 512x512, found %s" % (master.size,))
+
+# What this script produced, per file: the encoded bytes (to write) and the
+# image it decodes to (to compare).
 produced = {}
 
 
-def write(image, name, **kwargs):
-    """Render an icon and either save it or hold it for comparison."""
-    import io
-
+def render(image, name, **kwargs):
+    """Encode an icon and remember it, writing it unless this is a check."""
+    fmt = kwargs.pop("format")
     buffer = io.BytesIO()
-    image.save(buffer, format=kwargs.pop("format"), **kwargs)
+    image.save(buffer, format=fmt, **kwargs)
     data = buffer.getvalue()
-    produced[name] = data
+    produced[name] = (data, Image.open(io.BytesIO(data)).convert("RGBA"))
 
     path = os.path.join(DOCS, name)
     if not CHECK:
@@ -114,20 +124,16 @@ print()
 # the master itself with LANCZOS, so a frame is never a downscale of a
 # downscale.
 ico_sizes = [(16, 16), (24, 24), (32, 32), (48, 48), (64, 64)]
-ico_path = os.path.join(DOCS, "favicon.ico")
+buffer = io.BytesIO()
+master.save(buffer, format="ICO", sizes=ico_sizes)
+data = buffer.getvalue()
+produced["favicon.ico"] = (data, Image.open(io.BytesIO(data)).convert("RGBA"))
 if not CHECK:
-    master.save(ico_path, format="ICO", sizes=ico_sizes)
-    with open(ico_path, "rb") as handle:
-        produced["favicon.ico"] = handle.read()
-else:
-    import io
-
-    buffer = io.BytesIO()
-    master.save(buffer, format="ICO", sizes=ico_sizes)
-    produced["favicon.ico"] = buffer.getvalue()
+    with open(os.path.join(DOCS, "favicon.ico"), "wb") as handle:
+        handle.write(data)
 print("  %-32s %7.1f KB  frames %s" % (
     "favicon.ico",
-    len(produced["favicon.ico"]) / 1024.0,
+    len(data) / 1024.0,
     ", ".join("%d" % s[0] for s in ico_sizes),
 ))
 print()
@@ -141,12 +147,12 @@ for name, size in (
     ("app_icon-64.png", 64),
     ("app_icon-192.png", 192),
 ):
-    write(master.resize((size, size), Image.LANCZOS), name, format="PNG", optimize=True)
+    render(master.resize((size, size), Image.LANCZOS), name, format="PNG", optimize=True)
 print()
 
 # --- the WebP variant the pages use in <picture> ---------------------------
 print("WebP variant:")
-write(master.resize((64, 64), Image.LANCZOS), "app_icon-64.webp", format="WEBP", quality=90, method=6)
+render(master.resize((64, 64), Image.LANCZOS), "app_icon-64.webp", format="WEBP", quality=90, method=6)
 print()
 
 # --- apple-touch-icon (iOS wants PNG) --------------------------------------
@@ -154,14 +160,14 @@ print("iOS and Android:")
 apple = master.resize((180, 180), Image.LANCZOS)
 flat = Image.new("RGBA", (180, 180), BACKGROUND)
 flat.alpha_composite(apple)
-write(flat.convert("RGB"), "apple-touch-icon.png", format="PNG", optimize=True)
+render(flat.convert("RGB"), "apple-touch-icon.png", format="PNG", optimize=True)
 
 for name, size in (("app_icon-maskable-192.png", 192), ("app_icon-maskable-512.png", 512)):
     inner = int(round(size * MASKABLE_SIDE))
     art = master.resize((inner, inner), Image.LANCZOS)
     canvas = Image.new("RGBA", (size, size), BACKGROUND)
     canvas.alpha_composite(art, ((size - inner) // 2, (size - inner) // 2))
-    write(canvas.convert("RGB"), name, format="PNG", optimize=True)
+    render(canvas.convert("RGB"), name, format="PNG", optimize=True)
 print()
 
 # --- the master, re-encoded ------------------------------------------------
@@ -169,19 +175,30 @@ print()
 # gradient. Re-encoding at maximum compression keeps the pixels identical and
 # makes the logo a file a crawler can fetch without thinking about it.
 print("Master re-encoded (identical pixels, a fraction of the bytes):")
-write(master, "app_icon.png", format="PNG", optimize=True, compress_level=9)
+render(master, "app_icon.png", format="PNG", optimize=True, compress_level=9)
 
 # --- the check --------------------------------------------------------------
 if CHECK:
     stale = []
-    for name, data in sorted(produced.items()):
+    for name, (_, rendered) in sorted(produced.items()):
         path = os.path.join(DOCS, name)
         if not os.path.exists(path):
             stale.append(f"{name} (missing)")
             continue
-        with open(path, "rb") as handle:
-            if handle.read() != data:
-                stale.append(name)
+        committed = Image.open(path).convert("RGBA")
+        if committed.size != rendered.size:
+            stale.append(f"{name} ({committed.size[0]}x{committed.size[1]}, expected {rendered.size[0]}x{rendered.size[1]})")
+            continue
+        # A pixel is the picture; the encoding is only the container. The
+        # committed icon is current when it shows the same picture.
+        #
+        # The comparison is made on RGB, not RGBA: ImageChops.getbbox() on an
+        # RGBA image looks at the alpha channel alone, so a difference in the
+        # colours alone - a darkened icon, a changed hue - would be invisible
+        # to it. Comparing the RGB bands catches every visible change.
+        difference = ImageChops.difference(committed.convert("RGB"), rendered.convert("RGB")).getbbox()
+        if difference is not None:
+            stale.append(f"{name} (the pixels differ)")
     if stale:
         print()
         print("The committed icons are not what this script produces:")
