@@ -587,6 +587,20 @@ h3 strong,
   font-size: 0.85rem !important;
   gap: 0.5rem !important;
   font-weight: 700 !important;
+  position: relative;
+}
+
+/* The arrival's ring: an expanding halo that fades as it grows. It is a
+   pseudo-element so the animation can be opacity and transform, which the
+   compositor animates without repainting the button. */
+.nav-download-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 rgba(0, 242, 176, 0.5);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .nav-download-btn .btn-icon-bubble {
@@ -630,14 +644,22 @@ h3 strong,
 
 /* One-shot arrival ring: a mint halo expands off the pill as it lands. */
 @keyframes navCtaArrive {
+  /* The expanding ring lives on a pseudo-element (see .nav-download-btn::after)
+     and this keyframe animates only opacity and transform. Animating the
+     box-shadow itself was not compositable: the browser had to repaint the
+     button on every frame of the arrival, which the performance audit counted
+     as a non-composited animation. */
   0% {
-    box-shadow: 0 0 0 0 rgba(0, 242, 176, 0.5), 0 2px 14px rgba(0, 242, 176, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    opacity: 0.6;
+    transform: scale(0.9);
   }
   60% {
-    box-shadow: 0 0 0 12px rgba(0, 242, 176, 0), 0 12px 30px rgba(0, 242, 176, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    opacity: 0;
+    transform: scale(1.18);
   }
   100% {
-    box-shadow: 0 2px 14px rgba(0, 242, 176, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    opacity: 0;
+    transform: scale(1);
   }
 }
 

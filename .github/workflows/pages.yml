@@ -68,6 +68,16 @@ jobs:
       - name: Reconcile the structured data with the pages
         run: node scripts/validate_seo.js --fix
 
+      # Inline the stylesheet into every page. As a file it was a render-blocking
+      # request: the second round trip before anything could be painted, which
+      # PageSpeed measured at 260 ms of the mobile budget. Arriving with the
+      # document removes the wait, and - unlike loading it asynchronously - it
+      # cannot flash unstyled content, because there is no moment without the
+      # styles. The repository keeps the readable sources; this builds the copy
+      # that is published.
+      - name: Build the site
+        run: node scripts/build_site.js
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
