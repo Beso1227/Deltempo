@@ -5,7 +5,7 @@
   <!-- Homepage -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/</loc>
-    <lastmod>2026-11-05</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <image:image>
@@ -34,7 +34,7 @@
   <!-- Download Page -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/download/</loc>
-    <lastmod>2026-11-05</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
     <image:image>
@@ -47,7 +47,7 @@
   <!-- Live download statistics -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/downloads/</loc>
-    <lastmod>2026-11-09</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.70</priority>
   </url>
@@ -55,7 +55,7 @@
   <!-- Head-to-head comparison (search + answer-engine landing page) -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/compare/</loc>
-    <lastmod>2026-11-05</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
     <image:image>
@@ -68,7 +68,7 @@
   <!-- Best free alternatives list (search + answer-engine landing page) -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/alternatives/</loc>
-    <lastmod>2026-11-05</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
     <image:image>
@@ -81,7 +81,7 @@
   <!-- Technical Documentation -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/docs/</loc>
-    <lastmod>2026-11-05</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
     <image:image>
@@ -94,7 +94,7 @@
   <!-- FAQ Page -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/faq/</loc>
-    <lastmod>2026-11-05</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
     <image:image>
@@ -107,7 +107,7 @@
   <!-- Changelog & Release Notes -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/changelog/</loc>
-    <lastmod>2026-11-05</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <image:image>
@@ -120,7 +120,7 @@
   <!-- Privacy policy -->
   <url>
     <loc>https://beso1227.github.io/Deltempo/privacy.html</loc>
-    <lastmod>2026-11-05</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.30</priority>
   </url>

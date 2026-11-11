@@ -68,6 +68,14 @@ jobs:
       - name: Reconcile the structured data with the pages
         run: node scripts/validate_seo.js --fix
 
+      # Set each sitemap entry's lastmod to the date its page last changed.
+      # The date is how a search engine decides how often to come back, so a
+      # stale one means it does not learn that the pages moved. It is derived
+      # from git here rather than maintained by hand, because a hand-kept date
+      # is a date that is wrong the moment a page changes.
+      - name: Refresh the sitemap's lastmod dates
+        run: node scripts/update_sitemap_lastmod.js
+
       # Inline the stylesheet into every page. As a file it was a render-blocking
       # request: the second round trip before anything could be painted, which
       # PageSpeed measured at 260 ms of the mobile budget. Arriving with the

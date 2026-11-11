@@ -162,6 +162,14 @@ jobs:
         shell: pwsh
         run: node scripts/render_host_root.js --check
 
+      # A sitemap's lastmod is a claim to a search engine: "this URL's content
+      # last changed on this date", and it is how the engine decides how often
+      # to come back. It has to be the date the page's bytes last changed, or
+      # the engine either never learns that anything moved or stops believing
+      # the dates. This derives it from git, so it cannot drift.
+      - name: Verify the Sitemap's Lastmod Dates Are Current
+        run: node scripts/update_sitemap_lastmod.js --check
+
       # The icons are generated from one master so that the favicon, the PWA
       # manifest, the social card and the logo the search engines read cannot
       # drift apart. This regenerates them and fails if the committed files are
