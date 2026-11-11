@@ -151,17 +151,6 @@ jobs:
       - name: Verify the Published Site Is Search-Ready
         run: node scripts/validate_seo.js
 
-      # The host-root files (robots.txt, sitemap index, redirect page, icons) are
-      # served from the beso1227.github.io repository, because GitHub Pages
-      # reserves the domain root for the repository named after the account.
-      # Their content lives HERE, in the repository that owns the site, and this
-      # step proves the committed copy is what the generator produces - otherwise
-      # the two copies drift apart, which is exactly what happened when they
-      # were hand-written in two repositories.
-      - name: Verify Host-Root Files Are Current
-        shell: pwsh
-        run: node scripts/render_host_root.js --check
-
       # A sitemap's lastmod is a claim to a search engine: "this URL's content
       # last changed on this date", and it is how the engine decides how often
       # to come back. It has to be the date the page's bytes last changed, or

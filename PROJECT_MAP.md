@@ -97,26 +97,26 @@ pwsh -ExecutionPolicy Bypass -File scripts\build_release_exe.ps1   # publish\Del
 | `docs/` | the published site (source, not notes) | — |
 
 The site is published from `docs/` to `https://beso1227.github.io/Deltempo/`.
+This repository is the only place the site's content exists: the pages, the
+icons, `docs/robots.txt` and `docs/sitemap.xml` are all built from here.
+
 GitHub Pages serves the *domain root* of an account from exactly one
 repository — the one named after the account — so the bare domain
-`beso1227.github.io/` belongs to `Beso1227/Beso1227.github.io`, not to this
-repository. That repository exists and holds the domain-root `robots.txt`, a
-sitemap index, a redirect to the project site, and the site's icons.
+`beso1227.github.io/` can only be served by `Beso1227/Beso1227.github.io`.
+That is a platform limit, not a split of ownership: the host-root repository
+holds **two hand-written text files and nothing else** — a home page that
+redirects to the project site and declares the icons by absolute URL, and a
+`robots.txt` with one `Sitemap:` line. It keeps no copy of the icons, the
+pages or the sitemap, so there is nothing that can drift, and nothing here has
+to be generated, mirrored or checked for freshness. The exact content of those
+two files is recorded in `.internal/host-root-stub.md`.
 
-The icons are the reason it exists. A search engine shows **one favicon per
-hostname** and finds it by crawling the home page of that hostname — for
-this domain, the bare domain. While the host-root repository was missing
-(2026-11-10 to 2026-11-11) the bare domain answered 404, so there was no
-live page to re-read and the engine kept serving the icon it had cached
-before the rebrand. The host root therefore declares the icons and publishes
-copies of them.
-
-Its content is **generated, not hand-written**: `site-root/` holds the
-canonical host-root files, `scripts/render_host_root.js` renders them from
-`docs/robots.txt`, `docs/sitemap.xml` and the site's icons, and CI proves
-the committed copy is current ("Verify Host-Root Files Are Current"). The
-host-root repository publishes the result with its own workflow, so the two
-copies cannot drift apart.
+The icons are the reason the bare domain still answers at all. A search engine
+shows **one favicon per hostname** and finds it by crawling the home page of
+that hostname — for this domain, the bare domain. While the host-root
+repository was missing (2026-11-10 to 2026-11-11) the bare domain answered 404,
+so there was no live page to re-read and the engine kept serving the icon it
+had cached before the rebrand.
 
 If the project ever takes its own domain, the arrangement changes: a `CNAME` in
 `docs/` makes this repository serve the domain root, `docs/robots.txt` becomes
