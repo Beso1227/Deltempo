@@ -306,6 +306,12 @@ function checkPage(file, html, siteIds) {
   if (!canonical) fail(where, 'no canonical link');
   else if (!canonical.startsWith('https://')) fail(where, `canonical is not https: ${canonical}`);
 
+  // The sitemap has to be discoverable from the pages themselves, not only from
+  // robots.txt: a search engine that arrives by a link can follow it from here.
+  if (!/<link[^>]*rel=["']sitemap["']/i.test(html)) {
+    fail(where, 'no <link rel="sitemap"> in the head');
+  }
+
   if (!metaContent(html, 'name', 'viewport')) fail(where, 'no viewport meta');
   if (!/<html[^>]*lang=["'][^"']+["']/i.test(html)) fail(where, 'no lang on <html>');
   if (!metaContent(html, 'property', 'og:image')) fail(where, 'no og:image');
@@ -449,6 +455,19 @@ function main() {
     fail('ai-catalog.json', 'missing');
   } else if (fs.readFileSync(wellKnown, 'utf8') !== fs.readFileSync(catalog, 'utf8')) {
     fail('.well-known/ai-catalog.json', 'the copy differs from ai-catalog.json; they must be the same file');
+  }
+
+  // IndexNow: the key file is what proves a change notification comes from
+  // this site, so it has to be published and it has to match what the script
+  // sends. A missing key means no search engine is told when the site changes.
+  const keyFiles = fs.readdirSync(docsDir).filter((n) => /^[0-9a-f]{32}\.txt$/.test(n));
+  if (keyFiles.length === 0) {
+    fail('IndexNow', 'no key file in docs/ (expected a 32-character hex .txt)');
+  } else {
+    const key = fs.readFileSync(path.join(docsDir, keyFiles[0]), 'utf8').trim();
+    if (!/^[0-9a-f]{32}$/.test(key)) {
+      fail(`docs/${keyFiles[0]}`, 'the key file does not hold a 32-character hex key');
+    }
   }
 
   // robots.txt

@@ -79,3 +79,11 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+      # Tell the search engines that the site changed. IndexNow needs no account
+      # and no credential: the key file published at the site root is what proves
+      # the request comes from here. It is best effort - a search engine that is
+      # not listening must never fail a deploy.
+      - name: Notify the search engines (IndexNow)
+        continue-on-error: true
+        run: node scripts/push_indexnow.js
