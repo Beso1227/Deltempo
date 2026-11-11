@@ -94,7 +94,11 @@ function build() {
     console.error('docs/style.css is missing; nothing to inline.');
     process.exit(1);
   }
-  const css = absolutise(fs.readFileSync(cssFile, 'utf8'));
+  // The stylesheet is absolutised BEFORE it is minified, because esbuild
+  // rewrites url() references it can resolve and leaves the ones it cannot.
+  // Absolutising first means the minifier sees paths that are already
+  // unambiguous and has nothing to decide.
+  const css = minify(absolutise(fs.readFileSync(cssFile, 'utf8')), 'css');
 
   let inlined = 0;
   let skipped = 0;
@@ -119,6 +123,31 @@ function build() {
   }
 
   console.log(`${inlined} page(s) ${check ? 'would be' : 'were'} built, ${skipped} skipped.`);
+
+  // The script the page loads for its motion.
+  //
+  // It is a separate file rather than part of the page, so it is downloaded
+  // on its own and parsed on its own - and parsing 110 KB of JavaScript is
+  // main-thread work that lands as a long task on a phone. Minifying it cuts
+  // what has to be downloaded and parsed, and the savings are the ones the
+  // "unminified JavaScript" audit asks for.
+  //
+  // The file the browser runs is the minified one; the readable source stays
+  // in the repository, which is what the deploy workflow copies. The version
+  // query on the script tag is what makes a changed script a changed URL, and
+  // the service worker precaches the same file, so the two agree.
+  const motionFile = path.join(docsDir, 'motion.js');
+  if (!fs.existsSync(motionFile)) {
+    console.warn('docs/motion.js is missing; the page will not have its motion engine.');
+    return;
+  }
+  const motion = minify(fs.readFileSync(motionFile, 'utf8'), 'js');
+  if (check) {
+    console.log(`${path.relative(repoRoot, motionFile)}: would be minified`);
+  } else {
+    fs.writeFileSync(motionFile, motion, 'utf8');
+    console.log(`${path.relative(repoRoot, motionFile)}: minified`);
+  }
 }
 
 build();

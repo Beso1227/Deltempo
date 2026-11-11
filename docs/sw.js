@@ -1,17 +1,21 @@
 // Deltempo Documentation & Landing Page PWA Service Worker
-const CACHE_NAME = 'deltempo-cache-v3.9.46';
+const CACHE_NAME = 'deltempo-cache-v3.9.47';
 
 const PRECACHE_ASSETS = [
   './',
   'index.html',
-  'style.css?v=3.9.46',
+  // The stylesheet is NOT precached, and that is deliberate: every page
+  // carries the styles inline (see scripts/build_site.js), so no page ever
+  // requests the file. Precaching it made every visitor download 115 KB of
+  // CSS that nothing would read - a page that inlines its styles is already
+  // complete in the HTML the browser was given.
   'fonts/plus-jakarta-sans-latin.woff2',
   'fonts/plus-jakarta-sans-latin-ext.woff2',
   'fonts/jetbrains-mono-latin.woff2',
   'fonts/jetbrains-mono-latin-ext.woff2',
   'vendor/lenis.min.js',
-  'motion.js?v=3.9.46',
-  'manifest.json?v=3.9.46',
+  'motion.js?v=3.9.47',
+  'manifest.json?v=3.9.47',
   'favicon.ico',
   'favicon-32.png',
   'favicon-48.png',
