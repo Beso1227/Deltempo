@@ -58,8 +58,8 @@
     "oneliner_cli": "irm https://beso1227.github.io/Deltempo/win-cli | iex"
   },
   "documentation": "https://beso1227.github.io/Deltempo/docs/",
-  "llms_context": "https://beso1227.github.io/Deltempo/llms.txt",
-  "llms_full_context": "https://beso1227.github.io/Deltempo/llms-full.txt",
+  "llms_context": "https://beso1227.github.io/Deltempo/llms.txt?v=68435de1d185",
+  "llms_full_context": "https://beso1227.github.io/Deltempo/llms-full.txt?v=68435de1d185",
   "capabilities": [
     "26+ cleaning scopes including GPU shader caches, browser caches and developer build artifacts",
     "Native NT kernel standby memory trim (EmptyWorkingSet, NtSetSystemInformation)",

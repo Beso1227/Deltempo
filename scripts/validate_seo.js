@@ -604,6 +604,72 @@ function main() {
     fail('.well-known/ai-catalog.json', 'the copy differs from ai-catalog.json; they must be the same file');
   }
 
+  // The shape of llms.txt, as the specification defines it.
+  //
+  // The file is consumed by parsers, not only by people reading it, and the
+  // reference implementation of the format has a strict idea of what it will
+  // accept. It was measured: the file this site shipped CRASHED the reference
+  // parser, because that parser treats every H2 section as a list of links
+  // and every one of this site's H2 sections held prose instead. An agent
+  // using the reference tooling got an exception rather than the context.
+  //
+  // The format is:
+  //   - an H1 with the name of the site,
+  //   - a blockquote with a one-paragraph summary,
+  //   - optional prose, and then
+  //   - H2 sections, each holding a list of links to the detail.
+  //
+  // So the check is: the H1 and the summary are there, every H2 section
+  // holds only links, and there is at least one of them.
+  const llmsTxt = fs.readFileSync(path.join(docsDir, 'llms.txt'), 'utf8');
+  const llmsLines = llmsTxt.replace(/\r\n/g, '\n').split('\n');
+  if (!llmsLines[0].startsWith('# ')) {
+    fail('llms.txt', 'the first line must be an H1 with the name of the site');
+  }
+  if (!/^>\s+\S/.test(llmsLines[2] || '')) {
+    fail('llms.txt', 'the summary must be the blockquote on the third line');
+  }
+  // A link line: "- [Title](url)", with an optional ": notes" after it.
+  const linkLine = /^-\s*\[([^\]]+)\]\(([^)]+)\)(\s*:.*)?$/;
+  let inSection = false;
+  let sectionName = '';
+  let sectionLinks = 0;
+  const closeSection = () => {
+    if (inSection && sectionLinks === 0) {
+      fail('llms.txt', `the section "${sectionName}" holds no links; a section must be a list of them`);
+    }
+    inSection = false;
+    sectionLinks = 0;
+  };
+  for (const line of llmsLines) {
+    // A heading of ANY level starts a section, because that is how the
+    // reference parser reads the file - it splits on "##" and an H3 is
+    // matched by it too. Measured: an H3 subheading crashed the reference
+    // parser exactly as prose in a section did.
+    const heading = /^#{2,}\s+(.*)$/.exec(line);
+    if (heading) {
+      closeSection();
+      inSection = true;
+      sectionName = heading[1].trim();
+      continue;
+    }
+    if (!inSection) continue;
+    if (!line.trim()) continue;
+    if (linkLine.test(line)) {
+      sectionLinks += 1;
+    } else {
+      fail(
+        'llms.txt',
+        `the section "${sectionName}" holds a line that is not a link: "${line.trim().slice(0, 60)}". ` +
+          'A section must be a list of links - prose in one makes the reference parser fail.'
+      );
+    }
+  }
+  closeSection();
+  if (!/^#{2,}\s+\S/m.test(llmsTxt)) {
+    fail('llms.txt', 'no sections; the file must point at the pages it covers');
+  }
+
   // The crawlers that read the site for an assistant.
   //
   // These are the agents that fetch a page when someone asks a question about

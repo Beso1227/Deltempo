@@ -273,4 +273,4 @@ Yes. An optional safety shield exempts any file created or modified within the l
 - Changelog: https://beso1227.github.io/Deltempo/changelog/
 - Live download statistics (GitHub Releases API, no visitor tracking): https://beso1227.github.io/Deltempo/downloads/
 - Issues: https://github.com/Beso1227/Deltempo/issues
-- Machine-readable catalog: https://beso1227.github.io/Deltempo/ai-catalog.json
+- Machine-readable catalog: https://beso1227.github.io/Deltempo/ai-catalog.json?v=68435de1d185

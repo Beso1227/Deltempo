@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Declare the machine-readable context a page is covered by.
+ * Declare the machine-readable context a page is covered by, and version the
+ * URLs that point at it.
  *
  * WHY
  * ---
@@ -11,23 +12,51 @@
  * project published under a sub-path of a shared host the site root is a
  * different site entirely.
  *
- * The catalog is announced the same way. The AI Catalog specification gives
- * its own link relation, "ai-catalog", for a document that lists the agent
- * artifacts a site publishes.
+ * WHY THE URLS CARRY A VERSION
+ * ----------------------------
+ * A crawler that has already read llms.txt keeps the copy it read. The only
+ * thing that tells it the copy is stale is a URL that changed - the same
+ * lesson the favicon work established, where the artwork was redrawn and the
+ * URL stayed the same, so the search engine kept showing the old mark.
+ *
+ * These files change far more often than a release does - the documentation
+ * moves on its own schedule - so the version is derived from the files'
+ * contents rather than taken from the release number. It moves exactly when
+ * they move, and nothing has to remember to bump it.
+ *
+ * The version is stamped on every URL that points at the context: the links
+ * in the pages, the link in llms.txt to the fuller context, and the catalog's
+ * pointers back to the context files. A change to any one of them changes
+ * all of them, so an agent that follows the links cannot end up mixing a
+ * fresh page with a stale context.
+ *
+ * The catalog is published twice - at the project path and at the discovery
+ * path - and the two copies must stay byte-identical, so they are rewritten
+ * together.
  *
  * USAGE
  * -----
- *   node scripts/update_agent_links.js          rewrite the pages
- *   node scripts/update_agent_links.js --check  fail if any page is stale
+ *   node scripts/update_agent_links.js          rewrite the pages and context
+ *   node scripts/update_agent_links.js --check  fail if any of them is stale
  */
 'use strict';
 
 const fs = require('node:fs');
 const path = require('node:path');
 
+const agentContext = require('./agent_context');
+
 const repoRoot = path.resolve(__dirname, '..');
 const docsDir = path.join(repoRoot, 'docs');
 const check = process.argv.includes('--check');
+
+/**
+ * The version of the machine-readable context.
+ *
+ * It is computed from the files themselves, so it cannot drift from what they
+ * actually contain.
+ */
+const VERSION = agentContext.computeContextVersion(docsDir);
 
 function pageFiles(dir, out = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -58,11 +87,12 @@ function pageFiles(dir, out = []) {
  */
 function agentLinks(prefix, indent) {
   const p = (file) => `${prefix}${file}`;
+  const v = (file) => `${p(file)}?v=${VERSION}`;
   return [
-    `<link rel="describedby" href="${p('llms.txt')}" title="llms.txt - the LLM-readable context for Deltempo">`,
-    `<link rel="alternate" type="text/plain" href="${p('llms.txt')}" title="llms.txt - LLM context for Deltempo">`,
-    `<link rel="alternate" type="text/plain" href="${p('llms-full.txt')}" title="llms-full.txt - the complete LLM-readable context for Deltempo">`,
-    `<link rel="alternate" type="application/json" href="${p('ai-catalog.json')}" title="AI Agent Catalog">`,
+    `<link rel="describedby" href="${v('llms.txt')}" title="llms.txt - the LLM-readable context for Deltempo">`,
+    `<link rel="alternate" type="text/plain" href="${v('llms.txt')}" title="llms.txt - LLM context for Deltempo">`,
+    `<link rel="alternate" type="text/plain" href="${v('llms-full.txt')}" title="llms-full.txt - the complete LLM-readable context for Deltempo">`,
+    `<link rel="alternate" type="application/json" href="${v('ai-catalog.json')}" title="AI Agent Catalog">`,
   ].map((line) => indent + line);
 }
 
@@ -92,8 +122,10 @@ function sameText(a, b) {
   return a.replace(/\r\n/g, '\n') === b.replace(/\r\n/g, '\n');
 }
 
-function main() {
-  const problems = [];
+/**
+ * Rewrite the pages: the block of machine-readable declarations.
+ */
+function rewritePages(problems) {
   let changed = 0;
 
   for (const file of pageFiles(docsDir)) {
@@ -137,14 +169,73 @@ function main() {
     changed += 1;
   }
 
+  return changed;
+}
+
+/**
+ * Rewrite the context files: every URL inside them that points at another
+ * context file.
+ */
+function rewriteContextFiles(problems) {
+  let changed = 0;
+
+  for (const name of agentContext.CONTEXT_FILES) {
+    const file = path.join(docsDir, name);
+    if (!fs.existsSync(file)) {
+      problems.push(`${name}: missing; the machine-readable context is incomplete`);
+      continue;
+    }
+
+    const text = fs.readFileSync(file, 'utf8');
+    const updated = agentContext.applyVersionToContextUrls(text, VERSION);
+
+    if (sameText(updated, text)) continue;
+
+    if (check) {
+      problems.push(`${name}: the links to the machine-readable context are stale`);
+      continue;
+    }
+
+    fs.writeFileSync(file, updated, 'utf8');
+    console.log(`${name}: context links updated`);
+    changed += 1;
+  }
+
+  // The catalog is published a second time at the discovery path. The two
+  // copies must be the same document, so they are rewritten the same way.
+  const wellKnown = path.join(docsDir, '.well-known', 'ai-catalog.json');
+  if (fs.existsSync(wellKnown)) {
+    const text = fs.readFileSync(wellKnown, 'utf8');
+    const updated = agentContext.applyVersionToContextUrls(text, VERSION);
+    if (!sameText(updated, text)) {
+      if (check) {
+        problems.push('.well-known/ai-catalog.json: the links to the machine-readable context are stale');
+      } else {
+        fs.writeFileSync(wellKnown, updated, 'utf8');
+        console.log('.well-known/ai-catalog.json: context links updated');
+        changed += 1;
+      }
+    }
+  }
+
+  return changed;
+}
+
+function main() {
+  const problems = [];
+  const changed = rewritePages(problems) + rewriteContextFiles(problems);
+
   if (problems.length > 0) {
-    console.error('The machine-readable link declarations are out of date:');
+    console.error('The machine-readable links are out of date:');
     for (const problem of problems) console.error(`  ${problem}`);
     console.error('Run: node scripts/update_agent_links.js');
     process.exit(1);
   }
 
-  console.log(`The machine-readable link declarations are current (${check ? 'checked' : changed + ' page(s) updated'}).`);
+  console.log(
+    `The machine-readable links are current (context version ${VERSION}; ` +
+    `${check ? 'checked' : changed + ' file(s) updated'}).`
+  );
 }
 
 main();
