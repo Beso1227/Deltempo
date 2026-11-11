@@ -31,11 +31,33 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 
 const repoRoot = path.resolve(__dirname, '..');
 const docsDir = path.join(repoRoot, 'docs');
 const SITE_ROOT = '/Deltempo';
 const check = process.argv.includes('--check');
+
+/**
+ * The minifier is pinned to an exact version: a build that downloads
+ * "whatever is latest" is a build whose output changes without a commit.
+ * If esbuild cannot be reached the build continues with the unminified
+ * sources - a slower site is much better than a site that does not publish.
+ */
+const ESBUILD_VERSION = '0.28.2';
+
+function minify(source, loader) {
+  try {
+    return execFileSync(
+      'npx',
+      ['--yes', `esbuild@${ESBUILD_VERSION}`, '--minify', `--loader=${loader}`],
+      { input: source, encoding: 'utf8', shell: true, stdio: ['pipe', 'pipe', 'pipe'] }
+    );
+  } catch (err) {
+    console.warn(`Could not minify the ${loader} (${err.message.split('\n')[0]}). Using the readable source.`);
+    return source;
+  }
+}
 
 /** Every page loads the same stylesheet; the query string busts the cache. */
 const STYLESHEET_RE = /<link[^>]*rel=["']stylesheet["'][^>]*href=["']([^"']+)["'][^>]*>/i;
