@@ -1,20 +1,24 @@
 // Deltempo Documentation & Landing Page PWA Service Worker
-const CACHE_NAME = 'deltempo-cache-v3.9.45';
+const CACHE_NAME = 'deltempo-cache-v3.9.46';
 
 const PRECACHE_ASSETS = [
   './',
   'index.html',
-  'style.css?v=3.9.45',
+  'style.css?v=3.9.46',
   'fonts/plus-jakarta-sans-latin.woff2',
   'fonts/plus-jakarta-sans-latin-ext.woff2',
   'fonts/jetbrains-mono-latin.woff2',
   'fonts/jetbrains-mono-latin-ext.woff2',
   'vendor/lenis.min.js',
-  'motion.js?v=3.9.45',
-  'manifest.json?v=3.9.45',
-  'app_icon-192.png',
-  'app_icon-64.png',
+  'motion.js?v=3.9.46',
+  'manifest.json?v=3.9.46',
+  'favicon.ico',
+  'favicon-32.png',
+  'favicon-48.png',
   'favicon-64.png',
+  'app_icon-64.png',
+  'app_icon-192.png',
+  'apple-touch-icon.png',
   'docs/',
   'download/',
   'changelog/',

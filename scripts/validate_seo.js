@@ -122,6 +122,73 @@ function linkHref(html, rel) {
 }
 
 /**
+ * The icon declarations a page is expected to carry.
+ *
+ * Every page declares the same set, so a crawler comparing pages, or a browser
+ * picking the largest candidate, lands on the same file whichever page it is
+ * on. The version query is what makes a search engine refetch the icon: the
+ * favicon Google shows is fetched from these URLs and cached against them, so
+ * an icon whose artwork changed but whose URL did not stays frozen at the old
+ * picture - which is exactly what happened in September.
+ */
+const ICON_LINKS = [
+  { rel: 'icon', file: 'favicon.ico' },
+  { rel: 'icon', file: 'favicon-32.png' },
+  { rel: 'icon', file: 'favicon-48.png' },
+  { rel: 'icon', file: 'favicon-64.png' },
+  { rel: 'icon', file: 'app_icon-192.png' },
+  { rel: 'apple-touch-icon', file: 'apple-touch-icon.png' },
+];
+
+/**
+ * Check that a page declares every icon, that each declared icon file exists,
+ * and that the URLs carry a version query.
+ */
+function checkIcons(where, html, file) {
+  const declared = [...html.matchAll(/<link[^>]+rel=["'](icon|apple-touch-icon)["'][^>]*>/gi)]
+    .map((m) => m[0]);
+
+  for (const expected of ICON_LINKS) {
+    const tag = declared.find((t) => new RegExp(`rel=["']${expected.rel}["']`, 'i').test(t)
+      && t.includes(expected.file));
+    if (!tag) {
+      fail(where, `no <link rel="${expected.rel}"> for ${expected.file}`);
+      continue;
+    }
+    if (!/\?v=\d+\.\d+\.\d+/.test(tag)) {
+      fail(where, `the ${expected.file} icon has no version query: an icon whose artwork changes under a stable URL is never refetched`);
+    }
+  }
+
+  // The declared files have to exist: a link to a file that is not published is
+  // an icon that silently does not load. The href is resolved against the
+  // page's own directory, exactly as a browser would resolve it. A path that
+  // starts at the site root ("/Deltempo/...") is relative to the published
+  // site, not to the repository.
+  for (const tag of declared) {
+    const m = /href=["']([^"']*)["']/i.exec(tag);
+    if (!m) continue;
+    const href = m[1];
+    if (/^https?:/i.test(href)) continue;
+    const target = href.split('?')[0];
+    let local;
+    if (target.startsWith('/')) {
+      const siteRoot = '/Deltempo/';
+      if (!target.startsWith(siteRoot)) {
+        fail(where, `the icon ${target} points outside the published site`);
+        continue;
+      }
+      local = path.join(docsDir, target.slice(siteRoot.length));
+    } else {
+      local = path.resolve(path.dirname(file), target);
+    }
+    if (!fs.existsSync(local)) {
+      fail(where, `the icon ${target} is declared but not published`);
+    }
+  }
+}
+
+/**
  * The questions and answers a reader actually sees, in document order. The
  * questions live in .faq-question buttons and the answers in .faq-answer
  * blocks, one of each per question.
@@ -286,6 +353,7 @@ function checkPage(file, html, siteIds) {
     if (!/name="robots"[^>]*noindex/i.test(html)) fail(where, 'the error page must ask not to be indexed');
     const h1s = [...html.matchAll(/<h1[^>]*>/gi)];
     if (h1s.length !== 1) fail(where, `${h1s.length} H1 elements (one per page)`);
+    checkIcons(where, html, file);
     return;
   }
 
@@ -318,6 +386,8 @@ function checkPage(file, html, siteIds) {
   if (!metaContent(html, 'name', 'twitter:image')) fail(where, 'no twitter:image');
   if (!metaContent(html, 'property', 'og:title')) fail(where, 'no og:title');
   if (!metaContent(html, 'property', 'og:description')) fail(where, 'no og:description');
+
+  checkIcons(where, html, file);
 
   const h1s = [...html.matchAll(/<h1[^>]*>/gi)];
   if (h1s.length === 0) fail(where, 'no H1');
@@ -356,6 +426,37 @@ function checkPage(file, html, siteIds) {
   if (!webPage) fail(where, 'the graph has no WebPage node');
   else if (canonical && webPage.url && webPage.url !== canonical) {
     fail(where, `the WebPage url (${webPage.url}) is not the canonical link (${canonical})`);
+  }
+
+  // The organization logo is the picture Google shows for the brand: in the
+  // knowledge panel, next to the site name, and in Search Console's own
+  // reporting. It has to be a square image of at least 112x112, it has to be
+  // crawlable and indexable, and - because the logo is fetched and cached
+  // against its URL - its URL has to change when the artwork does, or the old
+  // picture is what keeps being shown.
+  for (const node of nodes.filter((n) => n['@type'] === 'Organization' || n['@type'] === 'SoftwareApplication')) {
+    const logo = node.logo ?? node.publisher?.logo;
+    if (!logo) continue;
+    const logoUrl = typeof logo === 'string' ? logo : logo.url ?? logo.contentUrl;
+    if (!logoUrl) {
+      fail(where, `the ${node['@type']} logo has neither url nor contentUrl`);
+      continue;
+    }
+    if (!logoUrl.startsWith('https://')) {
+      fail(where, `the ${node['@type']} logo is not https: ${logoUrl}`);
+    }
+    if (!/\?v=\d+\.\d+\.\d+/.test(logoUrl)) {
+      fail(where, `the ${node['@type']} logo has no version query: a logo whose artwork changes under a stable URL is never refetched`);
+    }
+    if (typeof logo !== 'string') {
+      if (!logo.width || !logo.height) {
+        fail(where, `the ${node['@type']} logo has no width/height`);
+      } else if (logo.width !== logo.height) {
+        fail(where, `the ${node['@type']} logo is ${logo.width}x${logo.height}, not square`);
+      } else if (logo.width < 112) {
+        fail(where, `the ${node['@type']} logo is ${logo.width}px, below Google's 112px minimum`);
+      }
+    }
   }
 
   const crumbs = nodes.find((n) => n['@type'] === 'BreadcrumbList');

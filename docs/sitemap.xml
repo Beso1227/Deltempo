@@ -9,7 +9,7 @@
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png</image:loc>
+      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png?v=3.9.46</image:loc>
       <image:title>Deltempo Open-Source Windows Cleaner and Memory Optimizer Logo</image:title>
       <image:caption>Official logo of Deltempo: fast, portable Windows cleaner and NT memory optimizer</image:caption>
     </image:image>
@@ -38,7 +38,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
     <image:image>
-      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png</image:loc>
+      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png?v=3.9.46</image:loc>
       <image:title>Download Deltempo Standalone Executable or Install via One-Liner</image:title>
       <image:caption>Direct download of official Deltempo portable binary for Windows 10 and 11</image:caption>
     </image:image>
@@ -59,7 +59,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
     <image:image>
-      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png</image:loc>
+      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png?v=3.9.46</image:loc>
       <image:title>Deltempo vs CCleaner vs BleachBit Feature Comparison</image:title>
       <image:caption>Licence, telemetry, cleanup scopes and uninstaller depth compared across four Windows cleanup tools</image:caption>
     </image:image>
@@ -72,7 +72,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
     <image:image>
-      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png</image:loc>
+      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png?v=3.9.46</image:loc>
       <image:title>7 Best Free CCleaner Alternatives for Windows 11 and 10</image:title>
       <image:caption>Portable cleaners, open-source uninstallers and disk analyzers compared</image:caption>
     </image:image>
@@ -85,7 +85,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
     <image:image>
-      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png</image:loc>
+      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png?v=3.9.46</image:loc>
       <image:title>Deltempo Technical Architecture, Safety Engine and CLI Reference Manual</image:title>
       <image:caption>Technical documentation covering 26+ cleanup scopes, duplicate finder, and NT memory APIs</image:caption>
     </image:image>
@@ -98,7 +98,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
     <image:image>
-      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png</image:loc>
+      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png?v=3.9.46</image:loc>
       <image:title>Deltempo Frequently Asked Questions and Safety Guide</image:title>
       <image:caption>Safety architecture, restore points, GPU shaders, memory optimization, and privacy answers</image:caption>
     </image:image>
@@ -111,7 +111,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <image:image>
-      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png</image:loc>
+      <image:loc>https://beso1227.github.io/Deltempo/app_icon.png?v=3.9.46</image:loc>
       <image:title>Deltempo Official Release Notes and Version History</image:title>
       <image:caption>Detailed changelog spanning all versions, enhancements, and security updates</image:caption>
     </image:image>

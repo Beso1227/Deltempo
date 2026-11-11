@@ -145,10 +145,34 @@ jobs:
       # parses, a WebPage node that agrees with the page's own canonical, a
       # FAQ schema that matches the questions the page actually shows, an H1, a
       # title, a description, a viewport, a language, social cards, alt text on
-      # every image, a sitemap that covers every page, and a robots.txt that
+      # every image, an icon set that every page declares identically and with a
+      # version query, a sitemap that covers every page, and a robots.txt that
       # allows the site.
       - name: Verify the Published Site Is Search-Ready
         run: node scripts/validate_seo.js
+
+      # The icons are generated from one master so that the favicon, the PWA
+      # manifest, the social card and the logo the search engines read cannot
+      # drift apart. This regenerates them and fails if the committed files are
+      # not what the generator produces - the same proof the rest of the site
+      # gets. It also checks that the pages declare the icons the generator
+      # wrote, with the version query that makes a crawler refetch them.
+      #
+      # The generator needs Pillow, which is not in the .NET image. It is
+      # installed here rather than in the workflow's global environment so that
+      # it is scoped to this step.
+      - name: Verify the Site Icons Are Current
+        run: |
+          python -m pip install --disable-pip-version-check --quiet Pillow
+          python scripts/build_site_icons.py --check
+          node scripts/update_icon_links.js --check
+
+      # The "version" in "?v=3.9.46" is a cache-buster: it changes whenever an
+      # asset's bytes change, so that a browser and a crawler both fetch the new
+      # file. It only works if every reference agrees, so the version lives in
+      # one place and this proves the files agree with it.
+      - name: Verify the Asset Version Is Consistent
+        run: node scripts/set_asset_version.js --check
 
       - name: Run xUnit v3 Test Suite with Coverage Collection
         shell: pwsh
