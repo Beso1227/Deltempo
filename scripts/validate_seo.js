@@ -68,6 +68,52 @@ const BREADCRUMB_NAMES = {
   '/privacy.html': 'Privacy Policy',
 };
 
+/**
+ * The AI crawlers the site names in robots.txt.
+ *
+ * The catch-all block already permits every crawler, so this list is a
+ * statement of intent rather than a permission - but it is a list that can
+ * silently lose an entry, and an agent that is not named is one whose
+ * presence is an accident rather than a decision. These are the agents that
+ * either answer questions about Deltempo or train models on it.
+ */
+const REQUIRED_AI_AGENTS = [
+  // Answer engines: they fetch a page and quote it back.
+  'OAI-SearchBot',
+  'ChatGPT-User',
+  'ChatGPT Agent',
+  'PerplexityBot',
+  'Perplexity-User',
+  'Claude-SearchBot',
+  'Claude-User',
+  'Claude-Web',
+  'DuckAssistBot',
+  'YouBot',
+  'Applebot',
+  'Amazonbot',
+  'MistralAI-User',
+  'MistralAI-Index',
+  'Gemini-Deep-Research',
+  'Operator',
+  'GoogleOther',
+  // Training crawlers.
+  'GPTBot',
+  'ClaudeBot',
+  'anthropic-ai',
+  'Google-Extended',
+  'Applebot-Extended',
+  'meta-externalagent',
+  'Meta-ExternalFetcher',
+  'FacebookBot',
+  'cohere-ai',
+  'CCBot',
+  'Diffbot',
+  'PetalBot',
+  'Bytespider',
+  'Omgilibot',
+  'Timpibot',
+];
+
 const problems = [];
 const notes = [];
 const fail = (where, message) => problems.push(`${where}: ${message}`);
@@ -556,6 +602,30 @@ function main() {
     fail('ai-catalog.json', 'missing');
   } else if (fs.readFileSync(wellKnown, 'utf8') !== fs.readFileSync(catalog, 'utf8')) {
     fail('.well-known/ai-catalog.json', 'the copy differs from ai-catalog.json; they must be the same file');
+  }
+
+  // The crawlers that read the site for an assistant.
+  //
+  // These are the agents that fetch a page when someone asks a question about
+  // Deltempo, or that collect it to train a model. The catch-all block already
+  // permits them, so this is a statement of intent rather than a permission:
+  // it records that the site wants to be found, quoted and cited, and it fails
+  // if a crawler is dropped from the list by accident.
+  const robotsText = fs.readFileSync(path.join(docsDir, 'robots.txt'), 'utf8');
+  for (const agent of REQUIRED_AI_AGENTS) {
+    if (!new RegExp(`^User-agent:\\s*${agent}\\s*$`, 'im').test(robotsText)) {
+      fail('robots.txt', `${agent} is not named; the AI crawlers have to be permitted explicitly`);
+    }
+  }
+  // Every named agent has to be allowed something. A block that names an
+  // agent and then allows it nothing is the same as not naming it.
+  const robotBlocks = robotsText.split(/^\s*User-agent:\s*/m).slice(1);
+  for (const block of robotBlocks) {
+    const agent = block.split(/\r?\n/)[0].trim();
+    if (agent === '*') continue;
+    if (!/^\s*Allow:\s*\S/m.test(block)) {
+      fail('robots.txt', `the block for ${agent} allows nothing`);
+    }
   }
 
   // IndexNow: the key file is what proves a change notification comes from

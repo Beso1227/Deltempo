@@ -1,0 +1,61 @@
+# Deltempo
+
+> Deltempo is a free, portable, open-source **disk cleaner**, RAM/memory optimizer, deep app uninstaller, and duplicate file finder for Windows 10 and 11. Zero telemetry, 100% local, MIT licensed, no installer required.
+
+- [Official Website](https://beso1227.github.io/Deltempo/): Primary homepage, interactive simulator, and downloads
+- [GitHub Repository](https://github.com/Beso1227/Deltempo): Source code, issues, and community contributions
+- [Download](https://beso1227.github.io/Deltempo/download/): Standalone executable and one-line PowerShell install
+- [Download statistics](https://beso1227.github.io/Deltempo/downloads/): Live cumulative GitHub release download chart, per-release bars, and the full table
+- [Documentation](https://beso1227.github.io/Deltempo/docs/): Technical guide to 26+ scopes, safety tiers, and CLI commands
+- [FAQ](https://beso1227.github.io/Deltempo/faq/): Common questions on safety, GPU caches, NT memory, duplicate finder, and app uninstallation
+- [Comparison](https://beso1227.github.io/Deltempo/compare/): Head-to-head table vs CCleaner, BleachBit, and Bulk Crap Uninstaller
+- [Alternatives](https://beso1227.github.io/Deltempo/alternatives/): Best free CCleaner alternatives for Windows 11 and 10, with what each does best
+- [Changelog](https://beso1227.github.io/Deltempo/changelog/): Release notes and version history
+- [Privacy Policy](https://beso1227.github.io/Deltempo/privacy.html): Telemetry stance and the exact files the app writes
+- [Full AI Context](https://beso1227.github.io/Deltempo/llms-full.txt): Complete machine-readable capabilities, CLI reference, comparisons, and FAQs
+- [Machine Catalog](https://beso1227.github.io/Deltempo/ai-catalog.json): Structured product metadata (also served at the discovery path [/.well-known/ai-catalog.json](https://beso1227.github.io/Deltempo/.well-known/ai-catalog.json))
+
+## Overview
+Deltempo safely purges disposable system, developer, and browser caches, recovers gigabytes of disk space, thoroughly uninstalls desktop programs with leftover cleanup, detects byte-level duplicate files, provides an interactive storage treemap, provides startup intelligence, and trims inactive Windows memory working sets with zero telemetry.
+
+One-line install: `irm https://beso1227.github.io/Deltempo/win | iex`
+
+## Quick Answers
+
+- **What is Deltempo?** A free, portable, open-source Windows cleaner, deep app uninstaller, duplicate file finder, and NT memory optimizer for Windows 10 and 11 (64-bit).
+- **Is it free?** Yes. MIT licensed, no paid tier, no account, no advertising.
+- **Does it collect telemetry?** No. There are no analytics libraries, ad SDKs, or background beacons. The only network feature is an optional update check that reads public GitHub release metadata over HTTPS.
+- **Does it need an installer?** No. The app is a single portable `.exe`. A one-line PowerShell installer is available if you prefer it.
+- **Does it work on macOS or Linux?** No. It is Windows-only.
+- **Does it replace antivirus or a firewall?** No. It removes disposable files and trims memory caches; it is not a security product.
+- **Does clearing RAM make a PC faster?** It lowers the used-memory figure by evicting cached pages. Those pages are re-read from disk when needed, so treat it as cache eviction, not an upgrade.
+- **Where are the source and licence?** https://github.com/Beso1227/Deltempo (MIT).
+
+## Limitations
+
+- Windows 10 and Windows 11 on x64 only; no macOS, Linux, ARM64, or 32-bit build.
+- Cleaning is limited to an explicit allowlist of disposable scopes. Load-bearing paths are refused by design, so space held by those directories is not reclaimed.
+- The memory optimizer flushes the standby list and trims working sets; it is cache eviction, not additional physical RAM.
+- Optional AI verdicts require a user-supplied API key and network access; without a key only offline heuristics run.
+- Localization is partial: the Cleaner workspace covers English, Arabic, Spanish, French, and German; other workspaces and modals remain English.
+- The Chris Titus Tech WinUtil launcher runs a third-party tool that is not MIT licensed and is not covered by Deltempo's safety audit.
+- With zero telemetry there are no remote crash reports; issues are handled in GitHub Issues.
+
+## Core Capabilities
+- **26+ Cleaning Scopes**: System temp, DirectX/GPU shader caches, browser caches, dev artifacts (NuGet, npm, pip, Cargo, Gradle), and crash dumps.
+- **Byte-Level Duplicate File Finder**: 3-stage high-performance detection pipeline (exact size grouping, 4KB header prefix comparison, and SHA-256 cryptographic verification) with strict Windows system folder immunity.
+- **Squarified Treemap Storage Visualizer**: Interactive nested graphical map utilizing the squarified treemap layout algorithm (Bruls, Huizing, van Wijk) for zero-dependency disk space drilldown.
+- **Volume Shadow Copy (VSS) & Restore Point Manager**: Enumerate restore points, generate checkpoints before operations, and safely prune obsolete snapshots based on retention limits.
+- **Scheduled Maintenance Automation & Explorer Context Menu**: Windows Task Scheduler integration for automated unattended cleanups and right-click folder cleaning directly in Windows File Explorer.
+- **Low Disk Shield & Tray Guardian**: Proactive background tray telemetry alerts when free disk space falls below safety thresholds.
+- **Deep Root App Uninstaller**: Powered by BCU engine; performs silent bulk removals, multi-drive root residual sweeps, registry and AppData leftover cleanup, and force-removals of corrupt/broken software.
+- **Optional System Restore Points**: Pre-uninstall restore point creation is an optional toggle, turned off by default to conserve disk and avoid freezes.
+- **Application & Startup Intelligence**: Answers "Will anything go wrong if I disable or uninstall this?" with 3-tier verdicts (SafeToDisable, CautionNeeded, EssentialKeep), offline heuristics, and multi-provider AI support with live model discovery (OpenAI, Anthropic Claude, Google Gemini, xAI Grok, OpenRouter, Groq, Mistral, Cerebras, DeepSeek, GitHub Models, Hugging Face, Together AI, Ollama).
+- **Process Manager with Native Icons**: Real-time process inspection with live high-DPI icon extraction from running executables.
+- **Chris Titus Tech WinUtil (CTT) 1-Click Launcher**: Runs the third-party WinUtil utility in an elevated PowerShell window. WinUtil is by Chris Titus (https://christitus.com/win), is not MIT licensed, is not part of Deltempo, and is not covered by Deltempo's safety audit or release verification.
+- **Native NT Memory Optimizer**: Standby list flushes and working set trims via `NtSetSystemInformation` and `EmptyWorkingSet`.
+- **Multilingual RTL Architecture (partial)**: Language selector for English, Arabic, Spanish, French, and German. The Cleaner workspace is translated and Arabic activates native RTL flow; modals and the other workspaces remain English.
+- **Pro Eye-Comfort Themes**: Obsidian Titanium (Dark) and Porcelain Slate (Light) engineered for reduced eye strain and zero glare.
+- **AppData Footprint Report (read-only)**: Largest-first breakdown of what occupies `%LOCALAPPDATA%` and `%APPDATA%`, in the app and via `deltempo appdata-report`. There is no delete code path on either surface. Orphaned Microsoft Store apps are identified from binary AppModel repository evidence, matched on publisher ID, and reported as `LowRisk` and unselected.
+- **Deliberate Refusals**: Deltempo never offers load-bearing paths as cleanup targets, even when they look exactly like scratch: MSI source caches (`%ProgramData%\Package Cache`, `%WinDir%\Installer\$PatchCache$`), the per-user .NET SDK install root, bare driver vendor roots (`C:\NVIDIA`, `C:\AMD`, `C:\Intel`, `C:\Realtek`), `~\.cargo\registry\src`, and Audacity unsaved-session recovery. AppData *durable state* (OneDrive sync databases, Office/Outlook credentials, Credential Manager vaults, recent-file jump lists, SSH and GnuPG keys, the `NTUSER.DAT`/`UsrClass.dat` shell hives) is refused per-directory, so a recursive purge cannot remove it as collateral.
+- **Zero Telemetry & 1723 Automated Tests**: All operations run 100% locally; completely free and open-source under the MIT license with 1723 automated tests enforcing 0 regressions.

@@ -170,6 +170,13 @@ jobs:
       - name: Verify the Sitemap's Lastmod Dates Are Current
         run: node scripts/update_sitemap_lastmod.js --check
 
+      # Every page a crawler can reach has to announce the machine-readable
+      # context that covers it: the llms.txt that describes it (the "describedby"
+      # relation), the files themselves, and the product catalog. An agent that
+      # reads a page and finds no pointer has to guess where the context lives.
+      - name: Verify the Machine-Readable Links Are Current
+        run: node scripts/update_agent_links.js --check
+
       # The icons are generated from one master so that the favicon, the PWA
       # manifest, the social card and the logo the search engines read cannot
       # drift apart. This regenerates them and fails if the committed files are

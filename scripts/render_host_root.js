@@ -193,6 +193,18 @@ function renderRobots(blocks, site) {
       seen.add(value);
       out.push(`Allow: ${value}`);
     }
+    // The host root publishes the machine-readable files at its own root as
+    // well, so the catch-all has to allow them there too. Without this an
+    // agent that reads the domain root's robots.txt is told not to fetch the
+    // very files it came there for.
+    if (isCatchAll) {
+      for (const { to } of HOST_ROOT_CONTEXT) {
+        const value = `/${to}`;
+        if (seen.has(value)) continue;
+        seen.add(value);
+        out.push(`Allow: ${value}`);
+      }
+    }
     out.push('');
   }
 
@@ -252,6 +264,36 @@ const HOST_ROOT_ICONS = [
   'favicon-64.png',
   'app_icon-192.png',
   'apple-touch-icon.png',
+];
+
+/**
+ * The machine-readable files the host root publishes.
+ *
+ * llms.txt is the file an AI agent reads to learn what a site is and where
+ * its documentation lives, and the llms.txt specification says it may sit at
+ * any path, covering the pages under that path. It is published at BOTH the
+ * project path and the origin root, because an agent that arrives at the bare
+ * domain looks there first - and the bare domain is where Google finds the
+ * favicon too.
+ *
+ * ai-catalog.json is the same product metadata in machine-readable form, and
+ * it is published at the origin root as well so that an agent looking for the
+ * site catalog finds it.
+ *
+ * NOT published at the origin root: /.well-known/ai-catalog.json. That path
+ * belongs to the AI Catalog specification, which requires a document with
+ * specVersion and entries - a catalog of agent artifacts such as MCP servers
+ * and A2A agents. Deltempo publishes no such artifact, and the file here is a
+ * schema.org SoftwareApplication description. Serving it at that reserved
+ * path would make Lighthouse's ard-schema audit fail - measured, not assumed:
+ * putting a schema.org document at the origin root's well-known path took
+ * Agentic Browsing from 100 to 67. A file at a path that means "an agent
+ * catalog" has to be an agent catalog.
+ */
+const HOST_ROOT_CONTEXT = [
+  { from: 'llms.txt', to: 'llms.txt' },
+  { from: 'llms-full.txt', to: 'llms-full.txt' },
+  { from: 'ai-catalog.json', to: 'ai-catalog.json' },
 ];
 
 function renderIndex(site, version) {
@@ -338,12 +380,22 @@ function main() {
         stale.push(name);
       }
     }
+    // The machine-readable files are copies too, so the same applies.
+    for (const { from, to } of HOST_ROOT_CONTEXT) {
+      const source = path.join(docsDir, from);
+      const copy = path.join(options.out, to);
+      if (!fs.existsSync(copy) || !fs.existsSync(source)
+          || !fs.readFileSync(copy).equals(fs.readFileSync(source))) {
+        stale.push(to);
+      }
+    }
     if (stale.length > 0) {
       console.error(`Host-root files are out of date: ${stale.join(', ')}`);
       console.error('Run: node scripts/render_host_root.js');
       process.exit(1);
     }
-    console.log(`Host-root files are current (${Object.keys(outputs).length + HOST_ROOT_ICONS.length} files).`);
+    const total = Object.keys(outputs).length + HOST_ROOT_ICONS.length + HOST_ROOT_CONTEXT.length;
+    console.log(`Host-root files are current (${total} files).`);
     return;
   }
 
@@ -355,6 +407,12 @@ function main() {
   for (const name of HOST_ROOT_ICONS) {
     fs.copyFileSync(path.join(docsDir, name), path.join(options.out, name));
     console.log(`Copied ${path.relative(repoRoot, path.join(docsDir, name))}`);
+  }
+  for (const { from, to } of HOST_ROOT_CONTEXT) {
+    const target = path.join(options.out, to);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.copyFileSync(path.join(docsDir, from), target);
+    console.log(`Copied ${path.relative(repoRoot, path.join(docsDir, from))}`);
   }
 }
 
