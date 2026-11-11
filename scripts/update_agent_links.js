@@ -66,6 +66,32 @@ function agentLinks(prefix, indent) {
   ].map((line) => indent + line);
 }
 
+/**
+ * The line ending the file already uses.
+ *
+ * Git checks this repository out with CRLF on Windows and LF everywhere else,
+ * so a script that writes LF unconditionally leaves a Windows checkout with
+ * mixed line endings and then reports the file it just wrote as stale. The
+ * file's own ending is used instead, so the script leaves the file exactly as
+ * it found it apart from the lines it means to change.
+ */
+function lineEnding(text) {
+  const crlf = (text.match(/\r\n/g) || []).length;
+  const lf = (text.match(/\n/g) || []).length - crlf;
+  return crlf > lf ? '\r\n' : '\n';
+}
+
+/**
+ * Compare two texts without being confused by line endings.
+ *
+ * The comparison has to be this forgiving for the same reason: a file checked
+ * out on Windows has CRLF and the same file checked out on Linux has LF, and
+ * the committed content is the same either way.
+ */
+function sameText(a, b) {
+  return a.replace(/\r\n/g, '\n') === b.replace(/\r\n/g, '\n');
+}
+
 function main() {
   const problems = [];
   let changed = 0;
@@ -95,10 +121,11 @@ function main() {
     const start = existing[0].index;
     const end = existing[existing.length - 1].index + existing[existing.length - 1][0].length;
 
-    const block = agentLinks(prefix, indent).join('\n') + '\n';
+    const eol = lineEnding(html);
+    const block = agentLinks(prefix, indent).join(eol) + eol;
     const updated = html.slice(0, start) + block + html.slice(end);
 
-    if (updated === html) continue;
+    if (sameText(updated, html)) continue;
 
     if (check) {
       problems.push(`${relative}: the machine-readable link declarations are stale`);
