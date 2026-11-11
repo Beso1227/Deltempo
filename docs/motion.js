@@ -942,12 +942,17 @@
         const anchor = el.querySelector('.cap-visual-anchor');
         const glyphId = el.getAttribute('data-scope-glyph');
         const symbol = glyphId ? document.querySelector('#' + glyphId) : null;
-        const rgb = window.getComputedStyle(anchor || el).color.match(/[\d.]+/g) || [];
         scopes.push({
           el: el,
           icon: anchor,
           glyphEl: symbol,
-          accent: [Number(rgb[0]) || 0, Number(rgb[1]) || 242, Number(rgb[2]) || 176],
+          // The accent colour is read when the band is measured, not here. Reading
+          // a computed style forces the browser to recalculate the styles of the
+          // whole document, and this section is two thousand pixels down the page:
+          // the calculation belongs with the measurement, which now waits for the
+          // band to come into range.
+          accentEl: anchor || el,
+          accent: null,
           left: 0,
           top: 0,
           width: 0,
@@ -966,6 +971,10 @@
       for (let i = 0; i < scopes.length; i++) {
         const sc = scopes[i];
         const el = sc.el;
+        if (!sc.accent) {
+          const rgb = window.getComputedStyle(sc.accentEl).color.match(/[\d.]+/g) || [];
+          sc.accent = [Number(rgb[0]) || 0, Number(rgb[1]) || 242, Number(rgb[2]) || 176];
+        }
         const pos = layoutPos(el);
         sc.left = pos.x;
         sc.top = pos.y;
@@ -1256,6 +1265,7 @@
       height = window.innerHeight || 640;
       dpr = targetDpr();
       pointer.radius = width < 768 ? 150 : 190;
+
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       canvas.style.width = width + 'px';
@@ -1279,7 +1289,15 @@
         scopeCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
 
-      measureScopes();
+      // Measure the scopes only when they have been measured before. On the first
+      // call they were never measured: the band is measured when it is approached
+      // (see below), and until then there is nothing to re-measure - and asking
+      // for their geometry here would force the layout of a section that is two
+      // thousand pixels down the page.
+      if (scopesMeasured) {
+        measureScopes();
+      }
+
       updateScopes(scrollState.y);
       if (isReducedMotion) render();
     }
@@ -1787,15 +1805,53 @@
       }
     }
 
+    // Declared before resize() is called: the first resize must know whether the
+    // scopes have ever been measured, and resize() reads it.
+    let scopesMeasured = false;
+
     buildScopes();
     if (scopes.length) ensureScopeCanvas();
     onScrollFrame(updateScopes);
     resize();
     if (!isReducedMotion) render(performance.now());
 
+    // The scopes are measured when the band is first approached, not at load.
+    // Measuring them at load reads the geometry of a section two thousand pixels
+    // down the page, and Chrome has deferred the expensive part of that layout -
+    // the balanced headings, whose wrapping is only worked out when the text is
+    // actually needed. So the measurement does not read a layout, it forces one:
+    // 68 ms of it, inside the initialisation task, for a section nobody had
+    // scrolled to. PageSpeed measured the whole task at 162 ms on a slower
+    // runner, which was the entire blocking time of the site.
+    //
+    // The band is watched instead of measured, and the reading happens when it
+    // comes into range - by then the browser has laid it out for the paint, and
+    // the measurement costs nothing.
+    function measureScopesIfNeeded() {
+      if (scopesMeasured) return;
+      scopesMeasured = true;
+      measureScopes();
+      updateScopes(scrollState.y);
+    }
+
+    if (scopes.length) {
+      const grid = scopes[0].el.closest('.cap-columns');
+      if (grid && 'IntersectionObserver' in window) {
+        const io = new IntersectionObserver(function (entries) {
+          if (!entries.some(function (e) { return e.isIntersecting; })) return;
+          io.disconnect();
+          measureScopesIfNeeded();
+        }, { rootMargin: '150% 0px' });
+        io.observe(grid);
+      } else {
+        measureScopesIfNeeded();
+      }
+    }
+
     // Fonts and the reveal transform settle after the first layout, and both
     // move the pillars; the slots are measured again once the page is stable.
     window.addEventListener('load', function () {
+      if (!scopesMeasured) return;
       measureScopes();
       updateScopes(scrollState.y);
     });
@@ -1803,6 +1859,10 @@
       const grid = scopes[0].el.closest('.cap-columns');
       if (grid) {
         const ro = new ResizeObserver(function () {
+          // The observer fires once when it starts watching. That first call is
+          // not a resize, and measuring there would force the layout of the
+          // whole band before anyone has scrolled to it.
+          if (!scopesMeasured) return;
           measureScopes();
           updateScopes(scrollState.y);
         });
@@ -2497,9 +2557,18 @@
   }
 
   function initializeAll() {
+    // The starfield goes first, and deliberately. It is the only module that reads
+    // the page's geometry, and reading geometry after anything has changed a
+    // style forces the browser to lay the whole page out again, inside this task.
+    // The layout is clean right now - the page has just painted - so the scopes
+    // are measured before the smooth-scroll library marks the document and
+    // before the canvas is inserted. The re-layout those changes make necessary
+    // is then paid by the paint that follows, where it belongs: PageSpeed
+    // measured it inside the task at 162 ms on a runner slower than a desktop,
+    // and it was the whole of the site's blocking time.
+    initInteractiveBackground();
     initSmoothScroll();
     initScrollReveals();
-    initInteractiveBackground();
     initCardInteractivity();
     initServiceWorker();
     initBackToTop();
