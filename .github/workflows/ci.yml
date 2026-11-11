@@ -151,6 +151,17 @@ jobs:
       - name: Verify the Published Site Is Search-Ready
         run: node scripts/validate_seo.js
 
+      # The host-root files (robots.txt, sitemap index, redirect page, icons) are
+      # served from the beso1227.github.io repository, because GitHub Pages
+      # reserves the domain root for the repository named after the account.
+      # Their content lives HERE, in the repository that owns the site, and this
+      # step proves the committed copy is what the generator produces - otherwise
+      # the two copies drift apart, which is exactly what happened when they
+      # were hand-written in two repositories.
+      - name: Verify Host-Root Files Are Current
+        shell: pwsh
+        run: node scripts/render_host_root.js --check
+
       # The icons are generated from one master so that the favicon, the PWA
       # manifest, the social card and the logo the search engines read cannot
       # drift apart. This regenerates them and fails if the committed files are
