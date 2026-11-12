@@ -426,6 +426,13 @@ public static class CleanupExecutor
                                 Interlocked.Increment(ref failedCount);
                                 Interlocked.Add(ref failedBytes, actualBytes);
 
+                                // The holder is modelled on the record itself, so the
+                                // In-Use inspector and the "close these apps" popup
+                                // can name the application without re-parsing the
+                                // human-readable sentence below.
+                                string? holderName = lockingProcesses.Count > 0 ? lockingProcesses[0].ProcessName : null;
+                                int holderPid = lockingProcesses.Count > 0 ? lockingProcesses[0].ProcessId : 0;
+
                                 if (isLockedOrInUse)
                                 {
                                     // Only claim a reboot deletion that actually registered.
@@ -473,7 +480,9 @@ public static class CleanupExecutor
                                         ErrorCategory = errorCategory,
                                         SizeBytes = actualBytes,
                                         TimestampUtc = DateTime.UtcNow,
-                                        ErrorOrSkipReason = failReason
+                                        ErrorOrSkipReason = failReason,
+                                        LockingProcessName = holderName,
+                                        LockingProcessId = holderPid
                                     });
                                 }
                             }
@@ -550,7 +559,9 @@ public static class CleanupExecutor
                                     ErrorCategory = errCategory,
                                     SizeBytes = action.SizeBytes,
                                     TimestampUtc = DateTime.UtcNow,
-                                    ErrorOrSkipReason = errReason
+                                    ErrorOrSkipReason = errReason,
+                                    LockingProcessName = lockingProcesses.Count > 0 ? lockingProcesses[0].ProcessName : null,
+                                    LockingProcessId = lockingProcesses.Count > 0 ? lockingProcesses[0].ProcessId : 0
                                 });
                             }
                         }

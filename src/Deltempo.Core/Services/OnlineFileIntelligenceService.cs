@@ -54,6 +54,20 @@ public class OnlineSafetyReport
     public string BadgeBackground { get; set; } = "#2A1E0D";
     public string BadgeBorder { get; set; } = "#F59E0B";
     public string ProviderUsed { get; set; } = "Web Knowledge";
+    /// <summary>
+    /// True when the provider refused the request for an ACCOUNT-level reason - rate
+    /// limit, no credit, unreachable provider, bad key, retired model - rather than
+    /// for a reason specific to this file.
+    /// </summary>
+    /// <remarks>
+    /// This flag is what stops a batch from hammering a provider that has already said
+    /// no. Every further file would fail the same way, and each attempt costs the
+    /// provider's own timeout (measured at 11-19s per file against a rate-limited
+    /// endpoint), so a 500-file batch spent minutes failing instead of one fast stop.
+    /// </remarks>
+    public bool ProviderRefused { get; set; }
+    /// <summary>Which refusal it was, so the UI can tell the user what to change.</summary>
+    public AiFailureKind ProviderFailureKind { get; set; } = AiFailureKind.Unknown;
     public DateTime AnalyzedAtUtc { get; set; } = DateTime.UtcNow;
 
     /// <summary>
@@ -226,6 +240,13 @@ public static class OnlineFileIntelligenceService
 
                 report = GenerateBuiltInKnowledgeReport(profile);
                 report.ProviderUsed = $"Web Knowledge (Fallback - {ex.Kind})";
+                // A provider that refuses at ACCOUNT level (rate limit, no credit,
+                // unreachable, bad key) will refuse every remaining file the same way.
+                // Say so on the report so a batch can stop instead of paying the
+                // provider's timeout once per file - measured at 11-19s per file
+                // against a rate-limited endpoint.
+                report.ProviderRefused = IsAccountLevelRefusal(ex.Kind);
+                report.ProviderFailureKind = ex.Kind;
                 // A fallback is a heuristic answer, not the provider's answer. It must
                 // stay unverified so the row is retried and the cache never treats it
                 // as genuine.
@@ -1089,6 +1110,18 @@ VERDICT RULES:
             }
         });
     }
+
+    /// <summary>
+    /// True for a provider refusal that applies to the ACCOUNT, not to one file.
+    /// A timeout is excluded on purpose: a cold local model or one enormous file
+    /// can time out on its own, and the next file may succeed.
+    /// </summary>
+    internal static bool IsAccountLevelRefusal(AiFailureKind kind) => kind is
+        AiFailureKind.RateLimited or
+        AiFailureKind.PaymentRequired or
+        AiFailureKind.ProviderUnreachable or
+        AiFailureKind.Authentication or
+        AiFailureKind.ModelUnavailable;
 
     /// <summary>Forces any coalesced cache write to complete. Used by tests and shutdown.</summary>
     public static void FlushCache()

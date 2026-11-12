@@ -176,13 +176,48 @@
                 </Grid>
 
                 <!-- 2. Export outcome / errors. Hidden until the user presses Export. -->
-                <TextBlock x:Name="StatusLine"
-                           Grid.Row="2"
-                           Margin="0,14,0,0"
+                <StackPanel Grid.Row="2" Spacing="8">
+                  <TextBlock x:Name="StatusLine"
+                             Margin="0,14,0,0"
                            FontSize="11"
                            Foreground="{ThemeResource TextMediumBrush}"
                            TextWrapping="Wrap"
                            Visibility="Collapsed" />
+                    <!-- 2b. The files that are still there because an application is
+                         holding them open. A count alone ("77 in use") leaves the user
+                         with no action; naming the applications turns it into one:
+                         close them, run the clean again, the files go. -->
+                    <Border x:Name="InUsePanel"
+                            Margin="0,2,0,0"
+                            Padding="12,10"
+                            CornerRadius="10"
+                            Background="{ThemeResource SurfaceCardBrush}"
+                            BorderBrush="{ThemeResource HairlineBorderBrush}"
+                            BorderThickness="1"
+                            Visibility="Collapsed">
+                        <StackPanel Spacing="6">
+                            <TextBlock x:Name="InUseHeadlineText"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextHighBrush}"
+                                       TextWrapping="Wrap" />
+                            <TextBlock x:Name="InUseHintText"
+                                       FontSize="11"
+                                       Foreground="{ThemeResource TextMediumBrush}"
+                                       TextWrapping="Wrap" />
+                            <ItemsControl x:Name="InUseAppsList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayText}"
+                                                   FontSize="11.5"
+                                                   Foreground="{ThemeResource ElectricCyanBrush}"
+                                                   Margin="0,1,0,0" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
 
                 <!-- 3. Actions -->
                 <StackPanel Grid.Row="3"

@@ -136,11 +136,18 @@ public static class SystemCacheResolver
         var progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
         return new List<string>
         {
-            Path.Combine(progData, "Microsoft", "Windows Defender", "Support"),
-            Path.Combine(progData, "Microsoft", "Windows Defender", "Definition Updates", "Backup"),
-            Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Results", "Quick"),
-            Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Results", "Resource"),
-            Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History", "Store")
+            // Only genuinely disposable Defender material is proposed: the temporary
+            // files a scan leaves behind. The scan history (Scans\History), the
+            // signature rollback copies (Definition Updates\Backup), the support
+            // bundle and the QUARANTINE (which holds threats the user may still want
+            // to restore) are protected state - the platform ACLs them to SYSTEM, so
+            // an elevated cleaner cannot delete them either. They used to be listed
+            // here, which cost a scan of ~7,400 undeletable files per run and ended
+            // with 177 "failed" files and a take-ownership attempt against Defender's
+            // own directories. ProtectionPolicy still refuses them, so a resolver
+            // regression, a user rulepack or a stale settings entry cannot reintroduce
+            // them.
+            Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "Temp"),
         };
     }
 

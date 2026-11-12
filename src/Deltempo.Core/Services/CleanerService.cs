@@ -1262,6 +1262,15 @@ public partial class CleanerService
             bool applyShield = safeMode24Hours && folder.IsSafeModeEligible;
             bool sendToRecycle = SettingsService.Current.SendToRecycleBin;
 
+            // Phase timing. A cleanup that takes minutes must be able to say WHERE the
+            // minutes went - without this, a slow run is indistinguishable from a
+            // slow disk. One line per scope, in the app's own log, so the next slow
+            // run names its own culprit instead of guessing.
+            var phaseWatch = System.Diagnostics.Stopwatch.StartNew();
+            double planMs = 0;
+            double executeMs = 0;
+            double purgeMs = 0;
+
             var plan = CleanupPlanner.CreatePlan(
                 scopeId: folder.Id,
                 scopeName: folder.Name,
@@ -1270,6 +1279,7 @@ public partial class CleanerService
                 apply24HourShield: applyShield,
                 sendToRecycleBin: sendToRecycle,
                 ct: ct);
+            planMs = phaseWatch.Elapsed.TotalMilliseconds;
 
             // Explain a zero-byte result instead of leaving it as a silent dead end.
             // The scan total includes every file, but the safety engine withholds
@@ -1290,6 +1300,7 @@ public partial class CleanerService
                 logAction,
                 progressReport,
                 ct).ConfigureAwait(false);
+            executeMs = phaseWatch.Elapsed.TotalMilliseconds - planMs;
 
             freedBytes = txResult.TotalFreedBytes;
             filesDeleted = txResult.TotalItemsFreed;
@@ -1300,6 +1311,7 @@ public partial class CleanerService
             filesSkipped = txResult.SkippedCount + txResult.ReviewRequiredCount + txResult.UnknownCount;
 
             // Clean empty subdirectories safely (Targeted bottom-up pruning from affected directories)
+            double purgeStart = phaseWatch.Elapsed.TotalMilliseconds;
             var candidateDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             bool aggressivePrune = SettingsService.Current.AggressiveEmptyFolderPrune;
 
@@ -1367,33 +1379,57 @@ public partial class CleanerService
             }
 
             var subCheckOptions = new EnumerationOptions { IgnoreInaccessible = true };
+
+            // Empty-folder purge. This spent FOUR filesystem round-trips per candidate
+            // folder: Directory.Exists, then ProtectionPolicy.IsProtected (which stats
+            // the path again to rule out a reparse point), then
+            // PathSecurity.IsReparsePointOrLink (a third stat), then a fresh
+            // DirectoryInfo for its Attributes (a fourth). On a machine where one
+            // attribute read costs ~50us - which is what Defender's on-access filter
+            // does to a real system volume - 3,123 folders meant 3,123 x 4 stats, all
+            // of them serial, before a single RemoveDirectoryW.
+            //
+            // Now ONE DirectoryInfo per folder: its attributes answer the existence
+            // question AND the reparse question, and the policy is handed those
+            // attributes instead of re-reading them.
+            //
+            // The loop stays SEQUENTIAL and deepest-first (longer path first, so a
+            // child is removed before its parent is tried). Running it in parallel
+            // would break that order: a parent tried before its child still exists is
+            // not empty, so it would be skipped and never revisited - and the folder
+            // count the user sees would silently drop.
             foreach (var dirPath in candidateDirs.OrderByDescending(p => p.Length))
             {
                 if (ct.IsCancellationRequested) break;
                 try
                 {
-                    if (!Directory.Exists(dirPath)) continue;
-                    if (ProtectionPolicy.IsProtected(dirPath, out _)) continue;
-                    if (PathSecurity.IsReparsePointOrLink(dirPath)) continue;
-
                     var dirInfo = new DirectoryInfo(dirPath);
-                    if ((dirInfo.Attributes & FileAttributes.ReparsePoint) != 0) continue;
+                    if (!dirInfo.Exists) continue;
 
-                    if (!dirInfo.EnumerateFileSystemInfos("*", subCheckOptions).Any())
+                    FileAttributes attributes = dirInfo.Attributes;
+                    if ((attributes & FileAttributes.ReparsePoint) != 0) continue;
+
+                    // The policy can be told the attributes we already read instead of
+                    // stat-ing the path a second time to rule out a link.
+                    if (ProtectionPolicy.IsProtected(dirPath, out _, attributes)) continue;
+
+                    if (dirInfo.EnumerateFileSystemInfos("*", subCheckOptions).Any())
                     {
-                        if ((dirInfo.Attributes & FileAttributes.ReadOnly) != 0)
-                        {
-                            try { dirInfo.Attributes = FileAttributes.Normal; }
-                            catch (Exception ex)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"[Deltempo.Cleaner] Normalizing attributes failed: {ex.Message}");
-                            }
-                        }
+                        continue;
+                    }
 
-                        if (RemoveDirectoryW(dirInfo.FullName) || !Directory.Exists(dirInfo.FullName))
+                    if ((attributes & FileAttributes.ReadOnly) != 0)
+                    {
+                        try { dirInfo.Attributes = FileAttributes.Normal; }
+                        catch (Exception ex)
                         {
-                            foldersDeleted++;
+                            System.Diagnostics.Debug.WriteLine($"[Deltempo.Cleaner] Normalizing attributes failed: {ex.Message}");
                         }
+                    }
+
+                    if (RemoveDirectoryW(dirInfo.FullName) || !dirInfo.Exists)
+                    {
+                        foldersDeleted++;
                     }
                 }
                 catch (Exception ex)
@@ -1401,6 +1437,16 @@ public partial class CleanerService
                     System.Diagnostics.Trace.WriteLine($"[Deltempo] Suppressed exception: {ex.Message}");
                 }
             }
+
+            purgeMs = phaseWatch.Elapsed.TotalMilliseconds - purgeStart - executeMs;
+
+            // One line per scope saying where the time went. A cleanup that takes
+            // minutes must be able to name its own slow phase - plan, delete or
+            // folder purge - instead of leaving the user with a total and a guess.
+            System.Diagnostics.Trace.WriteLine(
+                $"[Deltempo] Clean phase timing for '{folder.Id}': " +
+                $"plan {planMs:N0}ms, delete {executeMs:N0}ms, folder purge {purgeMs:N0}ms, " +
+                $"{plan.Actions.Count:N0} planned, {foldersDeleted:N0} folders purged.");
 
             // Flush Explorer thumbnail databases if cleaned
             if (folder.Id == "Thumbnails")

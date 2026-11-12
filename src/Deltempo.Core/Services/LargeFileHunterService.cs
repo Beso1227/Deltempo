@@ -761,15 +761,36 @@ public static class LargeFileHunterService
         return true;
     }
 
-    public static async Task AnalyzeItemWithAiAsync(LargeFileInfo item, CancellationToken ct = default)
+    /// <summary>
+    /// How one file's online analysis ended. The distinction the batch needs is
+    /// "this file failed" versus "the provider refused us" - only the second one
+    /// makes every remaining file hopeless.
+    /// </summary>
+    public enum AiItemOutcome
     {
-        if (item == null || string.IsNullOrWhiteSpace(item.FilePath)) return;
+        /// <summary>The provider answered, or the local fallback answered.</summary>
+        Completed,
+        /// <summary>The analysis failed for a reason specific to this file.</summary>
+        Failed,
+        /// <summary>
+        /// The provider refused at ACCOUNT level - rate limit, no credit, unreachable
+        /// provider, rejected key, retired model. Every remaining file will fail the
+        /// same way, so a batch must stop rather than pay the provider's timeout once
+        /// per file.
+        /// </summary>
+        ProviderRefused
+    }
+
+    public static async Task<AiItemOutcome> AnalyzeItemWithAiAsync(LargeFileInfo item, CancellationToken ct = default)
+    {
+        if (item == null || string.IsNullOrWhiteSpace(item.FilePath)) return AiItemOutcome.Completed;
 
         item.IsAiAnalyzing = true;
         try
         {
             var report = await OnlineFileIntelligenceService.AnalyzeFileAsync(item.FilePath, ct);
             item.ApplyOnlineReport(report);
+            return report.ProviderRefused ? AiItemOutcome.ProviderRefused : AiItemOutcome.Completed;
         }
         catch (OperationCanceledException)
         {
@@ -777,6 +798,7 @@ public static class LargeFileHunterService
             // still has to stop saying "Analyzing..." forever.
             item.IsAiAnalyzing = false;
             item.AiProviderLabel = "Analysis cancelled";
+            return AiItemOutcome.Failed;
         }
         catch (Exception ex)
         {
@@ -788,6 +810,7 @@ public static class LargeFileHunterService
             item.IsAiAnalyzed = true;
             item.AiProviderLabel = "Analysis failed";
             item.AiRecommendation = $"AI analysis could not complete: {ex.Message}";
+            return AiItemOutcome.Failed;
         }
     }
 
@@ -828,6 +851,12 @@ public static class LargeFileHunterService
 
         using var throttler = new SemaphoreSlim(4);
         int processed = 0;
+        int providerRefused = 0;
+
+        // Stops the REST of the batch when the provider refuses at account level.
+        // It is deliberately separate from the caller's token: the files already in
+        // flight must finish, and the user's own cancel must still reach everything.
+        using var refusalGate = new CancellationTokenSource();
 
         var tasks = list.Select(async item =>
         {
@@ -835,7 +864,14 @@ public static class LargeFileHunterService
             try
             {
                 if (ct.IsCancellationRequested) return;
-                await AnalyzeItemWithAiAsync(item, ct).ConfigureAwait(false);
+                if (refusalGate.IsCancellationRequested) return;   // provider said no
+
+                AiItemOutcome outcome = await AnalyzeItemWithAiAsync(item, ct).ConfigureAwait(false);
+                if (outcome == AiItemOutcome.ProviderRefused)
+                {
+                    Interlocked.Increment(ref providerRefused);
+                    try { refusalGate.Cancel(); } catch { }
+                }
             }
             finally
             {
@@ -855,6 +891,18 @@ public static class LargeFileHunterService
             // its own "Analysis cancelled" state. Letting the cancellation escape here
             // reached async void click handlers, where it is an unhandled exception and
             // takes the app down.
+        }
+
+        if (providerRefused > 0)
+        {
+            // Say WHY the batch stopped, in the app's own log. Previously each file
+            // failed silently in turn: a 500-file batch against a rate-limited provider
+            // produced 500 timeouts - minutes of waiting - and the rows simply showed
+            // the local fallback answer.
+            System.Diagnostics.Trace.WriteLine(
+                $"[Deltempo AI] Batch stopped after {processed} of {total} files: the provider refused " +
+                "at account level (rate limit, no credit, unreachable provider or rejected key). " +
+                "Every remaining file would fail the same way, so the rest was skipped.");
         }
     }
 }

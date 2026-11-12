@@ -62,6 +62,19 @@ public record DeletionAuditRecord
     public long SizeBytes { get; init; }
     public DateTime TimestampUtc { get; init; } = DateTime.UtcNow;
     public string? ErrorOrSkipReason { get; init; }
+
+    /// <summary>
+    /// The application that held this file open, when the failure was a sharing
+    /// violation. Modelled as a field rather than folded into
+    /// <see cref="ErrorOrSkipReason"/>: the reason string is a human sentence, and
+    /// the In-Use inspector used to parse the process name back out of it with a regex
+    /// that no longer matched the format the executor writes - so the app names never
+    /// reached the screen.
+    /// </summary>
+    public string? LockingProcessName { get; init; }
+
+    /// <summary>Process id of the holder, when known.</summary>
+    public int LockingProcessId { get; init; }
 }
 
 /// <summary>

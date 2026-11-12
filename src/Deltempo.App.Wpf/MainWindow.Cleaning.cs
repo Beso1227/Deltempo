@@ -378,6 +378,8 @@ public partial class MainWindow
                 CelebrationViewLockedBtn.Visibility = Visibility.Collapsed;
             }
 
+            ShowInUseApps(totalFilesInUse);
+
             CelebrationModalOverlay.Visibility = Visibility.Visible;
         }
         catch (OperationCanceledException)

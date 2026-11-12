@@ -2242,6 +2242,42 @@
                                    Foreground="{DynamicResource ElectricCyanBrush}"
                                    HorizontalAlignment="Center"
                                    Margin="0,4,0,20"/>
+                        <!-- The files that are still there because an application is holding them
+                             open. A count alone ("77 in use") leaves the user with no action; naming
+                             the applications turns it into one: close them, run the clean again,
+                             the files go. -->
+                        <Border x:Name="CelebrationInUsePanel"
+                                Margin="0,12,0,0"
+                                Padding="14,10"
+                                CornerRadius="10"
+                                Background="{DynamicResource SurfaceCardBrush}"
+                                BorderBrush="{DynamicResource HairlineBorderBrush}"
+                                BorderThickness="1"
+                                Visibility="Collapsed">
+                            <StackPanel>
+                                <TextBlock x:Name="CelebrationInUseHeadlineText"
+                                           FontSize="12.5"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextHighBrush}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock x:Name="CelebrationInUseHintText"
+                                           Margin="0,3,0,0"
+                                           FontSize="11.5"
+                                           Foreground="{DynamicResource TextMediumBrush}"
+                                           TextWrapping="Wrap" />
+                                <ItemsControl x:Name="CelebrationInUseAppsList"
+                                              Margin="0,5,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayText}"
+                                                       FontSize="12"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource ElectricCyanBrush}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
 
                         <!-- Stats Bento Card -->
                         <Border Background="{DynamicResource SurfaceSubCardBrush}"

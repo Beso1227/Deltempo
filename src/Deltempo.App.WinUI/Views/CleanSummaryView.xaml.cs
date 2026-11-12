@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using WinTempCleaner.Core.Cleaning;
 using WinTempCleaner.Models;
 using WinTempCleaner.Services;
 
@@ -94,10 +95,58 @@ public sealed partial class CleanSummaryView : UserControl
             : string.Empty;
         SkipText.Visibility = skipDetails.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
+        ShowInUseApps(targets, summary);
+
         // A second run overwrites the previous outcome line, never stacks.
         StatusLine.Text = string.Empty;
         StatusLine.Visibility = Visibility.Collapsed;
         ExportButton.IsEnabled = true;
+    }
+
+    /// <summary>
+    /// Names the applications that are holding cleanup files open, so the user knows
+    /// what to close before running the clean again.
+    /// </summary>
+    /// <remarks>
+    /// The run already knew the answer: every in-use file carries the holder's name
+    /// on its audit record. It was never shown - the celebration printed a COUNT
+    /// ("77 in use") and left the user with nothing to act on, and the In-Use
+    /// inspector's own process-name parser no longer matched the reason string the
+    /// executor writes, so even that view could not name the application.
+    /// </remarks>
+    private void ShowInUseApps(IReadOnlyList<TargetFolderInfo> targets, CleanSummary summary)
+    {
+        if (summary.TotalFilesInUse <= 0)
+        {
+            InUsePanel.Visibility = Visibility.Collapsed;
+            InUseAppsList.ItemsSource = null;
+            return;
+        }
+
+        List<LockedFileItem> lockedRows = LockedFileCollector.FromTargets(targets);
+        List<InUseApp> apps = LockedFileCollector.AggregateByApplication(lockedRows);
+
+        if (apps.Count == 0)
+        {
+            // The count is known but the holder is not: say so honestly instead of
+            // inventing a name.
+            InUseHeadlineText.Text = $"{summary.TotalFilesInUse:N0} files are still in use.";
+            InUseHintText.Text =
+                "An application is holding them open, but Windows did not name it. " +
+                "Close whatever is using those folders and run the clean again.";
+            InUseAppsList.ItemsSource = null;
+            InUsePanel.Visibility = Visibility.Visible;
+            return;
+        }
+
+        int appCount = apps.Count;
+        InUseHeadlineText.Text =
+            $"{summary.TotalFilesInUse:N0} file{(summary.TotalFilesInUse == 1 ? string.Empty : "s")} could not be deleted - " +
+            $"{appCount} application{(appCount == 1 ? " is" : "s are")} holding them open.";
+        InUseHintText.Text =
+            "Close the application(s) below and run the clean again - the files will be deleted.";
+        InUseAppsList.ItemsSource = apps;
+        InUsePanel.Visibility = Visibility.Visible;
     }
 
     private void OnExportClicked(object sender, RoutedEventArgs e)

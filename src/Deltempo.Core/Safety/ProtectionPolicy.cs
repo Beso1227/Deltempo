@@ -393,6 +393,22 @@ public static class ProtectionPolicy
             // Defender signature rollback copies.
             Path.Combine(progData, "Microsoft", "Windows Defender", "Definition Updates", "Backup"),
 
+            // Defender scan history: the record of what Defender found, what it
+            // quarantined and what it cleaned. The platform ACLs it to SYSTEM, so even
+            // an elevated cleaner cannot delete it - the attempt returned Access Denied
+            // on every file, which the executor then tried to defeat by taking
+            // ownership. Measured: 177 "failed" files in one run, every one of them
+            // here. It is protected STATE, not a cache, so it belongs beside the
+            // signature backup above.
+            Path.Combine(progData, "Microsoft", "Windows Defender", "Scans", "History"),
+
+            // Defender support and diagnostic bundles.
+            Path.Combine(progData, "Microsoft", "Windows Defender", "Support"),
+
+            // Defender quarantine: the threats Defender isolated. The user may still
+            // want to restore one, so this is protected state, not cleanup material.
+            Path.Combine(progData, "Microsoft", "Windows Defender", "Quarantine"),
+
             // EA Desktop application settings, not a cache.
             Path.Combine(localAppData, "Electronic Arts", "EA Desktop", "UserConfig")
         };
