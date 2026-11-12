@@ -19,7 +19,8 @@ public static class FileSafetyEngine
         DateTime? lastModified = null,
         string? allowedRoot = null,
         bool apply24HourThreshold = false,
-        IEnumerable<string>? allowedRoots = null)
+        IEnumerable<string>? allowedRoots = null,
+        FileAttributes? knownAttributes = null)
     {
         if (string.IsNullOrWhiteSpace(filePath))
         {
@@ -33,21 +34,32 @@ public static class FileSafetyEngine
             return CreateResult(SafetyRiskTier.Protected, 0, "PROTECTED (Illegal Path)", "PROTECTED", "Path contains directory traversal or malformed characters.", "PathTraversalRule");
         }
 
-        // 2. Root containment verification (if allowed roots are specified)
+        // 2. Root containment verification (if allowed roots are specified).
+        // Roots are canonicalized ONCE per process through a small cache: Analyze runs once
+        // per file per scan, and the previous IsSubpathOf call re-canonicalized every root
+        // on every file. The candidate path is already canonical from step 1, so the
+        // containment test itself is a plain string comparison.
+        bool containedInRoots = false;
+
         if (allowedRoots != null && allowedRoots.Any())
         {
-            if (!allowedRoots.Any(root => !string.IsNullOrEmpty(root) && PathSecurity.IsSubpathOf(canonicalPath, root)))
+            if (!allowedRoots.Any(root => PathSecurity.IsSubpathOfCanonical(canonicalPath, CanonicalizeRootCached(root))))
             {
                 return CreateResult(SafetyRiskTier.Protected, 0, "PROTECTED (Out of Scope)", "PROTECTED", "File is outside the designated cleanup roots.", "BoundaryContainmentRule");
             }
+
+            containedInRoots = true;
         }
-        else if (!string.IsNullOrEmpty(allowedRoot) && !PathSecurity.IsSubpathOf(canonicalPath, allowedRoot))
+        else if (!string.IsNullOrEmpty(allowedRoot))
         {
-            return CreateResult(SafetyRiskTier.Protected, 0, "PROTECTED (Out of Scope)", "PROTECTED", $"File is outside the designated cleanup root '{allowedRoot}'.", "BoundaryContainmentRule");
+            if (!PathSecurity.IsSubpathOfCanonical(canonicalPath, CanonicalizeRootCached(allowedRoot)))
+            {
+                return CreateResult(SafetyRiskTier.Protected, 0, "PROTECTED (Out of Scope)", "PROTECTED", $"File is outside the designated cleanup root '{allowedRoot}'.", "BoundaryContainmentRule");
+            }
         }
 
         // 3. Centralized Protection Policy (Non-negotiable protected OS, user, key, session, or game assets)
-        if (ProtectionPolicy.IsProtected(canonicalPath, out string matchedReason))
+        if (ProtectionPolicy.IsProtected(canonicalPath, out string matchedReason, knownAttributes))
         {
             return CreateResult(
                 SafetyRiskTier.Protected,
@@ -59,8 +71,12 @@ public static class FileSafetyEngine
                 origin: matchedReason);
         }
 
-        // 4. Reparse point & junction guard
-        if (PathSecurity.IsReparsePointOrLink(canonicalPath))
+        // 4. Reparse point & junction guard.
+        // A ProtectionPolicy pass that returned false has ALREADY evaluated the reparse
+        // guard with the same attributes (or the same stat when none were supplied), so
+        // reaching here proves the entry is not a reparse point. The second stat this rule
+        // used to spend per file was therefore provably dead work.
+        if (!knownAttributes.HasValue && PathSecurity.IsReparsePointOrLink(canonicalPath))
         {
             return CreateResult(SafetyRiskTier.Protected, 0, "PROTECTED (Reparse Point / Symlink)", "PROTECTED", "NTFS Reparse point, directory junction, or symbolic link detected. Deletion aborted.", "ReparsePointGuard");
         }
@@ -82,37 +98,59 @@ public static class FileSafetyEngine
             bool callerSuppliedMetadata =
                 !string.IsNullOrWhiteSpace(fileName) || sizeBytes > 0 || lastModified.HasValue;
 
-            var fileInfo = new FileInfo(canonicalPath);
-            if (fileInfo.Exists)
+            // Full-stat-free fast path: the caller supplied the file name AND its last
+            // write time AND the attributes read from the same FindFirstFileExW record.
+            // cFileName is the LONG name (the short name lives in cAlternateFileName), so
+            // the extension derived from it is the filesystem extension. With the reparse
+            // guard already settled from those attributes, this path performs ZERO
+            // filesystem round-trips - the scan's per-file cost becomes pure CPU.
+            bool scannerSuppliedEverything =
+                !string.IsNullOrWhiteSpace(fileName) &&
+                lastModified.HasValue &&
+                knownAttributes.HasValue &&
+                (knownAttributes.Value & FileAttributes.Directory) == 0;
+
+            if (scannerSuppliedEverything)
             {
-                resolvedFileName = fileInfo.Name;
-
-                if (!callerSuppliedMetadata)
-                {
-                    fileLastModified = fileInfo.LastWriteTimeUtc;
-                    fileSizeBytes = fileInfo.Length;
-                }
-                else
-                {
-                    // Trust the scanner's metadata, but the extension and file name must
-                    // come from the filesystem - the scanner record may carry a short name.
-                    fileLastModified = lastModified?.ToUniversalTime() ?? fileInfo.LastWriteTimeUtc;
-                    fileSizeBytes = sizeBytes;
-                }
-
-                ext = fileInfo.Extension.ToLowerInvariant();
+                fileLastModified = lastModified!.Value.ToUniversalTime();
+                fileSizeBytes = sizeBytes;
+                resolvedFileName = fileName;
+                ext = Path.GetExtension(resolvedFileName).ToLowerInvariant();
             }
             else
             {
-                // Fallback: If caller supplied explicit metadata (e.g., from scanner record or unit test), utilize it
-                if (!string.IsNullOrWhiteSpace(fileName) || sizeBytes > 0 || lastModified.HasValue)
+                var fileInfo = new FileInfo(canonicalPath);
+                if (fileInfo.Exists)
                 {
-                    fileLastModified = lastModified?.ToUniversalTime() ?? DateTime.UtcNow;
-                    fileSizeBytes = sizeBytes;
+                    resolvedFileName = fileInfo.Name;
+
+                    if (!callerSuppliedMetadata)
+                    {
+                        fileLastModified = fileInfo.LastWriteTimeUtc;
+                        fileSizeBytes = fileInfo.Length;
+                    }
+                    else
+                    {
+                        // Trust the scanner's metadata, but the extension and file name must
+                        // come from the filesystem - the scanner record may carry a short name.
+                        fileLastModified = lastModified?.ToUniversalTime() ?? fileInfo.LastWriteTimeUtc;
+                        fileSizeBytes = sizeBytes;
+                    }
+
+                    ext = fileInfo.Extension.ToLowerInvariant();
                 }
                 else
                 {
-                    return CreateResult(SafetyRiskTier.Unknown, 0, "File Not Found", "UNKNOWN", "File does not exist on disk at evaluation time.", "ExistenceCheck");
+                    // Fallback: If caller supplied explicit metadata (e.g., from scanner record or unit test), utilize it
+                    if (!string.IsNullOrWhiteSpace(fileName) || sizeBytes > 0 || lastModified.HasValue)
+                    {
+                        fileLastModified = lastModified?.ToUniversalTime() ?? DateTime.UtcNow;
+                        fileSizeBytes = sizeBytes;
+                    }
+                    else
+                    {
+                        return CreateResult(SafetyRiskTier.Unknown, 0, "File Not Found", "UNKNOWN", "File does not exist on disk at evaluation time.", "ExistenceCheck");
+                    }
                 }
             }
         }
@@ -221,9 +259,8 @@ public static class FileSafetyEngine
             pathLower.Contains(@"\crashpad\") ||
             pathLower.Contains(@"\softwaredistribution\download\");
 
-        bool isInsideAuthorizedRoot =
-            (allowedRoots != null && allowedRoots.Any(r => !string.IsNullOrEmpty(r) && PathSecurity.IsSubpathOf(canonicalPath, r))) ||
-            (!string.IsNullOrEmpty(allowedRoot) && PathSecurity.IsSubpathOf(canonicalPath, allowedRoot));
+        bool isInsideAuthorizedRoot = containedInRoots ||
+            (!string.IsNullOrEmpty(allowedRoot) && PathSecurity.IsSubpathOfCanonical(canonicalPath, CanonicalizeRootCached(allowedRoot)));
 
         bool isScratchFormat = !string.IsNullOrEmpty(ext) && ScratchExtensions.Contains(ext);
         bool isDisposableDataFormat = DataFormatExtensions.Contains(ext);
@@ -267,6 +304,20 @@ public static class FileSafetyEngine
             "ConservativeDefaultRule",
             origin: "Unclassified File",
             impact: "Preserved to avoid data loss.");
+    }
+
+    /// <summary>
+    /// Canonicalizes an allowed root, memoized. Roots are a small fixed set per cleanup
+    /// target (one to a few dozen directories), while Analyze runs once per FILE - so the
+    /// canonical form of each root is computed once per process instead of once per file.
+    /// Normalization is deterministic, which is what makes the cache safe.
+    /// </summary>
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> RootCanonicalCache = new(StringComparer.OrdinalIgnoreCase);
+
+    private static string CanonicalizeRootCached(string root)
+    {
+        if (string.IsNullOrWhiteSpace(root)) return string.Empty;
+        return RootCanonicalCache.GetOrAdd(root, static r => PathSecurity.NormalizeCanonicalPath(r));
     }
 
     /// <summary>

@@ -121,9 +121,17 @@ public static class CleanupExecutor
         };
 
         // Fail closed: a null or empty root set must never authorize unrestricted deletion.
-        var rootsList = allowedRoots == null
-            ? new List<string>()
-            : allowedRoots.Where(r => !string.IsNullOrWhiteSpace(r)).ToList();
+        // Canonicalize ONCE here: revalidation runs per file under 16 parallel workers, and
+        // re-canonicalizing every root for every file was redundant work for strings that
+        // cannot change between plan and execution.
+        var canonicalRoots = allowedRoots == null
+            ? []
+            : allowedRoots
+                .Where(r => !string.IsNullOrWhiteSpace(r))
+                .Select(r => PathSecurity.NormalizeCanonicalPath(r))
+                .Where(r => !string.IsNullOrEmpty(r))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
         // Enforce maximum file management privileges (Backup, Restore, TakeOwnership, Debug)
         ProcessPrivilegeService.EnableRequiredPrivileges();
@@ -253,7 +261,7 @@ public static class CleanupExecutor
                         long? expectedSize = action.PlannedSizeBytes > 0 ? action.PlannedSizeBytes : action.SizeBytes;
 
                         FileCleanupFailureReason revalidationReasonCode;
-                        if (!RevalidateBeforeDeletion(action.FilePath, rootsList, expectedSize, expectedTimestamp, out string validatedPath, out string revalidationReason, out revalidationReasonCode))
+                        if (!RevalidateBeforeDeletion(action.FilePath, canonicalRoots, expectedSize, expectedTimestamp, out string validatedPath, out string revalidationReason, out revalidationReasonCode))
                         {
                             Interlocked.Increment(ref skippedCount);
                             Interlocked.Add(ref skippedBytes, action.SizeBytes);
@@ -633,6 +641,31 @@ public static class CleanupExecutor
     /// </remarks>
     public static bool RevalidateBeforeDeletion(string filePath, IEnumerable<string>? allowedRoots, long? expectedSize, DateTime? expectedTimestamp, out string validatedPath, out string failureReason, out FileCleanupFailureReason reasonCode)
     {
+        // Public entry point: the caller's roots are raw strings, so canonicalize them here.
+        // The hot executor path calls RevalidateCore directly with roots canonicalized once
+        // per plan instead of once per file.
+        List<string>? canonicalRoots = null;
+        if (allowedRoots != null)
+        {
+            canonicalRoots = allowedRoots
+                .Where(r => !string.IsNullOrWhiteSpace(r))
+                .Select(r => PathSecurity.NormalizeCanonicalPath(r))
+                .Where(r => !string.IsNullOrEmpty(r))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        return RevalidateCore(filePath, canonicalRoots, expectedSize, expectedTimestamp, out validatedPath, out failureReason, out reasonCode);
+    }
+
+    /// <summary>
+    /// Core revalidation. <paramref name="canonicalRoots"/> semantics: null = unrestricted
+    /// (explicitly no roots designated by the caller), non-null = the designated root set,
+    /// already canonical - an EMPTY list fails closed exactly like a caller-supplied root
+    /// set whose members cannot be canonicalized.
+    /// </summary>
+    private static bool RevalidateCore(string filePath, List<string>? canonicalRoots, long? expectedSize, DateTime? expectedTimestamp, out string validatedPath, out string failureReason, out FileCleanupFailureReason reasonCode)
+    {
         failureReason = string.Empty;
         reasonCode = FileCleanupFailureReason.Unknown;
         validatedPath = string.Empty;
@@ -655,17 +688,26 @@ public static class CleanupExecutor
 
         // Verify file still strictly resides inside designated cleanup roots.
         // Non-null but empty scope fails closed; null means explicitly unrestricted.
-        if (allowedRoots != null)
+        if (canonicalRoots != null)
         {
-            var rootsList = allowedRoots.Where(r => !string.IsNullOrEmpty(r)).ToList();
-            if (rootsList.Count == 0)
+            if (canonicalRoots.Count == 0)
             {
                 failureReason = "No cleanup root designated; deletion skipped.";
                 reasonCode = FileCleanupFailureReason.PathEscapedRoot;
                 return false;
             }
 
-            if (!rootsList.Any(root => PathSecurity.IsSubpathOf(canonicalPath, root)))
+            bool contained = false;
+            foreach (string root in canonicalRoots)
+            {
+                if (PathSecurity.IsSubpathOfCanonical(canonicalPath, root))
+                {
+                    contained = true;
+                    break;
+                }
+            }
+
+            if (!contained)
             {
                 failureReason = "Path is not inside designated cleanup root.";
                 reasonCode = FileCleanupFailureReason.PathEscapedRoot;
@@ -673,23 +715,31 @@ public static class CleanupExecutor
             }
         }
 
-        // Check file / directory existence
+        // Check file / directory existence with ONE filesystem round-trip: the FileInfo's
+        // Exists/Attributes/Length are answered from a single GetFileAttributes + open,
+        // and the previous File.Exists + new FileInfo + DirectoryInfo.Exists sequence
+        // spent two to three round-trips asking for the same data.
         FileSystemInfo fsi;
         try
         {
-            if (File.Exists(canonicalPath))
+            var candidate = new FileInfo(canonicalPath);
+            if (candidate.Exists)
             {
-                fsi = new FileInfo(canonicalPath);
-            }
-            else if (Directory.Exists(canonicalPath))
-            {
-                fsi = new DirectoryInfo(canonicalPath);
+                fsi = candidate;
             }
             else
             {
-                failureReason = "Target no longer exists on disk.";
-                reasonCode = FileCleanupFailureReason.FileMissing;
-                return false;
+                var dirCandidate = new DirectoryInfo(canonicalPath);
+                if (dirCandidate.Exists)
+                {
+                    fsi = dirCandidate;
+                }
+                else
+                {
+                    failureReason = "Target no longer exists on disk.";
+                    reasonCode = FileCleanupFailureReason.FileMissing;
+                    return false;
+                }
             }
         }
         catch
@@ -699,8 +749,13 @@ public static class CleanupExecutor
             return false;
         }
 
-        // Detect newly created reparse points, symlinks, or junctions
-        if ((fsi.Attributes & FileAttributes.ReparsePoint) != 0 || fsi.LinkTarget != null || PathSecurity.IsReparsePointOrLink(fsi))
+        // Detect newly created reparse points, symlinks, or junctions.
+        // FILE_ATTRIBUTE_REPARSE_POINT is a superset of the old three-part test
+        // (attribute || LinkTarget != null || IsReparsePointOrLink(fsi)): a name-surrogate
+        // link always carries the attribute, and the attribute bit also catches dangling
+        // links the LinkTarget check missed. The guard is stronger, never weaker - and it
+        // no longer spends a second stat (LinkTarget) re-proving the first one.
+        if ((fsi.Attributes & FileAttributes.ReparsePoint) != 0)
         {
             failureReason = "Target is or became an NTFS Reparse Point / Link.";
             reasonCode = FileCleanupFailureReason.ReparsePointDetected;
@@ -750,8 +805,11 @@ public static class CleanupExecutor
             }
         }
 
-        // Re-evaluate Protection Policy immediately before deletion
-        if (ProtectionPolicy.IsProtected(canonicalPath, out string protectedReason))
+        // Re-evaluate Protection Policy immediately before deletion. The attributes just
+        // read above are handed in, so the policy's reparse guard (its only filesystem
+        // rule) costs no additional round-trip - and because the reparse test above
+        // already rejected reparse points, the policy pass cannot resurrect a stale hit.
+        if (ProtectionPolicy.IsProtected(canonicalPath, out string protectedReason, fsi.Attributes))
         {
             failureReason = $"Protected by policy: {protectedReason}";
             reasonCode = FileCleanupFailureReason.ProtectedByPolicy;

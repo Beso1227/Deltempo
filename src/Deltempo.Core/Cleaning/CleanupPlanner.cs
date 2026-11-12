@@ -27,13 +27,10 @@ public static class CleanupPlanner
         // plan's memoized totals valid: the list is never mutated after assignment.
         var actions = new List<PlannedFileAction>();
 
-        var enumOptions = new EnumerationOptions
-        {
-            IgnoreInaccessible = true,
-            RecurseSubdirectories = true,
-            AttributesToSkip = FileAttributes.ReparsePoint
-        };
-
+        // Canonicalize the scope roots ONCE so both the scanner and the per-file safety
+        // engine work with canonical paths. The raw `directories` strings previously went
+        // into Analyze as allowedRoots, where every file re-canonicalized every root.
+        var canonicalDirectories = new List<string>();
         foreach (var dir in directories)
         {
             if (ct.IsCancellationRequested) break;
@@ -44,6 +41,11 @@ public static class CleanupPlanner
 
             if (PathSecurity.IsReparsePointOrLink(canonicalDir)) continue;
 
+            canonicalDirectories.Add(canonicalDir);
+        }
+
+        foreach (var canonicalDir in canonicalDirectories)
+        {
             try
             {
                 NativeFileScanner.ScanDirectory(canonicalDir, file =>
@@ -60,7 +62,8 @@ public static class CleanupPlanner
                             lastModified: file.LastWriteTimeUtc,
                             allowedRoot: canonicalDir,
                             apply24HourThreshold: apply24HourShield,
-                            allowedRoots: directories);
+                            allowedRoots: canonicalDirectories,
+                            knownAttributes: file.Attributes);
 
                         var intendedAction = DetermineAction(safetyResult.Tier, sendToRecycleBin, apply24HourShield);
 

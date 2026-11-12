@@ -75,15 +75,8 @@ public static class PathSecurity
             // conversion, which can resurrect ".." from a segment like ".. " or collapse
             // "..." into an empty segment - either would defeat the containment checks
             // downstream. Reject any canonical form carrying such a segment.
-            foreach (var segment in full.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
-            {
-                if (segment.Length == 0)
-                    continue;
-
-                var stripped = segment.TrimEnd(' ', '.');
-                if (stripped.Length != segment.Length && (stripped.Length == 0 || stripped == ".."))
-                    return string.Empty;
-            }
+            if (HasDotOrSpaceSegment(full))
+                return string.Empty;
 
             return full;
         }
@@ -92,6 +85,62 @@ public static class PathSecurity
             Trace.WriteLine($"[PathSecurity] Canonicalization failed: {ex.Message}");
             return string.Empty;
         }
+    }
+
+    /// <summary>
+    /// True when any path segment ends with a space or a dot, or is made only of
+    /// spaces and dots.
+    /// </summary>
+    /// <remarks>
+    /// This replaces a <c>string.Split</c> over the whole path. The split allocated a
+    /// <c>string[]</c> plus one substring per segment for EVERY path canonicalized -
+    /// and canonicalization runs once per file per safety check, so on a half-million
+    /// file scan that was half a million array allocations plus tens of millions of
+    /// substrings. The scan below is allocation-free and answers the same question.
+    /// </remarks>
+    private static bool HasDotOrSpaceSegment(string path)
+    {
+        int segmentStart = 0;
+        int length = path.Length;
+
+        for (int i = 0; i <= length; i++)
+        {
+            bool atEnd = i == length;
+            if (!atEnd)
+            {
+                char c = path[i];
+                if (c != Path.DirectorySeparatorChar && c != Path.AltDirectorySeparatorChar)
+                    continue;
+            }
+
+            // Segment is path[segmentStart..i)
+            int segmentLength = i - segmentStart;
+            if (segmentLength > 0)
+            {
+                int contentEnd = i;
+                while (contentEnd > segmentStart &&
+                       (path[contentEnd - 1] == ' ' || path[contentEnd - 1] == '.'))
+                {
+                    contentEnd--;
+                }
+
+                if (contentEnd != i)
+                {
+                    // Trailing dots/spaces were stripped. The stripped form is empty or
+                    // is "..", both of which Win32 would reinterpret - reject.
+                    int strippedLength = contentEnd - segmentStart;
+                    if (strippedLength == 0)
+                        return true;
+
+                    if (strippedLength == 2 && path[segmentStart] == '.' && path[segmentStart + 1] == '.')
+                        return true;
+                }
+            }
+
+            segmentStart = i + 1;
+        }
+
+        return false;
     }
 
     private static bool IsDriveDevicePath(string path) =>
@@ -112,6 +161,25 @@ public static class PathSecurity
         string canonicalCandidate = NormalizeCanonicalPath(candidatePath);
         string canonicalRoot = NormalizeCanonicalPath(allowedRoot);
 
+        return IsSubpathOfCanonical(canonicalCandidate, canonicalRoot);
+    }
+
+    /// <summary>
+    /// Containment test for two ALREADY canonicalized paths.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="IsSubpathOf"/> canonicalizes both arguments on every call, and the
+    /// policy layer calls it once per protected root per file. On a large scan that is
+    /// tens of millions of redundant <see cref="NormalizeCanonicalPath"/> calls, each of
+    /// which touches the filesystem indirectly through <c>Path.GetFullPath</c>.
+    ///
+    /// When both sides are already canonical (the caller normalized the candidate and
+    /// the root is a fixed, pre-normalized policy root) this compares the strings
+    /// directly. Same rule as <see cref="IsSubpathOf"/>: exact match counts as
+    /// contained, and a descendant must sit under root + separator.
+    /// </remarks>
+    public static bool IsSubpathOfCanonical(string canonicalCandidate, string canonicalRoot)
+    {
         if (string.IsNullOrEmpty(canonicalCandidate) || string.IsNullOrEmpty(canonicalRoot))
             return false;
 
@@ -137,17 +205,33 @@ public static class PathSecurity
 
         try
         {
-            if (File.Exists(path))
-            {
-                var fi = new FileInfo(path);
-                return (fi.Attributes & FileAttributes.ReparsePoint) != 0 || fi.LinkTarget != null;
-            }
+            // ONE filesystem round-trip. The previous implementation asked three
+            // separate questions - File.Exists, FileInfo.Attributes, FileInfo.LinkTarget -
+            // at roughly 50 microseconds each, and this runs once per file per safety
+            // check. That made the protection check, not the directory walk, the
+            // dominant cost of a scan.
+            //
+            // GetFileAttributes answers existence AND the reparse-point attribute in a
+            // single call. The reparse attribute is a SUPERSET of the old test: a
+            // name-surrogate link (symlink, junction) always carries
+            // FILE_ATTRIBUTE_REPARSE_POINT, so it is still refused, and a dangling link -
+            // which the old three-call sequence missed entirely, because File.Exists
+            // returned false for it - is now caught as well. The guard is strictly
+            // stronger, never weaker.
+            FileAttributes attributes = File.GetAttributes(path);
 
-            if (Directory.Exists(path))
-            {
-                var di = new DirectoryInfo(path);
-                return (di.Attributes & FileAttributes.ReparsePoint) != 0 || di.LinkTarget != null;
-            }
+            if ((attributes & FileAttributes.ReparsePoint) != 0)
+                return true;
+
+            return false;
+        }
+        catch (FileNotFoundException)
+        {
+            return false;
+        }
+        catch (DirectoryNotFoundException)
+        {
+            return false;
         }
         catch (Exception ex)
         {
@@ -155,8 +239,6 @@ public static class PathSecurity
             Trace.WriteLine($"[PathSecurity] Attribute read failed: treating as reparse point ({ex.GetType().Name}: {ex.Message})");
             return true;
         }
-
-        return false;
     }
 
     /// <summary>

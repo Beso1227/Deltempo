@@ -767,15 +767,37 @@ public partial class CleanerService
         CancellationToken ct,
         bool safeMode24Hours = false)
     {
+        // The card's numbers must be what CLEAN will actually deliver, not what the
+        // policy merely does not refuse. The scan therefore runs the SAME safety engine
+        // (FileSafetyEngine, with the scanner's attributes so it costs zero extra
+        // filesystem round-trips) that CleanupPlanner runs, and reports:
+        //   SizeBytes / FileCount      = eligible (deletable) files only
+        //   ProtectedBytes             = policy-protected + unknown-with-shield bytes
+        //   ReviewRequiredBytes        = review-tier bytes (shielded <24h, installers, ...)
+        // so "Clean (12 GB)" can never quietly turn into "freed 3 GB".
         long totalBytes = 0;
         int fileCount = 0;
+        long protectedBytes = 0;
+        long reviewBytes = 0;
         var topCollector = new WinTempCleaner.Core.Scanning.TopFilesCollector(30);
-        var cutoffUtc = DateTime.UtcNow - TimeSpan.FromHours(24);
 
+        // The 24-hour shield applies at clean time as safeMode24Hours && IsSafeModeEligible;
+        // the scan must apply exactly the same gate or the two numbers diverge.
+        bool applyShield = safeMode24Hours && folder.IsSafeModeEligible;
+
+        // Canonicalize the target roots once - they feed both the scanner and the
+        // engine's containment check.
+        var canonicalDirs = new List<string>();
         foreach (var dir in directories)
         {
-            if (ct.IsCancellationRequested) break;
             if (string.IsNullOrWhiteSpace(dir) || !Directory.Exists(dir)) continue;
+            string canonical = PathSecurity.NormalizeCanonicalPath(dir);
+            if (!string.IsNullOrEmpty(canonical)) canonicalDirs.Add(canonical);
+        }
+
+        foreach (var dir in canonicalDirs)
+        {
+            if (ct.IsCancellationRequested) break;
 
             try
             {
@@ -785,16 +807,35 @@ public partial class CleanerService
 
                     try
                     {
-                        if (IsProtectedFile(file.FullPath)) return;
+                        var analysis = FileSafetyEngine.Analyze(
+                            filePath: file.FullPath,
+                            fileName: file.FileName,
+                            category: folder.Category,
+                            sizeBytes: file.SizeBytes,
+                            lastModified: file.LastWriteTimeUtc,
+                            allowedRoot: dir,
+                            apply24HourThreshold: applyShield,
+                            allowedRoots: canonicalDirs,
+                            knownAttributes: file.Attributes);
 
-                        if (safeMode24Hours && folder.IsSafeModeEligible && file.LastWriteTimeUtc > cutoffUtc)
+                        bool deletable = analysis.Tier is SafetyRiskTier.Safe or SafetyRiskTier.LowRisk ||
+                                         (analysis.Tier == SafetyRiskTier.Unknown && !applyShield);
+
+                        if (deletable)
                         {
-                            return;
+                            totalBytes += file.SizeBytes;
+                            fileCount++;
+                            topCollector.TryAdd(file.FileName, file.FullPath, file.SizeBytes, file.LastWriteTimeUtc.ToLocalTime());
                         }
-
-                        totalBytes += file.SizeBytes;
-                        fileCount++;
-                        topCollector.TryAdd(file.FileName, file.FullPath, file.SizeBytes, file.LastWriteTimeUtc.ToLocalTime());
+                        else if (analysis.Tier == SafetyRiskTier.ReviewRequired)
+                        {
+                            reviewBytes += file.SizeBytes;
+                        }
+                        else
+                        {
+                            // Protected tier, and Unknown-with-shield (planner maps it to SkipProtected)
+                            protectedBytes += file.SizeBytes;
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -808,14 +849,14 @@ public partial class CleanerService
             }
         }
 
-        UiInvoke(() => folder.ResolvedDirectoryCount = directories.Count(d => !string.IsNullOrWhiteSpace(d) && Directory.Exists(d)));
+        UiInvoke(() => folder.ResolvedDirectoryCount = canonicalDirs.Count);
         UiInvoke(() => folder.SizeBytes = totalBytes);
         UiInvoke(() => folder.FileCount = fileCount);
         UiInvoke(() => folder.TopFiles = topCollector.ToDescendingList(15));
-        UiInvoke(() => folder.ProtectedBytes = 0);
-        UiInvoke(() => folder.ReviewRequiredBytes = 0);
+        UiInvoke(() => folder.ProtectedBytes = protectedBytes);
+        UiInvoke(() => folder.ReviewRequiredBytes = reviewBytes);
         UiInvoke(() => folder.StatusMessage = $"Ready: {TargetFolderInfo.FormatBytes(totalBytes)}");
-        logAction($"Scanned {categoryTitle}: {TargetFolderInfo.FormatBytes(totalBytes)} ({fileCount:N0} files)", LogLevel.Info);
+        logAction($"Scanned {categoryTitle}: {TargetFolderInfo.FormatBytes(totalBytes)} cleanable of {TargetFolderInfo.FormatBytes(totalBytes + protectedBytes + reviewBytes)} ({fileCount:N0} files)", LogLevel.Info);
     }
 
     public static (long sizeBytes, int fileCount) QueryRecycleBinInfo()
@@ -1138,7 +1179,19 @@ public partial class CleanerService
                         }
                         long initialSize = folder.SizeBytes;
                         int initialFiles = folder.FileCount;
-                        bool ok = LargeFileHunterService.MoveToRecycleBin(folder.FolderPath);
+
+                        // Respect the user's Send-to-Recycle-Bin choice. This path previously
+                        // called LargeFileHunterService.MoveToRecycleBin UNCONDITIONALLY, so
+                        // orphaned-app residuals landed in the Recycle Bin even with the
+                        // toggle off - the exact "I disabled it but files still go to the
+                        // bin" report. Recycle only when the setting says so.
+                        bool recycleResidual = SettingsService.Current.SendToRecycleBin;
+
+                        bool TryRemoveResidual() => recycleResidual
+                            ? LargeFileHunterService.MoveToRecycleBin(folder.FolderPath)
+                            : DeleteOrphanResidualPermanently(folder.FolderPath, logAction);
+
+                        bool ok = TryRemoveResidual();
                         if (!ok)
                         {
                             // Proactively inspect file lockers and terminate non-system helper processes
@@ -1162,7 +1215,7 @@ public partial class CleanerService
                                         }
                                     }
                                 }
-                                ok = LargeFileHunterService.MoveToRecycleBin(folder.FolderPath);
+                                ok = TryRemoveResidual();
                             }
                             catch { }
                         }
@@ -1174,13 +1227,16 @@ public partial class CleanerService
                             foldersDeleted = 1;
                             UiInvoke(() => folder.SizeBytes = 0);
                             UiInvoke(() => folder.FileCount = 0);
-                            UiInvoke(() => folder.StatusMessage = "Moved to Recycle Bin (Undoable)");
-                            logAction($"Safely recycled residual folder '{folder.FolderPath}' to Windows Recycle Bin ({TargetFolderInfo.FormatBytes(initialSize)})", LogLevel.Success);
+                            UiInvoke(() => folder.StatusMessage = recycleResidual ? "Moved to Recycle Bin (Undoable)" : "Deleted");
+                            logAction(recycleResidual
+                                ? $"Safely recycled residual folder '{folder.FolderPath}' to Windows Recycle Bin ({TargetFolderInfo.FormatBytes(initialSize)})"
+                                : $"Permanently deleted residual folder '{folder.FolderPath}' ({TargetFolderInfo.FormatBytes(initialSize)})",
+                                LogLevel.Success);
                         }
                         else
                         {
                             UiInvoke(() => folder.StatusMessage = "In Use or Locked");
-                            logAction($"Could not recycle '{folder.FolderPath}'. File may be in use or require admin rights.", LogLevel.Warning);
+                            logAction($"Could not {(recycleResidual ? "recycle" : "delete")} '{folder.FolderPath}'. File may be in use or require admin rights.", LogLevel.Warning);
                             filesFailed++;
                         }
                     }
@@ -1515,7 +1571,64 @@ public partial class CleanerService
         else if (folder.Id == "WinDeliveryOpt") dirs.AddRange(GetDeliveryOptimizationDirectories());
         else if (!string.IsNullOrWhiteSpace(folder.FolderPath)) dirs.Add(folder.FolderPath);
 
-        return dirs;
+        // Prune nested duplicates: resolver tables frequently contribute both a parent and
+        // one of its own subdirectories (e.g. Cache + Cache\Data, or a logs root plus its
+        // per-app subfolders). Recursion already covers the child, so keeping both counted
+        // every file twice - inflating the scan total AND planning duplicate deletion
+        // actions that the executor then silently re-skips.
+        return PruneNestedDirectories(dirs);
+    }
+
+    /// <summary>
+    /// Removes any directory that is contained inside another directory of the same list.
+    /// Comparison is ordinal and case-insensitive, matching Windows path semantics; exact
+    /// duplicates collapse too. Runs on already-resolved absolute paths, so no
+    /// canonicalization is required here (callers canonicalize roots downstream).
+    /// </summary>
+    private static List<string> PruneNestedDirectories(List<string> dirs)
+    {
+        if (dirs.Count <= 1) return dirs;
+
+        var unique = new List<string>(dirs.Count);
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var dir in dirs)
+        {
+            if (!string.IsNullOrWhiteSpace(dir) && seen.Add(dir))
+            {
+                unique.Add(dir);
+            }
+        }
+
+        if (unique.Count <= 1) return unique;
+
+        var nested = new List<bool>(unique.Count);
+        for (int i = 0; i < unique.Count; i++)
+        {
+            bool contained = false;
+            for (int j = 0; j < unique.Count && !contained; j++)
+            {
+                if (i != j && PathSecurity.IsSubpathOf(unique[i], unique[j]))
+                {
+                    contained = true;
+                }
+            }
+            nested.Add(contained);
+        }
+
+        var pruned = new List<string>(unique.Count);
+        for (int i = 0; i < unique.Count; i++)
+        {
+            if (!nested[i]) pruned.Add(unique[i]);
+        }
+
+        if (pruned.Count != dirs.Count)
+        {
+            System.Diagnostics.Trace.WriteLine(
+                $"[Deltempo] Pruned {dirs.Count - pruned.Count} nested/duplicate director" +
+                (dirs.Count - pruned.Count == 1 ? "y" : "ies") + " from scope.");
+        }
+
+        return pruned;
     }
 
     /// <summary>
@@ -1527,6 +1640,137 @@ public partial class CleanerService
         return ResolveDirectoriesForFolder(folder);
     }
 
+    /// <summary>
+    /// Permanent removal of a vetted orphaned-app residual folder, used when the user has
+    /// Send-to-Recycle-Bin turned OFF. The recycle path moves the folder into the Recycle
+    /// Bin without following links; the permanent path must provide the same guarantee,
+    /// so this mirrors the recursive-delete guards RootLeftoverPurgeService applies
+    /// (protected-descendant refusal, attribute stripping) and verifies the outcome.
+    /// internal rather than private so Deltempo.Tests (InternalsVisibleTo) can pin the
+    /// toggle-respecting behaviour with real filesystem cases.
+    /// </summary>
+    internal static bool DeleteOrphanResidualPermanently(string folderPath, Action<string, LogLevel> logAction)
+    {
+        try
+        {
+            if (!Directory.Exists(folderPath)) return false;
+
+            // Never delete a link itself as if it were a folder - same rationale as the
+            // recycle path's reparse refusal.
+            if (WinTempCleaner.Core.Safety.PathSecurity.IsReparsePointOrLink(folderPath))
+            {
+                logAction($"Safety shield kept '{folderPath}': it is a junction or symlink, not a real folder.", LogLevel.Warning);
+                return false;
+            }
+
+            // TOCTOU revalidation against the protection policy (canonicalization, reparse,
+            // attribute and denylist checks). Unrestricted roots: the orphan resolver
+            // already vetted this folder against the AppModel repository before proposing it.
+            if (!WinTempCleaner.Core.Cleaning.CleanupExecutor.RevalidateBeforeDeletion(
+                    folderPath, allowedRoots: null, expectedSize: null, expectedTimestamp: null,
+                    out _, out string failureReason, out _))
+            {
+                logAction($"Safety shield kept '{folderPath}': {failureReason}", LogLevel.Warning);
+                return false;
+            }
+
+            // Directory.Delete removes a whole subtree in one syscall, so the per-file
+            // policy check never runs for descendants. Refuse when anything beneath is
+            // durable AppData application state (OneDrive sync DB, Office licences,
+            // credential vaults, key stores).
+            if (ProtectionPolicy.TryGetProtectedDescendant(folderPath, out string protectedSubtree))
+            {
+                logAction(
+                    $"Safety shield kept '{folderPath}': it contains protected application data ('{protectedSubtree}'). " +
+                    "Remove or move that data manually, then retry.",
+                    LogLevel.Warning);
+                return false;
+            }
+
+            // Strip ReadOnly/Hidden/System so Directory.Delete is not refused by an
+            // attribute alone. Walk the tree WITHOUT descending into links - links are
+            // detached below, not traversed.
+            DetachLinksAndStripAttributes(folderPath);
+
+            // Directory.Delete(recursive: true) handles links differently per runtime:
+            // on .NET 11 it removes a nested junction itself, on .NET 10 it throws
+            // UnauthorizedAccessException on it, and on .NET Framework it FOLLOWED the
+            // link. Neither behaviour is acceptable here, so every nested link has
+            // already been detached explicitly above and the recursive delete now runs
+            // on a plain, link-free tree. Verified by the junction-survival test.
+            Directory.Delete(folderPath, recursive: true);
+            return !Directory.Exists(folderPath);
+        }
+        catch (Exception ex)
+        {
+            logAction($"Could not permanently delete '{folderPath}': {ex.Message}", LogLevel.Warning);
+            System.Diagnostics.Trace.WriteLine(
+                $"[Deltempo] DeleteOrphanResidualPermanently failed for '{folderPath}': {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Walks <paramref name="dir"/> and every real subdirectory without descending into
+    /// links. Junctions and symlinks are deleted AS LINKS - Directory.Delete(recursive:
+    /// false) / File.Delete remove the link itself and never touch the target, verified
+    /// by probe on .NET 10 and 11. Real files and directories get ReadOnly/Hidden/System
+    /// stripped so the caller's recursive delete is not refused by an attribute alone.
+    /// Individual failures are swallowed: the caller's final Directory.Delete still
+    /// fails visibly on leftovers.
+    /// </summary>
+    private static void DetachLinksAndStripAttributes(string dir)
+    {
+        // Strip a bad attribute on this real directory itself (never on a link - the
+        // ReparsePoint check at the call site above already routed links elsewhere).
+        try
+        {
+            var dirAttrs = File.GetAttributes(dir);
+            if ((dirAttrs & FileAttributes.ReparsePoint) == 0 &&
+                (dirAttrs & (FileAttributes.ReadOnly | FileAttributes.Hidden | FileAttributes.System)) != 0)
+            {
+                File.SetAttributes(dir, FileAttributes.Directory);
+            }
+        }
+        catch { }
+
+        foreach (string child in Directory.EnumerateFileSystemEntries(dir))
+        {
+            FileAttributes attrs;
+            try
+            {
+                attrs = File.GetAttributes(child);
+            }
+            catch
+            {
+                continue; // unreadable entry: the caller's Directory.Delete reports it
+            }
+
+            if ((attrs & FileAttributes.ReparsePoint) != 0)
+            {
+                // Never traverse a link: destroy the link, never the data behind it.
+                try
+                {
+                    if ((attrs & FileAttributes.Directory) != 0)
+                        Directory.Delete(child, recursive: false);
+                    else
+                        File.Delete(child);
+                }
+                catch { }
+            }
+            else
+            {
+                if ((attrs & FileAttributes.Directory) != 0)
+                {
+                    DetachLinksAndStripAttributes(child);
+                }
+                else if ((attrs & (FileAttributes.ReadOnly | FileAttributes.Hidden | FileAttributes.System)) != 0)
+                {
+                    try { File.SetAttributes(child, FileAttributes.Normal); } catch { }
+                }
+            }
+        }
+    }
 
 
     public static readonly string[] CommunicationAppKeywords =

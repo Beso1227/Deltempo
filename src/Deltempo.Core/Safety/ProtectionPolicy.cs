@@ -91,6 +91,11 @@ public static class ProtectionPolicy
     private static readonly HashSet<string> CustomPathExclusions = new(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> CustomExtensionExclusions = new(StringComparer.OrdinalIgnoreCase);
 
+    // Lowercased ONCE when exclusions are set, not per file. IsProtected runs once per
+    // file per safety check; re-calling ToLowerInvariant on every exclusion for every
+    // file was pure allocation churn inside the hottest loop in the app.
+    private static readonly HashSet<string> CustomPathExclusionsLower = new(StringComparer.Ordinal);
+
     /// <summary>
     /// Updates custom exclusions atomically in a thread-safe manner.
     /// </summary>
@@ -99,13 +104,16 @@ public static class ProtectionPolicy
         lock (CustomExclusionsLock)
         {
             CustomPathExclusions.Clear();
+            CustomPathExclusionsLower.Clear();
             if (paths != null)
             {
                 foreach (var p in paths)
                 {
                     if (!string.IsNullOrWhiteSpace(p))
                     {
-                        CustomPathExclusions.Add(p.Trim().Replace('/', '\\').TrimEnd('\\'));
+                        string normalized = p.Trim().Replace('/', '\\').TrimEnd('\\');
+                        CustomPathExclusions.Add(normalized);
+                        CustomPathExclusionsLower.Add(normalized.ToLowerInvariant());
                     }
                 }
             }
@@ -131,6 +139,22 @@ public static class ProtectionPolicy
     /// If true, the file CANNOT be deleted under any circumstances.
     /// </summary>
     public static bool IsProtected(string filePath, out string matchedReason)
+    {
+        return IsProtected(filePath, out matchedReason, knownAttributes: null);
+    }
+
+    /// <summary>
+    /// Attributes-aware core. The <paramref name="knownAttributes"/> overload exists for
+    /// callers that already hold the file's attributes from a single FindFirstFileExW
+    /// round-trip (the native scanner, the deletion revalidator). Rule 10 below - the
+    /// reparse-point guard - is otherwise the only rule that touches the filesystem, and it
+    /// did so three times per file (Exists, Attributes, LinkTarget), which made the
+    /// protection check, not the directory walk, the dominant cost of a scan. When
+    /// attributes are known, the guard reduces to the same
+    /// FILE_ATTRIBUTE_REPARSE_POINT bit test the stat-based version performs, with no
+    /// round-trip at all. Passing null keeps the stat-based behaviour exactly.
+    /// </summary>
+    public static bool IsProtected(string filePath, out string matchedReason, FileAttributes? knownAttributes)
     {
         matchedReason = string.Empty;
         if (string.IsNullOrWhiteSpace(filePath))
@@ -183,13 +207,10 @@ public static class ProtectionPolicy
         }
 
         // 2. Windows Core System Directories (System32, SysWOW64, WinSxS, Boot, Recovery)
-        string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-        string system32 = Path.Combine(winDir, "System32");
-        string syswow64 = Path.Combine(winDir, "SysWOW64");
-        string winsxs = Path.Combine(winDir, "WinSxS");
-        string boot = Path.Combine(winDir, "Boot");
-
-        if (PathSecurity.IsSubpathOf(path, system32))
+        // Roots are resolved and canonicalized ONCE per process (see CanonicalSystemRoots);
+        // re-deriving GetFolderPath + four Path.Combine calls and re-canonicalizing each
+        // root on every file was the single largest per-file cost after the reparse guard.
+        if (PathSecurity.IsSubpathOfCanonical(path, CanonicalSystemRoots.System32))
         {
             if (IsPermittedSystem32Subdirectory(pathLower))
             {
@@ -206,9 +227,9 @@ public static class ProtectionPolicy
                 return true;
             }
         }
-        else if (PathSecurity.IsSubpathOf(path, syswow64) ||
-            PathSecurity.IsSubpathOf(path, winsxs) ||
-            PathSecurity.IsSubpathOf(path, boot) ||
+        else if (PathSecurity.IsSubpathOfCanonical(path, CanonicalSystemRoots.SysWOW64) ||
+            PathSecurity.IsSubpathOfCanonical(path, CanonicalSystemRoots.WinSxS) ||
+            PathSecurity.IsSubpathOfCanonical(path, CanonicalSystemRoots.Boot) ||
             pathLower.Contains(@"\system volume information") ||
             pathLower.Contains(@"\$recycle.bin"))
         {
@@ -301,7 +322,19 @@ public static class ProtectionPolicy
         }
 
         // 10. NTFS Reparse Point, Symlink or Junction
-        if (PathSecurity.IsReparsePointOrLink(path))
+        // When the caller already holds the file's attributes (native scanner, deletion
+        // revalidator), this bit test is exactly what the stat-based check evaluates - a
+        // name-surrogate link always carries FILE_ATTRIBUTE_REPARSE_POINT - so no extra
+        // filesystem round-trip is spent re-proving what the caller just read.
+        if (knownAttributes.HasValue)
+        {
+            if ((knownAttributes.Value & FileAttributes.ReparsePoint) != 0)
+            {
+                matchedReason = "Filesystem Reparse Point, Symbolic Link, or Directory Junction";
+                return true;
+            }
+        }
+        else if (PathSecurity.IsReparsePointOrLink(path))
         {
             matchedReason = "Filesystem Reparse Point, Symbolic Link, or Directory Junction";
             return true;
@@ -383,45 +416,47 @@ public static class ProtectionPolicy
             || path.StartsWith(directory + "/", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// Process-invariant system roots, resolved and canonicalized ONCE. Rule 2 used to call
+    /// <c>Environment.GetFolderPath(Windows)</c> plus four <c>Path.Combine</c>s and then
+    /// re-canonicalize each combined root on EVERY file - for a scan of half a million files
+    /// that was two million Combine calls and two million redundant canonicalizations of
+    /// strings that never change while the process runs.
+    /// </summary>
+    private static class CanonicalSystemRoots
+    {
+        private static string Canonical(string path) =>
+            string.IsNullOrEmpty(path) ? string.Empty : PathSecurity.NormalizeCanonicalPath(path);
+
+        private static string CanonicalUnderWindows(string sub) =>
+            Canonical(Path.Combine(CanonicalWindowsDirectory, sub));
+
+        private static readonly string CanonicalWindowsDirectory =
+            Canonical(Environment.GetFolderPath(Environment.SpecialFolder.Windows));
+
+        public static readonly string System32 = CanonicalUnderWindows("System32");
+        public static readonly string SysWOW64 = CanonicalUnderWindows("SysWOW64");
+        public static readonly string WinSxS = CanonicalUnderWindows("WinSxS");
+        public static readonly string Boot = CanonicalUnderWindows("Boot");
+    }
+
     private static bool IsUserPersonalDirectory(string path)
     {
-        string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        if (string.IsNullOrEmpty(userProfile)) return false;
-
-        string[] userProtectedDirs =
-        [
-            Path.Combine(userProfile, "Documents"),
-            Path.Combine(userProfile, "Desktop"),
-            Path.Combine(userProfile, "Pictures"),
-            Path.Combine(userProfile, "Music"),
-            Path.Combine(userProfile, "Videos"),
-            Path.Combine(userProfile, "Contacts"),
-            Path.Combine(userProfile, "Favorites"),
-            Path.Combine(userProfile, "Searches"),
-            Path.Combine(userProfile, "Saved Games"),
-            Path.Combine(userProfile, "Source"),
-            Path.Combine(userProfile, "Repos"),
-            Path.Combine(userProfile, "Projects"),
-            Path.Combine(userProfile, "OneDrive")
-        ];
-
-        foreach (var dir in userProtectedDirs)
+        // Same one-time derivation: the user profile, the thirteen personal directories
+        // under it and the Public-profile folders never change while the process runs, so
+        // they are canonicalized once and compared with the allocation-free canonical
+        // containment test instead of re-canonicalizing each root on every file.
+        foreach (var dir in CanonicalUserProtectedDirs)
         {
-            if (PathSecurity.IsSubpathOf(path, dir))
+            if (PathSecurity.IsSubpathOfCanonical(path, dir))
             {
                 return true;
             }
         }
 
-        // The per-machine Public profile (C:\Users\Public) is shared user content, not a
-        // system or cache location. The guard above only covers the *current* user's profile,
-        // which left every Public library unprotected: Public\Documents, Public\Desktop,
-        // Public\Downloads and friends were reachable by any cleanup scope or by Force Delete.
-        // They are resolved through the Common* folder ids rather than a literal path so they
-        // resolve correctly when the profile is relocated.
-        foreach (var folder in PublicPersonalFolders())
+        foreach (var folder in CanonicalPublicPersonalFolders)
         {
-            if (!string.IsNullOrEmpty(folder) && PathSecurity.IsSubpathOf(path, folder))
+            if (!string.IsNullOrEmpty(folder) && PathSecurity.IsSubpathOfCanonical(path, folder))
             {
                 return true;
             }
@@ -430,17 +465,61 @@ public static class ProtectionPolicy
         return false;
     }
 
-    /// <summary>
-    /// Shared, user-authored libraries under the machine-wide Public profile. Never treated as
-    /// disposable: a file here was put there deliberately so other accounts could see it.
-    /// </summary>
-    private static IEnumerable<string> PublicPersonalFolders()
+    private static readonly string[] CanonicalUserProtectedDirs = BuildCanonicalUserProtectedDirs();
+
+    private static string[] BuildCanonicalUserProtectedDirs()
     {
-        yield return Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
-        yield return Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
-        yield return Environment.GetFolderPath(Environment.SpecialFolder.CommonPictures);
-        yield return Environment.GetFolderPath(Environment.SpecialFolder.CommonMusic);
-        yield return Environment.GetFolderPath(Environment.SpecialFolder.CommonVideos);
+        string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (string.IsNullOrEmpty(userProfile)) return [];
+
+        string[] userProtectedDirs =
+        [
+            "Documents",
+            "Desktop",
+            "Pictures",
+            "Music",
+            "Videos",
+            "Contacts",
+            "Favorites",
+            "Searches",
+            "Saved Games",
+            "Source",
+            "Repos",
+            "Projects",
+            "OneDrive"
+        ];
+
+        var canonical = new List<string>(userProtectedDirs.Length);
+        foreach (var sub in userProtectedDirs)
+        {
+            string c = PathSecurity.NormalizeCanonicalPath(Path.Combine(userProfile, sub));
+            if (!string.IsNullOrEmpty(c)) canonical.Add(c);
+        }
+        return canonical.ToArray();
+    }
+
+    /// <summary>
+    /// Canonicalized once at first use: the per-machine Public profile libraries.
+    /// the per-machine Public profile libraries. Never treated as disposable - a file here
+    /// was put there deliberately so other accounts could see it.
+    /// </summary>
+    private static readonly string[] CanonicalPublicPersonalFolders = BuildCanonicalPublicPersonalFolders();
+
+    private static string[] BuildCanonicalPublicPersonalFolders()
+    {
+        var folders = new List<string>(7);
+
+        void Add(string raw)
+        {
+            string c = PathSecurity.NormalizeCanonicalPath(raw);
+            if (!string.IsNullOrEmpty(c)) folders.Add(c);
+        }
+
+        Add(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments));
+        Add(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory));
+        Add(Environment.GetFolderPath(Environment.SpecialFolder.CommonPictures));
+        Add(Environment.GetFolderPath(Environment.SpecialFolder.CommonMusic));
+        Add(Environment.GetFolderPath(Environment.SpecialFolder.CommonVideos));
 
         // .NET exposes no CommonDownloads, so derive the Public root from CommonDocuments
         // and cover the remaining shared folders by name.
@@ -448,9 +527,11 @@ public static class ProtectionPolicy
         string? publicRoot = string.IsNullOrEmpty(commonDocs) ? null : Path.GetDirectoryName(commonDocs);
         if (!string.IsNullOrEmpty(publicRoot))
         {
-            yield return Path.Combine(publicRoot, "Downloads");
-            yield return Path.Combine(publicRoot, "Libraries");
+            Add(Path.Combine(publicRoot, "Downloads"));
+            Add(Path.Combine(publicRoot, "Libraries"));
         }
+
+        return folders.ToArray();
     }
 
     private static bool IsDeveloperOrCloudCredentialPath(string pathLower, string fileName)
