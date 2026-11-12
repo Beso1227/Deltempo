@@ -45,7 +45,9 @@ public class PathSecurityTests
     [InlineData(@"D:\Data\file.tmp", false)]
     public void IsUncPath_AccuratelyDetectsNetworkShares(string path, bool expected)
     {
-        bool isUnc = PathSecurity.IsUncPath(path);
+        // IsNetworkOrUncPath is the live API - ForceDeleteGate calls it to refuse a
+        // remote share. The old IsUncPath wrapper had no product caller.
+        bool isUnc = PathSecurity.IsNetworkOrUncPath(path);
         Assert.Equal(expected, isUnc);
     }
 }

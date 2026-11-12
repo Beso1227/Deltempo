@@ -262,17 +262,19 @@ public class WinUiFilterAndSelectionTests
     }
 
     [Fact]
-    public async Task StartupToggle_SystemWideEntryWasRefusedWithElevationGuidance_UnderAStandardUser()
+    public async Task StartupToggle_SystemWideEntryIsRefusedWithElevationGuidance_UnderAStandardUser()
     {
         // WPF's StartupSwitch_Click (MainWindow.SystemManagers.cs:230) refuses
         // HKLM/Common Startup entries upfront when the process is not elevated,
-        // with the "click the Admin button" guidance. The classic Windows process
-        // xunit launches runs as a standard user; when it does not, a skip is the
-        // only honest outcome - the gate reads the real process token.
-        if (ElevationService.IsRunAsAdmin())
-        {
-            Assert.Skip("the test process is elevated, so the standard-user refusal cannot be observed");
-        }
+        // with the "click the Admin button" guidance. The gate reads the real
+        // process token, so the outcome depends on how the test host was started.
+        //
+        // This test used to Assert.Skip when the process happened to be elevated,
+        // which made the coverage disappear silently on elevated agents (CI
+        // runners are often elevated on Windows) - a green build that proved
+        // nothing. Both worlds now get a real assertion: an unelevated process
+        // must be refused, and an elevated one must be allowed through.
+        bool elevated = ElevationService.IsRunAsAdmin();
 
         StartupWorkspaceViewModel vm = new();
 
@@ -298,6 +300,17 @@ public class WinUiFilterAndSelectionTests
         // A system-wide refusal is upfront: the entry itself is never touched and
         // ToggleStartupItem is never reached, so the run writes no registry state.
         await vm.ToggleCommand.ExecuteAsync(hklmEntry);
+
+        if (elevated)
+        {
+            // Elevated: the gate must let the toggle through to the real handler.
+            // The registry write itself is not exercised here (the entry is not a
+            // real one), but the gate must not have refused it.
+            Assert.DoesNotContain("Administrator privileges are required", vm.StatusText);
+            Assert.DoesNotContain(log, l => l.Message.Contains("Elevation required", StringComparison.Ordinal));
+            return;
+        }
+
         Assert.True(hklmEntry.IsEnabled, "a refused toggle must leave the entry untouched");
         Assert.Contains("Administrator privileges are required", vm.StatusText);
 

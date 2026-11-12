@@ -1782,15 +1782,12 @@ public partial class CleanerService
         "matrix", "accountscontrol", "aad", "cloudexperiencehost", "bioenrollment", "auth"
     };
 
-    public static bool IsProtectedSessionOrCredentialFile(string filePath)
-    {
-        return ProtectionPolicy.IsProtected(filePath, out _);
-    }
-
-    public static bool IsProtectedFile(string filePath)
-    {
-        return ProtectionPolicy.IsProtected(filePath, out _);
-    }
+    // NOTE: two thin wrappers used to live here - IsProtectedSessionOrCredentialFile and
+    // IsProtectedFile. Each was a one-line passthrough to ProtectionPolicy.IsProtected
+    // and neither had a product caller, so the rule was only ever exercised through a
+    // dead API. The policy itself is enforced at nine call sites (CleanupExecutor,
+    // FileSafetyEngine, ForceDeleteGate, RestartManagerService, DuplicateFileService,
+    // StoreAppOrphanResolver and CleanerService), and the test now pins THAT directly.
 
     public static string GenerateAuditReport(IEnumerable<TargetFolderInfo> targets, CleanSummary summary, bool safeMode)
     {

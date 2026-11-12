@@ -16,6 +16,12 @@ namespace Deltempo.Tests;
 /// restored 4-card shape, WPF's placeholder rule on category cleans, and the
 /// RamRecovered label existing in every language the shell ships.
 /// </summary>
+/// <remarks>
+/// In the shared "Localization" collection: this class reads the translation
+/// dictionaries while <c>LocalizationServiceTests</c> switches the process-global
+/// language, so the two must not run in parallel.
+/// </remarks>
+[Collection("Localization")]
 public class CleanSummaryRamStatTests
 {
     [Fact]

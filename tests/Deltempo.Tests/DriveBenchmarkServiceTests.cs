@@ -116,7 +116,12 @@ public class DriveBenchmarkServiceTests
     public void GetWorstDriveHealth_ReturnsTheLowestScoredDrive()
     {
         var all = DriveHealthService.GetAllDriveHealth();
-        var worst = DriveHealthService.GetWorstDriveHealth();
+
+        // This used to call DriveHealthService.GetWorstDriveHealth(), a wrapper with no
+        // production caller - the WPF hero button computes the same thing inline from the
+        // snapshot it already has. The behaviour under test is DriveHealthInfo.Worst, so
+        // the test calls it directly instead of pinning a dead API.
+        var worst = DriveHealthInfo.Worst(all);
 
         if (all.Any(d => d.HealthScore.HasValue))
         {

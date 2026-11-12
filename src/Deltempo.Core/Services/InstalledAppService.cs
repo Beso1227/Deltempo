@@ -540,7 +540,8 @@ public static class InstalledAppService
         return string.Empty;
     }
 
-    public static IReadOnlyList<string> FindResidualLeftovers(InstalledAppItem app)
+    // internal: the orphan scanner resolves residuals through its own resolver.
+    internal static IReadOnlyList<string> FindResidualLeftovers(InstalledAppItem app)
     {
         ArgumentNullException.ThrowIfNull(app);
 

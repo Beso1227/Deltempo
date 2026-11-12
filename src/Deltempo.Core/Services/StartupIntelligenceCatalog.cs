@@ -344,11 +344,11 @@ public static class StartupIntelligenceCatalog
         return null;
     }
 
-    public static bool TryGetKnownStartup(string name, out StartupCatalogEntry? entry)
-    {
-        entry = FindCatalogEntry(name, "", "");
-        return entry != null;
-    }
+    // NOTE: this used to expose a TryGetKnownStartup(name, out entry) wrapper. Nothing
+    // in the product called it - the services resolve entries through FindCatalogEntry
+    // with the item's exe path and command, falling back to ClassifyUnknownStartup -
+    // so it survived only for its own test. The catalog lookup is covered through
+    // FindCatalogEntry, which is the API the product actually uses.
 
     public static StartupCatalogEntry ClassifyUnknownStartup(string name, string publisher, string path)
     {

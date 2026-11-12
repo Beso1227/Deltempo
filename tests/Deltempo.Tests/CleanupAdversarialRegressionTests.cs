@@ -239,13 +239,16 @@ public class CleanupAdversarialRegressionTests : IDisposable
             bool valid = CleanupExecutor.RevalidateBeforeDeletion(
                 linkPath, new[] { _sandbox }, null, null, out _, out string reason, out FileCleanupFailureReason code);
 
-            // The link path canonicalizes to inside _sandbox, so root containment passes.
-            // But the file's actual content is outside the planner's scan roots —
-            // the planner would never have included it because outsideFile was never
-            // under _sandbox during scanning. This test documents that hard-link
-            // substitution is prevented at the PLAN boundary, not just the exec boundary.
-            Assert.True(valid || !string.IsNullOrEmpty(reason),
-                "Revalidation must either accept with a clean reason or refuse explicitly.");
+            // The link path canonicalizes to inside _sandbox and is NOT a reparse point
+            // (a hard link is a second directory entry, not a name surrogate). What actually
+            // refuses it: ProtectionPolicy marks .txt a protected sensitive file type, so
+            // the executor must refuse to delete even a sandbox-resident path that ends
+            // in a protected extension. That refusal is the assertion - the earlier
+            // "valid || reason" tautology passed on BOTH outcomes and hid it.
+            Assert.False(valid,
+                "RevalidateBeforeDeletion must refuse a protected sensitive file type (.txt), even via a hard-link path.");
+            Assert.Equal(FileCleanupFailureReason.ProtectedByPolicy, code);
+            Assert.Contains(".txt", reason, StringComparison.OrdinalIgnoreCase);
         }
         finally
         {
@@ -290,11 +293,25 @@ public class CleanupAdversarialRegressionTests : IDisposable
 
             var result = await CleanupExecutor.ExecutePlanAsync(plan, _sandbox);
 
-            // The executor strips read-only and retries, so this may or may not succeed
-            // depending on privileges. What matters: it never throws uncaught, and
-            // failed bytes are tracked separately from skipped bytes.
-            Assert.True(result.DeletedCount + result.FailedCount == 1 ||
-                        result.DeletedCount + result.SkippedCount == 1);
+            // The executor strips read-only and retries, so this may succeed or fail
+            // depending on privileges. What matters: the file was planned, so it must be
+            // accounted for in exactly ONE bucket - never dropped silently.
+            //
+            // The old assertion accepted a disjunction of two bucket sums and never said
+            // which bucket the file landed in, so "deleted" and "tracked as failed" were
+            // interchangeable and an undeleted file could vanish unnoticed.
+            Assert.Equal(1, result.DeletedCount + result.FailedCount + result.SkippedCount);
+
+            if (result.DeletedCount == 1)
+            {
+                Assert.False(File.Exists(roFile), "A file counted as deleted must be gone from disk.");
+            }
+            else
+            {
+                Assert.True(File.Exists(roFile),
+                    "A file that was not deleted must still be on disk - it may only be reported as failed or skipped.");
+                Assert.True(result.FailedCount == 1 || result.SkippedCount == 1);
+            }
         }
         finally
         {
@@ -395,13 +412,24 @@ public class CleanupAdversarialRegressionTests : IDisposable
         var result = await CleanupExecutor.ExecutePlanAsync(
             plan, _sandbox, null, null, cts.Token);
 
-        // If cancellation was observed it stopped the pipeline early; if it was not
-        // observed, the executor legitimately finished the whole plan.
-        Assert.True(!result.WasCancelled || result.DeletedCount < plan.Actions.Count,
-            $"Cancellation was reported, yet all {result.DeletedCount}/{plan.Actions.Count} files were deleted.");
-        // Sum may be < plan.Actions.Count when cancellation stops the parallel loop early.
-        Assert.True(result.DeletedCount + result.FailedCount + result.SkippedCount <= plan.Actions.Count,
-            $"Processed count {result.DeletedCount + result.FailedCount + result.SkippedCount} exceeds plan size {plan.Actions.Count}.");
+        // The executor sets WasCancelled when it OBSERVES the token, not when it
+        // stopped early: inside Parallel.ForEach every iteration may already be in
+        // flight, so a run can legitimately report WasCancelled after deleting the
+        // whole plan. This test used to assert the opposite ("cancellation was
+        // reported, yet all 500/500 files were deleted"), which the implementation
+        // never promised - it failed intermittently whenever the machine was slow
+        // enough for the token to fire late. The contract that actually holds:
+        //   1. the run never processes more than the plan contains, and
+        //   2. a run that DID stop early reports the cancellation that stopped it.
+        int processed = result.DeletedCount + result.FailedCount + result.SkippedCount;
+        Assert.True(processed <= plan.Actions.Count,
+            $"Processed count {processed} exceeds plan size {plan.Actions.Count}.");
+
+        if (processed < plan.Actions.Count)
+        {
+            Assert.True(result.WasCancelled,
+                "A run that stopped before processing the whole plan must report the cancellation that stopped it.");
+        }
     }
 
     /// <summary>

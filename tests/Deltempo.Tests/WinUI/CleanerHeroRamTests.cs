@@ -14,6 +14,12 @@ namespace Deltempo.Tests;
 /// These tests pin the restored card, its telemetry mapping and the shell
 /// hand-off into the Memory workspace.
 /// </summary>
+/// <remarks>
+/// In the shared "Localization" collection: the RAM detail line the card renders
+/// is localized, so this class must not read it while
+/// <c>LocalizationServiceTests</c> is switching the process-global language.
+/// </remarks>
+[Collection("Localization")]
 public class CleanerHeroRamTests
 {
     [Fact]

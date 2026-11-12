@@ -23,11 +23,14 @@ public class StartupIntelligenceTests
     [InlineData("WavesMaxxAudio", StartupDisableVerdict.DoNotDisable)]
     public void Catalog_RecognizesCoreStartupAppsAndAccurateVerdicts(string startupName, StartupDisableVerdict expectedVerdict)
     {
-        bool found = StartupIntelligenceCatalog.TryGetKnownStartup(startupName, out var entry);
+        // Resolved through FindCatalogEntry - the same lookup the product uses
+        // (StartupIntelligenceService / StartupManagerService). The catalog previously
+        // also exposed a TryGetKnownStartup(name, out entry) wrapper that no product
+        // code called; testing it meant testing an API nothing used.
+        var entry = StartupIntelligenceCatalog.FindCatalogEntry(startupName, "", "");
 
-        Assert.True(found, $"Catalog should recognize startup: {startupName}");
         Assert.NotNull(entry);
-        Assert.Equal(expectedVerdict, entry.Verdict);
+        Assert.Equal(expectedVerdict, entry!.Verdict);
         Assert.False(string.IsNullOrWhiteSpace(entry.Description));
         Assert.False(string.IsNullOrWhiteSpace(entry.DisableImpact));
         Assert.False(string.IsNullOrWhiteSpace(entry.Recommendation));

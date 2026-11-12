@@ -56,8 +56,7 @@ public static class SafeOps
         }
     }
 
-    /// <summary>
-    /// Runs an action that may fail harmlessly, tracing the failure and returning false.
-    /// </summary>
-    public static bool TryBool(string operation, Func<bool> func) => Try(operation, func, false);
+    // NOTE: TryBool used to be a one-line wrapper around Try(operation, func, false)
+    // with no product caller - the suite's own test was its only user. SafeOps.Try is
+    // used in production (RootLeftoverPurgeService), and the test now pins that.
 }

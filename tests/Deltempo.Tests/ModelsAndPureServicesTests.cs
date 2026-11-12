@@ -81,8 +81,20 @@ public class ModelsAndPureServicesTests
     public void WindowsSystemProvider_GetDriveSpace_SystemDrive()
     {
         var p = new WindowsSystemProvider();
-        var (total, free, pct) = p.GetDriveSpace("C:");
-        Assert.True(total >= 0);
+
+        // Ask the provider which drive IS the system drive instead of assuming "C:" -
+        // on a machine whose system volume is not C:, the old hardcoded letter measured
+        // an unrelated drive (or nothing at all), and the assertions below were weak
+        // enough (total >= 0) to pass on the zeros the provider returns for a
+        // non-ready drive.
+        string systemDrive = p.GetSystemDriveTelemetry().DriveLetter;
+        Assert.False(string.IsNullOrWhiteSpace(systemDrive));
+
+        var (total, free, pct) = p.GetDriveSpace(systemDrive);
+
+        // A ready system drive reports a non-zero capacity. total >= 0 would hold even
+        // for the (0, 0, 0) failure return, so it proved nothing.
+        Assert.True(total > 0, $"System drive '{systemDrive}' reported a total size of {total} bytes.");
         Assert.True(free >= 0);
         Assert.InRange(pct, 0, 100);
     }

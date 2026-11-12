@@ -83,16 +83,25 @@ public class IFileOperationHelperTests : IDisposable
         // 40 sequential recycles. Each leaked two RCWs before the fix; this is a smoke
         // guard against reintroducing an un-released wrapper on the throw path.
         int removed = 0;
+        int reportedSuccess = 0;
         for (int i = 0; i < 40; i++)
         {
             string file = MakeFile($"bulk_{i}.tmp");
-            if (IFileOperationHelper.RecycleFile(file) && !File.Exists(file))
+            if (IFileOperationHelper.RecycleFile(file))
             {
-                removed++;
+                reportedSuccess++;
+                if (!File.Exists(file)) removed++;
             }
         }
 
-        Assert.InRange(removed, 0, 40);
+        // `Assert.InRange(removed, 0, 40)` held for every possible count, so it proved
+        // nothing. What an RCW leak actually breaks is CONSISTENCY: the first calls
+        // succeed and the later ones start failing. So the batch must be all-or-nothing,
+        // and every call that reported success must really have removed the file.
+        Assert.True(reportedSuccess == 40 || reportedSuccess == 0,
+            $"Recycling behaved inconsistently across the batch ({reportedSuccess}/40 calls succeeded). " +
+            "Later calls failing after earlier ones succeeded is the signature of a leaked COM wrapper.");
+        Assert.Equal(reportedSuccess, removed);
     }
 
     [Fact]
@@ -127,16 +136,23 @@ public class IFileOperationHelperTests : IDisposable
     }
 
     [Fact]
-    public void RecycleBatch_ResultSignDistinguishesFullFromPartialSuccess()
+    public void RecycleBatch_ResultCountsTheFilesThatWereActuallyRecycled()
     {
-        // The contract itself: RecycleBatch must be able to report a partial outcome, which
-        // it could not before because GetAnyOperationsAborted was never called.
+        // The contract: RecycleBatch returns the number of inputs that are no longer on
+        // disk, NEGATED when the shell aborted part-way (a partial success).
+        //
+        // This test used to assert `result >= 0 || result <= 0`, which holds for every
+        // integer and could never fail. What can be proven here is the magnitude: it
+        // must equal the number of files that actually left their original location.
+        // The negative sign is the abort marker; a forced abort cannot be produced
+        // deterministically on a healthy machine, so it is not asserted.
         var files = new List<string>();
         for (int i = 0; i < 5; i++) files.Add(MakeFile($"partial_{i}.tmp"));
 
         int result = IFileOperationHelper.RecycleBatch(files);
 
-        Assert.True(result >= 0 || result <= 0);
+        int recycled = files.Count(f => !File.Exists(f) && !Directory.Exists(f));
+        Assert.Equal(recycled, Math.Abs(result));
         Assert.InRange(Math.Abs(result), 0, files.Count);
     }
 

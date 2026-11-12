@@ -80,7 +80,11 @@ public class ForensicsKnowledgeTests : IDisposable
         string f = Path.Combine(_sandbox, "arc.dat");
         File.WriteAllBytes(f, new byte[] { 0x50, 0x4B, 0x03, 0x04, 0x00, 0x00 });
         var p = FileForensicsService.AnalyzeFile(f);
-        Assert.NotNull(p.DetectedMagicType);
+        // The name of this test claims ZIP detection - assert it, not merely that
+        // something was recognised (the PDF sibling test right above already asserts
+        // the detected label; this one previously stopped at NotNull).
+        Assert.False(string.IsNullOrWhiteSpace(p.DetectedMagicType));
+        Assert.Contains("ZIP", p.DetectedMagicType, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

@@ -14,8 +14,10 @@ public class InstalledAppServiceTests
     {
         var apps = InstalledAppService.GetInstalledApps();
         Assert.NotNull(apps);
-        // Any standard Windows machine has multiple installed runtimes or apps in registry
-        Assert.True(apps.Count >= 0);
+        // Any standard Windows machine has multiple installed runtimes or apps in registry.
+        // `apps.Count >= 0` is true for every collection, so it proved nothing while the
+        // test name promised a NON-EMPTY list.
+        Assert.True(apps.Count > 0, "No installed apps were discovered on a Windows machine.");
     }
 
     [Fact]

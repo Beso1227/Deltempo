@@ -218,6 +218,12 @@ Signer Name:        Microsoft Windows Hardware Compatibility Publisher
         var result = await WindowsDriverMaintenanceService.ScanSupersededDriverPackagesAsync(CancellationToken.None);
         Assert.NotNull(result);
         Assert.NotNull(result.SupersededPackages);
+
+        // The aggregate totals must agree with the item list they summarise. The old
+        // ">= 0" assertions held for the failure case (0 packages, 0 bytes) and could
+        // not tell a correct scan from an empty one.
+        Assert.Equal(result.SupersededPackages.Count, result.SupersededPackageCount);
+        Assert.Equal(result.SupersededPackages.Sum(p => p.EstimatedSizeBytes), result.TotalSupersededBytes);
         Assert.True(result.TotalSupersededBytes >= 0);
         Assert.True(result.SupersededPackageCount >= 0);
     }
@@ -930,9 +936,15 @@ Signer Name:        Microsoft Windows Hardware Compatibility Publisher
     [InlineData(@"C:\Users\user\AppData\Local\Packages\Facebook.Messenger_8xx8rvfyw5nnt\LocalCache\auth.json", true)]
     [InlineData(@"C:\Users\user\AppData\Roaming\discord\Local State", true)]
     [InlineData(@"C:\Users\user\AppData\Roaming\Slack\Local State", true)]
-    public void CleanerService_IsProtectedSessionOrCredentialFile_AccuratelyDifferentiatesSessionsFromCaches(string path, bool expectedProtected)
+    public void ProtectionPolicy_ProtectedSessionOrCredentialFiles_AccuratelyDifferentiateSessionsFromCaches(string path, bool expectedProtected)
     {
-        bool actual = CleanerService.IsProtectedSessionOrCredentialFile(path);
+        // This used to call CleanerService.IsProtectedSessionOrCredentialFile, a
+        // one-line passthrough to ProtectionPolicy.IsProtected that no product code
+        // ever called - so the 48 cases below were pinning a dead API. The rule is
+        // enforced at nine call sites (CleanupExecutor, FileSafetyEngine,
+        // ForceDeleteGate, RestartManagerService, DuplicateFileService,
+        // StoreAppOrphanResolver, CleanerService), and the test now pins that.
+        bool actual = ProtectionPolicy.IsProtected(path, out _);
         Assert.Equal(expectedProtected, actual);
     }
 

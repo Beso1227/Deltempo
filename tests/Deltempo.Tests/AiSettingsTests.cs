@@ -762,8 +762,12 @@ public class AiSettingsTests
                 s.SetAiApiKey("OpenRouter", "test-key");
             });
 
-            string? reason = LargeFileHunterService.GetAiUnavailableReason();
+            // GetAiReadiness(out reason) is the live API - the WPF and WinUI shells both
+            // read it to explain why Ask AI cannot run. The old GetAiUnavailableReason
+            // wrapper had no product caller.
+            var readiness = LargeFileHunterService.GetAiReadiness(out string? reason);
 
+            Assert.Equal(LargeFileHunterService.AiReadiness.SwitchOff, readiness);
             Assert.NotNull(reason);
             Assert.Contains("off", reason!, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("OpenRouter", reason!, StringComparison.Ordinal);
@@ -796,8 +800,9 @@ public class AiSettingsTests
                 s.SetAiApiKey("OpenRouter", string.Empty);
             });
 
-            string? reason = LargeFileHunterService.GetAiUnavailableReason();
+            var readiness = LargeFileHunterService.GetAiReadiness(out string? reason);
 
+            Assert.Equal(LargeFileHunterService.AiReadiness.MissingKey, readiness);
             Assert.NotNull(reason);
             Assert.Contains("API key", reason!, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("OpenRouter", reason!, StringComparison.Ordinal);
@@ -830,7 +835,9 @@ public class AiSettingsTests
                 s.SetAiApiKey("OpenRouter", "test-key");
             });
 
-            Assert.Null(LargeFileHunterService.GetAiUnavailableReason());
+            Assert.Equal(LargeFileHunterService.AiReadiness.Ready,
+                LargeFileHunterService.GetAiReadiness(out string? readyReason));
+            Assert.Null(readyReason);
         }
         finally
         {
@@ -860,7 +867,10 @@ public class AiSettingsTests
                 s.AiProvider = "BuiltIn";
             });
 
-            Assert.Null(LargeFileHunterService.GetAiUnavailableReason());
+            // The built-in engine answers locally, so there is nothing to warn about.
+            Assert.Equal(LargeFileHunterService.AiReadiness.BuiltInLocal,
+                LargeFileHunterService.GetAiReadiness(out string? builtInReason));
+            Assert.Null(builtInReason);
         }
         finally
         {
@@ -955,7 +965,9 @@ public class AiSettingsTests
 
             Assert.True(LargeFileHunterService.TryEnableConfiguredProvider());
             Assert.True(SettingsService.Current.EnableOnlineAiSafety);
-            Assert.Null(LargeFileHunterService.GetAiUnavailableReason());
+            Assert.Equal(LargeFileHunterService.AiReadiness.Ready,
+                LargeFileHunterService.GetAiReadiness(out string? enabledReason));
+            Assert.Null(enabledReason);
         }
         finally
         {

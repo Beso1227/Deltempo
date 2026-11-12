@@ -32,11 +32,14 @@ namespace Deltempo.Tests
                     var lockers = RestartManagerService.GetLockingProcesses(tempFile);
 
                     Assert.NotNull(lockers);
-                    if (lockers.Count > 0)
-                    {
-                        var currentPid = Process.GetCurrentProcess().Id;
-                        Assert.Contains(lockers, p => p.ProcessId == currentPid);
-                    }
+                    // The detection itself must work: GetLockingProcesses also returns an
+                    // empty list when RmStartSession/RmRegisterResources/RmGetList FAIL,
+                    // and production treats an empty list as "not locked". An unconditional
+                    // assertion here is what makes a broken Restart Manager call loud
+                    // instead of a vacuous pass behind a Count guard.
+                    Assert.True(lockers.Count > 0,
+                        $"Restart Manager returned no lockers for a file this process holds open with FileShare.None. Count={lockers.Count}");
+                    Assert.Contains(lockers, p => p.ProcessId == Process.GetCurrentProcess().Id);
                 }
             }
             finally

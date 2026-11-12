@@ -233,7 +233,9 @@ public static class IFileOperationHelper
     /// signal: previously a partially-aborted batch was returned as an unqualified success
     /// count, so a caller had no way to tell "all 500 recycled" from "300 of 500".
     /// </returns>
-    public static int RecycleBatch(IReadOnlyList<string> filePaths)
+    // internal: the executor recycles file by file, so no product code calls the batch
+    // entry point. The partial-abort sign contract is still worth pinning under test.
+    internal static int RecycleBatch(IReadOnlyList<string> filePaths)
     {
         if (filePaths == null || filePaths.Count == 0) return 0;
 

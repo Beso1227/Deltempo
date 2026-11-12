@@ -281,22 +281,25 @@ public class DestructiveHardeningTests : IDisposable
             using var proc = System.Diagnostics.Process.Start(psi);
             proc?.WaitForExit(3000);
 
-            if (Directory.Exists(linkDir))
-            {
-                bool isReparse = PathSecurity.IsReparsePointOrLink(linkDir);
-                Assert.True(isReparse);
+            // Junctions do not require elevation, so a failed mklink is an environment
+            // break, not a tolerance case - fail loudly instead of skipping every
+            // assertion below.
+            Assert.True(Directory.Exists(linkDir),
+                $"mklink /J failed to create a junction at '{linkDir}' in this environment.");
 
-                bool revalidated = CleanupExecutor.RevalidateBeforeDeletion(
-                    linkDir,
-                    _sandboxDir,
-                    0,
-                    null,
-                    out string failureReason,
-                    out FileCleanupFailureReason reasonCode);
+            bool isReparse = PathSecurity.IsReparsePointOrLink(linkDir);
+            Assert.True(isReparse);
 
-                Assert.False(revalidated);
-                Assert.Equal(FileCleanupFailureReason.ReparsePointDetected, reasonCode);
-            }
+            bool revalidated = CleanupExecutor.RevalidateBeforeDeletion(
+                linkDir,
+                _sandboxDir,
+                0,
+                null,
+                out string failureReason,
+                out FileCleanupFailureReason reasonCode);
+
+            Assert.False(revalidated);
+            Assert.Equal(FileCleanupFailureReason.ReparsePointDetected, reasonCode);
         }
         finally
         {

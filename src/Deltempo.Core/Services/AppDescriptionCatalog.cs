@@ -149,14 +149,9 @@ public static class AppDescriptionCatalog
         return null;
     }
 
-    /// <summary>
-    /// Convenient lookup returning true if the app is known in the offline catalog.
-    /// </summary>
-    public static bool TryGetKnownApp(string displayName, out AppCatalogEntry? entry)
-    {
-        entry = FindCatalogEntry(displayName);
-        return entry != null;
-    }
+    // NOTE: TryGetKnownApp used to be a convenience wrapper around FindCatalogEntry with
+    // no product caller. AppIntelligenceService and InstalledAppService resolve entries
+    // through FindCatalogEntry directly, and the test now pins that path.
 
     /// <summary>
     /// Provides heuristic classification and a helpful contextual description for unknown software.

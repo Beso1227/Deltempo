@@ -258,10 +258,9 @@ public static class PathSecurity
         }
     }
 
-    /// <summary>
-    /// Checks if the path represents an unapproved remote network share or UNC path (e.g. \\server\share).
-    /// </summary>
-    public static bool IsUncPath(string path) => IsNetworkOrUncPath(path);
+    // NOTE: IsUncPath used to be a wrapper around IsNetworkOrUncPath with no product
+    // caller. ForceDeleteGate calls IsNetworkOrUncPath directly, and the test now
+    // pins that, so the rule is covered where it is enforced.
 
     public static bool IsNetworkOrUncPath(string path)
     {

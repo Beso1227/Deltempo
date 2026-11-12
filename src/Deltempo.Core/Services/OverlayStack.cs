@@ -52,7 +52,9 @@ public static class OverlayStack
     /// True when <paramref name="candidate"/> is painted at or above every other visible sibling —
     /// i.e. nothing can visually cover it. Used to assert overlay stacking in tests.
     /// </summary>
-    public static bool IsTopmost(FrameworkElement candidate)
+    // internal: no product code calls this - it exists so the stacking rules can be
+    // asserted. The shells compare Panel.GetZIndex directly.
+    internal static bool IsTopmost(FrameworkElement candidate)
     {
         ArgumentNullException.ThrowIfNull(candidate);
 

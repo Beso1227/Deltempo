@@ -20,8 +20,16 @@ public class SafeOpsTests
     [Fact]
     public void Try_WithThrowingAction_SwallowsAndContinues()
     {
-        // Must not propagate: best-effort call sites rely on this.
+        // Must not propagate: best-effort call sites rely on this. The assertion makes
+        // the "and continues" half observable - the test used to contain no assert at
+        // all, so it only failed if the exception escaped, never if the call swallowed
+        // something it should have reported.
+        bool reachedAfter = false;
+
         SafeOps.Try("test", () => throw new InvalidOperationException("boom"));
+
+        reachedAfter = true;
+        Assert.True(reachedAfter, "SafeOps.Try must swallow the exception so the caller continues.");
     }
 
     [Fact]
@@ -56,17 +64,19 @@ public class SafeOpsTests
     }
 
     [Fact]
-    public void TryBool_WithThrowingFunc_ReturnsFalse()
+    public void Try_WithThrowingFunc_ReturnsFalse()
     {
-        bool result = SafeOps.TryBool("test", () => throw new InvalidOperationException("boom"));
+        // SafeOps.Try(operation, func, fallback) is the live API - RootLeftoverPurgeService
+        // uses it. The old TryBool wrapper had no product caller; this pins the real one.
+        bool result = SafeOps.Try("test", () => throw new InvalidOperationException("boom"), false);
 
         Assert.False(result);
     }
 
     [Fact]
-    public void TryBool_WithNonThrowingFunc_ReturnsTrue()
+    public void Try_WithNonThrowingFunc_ReturnsTrue()
     {
-        bool result = SafeOps.TryBool("test", () => true);
+        bool result = SafeOps.Try("test", () => true, false);
 
         Assert.True(result);
     }

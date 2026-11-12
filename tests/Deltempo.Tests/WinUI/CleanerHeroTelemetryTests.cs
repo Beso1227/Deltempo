@@ -21,6 +21,15 @@ namespace Deltempo.Tests;
 /// WinUtil launch, because they are mutating or external (an elevated process)
 /// and the suite never touches them - see the destructive-path gate tests.
 /// </summary>
+/// <remarks>
+/// In the shared "Localization" collection: the drive card renders a localized
+/// string ("42.3% Free"), so this test's English expectation depends on the
+/// process-global <c>LocalizationService.CurrentLanguage</c> being "en". The
+/// localization tests switch that global, and without a shared collection the two
+/// classes run in parallel - which made this test fail intermittently with
+/// "24.1% Frei" (the German word) instead of "24.1% Free".
+/// </remarks>
+[Collection("Localization")]
 public class CleanerHeroTelemetryTests
 {
     private static CleanerWorkspaceViewModel NewViewModel()

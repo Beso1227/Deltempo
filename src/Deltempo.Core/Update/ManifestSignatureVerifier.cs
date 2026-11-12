@@ -82,7 +82,13 @@ public static class ManifestSignatureVerifier
     /// Also marks host provisioning as settled, so a test that isolates the trusted set is
     /// never re-seeded from the machine's environment.
     /// </summary>
-    public static void ClearTrustedKeys()
+    /// <remarks>
+    /// internal rather than public: no product code calls this - it exists so tests can
+    /// reset the verifier's static trusted-key state between runs. Same pattern as the
+    /// internal test seam in CleanerService, and it relies on the project's
+    /// InternalsVisibleTo("Deltempo.Tests").
+    /// </remarks>
+    internal static void ClearTrustedKeys()
     {
         lock (_keysLock)
         {

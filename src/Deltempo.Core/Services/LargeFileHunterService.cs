@@ -718,13 +718,10 @@ public static class LargeFileHunterService
         return AiReadiness.Ready;
     }
 
-    /// <summary>
-    /// Why an Ask-AI request cannot run right now, or <c>null</c> when it can.
-    /// </summary>
-    public static string? GetAiUnavailableReason() =>
-        GetAiReadiness(out string? reason) is AiReadiness.Ready or AiReadiness.BuiltInLocal
-            ? null
-            : reason;
+    // NOTE: GetAiUnavailableReason used to wrap GetAiReadiness here, mapping
+    // Ready/BuiltInLocal to null. No product code called it - both shells read
+    // GetAiReadiness(out reason) directly - so the suite was pinning a dead
+    // convenience method. The test now pins the API the product actually uses.
 
     /// <summary>
     /// Turns the master switch on when, and only when, the user has explicitly asked for an

@@ -704,11 +704,29 @@ public class UpdateTransactionCoordinatorTests
             journal.TransitionTo(TransactionState.StageVerified);
 
             var coordinator = new UpdateTransactionCoordinator(journal);
-            // Should proceed past backup since target doesn't exist (backup is skipped)
-            // but will fail at MoveFileEx since target dir may not work as expected
+            // The target never existed, so there is nothing to back up: the transaction
+            // must still install the staged file. It used to assert
+            // `result == false || result == true`, which holds for every boolean and
+            // could never fail. Now the outcome is pinned to the state it produced -
+            // success must mean committed AND installed, failure must not mean committed.
             bool result = await coordinator.ExecuteAsync();
-            // The coordinator should handle missing target gracefully
-            Assert.True(result == false || result == true); // Either outcome is acceptable for missing target
+
+            if (result)
+            {
+                Assert.Equal(TransactionState.Committed, journal.State);
+                Assert.True(File.Exists(targetPath),
+                    "A successful transaction must have installed the staged file at the target path.");
+            }
+            else
+            {
+                Assert.NotEqual(TransactionState.Committed, journal.State);
+                // A transaction that does not commit must end in a terminal failure
+                // state. The staged file is a fake PE, so the health handshake cannot
+                // succeed and the coordinator rolls back - that is RolledBack, and it
+                // is a legitimate outcome, but it must never look like a commit.
+                Assert.True(journal.State is TransactionState.Failed or TransactionState.RolledBack,
+                    $"A failed transaction must end in a terminal failure state, but ended in {journal.State}.");
+            }
         }
         finally
         {
@@ -729,7 +747,8 @@ public class UpdateTransactionCoordinatorTests
             string stagedPath = Path.Combine(updatesDir, "staged.exe");
 
             File.WriteAllText(targetPath, "OLD_BINARY_CONTENT");
-            File.WriteAllBytes(stagedPath, CreateFakePeExecutable());
+            byte[] stagedContent = CreateFakePeExecutable();
+            File.WriteAllBytes(stagedPath, stagedContent);
 
             var journal = new TransactionJournal
             {
@@ -755,8 +774,35 @@ public class UpdateTransactionCoordinatorTests
                 pollInterval: TimeSpan.FromMilliseconds(10));
             _ = await coordinator.ExecuteAsync();
 
-            // Verify that the backup mechanism created BackupPath or target.old
-            Assert.True(File.Exists(journal.BackupPath) || File.Exists($"{targetPath}.old"));
+            // The name of this test promises two things: the current executable is
+            // renamed aside, and the staged copy is staged in its place. The old
+            // assertion (`backup exists OR .old exists`) accepted neither the rename
+            // nor the install, so both are now checked.
+            //
+            // The coordinator launches the freshly installed binary and waits for a
+            // health handshake, which a fake PE can never produce - so the run normally
+            // ends in a rollback. Either outcome is fine; what must never happen is the
+            // target being left missing, or holding a mixture of the two files.
+            Assert.True(File.Exists(targetPath),
+                "The target executable must never be left missing after a transaction.");
+
+            byte[] onDisk = File.ReadAllBytes(targetPath);
+            byte[] oldBytes = System.Text.Encoding.UTF8.GetBytes("OLD_BINARY_CONTENT");
+            byte[] stagedBytes = stagedContent;
+
+            bool holdsOld = onDisk.AsSpan().SequenceEqual(oldBytes);
+            bool holdsStaged = onDisk.AsSpan().SequenceEqual(stagedBytes);
+
+            Assert.True(holdsOld || holdsStaged,
+                "The target must hold either the newly staged executable or the restored original - " +
+                $"it holds {onDisk.Length} bytes that match neither.");
+
+            if (holdsStaged)
+            {
+                // The install landed: the rename must have preserved the original beside it.
+                Assert.True(File.Exists($"{targetPath}.old") || File.Exists(journal.BackupPath),
+                    "Installing the staged copy must preserve the previous executable.");
+            }
         }
         finally
         {
@@ -824,22 +870,23 @@ public class AdversarialCleanupTests
             var proc = System.Diagnostics.Process.Start(psi);
             proc?.WaitForExit(5000);
 
-            // Verify junction exists
+            // Verify junction exists - junctions do not require elevation, so a failed
+            // mklink is an environment break, not a tolerance case.
             string junctionPath = Path.Combine(subDir, "junction");
-            if (!Directory.Exists(junctionPath))
-            {
-                // Junction creation may fail on some systems — skip test
-                return;
-            }
+            Assert.True(Directory.Exists(junctionPath),
+                $"mklink /J failed to create a junction at '{junctionPath}' in this environment.");
 
-            // CleanupPlanner should exclude junctions via AttributesToSkip = ReparsePoint
+            // CleanupPlanner should exclude junctions via AttributesToSkip = ReparsePoint.
+            // The real assertion: the junction (and nothing routed through it) must not
+            // appear in the planned actions.
             var plan = CleanupPlanner.CreatePlan(
                 "test", "Test", new[] { subDir }, "test",
                 apply24HourShield: false);
 
-            // The junction directory should not appear in planned actions
-            // (or if it does, it should be because the contents are scanned, not the junction itself)
             Assert.NotNull(plan);
+            string junctionFull = Path.GetFullPath(junctionPath).TrimEnd('\\');
+            Assert.DoesNotContain(plan.Actions, a =>
+                string.Equals(Path.GetFullPath(a.FilePath).TrimEnd('\\'), junctionFull, StringComparison.OrdinalIgnoreCase));
         }
         finally
         {
@@ -872,18 +919,24 @@ public class AdversarialCleanupTests
             var proc = System.Diagnostics.Process.Start(psi);
             proc?.WaitForExit(5000);
 
+            // Keep the elevation tolerance: file symlinks DO require elevation or
+            // Developer Mode, so a failed mklink here is a legitimate environment case.
             if (!File.Exists(symlinkFile))
             {
-                // Symlink creation requires elevation — skip test
+                // Symlink creation requires elevation - skip test
                 return;
             }
 
-            // CleanupPlanner should exclude symlinks via AttributesToSkip = ReparsePoint
+            // CleanupPlanner should exclude symlinks via AttributesToSkip = ReparsePoint.
+            // When the symlink exists, the exclusion must actually be asserted.
             var plan = CleanupPlanner.CreatePlan(
                 "test", "Test", new[] { tempDir }, "test",
                 apply24HourShield: false);
 
             Assert.NotNull(plan);
+            string symlinkFull = Path.GetFullPath(symlinkFile);
+            Assert.DoesNotContain(plan.Actions, a =>
+                string.Equals(Path.GetFullPath(a.FilePath), symlinkFull, StringComparison.OrdinalIgnoreCase));
         }
         finally
         {
@@ -907,15 +960,30 @@ public class AdversarialCleanupTests
                 apply24HourShield: false);
 
             Assert.NotNull(plan);
+            var action = Assert.Single(plan.Actions);
+            long plannedSize = action.SizeBytes;
 
-            // Modify file after plan creation (simulates TOCTOU race)
-            // The file should still be in the plan, but CleanupExecutor.RevalidateBeforeDeletion
-            // will catch it if the modification time changes
-            File.WriteAllText(testFile, "modified content");
-            var fi = new FileInfo(testFile);
+            // Modify the file after the plan was created (simulates a TOCTOU race).
+            // The file is still planned, but the executor must refuse to delete it
+            // because its size no longer matches what the plan recorded.
+            //
+            // This test used to only check that the file's timestamp was recent - it
+            // never called the revalidation it is named after, so the claim in the name
+            // was never actually verified.
+            File.WriteAllText(testFile, "modified content that is definitely a different length");
 
-            // The file was just modified, so its LastWriteTimeUtc should be very recent
-            Assert.True((DateTime.UtcNow - fi.LastWriteTimeUtc).TotalSeconds < 5);
+            bool revalidated = CleanupExecutor.RevalidateBeforeDeletion(
+                testFile,
+                new[] { tempDir },
+                plannedSize,
+                null,
+                out string failureReason,
+                out FileCleanupFailureReason reasonCode);
+
+            Assert.False(revalidated,
+                "Revalidation must refuse a file whose size changed after the plan was built.");
+            Assert.Equal(FileCleanupFailureReason.SizeChanged, reasonCode);
+            Assert.False(string.IsNullOrWhiteSpace(failureReason));
         }
         finally
         {
@@ -934,15 +1002,29 @@ public class AdversarialCleanupTests
             string testFile = Path.Combine(tempDir, "test.tmp");
             File.WriteAllText(testFile, "content");
 
-            // Record original modification time
-            var originalTime = File.GetLastWriteTimeUtc(testFile);
+            // Record what the planner would have seen at scan time.
+            var originalInfo = new FileInfo(testFile);
+            long originalSize = originalInfo.Length;
+            DateTime originalTimestamp = originalInfo.LastWriteTimeUtc;
 
-            // Simulate: file was modified after being matched
-            File.WriteAllText(testFile, "changed content");
-            var changedTime = File.GetLastWriteTimeUtc(testFile);
+            // Simulate: the file was modified after being matched.
+            File.WriteAllText(testFile, "changed content, and it is longer than before");
 
-            // The changed time should be >= original time
-            Assert.True(changedTime >= originalTime);
+            // The executor must refuse the deletion. The old version of this test only
+            // asserted `changedTime >= originalTime` - a fact about the filesystem that
+            // says nothing about whether the executor catches the change.
+            bool revalidated = CleanupExecutor.RevalidateBeforeDeletion(
+                testFile,
+                new[] { tempDir },
+                originalSize,
+                originalTimestamp,
+                out string failureReason,
+                out FileCleanupFailureReason reasonCode);
+
+            Assert.False(revalidated,
+                "Revalidation must refuse a file that changed after the scan recorded its size and timestamp.");
+            Assert.Equal(FileCleanupFailureReason.SizeChanged, reasonCode);
+            Assert.False(string.IsNullOrWhiteSpace(failureReason));
         }
         finally
         {

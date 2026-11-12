@@ -82,7 +82,9 @@ public static class DwmBackdropService
     /// Applies native Windows 11 DWM backdrop (Mica / Acrylic / Tabbed) to the specified window handle.
     /// Returns true if applied successfully, false otherwise.
     /// </summary>
-    public static bool ApplyBackdrop(IntPtr hWnd, BackdropType type, bool isDarkMode = true)
+    // internal: the WinUI shell applies rounded corners through ApplyWindowCorners;
+    // the backdrop call itself has no product caller.
+    internal static bool ApplyBackdrop(IntPtr hWnd, BackdropType type, bool isDarkMode = true)
     {
         if (hWnd == IntPtr.Zero || !IsWindows11OrGreater())
         {

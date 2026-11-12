@@ -185,7 +185,9 @@ public static class NativeFileScanner
     /// Asynchronously streams discovered files via a bounded Channel.
     /// Enables pipelined producer-consumer processing where files are evaluated concurrently with disk enumeration.
     /// </summary>
-    public static IAsyncEnumerable<DiscoveredFileItem> EnumerateFilesAsync(
+    // internal: the scan path uses ScanDirectory; the async enumeration is covered
+    // under test only.
+    internal static IAsyncEnumerable<DiscoveredFileItem> EnumerateFilesAsync(
         string rootDirectory,
         CancellationToken ct = default,
         bool recurse = true,

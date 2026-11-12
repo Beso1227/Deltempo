@@ -8,8 +8,28 @@ namespace Deltempo.Tests;
 /// Tests for the pure static localization engine. Covers translation lookup,
 /// language fallback, key fallback, and target localization across all 5 languages.
 /// </summary>
-public class LocalizationServiceTests
+/// <remarks>
+/// This class is in the shared "Localization" collection because
+/// <c>LocalizationService.CurrentLanguage</c> is process-global state, and these
+/// tests switch it. Without the collection, they run in parallel with classes
+/// that READ the language and the results are non-deterministic: the drive card
+/// in <c>CleanerHeroTelemetryTests</c> failed intermittently with "24.1% Frei"
+/// (German) instead of "24.1% Free" because this class had the language set to
+/// "de" at that moment.
+/// </remarks>
+[Collection("Localization")]
+public class LocalizationServiceTests : IDisposable
 {
+    private readonly string _originalLanguage = LocalizationService.CurrentLanguage;
+
+    public void Dispose()
+    {
+        // xunit creates one instance per test, so this runs after each test in the
+        // class. Restoring the language keeps the switch from leaking into the next
+        // class in this collection.
+        LocalizationService.CurrentLanguage = _originalLanguage;
+    }
+
     // ─── Get() lookup & fallback ───────────────────────────────────────
 
     [Theory]

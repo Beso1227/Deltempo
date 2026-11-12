@@ -620,7 +620,8 @@ public static class AiModelCatalog
     /// The label for the model a request will actually use: the provider default when the
     /// box is empty, the typed identifier when it is not.
     /// </summary>
-    public static string DescribeModel(string? providerName, string? userModelName)
+    // internal: no product code calls this - the settings UI composes its own label.
+    internal static string DescribeModel(string? providerName, string? userModelName)
     {
         string model = ResolveModelId(providerName, userModelName);
         if (string.IsNullOrEmpty(model))

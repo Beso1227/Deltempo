@@ -291,7 +291,9 @@ public static partial class DriveHealthService
     /// Compatibility accessor for one volume. Returns the physical device that hosts
     /// it, or a DriveInfo-only row when the storage provider cannot map the volume.
     /// </summary>
-    public static DriveHealthInfo GetDriveHealthSnapshot(string driveLetter = "C:")
+    // internal: the drives UI enumerates GetAllDriveHealth; nothing calls the
+    // single-drive snapshot outside the suite.
+    internal static DriveHealthInfo GetDriveHealthSnapshot(string driveLetter = "C:")
     {
         ArgumentNullException.ThrowIfNull(driveLetter);
 
@@ -325,8 +327,11 @@ public static partial class DriveHealthService
         return fallback;
     }
 
-    /// <summary>Worst health across all connected drives, for the hero button colour.</summary>
-    public static DriveHealthInfo? GetWorstDriveHealth() => DriveHealthInfo.Worst(GetAllDriveHealth());
+    // NOTE: there used to be a GetWorstDriveHealth() convenience wrapper here. It had
+    // no production caller - the WPF hero button computes DriveHealthInfo.Worst(drives)
+    // inline from the snapshot it already fetched - so it only existed for its own test.
+    // A test that pins an API the product never calls is coverage of dead code; the
+    // behaviour itself is covered through DriveHealthInfo.Worst, which is public.
 
     private static string NormalizeDriveLetter(string driveLetter)
     {

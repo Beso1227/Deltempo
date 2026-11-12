@@ -57,12 +57,14 @@ public static class GameBoostService
         return match.Success ? match.Value : null!;
     }
 
-    public static string GetTargetPowerSchemeGuid(bool useUltimate = true)
+    // internal: the boost path resolves the GUID through ExtractPowerSchemeGuid.
+    internal static string GetTargetPowerSchemeGuid(bool useUltimate = true)
     {
         return useUltimate ? UltimatePerformanceGuid : HighPerformanceGuid;
     }
 
-    public static IReadOnlyList<string> GetThrottlableProcessNames()
+    // internal: no product code calls this - the boost path iterates the list itself.
+    internal static IReadOnlyList<string> GetThrottlableProcessNames()
     {
         return ThrottlableProcesses;
     }

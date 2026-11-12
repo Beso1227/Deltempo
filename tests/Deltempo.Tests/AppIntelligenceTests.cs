@@ -22,22 +22,23 @@ public class AppIntelligenceTests
     [InlineData("7-Zip 23.01 (x64)", "Utilities")]
     public void Catalog_RecognizesProminentWindowsApps(string appName, string expectedCategory)
     {
-        bool found = AppDescriptionCatalog.TryGetKnownApp(appName, out var entry);
+        // FindCatalogEntry is the live lookup (AppIntelligenceService and
+        // InstalledAppService both use it); the old TryGetKnownApp wrapper had no
+        // product caller.
+        var entry = AppDescriptionCatalog.FindCatalogEntry(appName, "");
 
-        Assert.True(found, $"Catalog should recognize: {appName}");
         Assert.NotNull(entry);
-        Assert.Equal(expectedCategory, entry.Category);
+        Assert.Equal(expectedCategory, entry!.Category);
         Assert.False(string.IsNullOrWhiteSpace(entry.Description));
     }
 
     [Fact]
     public void Catalog_FlagsCoreRuntimesAsHighRisk()
     {
-        bool found = AppDescriptionCatalog.TryGetKnownApp("Microsoft Visual C++ 2019 Redistributable", out var entry);
+        var entry = AppDescriptionCatalog.FindCatalogEntry("Microsoft Visual C++ 2019 Redistributable", "");
 
-        Assert.True(found);
         Assert.NotNull(entry);
-        Assert.True(entry.IsCoreRuntime);
+        Assert.True(entry!.IsCoreRuntime);
         Assert.Equal("High Risk", entry.SafetyVerdict);
     }
 

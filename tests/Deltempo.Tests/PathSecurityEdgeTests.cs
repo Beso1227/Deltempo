@@ -162,7 +162,9 @@ public class PathSecurityEdgeTests
     [InlineData("not a path @#^", false)]
     public void IsUncPath_ClassifiesDeviceAndForwardSlashForms(string path, bool expected)
     {
-        Assert.Equal(expected, PathSecurity.IsUncPath(path));
+        // IsNetworkOrUncPath is the live API (ForceDeleteGate refuses remote shares
+        // through it); the old IsUncPath wrapper had no product caller.
+        Assert.Equal(expected, PathSecurity.IsNetworkOrUncPath(path));
     }
 
     [Fact]

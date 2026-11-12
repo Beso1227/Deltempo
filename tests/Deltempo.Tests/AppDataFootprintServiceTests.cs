@@ -102,11 +102,12 @@ public class AppDataFootprintServiceTests
     {
         var entries = AppDataFootprintService.Analyze();
 
-        if (entries.Count == 0)
-        {
-            // No readable AppData tree on this machine - nothing to assert, but not a failure.
-            return;
-        }
+        // Every Windows user profile has AppData roots with depth-1 folders, so an
+        // empty result means the service regressed, not that the machine is bare.
+        // Failing here keeps a broken Analyze() from passing vacuously behind this
+        // early return.
+        Assert.True(entries.Count > 0,
+            "AppDataFootprintService.Analyze returned no entries on a machine with a normal user profile.");
 
         for (int i = 1; i < entries.Count; i++)
         {
