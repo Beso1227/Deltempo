@@ -20,7 +20,7 @@
          managed client for it; PowerShell child processes per telemetry refresh would
          cost a second of UI latency and a process per call. -->
     <PackageVersion Include="System.Management" Version="10.0.14" />
-    <PackageVersion Include="coverlet.collector" Version="10.1.0" />
+    <PackageVersion Include="coverlet.collector" Version="10.1.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.403" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <!-- MTP-native coverage extension. Replaces the VSTest-only coverlet.collector path,
